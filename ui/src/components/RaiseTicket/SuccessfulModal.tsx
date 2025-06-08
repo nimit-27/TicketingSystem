@@ -1,13 +1,13 @@
 import { Box, Modal } from "@mui/material";
-import './SuccessfullModal.scss'
+import './SuccessfulModal.scss'
 
-interface SuccessfullModalProps {
+interface SuccessfulModalProps {
     open: boolean;
     ticketId: string;
     onClose: () => void;
 }
 
-const SuccessfullModal: React.FC<SuccessfullModalProps> = ({ open, ticketId, onClose }) => {
+const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClose }) => {
     const encodedTicketId = encodeURIComponent(ticketId);
 
     return (
@@ -49,4 +49,4 @@ const SuccessfullModal: React.FC<SuccessfullModalProps> = ({ open, ticketId, onC
     )
 }
 
-export default SuccessfullModal;
+export default SuccessfulModal;
