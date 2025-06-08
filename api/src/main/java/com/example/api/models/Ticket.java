@@ -2,6 +2,7 @@ package com.example.api.models;
 
 import com.example.api.enums.Mode;
 import com.example.api.enums.Priority;
+import com.example.api.enums.TicketStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -32,6 +33,8 @@ public class Ticket {
     private String subCategory;
     @Enumerated(EnumType.STRING)
     private Priority priority;
+    @Enumerated(EnumType.STRING)
+    private TicketStatus status;
     @Column(name="attachment_path")
     private String attachmentPath;
     @JsonProperty("isMaster")

@@ -4,6 +4,8 @@ import { Chip, ToggleButton, ToggleButtonGroup, Card, CardContent, Typography, T
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
 import { getTickets } from "../services/TicketService";
+import { useNavigate } from "react-router-dom";
+import Title from "../components/Title";
 
 interface Employee {
     name?: string;
@@ -24,6 +26,7 @@ interface Ticket {
 
 const AllTickets: React.FC = () => {
     const { data, pending, error, apiHandler } = useApi<Ticket[]>();
+    const navigate = useNavigate();
     const [search, setSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
@@ -109,6 +112,7 @@ const AllTickets: React.FC = () => {
 
     return (
         <div className="container">
+            <Title text="My Tickets" />
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <TextField
                     label="Search by Id or Subject"
@@ -134,13 +138,14 @@ const AllTickets: React.FC = () => {
                     columns={columns}
                     rowKey="id"
                     pagination={{ pageSize: 5 }}
+                    onRow={(record) => ({ onClick: () => navigate(`/tickets/${record.id}`) })}
                 />
             )}
             {!pending && viewMode === "grid" && (
                 <div className="row">
                     {filtered.map((t) => (
                         <div className="col-md-4 mb-3" key={t.id}>
-                            <Card>
+                            <Card onClick={() => navigate(`/tickets/${t.id}`)} style={{cursor:'pointer'}}>
                                 <CardContent>
                                     <Typography variant="h6">
                                         {t.subject}{" "}
