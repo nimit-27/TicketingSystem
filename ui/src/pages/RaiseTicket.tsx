@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetails from "../components/RaiseTicket/TicketDetails";
-import SuccessfullModal from "../components/RaiseTicket/SuccessfullModal";
+import SuccessfulModal from "../components/RaiseTicket/SuccessfulModal";
 import { useState } from "react";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
 import GenericButton from "../components/UI/Button";
@@ -57,7 +57,7 @@ const RaiseTicket: React.FC<any> = () => {
             {/* Link to Master Ticket Modal */}
             <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} />
             {/* Successful Modal */}
-            <SuccessfullModal ticketId={"ABC"} open={successfullModalOpen} onClose={onClose} />
+            <SuccessfulModal ticketId={"ABC"} open={successfullModalOpen} onClose={onClose} />
         </div>
     )
 }
