@@ -16,3 +16,22 @@ export function getTickets() {
     console.log("getTickets called");
     return axios.get(`${baseURL}/tickets`);
 }
+
+export function getTicket(id: number) {
+    return axios.get(`${baseURL}/tickets/${id}`);
+}
+
+export function updateTicket(id: number, payload: any) {
+    return axios.put(`${baseURL}/tickets/${id}`, payload);
+}
+
+export function addComment(id: number, comment: string) {
+    return axios.post(`${baseURL}/tickets/${id}/comments`, comment, {
+        headers: { 'Content-Type': 'text/plain' }
+    });
+}
+
+export function getComments(id: number, count?: number) {
+    const url = count ? `${baseURL}/tickets/${id}/comments?count=${count}` : `${baseURL}/tickets/${id}/comments`;
+    return axios.get(url);
+}

@@ -4,6 +4,7 @@ import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetails from "../components/RaiseTicket/TicketDetails";
 import SuccessfulModal from "../components/RaiseTicket/SuccessfulModal";
 import { useState } from "react";
+import Title from "../components/Title";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
 import GenericButton from "../components/UI/Button";
 import { useApi } from "../hooks/useApi";
@@ -38,7 +39,7 @@ const RaiseTicket: React.FC<any> = () => {
 
     return (
         <div className="container pt-5 px-3">
-            {/* Title */}
+            <Title text="Raise Ticket" />
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}
                 <RequestDetails register={register} control={control} errors={errors} />
