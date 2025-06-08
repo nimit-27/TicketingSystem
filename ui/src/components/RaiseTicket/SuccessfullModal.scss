@@ -1,0 +1,22 @@
+.ticket-success {
+    width: 65% !important;
+
+    .bg-light-green {
+        background-color: #c7ffbc;
+    }
+
+    .ticket-id {
+        color: #0b3d0b;
+    }
+
+    .note-box {
+        font-size: 0.85rem;
+        color: #333;
+
+        ul {
+            li {
+                margin-bottom: 0.4rem;
+            }
+        }
+    }
+}

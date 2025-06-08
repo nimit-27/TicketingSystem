@@ -1,0 +1,11 @@
+# Node.js UI
+ui/node_modules/
+ui/dist/
+ui/build/
+
+# Java API (Gradle)
+api/build/
+api/.gradle/
+api/.idea/
+api/*.iml
+api/*.log
