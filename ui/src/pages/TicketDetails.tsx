@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { getTicket, updateTicket, addComment, getComments } from "../services/TicketService";
+import { getTicket, updateTicket, addComment, getComments, updateComment, deleteComment } from "../services/TicketService";
 import { useApi } from "../hooks/useApi";
 import Title from "../components/Title";
 import RequestDetails from "../components/RaiseTicket/RequestDetails";
@@ -46,17 +46,23 @@ const statusOptions: DropdownOption[] = [
 
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
-    const { data: ticket, apiHandler } = useApi<any>();
-    const { data: commentsData, apiHandler: getCommentsHandler } = useApi<any>();
+    const { data: ticket, apiHandler: ticketApiHandler } = useApi<any>();
+    const { apiHandler: commentsApiHandler } = useApi<any>();
+    const { apiHandler: addCommentApiHandler } = useApi<any>();
+    const { apiHandler: updateCommentApiHandler } = useApi<any>();
+    const { apiHandler: deleteCommentApiHandler } = useApi<any>();
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState("");
+    const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+    const [editText, setEditText] = useState("");
+    const [showMore, setShowMore] = useState(false);
 
     const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
     const formData = watch();
 
     useEffect(() => {
         if (ticketId) {
-            apiHandler(() => getTicket(Number(ticketId)));
+            ticketApiHandler(() => getTicket(Number(ticketId)));
             loadComments(5);
         }
     }, [ticketId]);
@@ -78,19 +84,46 @@ const TicketDetails: React.FC = () => {
     }, [ticket]);
 
     const loadComments = (count?: number) => {
-        getCommentsHandler(() => getComments(Number(ticketId), count)).then((c: any) => setComments(c));
+        commentsApiHandler(() => getComments(Number(ticketId))).then((all: any) => {
+            if (count && all.length > count) {
+                setComments(all.slice(0, count));
+                setShowMore(true);
+            } else {
+                setComments(all);
+                setShowMore(false);
+            }
+        });
     };
 
     const postComment = () => {
         if (!commentText) return;
-        apiHandler(() => addComment(Number(ticketId), commentText)).then(() => {
+        addCommentApiHandler(() => addComment(Number(ticketId), commentText)).then(() => {
             setCommentText("");
             loadComments();
         });
     };
 
+    const startEdit = (c: Comment) => {
+        setEditingCommentId(c.id);
+        setEditText(c.comment);
+    };
+
+    const saveEdit = (id: number) => {
+        updateCommentApiHandler(() => updateComment(id, editText)).then(() => {
+            setEditingCommentId(null);
+            setEditText("");
+            loadComments(comments.length);
+        });
+    };
+
+    const removeComment = (id: number) => {
+        deleteCommentApiHandler(() => deleteComment(id)).then(() => {
+            loadComments(comments.length);
+        });
+    };
+
     const onSubmit = (data: any) => {
-        apiHandler(() => updateTicket(Number(ticketId), data));
+        ticketApiHandler(() => updateTicket(Number(ticketId), data));
     };
 
     return (
@@ -128,10 +161,26 @@ const TicketDetails: React.FC = () => {
                 {comments.length === 0 && <p>No comments</p>}
                 {comments.map((c) => (
                     <div key={c.id} className="border p-2 mb-2">
-                        {c.comment}
+                        {editingCommentId === c.id ? (
+                            <>
+                                <textarea
+                                    className="form-control mb-2"
+                                    value={editText}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                />
+                                <button className="btn btn-primary btn-sm me-2" onClick={() => saveEdit(c.id)}>Save</button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingCommentId(null)}>Cancel</button>
+                            </>
+                        ) : (
+                            <>
+                                <div>{c.comment}</div>
+                                <button className="btn btn-link btn-sm" onClick={() => startEdit(c)}>Edit</button>
+                                <button className="btn btn-link btn-sm text-danger" onClick={() => removeComment(c.id)}>Delete</button>
+                            </>
+                        )}
                     </div>
                 ))}
-                {comments.length > 0 && (
+                {showMore && (
                     <button className="btn btn-link" onClick={() => loadComments()}>Show more</button>
                 )}
             </div>

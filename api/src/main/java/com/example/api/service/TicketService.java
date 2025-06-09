@@ -80,6 +80,16 @@ public class TicketService {
         return list.subList(0, count);
     }
 
+    public TicketComment updateComment(int commentId, String comment) {
+        TicketComment existing = commentRepository.findById(commentId).orElseThrow();
+        existing.setComment(comment);
+        return commentRepository.save(existing);
+    }
+
+    public void deleteComment(int commentId) {
+        commentRepository.deleteById(commentId);
+    }
+
 
 
     public List<Ticket> getMasterTickets() {
