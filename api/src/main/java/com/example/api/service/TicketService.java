@@ -28,7 +28,7 @@ public class TicketService {
         this.commentRepository = commentRepository;
     }
 
-    public List<Ticket> getTickets() throws Exception {
+    public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
         return ticketRepository.findAll();
     }
@@ -54,6 +54,7 @@ public class TicketService {
     public Ticket updateTicket(int id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id).orElseThrow();
         existing.setCategory(updated.getCategory());
+        existing.setStatus(updated.getStatus());
         existing.setSubCategory(updated.getSubCategory());
         existing.setPriority(updated.getPriority());
         existing.setDescription(updated.getDescription());
