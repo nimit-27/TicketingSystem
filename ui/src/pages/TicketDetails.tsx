@@ -44,18 +44,6 @@ interface Comment {
     createdAt: string;
 }
 
-const statusOptions: DropdownOption[] = [
-    { label: "Pending", value: "PENDING" },
-    { label: "On Hold", value: "ON_HOLD" },
-    { label: "Closed", value: "CLOSED" },
-    { label: "Reopened", value: "REOPENED" },
-    { label: "Resolved", value: "RESOLVED" },
-    { label: "Assign Further", value: "ASSIGN_FURTHER" },
-];
-
-const assignLevelOptions: DropdownOption[] = Roles.filter(r => r !== "USER").map(r => ({ label: r, value: r }));
-const assignToOptions: DropdownOption[] = assignLevelOptions;
-
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
     const { data: ticket, apiHandler: ticketApiHandler } = useApi<any>();
@@ -71,7 +59,6 @@ const TicketDetails: React.FC = () => {
 
     const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
     const formData = watch();
-    const currentUserRole = localStorage.getItem('role') || 'USER';
 
     useEffect(() => {
         if (ticketId) {
@@ -170,59 +157,7 @@ const TicketDetails: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <RequestDetails register={register} control={control} errors={errors} formData={formData} disableAll />
                 <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} disableAll />
-                <GenericDropdownController
-                    name="status"
-                    control={control}
-                    label="Update Status"
-                    options={statusOptions}
-                    className="form-select m-3 w-25"
-                />
 
-                {currentUserRole !== 'USER' && formData.status === 'ASSIGN_FURTHER' && (
-                    <div className="m-3 d-flex">
-                        <div className="me-3" style={{ flex: 1 }}>
-                            <GenericDropdownController
-                                name="assignToLevel"
-                                control={control}
-                                label="Assign to Level"
-                                options={assignLevelOptions}
-                                className="form-select"
-                            />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <GenericDropdownController
-                                name="assignTo"
-                                control={control}
-                                label="Assign to"
-                                options={assignToOptions}
-                                className="form-select"
-                            />
-                        </div>
-                    </div>
-                )}
-
-                <div className="m-3 d-flex">
-                    <div className="me-3" style={{ flex: 1 }}>
-                        <CustomFormInput
-                            name="assignedAtLevel"
-                            label="Assigned at Level"
-                            register={register}
-                            errors={errors}
-                            disabled
-                            showLabel
-                        />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <CustomFormInput
-                            name="assignedTo"
-                            label="Assigned to"
-                            register={register}
-                            errors={errors}
-                            disabled
-                            showLabel
-                        />
-                    </div>
-                </div>
                 <TicketDetailsForm register={register} control={control} errors={errors} formData={formData} subjectDisabled disableAll={false} />
                 <GenericButton textKey="Update Ticket" variant="contained" type="submit" />
             </form>
