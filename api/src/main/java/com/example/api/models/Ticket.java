@@ -38,14 +38,14 @@ public class Ticket {
     @Column(name="attachment_path")
     private String attachmentPath;
 
-    @Column(name = "assign_to_level")
-    private String assignToLevel;
+//    @Column(name = "assign_to_level")
+//    private String assignToLevel;
+//
+//    @Column(name = "assign_to")
+//    private String assignTo;
 
-    @Column(name = "assign_to")
-    private String assignTo;
-
-    @Column(name = "assigned_at_level")
-    private String assignedAtLevel;
+    @Column(name = "assigned_to_level")
+    private String assignedToLevel;
 
     @Column(name = "assigned_to")
     private String assignedTo;
