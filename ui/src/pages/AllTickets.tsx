@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Table } from "antd";
-import { Chip, ToggleButton, ToggleButtonGroup, Card, CardContent, Typography, TextField } from "@mui/material";
+import { Avatar, Box, Tooltip, ToggleButton, ToggleButtonGroup, Card, CardContent, Typography, TextField } from "@mui/material";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
 import { getTickets } from "../services/TicketService";
@@ -33,6 +34,13 @@ const AllTickets: React.FC = () => {
     const [search, setSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
+
+    const priorityConfig: Record<string, { color: string; count: number }> = {
+        LOW: { color: 'success.light', count: 1 },
+        MEDIUM: { color: 'warning.light', count: 2 },
+        HIGH: { color: 'error.main', count: 3 },
+        CRITICAL: { color: 'error.dark', count: 4 }
+    };
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -64,7 +72,9 @@ const AllTickets: React.FC = () => {
                 render: (_: any, record: Ticket) => (
                     <>
                         {record.id}
-                        {record.isMaster && <Chip label="M" size="small" color="primary" sx={{ mr: 0.5 }} />}
+                        {record.isMaster && (
+                            <Avatar sx={{ bgcolor: 'darkgreen', width: 20, height: 20, ml: 0.5, fontSize: 12 }}>M</Avatar>
+                        )}
                     </>
                 ),
             },
@@ -150,26 +160,56 @@ const AllTickets: React.FC = () => {
             )}
             {!pending && viewMode === "grid" && (
                 <div className="row">
-                    {filtered.map((t) => (
-                        <div className="col-md-4 mb-3" key={t.id}>
-                            <Card onClick={() => navigate(`/tickets/${t.id}`)} style={{cursor:'pointer'}}>
-                                <CardContent>
-                                    <Typography variant="h6">
-                                        {t.subject}{" "}
-                                        {t.isMaster && <Chip label="M" size="small" color="primary" sx={{ ml: 0.5 }} />}
-                                    </Typography>
-                                    <Typography variant="body2">Id: {t.id}</Typography>
-                                    <Typography variant="body2">Requestor: {t.employee?.name || "-"}</Typography>
-                                    <Typography variant="body2">
-                                        {t.employee?.emailId || "-"} / {t.employee?.mobileNo || "-"}
-                                    </Typography>
-                                    <Typography variant="body2">Category: {t.category}</Typography>
-                                    <Typography variant="body2">Sub-Category: {t.subCategory}</Typography>
-                                    <Typography variant="body2">Priority: {t.priority}</Typography>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    ))}
+                    {filtered.map((t) => {
+                        const p = priorityConfig[t.priority as keyof typeof priorityConfig] || { color: 'grey.400', count: 1 };
+                        return (
+                            <div className="col-md-4 mb-3" key={t.id}>
+                                <Card
+                                    onClick={() => navigate(`/tickets/${t.id}`)}
+                                    sx={{
+                                        cursor: 'pointer',
+                                        border: '1px solid',
+                                        borderColor: p.color,
+                                        boxShadow: 'none',
+                                        height: '100%',
+                                        position: 'relative',
+                                        transition: 'background-color 0.2s, transform 0.2s',
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(0,0,0,0.04)',
+                                            transform: 'scale(1.02)'
+                                        }
+                                    }}
+                                >
+                                    <CardContent sx={{ pb: 4 }}>
+                                        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <span style={{
+                                                maxWidth: 200,
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }} title={t.subject}>{t.subject}</span>
+                                            {t.isMaster && (
+                                                <Avatar sx={{ bgcolor: 'darkgreen', width: 20, height: 20, ml: 0.5, fontSize: 12 }}>M</Avatar>
+                                            )}
+                                        </Typography>
+                                        <Typography variant="body2">Id: {t.id}</Typography>
+                                        <Typography variant="body2">Requestor: {t.employee?.name || "-"}</Typography>
+                                        <Typography variant="body2">Category: {t.category}</Typography>
+                                        <Typography variant="body2">Sub-Category: {t.subCategory}</Typography>
+                                    </CardContent>
+                                    <Box sx={{ position: 'absolute', bottom: 4, right: 4, color: p.color }}>
+                                        <Tooltip title={t.priority}>
+                                            <span>
+                                                {Array.from({ length: p.count }).map((_, i) => (
+                                                    <KeyboardArrowUpIcon key={i} fontSize="small" />
+                                                ))}
+                                            </span>
+                                        </Tooltip>
+                                    </Box>
+                                </Card>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>

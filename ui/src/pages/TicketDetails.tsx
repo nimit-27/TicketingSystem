@@ -1,21 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { getTicket, updateTicket, addComment, getComments, updateComment, deleteComment } from "../services/TicketService";
+import { getTicket, updateTicket } from "../services/TicketService";
 import { useApi } from "../hooks/useApi";
 import Title from "../components/Title";
 import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetailsForm from "../components/RaiseTicket/TicketDetails";
 import GenericButton from "../components/UI/Button";
-import GenericDropdownController from "../components/UI/Dropdown/GenericDropdownController";
-import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import Switch from "@mui/material/Switch";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CustomFormInput from "../components/UI/Input/CustomFormInput";
-import { Roles } from "../config/config";
+import CommentsSection from "../components/Comments/CommentsSection";
 
 interface Ticket {
     id: number;
@@ -41,24 +35,9 @@ interface Ticket {
     assignedTo?: string;
 }
 
-interface Comment {
-    id: number;
-    comment: string;
-    createdAt: string;
-}
-
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
     const { data: ticket, apiHandler: ticketApiHandler } = useApi<any>();
-    const { apiHandler: commentsApiHandler } = useApi<any>();
-    const { apiHandler: addCommentApiHandler } = useApi<any>();
-    const { apiHandler: updateCommentApiHandler } = useApi<any>();
-    const { apiHandler: deleteCommentApiHandler } = useApi<any>();
-    const [comments, setComments] = useState<Comment[]>([]);
-    const [commentText, setCommentText] = useState("");
-    const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-    const [editText, setEditText] = useState("");
-    const [showMore, setShowMore] = useState(false);
 
     const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
     const formData = watch();
@@ -66,12 +45,10 @@ const TicketDetails: React.FC = () => {
     useEffect(() => {
         if (ticketId) {
             ticketApiHandler(() => getTicket(Number(ticketId)));
-            loadComments(5);
         }
     }, [ticketId]);
 
     useEffect(() => {
-        console.log("Ticket data:", ticket);
         if (ticket) {
             setValue("ticketId", ticket.id);
             setValue("reportedDate", ticket.reportedDate?.slice(0, 10));
@@ -90,44 +67,6 @@ const TicketDetails: React.FC = () => {
         }
     }, [ticket]);
 
-    const loadComments = (count?: number) => {
-        commentsApiHandler(() => getComments(Number(ticketId))).then((all: any) => {
-            if (count && all.length > count) {
-                setComments(all.slice(0, count));
-                setShowMore(true);
-            } else {
-                setComments(all);
-                setShowMore(false);
-            }
-        });
-    };
-
-    const postComment = () => {
-        if (!commentText) return;
-        addCommentApiHandler(() => addComment(Number(ticketId), commentText)).then(() => {
-            setCommentText("");
-            loadComments();
-        });
-    };
-
-    const startEdit = (c: Comment) => {
-        setEditingCommentId(c.id);
-        setEditText(c.comment);
-    };
-
-    const saveEdit = (id: number) => {
-        updateCommentApiHandler(() => updateComment(id, editText)).then(() => {
-            setEditingCommentId(null);
-            setEditText("");
-            loadComments(comments.length);
-        });
-    };
-
-    const removeComment = (id: number) => {
-        deleteCommentApiHandler(() => deleteComment(id)).then(() => {
-            loadComments(comments.length);
-        });
-    };
 
     const handleReopenToggle = (e: any) => {
         const checked = e.target.checked;
@@ -165,45 +104,7 @@ const TicketDetails: React.FC = () => {
                 <GenericButton textKey="Update Ticket" variant="contained" type="submit" />
             </form>
 
-            <div className="border p-3 mb-3">
-                <textarea
-                    className="form-control mb-2"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                />
-                <button className="btn btn-primary" onClick={postComment}>Post</button>
-            </div>
-            <div>
-                {comments.length === 0 && <p>No comments</p>}
-                {comments.map((c) => (
-                    <div key={c.id} className="border p-2 mb-2">
-                        {editingCommentId === c.id ? (
-                            <>
-                                <textarea
-                                    className="form-control mb-2"
-                                    value={editText}
-                                    onChange={(e) => setEditText(e.target.value)}
-                                />
-                                <button className="btn btn-primary btn-sm me-2" onClick={() => saveEdit(c.id)}>Save</button>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingCommentId(null)}>Cancel</button>
-                            </>
-                        ) : (
-                            <div className="d-flex align-items-start">
-                                <IconButton size="small" onClick={() => startEdit(c)}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton size="small" onClick={() => removeComment(c.id)} color="error">
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
-                                <div className="ms-2">{c.comment}</div>
-                            </div>
-                        )}
-                    </div>
-                ))}
-                {showMore && (
-                    <button className="btn btn-link" onClick={() => loadComments()}>Show more</button>
-                )}
-            </div>
+            <CommentsSection ticketId={Number(ticketId)} />
         </div>
     );
 };
