@@ -37,6 +37,18 @@ public class Ticket {
     private TicketStatus status;
     @Column(name="attachment_path")
     private String attachmentPath;
+
+    @Column(name = "assign_to_level")
+    private String assignToLevel;
+
+    @Column(name = "assign_to")
+    private String assignTo;
+
+    @Column(name = "assigned_at_level")
+    private String assignedAtLevel;
+
+    @Column(name = "assigned_to")
+    private String assignedTo;
     @JsonProperty("isMaster")
     @Column(name = "is_master")
     private boolean isMaster;

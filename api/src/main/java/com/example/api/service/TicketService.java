@@ -59,6 +59,10 @@ public class TicketService {
         existing.setPriority(updated.getPriority());
         existing.setDescription(updated.getDescription());
         existing.setAttachmentPath(updated.getAttachmentPath());
+        existing.setAssignToLevel(updated.getAssignToLevel());
+        existing.setAssignTo(updated.getAssignTo());
+        existing.setAssignedAtLevel(updated.getAssignedAtLevel());
+        existing.setAssignedTo(updated.getAssignedTo());
         return ticketRepository.save(existing);
     }
 
