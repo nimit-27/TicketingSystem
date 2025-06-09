@@ -11,6 +11,9 @@ import GenericButton from "../components/UI/Button";
 import GenericDropdownController from "../components/UI/Dropdown/GenericDropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import Switch from "@mui/material/Switch";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import CustomFormInput from "../components/UI/Input/CustomFormInput";
 import { Roles } from "../config/config";
 
@@ -185,11 +188,15 @@ const TicketDetails: React.FC = () => {
                                 <button className="btn btn-secondary btn-sm" onClick={() => setEditingCommentId(null)}>Cancel</button>
                             </>
                         ) : (
-                            <>
-                                <div>{c.comment}</div>
-                                <button className="btn btn-link btn-sm" onClick={() => startEdit(c)}>Edit</button>
-                                <button className="btn btn-link btn-sm text-danger" onClick={() => removeComment(c.id)}>Delete</button>
-                            </>
+                            <div className="d-flex align-items-start">
+                                <IconButton size="small" onClick={() => startEdit(c)}>
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => removeComment(c.id)} color="error">
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                                <div className="ms-2">{c.comment}</div>
+                            </div>
                         )}
                     </div>
                 ))}
