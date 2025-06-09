@@ -5,6 +5,7 @@ import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import { Roles } from "../../config/config";
+import CustomFieldset from "../CustomFieldset";
 
 interface TicketDetailsProps extends FormProps {
     formData?: FieldValues;
@@ -45,9 +46,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const assignLevelOptions: DropdownOption[] = Roles.filter(r => r !== "USER").map(r => ({ label: r, value: r }));
     const assignToOptions: DropdownOption[] = assignLevelOptions;
     return (
-        <div className={`${cardContainer1}`}>
-            {/* Title */}
-            <p className={`${cardContainer1Header}`}>Ticket Details</p>
+        <CustomFieldset title="Ticket Details">
             <div className="row">
                 <div className="col-md-6 mb-3">
                     <CustomFormInput
@@ -176,7 +175,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     </>
                 )}
             </div>
-        </div>
+        </CustomFieldset>
     )
 }
 

@@ -8,6 +8,7 @@ import { FieldValues } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
+import CustomFieldset from "../CustomFieldset";
 
 interface RequestorDetailsProps extends FormProps {
     formData: FieldValues;
@@ -73,9 +74,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     };
 
     return (
-        <div className={`${cardContainer1}`}>
-            {/* Title */}
-            <p className={`${cardContainer1Header}`}>Requestor Details</p>
+        <CustomFieldset title="Requestor Details" className="mb-4">
             {/* Inputs */}
             <div className="row g-3">
                 <div className="col-md-4">
@@ -168,7 +167,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     />
                 </div>
             </div>
-        </div>
+        </CustomFieldset>
     )
 }
 

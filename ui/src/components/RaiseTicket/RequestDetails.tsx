@@ -4,6 +4,7 @@ import { FormProps } from "../../types";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import { FieldValues } from "react-hook-form";
+import CustomFieldset from "../CustomFieldset";
 
 interface RequestDetailsProps extends FormProps {
     formData?: FieldValues;
@@ -17,9 +18,7 @@ const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
 ];
 
 const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, formData, disableAll = false }) => (
-    <div className={`${cardContainer1}`}>
-        {/* title */}
-        <p className={`${cardContainer1Header}`}>Request Details</p>
+    <CustomFieldset title="Request Details">
         {/* Inputs in a row */}
         <div className="row g-3">
             {/* Ticket ID - Input - System Generated */}
@@ -61,7 +60,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                 />
             </div>
         </div>
-    </div>
+    </CustomFieldset>
 );
 
 export default RequestDetails;
