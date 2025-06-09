@@ -58,6 +58,17 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getComments(id, count));
     }
 
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<TicketComment> updateComment(@PathVariable int commentId, @RequestBody String comment) {
+        return ResponseEntity.ok(ticketService.updateComment(commentId, comment));
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable int commentId) {
+        ticketService.deleteComment(commentId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     public ResponseEntity<SearchResult> findTicketsBySearchQuery(@RequestBody String query) throws Exception {
         System.out.println("query : " + query);
