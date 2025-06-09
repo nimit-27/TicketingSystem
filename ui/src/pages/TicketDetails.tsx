@@ -22,7 +22,7 @@ interface Comment {
 
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
-    const { data: ticket, apiHandler } = useApi<Ticket>();
+    const { data: ticket, apiHandler } = useApi<any>();
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState("");
 
@@ -47,7 +47,7 @@ const TicketDetails: React.FC = () => {
 
     return (
         <div className="container">
-            <Title text={`Ticket ${ticketId}`} />
+            <Title text={`Ticket ${ticketId}: ${ticket?.subject}`} />
             {ticket && (
                 <div>
                     <p>Status: {ticket.status}</p>

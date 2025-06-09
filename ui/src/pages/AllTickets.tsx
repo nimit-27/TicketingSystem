@@ -25,7 +25,7 @@ interface Ticket {
 }
 
 const AllTickets: React.FC = () => {
-    const { data, pending, error, apiHandler } = useApi<Ticket[]>();
+    const { data, pending, error, apiHandler } = useApi<any>();
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
@@ -46,7 +46,7 @@ const AllTickets: React.FC = () => {
     useEffect(() => {
         if (!data) return;
         const query = debouncedSearch.toLowerCase();
-        const f = data.filter((t) =>
+        const f = data.filter((t: any) =>
             t.subject.toLowerCase().includes(query) || String(t.id).includes(query)
         );
         setFiltered(f);
@@ -60,23 +60,23 @@ const AllTickets: React.FC = () => {
                 key: "id",
                 render: (_: any, record: Ticket) => (
                     <>
-                        {record.isMaster && <Chip label="M" size="small" color="primary" sx={{ mr: 0.5 }} />}
                         {record.id}
+                        {record.isMaster && <Chip label="M" size="small" color="primary" sx={{ mr: 0.5 }} />}
                     </>
                 ),
             },
             {
                 title: "Requestor Name",
                 key: "name",
-                render: (_: any, record: Ticket) => record.employee?.name || "N/A",
+                render: (_: any, record: Ticket) => record.employee?.name || "-",
             },
             {
                 title: "Email ID & Mobile No.",
                 key: "contact",
                 render: (_: any, record: Ticket) => (
                     <div>
-                        <div>{record.employee?.emailId || "N/A"}</div>
-                        <div>{record.employee?.mobileNo || "N/A"}</div>
+                        <div>{record.employee?.emailId || "-"}</div>
+                        <div>{record.employee?.mobileNo || "-"}</div>
                     </div>
                 ),
             },
@@ -99,7 +99,7 @@ const AllTickets: React.FC = () => {
                 title: "Status",
                 dataIndex: "status",
                 key: "status",
-                render: (value: any) => value || "N/A",
+                render: (value: any) => value || "-",
             },
             {
                 title: "Action",
@@ -152,9 +152,9 @@ const AllTickets: React.FC = () => {
                                         {t.isMaster && <Chip label="M" size="small" color="primary" sx={{ ml: 0.5 }} />}
                                     </Typography>
                                     <Typography variant="body2">Id: {t.id}</Typography>
-                                    <Typography variant="body2">Requestor: {t.employee?.name || "N/A"}</Typography>
+                                    <Typography variant="body2">Requestor: {t.employee?.name || "-"}</Typography>
                                     <Typography variant="body2">
-                                        {t.employee?.emailId || "N/A"} / {t.employee?.mobileNo || "N/A"}
+                                        {t.employee?.emailId || "-"} / {t.employee?.mobileNo || "-"}
                                     </Typography>
                                     <Typography variant="body2">Category: {t.category}</Typography>
                                     <Typography variant="body2">Sub-Category: {t.subCategory}</Typography>
