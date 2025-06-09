@@ -1,3 +1,4 @@
+import { FieldValues } from "react-hook-form";
 import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
@@ -5,6 +6,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 
 interface TicketDetailsProps extends FormProps {
+    formData?: FieldValues;
     disableAll?: boolean;
     subjectDisabled?: boolean;
 }
@@ -27,7 +29,7 @@ const priorityOptions: DropdownOption[] = [
     { label: "High", value: "High" }
 ];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors, disableAll = false, subjectDisabled = false }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false }) => {
     return (
         <div className={`${cardContainer1}`}>
             {/* Title */}
@@ -65,6 +67,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 </div>
                 <div className="col-md-12 mb-3">
                     <CustomFormInput
+                        slotProps={{
+                            inputLabel: { shrink: formData?.subject }
+                        }}
                         label="Subject"
                         name="subject"
                         register={register}
@@ -75,6 +80,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 </div>
                 <div className="col-md-12 mb-3">
                     <CustomFormInput
+                        slotProps={{
+                            inputLabel: { shrink: formData?.description }
+                        }}
                         label="Description"
                         name="description"
                         register={register}

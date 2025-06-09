@@ -8,6 +8,8 @@ import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetailsForm from "../components/RaiseTicket/TicketDetails";
 import GenericButton from "../components/UI/Button";
+import GenericDropdownController from "../components/UI/Dropdown/GenericDropdownController";
+import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 
 interface Ticket {
     id: number;
@@ -35,9 +37,17 @@ interface Comment {
     createdAt: string;
 }
 
+const statusOptions: DropdownOption[] = [
+    { label: "Pending", value: "PENDING" },
+    { label: "On Hold", value: "ON_HOLD" },
+    { label: "Closed", value: "CLOSED" },
+    { label: "Reopened", value: "REOPENED" },
+];
+
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
     const { data: ticket, apiHandler } = useApi<any>();
+    const { data: commentsData, apiHandler: getCommentsHandler } = useApi<any>();
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState("");
 
@@ -52,16 +62,13 @@ const TicketDetails: React.FC = () => {
     }, [ticketId]);
 
     useEffect(() => {
+        console.log("Ticket data:", ticket);
         if (ticket) {
             setValue("ticketId", ticket.id);
-            setValue("reportedDate", ticket.reportedDate?.slice(0,10));
+            setValue("reportedDate", ticket.reportedDate?.slice(0, 10));
             setValue("mode", ticket.mode);
             setValue("employeeId", ticket.employeeId);
-            setValue("name", ticket.employee?.name || "");
-            setValue("emailId", ticket.employee?.emailId || "");
-            setValue("mobileNo", ticket.employee?.mobileNo || "");
-            setValue("role", ticket.employee?.role || "");
-            setValue("office", ticket.employee?.office || "");
+            setValue("status", ticket.status);
             setValue("category", ticket.category);
             setValue("subCategory", ticket.subCategory);
             setValue("priority", ticket.priority);
@@ -71,7 +78,7 @@ const TicketDetails: React.FC = () => {
     }, [ticket]);
 
     const loadComments = (count?: number) => {
-        apiHandler(() => getComments(Number(ticketId), count)).then((c: any) => setComments(c));
+        getCommentsHandler(() => getComments(Number(ticketId), count)).then((c: any) => setComments(c));
     };
 
     const postComment = () => {
@@ -90,15 +97,22 @@ const TicketDetails: React.FC = () => {
         <div className="container">
             <Title text={`Ticket ${ticketId}: ${ticket?.subject}`} />
             {ticket && (
-                <div>
+                <div className="m-3">
                     <p>Status: {ticket.status}</p>
                 </div>
             )}
 
             <form onSubmit={handleSubmit(onSubmit)}>
-                <RequestDetails register={register} control={control} errors={errors} disableAll />
+                <RequestDetails register={register} control={control} errors={errors} formData={formData} disableAll />
                 <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} disableAll />
-                <TicketDetailsForm register={register} control={control} errors={errors} subjectDisabled disableAll={false} />
+                <GenericDropdownController
+                    name="status"
+                    control={control}
+                    label="Update Status"
+                    options={statusOptions}
+                    className="form-select m-3 w-25"
+                />
+                <TicketDetailsForm register={register} control={control} errors={errors} formData={formData} subjectDisabled disableAll={false} />
                 <GenericButton textKey="Update Ticket" variant="contained" type="submit" />
             </form>
 

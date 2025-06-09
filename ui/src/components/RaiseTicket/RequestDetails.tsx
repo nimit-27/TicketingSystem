@@ -3,8 +3,10 @@ import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { FormProps } from "../../types";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
+import { FieldValues } from "react-hook-form";
 
 interface RequestDetailsProps extends FormProps {
+    formData?: FieldValues;
     disableAll?: boolean;
 }
 
@@ -14,7 +16,7 @@ const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
     { label: "Mail", value: "Mail" }
 ];
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, disableAll = false }) => (
+const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, formData, disableAll = false }) => (
     <div className={`${cardContainer1}`}>
         {/* title */}
         <p className={`${cardContainer1Header}`}>Request Details</p>
@@ -23,6 +25,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
             {/* Ticket ID - Input - System Generated */}
             <div className="col-md-4">
                 <CustomFormInput
+                    slotProps={{
+                        inputLabel: { shrink: formData?.ticketId }
+                    }}
                     name="ticketId"
                     register={register}
                     required

@@ -1,4 +1,4 @@
-import { Icon, IconButton, InputAdornment } from "@mui/material";
+import { IconButton, InputAdornment } from "@mui/material";
 import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
@@ -40,7 +40,15 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }, [pending, data]);
 
     useEffect(() => {
-        formData?.employeeId ? setDisabled(true) : clearForm();
+        if (formData?.employeeId) {
+            setDisabled(true);
+            if (disableAll) {
+                verifyEmployeeById();
+            }
+        } else {
+            console.log("Employee ID changed, clearing form");
+            clearForm();
+        }
 
         setVerified(false);
     }, [formData?.employeeId]);
@@ -75,8 +83,9 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         label="Employee ID"
                         name="employeeId"
                         slotProps={{
+                            inputLabel: { shrink: formData?.employeeId },
                             input: {
-                                endAdornment: <InputAdornment position="end">
+                                endAdornment: !disableAll && <InputAdornment position="end">
                                     {(verified || formData?.employeeId) && <IconButton onClick={clearForm} disabled={disableAll}>
                                         <ClearIcon fontSize="small" />
                                     </IconButton>}
@@ -92,7 +101,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         register={register}
                         errors={errors}
                         required
-                        disabled={isDisabled}
+                        disabled={disableAll}
                     />
                 </div>
                 <div className="col-md-4">
