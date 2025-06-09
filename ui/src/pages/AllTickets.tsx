@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Table } from "antd";
 import { Chip, ToggleButton, ToggleButtonGroup, Card, CardContent, Typography, TextField } from "@mui/material";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import TableRowsIcon from "@mui/icons-material/TableRows";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
 import { getTickets } from "../services/TicketService";
@@ -104,7 +107,7 @@ const AllTickets: React.FC = () => {
             {
                 title: "Action",
                 key: "action",
-                render: () => <a href="#">View</a>,
+                render: () => <VisibilityIcon fontSize="small" />,
             },
         ],
         []
@@ -126,8 +129,12 @@ const AllTickets: React.FC = () => {
                     onChange={(_, val) => val && setViewMode(val)}
                     size="small"
                 >
-                    <ToggleButton value="grid">Grid</ToggleButton>
-                    <ToggleButton value="table">Table</ToggleButton>
+                    <ToggleButton value="grid">
+                        <ViewModuleIcon fontSize="small" />
+                    </ToggleButton>
+                    <ToggleButton value="table">
+                        <TableRowsIcon fontSize="small" />
+                    </ToggleButton>
                 </ToggleButtonGroup>
             </div>
             {pending && <p>Loading...</p>}
