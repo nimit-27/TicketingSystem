@@ -6,6 +6,7 @@ import com.example.api.models.TicketComment;
 import com.example.api.repository.EmployeeRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
+import com.example.api.service.AssignmentHistoryService;
 import com.example.api.typesense.TypesenseClient;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
@@ -18,14 +19,17 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final EmployeeRepository employeeRepository;
     private final TicketCommentRepository commentRepository;
+    private final AssignmentHistoryService assignmentHistoryService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
-                         EmployeeRepository employeeRepository, TicketCommentRepository commentRepository) {
+                         EmployeeRepository employeeRepository, TicketCommentRepository commentRepository,
+                         AssignmentHistoryService assignmentHistoryService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.employeeRepository = employeeRepository;
         this.commentRepository = commentRepository;
+        this.assignmentHistoryService = assignmentHistoryService;
     }
 
     public List<Ticket> getTickets() {
@@ -53,6 +57,7 @@ public class TicketService {
 
     public Ticket updateTicket(int id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id).orElseThrow();
+        String previousAssignedTo = existing.getAssignedTo();
         existing.setCategory(updated.getCategory());
         existing.setStatus(updated.getStatus());
         existing.setSubCategory(updated.getSubCategory());
@@ -63,7 +68,11 @@ public class TicketService {
 //        existing.setAssignTo(updated.getAssignTo());
         existing.setAssignedToLevel(updated.getAssignedToLevel());
         existing.setAssignedTo(updated.getAssignedTo());
-        return ticketRepository.save(existing);
+        Ticket saved = ticketRepository.save(existing);
+        if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
+            assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
+        }
+        return saved;
     }
 
     public TicketComment addComment(int ticketId, String comment) {
