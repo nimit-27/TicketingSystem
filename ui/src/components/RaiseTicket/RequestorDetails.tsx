@@ -11,11 +11,14 @@ import ClearIcon from '@mui/icons-material/Clear';
 
 interface RequestorDetailsProps extends FormProps {
     formData: FieldValues;
+    disableAll?: boolean;
 }
 
-const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, formData }) => {
+const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, formData, disableAll = false }) => {
     const [verified, setVerified] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
+
+    const isDisabled = disableAll || disabled;
 
     const { data, error, pending, success, apiHandler } = useApi<any>();
 
@@ -74,19 +77,22 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         slotProps={{
                             input: {
                                 endAdornment: <InputAdornment position="end">
-                                    {(verified || formData?.employeeId) && <IconButton onClick={clearForm}>
+                                    {(verified || formData?.employeeId) && <IconButton onClick={clearForm} disabled={disableAll}>
                                         <ClearIcon fontSize="small" />
                                     </IconButton>}
                                     <VerifyIconButton
                                         onClick={verifyEmployeeById}
                                         pending={pending}
-                                        verified={verified} />
+                                        verified={verified}
+                                        disabled={disableAll}
+                                    />
                                 </InputAdornment>
                             }
                         }}
                         register={register}
                         errors={errors}
                         required
+                        disabled={isDisabled}
                     />
                 </div>
                 <div className="col-md-4">
@@ -98,7 +104,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         name="name"
                         register={register}
                         errors={errors}
-                        disabled={disabled}
+                        disabled={isDisabled}
                         required
                     />
                 </div>
@@ -111,7 +117,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         name="emailId"
                         register={register}
                         errors={errors}
-                        disabled={disabled}
+                        disabled={isDisabled}
                         type="email"
                     />
                 </div>
@@ -124,7 +130,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         name="mobileNo"
                         register={register}
                         errors={errors}
-                        disabled={disabled}
+                        disabled={isDisabled}
                         type="tel"
                     />
                 </div>
@@ -137,7 +143,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         name="role"
                         register={register}
                         errors={errors}
-                        disabled={disabled}
+                        disabled={isDisabled}
                     />
                 </div>
                 <div className="col-md-4">
@@ -149,7 +155,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         name="office"
                         register={register}
                         errors={errors}
-                        disabled={disabled}
+                        disabled={isDisabled}
                     />
                 </div>
             </div>
