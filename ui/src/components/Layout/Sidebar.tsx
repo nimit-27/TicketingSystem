@@ -13,6 +13,9 @@ const Sidebar: React.FC = () => (
       <li className="nav-item">
         <Link to="/knowledge-base" className="nav-link">Knowledge Base</Link>
       </li>
+      <li className="nav-item">
+        <Link to="/categories-master" className="nav-link">Categories Master</Link>
+      </li>
     </ul>
   </div>
 );
