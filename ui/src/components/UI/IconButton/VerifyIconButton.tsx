@@ -11,6 +11,7 @@ type VerifyIconButtonProps = {
     onClick?: () => void;
     verified?: boolean;
     pending?: boolean;
+    disabled?: boolean;
 };
 
 const VerifyIconButton: React.FC<VerifyIconButtonProps> = ({
@@ -18,11 +19,12 @@ const VerifyIconButton: React.FC<VerifyIconButtonProps> = ({
     onClick,
     verified,
     pending,
+    disabled,
 }) => {
     return (
         <IconButton
             // onClick={onClick}
-            disabled={pending || verified}
+            disabled={disabled || pending || verified}
             color={verified ? 'success' : 'primary'}
             aria-label="verify"
             disableRipple

@@ -4,13 +4,17 @@ import { FormProps } from "../../types";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 
+interface RequestDetailsProps extends FormProps {
+    disableAll?: boolean;
+}
+
 const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
     { label: "Self", value: "Self" },
     { label: "Call", value: "Call" },
     { label: "Mail", value: "Mail" }
 ];
 
-const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
+const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, disableAll = false }) => (
     <div className={`${cardContainer1}`}>
         {/* title */}
         <p className={`${cardContainer1Header}`}>Request Details</p>
@@ -18,7 +22,14 @@ const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
         <div className="row g-3">
             {/* Ticket ID - Input - System Generated */}
             <div className="col-md-4">
-                <CustomFormInput name="ticketId" register={register} required errors={errors} label="Ticket ID" />
+                <CustomFormInput
+                    name="ticketId"
+                    register={register}
+                    required
+                    errors={errors}
+                    label="Ticket ID"
+                    disabled={disableAll}
+                />
             </div>
             {/* Reported Date - Input - System Generated */}
             <div className="col-md-4">
@@ -38,10 +49,10 @@ const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
                     name="mode"
                     control={control}
                     rules={{ required: true }}
-
                     label="Mode"
                     options={ticketLodgedThroughDropdownOptions}
                     className="form-select"
+                    disabled={disableAll}
                 />
             </div>
         </div>

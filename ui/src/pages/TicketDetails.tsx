@@ -1,11 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { getTicket, updateTicket, addComment, getComments } from "../services/TicketService";
 import { useApi } from "../hooks/useApi";
 import Title from "../components/Title";
+import RequestDetails from "../components/RaiseTicket/RequestDetails";
+import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
+import TicketDetailsForm from "../components/RaiseTicket/TicketDetails";
+import GenericButton from "../components/UI/Button";
 
 interface Ticket {
     id: number;
+    reportedDate: string;
+    mode: string;
+    employeeId: number;
+    employee?: {
+        name?: string;
+        emailId?: string;
+        mobileNo?: string;
+        role?: string;
+        office?: string;
+    };
     subject: string;
     description: string;
     category: string;
@@ -26,12 +41,34 @@ const TicketDetails: React.FC = () => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState("");
 
+    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
+    const formData = watch();
+
     useEffect(() => {
         if (ticketId) {
             apiHandler(() => getTicket(Number(ticketId)));
             loadComments(5);
         }
     }, [ticketId]);
+
+    useEffect(() => {
+        if (ticket) {
+            setValue("ticketId", ticket.id);
+            setValue("reportedDate", ticket.reportedDate?.slice(0,10));
+            setValue("mode", ticket.mode);
+            setValue("employeeId", ticket.employeeId);
+            setValue("name", ticket.employee?.name || "");
+            setValue("emailId", ticket.employee?.emailId || "");
+            setValue("mobileNo", ticket.employee?.mobileNo || "");
+            setValue("role", ticket.employee?.role || "");
+            setValue("office", ticket.employee?.office || "");
+            setValue("category", ticket.category);
+            setValue("subCategory", ticket.subCategory);
+            setValue("priority", ticket.priority);
+            setValue("subject", ticket.subject);
+            setValue("description", ticket.description);
+        }
+    }, [ticket]);
 
     const loadComments = (count?: number) => {
         apiHandler(() => getComments(Number(ticketId), count)).then((c: any) => setComments(c));
@@ -45,6 +82,10 @@ const TicketDetails: React.FC = () => {
         });
     };
 
+    const onSubmit = (data: any) => {
+        apiHandler(() => updateTicket(Number(ticketId), data));
+    };
+
     return (
         <div className="container">
             <Title text={`Ticket ${ticketId}: ${ticket?.subject}`} />
@@ -53,6 +94,14 @@ const TicketDetails: React.FC = () => {
                     <p>Status: {ticket.status}</p>
                 </div>
             )}
+
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <RequestDetails register={register} control={control} errors={errors} disableAll />
+                <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} disableAll />
+                <TicketDetailsForm register={register} control={control} errors={errors} subjectDisabled disableAll={false} />
+                <GenericButton textKey="Update Ticket" variant="contained" type="submit" />
+            </form>
+
             <div className="border p-3 mb-3">
                 <textarea
                     className="form-control mb-2"
