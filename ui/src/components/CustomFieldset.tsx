@@ -6,9 +6,10 @@ interface CustomFieldsetProps {
     children: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
+    actionElement?: React.ReactNode;
 }
 
-const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, className = "", style }) => {
+const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, className = "", style, actionElement }) => {
     return (
         <fieldset
             className={`border p-4 pt-5 position-relative rounded mb-4 ${className}`}
@@ -33,6 +34,11 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
             >
                 {title}
             </legend>
+            {actionElement && (
+                <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                    {actionElement}
+                </div>
+            )}
             {children}
         </fieldset>
     );

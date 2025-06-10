@@ -37,6 +37,10 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
+    public Page<Ticket> getTickets(Pageable pageable) {
+        return ticketRepository.findAll(pageable);
+    }
+
     public Ticket getTicket(int id) {
         return ticketRepository.findById(id).orElse(null);
     }
@@ -109,3 +113,5 @@ public class TicketService {
         return ticketRepository.findByIsMasterTrue();
     }
 }
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;

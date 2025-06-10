@@ -11,6 +11,7 @@ interface TicketDetailsProps extends FormProps {
     formData?: FieldValues;
     disableAll?: boolean;
     subjectDisabled?: boolean;
+    actionElement?: React.ReactNode;
 }
 
 const categoryOptions: DropdownOption[] = [
@@ -46,7 +47,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const assignLevelOptions: DropdownOption[] = Roles.filter(r => r !== "USER").map(r => ({ label: r, value: r }));
     const assignToOptions: DropdownOption[] = assignLevelOptions;
     return (
-        <CustomFieldset title="Ticket Details">
+        <CustomFieldset title="Ticket Details" actionElement={actionElement}>
             <div className="row">
                 <div className="col-md-6 mb-3">
                     <CustomFormInput

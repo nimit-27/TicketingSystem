@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { getTicket, updateTicket } from "../services/TicketService";
@@ -7,6 +7,9 @@ import Title from "../components/Title";
 import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetailsForm from "../components/RaiseTicket/TicketDetails";
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
 import GenericButton from "../components/UI/Button";
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
@@ -41,6 +44,7 @@ const TicketDetails: React.FC = () => {
 
     const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
     const formData = watch();
+    const [editing, setEditing] = useState<boolean>(false);
 
     useEffect(() => {
         if (ticketId) {
@@ -78,7 +82,18 @@ const TicketDetails: React.FC = () => {
     };
 
     const onSubmit = (data: any) => {
-        ticketApiHandler(() => updateTicket(Number(ticketId), data));
+        ticketApiHandler(() => updateTicket(Number(ticketId), data)).then(() => setEditing(false));
+    };
+
+    const resetFields = () => {
+        if (!ticket) return;
+        setValue("category", ticket.category);
+        setValue("subCategory", ticket.subCategory);
+        setValue("priority", ticket.priority);
+        setValue("description", ticket.description);
+        setValue("status", ticket.status);
+        setValue("assignedToLevel", ticket.assignToLevel);
+        setValue("assignedTo", ticket.assignTo);
     };
 
     return (
@@ -100,8 +115,28 @@ const TicketDetails: React.FC = () => {
                 <RequestDetails register={register} control={control} errors={errors} formData={formData} disableAll />
                 <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} disableAll />
 
-                <TicketDetailsForm register={register} control={control} errors={errors} formData={formData} subjectDisabled disableAll={false} />
-                <GenericButton textKey="Update Ticket" variant="contained" type="submit" />
+                <TicketDetailsForm
+                    register={register}
+                    control={control}
+                    errors={errors}
+                    formData={formData}
+                    subjectDisabled
+                    disableAll={!editing}
+                    actionElement={editing ? (
+                        <>
+                            <GenericButton variant="text" textKey="" type="button" onClick={() => { resetFields(); setEditing(false); }} style={{minWidth:0,padding:2}}>
+                                <CloseIcon fontSize="small" />
+                            </GenericButton>
+                            <GenericButton variant="text" textKey="" type="submit" style={{minWidth:0,padding:2}}>
+                                <CheckIcon fontSize="small" />
+                            </GenericButton>
+                        </>
+                    ) : (
+                        <GenericButton variant="text" textKey="" type="button" onClick={() => setEditing(true)} style={{minWidth:0,padding:2}}>
+                            <EditIcon fontSize="small" />
+                        </GenericButton>
+                    )}
+                />
             </form>
 
             <CommentsSection ticketId={Number(ticketId)} />
