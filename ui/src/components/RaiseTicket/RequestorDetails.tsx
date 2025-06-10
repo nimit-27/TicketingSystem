@@ -3,7 +3,7 @@ import { inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
-import { getEmployeeDetails } from "../../services/UserService";
+import { getEmployeeDetails } from "../../services/EmployeeService";
 import { FieldValues } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useEffect, useState } from "react";

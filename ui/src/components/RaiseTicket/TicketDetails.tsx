@@ -1,11 +1,13 @@
 import { FieldValues } from "react-hook-form";
-import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
-import { Roles } from "../../config/config";
 import CustomFieldset from "../CustomFieldset";
+import { useApi } from "../../hooks/useApi";
+import { useEffect } from "react";
+import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
+import { getCategories, getSubCategories } from "../../services/CategoryService";
 
 interface TicketDetailsProps extends FormProps {
     formData?: FieldValues;
@@ -13,18 +15,6 @@ interface TicketDetailsProps extends FormProps {
     subjectDisabled?: boolean;
     actionElement?: React.ReactNode;
 }
-
-const categoryOptions: DropdownOption[] = [
-    { label: "Hardware", value: "hardware" },
-    { label: "Software", value: "software" },
-    { label: "Network", value: "network" }
-];
-
-const subCategoryOptions: DropdownOption[] = [
-    { label: "Laptop", value: "laptop" },
-    { label: "Desktop", value: "desktop" },
-    { label: "Printer", value: "printer" }
-];
 
 const priorityOptions: DropdownOption[] = [
     { label: "Low", value: "Low" },
@@ -41,11 +31,43 @@ const statusOptions: DropdownOption[] = [
     { label: "Assign Further", value: "ASSIGN_FURTHER" }
 ];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false }) => {
+const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
+    Array.isArray(arr)
+        ? arr.map(item => ({
+            label: String(item[labelKey]),
+            value: item[valueKey]
+        }))
+        : [];
+
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement }) => {
     const currentUserRole = localStorage.getItem('role') || 'L1';
 
-    const assignLevelOptions: DropdownOption[] = Roles.filter(r => r !== "USER").map(r => ({ label: r, value: r }));
-    const assignToOptions: DropdownOption[] = assignLevelOptions;
+    const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
+    const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
+    const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
+    const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
+
+    const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
+    const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
+    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'name', 'categoryId');
+    const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'name', 'subCategoryId');
+
+    useEffect(() => {
+        getAllLevelApiHandler(() => getAllLevels())
+    }, [])
+
+    useEffect(() => {
+        formData?.assignedToLevel && getAllEmployeesByLevelHandler(() => getAllEmployeesByLevel(formData.assignedToLevel))
+    }, [formData?.assignedToLevel])
+
+    useEffect(() => {
+        getCategoriesApiHandler(() => getCategories())
+    }, [])
+
+    useEffect(() => {
+        formData?.category && getSubCategoriesApiHandler(() => getSubCategories(formData.category))
+    }, [formData?.category])
+
     return (
         <CustomFieldset title="Ticket Details" actionElement={actionElement}>
             <div className="row">
@@ -56,7 +78,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         register={register}
                         errors={errors}
                         disabled
-                    // showLabel
                     />
                 </div>
                 <div className="col-md-6 mb-3 px-4">
@@ -66,8 +87,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         register={register}
                         errors={errors}
                         disabled
-                    // showLabel
-                    />
+                        />
                 </div>
                 <div className="col-md-4 mb-3 px-4">
                     <GenericDropdownController
@@ -152,27 +172,26 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         className="form-select"
                     />
                 </div>
-
+                <div className="col-md-4 mb-3 offset-1 px-4">
+                    <GenericDropdownController
+                        name="assignedToLevel"
+                        control={control}
+                        label="Assign to Level"
+                        options={assignLevelOptions}
+                        className="form-select"
+                    />
+                </div>
+                <div className="col-md-4 mb-3 px-4">
+                    <GenericDropdownController
+                        name="assignedTo"
+                        control={control}
+                        label="Assign to"
+                        options={assignToOptions}
+                        className="form-select"
+                    />
+                </div>
                 {currentUserRole !== 'USER' && formData?.status === 'ASSIGN_FURTHER' && (
                     <>
-                        <div className="col-md-4 mb-3 offset-1 px-4">
-                            <GenericDropdownController
-                                name="assignedToLevel"
-                                control={control}
-                                label="Assign to Level"
-                                options={assignLevelOptions}
-                                className="form-select"
-                            />
-                        </div>
-                        <div className="col-md-4 mb-3 px-4">
-                            <GenericDropdownController
-                                name="assignedTo"
-                                control={control}
-                                label="Assign to"
-                                options={assignToOptions}
-                                className="form-select"
-                            />
-                        </div>
                     </>
                 )}
             </div>

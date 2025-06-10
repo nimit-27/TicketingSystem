@@ -46,13 +46,15 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Requestor Details */}
                 <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} />
                 {/* Ticket Details */}
-                <TicketDetails register={register} control={control} errors={errors} />
+                <TicketDetails register={register} control={control} errors={errors} formData={formData} />
                 {/* Submit Button */}
 
                 <div className="text-start">
                     <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} />
                 </div>
-                <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
+                <div className="text-end mt-3">
+                    <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
+                </div>
             </form>
 
             {/* Link to Master Ticket Modal */}

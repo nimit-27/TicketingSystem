@@ -41,10 +41,10 @@ const AllTickets: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState("ALL");
 
     const priorityConfig: Record<string, { color: string; count: number }> = {
-        LOW: { color: 'success.light', count: 1 },
-        MEDIUM: { color: 'warning.light', count: 2 },
-        HIGH: { color: 'error.main', count: 3 },
-        CRITICAL: { color: 'error.dark', count: 4 }
+        Low: { color: 'success.light', count: 1 },
+        Medium: { color: 'warning.light', count: 2 },
+        High: { color: 'error.main', count: 3 },
+        Critical: { color: 'error.dark', count: 4 }
     };
 
     const debouncedSearch = useDebounce(search, 300);
@@ -199,7 +199,7 @@ const AllTickets: React.FC = () => {
                                     sx={{
                                         cursor: 'pointer',
                                         border: '2px solid',
-                                        borderColor: p.color,
+                                        borderColor: (theme: any) => `${theme.palette[p.color.split('.')[0]]?.[p.color.split('.')[1]]}40`,
                                         boxShadow: 'none',
                                         height: '100%',
                                         position: 'relative',
@@ -227,11 +227,26 @@ const AllTickets: React.FC = () => {
                                     </CardContent>
                                     <Box sx={{ position: 'absolute', bottom: 4, right: 4, color: p.color }}>
                                         <Tooltip title={t.priority}>
-                                            <span>
+                                            <Box
+                                                sx={{
+                                                    position: 'relative',
+                                                    width: 24,
+                                                    height: 24 + (p.count - 1) * 10, // adjust height based on count
+                                                }}
+                                            >
                                                 {Array.from({ length: p.count }).map((_, i) => (
-                                                    <KeyboardArrowUpIcon key={i} fontSize="small" />
+                                                    <KeyboardArrowUpIcon
+                                                        key={i}
+                                                        fontSize="small"
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            left: 0,
+                                                            top: `${i * 10}px`, // adjust spacing between arrows
+                                                            zIndex: p.count - i,
+                                                        }}
+                                                    />
                                                 ))}
-                                            </span>
+                                            </Box>
                                         </Tooltip>
                                     </Box>
                                 </Card>
