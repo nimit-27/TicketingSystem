@@ -33,7 +33,7 @@ public class DocumentService {
 
     public void softDeleteDocument(Integer id) {
         Document existing = documentRepository.findById(id).orElseThrow();
-        existing.setIsDeleted(true);
+//        existing.setIsDeleted(true);
         documentRepository.save(existing);
     }
 }
