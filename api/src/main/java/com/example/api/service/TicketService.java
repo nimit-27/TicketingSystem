@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class TicketService {
@@ -113,5 +115,4 @@ public class TicketService {
         return ticketRepository.findByIsMasterTrue();
     }
 }
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
