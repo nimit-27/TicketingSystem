@@ -48,7 +48,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     return (
         <CustomFieldset title="Ticket Details">
             <div className="row">
-                <div className="col-md-6 mb-3">
+                <div className="col-md-6 mb-3 px-4">
                     <CustomFormInput
                         name="assignedAtLevel"
                         label="Assigned at Level"
@@ -58,7 +58,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     // showLabel
                     />
                 </div>
-                <div className="col-md-6 mb-3">
+                <div className="col-md-6 mb-3 px-4">
                     <CustomFormInput
                         name="assignedTo"
                         label="Assigned to"
@@ -68,7 +68,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     // showLabel
                     />
                 </div>
-                <div className="col-md-4 mb-3">
+                <div className="col-md-4 mb-3 px-4">
                     <GenericDropdownController
                         name="category"
                         control={control}
@@ -78,7 +78,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll}
                     />
                 </div>
-                <div className="col-md-4 mb-3">
+                <div className="col-md-4 mb-3 px-4">
                     <GenericDropdownController
                         name="subCategory"
                         control={control}
@@ -88,7 +88,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll}
                     />
                 </div>
-                <div className="col-md-4 mb-3">
+                <div className="col-md-4 mb-3 px-4">
                     <GenericDropdownController
                         name="priority"
                         control={control}
@@ -98,7 +98,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll}
                     />
                 </div>
-                <div className="col-md-12 mb-3">
+                <div className="col-md-12 mb-3 px-4">
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.subject }
@@ -111,7 +111,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll || subjectDisabled}
                     />
                 </div>
-                <div className="col-md-12 mb-3">
+                <div className="col-md-12 mb-3 px-4">
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.description }
@@ -125,7 +125,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll}
                     />
                 </div>
-                <div className="col-md-6 d-flex align-items-center mb-3">
+                <div className="col-md-6 d-flex align-items-center mb-3 px-4">
                     <label htmlFor="attachment" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
                         Attachment
                     </label>
@@ -142,7 +142,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                 </div>
                 <div className="col-md-6 mb-3">
                 </div>
-                <div className="col-md-3 mb-3">
+                <div className="col-md-3 mb-3 px-4">
                     <GenericDropdownController
                         name="status"
                         control={control}
@@ -154,7 +154,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
 
                 {currentUserRole !== 'USER' && formData?.status === 'ASSIGN_FURTHER' && (
                     <>
-                        <div className="col-md-4 mb-3 offset-1">
+                        <div className="col-md-4 mb-3 offset-1 px-4">
                             <GenericDropdownController
                                 name="assignedToLevel"
                                 control={control}
@@ -163,7 +163,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                                 className="form-select"
                             />
                         </div>
-                        <div className="col-md-4 mb-3">
+                        <div className="col-md-4 mb-3 px-4">
                             <GenericDropdownController
                                 name="assignedTo"
                                 control={control}

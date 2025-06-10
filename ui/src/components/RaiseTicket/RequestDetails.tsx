@@ -1,4 +1,4 @@
-import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
+import { inputColStyling } from "../../constants/bootstrapClasses";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { FormProps } from "../../types";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
@@ -22,7 +22,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
         {/* Inputs in a row */}
         <div className="row g-3">
             {/* Ticket ID - Input - System Generated */}
-            <div className="col-md-4">
+            <div className={`${inputColStyling}`}>
                 <CustomFormInput
                     slotProps={{
                         inputLabel: { shrink: formData?.ticketId }
@@ -36,7 +36,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                 />
             </div>
             {/* Reported Date - Input - System Generated */}
-            <div className="col-md-4">
+            <div className={`${inputColStyling}`}>
                 <CustomFormInput
                     name="reportedDate"
                     register={register}
@@ -48,7 +48,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                 />
             </div>
             {/* Ticket Lodged Through - Dropdown - Self/Call/Mail */}
-            <div className="col-md-4">
+            <div className={`${inputColStyling}`}>
                 <GenericDropdownController
                     name="mode"
                     control={control}

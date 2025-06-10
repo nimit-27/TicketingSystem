@@ -18,7 +18,7 @@ const RaiseTicket: React.FC<any> = () => {
     const formData = watch();
 
     const [successfullModalOpen, setSuccessfulModalOpen] = useState(false);
-    const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(true);
+    const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
 
 
     const onSubmit = (data: any) => {
@@ -38,7 +38,7 @@ const RaiseTicket: React.FC<any> = () => {
     const onLinkToMasterTicketModalOpen = () => setLinkToMasterTicketModalOpen(true);
 
     return (
-        <div className="container pt-5 px-3">
+        <div className="container">
             <Title text="Raise Ticket" />
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}

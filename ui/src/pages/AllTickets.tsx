@@ -10,6 +10,7 @@ import { useDebounce } from "../hooks/useDebounce";
 import { getTickets } from "../services/TicketService";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
+import MasterIcon from "../components/UI/Icons/MasterIcon";
 
 interface Employee {
     name?: string;
@@ -70,12 +71,10 @@ const AllTickets: React.FC = () => {
                 dataIndex: "id",
                 key: "id",
                 render: (_: any, record: Ticket) => (
-                    <>
+                    <div className="d-flex align-items-center">
                         {record.id}
-                        {record.isMaster && (
-                            <Avatar sx={{ bgcolor: 'darkgreen', width: 20, height: 20, ml: 0.5, fontSize: 12 }}>M</Avatar>
-                        )}
-                    </>
+                        {record.isMaster && <MasterIcon />}
+                    </div>
                 ),
             },
             {
@@ -188,9 +187,7 @@ const AllTickets: React.FC = () => {
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis'
                                             }} title={t.subject}>{t.subject}</span>
-                                            {t.isMaster && (
-                                                <Avatar sx={{ bgcolor: 'darkgreen', width: 20, height: 20, ml: 0.5, fontSize: 12 }}>M</Avatar>
-                                            )}
+                                            {t.isMaster && <MasterIcon />}
                                         </Typography>
                                         <Typography variant="body2">Id: {t.id}</Typography>
                                         <Typography variant="body2">Requestor: {t.employee?.name || "-"}</Typography>

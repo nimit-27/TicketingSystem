@@ -1,5 +1,5 @@
 import { IconButton, InputAdornment } from "@mui/material";
-import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
+import { inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
@@ -77,7 +77,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         <CustomFieldset title="Requestor Details" className="mb-4">
             {/* Inputs */}
             <div className="row g-3">
-                <div className="col-md-4">
+                <div className={`${inputColStyling}`}>
                     <CustomFormInput
                         label="Employee ID"
                         name="employeeId"
@@ -103,7 +103,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         disabled={disableAll}
                     />
                 </div>
-                <div className="col-md-4">
+                <div className={`${inputColStyling}`}>
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.employeeId || verified }
@@ -116,7 +116,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         required
                     />
                 </div>
-                <div className="col-md-4">
+                <div className={`${inputColStyling}`}>
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.employeeId || verified }
@@ -129,7 +129,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         type="email"
                     />
                 </div>
-                <div className="col-md-4">
+                <div className={`${inputColStyling}`}>
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.employeeId || verified }
@@ -142,7 +142,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         type="tel"
                     />
                 </div>
-                <div className="col-md-4">
+                <div className={`${inputColStyling}`}>
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.employeeId || verified }
@@ -154,7 +154,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         disabled={isDisabled}
                     />
                 </div>
-                <div className="col-md-4">
+                <div className={`${inputColStyling}`}>
                     <CustomFormInput
                         slotProps={{
                             inputLabel: { shrink: formData?.office || verified }
