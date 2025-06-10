@@ -1,11 +1,14 @@
 package com.example.api.controller;
 
+import com.example.api.dto.PaginationResponse;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.typesense.model.SearchResult;
 
 import java.util.List;
@@ -22,9 +25,13 @@ public class TicketController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Ticket>> getTickets() throws Exception {
-        return ResponseEntity.ok(ticketService.getTickets());
-//        return ticketService.getTickets();
+    public ResponseEntity<PaginationResponse<Ticket>> getTickets(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Ticket> p = ticketService.getTickets(PageRequest.of(page, size));
+        PaginationResponse<Ticket> resp = new PaginationResponse<>(
+                p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/{id}")

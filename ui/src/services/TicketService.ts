@@ -12,9 +12,9 @@ export function addTicket(payload: string) {
     return axios.post(`${baseURL}/tickets/add`, payload)
 }
 
-export function getTickets() {
+export function getTickets(page: number = 0, size: number = 5) {
     console.log("getTickets called");
-    return axios.get(`${baseURL}/tickets`);
+    return axios.get(`${baseURL}/tickets?page=${page}&size=${size}`);
 }
 
 export function getTicket(id: number) {

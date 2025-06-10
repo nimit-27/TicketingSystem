@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Table } from "antd";
-import { Avatar, Box, Tooltip, ToggleButton, ToggleButtonGroup, Card, CardContent, Typography, TextField } from "@mui/material";
+import { Avatar, Box, Tooltip, ToggleButton, ToggleButtonGroup, Card, CardContent, Typography, TextField, MenuItem } from "@mui/material";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -8,6 +8,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
 import { getTickets } from "../services/TicketService";
+import PaginationControls from "../components/PaginationControls";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import MasterIcon from "../components/UI/Icons/MasterIcon";
@@ -35,6 +36,9 @@ const AllTickets: React.FC = () => {
     const [search, setSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [statusFilter, setStatusFilter] = useState("ALL");
 
     const priorityConfig: Record<string, { color: string; count: number }> = {
         LOW: { color: 'success.light', count: 1 },
@@ -46,23 +50,30 @@ const AllTickets: React.FC = () => {
     const debouncedSearch = useDebounce(search, 300);
 
     useEffect(() => {
-        apiHandler(() => getTickets());
-    }, []);
+        apiHandler(() => getTickets(page - 1, 5));
+    }, [page]);
 
     useEffect(() => {
         if (data) {
-            setFiltered(data);
+            const resp = data;
+            setTotalPages(resp.totalPages || 1);
+            setFiltered(resp.items || resp);
         }
     }, [data]);
 
     useEffect(() => {
         if (!data) return;
+        const resp = data;
+        let list: Ticket[] = resp.items || resp;
+        if (statusFilter !== 'ALL') {
+            list = list.filter(t => t.status === statusFilter);
+        }
         const query = debouncedSearch.toLowerCase();
-        const f = data.filter((t: any) =>
+        const f = list.filter((t: any) =>
             t.subject.toLowerCase().includes(query) || String(t.id).includes(query)
         );
         setFiltered(f);
-    }, [debouncedSearch, data]);
+    }, [debouncedSearch, data, statusFilter]);
 
     const columns = useMemo(
         () => [
@@ -83,14 +94,14 @@ const AllTickets: React.FC = () => {
                 render: (_: any, record: Ticket) => record.employee?.name || "-",
             },
             {
-                title: "Email ID & Mobile No.",
-                key: "contact",
-                render: (_: any, record: Ticket) => (
-                    <div>
-                        <div>{record.employee?.emailId || "-"}</div>
-                        <div>{record.employee?.mobileNo || "-"}</div>
-                    </div>
-                ),
+                title: "Email",
+                key: "email",
+                render: (_: any, record: Ticket) => record.employee?.emailId || "-",
+            },
+            {
+                title: "Mobile",
+                key: "mobile",
+                render: (_: any, record: Ticket) => record.employee?.mobileNo || "-",
             },
             {
                 title: "Category",
@@ -116,7 +127,7 @@ const AllTickets: React.FC = () => {
             {
                 title: "Action",
                 key: "action",
-                render: () => <VisibilityIcon fontSize="small" />,
+                render: () => <VisibilityIcon fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
             },
         ],
         []
@@ -131,7 +142,24 @@ const AllTickets: React.FC = () => {
                     size="small"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    sx={{ mr: 2 }}
                 />
+                <TextField
+                    select
+                    label="Status"
+                    size="small"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    sx={{ width: 150, mr: 2 }}
+                >
+                    <MenuItem value="ALL">All</MenuItem>
+                    <MenuItem value="PENDING">Pending</MenuItem>
+                    <MenuItem value="ON_HOLD">On Hold</MenuItem>
+                    <MenuItem value="CLOSED">Closed</MenuItem>
+                    <MenuItem value="REOPENED">Reopened</MenuItem>
+                    <MenuItem value="RESOLVED">Resolved</MenuItem>
+                    <MenuItem value="ASSIGN_FURTHER">Assign Further</MenuItem>
+                </TextField>
                 <ToggleButtonGroup
                     value={viewMode}
                     exclusive
@@ -149,13 +177,16 @@ const AllTickets: React.FC = () => {
             {pending && <p>Loading...</p>}
             {error && <p className="text-danger">Error loading tickets</p>}
             {!pending && viewMode === "table" && (
-                <Table
-                    dataSource={filtered}
-                    columns={columns}
-                    rowKey="id"
-                    pagination={{ pageSize: 5 }}
-                    onRow={(record) => ({ onClick: () => navigate(`/tickets/${record.id}`) })}
-                />
+                <div>
+                    <Table
+                        dataSource={filtered}
+                        columns={columns}
+                        rowKey="id"
+                        pagination={false}
+                        onRow={(record) => ({ onClick: () => navigate(`/tickets/${record.id}`) })}
+                    />
+                    <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} className="mt-3" />
+                </div>
             )}
             {!pending && viewMode === "grid" && (
                 <div className="row">
@@ -167,7 +198,7 @@ const AllTickets: React.FC = () => {
                                     onClick={() => navigate(`/tickets/${t.id}`)}
                                     sx={{
                                         cursor: 'pointer',
-                                        border: '1px solid',
+                                        border: '2px solid',
                                         borderColor: p.color,
                                         boxShadow: 'none',
                                         height: '100%',
