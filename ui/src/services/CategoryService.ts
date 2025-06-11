@@ -14,6 +14,14 @@ export function addSubCategory(subCategory: any) {
     return axios.post(`${baseURL}/categories/${subCategory?.categoryId}/sub-categories`, subCategory);
 }
 
+export function updateSubCategory(id: number, subCategory: any) {
+    return axios.put(`${baseURL}/sub-categories/${id}`, subCategory);
+}
+
+export function deleteSubCategory(id: number) {
+    return axios.delete(`${baseURL}/sub-categories/${id}`);
+}
+
 export function getSubCategories(category: string) {
     return axios.get(`${baseURL}/categories/${category}/sub-categories`);
 }

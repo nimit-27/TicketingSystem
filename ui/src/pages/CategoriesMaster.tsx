@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Autocomplete, Button, IconButton, List, ListItem, TextField, Box } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import Title from '../components/Title';
-import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory } from '../services/CategoryService';
+import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory, updateSubCategory, deleteSubCategory } from '../services/CategoryService';
 import { useApi } from '../hooks/useApi';
 import { Category, SubCategory } from '../types';
 import { currentUserDetails } from '../config/config';
@@ -18,10 +18,17 @@ const CategoriesMaster: React.FC = () => {
     const { data: getSubCategoriesData, apiHandler: getSubCategoriesApiHandler } = useApi<any>();
     const { data: addSubCategoryData, apiHandler: addSubCategoryApiHandler } = useApi<any>();
 
-    const displaySubCategories = subCategories
-        ?.filter(sc => !selectedCategory || sc.categoryId === selectedCategory.categoryId)
-        ?.map(sc => sc.subCategory)
-        ?.filter(sc => sc.toLowerCase().includes(subCategoryInput.toLowerCase()));
+    const filteredSubCategories = subCategories?.filter(
+        sc => !selectedCategory || sc.categoryId === selectedCategory.categoryId
+    );
+
+    const displaySubCategories = filteredSubCategories?.filter(sc =>
+        sc.subCategory.toLowerCase().includes(subCategoryInput.toLowerCase())
+    );
+
+    const otherSubCategories = filteredSubCategories?.filter(
+        sc => !sc.subCategory.toLowerCase().includes(subCategoryInput.toLowerCase())
+    );
 
     const fetchCategories = () => {
         getCategoriesApiHandler(() => getCategories())
@@ -36,7 +43,13 @@ const CategoriesMaster: React.FC = () => {
     }, [getCategoriesData]);
 
     useEffect(() => {
-        if (getSubCategoriesData) setSubCategories(getSubCategoriesData);
+        if (getSubCategoriesData) {
+            const cleaned = getSubCategoriesData.map((sc: SubCategory) => ({
+                ...sc,
+                subCategory: sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
+            }));
+            setSubCategories(cleaned);
+        }
     }, [getSubCategoriesData]);
 
     useEffect(() => {
@@ -78,6 +91,19 @@ const CategoriesMaster: React.FC = () => {
             addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => fetchSubCategories());
         }
         setSubCategoryInput('');
+    };
+
+    const handleEditSubCategory = (sc: SubCategory) => {
+        const newName = prompt('Edit Sub-Category', sc.subCategory);
+        if (newName && newName.trim() && newName !== sc.subCategory) {
+            updateSubCategory(sc.subCategoryId, { subCategory: newName.trim() }).then(() => fetchSubCategories());
+        }
+    };
+
+    const handleDeleteSubCategory = (id: number) => {
+        if (window.confirm('Delete this sub-category?')) {
+            deleteSubCategory(id).then(() => fetchSubCategories());
+        }
     };
 
 
@@ -182,19 +208,15 @@ const CategoriesMaster: React.FC = () => {
                         onChange={e => setSubCategoryInput(e.target.value)}
                         onFocus={() => setSubCategoryInput('')}
                     />
-                    {subCategoryInput && !displaySubCategories.includes(subCategoryInput) && (
+                    {subCategoryInput && !displaySubCategories?.some(sc => sc.subCategory.toLowerCase() === subCategoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>
                             Add Sub-Category
                         </Button>
                     )}
                     <List className="mt-2">
-                        {displaySubCategories
-                            ?.filter(sc =>
-                                sc?.toLowerCase().includes(subCategoryInput.toLowerCase())
-                            )
-                            .map(sc => (
-                                <ListItem
-                                    key={sc}
+                        {displaySubCategories?.map(sc => (
+                            <ListItem
+                                    key={sc.subCategoryId}
                                     sx={{
                                         '&:hover': {
                                             background: '#e7e5e5',
@@ -208,9 +230,14 @@ const CategoriesMaster: React.FC = () => {
                                         alignItems: 'center'
                                     }}
                                 >
-                                    <span style={{ flexGrow: 1 }}>{sc}</span>
+                                    <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
                                     <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        {/* Add edit/delete sub-category logic here if needed */}
+                                        <IconButton size="small" onClick={() => handleEditSubCategory(sc)}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
                                     </Box>
                                 </ListItem>
                             ))}
@@ -225,11 +252,9 @@ const CategoriesMaster: React.FC = () => {
                             </span>
                         }
                     >
-                        {displaySubCategories
-                            ?.filter(sc => !sc?.toLowerCase().includes(subCategoryInput.toLowerCase()))
-                            .map(sc => (
-                                <ListItem
-                                    key={sc}
+                        {otherSubCategories?.map(sc => (
+                            <ListItem
+                                    key={sc.subCategoryId}
                                     sx={{
                                         '&:hover': {
                                             background: '#e7e5e5',
@@ -243,9 +268,14 @@ const CategoriesMaster: React.FC = () => {
                                         alignItems: 'center'
                                     }}
                                 >
-                                    <span style={{ flexGrow: 1 }}>{sc}</span>
+                                    <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
                                     <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        {/* Add edit/delete sub-category logic here if needed */}
+                                        <IconButton size="small" onClick={() => handleEditSubCategory(sc)}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
                                     </Box>
                                 </ListItem>
                             ))}
