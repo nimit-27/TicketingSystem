@@ -98,6 +98,18 @@ const CategoriesMaster: React.FC = () => {
                     {categoryInput && !categories.find(c => c.name.toLowerCase() === categoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>Add as new category</Button>
                     )}
+                    {/* Category chips below input */}
+                    <Stack direction="row" spacing={1} flexWrap="wrap" className="mt-3 mb-2">
+                        {categories.map(cat => (
+                            <Box key={cat.name} className="d-flex align-items-center me-2 mb-2">
+                                <Chip
+                                    label={cat.name}
+                                    color={selectedCategory?.name === cat.name ? 'primary' : 'default'}
+                                    onClick={() => setSelectedCategory(cat)}
+                                />
+                            </Box>
+                        ))}
+                    </Stack>
                 </div>
                 <div className="col-md-6 mb-3">
                     <Autocomplete
@@ -114,35 +126,20 @@ const CategoriesMaster: React.FC = () => {
                     {subCategoryInput && selectedCategory && !selectedCategory.subCategories.includes(subCategoryInput) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>Add as new sub-category</Button>
                     )}
+                    {/* Sub-category chips below input */}
+                    {selectedCategory && (
+                        <Stack direction="row" spacing={1} flexWrap="wrap" className="mt-3 mb-2">
+                            {selectedCategory.subCategories.map(sc => (
+                                <Box key={sc} className="d-flex align-items-center me-2 mb-2">
+                                    <Chip label={sc} />
+                                    {/* <IconButton size="small" onClick={() => handleEditSubCategory(sc)}><Edit fontSize="small" /></IconButton>
+                                    <IconButton size="small" onClick={() => handleDeleteSubCategory(sc)}><Delete fontSize="small" /></IconButton> */}
+                                </Box>
+                            ))}
+                        </Stack>
+                    )}
                 </div>
             </div>
-            <Stack direction="row" spacing={1} flexWrap="wrap" className="mb-4">
-                {categories.map(cat => (
-                    <Box key={cat.name} className="d-flex align-items-center me-2 mb-2">
-                        <Chip
-                            label={cat.name}
-                            color={selectedCategory?.name === cat.name ? 'primary' : 'default'}
-                            onClick={() => setSelectedCategory(cat)}
-                        />
-                        <IconButton size="small" onClick={() => handleEditCategory(cat)}><Edit fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => handleDeleteCategory(cat.name)}><Delete fontSize="small" /></IconButton>
-                    </Box>
-                ))}
-            </Stack>
-            {selectedCategory && (
-                <>
-                    <h5>Sub-Categories of {selectedCategory.name}</h5>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" className="mb-4">
-                        {selectedCategory.subCategories.map(sc => (
-                            <Box key={sc} className="d-flex align-items-center me-2 mb-2">
-                                <Chip label={sc} />
-                                <IconButton size="small" onClick={() => handleEditSubCategory(sc)}><Edit fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => handleDeleteSubCategory(sc)}><Delete fontSize="small" /></IconButton>
-                            </Box>
-                        ))}
-                    </Stack>
-                </>
-            )}
             <Button variant="contained" onClick={handleSubmit}>Submit</Button>
         </div>
     );

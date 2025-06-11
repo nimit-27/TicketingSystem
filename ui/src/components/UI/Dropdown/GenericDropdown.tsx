@@ -50,18 +50,12 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
                 size='small'
                 onChange={onChange}
             >
+                {console.log({ options })}
                 {menuItemsList
                     ? menuItemsList
-                    : options?.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                        </MenuItem>
-                    ))}
-                {/* {options.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                    </MenuItem>
-                ))} */}
+                    : options?.length
+                        ? options?.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)
+                        : <MenuItem disabled>No options available</MenuItem>}
             </Select>
         </FormControl>
     );

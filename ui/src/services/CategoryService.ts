@@ -7,5 +7,5 @@ export function getCategories() {
 }
 
 export function getSubCategories(category: string) {
-    return axios.get(`${baseURL}/categories/${category}/subcategories`);
+    return axios.get(`${baseURL}/categories/${category}/sub-categories`);
 }

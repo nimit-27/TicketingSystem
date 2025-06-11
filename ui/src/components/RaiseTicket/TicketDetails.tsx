@@ -49,7 +49,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
 
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
     const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
-    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'name', 'categoryId');
+    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'categoryId');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'name', 'subCategoryId');
 
     useEffect(() => {
@@ -106,7 +106,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         label="Sub-Category"
                         options={subCategoryOptions}
                         className="form-select"
-                        disabled={disableAll}
+                        disabled={disableAll || formData?.category}
                     />
                 </div>
                 <div className="col-md-4 mb-3 px-4">
