@@ -1,87 +1,143 @@
-import React, { useEffect, useState } from 'react';
-import { List, ListItem, Checkbox, IconButton, TextField, Button } from '@mui/material';
-import { Delete, Edit } from '@mui/icons-material';
+import React, { useState } from 'react';
+import { Autocomplete, Button, IconButton, List, ListItem, TextField } from '@mui/material';
+import { Link as LinkIcon } from '@mui/icons-material';
 import Title from '../components/Title';
-import { useApi } from '../hooks/useApi';
-import { getCategories, addCategory, updateCategory, deleteCategory, deleteCategories } from '../services/CategoryService';
 
 interface Category {
-    categoryId: number;
-    category: string;
+    name: string;
+    subCategories: string[];
 }
 
 const CategoriesMaster: React.FC = () => {
-    const { apiHandler: listApi } = useApi<any>();
-    const { apiHandler: addApi } = useApi<any>();
-    const { apiHandler: updateApi } = useApi<any>();
-    const { apiHandler: deleteApi } = useApi<any>();
-    const { apiHandler: deleteManyApi } = useApi<any>();
-
     const [categories, setCategories] = useState<Category[]>([]);
-    const [editId, setEditId] = useState<number | null>(null);
-    const [name, setName] = useState('');
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [unlinkedSubs, setUnlinkedSubs] = useState<string[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [categoryInput, setCategoryInput] = useState('');
+    const [subCategoryInput, setSubCategoryInput] = useState('');
+    const [linkingSub, setLinkingSub] = useState<string | null>(null);
 
-    const load = () => {
-        listApi(getCategories).then((c: any) => setCategories(c));
-    };
+    const allSubCategories = [
+        ...unlinkedSubs,
+        ...categories.flatMap(c => c.subCategories)
+    ];
 
-    useEffect(() => {
-        load();
-    }, []);
+    const displaySubCategories = selectedCategory
+        ? selectedCategory.subCategories
+        : allSubCategories;
 
-    const handleSave = () => {
-        const value = name.trim();
-        if (!value) return;
-        if (editId !== null) {
-            updateApi(() => updateCategory(editId, { category: value })).then(load);
-            setEditId(null);
-        } else {
-            addApi(() => addCategory({ category: value })).then(load);
+    const handleAddCategory = () => {
+        const name = categoryInput.trim();
+        if (!name) return;
+        if (!categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+            setCategories([...categories, { name, subCategories: [] }]);
         }
-        setName('');
+        setCategoryInput('');
     };
 
-    const handleEdit = (cat: Category) => {
-        setEditId(cat.categoryId);
-        setName(cat.category);
+    const handleAddSubCategory = () => {
+        const name = subCategoryInput.trim();
+        if (!name) return;
+        if (selectedCategory) {
+            setCategories(categories.map(c => c.name === selectedCategory.name
+                ? { ...c, subCategories: c.subCategories.includes(name) ? c.subCategories : [...c.subCategories, name] }
+                : c
+            ));
+            setSelectedCategory(prev => prev && prev.name === selectedCategory.name
+                ? { ...prev, subCategories: prev.subCategories.includes(name) ? prev.subCategories : [...prev.subCategories, name] }
+                : prev
+            );
+        } else if (!allSubCategories.includes(name)) {
+            setUnlinkedSubs([...unlinkedSubs, name]);
+        }
+        setSubCategoryInput('');
     };
 
-    const handleDelete = (id: number) => {
-        deleteApi(() => deleteCategory(id)).then(load);
-    };
-
-    const toggleSelect = (id: number) => {
-        setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-    };
-
-    const handleDeleteSelected = () => {
-        deleteManyApi(() => deleteCategories(selectedIds)).then(() => {
-            setSelectedIds([]);
-            load();
-        });
+    const linkSubToCategory = (sub: string, catName: string) => {
+        setUnlinkedSubs(unlinkedSubs.filter(s => s !== sub));
+        setCategories(categories.map(c => c.name === catName
+            ? { ...c, subCategories: [...c.subCategories, sub] }
+            : c
+        ));
+        if (selectedCategory && selectedCategory.name === catName) {
+            setSelectedCategory({ ...selectedCategory, subCategories: [...selectedCategory.subCategories, sub] });
+        }
+        setLinkingSub(null);
     };
 
     return (
         <div className="container">
             <Title text="Categories Master" />
-            <div className="mb-3">
-                <TextField size="small" label="Category" value={name} onChange={(e) => setName(e.target.value)} sx={{ mr: 2 }} />
-                <Button variant="contained" size="small" onClick={handleSave}>{editId !== null ? 'Update' : 'Add'}</Button>
+            <div className="row mb-4">
+                <div className="col-md-6 mb-3">
+                    <Autocomplete
+                        freeSolo
+                        options={categories.map(c => c.name)}
+                        value={selectedCategory?.name || null}
+                        inputValue={categoryInput}
+                        onInputChange={(_, value) => setCategoryInput(value)}
+                        onChange={(_, value) => {
+                            const cat = categories.find(c => c.name === value);
+                            setSelectedCategory(cat || null);
+                            if (cat) setCategoryInput(cat.name);
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Category" size="small" />} />
+                    {categoryInput && !categories.find(c => c.name.toLowerCase() === categoryInput.toLowerCase()) && (
+                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>Add Category</Button>
+                    )}
+                    <List className="mt-2">
+                        {categories.map(cat => (
+                            <ListItem
+                                key={cat.name}
+                                button
+                                selected={selectedCategory?.name === cat.name}
+                                onClick={() => setSelectedCategory(cat)}>
+                                {cat.name}
+                            </ListItem>
+                        ))}
+                    </List>
+                </div>
+                <div className="col-md-6 mb-3">
+                    <Autocomplete
+                        freeSolo
+                        options={selectedCategory ? selectedCategory.subCategories : allSubCategories}
+                        value={null}
+                        inputValue={subCategoryInput}
+                        onInputChange={(_, value) => setSubCategoryInput(value)}
+                        onChange={(_, value) => { if (value) setSubCategoryInput(value); }}
+                        renderInput={(params) => <TextField {...params} label="Sub-Category" size="small" />} />
+                    {subCategoryInput && !displaySubCategories.includes(subCategoryInput) && (
+                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>Add Sub-Category</Button>
+                    )}
+                    <List className="mt-2">
+                        {displaySubCategories.map(sc => {
+                            const isUnlinked = unlinkedSubs.includes(sc);
+                            const parent = categories.find(c => c.subCategories.includes(sc));
+                            return (
+                                <ListItem key={sc} sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ flexGrow: 1 }}>
+                                        {sc}
+                                        {!selectedCategory && parent && ` ( ${parent.name} )`}
+                                    </span>
+                                    {isUnlinked && (
+                                        linkingSub === sc ? (
+                                            <Autocomplete
+                                                size="small"
+                                                options={categories.map(c => c.name)}
+                                                onChange={(_, value) => { if (value) linkSubToCategory(sc, value); }}
+                                                renderInput={(params) => <TextField {...params} label="Link" size="small" />}
+                                            />
+                                        ) : (
+                                            <IconButton size="small" onClick={() => setLinkingSub(sc)}>
+                                                <LinkIcon fontSize="small" />
+                                            </IconButton>
+                                        )
+                                    )}
+                                </ListItem>
+                            );
+                        })}
+                    </List>
+                </div>
             </div>
-            <List>
-                {categories.map(cat => (
-                    <ListItem key={cat.categoryId} sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Checkbox size="small" checked={selectedIds.includes(cat.categoryId)} onChange={() => toggleSelect(cat.categoryId)} />
-                        <span style={{ flexGrow: 1 }}>{cat.category}</span>
-                        <IconButton size="small" onClick={() => handleEdit(cat)}><Edit fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => handleDelete(cat.categoryId)} color="error"><Delete fontSize="small" /></IconButton>
-                    </ListItem>
-                ))}
-            </List>
-            {selectedIds.length > 0 && (
-                <Button variant="outlined" color="error" onClick={handleDeleteSelected}>Delete Selected</Button>
-            )}
         </div>
     );
 };
