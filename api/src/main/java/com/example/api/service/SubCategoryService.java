@@ -1,6 +1,5 @@
 package com.example.api.service;
 
-import com.example.api.controller.SubCategoryController;
 import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.Category;
 import com.example.api.models.SubCategory;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import com.example.api.mapper.DtoMapper;
 
 @Service
 public class SubCategoryService {
@@ -24,16 +24,7 @@ public class SubCategoryService {
     public List<SubCategoryDto> getAllSubCategories() {
         List<SubCategory> subCategories = subCategoryRepository.findAll();
         return subCategories.stream()
-            .map(subCategory -> {
-            SubCategoryDto dto = new SubCategoryDto();
-            dto.setSubCategoryId(subCategory.getSubCategoryId());
-            dto.setSubCategory(subCategory.getSubCategory());
-            dto.setCreatedBy(subCategory.getCreatedBy());
-            dto.setTimestamp(subCategory.getTimestamp());
-            dto.setCategoryId(subCategory.getCategory() != null ? subCategory.getCategory().getCategoryId() : null);
-            dto.setLastUpdated(subCategory.getLastUpdated());
-            return dto;
-            })
+            .map(DtoMapper::toSubCategoryDto)
             .toList();
     }
 
@@ -45,8 +36,9 @@ public class SubCategoryService {
         Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new RuntimeException("Category not found"));
         subCategory.setCategory(category);
-        subCategoryRepository.save(subCategory);
-
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        subCategory.setTimestamp(now);
+        subCategory.setLastUpdated(now);
         return subCategoryRepository.save(subCategory);
     }
 }

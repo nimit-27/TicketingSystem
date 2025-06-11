@@ -5,6 +5,7 @@ import Title from '../components/Title';
 import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory } from '../services/CategoryService';
 import { useApi } from '../hooks/useApi';
 import { Category, SubCategory } from '../types';
+import { currentUserDetails } from '../config/config';
 
 const CategoriesMaster: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -47,7 +48,7 @@ const CategoriesMaster: React.FC = () => {
         const name = categoryInput.trim();
         if (!name) return;
         if (!categories.find(c => c.category.toLowerCase() === name.toLowerCase())) {
-            addCategory({ category: name }).then(() => fetchCategories());
+            addCategory({ category: name, createdBy: currentUserDetails.userId }).then(() => fetchCategories());
         }
         setCategoryInput('');
     }
@@ -72,7 +73,7 @@ const CategoriesMaster: React.FC = () => {
         const name = subCategoryInput.trim();
         if (!name || !selectedCategory) return;
         if (!selectedCategory.subCategories.find(sc => sc.subCategory.toLowerCase() === name.toLowerCase())) {
-            const newSub = { subCategory: name, categoryId: selectedCategory.categoryId };
+            const newSub = { subCategory: name, categoryId: selectedCategory.categoryId, createdBy: currentUserDetails.userId };
 
             addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => fetchSubCategories());
         }

@@ -106,7 +106,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         label="Sub-Category"
                         options={subCategoryOptions}
                         className="form-select"
-                        disabled={disableAll || formData?.category}
+                        disabled={disableAll || !formData?.category}
                     />
                 </div>
                 <div className="col-md-4 mb-3 px-4">

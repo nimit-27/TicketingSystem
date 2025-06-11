@@ -62,8 +62,7 @@ public class CategoryController {
     }
 
     @PostMapping("/{categoryId}/sub-categories")
-    public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId, @RequestBody String subCategory) {
-        SubCategory subCategoryToAdd = new SubCategory(subCategory);
-        return ResponseEntity.ok(subCategoryService.saveSubCategory(Integer.valueOf(categoryId), subCategoryToAdd));
+    public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId, @RequestBody SubCategory subCategory) {
+        return ResponseEntity.ok(subCategoryService.saveSubCategory(Integer.valueOf(categoryId), subCategory));
     }
 }

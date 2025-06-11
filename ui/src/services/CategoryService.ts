@@ -11,7 +11,7 @@ export function getAllSubCategories() {
 }
 
 export function addSubCategory(subCategory: any) {
-    return axios.post(`${baseURL}/categories/${subCategory?.categoryId}/sub-categories`, subCategory?.subCategory);
+    return axios.post(`${baseURL}/categories/${subCategory?.categoryId}/sub-categories`, subCategory);
 }
 
 export function getSubCategories(category: string) {
