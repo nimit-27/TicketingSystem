@@ -29,4 +29,18 @@ public class SubCategoryController {
         Optional<SubCategory> subCategory = subCategoryService.getSubCategoryDetails(subCategoryId);
         return subCategory.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).body(null));
     }
+
+    @PutMapping("/{subCategoryId}")
+    public ResponseEntity<SubCategory> updateSubCategory(@PathVariable Integer subCategoryId,
+                                                         @RequestBody SubCategory subCategory) {
+        return subCategoryService.updateSubCategory(subCategoryId, subCategory)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{subCategoryId}")
+    public ResponseEntity<Void> deleteSubCategory(@PathVariable Integer subCategoryId) {
+        subCategoryService.deleteSubCategory(subCategoryId);
+        return ResponseEntity.noContent().build();
+    }
 }

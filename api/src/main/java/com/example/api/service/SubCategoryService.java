@@ -41,4 +41,16 @@ public class SubCategoryService {
         subCategory.setLastUpdated(now);
         return subCategoryRepository.save(subCategory);
     }
+
+    public Optional<SubCategory> updateSubCategory(Integer id, SubCategory updated) {
+        return subCategoryRepository.findById(id)
+            .map(existing -> {
+                existing.setSubCategory(updated.getSubCategory());
+                return subCategoryRepository.save(existing);
+            });
+    }
+
+    public void deleteSubCategory(Integer id) {
+        subCategoryRepository.deleteById(id);
+    }
 }
