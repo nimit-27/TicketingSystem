@@ -6,6 +6,14 @@ export function getCategories() {
     return axios.get(`${baseURL}/categories`);
 }
 
+export function getAllSubCategories() {
+    return axios.get(`${baseURL}/sub-categories`);
+}
+
+export function addSubCategory(subCategory: any) {
+    return axios.post(`${baseURL}/categories/${subCategory?.categoryId}/sub-categories`, subCategory?.subCategory);
+}
+
 export function getSubCategories(category: string) {
     return axios.get(`${baseURL}/categories/${category}/sub-categories`);
 }

@@ -7,3 +7,15 @@ export type FormProps<T extends FieldValues = FieldValues> = {
     setValue?: UseFormSetValue<T>;
 };
 
+export interface SubCategory {
+    subCategoryId: number;
+    subCategory: string;
+    categoryId?: number; // Optional, used when adding sub-categories directly
+}
+
+export interface Category {
+    categoryId: number;
+    category: string;
+    subCategories: SubCategory[];
+}
+

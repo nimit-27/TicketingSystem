@@ -2,37 +2,45 @@ import React, { useEffect, useState } from 'react';
 import { Autocomplete, Button, IconButton, List, ListItem, TextField, Box } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import Title from '../components/Title';
-import { getCategories, addCategory, updateCategory, deleteCategory } from '../services/CategoryService';
-
-interface SubCategory {
-    subCategoryId: number;
-    subCategory: string;
-}
-
-interface Category {
-    categoryId: number;
-    category: string;
-    subCategories: SubCategory[];
-}
+import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory } from '../services/CategoryService';
+import { useApi } from '../hooks/useApi';
+import { Category, SubCategory } from '../types';
 
 const CategoriesMaster: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [categoryInput, setCategoryInput] = useState('');
     const [subCategoryInput, setSubCategoryInput] = useState('');
 
-    const allSubCategories = categories.flatMap(c => c.subCategories.map(sc => sc.subCategory));
+    const { data: getCategoriesData, apiHandler: getCategoriesApiHandler } = useApi<any>();
+    const { data: getSubCategoriesData, apiHandler: getSubCategoriesApiHandler } = useApi<any>();
+    const { data: addSubCategoryData, apiHandler: addSubCategoryApiHandler } = useApi<any>();
 
-    const displaySubCategories = selectedCategory
-        ? selectedCategory.subCategories.map(sc => sc.subCategory)
-        : allSubCategories;
+    const displaySubCategories = subCategories
+        ?.filter(sc => !selectedCategory || sc.categoryId === selectedCategory.categoryId)
+        ?.map(sc => sc.subCategory)
+        ?.filter(sc => sc.toLowerCase().includes(subCategoryInput.toLowerCase()));
 
     const fetchCategories = () => {
-        getCategories().then(res => setCategories(res.data));
+        getCategoriesApiHandler(() => getCategories())
+    };
+    const fetchSubCategories = () => {
+        getSubCategoriesApiHandler(() => getAllSubCategories())
     };
 
     useEffect(() => {
+        if (Array.isArray(getCategoriesData)) setCategories(getCategoriesData);
+        else if (getCategoriesData) setCategories([]);
+    }, [getCategoriesData]);
+
+    useEffect(() => {
+        if (getSubCategoriesData) setSubCategories(getSubCategoriesData);
+    }, [getSubCategoriesData]);
+
+    useEffect(() => {
         fetchCategories();
+        fetchSubCategories();
     }, []);
 
     const handleAddCategory = () => {
@@ -42,7 +50,7 @@ const CategoriesMaster: React.FC = () => {
             addCategory({ category: name }).then(() => fetchCategories());
         }
         setCategoryInput('');
-    };
+    }
 
     const handleEditCategory = (cat: Category) => {
         const newName = prompt('Edit Category', cat.category);
@@ -64,12 +72,9 @@ const CategoriesMaster: React.FC = () => {
         const name = subCategoryInput.trim();
         if (!name || !selectedCategory) return;
         if (!selectedCategory.subCategories.find(sc => sc.subCategory.toLowerCase() === name.toLowerCase())) {
-            const newSub: SubCategory = { subCategoryId: 0, subCategory: name };
-            setCategories(categories.map(c => c.categoryId === selectedCategory.categoryId
-                ? { ...c, subCategories: [...c.subCategories, newSub] }
-                : c
-            ));
-            setSelectedCategory({ ...selectedCategory, subCategories: [...selectedCategory.subCategories, newSub] });
+            const newSub = { subCategory: name, categoryId: selectedCategory.categoryId };
+
+            addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => fetchSubCategories());
         }
         setSubCategoryInput('');
     };
@@ -96,7 +101,44 @@ const CategoriesMaster: React.FC = () => {
                     )}
                     <List className="mt-2">
                         {categories
-                            .filter(cat => cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
+                            ?.filter(cat => cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
+                            .map(cat => (
+                                <ListItem
+                                    key={cat.categoryId}
+                                    sx={{
+                                        '&:hover': {
+                                            background: selectedCategory?.categoryId === cat.categoryId
+                                                ? '#e0e0e0'
+                                                : '#e7e5e5',
+                                        },
+                                        '&:hover .actions': { visibility: 'visible' },
+                                        cursor: 'pointer',
+                                        background: selectedCategory?.categoryId === cat.categoryId ? '#f0f0f0' : '#e1dddd',
+                                        borderRadius: 1,
+                                        mb: 0.5
+                                    }}
+                                    onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setCategoryInput(cat.category);
+                                    }}
+                                >
+                                    <span style={{ flexGrow: 1 }}>{cat.category}</span>
+                                    <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                        <IconButton size="small" onClick={() => handleEditCategory(cat)}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton size="small" onClick={() => handleDeleteCategory(cat.categoryId)}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+                                </ListItem>
+                            ))}
+                    </List>
+                    {/* Gap between lists */}
+                    <Box sx={{ height: 24 }} />
+                    <List className="mt-2" subheader={<span style={{ fontWeight: 500, fontSize: 14, color: '#888' }}>Other Categories</span>}>
+                        {categories
+                            ?.filter(cat => !cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
                             .map(cat => (
                                 <ListItem
                                     key={cat.categoryId}
@@ -131,23 +173,81 @@ const CategoriesMaster: React.FC = () => {
                     </List>
                 </div>
                 <div className="col-md-6 mb-3">
-                    <Autocomplete
-                        freeSolo
-                        options={selectedCategory ? selectedCategory.subCategories.map(sc => sc.subCategory) : allSubCategories}
-                        value={null}
-                        inputValue={subCategoryInput}
-                        onInputChange={(_, value) => setSubCategoryInput(value)}
-                        onChange={(_, value) => { if (value) setSubCategoryInput(value); }}
-                        renderInput={(params) => <TextField {...params} label="Sub-Category" size="small" />} />
+                    <TextField
+                        label="Sub-Category"
+                        size="small"
+                        fullWidth
+                        value={subCategoryInput}
+                        onChange={e => setSubCategoryInput(e.target.value)}
+                        onFocus={() => setSubCategoryInput('')}
+                    />
                     {subCategoryInput && !displaySubCategories.includes(subCategoryInput) && (
-                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>Add Sub-Category</Button>
+                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>
+                            Add Sub-Category
+                        </Button>
                     )}
                     <List className="mt-2">
-                        {displaySubCategories.map(sc => (
-                            <ListItem key={sc} sx={{ display: 'flex', alignItems: 'center' }}>
-                                <span style={{ flexGrow: 1 }}>{sc}</span>
-                            </ListItem>
-                        ))}
+                        {displaySubCategories
+                            ?.filter(sc =>
+                                sc?.toLowerCase().includes(subCategoryInput.toLowerCase())
+                            )
+                            .map(sc => (
+                                <ListItem
+                                    key={sc}
+                                    sx={{
+                                        '&:hover': {
+                                            background: '#e7e5e5',
+                                        },
+                                        '&:hover .actions': { visibility: 'visible' },
+                                        cursor: 'pointer',
+                                        background: '#e1dddd',
+                                        borderRadius: 1,
+                                        mb: 0.5,
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <span style={{ flexGrow: 1 }}>{sc}</span>
+                                    <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                        {/* Add edit/delete sub-category logic here if needed */}
+                                    </Box>
+                                </ListItem>
+                            ))}
+                    </List>
+                    {/* Gap between lists */}
+                    <Box sx={{ height: 24 }} />
+                    <List
+                        className="mt-2"
+                        subheader={
+                            <span style={{ fontWeight: 500, fontSize: 14, color: '#888' }}>
+                                Other Sub-Categories
+                            </span>
+                        }
+                    >
+                        {displaySubCategories
+                            ?.filter(sc => !sc?.toLowerCase().includes(subCategoryInput.toLowerCase()))
+                            .map(sc => (
+                                <ListItem
+                                    key={sc}
+                                    sx={{
+                                        '&:hover': {
+                                            background: '#e7e5e5',
+                                        },
+                                        '&:hover .actions': { visibility: 'visible' },
+                                        cursor: 'pointer',
+                                        background: '#e1dddd',
+                                        borderRadius: 1,
+                                        mb: 0.5,
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <span style={{ flexGrow: 1 }}>{sc}</span>
+                                    <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                        {/* Add edit/delete sub-category logic here if needed */}
+                                    </Box>
+                                </ListItem>
+                            ))}
                     </List>
                 </div>
             </div>
