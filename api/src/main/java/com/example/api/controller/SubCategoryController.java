@@ -1,10 +1,12 @@
 package com.example.api.controller;
 
+import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.SubCategory;
 import com.example.api.service.SubCategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -15,6 +17,11 @@ public class SubCategoryController {
 
     public SubCategoryController(SubCategoryService subCategoryService) {
         this.subCategoryService = subCategoryService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SubCategoryDto>> getAllSubCategories() {
+        return ResponseEntity.ok(subCategoryService.getAllSubCategories());
     }
 
     @GetMapping("/{subCategoryId}")

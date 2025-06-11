@@ -1,8 +1,11 @@
 package com.example.api.controller;
 
+import com.example.api.dto.CategoryDto;
 import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.Category;
+import com.example.api.models.SubCategory;
 import com.example.api.service.CategoryService;
+import com.example.api.service.SubCategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +18,15 @@ import java.util.Set;
 @CrossOrigin(origins = "http://localhost:3000")
 public class CategoryController {
     private final CategoryService categoryService;
+    private final SubCategoryService subCategoryService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, SubCategoryService subCategoryService) {
         this.categoryService = categoryService;
+        this.subCategoryService = subCategoryService;
     }
 
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
@@ -54,5 +59,11 @@ public class CategoryController {
     public ResponseEntity<Set<SubCategoryDto>> getSubCategoriesByCategory(@PathVariable String categoryId) {
         Optional<Set<SubCategoryDto>> subCategoriesOptional = categoryService.getSubCategoriesByCategory(categoryId);
         return subCategoriesOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{categoryId}/sub-categories")
+    public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId, @RequestBody String subCategory) {
+        SubCategory subCategoryToAdd = new SubCategory(subCategory);
+        return ResponseEntity.ok(subCategoryService.saveSubCategory(Integer.valueOf(categoryId), subCategoryToAdd));
     }
 }

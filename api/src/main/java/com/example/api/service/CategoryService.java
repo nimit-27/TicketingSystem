@@ -1,11 +1,16 @@
 package com.example.api.service;
 
+import com.example.api.dto.CategoryDto;
 import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.Category;
 import com.example.api.models.SubCategory;
 import com.example.api.repository.CategoryRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.HashSet;
 import java.util.List;
@@ -20,8 +25,30 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDto> getAllCategories() {
+        List<Category> categories = categoryRepository.findAll();
+        return categories.stream().map(category -> {
+            CategoryDto dto = new CategoryDto();
+            dto.setCategoryId(category.getCategoryId());
+            dto.setCategory(category.getCategory());
+            dto.setCreatedBy(category.getCreatedBy());
+            dto.setTimestamp(category.getTimestamp());
+            dto.setLastUpdated(category.getLastUpdated());
+            if (category.getSubCategories() != null) {
+                Set<SubCategoryDto> subCategoryDtos = category.getSubCategories().stream().map(subCategory -> {
+                    SubCategoryDto subDto = new SubCategoryDto();
+                    subDto.setSubCategoryId(subCategory.getSubCategoryId());
+                    subDto.setSubCategory(subCategory.getSubCategory());
+                    subDto.setCreatedBy(subCategory.getCreatedBy());
+                    subDto.setTimestamp(subCategory.getTimestamp());
+                    subDto.setLastUpdated(subCategory.getLastUpdated());
+                    subDto.setCategoryId(category.getCategoryId());
+                    return subDto;
+                }).collect(java.util.stream.Collectors.toSet());
+                dto.setSubCategories(subCategoryDtos);
+            }
+            return dto;
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     public Category saveCategory(Category category) {
@@ -63,4 +90,6 @@ public class CategoryService {
                     return subCategoryDtos;
                 });
     }
+
+
 }

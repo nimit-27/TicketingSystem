@@ -16,6 +16,7 @@ public class SubCategory {
     @Id
     @Column(name = "sub_category_id")
     @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer subCategoryId;
 
     @Column(name = "sub_category")
@@ -33,4 +34,10 @@ public class SubCategory {
 
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
+
+    public SubCategory() {}
+
+    public SubCategory(String subCategory) {
+        this.subCategory = subCategory;
+    }
 }
