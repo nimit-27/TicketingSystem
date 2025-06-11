@@ -1,68 +1,79 @@
 import React, { useEffect, useState } from 'react';
-import { Autocomplete, Button, IconButton, List, ListItem, TextField } from '@mui/material';
-import { Link as LinkIcon } from '@mui/icons-material';
+import { Autocomplete, Button, IconButton, List, ListItem, TextField, Box } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import Title from '../components/Title';
+import { getCategories, addCategory, updateCategory, deleteCategory } from '../services/CategoryService';
+
+interface SubCategory {
+    subCategoryId: number;
+    subCategory: string;
+}
 
 interface Category {
-    name: string;
-    subCategories: string[];
+    categoryId: number;
+    category: string;
+    subCategories: SubCategory[];
 }
 
 const CategoriesMaster: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
-    const [unlinkedSubs, setUnlinkedSubs] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [categoryInput, setCategoryInput] = useState('');
     const [subCategoryInput, setSubCategoryInput] = useState('');
-    const [linkingSub, setLinkingSub] = useState<string | null>(null);
 
-    const allSubCategories = [
-        ...unlinkedSubs,
-        ...categories.flatMap(c => c.subCategories)
-    ];
+    const allSubCategories = categories.flatMap(c => c.subCategories.map(sc => sc.subCategory));
 
     const displaySubCategories = selectedCategory
-        ? selectedCategory.subCategories
+        ? selectedCategory.subCategories.map(sc => sc.subCategory)
         : allSubCategories;
+
+    const fetchCategories = () => {
+        getCategories().then(res => setCategories(res.data));
+    };
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     const handleAddCategory = () => {
         const name = categoryInput.trim();
         if (!name) return;
-        if (!categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-            setCategories([...categories, { name, subCategories: [] }]);
+        if (!categories.find(c => c.category.toLowerCase() === name.toLowerCase())) {
+            addCategory({ category: name }).then(() => fetchCategories());
         }
         setCategoryInput('');
     };
 
+    const handleEditCategory = (cat: Category) => {
+        const newName = prompt('Edit Category', cat.category);
+        if (newName && newName.trim() && newName !== cat.category) {
+            updateCategory(cat.categoryId, { category: newName.trim() }).then(() => fetchCategories());
+        }
+    };
+
+    const handleDeleteCategory = (id: number) => {
+        if (window.confirm('Delete this category?')) {
+            deleteCategory(id).then(() => {
+                if (selectedCategory?.categoryId === id) setSelectedCategory(null);
+                fetchCategories();
+            });
+        }
+    };
+
     const handleAddSubCategory = () => {
         const name = subCategoryInput.trim();
-        if (!name) return;
-        if (selectedCategory) {
-            setCategories(categories.map(c => c.name === selectedCategory.name
-                ? { ...c, subCategories: c.subCategories.includes(name) ? c.subCategories : [...c.subCategories, name] }
+        if (!name || !selectedCategory) return;
+        if (!selectedCategory.subCategories.find(sc => sc.subCategory.toLowerCase() === name.toLowerCase())) {
+            const newSub: SubCategory = { subCategoryId: 0, subCategory: name };
+            setCategories(categories.map(c => c.categoryId === selectedCategory.categoryId
+                ? { ...c, subCategories: [...c.subCategories, newSub] }
                 : c
             ));
-            setSelectedCategory(prev => prev && prev.name === selectedCategory.name
-                ? { ...prev, subCategories: prev.subCategories.includes(name) ? prev.subCategories : [...prev.subCategories, name] }
-                : prev
-            );
-        } else if (!allSubCategories.includes(name)) {
-            setUnlinkedSubs([...unlinkedSubs, name]);
+            setSelectedCategory({ ...selectedCategory, subCategories: [...selectedCategory.subCategories, newSub] });
         }
         setSubCategoryInput('');
     };
 
-    const linkSubToCategory = (sub: string, catName: string) => {
-        setUnlinkedSubs(unlinkedSubs.filter(s => s !== sub));
-        setCategories(categories.map(c => c.name === catName
-            ? { ...c, subCategories: [...c.subCategories, sub] }
-            : c
-        ));
-        if (selectedCategory && selectedCategory.name === catName) {
-            setSelectedCategory({ ...selectedCategory, subCategories: [...selectedCategory.subCategories, sub] });
-        }
-        setLinkingSub(null);
-    };
 
     return (
         <div className="container">
@@ -71,41 +82,49 @@ const CategoriesMaster: React.FC = () => {
                 <div className="col-md-6 mb-3">
                     <Autocomplete
                         freeSolo
-                        options={categories.map(c => c.name)}
-                        value={selectedCategory?.name || null}
+                        options={categories.map(c => c.category)}
+                        value={selectedCategory?.category || null}
                         inputValue={categoryInput}
                         onInputChange={(_, value) => setCategoryInput(value)}
                         onChange={(_, value) => {
-                            const cat = categories.find(c => c.name === value);
+                            const cat = categories.find(c => c.category === value);
                             setSelectedCategory(cat || null);
-                            if (cat) setCategoryInput(cat.name);
+                            if (cat) setCategoryInput(cat.category);
                         }}
                         renderInput={(params) => <TextField {...params} label="Category" size="small" />} />
-                    {categoryInput && !categories.find(c => c.name.toLowerCase() === categoryInput.toLowerCase()) && (
+                    {categoryInput && !categories.find(c => c.category.toLowerCase() === categoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>Add Category</Button>
                     )}
                     <List className="mt-2">
                         {categories.map(cat => (
-                            <div
-                                key={cat.name}
-                                style={{
-                                    padding: '8px 16px',
+                            <ListItem
+                                key={cat.categoryId}
+                                sx={{
+                                    '&:hover .actions': { visibility: 'visible' },
                                     cursor: 'pointer',
-                                    background: selectedCategory?.name === cat.name ? '#f0f0f0' : 'transparent',
-                                    borderRadius: 4,
-                                    marginBottom: 2
+                                    background: selectedCategory?.categoryId === cat.categoryId ? '#f0f0f0' : 'transparent',
+                                    borderRadius: 1,
+                                    mb: 0.5
                                 }}
                                 onClick={() => setSelectedCategory(cat)}
                             >
-                                {cat.name}
-                            </div>
+                                <span style={{ flexGrow: 1 }}>{cat.category}</span>
+                                <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                    <IconButton size="small" onClick={() => handleEditCategory(cat)}>
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton size="small" onClick={() => handleDeleteCategory(cat.categoryId)}>
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                            </ListItem>
                         ))}
                     </List>
                 </div>
                 <div className="col-md-6 mb-3">
                     <Autocomplete
                         freeSolo
-                        options={selectedCategory ? selectedCategory.subCategories : allSubCategories}
+                        options={selectedCategory ? selectedCategory.subCategories.map(sc => sc.subCategory) : allSubCategories}
                         value={null}
                         inputValue={subCategoryInput}
                         onInputChange={(_, value) => setSubCategoryInput(value)}
@@ -115,32 +134,11 @@ const CategoriesMaster: React.FC = () => {
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>Add Sub-Category</Button>
                     )}
                     <List className="mt-2">
-                        {displaySubCategories.map(sc => {
-                            const isUnlinked = unlinkedSubs.includes(sc);
-                            const parent = categories.find(c => c.subCategories.includes(sc));
-                            return (
-                                <ListItem key={sc} sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <span style={{ flexGrow: 1 }}>
-                                        {sc}
-                                        {!selectedCategory && parent && ` ( ${parent.name} )`}
-                                    </span>
-                                    {isUnlinked && (
-                                        linkingSub === sc ? (
-                                            <Autocomplete
-                                                size="small"
-                                                options={categories.map(c => c.name)}
-                                                onChange={(_, value) => { if (value) linkSubToCategory(sc, value); }}
-                                                renderInput={(params) => <TextField {...params} label="Link" size="small" />}
-                                            />
-                                        ) : (
-                                            <IconButton size="small" onClick={() => setLinkingSub(sc)}>
-                                                <LinkIcon fontSize="small" />
-                                            </IconButton>
-                                        )
-                                    )}
-                                </ListItem>
-                            );
-                        })}
+                        {displaySubCategories.map(sc => (
+                            <ListItem key={sc} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ flexGrow: 1 }}>{sc}</span>
+                            </ListItem>
+                        ))}
                     </List>
                 </div>
             </div>
