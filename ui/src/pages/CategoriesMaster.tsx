@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Autocomplete, Button, IconButton, List, ListItem, TextField } from '@mui/material';
 import { Link as LinkIcon } from '@mui/icons-material';
 import Title from '../components/Title';
@@ -86,13 +86,19 @@ const CategoriesMaster: React.FC = () => {
                     )}
                     <List className="mt-2">
                         {categories.map(cat => (
-                            <ListItem
+                            <div
                                 key={cat.name}
-                                button
-                                selected={selectedCategory?.name === cat.name}
-                                onClick={() => setSelectedCategory(cat)}>
+                                style={{
+                                    padding: '8px 16px',
+                                    cursor: 'pointer',
+                                    background: selectedCategory?.name === cat.name ? '#f0f0f0' : 'transparent',
+                                    borderRadius: 4,
+                                    marginBottom: 2
+                                }}
+                                onClick={() => setSelectedCategory(cat)}
+                            >
                                 {cat.name}
-                            </ListItem>
+                            </div>
                         ))}
                     </List>
                 </div>
