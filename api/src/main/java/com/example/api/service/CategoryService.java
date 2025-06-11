@@ -4,6 +4,7 @@ import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.Category;
 import com.example.api.models.SubCategory;
 import com.example.api.repository.CategoryRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -21,6 +22,27 @@ public class CategoryService {
 
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
+    }
+
+    public Category saveCategory(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public Optional<Category> updateCategory(Integer id, Category updated) {
+        return categoryRepository.findById(id)
+                .map(existing -> {
+                    existing.setCategory(updated.getCategory());
+                    return categoryRepository.save(existing);
+                });
+    }
+
+    public void deleteCategory(Integer id) {
+        categoryRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteCategories(List<Integer> ids) {
+        categoryRepository.deleteAllById(ids);
     }
 
     public Optional<Set<SubCategoryDto>> getSubCategoriesByCategory(String categoryId) {
