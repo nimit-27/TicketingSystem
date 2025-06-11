@@ -80,45 +80,54 @@ const CategoriesMaster: React.FC = () => {
             <Title text="Categories Master" />
             <div className="row mb-4">
                 <div className="col-md-6 mb-3">
-                    <Autocomplete
-                        freeSolo
-                        options={categories.map(c => c.category)}
-                        value={selectedCategory?.category || null}
-                        inputValue={categoryInput}
-                        onInputChange={(_, value) => setCategoryInput(value)}
-                        onChange={(_, value) => {
-                            const cat = categories.find(c => c.category === value);
-                            setSelectedCategory(cat || null);
-                            if (cat) setCategoryInput(cat.category);
+                    <TextField
+                        label="Category"
+                        size="small"
+                        fullWidth
+                        value={categoryInput}
+                        onChange={e => {
+                            setCategoryInput(e.target.value);
+                            setSelectedCategory(null);
                         }}
-                        renderInput={(params) => <TextField {...params} label="Category" size="small" />} />
+                        onFocus={() => setSelectedCategory(null)}
+                    />
                     {categoryInput && !categories.find(c => c.category.toLowerCase() === categoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>Add Category</Button>
                     )}
                     <List className="mt-2">
-                        {categories.map(cat => (
-                            <ListItem
-                                key={cat.categoryId}
-                                sx={{
-                                    '&:hover .actions': { visibility: 'visible' },
-                                    cursor: 'pointer',
-                                    background: selectedCategory?.categoryId === cat.categoryId ? '#f0f0f0' : 'transparent',
-                                    borderRadius: 1,
-                                    mb: 0.5
-                                }}
-                                onClick={() => setSelectedCategory(cat)}
-                            >
-                                <span style={{ flexGrow: 1 }}>{cat.category}</span>
-                                <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                    <IconButton size="small" onClick={() => handleEditCategory(cat)}>
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton size="small" onClick={() => handleDeleteCategory(cat.categoryId)}>
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </ListItem>
-                        ))}
+                        {categories
+                            .filter(cat => cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
+                            .map(cat => (
+                                <ListItem
+                                    key={cat.categoryId}
+                                    sx={{
+                                        '&:hover': {
+                                            background: selectedCategory?.categoryId === cat.categoryId
+                                                ? '#e0e0e0'
+                                                : '#e7e5e5',
+                                        },
+                                        '&:hover .actions': { visibility: 'visible' },
+                                        cursor: 'pointer',
+                                        background: selectedCategory?.categoryId === cat.categoryId ? '#f0f0f0' : '#e1dddd',
+                                        borderRadius: 1,
+                                        mb: 0.5
+                                    }}
+                                    onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setCategoryInput(cat.category);
+                                    }}
+                                >
+                                    <span style={{ flexGrow: 1 }}>{cat.category}</span>
+                                    <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                        <IconButton size="small" onClick={() => handleEditCategory(cat)}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton size="small" onClick={() => handleDeleteCategory(cat.categoryId)}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+                                </ListItem>
+                            ))}
                     </List>
                 </div>
                 <div className="col-md-6 mb-3">
