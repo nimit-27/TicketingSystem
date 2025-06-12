@@ -11,7 +11,9 @@ import { useApi } from "../hooks/useApi";
 import { addTicket } from "../services/TicketService";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
+    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm({
+        defaultValues: { isMaster: false }
+    });
     const { data, pending, error, success, apiHandler } = useApi();
 
     // Get all form values
@@ -50,7 +52,7 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Submit Button */}
 
                 <div className="text-start">
-                    <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} />
+                    <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={formData.isMaster} />
                 </div>
                 <div className="text-end mt-3">
                     <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />

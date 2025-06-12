@@ -6,6 +6,7 @@ import CustomFormInput from "../UI/Input/CustomFormInput";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { useEffect } from "react";
+import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
 
@@ -117,6 +118,12 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         options={priorityOptions}
                         className="form-select"
                         disabled={disableAll}
+                    />
+                </div>
+                <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
+                    <FormControlLabel
+                        control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
+                        label="Mark this ticket as Master"
                     />
                 </div>
                 <div className="col-md-12 mb-3 px-4">
