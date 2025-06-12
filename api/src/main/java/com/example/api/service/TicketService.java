@@ -81,6 +81,12 @@ public class TicketService {
         return saved;
     }
 
+    public Ticket linkToMaster(int id, int masterId) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setMasterId(masterId);
+        return ticketRepository.save(ticket);
+    }
+
     public TicketComment addComment(int ticketId, String comment) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         TicketComment tc = new TicketComment();

@@ -25,6 +25,10 @@ export function updateTicket(id: number, payload: any) {
     return axios.put(`${baseURL}/tickets/${id}`, payload);
 }
 
+export function linkTicketToMaster(id: number, masterId: number) {
+    return axios.put(`${baseURL}/tickets/${id}/link/${masterId}`);
+}
+
 export function addComment(id: number, comment: string) {
     return axios.post(`${baseURL}/tickets/${id}/comments`, comment, {
         headers: { 'Content-Type': 'text/plain' }
