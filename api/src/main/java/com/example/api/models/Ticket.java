@@ -38,14 +38,12 @@ public class Ticket {
     @Column(name="attachment_path")
     private String attachmentPath;
 
-    @Column(name = "assign_to_level")
-    private String assignToLevel;
-    @Column(name = "assign_to")
-    private String assignTo;
     @Column(name = "assigned_to_level")
     private String assignedToLevel;
     @Column(name = "assigned_to")
     private String assignedTo;
+    @Column(name = "assigned_by")
+    private String assignedBy;
 
     @JsonProperty("isMaster")
     @Column(name = "is_master")

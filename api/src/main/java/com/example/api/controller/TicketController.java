@@ -1,6 +1,7 @@
 package com.example.api.controller;
 
 import com.example.api.dto.PaginationResponse;
+import com.example.api.dto.TicketDto;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.service.TicketService;
@@ -25,33 +26,30 @@ public class TicketController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginationResponse<Ticket>> getTickets(
+    public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<Ticket> p = ticketService.getTickets(PageRequest.of(page, size));
-        PaginationResponse<Ticket> resp = new PaginationResponse<>(
+        Page<TicketDto> p = ticketService.getTickets(PageRequest.of(page, size));
+        PaginationResponse<TicketDto> resp = new PaginationResponse<>(
                 p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Ticket> getTicket(@PathVariable int id) {
-        Ticket t = ticketService.getTicket(id);
-        if (t == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(t);
+    public ResponseEntity<TicketDto> getTicket(@PathVariable int id) {
+        TicketDto dto = ticketService.getTicket(id);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Ticket> addTicket(@RequestBody Ticket ticket) {
-        System.out.println("TicketController: addTicket - method");
-        Ticket addedTicket = ticketService.addTicket(ticket);
-        System.out.println("Ticket added with Id: " + addedTicket.getId());
+    public ResponseEntity<TicketDto> addTicket(@RequestBody Ticket ticket) {
+        TicketDto addedTicket = ticketService.addTicket(ticket);
         return ResponseEntity.ok(addedTicket);
-//        return ResponseEntity.ok("Ticket with Id " + addedTicket.getId() + " added successfully");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Ticket> updateTicket(@PathVariable int id, @RequestBody Ticket ticket) {
+    public ResponseEntity<TicketDto> updateTicket(@PathVariable int id, @RequestBody Ticket ticket) {
         return ResponseEntity.ok(ticketService.updateTicket(id, ticket));
     }
 
@@ -85,7 +83,7 @@ public class TicketController {
     }
 
     @PutMapping("/{id}/link/{masterId}")
-    public ResponseEntity<Ticket> linkToMaster(@PathVariable int id, @PathVariable int masterId) {
+    public ResponseEntity<TicketDto> linkToMaster(@PathVariable int id, @PathVariable int masterId) {
         return ResponseEntity.ok(ticketService.linkToMaster(id, masterId));
     }
 }

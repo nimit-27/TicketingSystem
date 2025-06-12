@@ -1,5 +1,7 @@
 package com.example.api.service;
 
+import com.example.api.dto.TicketDto;
+import com.example.api.mapper.DtoMapper;
 import com.example.api.models.Employee;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
@@ -39,29 +41,33 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
-    public Page<Ticket> getTickets(Pageable pageable) {
-        return ticketRepository.findAll(pageable);
+    public Page<TicketDto> getTickets(Pageable pageable) {
+        Page<Ticket> ticketPage = ticketRepository.findAll(pageable);
+
+        return ticketPage.map(DtoMapper::toTicketDto);
     }
 
-    public Ticket getTicket(int id) {
-        return ticketRepository.findById(id).orElse(null);
+    public TicketDto getTicket(int id) {
+        Ticket ticket = ticketRepository.findById(id).orElse(null);
+        return DtoMapper.toTicketDto(ticket);
     }
 
-    public Ticket addTicket(Ticket ticket) {
+    public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
         if(ticket.isMaster()) ticket.setMasterId(null);
 
         Employee employee = employeeRepository.findById(ticket.getEmployeeId()).orElseThrow();
         ticket.setEmployee(employee);
         System.out.println("TicketService: Saving the ticket to repository now...");
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+        return DtoMapper.toTicketDto(saved);
     }
 
     public SearchResult search(String query) throws Exception {
         return typesenseClient.searchTickets(query);
     }
 
-    public Ticket updateTicket(int id, Ticket updated) {
+    public TicketDto updateTicket(int id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id).orElseThrow();
         String previousAssignedTo = existing.getAssignedTo();
         existing.setCategory(updated.getCategory());
@@ -70,21 +76,20 @@ public class TicketService {
         existing.setPriority(updated.getPriority());
         existing.setDescription(updated.getDescription());
         existing.setAttachmentPath(updated.getAttachmentPath());
-//        existing.setAssignToLevel(updated.getAssignToLevel());
-//        existing.setAssignTo(updated.getAssignTo());
         existing.setAssignedToLevel(updated.getAssignedToLevel());
         existing.setAssignedTo(updated.getAssignedTo());
         Ticket saved = ticketRepository.save(existing);
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
         }
-        return saved;
+        return DtoMapper.toTicketDto(saved);
     }
 
-    public Ticket linkToMaster(int id, int masterId) {
+    public TicketDto linkToMaster(int id, int masterId) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow();
         ticket.setMasterId(masterId);
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+        return DtoMapper.toTicketDto(saved);
     }
 
     public TicketComment addComment(int ticketId, String comment) {
