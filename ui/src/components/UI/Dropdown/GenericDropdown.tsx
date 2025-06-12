@@ -39,15 +39,8 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
     style,
 }) => {
     return (
-        <FormControl fullWidth={fullWidth} disabled={disabled} required={required} style={style}>
-            {label && (
-                <InputLabel
-                    id={id ? `${id}-label` : undefined}
-                    sx={{ top: '50%', transform: 'translateY(-50%)' }}
-                >
-                    {label}
-                </InputLabel>
-            )}
+        <FormControl fullWidth={fullWidth} disabled={disabled} required={required} style={style} className={className} size='small'>
+            {label && <InputLabel id={id ? `${id}-label` : undefined}>{label}</InputLabel>}
             <Select
                 labelId={id ? `${id}-label` : undefined}
                 id={id}
@@ -56,7 +49,6 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
                 label={label}
                 size='small'
                 onChange={onChange}
-                className={className}
             >
                 {console.log({ options })}
                 {menuItemsList

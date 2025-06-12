@@ -11,9 +11,7 @@ import { useApi } from "../hooks/useApi";
 import { addTicket } from "../services/TicketService";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm({
-        defaultValues: { isMaster: false }
-    });
+    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
     const { data, pending, error, success, apiHandler } = useApi();
 
     // Get all form values

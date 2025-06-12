@@ -66,7 +66,7 @@ const TicketDetails: React.FC = () => {
             setValue("description", ticket.description);
             setValue("assignToLevel", ticket.assignToLevel);
             setValue("assignTo", ticket.assignTo);
-            setValue("assignedAtLevel", ticket.assignedAtLevel);
+            setValue("assignedToLevel", ticket.assignedToLevel);
             setValue("assignedTo", ticket.assignedTo);
         }
     }, [ticket]);
