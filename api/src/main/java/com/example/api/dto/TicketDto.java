@@ -2,6 +2,7 @@ package com.example.api.dto;
 
 import com.example.api.enums.Mode;
 import com.example.api.enums.Priority;
+import com.example.api.enums.Severity;
 import com.example.api.enums.TicketStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -22,6 +23,10 @@ public class TicketDto {
     private String category;
     private String subCategory;
     private Priority priority;
+    private Severity severity;
+    private Severity recommendedSeverity;
+    private String impact;
+    private String severityRecommendedBy;
     private TicketStatus status;
     private String attachmentPath;
     private String assignToLevel;

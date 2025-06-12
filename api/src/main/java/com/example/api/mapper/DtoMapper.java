@@ -52,6 +52,10 @@ public class DtoMapper {
         dto.setCategory(ticket.getCategory());
         dto.setSubCategory(ticket.getSubCategory());
         dto.setPriority(ticket.getPriority());
+        dto.setSeverity(ticket.getSeverity());
+        dto.setRecommendedSeverity(ticket.getRecommendedSeverity());
+        dto.setImpact(ticket.getImpact());
+        dto.setSeverityRecommendedBy(ticket.getSeverityRecommendedBy());
         dto.setStatus(ticket.getStatus());
         dto.setAttachmentPath(ticket.getAttachmentPath());
         dto.setAssignedToLevel(ticket.getAssignedToLevel());

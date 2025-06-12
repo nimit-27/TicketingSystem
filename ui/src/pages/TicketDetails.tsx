@@ -31,6 +31,10 @@ interface Ticket {
     category: string;
     subCategory: string;
     priority: string;
+    severity?: string;
+    recommendedSeverity?: string;
+    impact?: string;
+    severityRecommendedBy?: string;
     status: string;
     assignToLevel?: string;
     assignTo?: string;
@@ -62,6 +66,9 @@ const TicketDetails: React.FC = () => {
             setValue("category", ticket.category);
             setValue("subCategory", ticket.subCategory);
             setValue("priority", ticket.priority);
+            setValue("severity", ticket.severity);
+            setValue("impact", ticket.impact);
+            setValue("severityRecommendedBy", ticket.severityRecommendedBy);
             setValue("subject", ticket.subject);
             setValue("description", ticket.description);
             setValue("assignToLevel", ticket.assignToLevel);
@@ -90,6 +97,9 @@ const TicketDetails: React.FC = () => {
         setValue("category", ticket.category);
         setValue("subCategory", ticket.subCategory);
         setValue("priority", ticket.priority);
+        setValue("severity", ticket.severity);
+        setValue("impact", ticket.impact);
+        setValue("severityRecommendedBy", ticket.severityRecommendedBy);
         setValue("description", ticket.description);
         setValue("status", ticket.status);
         setValue("assignedToLevel", ticket.assignToLevel);
@@ -122,6 +132,7 @@ const TicketDetails: React.FC = () => {
                     formData={formData}
                     subjectDisabled
                     disableAll={!editing}
+                    showSeverityFields
                     actionElement={editing ? (
                         <>
                             <GenericButton variant="text" textKey="" type="button" onClick={() => { resetFields(); setEditing(false); }} style={{minWidth:0,padding:2}}>

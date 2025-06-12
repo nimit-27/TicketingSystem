@@ -74,6 +74,10 @@ public class TicketService {
         existing.setStatus(updated.getStatus());
         existing.setSubCategory(updated.getSubCategory());
         existing.setPriority(updated.getPriority());
+        existing.setSeverity(updated.getSeverity());
+        existing.setRecommendedSeverity(updated.getRecommendedSeverity());
+        existing.setImpact(updated.getImpact());
+        existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
         existing.setDescription(updated.getDescription());
         existing.setAttachmentPath(updated.getAttachmentPath());
         existing.setAssignedToLevel(updated.getAssignedToLevel());

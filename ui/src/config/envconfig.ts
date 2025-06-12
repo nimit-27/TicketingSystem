@@ -1,5 +1,5 @@
 export const envConfig = {
-    Roles: ["L1", "L2", "L3", "ADMIN", "FCI_USER", "USER"],
+    Roles: ["L1", "L2", "L3", "ADMIN", "FCI_USER", "USER", "RNO"],
     CurrentUserDetails: {
         userId: localStorage.getItem('userId') || 'nimit.jain',
         role: localStorage.getItem('role') || 'L1',
