@@ -5,7 +5,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
@@ -42,7 +42,6 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         : [];
 
 const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement }) => {
-    const currentUserRole = localStorage.getItem('role') || 'L1';
 
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
@@ -53,6 +52,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'categoryId');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'name', 'subCategoryId');
+    const [assignFurther, setAssignFurther] = useState<boolean>(false);
 
     useEffect(() => {
         getAllLevelApiHandler(() => getAllLevels())
@@ -84,8 +84,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
             <div className="row">
                 <div className="col-md-6 mb-3 px-4">
                     <CustomFormInput
-                        name="assignedAtLevel"
-                        label="Assigned at Level"
+                        name="assignedToLevel"
+                        label="Assigned To Level"
+                        slotProps={{
+                            inputLabel: { shrink: formData?.subject }
+                        }}
                         register={register}
                         errors={errors}
                         disabled
@@ -95,10 +98,13 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     <CustomFormInput
                         name="assignedTo"
                         label="Assigned to"
+                        slotProps={{
+                            inputLabel: { shrink: formData?.subject }
+                        }}
                         register={register}
                         errors={errors}
                         disabled
-                        />
+                    />
                 </div>
                 <div className="col-md-4 mb-3 px-4">
                     <GenericDropdownController
@@ -180,38 +186,49 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                 </div>
                 <div className="col-md-6 mb-3">
                 </div>
-                <div className="col-md-3 mb-3 px-4">
+                <div className="col-md-6 mb-3 px-4">
                     <GenericDropdownController
                         name="status"
                         control={control}
                         label="Update Status"
                         options={statusOptions}
                         className="form-select"
+                        disabled={disableAll}
+                    />
+                </div>
+
+                <div className="col-md-6 mb-3 px-4 d-flex align-items-center">
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                disabled={disableAll}
+                                onChange={e => setAssignFurther?.(e.target.checked)}
+                            />
+                        }
+                        label="Assign Further"
                     />
                 </div>
 
                 {currentUserDetails?.role !== 'USER' && assignFurther && (
                     <>
                         <div className="col-md-6 mb-3  px-4">
-                    <GenericDropdownController
-                        name="assignedToLevel"
-                        control={control}
-                        label="Assign to Level"
-                        options={assignLevelOptions}
-                        className="form-select"
-                    />
-                </div>
-                <div className="col-md-4 mb-3 px-4">
-                    <GenericDropdownController
-                        name="assignedTo"
-                        control={control}
-                        label="Assign to"
-                        options={assignToOptions}
-                        className="form-select"
-                    />
-                </div>
-                {currentUserRole !== 'USER' && formData?.status === 'ASSIGN_FURTHER' && (
-                    <>
+                            <GenericDropdownController
+                                name="assignedToLevel"
+                                control={control}
+                                label="Assign to Level"
+                                options={assignLevelOptions}
+                                className="form-select"
+                            />
+                        </div>
+                        <div className="col-md-6 mb-3 px-4">
+                            <GenericDropdownController
+                                name="assignedTo"
+                                control={control}
+                                label="Assign to"
+                                options={assignToOptions}
+                                className="form-select"
+                            />
+                        </div>
                     </>
                 )}
             </div>
