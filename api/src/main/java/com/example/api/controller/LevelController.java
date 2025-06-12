@@ -1,7 +1,7 @@
 package com.example.api.controller;
 
 import com.example.api.dto.EmployeeDto;
-import com.example.api.models.Level;
+import com.example.api.dto.LevelDto;
 import com.example.api.service.LevelService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +21,7 @@ public class LevelController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Level>> getAllLevels() {
+    public ResponseEntity<List<LevelDto>> getAllLevels() {
         return ResponseEntity.ok(levelService.getAllLevels());
     }
 

@@ -83,4 +83,9 @@ public class TicketController {
         System.out.println(result);
         return ResponseEntity.ok(result);
     }
+
+    @PutMapping("/{id}/link/{masterId}")
+    public ResponseEntity<Ticket> linkToMaster(@PathVariable int id, @PathVariable int masterId) {
+        return ResponseEntity.ok(ticketService.linkToMaster(id, masterId));
+    }
 }
