@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
+import { currentUserDetails } from "../../config/config";
 
 interface TicketDetailsProps extends FormProps {
     formData?: FieldValues;
@@ -68,6 +69,15 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     useEffect(() => {
         formData?.category && getSubCategoriesApiHandler(() => getSubCategories(formData.category))
     }, [formData?.category])
+
+    useEffect(() => {
+        // Set assignedBy to current userId from localStorage if available
+        if (register && typeof register === 'function') {
+            register('assignedBy', { value: localStorage.getItem('userId') || currentUserDetails?.userId || 'john.doe' });
+        }
+    }, [register]);
+
+    console.log({ role: currentUserDetails?.role, status: formData?.status })
 
     return (
         <CustomFieldset title="Ticket Details" actionElement={actionElement}>
@@ -179,7 +189,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         className="form-select"
                     />
                 </div>
-                <div className="col-md-4 mb-3 offset-1 px-4">
+
+                {currentUserDetails?.role !== 'USER' && assignFurther && (
+                    <>
+                        <div className="col-md-6 mb-3  px-4">
                     <GenericDropdownController
                         name="assignedToLevel"
                         control={control}
