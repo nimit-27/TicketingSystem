@@ -98,8 +98,8 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                         >
                             <p>Subject: {selected.subject}</p>
                         </CustomFieldset>
-                        <div className='d-flex align-items-center justify-content-center position-absolute w-100' style={{ top: '-10px' }}>
-                            <Tooltip title={`Link ${currentTicket.id} to Master`}>
+                        <div className='d-flex align-items-center justify-content-center position-absolute w-100' style={{ top: '35%' }}>
+                            <Tooltip title={`Link ${currentTicket.id} to Master ${selected.id}`} placement="top">
                                 <IconButton color={linked ? 'success' : 'primary'} onClick={() => {
                                     linkTicketToMaster(currentTicket.id, selected.id).then(() => setLinked(true));
                                 }}>

@@ -49,7 +49,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement, showSeverityFields = false }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement, showSeverityFields = true }) => {
 
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
@@ -144,7 +144,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll}
                     />
                 </div>
-                {showSeverityFields && currentUserDetails?.role === 'RNO' && (
+                {showSeverityFields && currentUserDetails?.role.includes('RNO') && (
                     <>
                         <div className="col-md-4 mb-3 px-4">
                             <CustomFormInput
@@ -249,7 +249,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     />
                 </div>
 
-                {currentUserDetails?.role !== 'USER' && assignFurther && (
+                {!currentUserDetails?.role.includes("USER") && assignFurther && (
                     <>
                         <div className="col-md-6 mb-3  px-4">
                             <GenericDropdownController

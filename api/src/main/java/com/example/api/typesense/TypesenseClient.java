@@ -31,7 +31,7 @@ public class TypesenseClient {
     public SearchResult searchTickets(String query) throws Exception {
         SearchParameters searchParameters = new SearchParameters()
                 .q(query)
-                .queryBy("subject,id");
+                .queryBy("subject");
 
         return client.collections("tickets").documents().search((SearchParameters) searchParameters);
     }
