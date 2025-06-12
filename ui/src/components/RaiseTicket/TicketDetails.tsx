@@ -16,12 +16,20 @@ interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
     subjectDisabled?: boolean;
     actionElement?: React.ReactNode;
+    showSeverityFields?: boolean;
 }
 
 const priorityOptions: DropdownOption[] = [
     { label: "Low", value: "Low" },
     { label: "Medium", value: "Medium" },
     { label: "High", value: "High" }
+];
+
+const severityOptions: DropdownOption[] = [
+    { label: "CRITICAL", value: "CRITICAL" },
+    { label: "HIGH", value: "HIGH" },
+    { label: "MEDIUM", value: "MEDIUM" },
+    { label: "LOW", value: "LOW" }
 ];
 
 const statusOptions: DropdownOption[] = [
@@ -41,7 +49,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement, showSeverityFields = false }) => {
 
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
@@ -136,6 +144,38 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                         disabled={disableAll}
                     />
                 </div>
+                {showSeverityFields && currentUserDetails?.role === 'RNO' && (
+                    <>
+                        <div className="col-md-4 mb-3 px-4">
+                            <CustomFormInput
+                                name="severity"
+                                label="Severity"
+                                register={register}
+                                errors={errors}
+                                disabled
+                            />
+                        </div>
+                        <div className="col-md-4 mb-3 px-4">
+                            <GenericDropdownController
+                                name="recommendedSeverity"
+                                control={control}
+                                label="Recommend Severity"
+                                options={severityOptions}
+                                className="form-select"
+                                disabled={disableAll}
+                            />
+                        </div>
+                        <div className="col-md-4 mb-3 px-4">
+                            <CustomFormInput
+                                name="impact"
+                                label="Impact"
+                                register={register}
+                                errors={errors}
+                                disabled={disableAll}
+                            />
+                        </div>
+                    </>
+                )}
                 <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
                     <FormControlLabel
                         control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
