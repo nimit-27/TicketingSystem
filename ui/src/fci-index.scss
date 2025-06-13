@@ -1,0 +1,52 @@
+:root {
+  --primary-color: #1976d2;
+  --secondary-color: #dc004e;
+  --success-color: #388e3c;
+  --danger-color: #d32f2f;
+  --warning-color: #f57c00;
+  --info-color: #0288d1;
+}
+
+:root {
+  --fci-success-color: #1b5e20;
+  --fci-danger-color: #e53935;
+  --fci-warning-color: #ffb300;
+  --fci-info-color: #1e88e5;
+}
+
+.generic-button {
+  background-color: var(--fci-success-color) !important;
+  height: 50px;
+  font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif !important; 
+  color: #fff !important;
+  text-transform: none;
+}
+
+.generic-input .MuiInputBase-root {
+  border-radius: 4px;
+}
+
+.generic-dropdown .MuiInputBase-root {
+  border-radius: 4px;
+}
+
+.modal-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    padding: 32px;
+    min-width: 300px;
+    text-align: center;
+}
+
+$i: 0;
+@while $i <= 100 {
+    .w-#{$i} {
+        width: $i * 1% !important;
+    }
+    $i: $i + 5;
+}
