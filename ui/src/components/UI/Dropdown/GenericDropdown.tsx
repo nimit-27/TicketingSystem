@@ -38,19 +38,19 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
     className,
     style,
 }) => {
+    const classes = `generic-dropdown ${className ?? ''}`.trim();
     return (
-        <FormControl fullWidth={fullWidth} disabled={disabled} required={required} style={style} className={className} size='small'>
+        <FormControl fullWidth={fullWidth} disabled={disabled} required={required} style={style} className={classes} size='small'>
             {label && <InputLabel id={id ? `${id}-label` : undefined}>{label}</InputLabel>}
             <Select
                 labelId={id ? `${id}-label` : undefined}
                 id={id}
                 name={name}
-                value={value ?? ""}
+                value={value ?? ''}
                 label={label}
                 size='small'
                 onChange={onChange}
             >
-                {console.log({ options })}
                 {menuItemsList
                     ? menuItemsList
                     : options?.length
