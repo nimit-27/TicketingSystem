@@ -5,6 +5,8 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import { FieldValues } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
+import { currentUserDetails, isFciEmployee } from "../../config/config";
+import { useEffect } from "react";
 
 interface RequestDetailsProps extends FormProps {
     formData?: FieldValues;
@@ -17,10 +19,16 @@ const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
     { label: "Mail", value: "Mail" }
 ];
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, formData, disableAll = false }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, formData, disableAll = false }) => {
     const showTicketId = false;
     const showReportedDate = true;
     const showModeDropdown = true;
+
+    useEffect(() => {
+        if (currentUserDetails.role.includes("FCI_EMPLOYEE") && (!formData?.mode || formData.mode !== "Self")) {
+            setValue && setValue("mode", "Self");
+        }
+    }, [setValue, formData, currentUserDetails.role]);
 
     return (
         <CustomFieldset title="Request Details">
@@ -52,7 +60,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             label="Mode"
                             options={ticketLodgedThroughDropdownOptions}
                             className="form-select"
-                            disabled={disableAll}
+                            disabled={disableAll || isFciEmployee}
                         />
                     </div>
                 )}
