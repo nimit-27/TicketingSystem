@@ -6,8 +6,8 @@ interface GenericButtonProps extends ButtonProps {
     children?: ReactNode;
 }
 
-const GenericButton: React.FC<GenericButtonProps> = ({ textKey, children, ...props }) => (
-    <Button {...props}>
+const GenericButton: React.FC<GenericButtonProps> = ({ textKey, children, className, ...props }) => (
+    <Button {...props} className={`generic-button ${className ?? ''}`.trim()}>
         {textKey || children}
     </Button>
 );
