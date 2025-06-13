@@ -42,7 +42,7 @@ const RaiseTicket: React.FC<any> = () => {
             <Title text="Raise Ticket" />
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}
-                <RequestDetails register={register} control={control} errors={errors} createMode />
+                <RequestDetails register={register} control={control} errors={errors} setValue={setValue} createMode />
                 {/* Requestor Details */}
                 <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} createMode />
                 {/* Ticket Details */}

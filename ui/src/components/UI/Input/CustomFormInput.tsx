@@ -1,7 +1,7 @@
 import { InputLabel, TextField, TextFieldProps } from "@mui/material";
 import { FormProps } from "../../../types";
 
-interface CustomFormInputProps extends Omit<TextFieldProps<"outlined">, "variant">, Omit<FormProps, "control"> {
+interface CustomFormInputProps extends Omit<TextFieldProps<'outlined'>, 'variant'>, Omit<FormProps, 'control'> {
     name: string;
     label?: string;
     required?: boolean;
@@ -29,8 +29,10 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
     ...inputProps
 }) => {
     const hasError = !!(errors && errors[name]);
-    const errorMessage = errors && errors[name]?.message as string;
+    const errorMessage = (errors && errors[name]?.message) as string;
     validations = { ...validations, required: required ? `Please fill the ${label}` : false };
+
+    const classes = `generic-input ${className ?? ''}`.trim();
 
     return (
         <>
@@ -44,7 +46,7 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
                 label={label}
                 fullWidth={fullWidth}
                 disabled={disabled}
-                className={className}
+                className={classes}
                 style={style}
                 size="small"
                 error={hasError}

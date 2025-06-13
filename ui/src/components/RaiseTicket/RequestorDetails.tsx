@@ -9,7 +9,7 @@ import { useApi } from "../../hooks/useApi";
 import { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails } from "../../config/config";
+import { isFciEmployee } from "../../config/config";
 
 interface RequestorDetailsProps extends FormProps {
     formData: FieldValues;
@@ -80,14 +80,20 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setVerified(false);
     };
 
-    const isLoggedInFciEmployee = currentUserDetails?.role?.includes("FCI_EMPLOYEE")
-    const showFciToggle = !isLoggedInFciEmployee;
-    const showEmployeeId =  viewMode === FCI_EMPLOYEE || isLoggedInFciEmployee;
+    const showFciToggle = !isFciEmployee;
+    const showEmployeeId =  viewMode === FCI_EMPLOYEE || isFciEmployee;
     const showName = true;
     const showEmailId = true;
     const showMobileNo = true;
-    const showRole = viewMode === FCI_EMPLOYEE || isLoggedInFciEmployee;
-    const showOffice = viewMode === FCI_EMPLOYEE || isLoggedInFciEmployee;
+    const showRole = viewMode === FCI_EMPLOYEE || isFciEmployee;
+    const showOffice = viewMode === FCI_EMPLOYEE || isFciEmployee;
+
+    const isEmployeeIdDisabled = disableAll;
+    const isNameDisabled = isDisabled || isFciEmployee;
+    const isEmailIdDisabled = isDisabled || isFciEmployee;
+    const isMobileNoDisabled = isDisabled || isFciEmployee;
+    const isRoleDisabled = isDisabled || isFciEmployee;
+    const isOfficeDisabled = isDisabled || isFciEmployee;
 
     return (
         <CustomFieldset title="Requestor Details" className="mb-4">
@@ -136,7 +142,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             register={register}
                             errors={errors}
                             required
-                            disabled={disableAll}
+                            disabled={isEmployeeIdDisabled}
                         />
                     </div>
                 )}
@@ -150,7 +156,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="name"
                             register={register}
                             errors={errors}
-                            disabled={isDisabled}
+                            disabled={isNameDisabled}
                             required
                         />
                     </div>
@@ -165,7 +171,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="emailId"
                             register={register}
                             errors={errors}
-                            disabled={isDisabled}
+                            disabled={isEmailIdDisabled}
                             type="email"
                         />
                     </div>
@@ -180,7 +186,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="mobileNo"
                             register={register}
                             errors={errors}
-                            disabled={isDisabled}
+                            disabled={isMobileNoDisabled}
                             type="tel"
                         />
                     </div>
@@ -195,7 +201,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="role"
                             register={register}
                             errors={errors}
-                            disabled={isDisabled}
+                            disabled={isRoleDisabled}
                         />
                     </div>
                 )}
@@ -209,7 +215,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="office"
                             register={register}
                             errors={errors}
-                            disabled={isDisabled}
+                            disabled={isOfficeDisabled}
                         />
                     </div>
                 )}
