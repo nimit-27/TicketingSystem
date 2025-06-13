@@ -5,6 +5,7 @@ export type FormProps<T extends FieldValues = FieldValues> = {
     control: Control<T>;
     errors: FieldErrors<T>
     setValue?: UseFormSetValue<T>;
+    createMode?: boolean;
 };
 
 export interface SubCategory {

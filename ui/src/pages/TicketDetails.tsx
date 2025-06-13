@@ -132,7 +132,6 @@ const TicketDetails: React.FC = () => {
                     formData={formData}
                     subjectDisabled
                     disableAll={!editing}
-                    showSeverityFields
                     actionElement={editing ? (
                         <>
                             <GenericButton variant="text" textKey="" type="button" onClick={() => { resetFields(); setEditing(false); }} style={{minWidth:0,padding:2}}>

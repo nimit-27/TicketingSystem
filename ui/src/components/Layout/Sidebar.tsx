@@ -12,25 +12,25 @@ import { Roles, currentUserDetails, devMode } from '../../config/config';
 const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [roleInput, setRoleInput] = useState('');
-  const [selectedRoles, setSelectedRoles] = useState<string[]>(Array.isArray(currentUserDetails.role) ? currentUserDetails.role : []);
+  // const [selectedRoles, setSelectedRoles] = useState<string[]>(Array.isArray(currentUserDetails.role) ? currentUserDetails.role : []);
 
-  const toggleRole = (role: string) => {
-    const exists = selectedRoles.includes(role);
-    const updated = exists ? selectedRoles.filter(r => r !== role) : [...selectedRoles, role];
-    setSelectedRoles(updated);
-    currentUserDetails.role = updated;
-    localStorage.setItem('role', JSON.stringify(updated));
-  };
+  // const toggleRole = (role: string) => {
+  //   const exists = selectedRoles.includes(role);
+  //   const updated = exists ? selectedRoles.filter(r => r !== role) : [...selectedRoles, role];
+  //   setSelectedRoles(updated);
+  //   currentUserDetails.role = updated;
+  //   localStorage.setItem('role', JSON.stringify(updated));
+  // };
 
-  const handleAddRole = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && roleInput.trim()) {
-      const newRole = roleInput.trim().toUpperCase();
-      setRoleInput('');
-      if (!selectedRoles.includes(newRole)) {
-        toggleRole(newRole);
-      }
-    }
-  };
+  // const handleAddRole = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (e.key === 'Enter' && roleInput.trim()) {
+  //     const newRole = roleInput.trim().toUpperCase();
+  //     setRoleInput('');
+  //     if (!selectedRoles.includes(newRole)) {
+  //       toggleRole(newRole);
+  //     }
+  //   }
+  // };
 
   return (
     <div
@@ -74,7 +74,7 @@ const Sidebar: React.FC = () => {
           {!collapsed && <ListItemText primary="Categories Master" />}
         </ListItemButton>
       </List>
-      {devMode && (
+      {/* {devMode && (
         <div style={{ marginTop: 'auto' }}>
           {!collapsed && (
             <TextField
@@ -101,7 +101,7 @@ const Sidebar: React.FC = () => {
             ))}
           </Stack>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

@@ -1,13 +1,36 @@
 export const envConfig = {
-    Roles: ["L1", "L2", "L3", "ADMIN", "FCI_USER", "USER", "RNO"],
+    Roles: ["L1", "L2", "L3", "ADMIN", "FCI_USER", "USER", "RNO", "HELPDESK"],
     devMode: true,
-    CurrentUserDetails: {
-        userId: localStorage.getItem('userId') || 'nimit.jain',
-        role: localStorage.getItem('role') || ["L1", "L2", "L3", "ADMIN", "FCI_USER", "RNO"],
-        // role: localStorage.getItem('role') || ["L1", "L2", "L3", "ADMIN", "FCI_USER", "USER", "RNO"],
-        name: localStorage.getItem('name') || 'Nimit Jain',
-        email: localStorage.getItem('email') || 'jain.nimit@gmail.com',
-        phone: localStorage.getItem('phone') || '9876543210',
+    Users: {
+        helpdesk: {
+            userId: 'helpdesk.user',
+            role: ['HELPDESK'],
+            name: 'Amit Shah',
+            email: 'helpdesk@example.com',
+            phone: '9000000001'
+        },
+        fci: {
+            userId: 'fci.user',
+            role: ['FCI_EMPLOYEE'],
+            name: 'Narendra Modi',
+            email: 'fci.employee@example.com',
+            phone: '9000000002',
+            employeeId: 'FCI12345'
+        },
+        user: {
+            userId: localStorage.getItem('userId') || 'nimit.jain',
+            role: localStorage.getItem('role') || ["USER"],
+            name: localStorage.getItem('name') || 'Nimit Jain',
+            email: localStorage.getItem('email') || 'jain.nimit@gmail.com',
+            phone: localStorage.getItem('phone') || '9876543210'
+        },
+        regionalNodalOfficer: {
+            userId: localStorage.getItem('userId') || 'nodal.officer',
+            role: localStorage.getItem('role') || ["L1", "L2", "L3", "ADMIN", "FCI_USER", "RNO"],
+            name: localStorage.getItem('name') || 'Rahul Gandhi',
+            email: localStorage.getItem('email') || 'gandhi.rahul@gmail.com',
+            phone: localStorage.getItem('phone') || '9876543210'
+        }
     }
 };
 

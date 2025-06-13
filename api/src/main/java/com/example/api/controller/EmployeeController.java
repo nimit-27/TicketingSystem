@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/employees")
@@ -18,11 +19,13 @@ public class EmployeeController {
     }
 
     @GetMapping("/{employeeId}")
-    public ResponseEntity<Employee> getEmployeeDetails(@PathVariable Integer employeeId) {
+    public ResponseEntity<?> getEmployeeDetails(@PathVariable Integer employeeId) {
+//        Optional<Employee> employee = employeeService.getEmployeeDetails(employeeId);
         return employeeService.getEmployeeDetails(employeeId)
-                .map(ResponseEntity::ok)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity
-                        .status(404)
-                        .body(null));
+                        .noContent()
+                        .header("Error-Message", "Employee not found with id: " + employeeId)
+                        .build());
     }
 }
