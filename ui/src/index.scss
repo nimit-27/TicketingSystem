@@ -1,3 +1,26 @@
+:root {
+  --primary-color: #1976d2;
+  --secondary-color: #dc004e;
+  --success-color: #388e3c;
+  --danger-color: #d32f2f;
+  --warning-color: #f57c00;
+  --info-color: #0288d1;
+}
+
+.generic-button {
+  background-color: var(--primary-color) !important;
+  color: #fff !important;
+  text-transform: none;
+}
+
+.generic-input .MuiInputBase-root {
+  border-radius: 4px;
+}
+
+.generic-dropdown .MuiInputBase-root {
+  border-radius: 4px;
+}
+
 .modal-box {
     position: absolute;
     top: 50%;
