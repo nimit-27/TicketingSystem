@@ -59,8 +59,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
 
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
     const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
-    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'categoryId');
-    const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'name', 'subCategoryId');
+    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
+    const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
 
     console.log(categoryOptions)
@@ -95,9 +95,16 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
         getCategoriesApiHandler(() => getCategories())
     }, [])
 
+    console.log({formData})
+
     useEffect(() => {
-        formData?.categoryId && getSubCategoriesApiHandler(() => getSubCategories(formData.categoryId))
-    }, [formData?.categoryId])
+        if (formData?.category && Array.isArray(allCategories)) {
+            const selectedCategory = allCategories.find((cat: any) => cat.category === formData.category);
+            if (selectedCategory?.categoryId) {
+            getSubCategoriesApiHandler(() => getSubCategories(selectedCategory.categoryId));
+            }
+        }
+    }, [formData?.category])
 
     useEffect(() => {
         // Set assignedBy to current userId from localStorage if available
