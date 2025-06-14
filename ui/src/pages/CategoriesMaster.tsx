@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Autocomplete, Button, IconButton, List, ListItem, TextField, Box } from '@mui/material';
+import { Autocomplete, Button, List, ListItem, TextField, Box } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import Title from '../components/Title';
 import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory, updateSubCategory, deleteSubCategory } from '../services/CategoryService';
 import { useApi } from '../hooks/useApi';
@@ -151,12 +152,8 @@ const CategoriesMaster: React.FC = () => {
                                 >
                                     <span style={{ flexGrow: 1 }}>{cat.category}</span>
                                     <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        <IconButton size="small" onClick={() => handleEditCategory(cat)}>
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton size="small" onClick={() => handleDeleteCategory(cat.categoryId)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
+                                        <CustomIconButton icon="Edit" size="small" onClick={() => handleEditCategory(cat)} />
+                                        <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteCategory(cat.categoryId)} />
                                     </Box>
                                 </ListItem>
                             ))}
@@ -188,12 +185,8 @@ const CategoriesMaster: React.FC = () => {
                                 >
                                     <span style={{ flexGrow: 1 }}>{cat.category}</span>
                                     <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        <IconButton size="small" onClick={() => handleEditCategory(cat)}>
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton size="small" onClick={() => handleDeleteCategory(cat.categoryId)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
+                                        <CustomIconButton icon="Edit" size="small" onClick={() => handleEditCategory(cat)} />
+                                        <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteCategory(cat.categoryId)} />
                                     </Box>
                                 </ListItem>
                             ))}
@@ -232,12 +225,8 @@ const CategoriesMaster: React.FC = () => {
                                 >
                                     <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
                                     <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        <IconButton size="small" onClick={() => handleEditSubCategory(sc)}>
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
+                                        <CustomIconButton icon="Edit" size="small" onClick={() => handleEditSubCategory(sc)} />
+                                        <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)} />
                                     </Box>
                                 </ListItem>
                             ))}
@@ -270,12 +259,8 @@ const CategoriesMaster: React.FC = () => {
                                 >
                                     <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
                                     <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        <IconButton size="small" onClick={() => handleEditSubCategory(sc)}>
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
+                                        <CustomIconButton icon="Edit" size="small" onClick={() => handleEditSubCategory(sc)} />
+                                        <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)} />
                                     </Box>
                                 </ListItem>
                             ))}

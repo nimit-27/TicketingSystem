@@ -1,4 +1,4 @@
-import { IconButton, InputAdornment, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { InputAdornment, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
@@ -8,6 +8,7 @@ import { FieldValues } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
+import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { isFciEmployee } from "../../config/config";
 
@@ -125,9 +126,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                     endAdornment: !disableAll && (
                                         <InputAdornment position="end">
                                             {(verified || formData?.employeeId) && (
-                                                <IconButton onClick={clearForm} disabled={disableAll}>
-                                                    <ClearIcon fontSize="small" />
-                                                </IconButton>
+                                                <CustomIconButton icon="Clear" onClick={clearForm} disabled={disableAll} />
                                             )}
                                             <VerifyIconButton
                                                 onClick={verifyEmployeeById}

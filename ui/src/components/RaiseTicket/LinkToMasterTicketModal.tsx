@@ -1,7 +1,8 @@
-import { Box, Modal, IconButton, Tooltip } from "@mui/material";
+import { Box, Modal, Tooltip } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import GenericButton from "../UI/Button";
 import LinkIcon from '@mui/icons-material/Link';
+import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { useDebounce } from "../../hooks/useDebounce";
 import { searchTickets, getTicket, linkTicketToMaster } from "../../services/TicketService";
@@ -100,11 +101,13 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                         </CustomFieldset>
                         <div className='d-flex align-items-center justify-content-center position-absolute w-100' style={{ top: '35%' }}>
                             <Tooltip title={`Link ${currentTicket.id} to Master ${selected.id}`} placement="top">
-                                <IconButton color={linked ? 'success' : 'primary'} onClick={() => {
-                                    linkTicketToMaster(currentTicket.id, selected.id).then(() => setLinked(true));
-                                }}>
-                                    <LinkIcon />
-                                </IconButton>
+                                <CustomIconButton
+                                    icon="Link"
+                                    color={linked ? 'success' : 'primary'}
+                                    onClick={() => {
+                                        linkTicketToMaster(currentTicket.id, selected.id).then(() => setLinked(true));
+                                    }}
+                                />
                             </Tooltip>
                         </div>
                         <CustomFieldset

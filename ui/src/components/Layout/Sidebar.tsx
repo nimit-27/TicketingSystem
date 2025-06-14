@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { List, ListItemButton, ListItemIcon, ListItemText, IconButton, Button, Stack, TextField } from '@mui/material';
+import { List, ListItemButton, ListItemIcon, ListItemText, Button, Stack, TextField } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import CategoryIcon from '@mui/icons-material/Category';
+import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import { Roles, currentUserDetails, devMode } from '../../config/config';
 
 const Sidebar: React.FC = () => {
@@ -34,9 +35,10 @@ const Sidebar: React.FC = () => {
 
   return (
     <div
-      className="bg-light p-2"
+      className="p-2"
       style={{
-        width: collapsed ? '60px' : '200px',
+        backgroundColor: 'orange',
+        width: collapsed ? '80px' : '220px',
         transition: 'width 0.3s',
         height: '100vh',
         display: 'flex',
@@ -44,9 +46,7 @@ const Sidebar: React.FC = () => {
       }}
     >
       <div className="text-end mb-3">
-        <IconButton size="small" onClick={() => setCollapsed(!collapsed)}>
-          {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
-        </IconButton>
+        <CustomIconButton icon={collapsed ? 'Menu' : 'ChevronLeft'} size="small" onClick={() => setCollapsed(!collapsed)} />
       </div>
       <List component="nav">
         <ListItemButton component={Link} to="/tickets">
