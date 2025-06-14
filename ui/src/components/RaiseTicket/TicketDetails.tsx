@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
+import { getStatuses } from "../../services/StatusService";
 import { currentUserDetails } from "../../config/config";
 
 interface TicketDetailsProps extends FormProps {
@@ -31,14 +32,6 @@ const severityOptions: DropdownOption[] = [
     { label: "LOW", value: "LOW" }
 ];
 
-const statusOptions: DropdownOption[] = [
-    { label: "Pending", value: "PENDING" },
-    { label: "On Hold", value: "ON_HOLD" },
-    { label: "Closed", value: "CLOSED" },
-    { label: "Reopened", value: "REOPENED" },
-    { label: "Resolved", value: "RESOLVED" },
-    { label: "Assign Further", value: "ASSIGN_FURTHER" }
-];
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
     Array.isArray(arr)
@@ -54,6 +47,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
     const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
+    const { data: statusList, apiHandler: getStatusApiHandler } = useApi<string[]>();
 
     // Field visibility booleans
 
@@ -61,6 +55,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
+    const statusOptions: DropdownOption[] = Array.isArray(statusList) ? statusList.map(s => ({ label: s.replace(/_/g, ' '), value: s })) : [];
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
 
     console.log(categoryOptions)
@@ -93,6 +88,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
 
     useEffect(() => {
         getCategoriesApiHandler(() => getCategories())
+    }, [])
+
+    useEffect(() => {
+        getStatusApiHandler(() => getStatuses())
     }, [])
 
     console.log({formData})
