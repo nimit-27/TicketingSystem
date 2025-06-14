@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IconButton } from '@mui/material';
+import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useApi } from '../../hooks/useApi';
@@ -114,12 +114,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                                     <small className="text-muted">{timeSince(c.createdAt)}</small>
                                 </div>
                                 <div className="ms-2">
-                                    <IconButton size="small" onClick={() => startEdit(c)}>
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton size="small" onClick={() => removeComment(c.id)} color="error">
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
+                                    <CustomIconButton icon="Edit" size="small" onClick={() => startEdit(c)} />
+                                    <CustomIconButton icon="Delete" size="small" onClick={() => removeComment(c.id)} color="error" />
                                 </div>
                             </div>
                         )}
