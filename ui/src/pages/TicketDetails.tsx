@@ -13,6 +13,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import GenericButton from "../components/UI/Button";
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
+import { IconButton } from "@mui/material";
 
 interface Ticket {
     id: number;
@@ -133,17 +134,17 @@ const TicketDetails: React.FC = () => {
                     disableAll={!editing}
                     actionElement={editing ? (
                         <>
-                            <GenericButton variant="text" textKey="" type="button" onClick={() => { resetFields(); setEditing(false); }} style={{minWidth:0,padding:2}}>
+                            <IconButton onClick={() => { resetFields(); setEditing(false); }} style={{minWidth:0,padding:2}}>
                                 <CloseIcon fontSize="small" />
-                            </GenericButton>
-                            <GenericButton variant="text" textKey="" type="submit" style={{minWidth:0,padding:2}}>
+                            </IconButton>
+                            <IconButton style={{minWidth:0,padding:2}}>
                                 <CheckIcon fontSize="small" />
-                            </GenericButton>
+                            </IconButton>
                         </>
                     ) : (
-                        <GenericButton variant="text" textKey="" type="button" onClick={() => setEditing(true)} style={{minWidth:0,padding:2}}>
+                        <IconButton onClick={() => setEditing(true)} style={{minWidth:0,padding:2}}>
                             <EditIcon fontSize="small" />
-                        </GenericButton>
+                        </IconButton>
                     )}
                 />
             </form>

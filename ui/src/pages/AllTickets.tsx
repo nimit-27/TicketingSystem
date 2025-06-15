@@ -15,23 +15,27 @@ import TicketCard from "../components/AllTickets/TicketCard";
 import ViewToggle from "../components/AllTickets/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
+import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
+import { Ticket } from "../types";
 
-interface Employee {
-    name?: string;
-    emailId?: string;
-    mobileNo?: string;
-}
+const statusOptions = [
+    { name: "All", id: "ALL" },
+    { name: "Pending", id: "PENDING" },
+    { name: "On Hold", id: "ON_HOLD" },
+    { name: "Closed", id: "CLOSED" },
+    { name: "Reopened", id: "REOPENED" },
+    { name: "Resolved", id: "RESOLVED" },
+    { name: "Assign Further", id: "ASSIGN_FURTHER" }
+];
 
-interface Ticket {
-    id: number;
-    subject: string;
-    category: string;
-    subCategory: string;
-    priority: string;
-    isMaster: boolean;
-    employee?: Employee;
-    status?: string;
-}
+
+const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
+    Array.isArray(arr)
+        ? arr.map(item => ({
+            label: String(item[labelKey]),
+            value: item[valueKey]
+        }))
+        : [];
 
 const AllTickets: React.FC = () => {
     const { data, pending, error, apiHandler } = useApi<any>();
@@ -51,6 +55,8 @@ const AllTickets: React.FC = () => {
         High: { color: 'error.main', count: 3 },
         Critical: { color: 'error.dark', count: 4 }
     };
+
+    const statusFilterOptions: DropdownOption[] = getDropdownOptions(statusOptions, "name", "id")
 
     const debouncedSearch = useDebounce(search, 300);
 

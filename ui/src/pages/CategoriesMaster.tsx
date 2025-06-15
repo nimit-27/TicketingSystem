@@ -7,6 +7,7 @@ import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCa
 import { useApi } from '../hooks/useApi';
 import { Category, SubCategory } from '../types';
 import { currentUserDetails } from '../config/config';
+import GenericInput from '../components/UI/Input/GenericInput';
 
 const CategoriesMaster: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -113,9 +114,8 @@ const CategoriesMaster: React.FC = () => {
             <Title text="Categories Master" />
             <div className="row mb-4">
                 <div className="col-md-6 mb-3">
-                    <TextField
+                    <GenericInput
                         label="Category"
-                        size="small"
                         fullWidth
                         value={categoryInput}
                         onChange={e => {
@@ -193,9 +193,8 @@ const CategoriesMaster: React.FC = () => {
                     </List>
                 </div>
                 <div className="col-md-6 mb-3">
-                    <TextField
+                    <GenericInput
                         label="Sub-Category"
-                        size="small"
                         fullWidth
                         value={subCategoryInput}
                         onChange={e => setSubCategoryInput(e.target.value)}

@@ -26,3 +26,20 @@ export interface Category {
     subCategories: SubCategory[];
 }
 
+export interface Employee {
+    name?: string;
+    emailId?: string;
+    mobileNo?: string;
+}
+
+export interface Ticket {
+    id: number;
+    subject: string;
+    category: string;
+    subCategory: string;
+    priority: string;
+    isMaster: boolean;
+    employee?: Employee;
+    status?: string;
+}
+

@@ -17,36 +17,80 @@
 .generic-button {
   background-color: var(--fci-success-color) !important;
   height: 50px;
-  font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif !important; 
+  font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif !important;
   color: #fff !important;
   text-transform: none;
 }
 
 .generic-input .MuiInputBase-root {
   border-radius: 4px;
+  height: 50px;
+  font-size: 0.875rem;
 }
 
 .generic-dropdown .MuiInputBase-root {
   border-radius: 4px;
+  height: 50px;
 }
 
 .modal-box {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    padding: 32px;
-    min-width: 300px;
-    text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 32px;
+  min-width: 300px;
+  text-align: center;
 }
 
 $i: 0;
-@while $i <= 100 {
-    .w-#{$i} {
-        width: $i * 1% !important;
-    }
-    $i: $i + 5;
+
+@while $i <=100 {
+  .w-#{$i} {
+    width: $i * 1% !important;
+  }
+
+  $i: $i + 5;
+}
+
+// Only fci file
+.form-container {
+  padding: 20px;
+  max-width: 100%;
+  border-radius: 8px;
+  margin: auto;
+  margin-left: 20px;
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+.form-title {
+  margin-bottom: 20px;
+  padding: 10px;
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-title h4 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: #5e6e82;
+  font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+}
+
+.custom-bordered-table {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.custom-bordered-table .ant-table {
+  border-radius: 4px;
+}
+
+.custom-bordered-table .ant-table-container {
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
 }

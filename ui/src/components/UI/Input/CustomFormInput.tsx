@@ -1,5 +1,6 @@
 import { InputLabel, TextField, TextFieldProps } from "@mui/material";
 import { FormProps } from "../../../types";
+import { FciTheme } from "../../../config/config";
 
 interface CustomFormInputProps extends Omit<TextFieldProps<'outlined'>, 'variant'>, Omit<FormProps, 'control'> {
     name: string;
@@ -33,6 +34,7 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
     validations = { ...validations, required: required ? `Please fill the ${label}` : false };
 
     const classes = `generic-input ${className ?? ''}`.trim();
+    let size: "small" | "medium" = !FciTheme ? "small" : "medium";
 
     return (
         <>
@@ -48,7 +50,7 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
                 disabled={disabled}
                 className={classes}
                 style={style}
-                size="small"
+                size={size}
                 error={hasError}
                 helperText={hasError ? errorMessage : ""}
                 {...register(name, validations)}
