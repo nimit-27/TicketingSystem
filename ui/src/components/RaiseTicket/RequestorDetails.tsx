@@ -11,10 +11,11 @@ import React, { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, isFciEmployee, isHelpdesk } from "../../config/config";
+import { currentUserDetails, FciTheme, isFciEmployee, isHelpdesk } from "../../config/config";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
+import ViewToggle from "../UI/ViewToggle";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -134,19 +135,15 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             {/* Inputs */}
             <div className="row g-3">
                 {showFciToggle && <div className="col-md-5 px-4 w-100">
-                    <ToggleButtonGroup
+                    <ViewToggle
                         value={viewMode}
-                        exclusive
-                        onChange={(_, val) => val && setViewMode(val)}
-                        size="small"
-                    >
-                        <ToggleButton value={FCI_EMPLOYEE}>
-                            FCI Employee
-                        </ToggleButton>
-                        <ToggleButton value={NON_FCI_EMPLOYEE}>
-                            Non-FCI Employee
-                        </ToggleButton>
-                    </ToggleButtonGroup>
+                        onChange={setViewMode}
+                        options={[
+                            { label: 'FCI Employee', value: 'fci' },
+                            { label: 'Non-FCI Employee', value: 'nonFci' }
+                        ]}
+                        radio={FciTheme}
+                    />
                 </div>}
                 {showEmployeeId && (
                     <div className={`${inputColStyling}`}>

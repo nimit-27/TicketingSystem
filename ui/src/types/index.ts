@@ -43,3 +43,8 @@ export interface Ticket {
     status?: string;
 }
 
+export interface ToggleOption {
+  icon?: string; // optional
+  value: string;
+  label?: string; // optional
+}

@@ -12,11 +12,12 @@ import Title from "../components/Title";
 import MasterIcon from "../components/UI/Icons/MasterIcon";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
-import ViewToggle from "../components/AllTickets/ViewToggle";
+import ViewToggle from "../components/UI/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { Ticket } from "../types";
+import { FciTheme } from "../config/config";
 
 const statusOptions = [
     { name: "All", id: "ALL" },
@@ -176,8 +177,8 @@ const AllTickets: React.FC = () => {
                     value={viewMode}
                     onChange={setViewMode}
                     options={[
-                        { icon: ViewModuleIcon, value: 'grid' },
-                        { icon: TableRowsIcon, value: 'table' }
+                        { icon: 'ViewModuleIcon', value: 'grid' },
+                        { icon: 'TableRowsIcon', value: 'table' }
                     ]}
                 />
             </div>
