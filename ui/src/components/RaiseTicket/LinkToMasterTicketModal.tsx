@@ -43,7 +43,6 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     useEffect(() => {
         if (debouncedQuery.length >= 2) {
             searchTickets(debouncedQuery).then((response) => {
-                console.log(response.data);
                 setResults(response.data.hits || []);
             });
         } else {

@@ -3,13 +3,12 @@ import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { FormProps } from "../../types";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
-import { FieldValues } from "react-hook-form";
+import { FieldValues, useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
 import { currentUserDetails, isFciEmployee } from "../../config/config";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 interface RequestDetailsProps extends FormProps {
-    formData?: FieldValues;
     disableAll?: boolean;
 }
 
@@ -19,16 +18,19 @@ const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
     { label: "Mail", value: "Mail" }
 ];
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, formData, disableAll = false }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false }) => {
     const showTicketId = false;
     const showReportedDate = true;
     const showModeDropdown = true;
 
+    const ticketId = useWatch({ control, name: 'ticketId' });
+    const mode = useWatch({ control, name: 'mode' });
+
     useEffect(() => {
-        if (currentUserDetails.role.includes("FCI_EMPLOYEE") && (!formData?.mode || formData.mode !== "Self")) {
+        if (currentUserDetails.role.includes("FCI_EMPLOYEE") && (!mode || mode !== "Self")) {
             setValue && setValue("mode", "Self");
         }
-    }, [setValue, formData, currentUserDetails.role]);
+    }, [setValue, mode, currentUserDetails.role]);
 
     return (
         <CustomFieldset title="Request Details">
@@ -39,7 +41,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.ticketId }
+                                inputLabel: { shrink: ticketId }
                             }}
                             name="ticketId"
                             register={register}
@@ -83,4 +85,4 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     )
 };
 
-export default RequestDetails;
+export default React.memo(RequestDetails);

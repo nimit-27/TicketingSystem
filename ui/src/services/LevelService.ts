@@ -1,13 +1,25 @@
 import axios from "axios";
+import { BASE_URL } from "./api";
 
-let baseURL = "http://localhost:8081";
+let levelsCache: any[] | null = null;
+const employeesByLevelCache: Record<string, any[]> = {};
 
 export function getAllLevels() {
-    console.log("getAllEmployees called");
-    return axios.get(`${baseURL}/levels`);
+    if (levelsCache) {
+        return Promise.resolve({ data: levelsCache } as any);
+    }
+    return axios.get(`${BASE_URL}/levels`).then(res => {
+        levelsCache = res.data;
+        return res;
+    });
 }
 
 export function getAllEmployeesByLevel(payload: string) {
-    console.log("getAllEmployees called");
-    return axios.get(`${baseURL}/levels/${payload}/employees`);
+    if (employeesByLevelCache[payload]) {
+        return Promise.resolve({ data: employeesByLevelCache[payload] } as any);
+    }
+    return axios.get(`${BASE_URL}/levels/${payload}/employees`).then(res => {
+        employeesByLevelCache[payload] = res.data;
+        return res;
+    });
 }

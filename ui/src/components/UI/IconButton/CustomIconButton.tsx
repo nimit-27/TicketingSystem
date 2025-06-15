@@ -1,12 +1,13 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React from 'react';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SendIcon from '@mui/icons-material/Send';
 
 const iconMap = {
-    delete: () => import('@mui/icons-material/Delete'),
-    edit: () => import('@mui/icons-material/Edit'),
-    send: () => import('@mui/icons-material/Send')
-    // Add more icons here
+    delete: DeleteIcon,
+    edit: EditIcon,
+    send: SendIcon
 };
 
 type IconKey = keyof typeof iconMap;
@@ -16,28 +17,12 @@ interface CustomIconButtonProps extends IconButtonProps {
 }
 
 const CustomIconButton: React.FC<CustomIconButtonProps> = ({ icon, ...props }) => {
-    const [IconComponent, setIconComponent] = useState<React.ElementType | null>(null);
-
-    useEffect(() => {
-        const key = icon.toLowerCase() as IconKey;
-        let isMounted = true;
-
-        if (iconMap[key]) {
-            iconMap[key]().then((mod) => {
-                if (isMounted) setIconComponent(() => mod.default);
-            });
-        }
-
-        return () => {
-            isMounted = false;
-        };
-    }, [icon]);
+    const key = icon.toLowerCase() as IconKey;
+    const IconComponent = iconMap[key];
 
     return (
         <IconButton {...props}>
-            <Suspense fallback={<CircularProgress size={20} />}>
-                {IconComponent ? <IconComponent fontSize="small" /> : null}
-            </Suspense>
+            {IconComponent && <IconComponent fontSize="small" />}
         </IconButton>
     );
 };

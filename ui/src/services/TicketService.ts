@@ -1,51 +1,47 @@
 import axios from "axios";
-
-let baseURL = "http://localhost:8081";
+import { BASE_URL } from "./api";
 
 export function searchTickets(payload: string) {
-    console.log("searchTickets called with payload:", payload);
-    return axios.post(`${baseURL}/tickets`, payload)
+    return axios.post(`${BASE_URL}/tickets`, payload);
 }
 
 export function addTicket(payload: string) {
-    console.log("addTicket called with payload:", payload);
-    return axios.post(`${baseURL}/tickets/add`, payload)
+    return axios.post(`${BASE_URL}/tickets/add`, payload);
 }
 
 export function getTickets(page: number = 0, size: number = 5) {
-    console.log("getTickets called");
-    return axios.get(`${baseURL}/tickets?page=${page}&size=${size}`);
+    return axios.get(`${BASE_URL}/tickets?page=${page}&size=${size}`);
 }
 
 export function getTicket(id: number) {
-    return axios.get(`${baseURL}/tickets/${id}`);
+    return axios.get(`${BASE_URL}/tickets/${id}`);
 }
 
 export function updateTicket(id: number, payload: any) {
-    return axios.put(`${baseURL}/tickets/${id}`, payload);
+    return axios.put(`${BASE_URL}/tickets/${id}`, payload);
 }
 
 export function linkTicketToMaster(id: number, masterId: number) {
-    return axios.put(`${baseURL}/tickets/${id}/link/${masterId}`);
+    return axios.put(`${BASE_URL}/tickets/${id}/link/${masterId}`);
 }
 
 export function addComment(id: number, comment: string) {
-    return axios.post(`${baseURL}/tickets/${id}/comments`, comment, {
+    return axios.post(`${BASE_URL}/tickets/${id}/comments`, comment, {
         headers: { 'Content-Type': 'text/plain' }
     });
 }
 
 export function getComments(id: number, count?: number) {
-    const url = count ? `${baseURL}/tickets/${id}/comments?count=${count}` : `${baseURL}/tickets/${id}/comments`;
+    const url = count ? `${BASE_URL}/tickets/${id}/comments?count=${count}` : `${BASE_URL}/tickets/${id}/comments`;
     return axios.get(url);
 }
 
 export function updateComment(commentId: number, comment: string) {
-    return axios.put(`${baseURL}/tickets/comments/${commentId}`, comment, {
+    return axios.put(`${BASE_URL}/tickets/comments/${commentId}`, comment, {
         headers: { 'Content-Type': 'text/plain' }
     });
 }
 
 export function deleteComment(commentId: number) {
-    return axios.delete(`${baseURL}/tickets/comments/${commentId}`);
+    return axios.delete(`${BASE_URL}/tickets/comments/${commentId}`);
 }

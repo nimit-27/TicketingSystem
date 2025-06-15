@@ -4,16 +4,16 @@ import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
 import { getEmployeeDetails } from "../../services/EmployeeService";
-import { FieldValues } from "react-hook-form";
+import { FieldValues, useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
-import { useEffect, useState } from "react";
+import { useDebounce } from "../../hooks/useDebounce";
+import React, { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { currentUserDetails, isFciEmployee } from "../../config/config";
 
 interface RequestorDetailsProps extends FormProps {
-    formData: FieldValues;
     disableAll?: boolean;
 }
 
@@ -22,14 +22,17 @@ const NON_FCI_EMPLOYEE = "nonFci";
 
 type ViewMode = typeof FCI_EMPLOYEE | typeof NON_FCI_EMPLOYEE;
 
-const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, formData, disableAll = false }) => {
+const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, control, disableAll = false }) => {
     const [verified, setVerified] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<ViewMode>("nonFci");
 
     const isDisabled = disableAll || disabled;
 
-    const { data, error, pending, success, apiHandler } = useApi<any>();
+    const { data, pending, success, apiHandler } = useApi<any>();
+    const employeeId = useWatch({ control, name: 'employeeId' });
+    const office = useWatch({ control, name: 'office' });
+    const debouncedEmployeeId = useDebounce(employeeId, 500);
 
     useEffect(() => {
         if (success) {
@@ -49,18 +52,17 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }, [pending, data]);
 
     useEffect(() => {
-        if (formData?.employeeId) {
+        if (debouncedEmployeeId) {
             setDisabled(true);
             if (disableAll || isFciEmployee) {
-                verifyEmployeeById(formData.employeeId);
+                verifyEmployeeById(debouncedEmployeeId);
             }
         } else {
-            console.log("Employee ID changed, clearing form");
             clearForm();
         }
 
         setVerified(false);
-    }, [formData?.employeeId]);
+    }, [debouncedEmployeeId]);
 
     useEffect(() => {
         if(isFciEmployee) {
@@ -126,15 +128,15 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             label="Employee ID"
                             name="employeeId"
                             slotProps={{
-                                inputLabel: { shrink: formData?.employeeId },
+                                inputLabel: { shrink: employeeId },
                                 input: {
                                     endAdornment: !disableAll && (
                                         <InputAdornment position="end">
-                                            {(verified || formData?.employeeId) && (
+                                            {(verified || employeeId) && (
                                                 <CustomIconButton icon="Clear" onClick={clearForm} disabled={disableAll} />
                                             )}
                                             <VerifyIconButton
-                                                onClick={() => verifyEmployeeById(formData.employeeId)}
+                                                onClick={() => verifyEmployeeById(employeeId)}
                                                 pending={pending}
                                                 verified={verified}
                                                 disabled={disableAll}
@@ -154,7 +156,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.employeeId || verified }
+                                inputLabel: { shrink: employeeId || verified }
                             }}
                             label="Name"
                             name="name"
@@ -169,7 +171,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.employeeId || verified }
+                                inputLabel: { shrink: employeeId || verified }
                             }}
                             label="Email ID"
                             name="emailId"
@@ -184,7 +186,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.employeeId || verified }
+                                inputLabel: { shrink: employeeId || verified }
                             }}
                             label="Mobile No."
                             name="mobileNo"
@@ -199,7 +201,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.employeeId || verified }
+                                inputLabel: { shrink: employeeId || verified }
                             }}
                             label="Role"
                             name="role"
@@ -213,7 +215,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.office || verified }
+                                inputLabel: { shrink: office || verified }
                             }}
                             label="Office"
                             name="office"
@@ -228,4 +230,4 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     )
 }
 
-export default RequestorDetails;
+export default React.memo(RequestorDetails);
