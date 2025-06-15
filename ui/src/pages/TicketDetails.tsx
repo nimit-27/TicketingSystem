@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { getTicket, updateTicket } from "../services/TicketService";
 import { useApi } from "../hooks/useApi";
 import Title from "../components/Title";
@@ -46,8 +46,8 @@ const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
     const { data: ticket, apiHandler: ticketApiHandler } = useApi<any>();
 
-    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
-    const formData = watch();
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
+    const statusValue = useWatch({ control, name: 'status' });
     const [editing, setEditing] = useState<boolean>(false);
 
     useEffect(() => {
@@ -113,7 +113,7 @@ const TicketDetails: React.FC = () => {
                 <div className="m-3 d-flex align-items-center">
                     <p className="mb-0 me-2">Status: {ticket.status}</p>
                     <Switch
-                        checked={formData.status === 'REOPENED'}
+                        checked={statusValue === 'REOPENED'}
                         onChange={handleReopenToggle}
                         size="small"
                     />
@@ -122,14 +122,13 @@ const TicketDetails: React.FC = () => {
             )}
 
             <form onSubmit={handleSubmit(onSubmit)}>
-                <RequestDetails register={register} control={control} errors={errors} formData={formData} disableAll />
-                <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} disableAll />
+                <RequestDetails register={register} control={control} errors={errors} disableAll />
+                <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
 
                 <TicketDetailsForm
                     register={register}
                     control={control}
                     errors={errors}
-                    formData={formData}
                     subjectDisabled
                     disableAll={!editing}
                     actionElement={editing ? (

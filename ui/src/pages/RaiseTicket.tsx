@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetails from "../components/RaiseTicket/TicketDetails";
@@ -11,26 +11,20 @@ import { useApi } from "../hooks/useApi";
 import { addTicket } from "../services/TicketService";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm();
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
     const { data, pending, error, success, apiHandler } = useApi();
 
-    // Get all form values
-    const formData = watch();
+    const isMaster = useWatch({ control, name: 'isMaster' });
 
     const [successfullModalOpen, setSuccessfulModalOpen] = useState(false);
     const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
 
 
     const onSubmit = (data: any) => {
-        console.log("data", data);
-        // Handle form submission logic here
-
         apiHandler(() => addTicket(data))
-            .then((response) => {
-                console.log("Ticket added successfully:", response);
+            .then(() => {
                 setSuccessfulModalOpen(true);
             })
-
     };
 
     const onClose = () => setSuccessfulModalOpen(false);
@@ -44,13 +38,13 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Request Details */}
                 <RequestDetails register={register} control={control} errors={errors} setValue={setValue} createMode />
                 {/* Requestor Details */}
-                <RequestorDetails register={register} control={control} errors={errors} formData={formData} setValue={setValue} createMode />
+                <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} createMode />
                 {/* Ticket Details */}
-                <TicketDetails register={register} control={control} errors={errors} formData={formData} createMode />
+                <TicketDetails register={register} control={control} errors={errors} createMode />
                 {/* Submit Button */}
 
                 <div className="text-start">
-                    <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={formData.isMaster} />
+                    <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={isMaster} />
                 </div>
                 <div className="text-end mt-3">
                     <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />

@@ -1,7 +1,14 @@
 import axios from 'axios';
+import { BASE_URL } from './api';
 
-const baseURL = 'http://localhost:8081';
+let statusCache: any[] | null = null;
 
 export function getStatuses() {
-    return axios.get(`${baseURL}/ticket-statuses`);
+    if (statusCache) {
+        return Promise.resolve({ data: statusCache } as any);
+    }
+    return axios.get(`${BASE_URL}/ticket-statuses`).then(res => {
+        statusCache = res.data;
+        return res;
+    });
 }

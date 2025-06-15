@@ -1,11 +1,11 @@
-import { FieldValues } from "react-hook-form";
+import { FieldValues, useWatch } from "react-hook-form";
 import { FormProps } from "../../types";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
@@ -13,7 +13,6 @@ import { getStatuses } from "../../services/StatusService";
 import { currentUserDetails } from "../../config/config";
 
 interface TicketDetailsProps extends FormProps {
-    formData?: FieldValues;
     disableAll?: boolean;
     subjectDisabled?: boolean;
     actionElement?: React.ReactNode;
@@ -41,7 +40,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formData, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
 
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
@@ -58,8 +57,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = Array.isArray(statusList) ? statusList.map(s => ({ label: s.replace(/_/g, ' '), value: s })) : [];
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
-
-    console.log(categoryOptions)
+    const assignedToLevel = useWatch({ control, name: 'assignedToLevel' });
+    const category = useWatch({ control, name: 'category' });
+    const subjectValue = useWatch({ control, name: 'subject' });
+    const descriptionValue = useWatch({ control, name: 'description' });
 
     let showAssignedToLevel = !createMode;
     let showAssignedTo = !createMode;
@@ -84,8 +85,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     }, [])
 
     useEffect(() => {
-        formData?.assignedToLevel && getAllEmployeesByLevelHandler(() => getAllEmployeesByLevel(formData.assignedToLevel))
-    }, [formData?.assignedToLevel])
+        assignedToLevel && getAllEmployeesByLevelHandler(() => getAllEmployeesByLevel(assignedToLevel))
+    }, [assignedToLevel])
 
     useEffect(() => {
         getCategoriesApiHandler(() => getCategories())
@@ -95,16 +96,14 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
         getStatusApiHandler(() => getStatuses())
     }, [])
 
-    console.log({formData})
-
     useEffect(() => {
-        if (formData?.category && Array.isArray(allCategories)) {
-            const selectedCategory = allCategories.find((cat: any) => cat.category === formData.category);
+        if (category && Array.isArray(allCategories)) {
+            const selectedCategory = allCategories.find((cat: any) => cat.category === category);
             if (selectedCategory?.categoryId) {
-            getSubCategoriesApiHandler(() => getSubCategories(selectedCategory.categoryId));
+                getSubCategoriesApiHandler(() => getSubCategories(selectedCategory.categoryId));
             }
         }
-    }, [formData?.category])
+    }, [category])
 
     useEffect(() => {
         // Set assignedBy to current userId from localStorage if available
@@ -113,7 +112,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
         }
     }, [register]);
 
-    console.log({ role: currentUserDetails?.role, status: formData?.status })
 
     return (
         <CustomFieldset title="Ticket Details" actionElement={actionElement}>
@@ -124,7 +122,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                             name="assignedToLevel"
                             label="Assigned To Level"
                             slotProps={{
-                                inputLabel: { shrink: formData?.subject }
+                                inputLabel: { shrink: subjectValue }
                             }}
                             register={register}
                             errors={errors}
@@ -138,7 +136,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                             name="assignedTo"
                             label="Assigned to"
                             slotProps={{
-                                inputLabel: { shrink: formData?.subject }
+                                inputLabel: { shrink: subjectValue }
                             }}
                             register={register}
                             errors={errors}
@@ -166,7 +164,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                             label="Sub-Category"
                             options={subCategoryOptions}
                             className="form-select"
-                            disabled={disableAll || !formData?.category}
+                            disabled={disableAll || !category}
                         />
                     </div>
                 )}
@@ -232,7 +230,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     <div className="col-md-12 mb-3 px-4">
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.subject }
+                                inputLabel: { shrink: subjectValue }
                             }}
                             label="Subject"
                             name="subject"
@@ -247,7 +245,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
                     <div className="col-md-12 mb-3 px-4">
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: formData?.description }
+                                inputLabel: { shrink: descriptionValue }
                             }}
                             label="Description"
                             name="description"
@@ -333,4 +331,4 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     )
 }
 
-export default TicketDetails;
+export default React.memo(TicketDetails);
