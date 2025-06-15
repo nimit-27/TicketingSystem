@@ -3,20 +3,27 @@ import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { FormProps } from "../../types";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
-import { FieldValues, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, isFciEmployee } from "../../config/config";
+import { currentUserDetails, isFciEmployee, isHelpdesk } from "../../config/config";
 import React, { useEffect } from "react";
 
 interface RequestDetailsProps extends FormProps {
     disableAll?: boolean;
 }
 
-const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
+const modeOptions: DropdownOption[] = [
     { label: "Self", value: "Self" },
     { label: "Call", value: "Call" },
     { label: "Mail", value: "Mail" }
 ];
+
+const modeHelpdeskOptions: DropdownOption[] = [
+    { label: "Call", value: "Call" },
+    { label: "Mail", value: "Mail" }
+];
+
+
 
 const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false }) => {
     const showTicketId = false;
@@ -60,7 +67,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             control={control}
                             rules={{ required: true }}
                             label="Mode"
-                            options={ticketLodgedThroughDropdownOptions}
+                            options={isHelpdesk ? modeHelpdeskOptions : modeOptions}
                             className="form-select"
                             disabled={disableAll || isFciEmployee}
                         />

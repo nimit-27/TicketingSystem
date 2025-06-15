@@ -14,24 +14,26 @@ export const useApi = <R,>(): UseApiResponse<R> => {
     const [pending, setPending] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
 
-    const apiHandler = useCallback((apiCall: () => Promise<R>): Promise<R> => {
+    const apiHandler = useCallback(async (apiCall: () => Promise<R>): Promise<R> => {
         setPending(true);
         setError(null);
-        return apiCall()
-            .then((response: any) => {
+        try {
+            try {
+                const response: any = await apiCall();
                 if (response.status !== 200) throw new Error("Something went wrong");
                 const resp = response.data.response || response.data;
                 setData(resp);
                 setSuccess(true);
                 return resp;
-            })
-            .catch((err) => {
+            } catch (err: any | null) {
                 console.error(err);
                 setError(err);
                 setSuccess(false);
                 throw err;
-            })
-            .finally(() => setPending(false));
+            }
+        } finally {
+            setPending(false);
+        }
     }, []);
 
     return { data, pending, error, success, apiHandler }

@@ -7,9 +7,9 @@ import CustomThemeProvider from '../../context/ThemeContext';
 const SidebarLayout: React.FC = () => (
   <CustomThemeProvider>
     <Header />
-    <div className="d-flex" style={{ minHeight: 'calc(100vh - 50px)' }}>
+    <div className="d-flex pb-2" style={{ maxHeight: '97vh' }}>
       <Sidebar />
-      <div className="flex-grow-1 p-3" style={{ marginTop: '0' }}>
+      <div className="flex-grow-1 p-3" style={{ marginTop: '0', overflowY: 'scroll' }}>
         <Outlet />
       </div>
     </div>

@@ -11,7 +11,10 @@ import React, { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, isFciEmployee } from "../../config/config";
+import { currentUserDetails, isFciEmployee, isHelpdesk } from "../../config/config";
+import DropdownController from "../UI/Dropdown/DropdownController";
+import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
+import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -21,6 +24,11 @@ const FCI_EMPLOYEE = "fci";
 const NON_FCI_EMPLOYEE = "nonFci";
 
 type ViewMode = typeof FCI_EMPLOYEE | typeof NON_FCI_EMPLOYEE;
+
+const stakeholderOptions: DropdownOption[] = [
+    { label: "Farmer", value: "Farmer" },
+    { label: "Miller", value: "Miller" }
+];
 
 const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, control, disableAll = false }) => {
     const [verified, setVerified] = useState<boolean>(false);
@@ -33,6 +41,17 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const employeeId = useWatch({ control, name: 'employeeId' });
     const office = useWatch({ control, name: 'office' });
     const debouncedEmployeeId = useDebounce(employeeId, 500);
+
+    const clearEmployeeDetails = () => {
+        if (setValue) {
+            setValue("employeeId", "");
+            setValue("name", "");
+            setValue("emailId", "");
+            setValue("mobileNo", "");
+            setValue("role", "");
+            setValue("office", "");
+        }
+    }
 
     useEffect(() => {
         if (success) {
@@ -65,10 +84,15 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }, [debouncedEmployeeId]);
 
     useEffect(() => {
-        if(isFciEmployee) {
-            if(setValue && currentUserDetails.employeeId) setValue("employeeId", currentUserDetails.employeeId)
+        if (viewMode === 'nonFci') clearEmployeeDetails()
+    }, [viewMode])
+
+    useEffect(() => {
+        if (isFciEmployee) {
+            const fciUser = currentUserDetails as typeof currentUserDetails & { employeeId: string };
+            if (setValue && fciUser.employeeId) setValue("employeeId", fciUser.employeeId);
         }
-    }, [isFciEmployee])
+    }, [isFciEmployee]);
 
     const verifyEmployeeById = (employeeId: string) => {
         // Logic to verify employee by ID
@@ -93,6 +117,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const showName = true;
     const showEmailId = true;
     const showMobileNo = true;
+    const showStakeholder = isHelpdesk && viewMode === "nonFci";
     const showRole = viewMode === FCI_EMPLOYEE || isFciEmployee;
     const showOffice = viewMode === FCI_EMPLOYEE || isFciEmployee;
 
@@ -102,6 +127,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isMobileNoDisabled = isDisabled || isFciEmployee;
     const isRoleDisabled = isDisabled || isFciEmployee;
     const isOfficeDisabled = isDisabled || isFciEmployee;
+    const isStakeholderDisabled = false;
 
     return (
         <CustomFieldset title="Requestor Details" className="mb-4">
@@ -194,6 +220,21 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             errors={errors}
                             disabled={isMobileNoDisabled}
                             type="tel"
+                        />
+                    </div>
+                )}
+                {showStakeholder && (
+                    <div className={`${inputColStyling}`}>
+                        <GenericDropdownController
+                            // slotProps={{
+                            //     inputLabel: { shrink: employeeId || verified }
+                            // }}
+                            label="Stakeholder"
+                            name="stakeholder"
+                            control={control}
+                            options={stakeholderOptions}
+                            className="form-select"
+                            disabled={isStakeholderDisabled}
                         />
                     </div>
                 )}

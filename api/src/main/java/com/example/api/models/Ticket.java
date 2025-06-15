@@ -27,6 +27,7 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "employee_id", referencedColumnName = "employee_id")
     private Employee employee;
+    private String stakeholder;
     private String subject;
     private String description;
     private String category;

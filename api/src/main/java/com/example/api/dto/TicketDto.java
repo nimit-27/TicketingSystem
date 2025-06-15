@@ -18,6 +18,7 @@ public class TicketDto {
     private Date reportedDate;
     private Mode mode;
     private int employeeId;
+    private String stakeholder;
     private String subject;
     private String description;
     private String category;
