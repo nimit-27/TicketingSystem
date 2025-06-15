@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Avatar, Box, Tooltip } from "@mui/material";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
 import { getTickets } from "../services/TicketService";
@@ -15,6 +13,7 @@ import MasterIcon from "../components/UI/Icons/MasterIcon";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
 import ViewToggle from "../components/AllTickets/ViewToggle";
+import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
 
 interface Employee {
@@ -36,7 +35,7 @@ interface Ticket {
 
 const AllTickets: React.FC = () => {
     const { data, pending, error, apiHandler } = useApi<any>();
-    const { data: statusList, apiHandler: statusApiHandler } = useApi<string[]>();
+    const { data: statusList, apiHandler: statusApiHandler } = useApi();
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
@@ -153,7 +152,7 @@ const AllTickets: React.FC = () => {
         <div className="container">
             <Title text="My Tickets" />
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <TextField
+                <GenericInput
                     label="Search by Id or Subject"
                     size="small"
                     value={search}
@@ -180,7 +179,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">Error loading tickets</p>}
             {!pending && viewMode === 'table' && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id) => navigate(`/tickets/${id}`)} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} />
                     <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} className="mt-3" />
                 </div>
             )}

@@ -47,10 +47,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, formDa
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
     const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
-    const { data: statusList, apiHandler: getStatusApiHandler } = useApi<string[]>();
+    const { data: statusList, apiHandler: getStatusApiHandler } = useApi<any>();
 
     // Field visibility booleans
 
+    // getDropdownOptions(arr, label, value)
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
     const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');

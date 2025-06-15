@@ -15,7 +15,7 @@ export const envConfig = {
             name: 'Narendra Modi',
             email: 'fci.employee@example.com',
             phone: '9000000002',
-            employeeId: 'FCI12345'
+            employeeId: '201'
         },
         user: {
             userId: localStorage.getItem('userId') || 'nimit.jain',

@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import ClearIcon from '@mui/icons-material/Clear';
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
-import { isFciEmployee } from "../../config/config";
+import { currentUserDetails, isFciEmployee } from "../../config/config";
 
 interface RequestorDetailsProps extends FormProps {
     formData: FieldValues;
@@ -51,8 +51,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     useEffect(() => {
         if (formData?.employeeId) {
             setDisabled(true);
-            if (disableAll) {
-                verifyEmployeeById();
+            if (disableAll || isFciEmployee) {
+                verifyEmployeeById(formData.employeeId);
             }
         } else {
             console.log("Employee ID changed, clearing form");
@@ -62,10 +62,15 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setVerified(false);
     }, [formData?.employeeId]);
 
-    const verifyEmployeeById = () => {
+    useEffect(() => {
+        if(isFciEmployee) {
+            if(setValue && currentUserDetails.employeeId) setValue("employeeId", currentUserDetails.employeeId)
+        }
+    }, [isFciEmployee])
+
+    const verifyEmployeeById = (employeeId: string) => {
         // Logic to verify employee by ID
-        console.log("Verifying employee by ID...: ", formData.employeeId);
-        apiHandler(() => getEmployeeDetails(formData.employeeId))
+        apiHandler(() => getEmployeeDetails(employeeId))
     };
 
     const clearForm = () => {
@@ -82,14 +87,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     };
 
     const showFciToggle = !isFciEmployee;
-    const showEmployeeId =  viewMode === FCI_EMPLOYEE || isFciEmployee;
+    const showEmployeeId = viewMode === FCI_EMPLOYEE || isFciEmployee;
     const showName = true;
     const showEmailId = true;
     const showMobileNo = true;
     const showRole = viewMode === FCI_EMPLOYEE || isFciEmployee;
     const showOffice = viewMode === FCI_EMPLOYEE || isFciEmployee;
 
-    const isEmployeeIdDisabled = disableAll;
+    const isEmployeeIdDisabled = disableAll || isFciEmployee;
     const isNameDisabled = isDisabled || isFciEmployee;
     const isEmailIdDisabled = isDisabled || isFciEmployee;
     const isMobileNoDisabled = isDisabled || isFciEmployee;
@@ -129,7 +134,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                                 <CustomIconButton icon="Clear" onClick={clearForm} disabled={disableAll} />
                                             )}
                                             <VerifyIconButton
-                                                onClick={verifyEmployeeById}
+                                                onClick={() => verifyEmployeeById(formData.employeeId)}
                                                 pending={pending}
                                                 verified={verified}
                                                 disabled={disableAll}

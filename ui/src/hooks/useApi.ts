@@ -19,10 +19,12 @@ export const useApi = <R,>(): UseApiResponse<R> => {
             startTransition(() => {
                 apiCall()
                     .then((response: any) => {
+                        if(response.status !== 200) throw new Error("Something went wrong")
                         setData(response.data.response || response.data);
                         resolve(response.data.response  || response.data);
                         setSuccess(true);
                     }).catch((err) => {
+                        console.error(err)
                         setError(err);
                         reject(err);
                         setSuccess(false);

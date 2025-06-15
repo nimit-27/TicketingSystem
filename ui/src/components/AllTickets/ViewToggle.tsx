@@ -8,7 +8,7 @@ interface ToggleOption {
 
 interface ViewToggleProps {
     value: string;
-    onChange: (val: string) => void;
+    onChange: any;
     options: ToggleOption[];
 }
 

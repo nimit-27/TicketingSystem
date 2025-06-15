@@ -1,10 +1,9 @@
 import React from 'react';
 import IconButton from '@mui/material/IconButton';
-import Icon from '@mui/material/Icon';
 import CircularProgress from '@mui/material/CircularProgress';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Stack from '@mui/material/Stack';
-import GenericButton from '../Button';
+import CustomIconButton from './CustomIconButton';
 
 type VerifyIconButtonProps = {
     icon?: string;
@@ -15,7 +14,6 @@ type VerifyIconButtonProps = {
 };
 
 const VerifyIconButton: React.FC<VerifyIconButtonProps> = ({
-    icon,
     onClick,
     verified,
     pending,
@@ -34,7 +32,7 @@ const VerifyIconButton: React.FC<VerifyIconButtonProps> = ({
                     ? <CircularProgress size={24} />
                     : verified
                         ? <CheckCircleIcon color="success" />
-                        : <GenericButton onClick={onClick} size='small'>Verify</GenericButton>
+                        : <CustomIconButton onClick={onClick} icon='send' />
                 }
             </Stack>
         </IconButton>
