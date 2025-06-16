@@ -7,11 +7,18 @@ import { Table } from 'antd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { addEmployee, deleteEmployee, getAllEmployees } from '../services/EmployeeService';
 import { useApi } from '../hooks/useApi';
+import { useDebounce } from '../hooks/useDebounce';
+import { useSnackbar } from '../context/SnackbarContext';
 
 const EscalationMaster: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [search, setSearch] = useState('');
+  const [filtered, setFiltered] = useState<any[]>([]);
+  const debouncedSearch = useDebounce(search, 300);
+
+  const { showMessage } = useSnackbar();
 
   const { data: employeeData, apiHandler } = useApi<any>();
   const { apiHandler: addApiHandler } = useApi<any>();
@@ -25,6 +32,23 @@ const EscalationMaster: React.FC = () => {
     fetchEmployees();
   }, []);
 
+  useEffect(() => {
+    if (Array.isArray(employeeData)) {
+      setFiltered(employeeData);
+    }
+  }, [employeeData]);
+
+  useEffect(() => {
+    if (!Array.isArray(employeeData)) return;
+    const query = debouncedSearch.toLowerCase();
+    const list = employeeData.filter(emp =>
+      emp.name.toLowerCase().includes(query) ||
+      emp.emailId.toLowerCase().includes(query) ||
+      emp.mobileNo.includes(query)
+    );
+    setFiltered(list);
+  }, [debouncedSearch, employeeData]);
+
   const handleSubmit = () => {
     if (!name || !email || !phone) return;
     const payload = {
@@ -32,11 +56,14 @@ const EscalationMaster: React.FC = () => {
       emailId: email,
       mobileNo: phone,
     };
-    addApiHandler(() => addEmployee(payload)).then(() => {
+    addApiHandler(() => addEmployee(payload)).then((res: any) => {
       fetchEmployees();
       setName('');
       setEmail('');
       setPhone('');
+      if (res?.message) {
+        showMessage(res.message, 'success');
+      }
     });
   };
 
@@ -96,7 +123,10 @@ const EscalationMaster: React.FC = () => {
           </GenericButton>
         </div>
       </CustomFieldset>
-      <Table columns={columns as any} dataSource={Array.isArray(employeeData) ? employeeData : []} rowKey="employeeId" className="mt-4" pagination={false} />
+      <div className="my-3 w-25">
+        <GenericInput label="Search" fullWidth value={search} onChange={e => setSearch(e.target.value)} />
+      </div>
+      <Table columns={columns as any} dataSource={filtered} rowKey="employeeId" className="mt-4" pagination={false} />
     </div>
   );
 };

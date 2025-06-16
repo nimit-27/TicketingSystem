@@ -31,6 +31,12 @@ const severityOptions: DropdownOption[] = [
     { label: "LOW", value: "LOW" }
 ];
 
+const impactOptions: DropdownOption[] = [
+    { label: "High", value: "High" },
+    { label: "Medium", value: "Medium" },
+    { label: "Low", value: "Low" }
+];
+
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
     Array.isArray(arr)
@@ -67,10 +73,12 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     let showCategory = true;
     let showSubCategory = true;
     let showPriority = true;
-    let showSeverityFields = currentUserDetails?.role.includes('RNO')
+    const isIT = currentUserDetails?.role.includes('IT');
+    let showSeverityFields = isIT;
     let showSeverity = true;
     let showRecommendedSeverity = true;
-    let showImpact = true;
+    let showImpact = !isIT;
+    let showSelectedImpact = isIT;
     let showIsMaster = true;
     let showSubject = true;
     let showDescription = true;
@@ -182,13 +190,14 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 )}
                 {showSeverityFields && (
                     <>
-                        {showSeverity && (
+                        {showSelectedImpact && (
                             <div className="col-md-4 mb-3 px-4">
-                                <CustomFormInput
-                                    name="severity"
-                                    label="Severity"
-                                    register={register}
-                                    errors={errors}
+                                <GenericDropdownController
+                                    name="impact"
+                                    control={control}
+                                    label="Selected Impact"
+                                    options={impactOptions}
+                                    className="form-select"
                                     disabled
                                 />
                             </div>
@@ -198,25 +207,38 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                                 <GenericDropdownController
                                     name="recommendedSeverity"
                                     control={control}
-                                    label="Recommend Severity"
+                                    label="Recommended Severity"
+                                    options={severityOptions}
+                                    className="form-select"
+                                    disabled
+                                />
+                            </div>
+                        )}
+                        {showSeverity && (
+                            <div className="col-md-4 mb-3 px-4">
+                                <GenericDropdownController
+                                    name="severity"
+                                    control={control}
+                                    label="Confirm Severity"
                                     options={severityOptions}
                                     className="form-select"
                                     disabled={disableAll}
                                 />
                             </div>
                         )}
-                        {showImpact && (
-                            <div className="col-md-4 mb-3 px-4">
-                                <CustomFormInput
-                                    name="impact"
-                                    label="Impact"
-                                    register={register}
-                                    errors={errors}
-                                    disabled={disableAll}
-                                />
-                            </div>
-                        )}
                     </>
+                )}
+                {showImpact && (
+                    <div className="col-md-4 mb-3 px-4">
+                        <GenericDropdownController
+                            name="impact"
+                            control={control}
+                            label="Impact"
+                            options={impactOptions}
+                            className="form-select"
+                            disabled={disableAll}
+                        />
+                    </div>
                 )}
                 {showIsMaster && (
                     <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
