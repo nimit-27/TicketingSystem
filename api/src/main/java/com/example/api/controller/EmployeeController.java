@@ -36,8 +36,9 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<Employee> addEmployee(@RequestBody Employee employee) {
-        return ResponseEntity.ok(employeeService.saveEmployee(employee));
+    public ResponseEntity<?> addEmployee(@RequestBody Employee employee) {
+        Employee saved = employeeService.saveEmployee(employee);
+        return ResponseEntity.ok(java.util.Map.of("message", "User " + saved.getName() + " added successfully"));
     }
 
     @PutMapping("/{employeeId}")
