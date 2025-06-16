@@ -3,12 +3,12 @@ import './SuccessfulModal.scss'
 
 interface SuccessfulModalProps {
     open: boolean;
-    ticketId: string;
+    ticketId: string | number;
     onClose: () => void;
 }
 
 const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClose }) => {
-    const encodedTicketId = encodeURIComponent(ticketId);
+    const encodedTicketId = encodeURIComponent(String(ticketId));
 
     return (
         <Modal open={open} onClose={onClose}>
@@ -29,10 +29,10 @@ const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClo
                             <li>Our support team will review your request and get back to you shortly.</li>
                             <li>
                                 You can track the status of your ticket anytime from the{' '}
-                                <a href={`/my-tickets/${encodedTicketId}`} className="text-primary text-decoration-underline">
-                                    My Tickets
+                                <a href={`/tickets/${encodedTicketId}`} className="text-primary text-decoration-underline">
+                                    Ticket
                                 </a>{' '}
-                                section.
+                                page.
                             </li>
                             <li>If your issue is urgent or you need to provide additional information, please contact the Helpdesk.</li>
                         </ul>
