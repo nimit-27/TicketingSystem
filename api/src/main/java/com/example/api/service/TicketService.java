@@ -8,6 +8,7 @@ import com.example.api.models.TicketComment;
 import com.example.api.repository.EmployeeRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
+import com.example.api.repository.LevelRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.typesense.TypesenseClient;
 import org.springframework.stereotype.Service;
@@ -24,16 +25,18 @@ public class TicketService {
     private final EmployeeRepository employeeRepository;
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
+    private final LevelRepository levelRepository;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
                          EmployeeRepository employeeRepository, TicketCommentRepository commentRepository,
-                         AssignmentHistoryService assignmentHistoryService) {
+                         AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.employeeRepository = employeeRepository;
         this.commentRepository = commentRepository;
         this.assignmentHistoryService = assignmentHistoryService;
+        this.levelRepository = levelRepository;
     }
 
     public List<Ticket> getTickets() {
@@ -58,6 +61,18 @@ public class TicketService {
 
         Employee employee = employeeRepository.findById(ticket.getEmployeeId()).orElseThrow();
         ticket.setEmployee(employee);
+
+        if (ticket.getAssignedToLevel() == null || ticket.getAssignedToLevel().isEmpty()) {
+            ticket.setAssignedToLevel("L1");
+        }
+        if (ticket.getAssignedTo() == null || ticket.getAssignedTo().isEmpty()) {
+            levelRepository.findByLevelName("L1").ifPresent(level -> {
+                if (level.getEmployees() != null && !level.getEmployees().isEmpty()) {
+                    Employee emp = level.getEmployees().iterator().next();
+                    ticket.setAssignedTo(emp.getUserId());
+                }
+            });
+        }
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
         return DtoMapper.toTicketDto(saved);

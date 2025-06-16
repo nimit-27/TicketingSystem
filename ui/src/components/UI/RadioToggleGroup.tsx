@@ -14,11 +14,12 @@ interface ViewToggleProps {
   value: string;
   onChange: (val: string) => void;
   options: ToggleOption[];
+  disabled?: boolean;
 }
 
-const RadioToggleGroup: React.FC<ViewToggleProps> = ({ value, onChange, options }) => {
+const RadioToggleGroup: React.FC<ViewToggleProps> = ({ value, onChange, options, disabled }) => {
   return (
-    <FormControl>
+    <FormControl disabled={disabled}>
       <Typography gutterBottom>
         Select one option
       </Typography>

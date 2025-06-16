@@ -122,6 +122,9 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const showRole = viewMode === FCI_EMPLOYEE || isFciEmployee;
     const showOffice = viewMode === FCI_EMPLOYEE || isFciEmployee;
 
+    const isNonFci = viewMode === NON_FCI_EMPLOYEE && !isFciEmployee;
+    const isFciMode = viewMode === FCI_EMPLOYEE || isFciEmployee;
+
     const isEmployeeIdDisabled = disableAll || isFciEmployee;
     const isNameDisabled = isDisabled || isFciEmployee;
     const isEmailIdDisabled = isDisabled || isFciEmployee;
@@ -143,6 +146,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             { label: 'Non-FCI Employee', value: 'nonFci' }
                         ]}
                         radio={FciTheme}
+                        disabled={disableAll}
                     />
                 </div>}
                 {showEmployeeId && (
@@ -170,7 +174,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             }}
                             register={register}
                             errors={errors}
-                            required
+                            required={isFciMode}
                             disabled={isEmployeeIdDisabled}
                         />
                     </div>
@@ -186,7 +190,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             register={register}
                             errors={errors}
                             disabled={isNameDisabled}
-                            required
+                            required={isNonFci}
                         />
                     </div>
                 )}
@@ -217,6 +221,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             errors={errors}
                             disabled={isMobileNoDisabled}
                             type="tel"
+                            required={isNonFci}
                         />
                     </div>
                 )}
@@ -230,6 +235,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="stakeholder"
                             control={control}
                             options={stakeholderOptions}
+                            rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
                             className="form-select"
                             disabled={isStakeholderDisabled}
                         />

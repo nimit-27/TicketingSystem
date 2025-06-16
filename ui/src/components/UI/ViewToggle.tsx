@@ -9,15 +9,17 @@ interface ViewToggleProps {
     onChange: any;
     options: ToggleOption[];
     radio?: boolean;
+    disabled?: boolean;
 }
 
-const ViewToggle: React.FC<ViewToggleProps> = ({ value, onChange, options, radio }) => {
+const ViewToggle: React.FC<ViewToggleProps> = ({ value, onChange, options, radio, disabled }) => {
     if (radio) {
         return (
             <RadioToggleGroup
                 value={value}
                 onChange={onChange}
                 options={options}
+                disabled={disabled}
             />
         );
     }
@@ -32,7 +34,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({ value, onChange, options, radio
             {options.map((o, i) => {
                 const showIcon = !!o.icon;
                 return (
-                    <ToggleButton key={i} value={o.value}>
+                    <ToggleButton key={i} value={o.value} disabled={disabled}>
                         {showIcon && <IconComponent icon={o.icon as string} fontSize="small" />}
                         {o.label && <span style={{ marginLeft: showIcon ? 4 : 0 }}>{o.label}</span>}
                     </ToggleButton>
