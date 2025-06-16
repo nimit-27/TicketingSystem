@@ -5,7 +5,7 @@ export const envConfig = {
     Users: {
         helpdesk: {
             userId: 'helpdesk.user',
-            role: ['HELPDESK'],
+            role: ['HELPDESK', 'IT', 'ADMIN'],
             name: 'Amit Shah',
             email: 'helpdesk@example.com',
             phone: '9000000001'
