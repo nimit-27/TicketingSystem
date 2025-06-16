@@ -8,6 +8,7 @@ export const currentUserDetails = Users.helpdesk;
 // export const currentUserDetails = Users.fci
 export const FciTheme = envConfig.FciTheme;
 
-export const isFciEmployee = currentUserDetails.role.includes("FCI_EMPLOYEE")
-export const isHelpdesk = currentUserDetails.role.includes('HELPDESK')
-console.log({ isFciEmployee, isHelpdesk })
+export const isFciEmployee = currentUserDetails.role.includes('FCI_EMPLOYEE');
+export const isHelpdesk = currentUserDetails.role.includes('HELPDESK');
+console.log({ isFciEmployee, isHelpdesk });
+
