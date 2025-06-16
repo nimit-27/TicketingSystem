@@ -9,6 +9,8 @@ import 'antd/dist/reset.css'; // for antd v5+
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { SnackbarProvider } from './context/SnackbarContext';
+import { CssBaseline } from '@mui/material';
+import CustomThemeProvider from './context/ThemeContext';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -16,9 +18,12 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <SnackbarProvider>
-        <App />
-      </SnackbarProvider>
+      <CustomThemeProvider>
+        <SnackbarProvider>
+          <CssBaseline />
+          <App />
+        </SnackbarProvider>
+      </CustomThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
