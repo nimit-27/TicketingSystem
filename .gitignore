@@ -9,3 +9,29 @@ api/.gradle/
 api/.idea/
 api/*.iml
 api/*.log
+
+# Docker volumes and containers
+/Typesense API/data/
+/Typesense API/data/**
+*.pid
+*.log
+
+# Typesense config overrides (if generated locally)
+typesense.ini
+config/*.local.*
+
+# Backup files or exported indexes
+*.snapshot.json
+*.backup.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Node or Python wrapper stuff (if applicable)
+node_modules/
+.env
+.env.local
+
+# Docker files not to track (if generated)
+docker-compose.override.yml
