@@ -1,40 +1,45 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import CategoryIcon from '@mui/icons-material/Category';
-import CustomIconButton from '../UI/IconButton/CustomIconButton';
-import { currentUserDetails } from '../../config/config';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import CategoryIcon from "@mui/icons-material/Category";
+import { currentUserDetails } from "../../config/config";
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import { useTheme } from "@mui/material/styles";
 
 const menuItems = [
   {
-    label: 'My Tickets',
-    to: '/tickets',
+    label: "My Tickets",
+    to: "/tickets",
     icon: <ListAltIcon />,
   },
   {
-    label: 'Raise Ticket',
-    to: '/create-ticket',
+    label: "Raise Ticket",
+    to: "/create-ticket",
     icon: <AddCircleOutlineIcon />,
   },
   {
-    label: 'Knowledge Base',
-    to: '/knowledge-base',
+    label: "Knowledge Base",
+    to: "/knowledge-base",
     icon: <LibraryBooksIcon />,
   },
   {
-    label: 'Categories Master',
-    to: '/categories-master',
+    label: "Categories Master",
+    to: "/categories-master",
     icon: <CategoryIcon />,
   },
   {
-    label: 'Escalation Master',
-    to: '/escalation-master',
+    label: "Escalation Master",
+    to: "/escalation-master",
     icon: <SupervisorAccountIcon />,
-    roles: ['ADMIN', 'IT'],
+    roles: ["ADMIN", "IT"],
   },
 ];
 
@@ -43,28 +48,42 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
+  const theme = useTheme();
+
+  const bgColor = theme.palette.secondary.main;
+  const textColor = theme.palette.getContrastText(bgColor);
 
   return (
     <div
       className="p-2"
       style={{
-        backgroundColor: '#FF671F',
-        width: collapsed ? '80px' : '280px',
-        transition: 'width 0.3s',
-        display: 'flex',
-        flexDirection: 'column',
+        backgroundColor: bgColor,
+        color: textColor,
+        width: collapsed ? "80px" : "280px",
+        transition: "width 0.3s",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <List component="nav">
         {menuItems.map(({ label, to, icon, roles }) => {
-          if (roles && !roles.some(r => currentUserDetails.role.includes(r))) {
+          if (
+            roles &&
+            !roles.some((r) => currentUserDetails.role.includes(r))
+          ) {
             return null;
           }
           return (
             <ListItemButton component={Link} to={to} key={label}>
-              <ListItemIcon className='text-white'>{icon}</ListItemIcon>
+              <ListItemIcon style={{ color: textColor }}>{icon}</ListItemIcon>
               {!collapsed && (
-                <ListItemText className='text-white fs-1' primaryTypographyProps={{ fontSize: '1.2rem' }} primary={label} />
+                <ListItemText
+                  primaryTypographyProps={{
+                    fontSize: "1.2rem",
+                    style: { color: textColor },
+                  }}
+                  primary={label}
+                />
               )}
             </ListItemButton>
           );
