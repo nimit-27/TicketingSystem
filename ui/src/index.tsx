@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'antd/dist/reset.css'; // for antd v5+
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { SnackbarProvider } from './context/SnackbarContext';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -15,7 +16,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <SnackbarProvider>
+        <App />
+      </SnackbarProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
