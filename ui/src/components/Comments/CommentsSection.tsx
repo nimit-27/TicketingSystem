@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useApi } from '../../hooks/useApi';
 import { addComment, getComments, updateComment, deleteComment } from '../../services/TicketService';
+import CustomFieldset from '../CustomFieldset';
 
 interface Comment {
     id: number;
@@ -84,7 +83,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
     };
 
     return (
-        <div className="mt-4">
+        <CustomFieldset title="Comments" className="mt-4">
             <div className="border p-3 mb-3">
                 <textarea
                     className="form-control mb-2"
@@ -125,7 +124,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                     <button className="btn btn-link" onClick={() => loadComments()}>Show more</button>
                 )}
             </div>
-        </div>
+        </CustomFieldset>
     );
 };
 

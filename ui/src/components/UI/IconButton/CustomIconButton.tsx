@@ -1,5 +1,7 @@
 import React from 'react';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import TableRowsIcon from "@mui/icons-material/TableRows";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
@@ -9,6 +11,8 @@ const iconMap = {
     delete: DeleteIcon,
     edit: EditIcon,
     send: SendIcon,
+    grid: ViewModuleIcon,
+    table: TableRowsIcon
 };
 
 // Valid keys for the icon map
@@ -23,7 +27,7 @@ export const IconComponent: React.FC<{ icon: string; fontSize?: 'small' | 'mediu
     icon,
     fontSize = 'small',
 }) => {
-    const key = icon.toLowerCase() as IconKey;
+    const key = icon as IconKey;
     const Icon = iconMap[key];
 
     return Icon ? <Icon fontSize={fontSize} /> : null;

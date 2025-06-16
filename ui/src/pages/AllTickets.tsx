@@ -177,8 +177,8 @@ const AllTickets: React.FC = () => {
                     value={viewMode}
                     onChange={setViewMode}
                     options={[
-                        { icon: 'ViewModuleIcon', value: 'grid' },
-                        { icon: 'TableRowsIcon', value: 'table' }
+                        { icon: 'grid', value: 'grid' },
+                        { icon: 'table', value: 'table' }
                     ]}
                 />
             </div>

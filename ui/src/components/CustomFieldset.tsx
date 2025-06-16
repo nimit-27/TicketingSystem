@@ -19,7 +19,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
             </div>
             <div className="p-2">
                 {actionElement && (
-                    <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                    <div className="d-flex m-2 justify-content-end">
                         {actionElement}
                     </div>
                 )}
