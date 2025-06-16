@@ -1,12 +1,13 @@
 import React, { createContext, useMemo, useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { allThemes, ThemeName } from '../themes';
 
-export const ThemeModeContext = createContext<{ mode: 'light' | 'dark'; toggle: () => void }>({ mode: 'light', toggle: () => {} });
+export const ThemeModeContext = createContext<{ mode: ThemeName; toggle: () => void }>({ mode: 'light', toggle: () => {} });
 
 const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [mode, setMode] = useState<'light' | 'dark'>('light');
+    const [mode, setMode] = useState<ThemeName>('light');
     const toggle = () => setMode(prev => (prev === 'light' ? 'dark' : 'light'));
-    const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
+    const theme = useMemo(() => allThemes[mode], [mode]);
     return (
         <ThemeModeContext.Provider value={{ mode, toggle }}>
             <ThemeProvider theme={theme}>{children}</ThemeProvider>
