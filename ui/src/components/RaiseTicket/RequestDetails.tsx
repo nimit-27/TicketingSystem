@@ -15,12 +15,12 @@ interface RequestDetailsProps extends FormProps {
 const modeOptions: DropdownOption[] = [
     { label: "Self", value: "Self" },
     { label: "Call", value: "Call" },
-    { label: "Mail", value: "Mail" }
+    { label: "Email", value: "Email" }
 ];
 
 const modeHelpdeskOptions: DropdownOption[] = [
     { label: "Call", value: "Call" },
-    { label: "Mail", value: "Mail" }
+    { label: "Email", value: "Email" }
 ];
 
 
