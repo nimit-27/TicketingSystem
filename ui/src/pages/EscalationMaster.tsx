@@ -61,8 +61,12 @@ const EscalationMaster: React.FC = () => {
       render: (_: any, record: any) => (
         <DeleteIcon
           fontSize="small"
-          style={{ color: 'red', cursor: 'pointer' }}
-          onClick={() => handleDelete(record.employeeId)}
+          style={{ color: 'gray', cursor: 'pointer' }}
+          onClick={() => {
+            if (window.confirm('Are you sure you want to delete this user?')) {
+              handleDelete(record.employeeId);
+            }
+          }}
         />
       ),
     },

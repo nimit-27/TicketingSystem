@@ -5,6 +5,10 @@ import TableRowsIcon from "@mui/icons-material/TableRows";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 
 // Define the icon map
 const iconMap = {
@@ -12,7 +16,11 @@ const iconMap = {
     edit: EditIcon,
     send: SendIcon,
     grid: ViewModuleIcon,
-    table: TableRowsIcon
+    table: TableRowsIcon,
+    menu: MenuIcon,
+    chevronleft: ChevronLeftIcon,
+    darkmode: DarkModeIcon,
+    lightmode: LightModeIcon
 };
 
 // Valid keys for the icon map

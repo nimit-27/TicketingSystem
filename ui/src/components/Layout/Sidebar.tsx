@@ -38,8 +38,11 @@ const menuItems = [
   },
 ];
 
-const Sidebar: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   return (
     <div
@@ -52,14 +55,6 @@ const Sidebar: React.FC = () => {
         flexDirection: 'column',
       }}
     >
-      <div className="text-end mb-3">
-        <CustomIconButton
-          icon={collapsed ? 'Menu' : 'ChevronLeft'}
-          size="small"
-          onClick={() => setCollapsed(!collapsed)}
-        />
-      </div>
-
       <List component="nav">
         {menuItems.map(({ label, to, icon, roles }) => {
           if (roles && !roles.some(r => currentUserDetails.role.includes(r))) {
