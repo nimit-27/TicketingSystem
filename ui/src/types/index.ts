@@ -26,12 +26,6 @@ export interface Category {
     subCategories: SubCategory[];
 }
 
-export interface Employee {
-    name?: string;
-    emailId?: string;
-    mobileNo?: string;
-}
-
 export interface Ticket {
     id: number;
     subject: string;
@@ -39,7 +33,9 @@ export interface Ticket {
     subCategory: string;
     priority: string;
     isMaster: boolean;
-    employee?: Employee;
+    requestorName?: string;
+    requestorEmailId?: string;
+    requestorMobileNo?: string;
     status?: string;
 }
 

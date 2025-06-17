@@ -3,10 +3,6 @@ import { Card, CardContent, Typography, Box, Tooltip } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MasterIcon from '../UI/Icons/MasterIcon';
 
-interface Employee {
-    name?: string;
-}
-
 export interface TicketCardData {
     id: number;
     subject: string;
@@ -14,7 +10,7 @@ export interface TicketCardData {
     subCategory: string;
     priority: string;
     isMaster: boolean;
-    employee?: Employee;
+    requestorName?: string;
 }
 
 interface PriorityConfig { color: string; count: number; }
@@ -35,7 +31,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     {ticket.isMaster && <MasterIcon />}
                 </Typography>
                 <Typography variant="body2">Id: {ticket.id}</Typography>
-                <Typography variant="body2">Requestor: {ticket.employee?.name || '-'}</Typography>
+                <Typography variant="body2">Requestor: {ticket.requestorName || '-'}</Typography>
                 <Typography variant="body2">Category: {ticket.category}</Typography>
                 <Typography variant="body2">Sub-Category: {ticket.subCategory}</Typography>
             </CardContent>
