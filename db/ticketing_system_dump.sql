@@ -130,6 +130,34 @@ INSERT INTO `employees` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','912
 UNLOCK TABLES;
 
 --
+-- Table structure for table `requestors`
+--
+
+DROP TABLE IF EXISTS `requestors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `requestors` (
+  `requestor_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) DEFAULT NULL,
+  `email_id` varchar(100) DEFAULT NULL,
+  `mobile_no` varchar(15) DEFAULT NULL,
+  `stakeholder_type` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`requestor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `requestors`
+--
+
+LOCK TABLES `requestors` WRITE;
+/*!40000 ALTER TABLE `requestors` DISABLE KEYS */;
+INSERT INTO `requestors` (`requestor_id`,`name`,`email_id`,`mobile_no`,`stakeholder_type`) VALUES
+(1,'Test User','user@example.com','9000000000','Farmer');
+/*!40000 ALTER TABLE `requestors` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `knowledge_base`
 --
 
@@ -325,6 +353,7 @@ CREATE TABLE `tickets` (
   `reported_date` date DEFAULT NULL,
   `mode` enum('Email','Self','Call') DEFAULT NULL,
   `employee_id` int DEFAULT NULL,
+  `requestor_id` int DEFAULT NULL,
   `subject` varchar(255) NOT NULL,
   `description` text,
   `category` varchar(100) DEFAULT NULL,
@@ -345,7 +374,9 @@ CREATE TABLE `tickets` (
   `stakeholder` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `master_id` (`master_id`),
-  CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`master_id`) REFERENCES `tickets` (`id`)
+  KEY `requestor_id` (`requestor_id`),
+  CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`master_id`) REFERENCES `tickets` (`id`),
+  CONSTRAINT `tickets_ibfk_requestor` FOREIGN KEY (`requestor_id`) REFERENCES `requestors` (`requestor_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

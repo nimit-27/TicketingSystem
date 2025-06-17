@@ -5,6 +5,7 @@ import com.example.api.enums.Priority;
 import com.example.api.enums.Severity;
 import com.example.api.enums.TicketStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.example.api.models.Requestor;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,6 +28,13 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "employee_id", referencedColumnName = "employee_id")
     private Employee employee;
+
+    @Column(name = "requestor_id", insertable = false, updatable = false)
+    private Integer requestorId;
+
+    @ManyToOne
+    @JoinColumn(name = "requestor_id", referencedColumnName = "requestor_id")
+    private Requestor requestor;
     private String stakeholder;
     private String subject;
     private String description;

@@ -3,6 +3,7 @@ package com.example.api.service;
 import com.example.api.dto.TicketDto;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.Employee;
+import com.example.api.models.Requestor;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.repository.EmployeeRepository;
@@ -10,6 +11,7 @@ import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
 import com.example.api.repository.LevelRepository;
 import com.example.api.service.AssignmentHistoryService;
+import com.example.api.service.RequestorService;
 import com.example.api.typesense.TypesenseClient;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
@@ -26,17 +28,20 @@ public class TicketService {
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
     private final LevelRepository levelRepository;
+    private final RequestorService requestorService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
                          EmployeeRepository employeeRepository, TicketCommentRepository commentRepository,
-                         AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository) {
+                         AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository,
+                         RequestorService requestorService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.employeeRepository = employeeRepository;
         this.commentRepository = commentRepository;
         this.assignmentHistoryService = assignmentHistoryService;
         this.levelRepository = levelRepository;
+        this.requestorService = requestorService;
     }
 
     public List<Ticket> getTickets() {
@@ -59,8 +64,15 @@ public class TicketService {
         System.out.println("TicketService: addTicket - method");
         if(ticket.isMaster()) ticket.setMasterId(null);
 
-        Employee employee = employeeRepository.findById(ticket.getEmployeeId()).orElseThrow();
-        ticket.setEmployee(employee);
+        if (ticket.getRequestor() != null) {
+            Requestor savedReq = requestorService.save(ticket.getRequestor());
+            ticket.setRequestor(savedReq);
+        }
+
+        if (ticket.getEmployeeId() != 0) {
+            Employee employee = employeeRepository.findById(ticket.getEmployeeId()).orElseThrow();
+            ticket.setEmployee(employee);
+        }
 
         if (ticket.getAssignedToLevel() == null || ticket.getAssignedToLevel().isEmpty()) {
             ticket.setAssignedToLevel("L1");

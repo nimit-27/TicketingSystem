@@ -22,7 +22,25 @@ const RaiseTicket: React.FC<any> = () => {
 
 
     const onSubmit = (data: any) => {
-        apiHandler(() => addTicket(data))
+        const {
+            name,
+            emailId,
+            mobileNo,
+            stakeholder,
+            ...rest
+        } = data;
+
+        const payload = {
+            ...rest,
+            requestor: {
+                name,
+                emailId,
+                mobileNo,
+                stakeholderType: stakeholder
+            }
+        };
+
+        apiHandler(() => addTicket(payload))
             .then((resp: any) => {
                 setCreatedTicketId(resp?.id);
                 setSuccessfulModalOpen(true);
