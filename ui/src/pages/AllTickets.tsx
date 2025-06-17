@@ -113,17 +113,17 @@ const AllTickets: React.FC = () => {
             {
                 title: "Requestor Name",
                 key: "name",
-                render: (_: any, record: Ticket) => record.employee?.name || "-",
+                render: (_: any, record: Ticket) => record.requestorName || "-",
             },
             {
                 title: "Email",
                 key: "email",
-                render: (_: any, record: Ticket) => record.employee?.emailId || "-",
+                render: (_: any, record: Ticket) => record.requestorEmailId || "-",
             },
             {
                 title: "Mobile",
                 key: "mobile",
-                render: (_: any, record: Ticket) => record.employee?.mobileNo || "-",
+                render: (_: any, record: Ticket) => record.requestorMobileNo || "-",
             },
             {
                 title: "Category",

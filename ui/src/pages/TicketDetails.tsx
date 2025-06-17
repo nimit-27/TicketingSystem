@@ -20,13 +20,9 @@ interface Ticket {
     reportedDate: string;
     mode: string;
     employeeId: number;
-    employee?: {
-        name?: string;
-        emailId?: string;
-        mobileNo?: string;
-        role?: string;
-        office?: string;
-    };
+    requestorName?: string;
+    requestorEmailId?: string;
+    requestorMobileNo?: string;
     subject: string;
     description: string;
     category: string;

@@ -32,12 +32,10 @@ const RaiseTicket: React.FC<any> = () => {
 
         const payload = {
             ...rest,
-            requestor: {
-                name,
-                emailId,
-                mobileNo,
-                stakeholderType: stakeholder
-            }
+            requestorName: name,
+            requestorEmailId: emailId,
+            requestorMobileNo: mobileNo,
+            stakeholder
         };
 
         apiHandler(() => addTicket(payload))
