@@ -1,0 +1,14 @@
+services:
+  filegator:
+    build: .
+    image: filegator/filegator
+    restart: always
+    ports:
+      - "9090:8080"
+    volumes:
+      - repository:/var/www/filegator/repository
+      - private:/var/www/filegator/private
+
+volumes:
+  repository:
+  private:
