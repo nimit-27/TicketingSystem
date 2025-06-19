@@ -58,7 +58,7 @@ header.navbar {
         position:absolute;
     }
 }
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
     body {
         font-size: 17px;
     }

@@ -4,14 +4,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    restart: always
     ports:
       - "8080:8080" # frontend port, see package.json
       - "8081:8081" # backend port, see package.json and .env.local
     volumes:
       # mount code:
+      # - filegator_frontend:/var/www/filegator/frontend
+      # - filegator_backend:/var/www/filegator/backend
       - ./frontend:/var/www/filegator/frontend
       - ./backend:/var/www/filegator/backend
       # mount custom configuration (create configuration.php file first):
+      - ./backend/php.ini:/usr/local/etc/php/php.ini # <-- this line
       #- ./configuration.php:/var/www/filegator/configuration.php
       # mount php dependencies locally:
       #- ./vendor:/var/www/filegator/vendor
@@ -21,3 +25,6 @@ services:
       #- ./node_modules:/var/www/filegator/node_modules
       #- ./package.json:/var/www/filegator/package.json
       #- ./package-lock.json:/var/www/filegator/package-lock.json
+# volumes:
+#   filegator_frontend:
+#   filegator_backend:
