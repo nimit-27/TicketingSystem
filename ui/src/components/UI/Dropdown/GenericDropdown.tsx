@@ -4,6 +4,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { FciTheme } from '../../../config/config';
+import { useTheme } from '@mui/material';
 
 export interface DropdownOption {
     label: string;
@@ -39,13 +40,21 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
     className,
     style,
 }) => {
+    const theme = useTheme();
     const classes = `generic-dropdown ${className ?? ''}`.trim();
-    let size: "small" | "medium" = !FciTheme ? "small" : "medium";
-
+    // let size: "small" | "medium" = !FciTheme ? "small" : "medium";
+    let size: "small" | "medium" = "small";
     return (
         <FormControl fullWidth={fullWidth} disabled={disabled} required={required} style={style} className={classes} size={size}>
             {label && <InputLabel id={id ? `${id}-label` : undefined}>{label}</InputLabel>}
             <Select
+                sx={{
+                    backgroundColor: theme.palette.background.paper
+                    // color: theme.palette.text.primary,
+                    // '& fieldset': {
+                    //     borderColor: theme.palette.divider,
+                    // },
+                }}
                 labelId={id ? `${id}-label` : undefined}
                 id={id}
                 name={name}

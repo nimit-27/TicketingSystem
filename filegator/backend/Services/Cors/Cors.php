@@ -35,7 +35,17 @@ class Cors implements Service
             return;
         }
 
-        $this->response->headers->set('Access-Control-Allow-Origin', $this->request->headers->get('Origin'));
+        $allowedOrigins = [
+            'http://localhost:8080',
+            'http://localhost:8081',
+        ];
+
+        $origin = $this->request->headers->get('Origin');
+
+        if (in_array($origin, $allowedOrigins)) {
+            $this->response->headers->set('Access-Control-Allow-Origin', $origin);
+        }
+        // $this->response->headers->set('Access-Control-Allow-Origin', $this->request->headers->get('Origin'));
         $this->response->headers->set('Access-Control-Allow-Credentials', 'true');
         $this->response->headers->set('Access-Control-Expose-Headers', 'x-csrf-token');
 

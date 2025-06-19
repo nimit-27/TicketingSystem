@@ -41,24 +41,35 @@ interface Ticket {
 
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
-    const { data: ticket, apiHandler: ticketApiHandler } = useApi<any>();
+    const { data: ticket, apiHandler: getTicketApiHandler } = useApi<any>();
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
     const statusValue = useWatch({ control, name: 'status' });
     const [editing, setEditing] = useState<boolean>(false);
 
+    // API calls
+    const getTicketHandler = (ticketId: any) => {
+        if (ticketId) getTicketApiHandler(() => getTicket(Number(ticketId)));
+    }
+    const updateTicketHandler = (ticketId: any, data: any) => {
+        if (ticketId && data) updateTicketApiHandler(() => updateTicket(Number(ticketId), data)).then(() => setEditing(false));
+    }
+    
+    
     useEffect(() => {
-        if (ticketId) {
-            ticketApiHandler(() => getTicket(Number(ticketId)));
-        }
+        getTicketHandler(ticketId);
     }, [ticketId]);
 
+    // Populating the ticket form - View Mode
     useEffect(() => {
         if (ticket) {
             setValue("ticketId", ticket.id);
             setValue("reportedDate", ticket.reportedDate?.slice(0, 10));
             setValue("mode", ticket.mode);
             setValue("employeeId", ticket.employeeId);
+            setValue("stakeholder", ticket.stakeholder);
+            setValue("requestorName", ticket.requestorName);
             setValue("status", ticket.status);
             setValue("category", ticket.category);
             setValue("subCategory", ticket.subCategory);
@@ -75,20 +86,16 @@ const TicketDetails: React.FC = () => {
         }
     }, [ticket]);
 
+    // Updating ticket
+    const onSubmitUpdate = (data: any) => updateTicketHandler(ticketId, data);
 
     const handleReopenToggle = (e: any) => {
         const checked = e.target.checked;
-        if (checked) {
-            setValue("status", "REOPENED");
-        } else if (ticket) {
-            setValue("status", ticket.status);
-        }
+        if (checked) setValue("status", "REOPENED");
+        else if (ticket) setValue("status", ticket.status);
     };
 
-    const onSubmit = (data: any) => {
-        ticketApiHandler(() => updateTicket(Number(ticketId), data)).then(() => setEditing(false));
-    };
-
+    // Reset fields back to the original data
     const resetFields = () => {
         if (!ticket) return;
         setValue("category", ticket.category);
@@ -118,7 +125,7 @@ const TicketDetails: React.FC = () => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmitUpdate)}>
                 <RequestDetails register={register} control={control} errors={errors} disableAll />
                 <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
 
@@ -130,15 +137,15 @@ const TicketDetails: React.FC = () => {
                     disableAll={!editing}
                     actionElement={editing ? (
                         <>
-                            <IconButton onClick={() => { resetFields(); setEditing(false); }} style={{minWidth:0,padding:2}}>
+                            <IconButton onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }}>
                                 <CloseIcon fontSize="small" />
                             </IconButton>
-                            <IconButton style={{minWidth:0,padding:2}}>
+                            <IconButton style={{ minWidth: 0, padding: 2 }}>
                                 <CheckIcon fontSize="small" />
                             </IconButton>
                         </>
                     ) : (
-                        <IconButton onClick={() => setEditing(true)} style={{minWidth:0,padding:2}}>
+                        <IconButton onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }}>
                             <EditIcon fontSize="small" />
                         </IconButton>
                     )}

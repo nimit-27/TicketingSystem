@@ -23,19 +23,18 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private Mode mode;
     @Column(name = "employee_id", insertable = false, updatable = false)
-    private int employeeId;
+    private Integer employeeId;
     @ManyToOne
     @JoinColumn(name = "employee_id", referencedColumnName = "employee_id")
     private Employee employee;
 
     @Column(name = "requestor_name")
     private String requestorName;
-
     @Column(name = "requestor_email_id")
     private String requestorEmailId;
-
     @Column(name = "requestor_mobile_no")
     private String requestorMobileNo;
+
     private String stakeholder;
     private String subject;
     private String description;

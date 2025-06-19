@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { cardContainer1Header } from "../constants/bootstrapClasses";
 import { FciTheme } from "../config/config";
+import { useTheme } from "@mui/material";
 
 interface CustomFieldsetProps {
     title: string;
@@ -11,6 +12,14 @@ interface CustomFieldsetProps {
 }
 
 const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, className = "", style, actionElement }) => {
+    const theme = useTheme();
+
+    console.log(theme)
+    
+    useEffect(() => {
+        console.log(theme)
+        document.documentElement.style.setProperty('--sub-heading-text-color', theme.palette.success.main);
+    }, [theme.palette.mode]);
 
     if (FciTheme) return (
         <div className="form-container">

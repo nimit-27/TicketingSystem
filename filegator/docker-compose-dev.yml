@@ -5,8 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "9091:8080" # frontend port, see package.json
-      - "8091:8081" # backend port, see package.json and .env.local
+      - "8080:8080" # frontend port, see package.json
+      - "8081:8081" # backend port, see package.json and .env.local
     volumes:
       # mount code:
       - ./frontend:/var/www/filegator/frontend

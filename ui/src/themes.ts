@@ -5,6 +5,7 @@ const lightTheme = createTheme({
     mode: 'light',
     primary: { main: '#1b5e20' },
     secondary: { main: '#FF671F' },
+    success: { main: '#1b5e20' },
     background: {
       default: '#f5f5f5',
       paper: '#ffffff',
@@ -26,6 +27,7 @@ const darkTheme = createTheme({
     mode: 'dark',
     primary: { main: '#1C1C1C' },
     secondary: { main: '#232222' },
+    success: { main: '#1b5e20' },
     background: {
       default: '#303030',
       paper: '#424242',
@@ -47,6 +49,7 @@ const fciTheme = createTheme({
     mode: 'light',
     primary: { main: '#2e7d32' },
     secondary: { main: '#ff9800' },
+    success: { main: '#1b5e20' },
     background: {
       default: '#fafafa',
       paper: '#ffffff',

@@ -8,7 +8,6 @@ import { FieldValues, useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
 import React, { useEffect, useState } from "react";
-import ClearIcon from '@mui/icons-material/Clear';
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { currentUserDetails, FciTheme, isFciEmployee, isHelpdesk } from "../../config/config";
@@ -31,22 +30,33 @@ const stakeholderOptions: DropdownOption[] = [
     { label: "Miller", value: "Miller" }
 ];
 
-const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, control, disableAll = false }) => {
+const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, control, disableAll = false, createMode }) => {
     const [verified, setVerified] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<ViewMode>("nonFci");
 
     const isDisabled = disableAll || disabled;
 
-    const { data, pending, success, apiHandler } = useApi<any>();
+    const { data, pending, success, apiHandler: getEmployeeDetailsApiHandler } = useApi<any>();
+
     const employeeId = useWatch({ control, name: 'employeeId' });
     const office = useWatch({ control, name: 'office' });
+    const mobileNo = useWatch({ control, name: 'mobileNo' });
+    const emailId = useWatch({ control, name: 'emailId' });
+    const requestorName = useWatch({ control, name: 'requestorName' });
+    const stakeholder = useWatch({ control, name: 'stakeholder' });
     const debouncedEmployeeId = useDebounce(employeeId, 500);
+
+    console.log({ stakeholder })
+
+    const getEmployeeDetailsHandler = (employeeId: any) => {
+        getEmployeeDetailsApiHandler(() => getEmployeeDetails(employeeId))
+    }
 
     const clearEmployeeDetails = () => {
         if (setValue) {
             setValue("employeeId", "");
-            setValue("name", "");
+            setValue("requestorName", "");
             setValue("emailId", "");
             setValue("mobileNo", "");
             setValue("role", "");
@@ -54,60 +64,66 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         }
     }
 
+    const populateEmployeeDetails = (data: any) => {
+        if (setValue && data) {
+            setValue("requestorName", data.requestorName);
+            setValue("emailId", data.emailId);
+            setValue("mobileNo", data.mobileNo);
+            if (isFciEmployee) {
+                setValue("role", data.role);
+                setValue("office", data.office);
+            } else {
+                setValue("stakeholder", data.stakeholder)
+            }
+        }
+    }
+
     useEffect(() => {
         if (success) {
             setVerified(true);
-
             if (setValue && data) {
-                setValue("name", data.name);
-                setValue("emailId", data.emailId);
-                setValue("mobileNo", data.mobileNo);
-                setValue("role", data.role);
-                setValue("office", data.office);
+                populateEmployeeDetails(data)
                 setDisabled(true)
             }
-        } else {
-            setVerified(false);
-        }
+        } else setVerified(false);
     }, [pending, data]);
 
     useEffect(() => {
         if (debouncedEmployeeId) {
             setDisabled(true);
-            if (disableAll || isFciEmployee) {
-                verifyEmployeeById(debouncedEmployeeId);
-            }
-        } else {
-            clearForm();
-        }
+            if (disableAll || isFciEmployee) verifyEmployeeById(debouncedEmployeeId);
+        } else clearRequestorDetailsForm();
 
         setVerified(false);
     }, [debouncedEmployeeId]);
 
     useEffect(() => {
-        if (viewMode === 'nonFci') clearEmployeeDetails()
+        clearEmployeeDetails()
     }, [viewMode])
 
     useEffect(() => {
-        if (isFciEmployee) {
+        // Ticket creation by FCI employee - SELF
+        if (isFciEmployee && createMode) {
             const fciUser = currentUserDetails as typeof currentUserDetails & { employeeId: string };
             if (setValue && fciUser.employeeId) setValue("employeeId", fciUser.employeeId);
         }
-    }, [isFciEmployee]);
+    }, [isFciEmployee, createMode]);
 
     const verifyEmployeeById = (employeeId: string) => {
         // Logic to verify employee by ID
-        apiHandler(() => getEmployeeDetails(employeeId))
+        getEmployeeDetailsHandler(employeeId)
     };
 
-    const clearForm = () => {
-        if (!!setValue) {
-            setValue("employeeId", "");
-            setValue("name", "");
+    const clearRequestorDetailsForm = () => {
+        // Allow clearing only while creating
+        if (!!setValue && createMode) {
+            setValue("requestorName", "");
             setValue("emailId", "");
             setValue("mobileNo", "");
+            setValue("employeeId", "");
             setValue("role", "");
             setValue("office", "");
+            setValue("stakeholder", "");
         }
         setDisabled(false);
         setVerified(false);
@@ -115,7 +131,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const showFciToggle = !isFciEmployee;
     const showEmployeeId = viewMode === FCI_EMPLOYEE || isFciEmployee;
-    const showName = true;
+    const showRequestorName = true;
     const showEmailId = true;
     const showMobileNo = true;
     const showStakeholder = isHelpdesk && viewMode === "nonFci";
@@ -125,18 +141,139 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isNonFci = viewMode === NON_FCI_EMPLOYEE && !isFciEmployee;
     const isFciMode = viewMode === FCI_EMPLOYEE || isFciEmployee;
 
-    const isEmployeeIdDisabled = disableAll || isFciEmployee;
-    const isNameDisabled = isDisabled || isFciEmployee;
-    const isEmailIdDisabled = isDisabled || isFciEmployee;
-    const isMobileNoDisabled = isDisabled || isFciEmployee;
-    const isRoleDisabled = isDisabled || isFciEmployee;
-    const isOfficeDisabled = isDisabled || isFciEmployee;
-    const isStakeholderDisabled = false;
+    const isEmployeeIdDisabled = disableAll || isFciEmployee || !createMode; // isFciEmployee true means id will be auto fetched
+    const isNameDisabled = isDisabled || isFciEmployee || !createMode;
+    const isEmailIdDisabled = isDisabled || isFciEmployee || !createMode;
+    const isMobileNoDisabled = isDisabled || isFciEmployee || !createMode;
+    const isRoleDisabled = isDisabled || isFciEmployee || !createMode;
+    const isOfficeDisabled = isDisabled || isFciEmployee || !createMode;
+    const isStakeholderDisabled = false || !createMode;
+
+    const isRequestorOrOnBehalfFci = !createMode && employeeId
+    const isRequestorOnBehalfNonFci = !createMode && !employeeId && stakeholder
 
     return (
         <CustomFieldset title="Requestor Details" className="mb-4">
             {/* Inputs */}
-            <div className="row g-3">
+            {!createMode &&
+                <div className="row g-3">
+                    {isRequestorOrOnBehalfFci && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                label="Employee ID"
+                                name="employeeId"
+                                slotProps={{
+                                    inputLabel: { shrink: employeeId },
+                                    input: {
+                                        endAdornment: !disableAll && (
+                                            <InputAdornment position="end">
+                                                {(verified || employeeId) && (
+                                                    <CustomIconButton icon="Clear" onClick={clearRequestorDetailsForm} disabled={disableAll} />
+                                                )}
+                                                <VerifyIconButton
+                                                    onClick={() => verifyEmployeeById(employeeId)}
+                                                    pending={pending}
+                                                    verified={verified}
+                                                    disabled={!createMode}
+                                                />
+                                            </InputAdornment>
+                                        )
+                                    }
+                                }}
+                                register={register}
+                                errors={errors}
+                                disabled={isEmployeeIdDisabled}
+                            />
+                        </div>
+                    )}
+                    {showRequestorName && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                slotProps={{
+                                    inputLabel: { shrink: requestorName || employeeId }
+                                }}
+                                label="Name"
+                                name="requestorName"
+                                register={register}
+                                errors={errors}
+                                disabled={!createMode}
+                            />
+                        </div>
+                    )}
+                    {true && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                slotProps={{
+                                    inputLabel: { shrink: emailId || employeeId }
+                                }}
+                                label="Email ID"
+                                name="emailId"
+                                register={register}
+                                errors={errors}
+                                disabled={!createMode}
+                            />
+                        </div>
+                    )}
+                    {true && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                slotProps={{
+                                    inputLabel: { shrink: mobileNo || employeeId }
+                                }}
+                                label="Mobile No."
+                                name="mobileNo"
+                                register={register}
+                                errors={errors}
+                                disabled={isMobileNoDisabled}
+                                type="tel"
+                                required={!createMode}
+                            />
+                        </div>
+                    )}
+                    {isRequestorOnBehalfNonFci && (
+                        <div className={`${inputColStyling}`}>
+                            <GenericDropdownController
+                                label="Stakeholder"
+                                name="stakeholder"
+                                control={control}
+                                options={stakeholderOptions}
+                                rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
+                                className="form-select"
+                                disabled={!createMode}
+                            />
+                        </div>
+                    )}
+                    {isRequestorOrOnBehalfFci && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                slotProps={{
+                                    inputLabel: { shrink: employeeId || verified }
+                                }}
+                                label="Role"
+                                name="role"
+                                register={register}
+                                errors={errors}
+                                disabled={!createMode}
+                            />
+                        </div>
+                    )}
+                    {isRequestorOrOnBehalfFci && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                slotProps={{
+                                    inputLabel: { shrink: office || verified }
+                                }}
+                                label="Office"
+                                name="office"
+                                register={register}
+                                errors={errors}
+                                disabled={!createMode}
+                            />
+                        </div>
+                    )}
+                </div>
+            }
+            {createMode && <div className="row g-3">
                 {showFciToggle && <div className="col-md-5 px-4 w-100">
                     <ViewToggle
                         value={viewMode}
@@ -160,7 +297,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                     endAdornment: !disableAll && (
                                         <InputAdornment position="end">
                                             {(verified || employeeId) && (
-                                                <CustomIconButton icon="Clear" onClick={clearForm} disabled={disableAll} />
+                                                <CustomIconButton icon="Clear" onClick={clearRequestorDetailsForm} disabled={disableAll} />
                                             )}
                                             <VerifyIconButton
                                                 onClick={() => verifyEmployeeById(employeeId)}
@@ -179,14 +316,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )}
-                {showName && (
+                {showRequestorName && (
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: employeeId || verified }
+                                inputLabel: { shrink: requestorName || employeeId }
                             }}
                             label="Name"
-                            name="name"
+                            name="requestorName"
                             register={register}
                             errors={errors}
                             disabled={isNameDisabled}
@@ -198,7 +335,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: employeeId || verified }
+                                inputLabel: { shrink: emailId || employeeId }
                             }}
                             label="Email ID"
                             name="emailId"
@@ -213,7 +350,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: employeeId || verified }
+                                inputLabel: { shrink: mobileNo || employeeId }
                             }}
                             label="Mobile No."
                             name="mobileNo"
@@ -228,9 +365,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 {showStakeholder && (
                     <div className={`${inputColStyling}`}>
                         <GenericDropdownController
-                            // slotProps={{
-                            //     inputLabel: { shrink: employeeId || verified }
-                            // }}
                             label="Stakeholder"
                             name="stakeholder"
                             control={control}
@@ -269,7 +403,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )}
-            </div>
+            </div>}
         </CustomFieldset>
     )
 }

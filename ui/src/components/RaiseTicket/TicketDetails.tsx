@@ -274,7 +274,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                             register={register}
                             errors={errors}
                             multiline
-                            rows={3}
+                            rows={4}
                             disabled={disableAll}
                         />
                     </div>

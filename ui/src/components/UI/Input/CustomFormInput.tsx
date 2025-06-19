@@ -1,4 +1,4 @@
-import { InputLabel, TextField, TextFieldProps } from "@mui/material";
+import { InputLabel, TextField, TextFieldProps, useTheme } from "@mui/material";
 import { FormProps } from "../../../types";
 import { FciTheme } from "../../../config/config";
 
@@ -29,12 +29,15 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
     validations = {},
     ...inputProps
 }) => {
+    const theme = useTheme()
     const hasError = !!(errors && errors[name]);
     const errorMessage = (errors && errors[name]?.message) as string;
     validations = { ...validations, required: required ? `Please fill the ${label}` : false };
 
     const classes = `generic-input ${className ?? ''}`.trim();
-    let size: "small" | "medium" = !FciTheme ? "small" : "medium";
+    // let size: "small" | "medium" = !FciTheme ? "small" : "medium";
+    let size: "small" | "medium" = "small";
+
 
     return (
         <>
@@ -45,6 +48,13 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
                 </InputLabel>
             )}
             <TextField
+                sx={{
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    '& fieldset': {
+                        borderColor: theme.palette.divider,
+                    },
+                }}
                 label={label}
                 fullWidth={fullWidth}
                 disabled={disabled}

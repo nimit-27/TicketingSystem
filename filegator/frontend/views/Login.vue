@@ -12,8 +12,8 @@
               <img :src="$store.state.config.logo" class="logo">
             </div>
             <br>
-            <b-field :label="lang('Username')">
-              <b-input v-model="username" name="username" required @input="error = ''" ref="username" />
+            <b-field :label="lang('UsernameS')">
+              <b-input v-model="username" name="usernameS" required @input="error = ''" ref="usernameS" />
             </b-field>
             <b-field :label="lang('Password')">
               <b-input v-model="password" type="password" name="password" required @input="error = ''" password-reveal />
