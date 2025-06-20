@@ -3,6 +3,7 @@ package com.example.api.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -21,12 +22,28 @@ public class FilegatorController {
     public ResponseEntity<String> login(HttpServletResponse servletResponse) {
         RestTemplate restTemplate = new RestTemplate();
 
+        // obtain csrf token and session cookie
+        ResponseEntity<String> init = restTemplate.exchange(
+                "http://localhost:8081/?r=/getuser",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                String.class);
+
+        String csrfToken = init.getHeaders().getFirst("X-CSRF-Token");
+        String sessionCookie = init.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("username", "admin");
-        body.add("password", "admin");
+        body.add("password", "admin123");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        if (csrfToken != null) {
+            headers.set("X-CSRF-Token", csrfToken);
+        }
+        if (sessionCookie != null) {
+            headers.set(HttpHeaders.COOKIE, sessionCookie.split(";", 2)[0]);
+        }
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8081/?r=/login", request, String.class);
@@ -40,7 +57,6 @@ public class FilegatorController {
         }
         return ResponseEntity
                 .status(response.getStatusCode())
-                .header(String.valueOf(response.getHeaders()))
                 .body(response.getBody());
     }
 }
