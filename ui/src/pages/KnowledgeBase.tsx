@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Title from "../components/Title";
+import { initFilegatorSession } from "../services/FilegatorService";
 
 const KnowledgeBase: React.FC = () => {
+    useEffect(() => {
+        initFilegatorSession();
+    }, []);
+
     return (
         <div className="container">
             {/* <Title text="Knowledge Base" /> */}
