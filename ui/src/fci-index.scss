@@ -71,10 +71,21 @@ $i: 0;
   margin-bottom: 20px;
   border-bottom: var(--sub-heading-text-color) 3px solid;
   padding: 10px;
-  // box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.1);
+}
+.form-title-disabled {
+  margin-bottom: 20px;
+  border-bottom: var(--sub-heading-disabled-text-color) 3px solid;
+  padding: 10px;
 }
 
 .form-title h4 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--sub-heading-text-color) 3px solid;
+  font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+}
+.form-title-disabled h4 {
   font-size: 20px;
   font-weight: 700;
   margin: 0;

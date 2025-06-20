@@ -9,9 +9,10 @@ interface CustomFieldsetProps {
     className?: string;
     style?: React.CSSProperties;
     actionElement?: React.ReactNode;
+    disabled?: boolean;
 }
 
-const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, className = "", style, actionElement }) => {
+const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, className = "", style, actionElement, disabled }) => {
     const theme = useTheme();
 
     console.log(theme)
@@ -19,11 +20,12 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
     useEffect(() => {
         console.log(theme)
         document.documentElement.style.setProperty('--sub-heading-text-color', theme.palette.success.main);
+        document.documentElement.style.setProperty('--sub-heading-disabled-text-color', theme.palette.success.dark);
     }, [theme.palette.mode]);
 
     if (FciTheme) return (
         <div className="form-container">
-            <div className="form-title">
+            <div className={`form-title-disabled ${true ? '-disabled' : ''}`}>
                 <h4>{title}</h4>
             </div>
             <div className="p-2">

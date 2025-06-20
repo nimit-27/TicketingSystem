@@ -10,6 +10,7 @@ import React, { useEffect } from "react";
 
 interface RequestDetailsProps extends FormProps {
     disableAll?: boolean;
+    isFieldSetDisabled?: boolean;
 }
 
 const modeOptions: DropdownOption[] = [
@@ -25,7 +26,7 @@ const modeHelpdeskOptions: DropdownOption[] = [
 
 
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled }) => {
     const showTicketId = false;
     const showReportedDate = true;
     const showModeDropdown = true;
@@ -40,7 +41,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     }, [setValue, mode, currentUserDetails.role]);
 
     return (
-        <CustomFieldset title="Request Details">
+        <CustomFieldset title="Request Details" disabled={isFieldSetDisabled}>
             {/* Inputs in a row */}
             <div className="row g-3">
                 {/* Ticket ID - Input - System Generated */}

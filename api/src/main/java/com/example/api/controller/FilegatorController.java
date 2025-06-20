@@ -18,7 +18,7 @@ import java.util.List;
 public class FilegatorController {
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(HttpServletResponse servletResponse) {
+    public ResponseEntity<String> login(HttpServletResponse servletResponse) {
         RestTemplate restTemplate = new RestTemplate();
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
@@ -29,14 +29,18 @@ public class FilegatorController {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8080/login", request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8081/?r=/login", request, String.class);
 
+        System.out.println("response of filegator login: " + response);
         List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
         if (cookies != null) {
             for (String cookie : cookies) {
                 servletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie);
             }
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity
+                .status(response.getStatusCode())
+                .header(String.valueOf(response.getHeaders()))
+                .body(response.getBody());
     }
 }

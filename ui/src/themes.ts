@@ -25,9 +25,9 @@ const lightTheme = createTheme({
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
-    primary: { main: '#1C1C1C' },
+    primary: { main: '#73B579' },
     secondary: { main: '#232222' },
-    success: { main: '#1b5e20' },
+    success: { main: '#73B579' },
     background: {
       default: '#303030',
       paper: '#424242',

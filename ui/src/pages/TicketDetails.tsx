@@ -126,7 +126,7 @@ const TicketDetails: React.FC = () => {
             )}
 
             <form onSubmit={handleSubmit(onSubmitUpdate)}>
-                <RequestDetails register={register} control={control} errors={errors} disableAll />
+                <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
                 <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
 
                 <TicketDetailsForm
