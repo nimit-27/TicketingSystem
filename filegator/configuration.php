@@ -49,8 +49,8 @@ return [
                     $handler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler($save_path);
 
                     return new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-                            "cookie_samesite" => "Lax",
-                            "cookie_secure" => null,
+                            "cookie_samesite" => "None",
+                            "cookie_secure" => true,
                             "cookie_httponly" => true,
                         ], $handler);
                 },
