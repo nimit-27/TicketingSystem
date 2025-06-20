@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/filegator")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class FilegatorController {
 
     @PostMapping("/login")
