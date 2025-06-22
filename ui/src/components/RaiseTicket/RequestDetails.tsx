@@ -7,6 +7,7 @@ import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
 import { currentUserDetails, isFciEmployee, isHelpdesk } from "../../config/config";
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 interface RequestDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -40,8 +41,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
         }
     }, [setValue, mode, currentUserDetails.role]);
 
+    const { t } = useTranslation();
     return (
-        <CustomFieldset title="Request Details" disabled={isFieldSetDisabled}>
+        <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
             {/* Inputs in a row */}
             <div className="row g-3">
                 {/* Ticket ID - Input - System Generated */}

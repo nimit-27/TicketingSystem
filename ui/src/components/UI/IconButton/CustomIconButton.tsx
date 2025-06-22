@@ -9,6 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import TranslateIcon from '@mui/icons-material/Translate';
 
 // Define the icon map
 const iconMap = {
@@ -20,7 +21,8 @@ const iconMap = {
     menu: MenuIcon,
     chevronleft: ChevronLeftIcon,
     darkmode: DarkModeIcon,
-    lightmode: LightModeIcon
+    lightmode: LightModeIcon,
+    translate: TranslateIcon
 };
 
 // Valid keys for the icon map

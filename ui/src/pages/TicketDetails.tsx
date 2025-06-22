@@ -14,6 +14,7 @@ import GenericButton from "../components/UI/Button";
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
 import { IconButton } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 interface Ticket {
     id: number;
@@ -43,6 +44,7 @@ const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
     const { data: ticket, apiHandler: getTicketApiHandler } = useApi<any>();
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { t } = useTranslation();
 
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
     const statusValue = useWatch({ control, name: 'status' });
@@ -112,16 +114,16 @@ const TicketDetails: React.FC = () => {
 
     return (
         <div className="container">
-            <Title text={`Ticket ${ticketId}: ${ticket?.subject}`} />
+            <Title text={`${t('Ticket')} ${ticketId}: ${ticket?.subject}`} />
             {ticket && (
                 <div className="m-3 d-flex align-items-center">
-                    <p className="mb-0 me-2">Status: {ticket.status}</p>
+                    <p className="mb-0 me-2">{t('Status')}: {ticket.status}</p>
                     <Switch
                         checked={statusValue === 'REOPENED'}
                         onChange={handleReopenToggle}
                         size="small"
                     />
-                    <span className="ms-1">Reopen Ticket</span>
+                    <span className="ms-1">{t('Reopen Ticket')}</span>
                 </div>
             )}
 

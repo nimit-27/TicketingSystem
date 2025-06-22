@@ -3,6 +3,7 @@ import { Autocomplete, Button, List, ListItem, TextField, Box } from '@mui/mater
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import Title from '../components/Title';
+import { useTranslation } from 'react-i18next';
 import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory, updateSubCategory, deleteSubCategory } from '../services/CategoryService';
 import { useApi } from '../hooks/useApi';
 import { Category, SubCategory } from '../types';
@@ -19,6 +20,7 @@ const CategoriesMaster: React.FC = () => {
     const { data: getCategoriesData, apiHandler: getCategoriesApiHandler } = useApi<any>();
     const { data: getSubCategoriesData, apiHandler: getSubCategoriesApiHandler } = useApi<any>();
     const { data: addSubCategoryData, apiHandler: addSubCategoryApiHandler } = useApi<any>();
+    const { t } = useTranslation();
 
     const filteredSubCategories = subCategories?.filter(
         sc => !selectedCategory || sc.categoryId === selectedCategory.categoryId
@@ -111,7 +113,7 @@ const CategoriesMaster: React.FC = () => {
 
     return (
         <div className="container">
-            <Title text="Categories Master" />
+            <Title textKey="Categories Master" />
             <div className="row mb-4">
                 <div className="col-md-6 mb-3">
                     <GenericInput
@@ -125,7 +127,7 @@ const CategoriesMaster: React.FC = () => {
                         onFocus={() => setSelectedCategory(null)}
                     />
                     {categoryInput && !categories.find(c => c.category.toLowerCase() === categoryInput.toLowerCase()) && (
-                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>Add Category</Button>
+                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>{t('Add Category')}</Button>
                     )}
                     <List className="mt-2">
                         {categories
@@ -160,7 +162,7 @@ const CategoriesMaster: React.FC = () => {
                     </List>
                     {/* Gap between lists */}
                     <Box sx={{ height: 24 }} />
-                    <List className="mt-2" subheader={<span style={{ fontWeight: 500, fontSize: 14, color: '#888' }}>Other Categories</span>}>
+                    <List className="mt-2" subheader={<span style={{ fontWeight: 500, fontSize: 14, color: '#888' }}>{t('Other Categories')}</span>}>
                         {categories
                             ?.filter(cat => !cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
                             .map(cat => (
@@ -202,7 +204,7 @@ const CategoriesMaster: React.FC = () => {
                     />
                     {subCategoryInput && !displaySubCategories?.some(sc => sc.subCategory.toLowerCase() === subCategoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>
-                            Add Sub-Category
+                            {t('Add Sub-Category')}
                         </Button>
                     )}
                     <List className="mt-2">
@@ -236,7 +238,7 @@ const CategoriesMaster: React.FC = () => {
                         className="mt-2"
                         subheader={
                             <span style={{ fontWeight: 500, fontSize: 14, color: '#888' }}>
-                                Other Sub-Categories
+                                {t('Other Sub-Categories')}
                             </span>
                         }
                     >

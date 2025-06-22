@@ -4,6 +4,7 @@ import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import Avatar from "@mui/material/Avatar";
 import { currentUserDetails } from "../../config/config";
 import { useTheme } from "@mui/material/styles";
+import { LanguageContext } from "../../context/LanguageContext";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggle, mode } = useContext(ThemeModeContext);
+  const { toggleLanguage } = useContext(LanguageContext);
   const theme = useTheme();
   const initials = currentUserDetails.name
     ? currentUserDetails.name
@@ -48,6 +50,13 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           }}
           icon={mode === "light" ? "darkmode" : "lightmode"}
           onClick={toggle}
+        />
+        <CustomIconButton
+          style={{
+            color: theme.palette.getContrastText(theme.palette.primary.main),
+          }}
+          icon="translate"
+          onClick={toggleLanguage}
         />
         <Avatar
           sx={{

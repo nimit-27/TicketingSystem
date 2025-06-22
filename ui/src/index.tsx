@@ -10,6 +10,8 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { SnackbarProvider } from "./context/SnackbarContext";
 import CustomThemeProvider from "./context/ThemeContext";
+import LanguageProvider from "./context/LanguageContext";
+import "./i18n";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
@@ -17,11 +19,13 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <CustomThemeProvider>
-        <SnackbarProvider>
-          <App />
-        </SnackbarProvider>
-      </CustomThemeProvider>
+      <LanguageProvider>
+        <CustomThemeProvider>
+          <SnackbarProvider>
+            <App />
+          </SnackbarProvider>
+        </CustomThemeProvider>
+      </LanguageProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

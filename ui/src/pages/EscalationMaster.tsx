@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Title from '../components/Title';
 import CustomFieldset from '../components/CustomFieldset';
+import { useTranslation } from 'react-i18next';
 import GenericInput from '../components/UI/Input/GenericInput';
 import GenericButton from '../components/UI/Button';
 import { Table } from 'antd';
@@ -17,6 +18,7 @@ const EscalationMaster: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filtered, setFiltered] = useState<any[]>([]);
   const debouncedSearch = useDebounce(search, 300);
+  const { t } = useTranslation();
 
   const { showMessage } = useSnackbar();
 
@@ -101,8 +103,8 @@ const EscalationMaster: React.FC = () => {
 
   return (
     <div className="container">
-      <Title text="User to be added for Escalation" />
-      <CustomFieldset title="Add new User for Escalation">
+      <Title textKey="User to be added for Escalation" />
+      <CustomFieldset title={t('Add new User for Escalation')}>
         <div className="row g-3">
           <div className="col-md-4">
             <GenericInput label="Name" fullWidth value={name} onChange={e => setName(e.target.value)} />
@@ -116,10 +118,10 @@ const EscalationMaster: React.FC = () => {
         </div>
         <div className="mt-3">
           <GenericButton variant="contained" color="success" className="me-2" onClick={handleSubmit}>
-            Submit
+            {t('Submit')}
           </GenericButton>
           <GenericButton variant="contained" color="error" onClick={handleCancel}>
-            Cancel
+            {t('Cancel')}
           </GenericButton>
         </div>
       </CustomFieldset>
