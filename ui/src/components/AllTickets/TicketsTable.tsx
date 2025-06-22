@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Table } from 'antd';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
@@ -22,10 +23,11 @@ interface TicketsTableProps {
 }
 
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
+    const { t } = useTranslation();
     const columns = useMemo(
         () => [
             {
-                title: 'Ticket Id',
+                title: t('Ticket Id'),
                 dataIndex: 'id',
                 key: 'id',
                 render: (_: any, record: TicketRow) => (
@@ -36,31 +38,31 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
                 ),
             },
             {
-                title: 'Requestor Name',
+                title: t('Requestor Name'),
                 key: 'name',
                 render: (_: any, record: TicketRow) => record.requestorName || '-',
             },
             {
-                title: 'Email',
+                title: t('Email'),
                 key: 'email',
                 render: (_: any, record: TicketRow) => record.requestorEmailId || '-',
             },
             {
-                title: 'Mobile',
+                title: t('Mobile'),
                 key: 'mobile',
                 render: (_: any, record: TicketRow) => record.requestorMobileNo || '-',
             },
-            { title: 'Category', dataIndex: 'category', key: 'category' },
-            { title: 'Sub-Category', dataIndex: 'subCategory', key: 'subCategory' },
-            { title: 'Priority', dataIndex: 'priority', key: 'priority' },
-            { title: 'Status', dataIndex: 'status', key: 'status', render: (v: any) => v || '-' },
+            { title: t('Category'), dataIndex: 'category', key: 'category' },
+            { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
+            { title: t('Priority'), dataIndex: 'priority', key: 'priority' },
+            { title: t('Status'), dataIndex: 'status', key: 'status', render: (v: any) => v || '-' },
             {
-                title: 'Action',
+                title: t('Action'),
                 key: 'action',
                 render: () => <VisibilityIcon fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
             },
         ],
-        []
+        [t]
     );
 
     return (

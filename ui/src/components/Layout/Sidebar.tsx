@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
   List,
@@ -48,6 +49,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const bgColor = theme.palette.secondary.main;
@@ -82,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     fontSize: "1.2rem",
                     style: { color: textColor },
                   }}
-                  primary={label}
+                  primary={t(label)}
                 />
               )}
             </ListItemButton>
