@@ -1,5 +1,6 @@
 import { FieldValues, useWatch } from "react-hook-form";
 import { FormProps } from "../../types";
+import { useTranslation } from "react-i18next";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
@@ -11,25 +12,14 @@ import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelServic
 import { getCategories, getSubCategories } from "../../services/CategoryService";
 import { getStatuses } from "../../services/StatusService";
 import { currentUserDetails } from "../../config/config";
+import { getPriorities } from "../../services/PriorityService";
+import { getSeverities } from "../../services/SeverityService";
 
 interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
     subjectDisabled?: boolean;
     actionElement?: React.ReactNode;
 }
-
-const priorityOptions: DropdownOption[] = [
-    { label: "Low", value: "Low" },
-    { label: "Medium", value: "Medium" },
-    { label: "High", value: "High" }
-];
-
-const severityOptions: DropdownOption[] = [
-    { label: "CRITICAL", value: "CRITICAL" },
-    { label: "HIGH", value: "HIGH" },
-    { label: "MEDIUM", value: "MEDIUM" },
-    { label: "LOW", value: "LOW" }
-];
 
 const impactOptions: DropdownOption[] = [
     { label: "High", value: "High" },
@@ -48,11 +38,15 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
 
 const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
 
+    const { t } = useTranslation();
+
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
     const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
     const { data: statusList, apiHandler: getStatusApiHandler } = useApi<any>();
+    const { data: priorityList, apiHandler: getPriorityApiHandler } = useApi<any>();
+    const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
 
     // Field visibility booleans
 
@@ -62,6 +56,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = Array.isArray(statusList) ? statusList.map(s => ({ label: s.replace(/_/g, ' '), value: s })) : [];
+    const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: string) => ({ label: p, value: p })) : [];
+    const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: string) => ({ label: s, value: s })) : [];
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
     const assignedToLevel = useWatch({ control, name: 'assignedToLevel' });
     const category = useWatch({ control, name: 'category' });
@@ -105,6 +101,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     }, [])
 
     useEffect(() => {
+        getPriorityApiHandler(() => getPriorities())
+        getSeverityApiHandler(() => getSeverities())
+    }, [])
+
+    useEffect(() => {
         if (category && Array.isArray(allCategories)) {
             const selectedCategory = allCategories.find((cat: any) => cat.category === category);
             if (selectedCategory?.categoryId) {
@@ -122,7 +123,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
 
 
     return (
-        <CustomFieldset title="Ticket Details" actionElement={actionElement}>
+        <CustomFieldset title={t('Ticket Details')} actionElement={actionElement}>
             <div className="row">
                 {showAssignedToLevel && (
                     <div className="col-md-6 mb-3 px-4">
