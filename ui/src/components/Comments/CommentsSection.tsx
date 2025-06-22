@@ -3,6 +3,7 @@ import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import { useApi } from '../../hooks/useApi';
 import { addComment, getComments, updateComment, deleteComment } from '../../services/TicketService';
 import CustomFieldset from '../CustomFieldset';
+import { useTranslation } from 'react-i18next';
 
 interface Comment {
     id: number;
@@ -82,18 +83,19 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
         });
     };
 
+    const { t } = useTranslation();
     return (
-        <CustomFieldset title="Comments" className="mt-4">
+        <CustomFieldset title={t('Comments')} className="mt-4">
             <div className="border p-3 mb-3">
                 <textarea
                     className="form-control mb-2"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                 />
-                <button className="btn btn-primary" onClick={postComment}>Post</button>
+                <button className="btn btn-primary" onClick={postComment}>{t('Post')}</button>
             </div>
             <div>
-                {comments.length === 0 && <p>No comments</p>}
+                {comments.length === 0 && <p>{t('No comments')}</p>}
                 {comments.map((c) => (
                     <div key={c.id} className="border p-2 mb-2">
                         {editingCommentId === c.id ? (
@@ -103,8 +105,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                                     value={editText}
                                     onChange={(e) => setEditText(e.target.value)}
                                 />
-                                <button className="btn btn-primary btn-sm me-2" onClick={() => saveEdit(c.id)}>Save</button>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingCommentId(null)}>Cancel</button>
+                                <button className="btn btn-primary btn-sm me-2" onClick={() => saveEdit(c.id)}>{t('Save')}</button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingCommentId(null)}>{t('Cancel')}</button>
                             </>
                         ) : (
                             <div className="d-flex align-items-start">
@@ -121,7 +123,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                     </div>
                 ))}
                 {showMore && (
-                    <button className="btn btn-link" onClick={() => loadComments()}>Show more</button>
+                    <button className="btn btn-link" onClick={() => loadComments()}>{t('Show more')}</button>
                 )}
             </div>
         </CustomFieldset>

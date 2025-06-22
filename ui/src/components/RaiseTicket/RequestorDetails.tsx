@@ -15,6 +15,7 @@ import DropdownController from "../UI/Dropdown/DropdownController";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import ViewToggle from "../UI/ViewToggle";
+import { useTranslation } from "react-i18next";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -34,6 +35,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const [verified, setVerified] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<ViewMode>("nonFci");
+    const { t } = useTranslation();
 
     const isDisabled = disableAll || disabled;
 
@@ -153,7 +155,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isRequestorOnBehalfNonFci = !createMode && !employeeId && stakeholder
 
     return (
-        <CustomFieldset title="Requestor Details" className="mb-4">
+        <CustomFieldset title={t('Requestor Details')} className="mb-4">
             {/* Inputs */}
             {!createMode &&
                 <div className="row g-3">
@@ -279,8 +281,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         value={viewMode}
                         onChange={setViewMode}
                         options={[
-                            { label: 'FCI Employee', value: 'fci' },
-                            { label: 'Non-FCI Employee', value: 'nonFci' }
+                            { label: t('FCI Employee'), value: 'fci' },
+                            { label: t('Non-FCI Employee'), value: 'nonFci' }
                         ]}
                         radio={FciTheme}
                         disabled={disableAll}

@@ -1,6 +1,7 @@
 import React from 'react';
 import TextField, { TextFieldProps } from '@mui/material/TextField';
 import { FciTheme } from '../../../config/config';
+import { useTranslation } from 'react-i18next';
 
 interface GenericInputProps extends Omit<TextFieldProps<'outlined'>, 'variant'> {
     label?: string;
@@ -23,10 +24,11 @@ const GenericInput: React.FC<GenericInputProps> = ({
 }) => {
     const classes = `generic-input ${className ?? ''}`.trim();
     let size: "small" | "medium" = !FciTheme ? "small" : "medium";
+    const { t } = useTranslation();
 
     return (
         <TextField
-            label={label}
+            label={label ? t(label) : undefined}
             fullWidth={fullWidth}
             required={required}
             disabled={disabled}

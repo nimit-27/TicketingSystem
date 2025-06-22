@@ -1,6 +1,7 @@
 import { InputLabel, TextField, TextFieldProps, useTheme } from "@mui/material";
 import { FormProps } from "../../../types";
 import { FciTheme } from "../../../config/config";
+import { useTranslation } from "react-i18next";
 
 interface CustomFormInputProps extends Omit<TextFieldProps<'outlined'>, 'variant'>, Omit<FormProps, 'control'> {
     name: string;
@@ -30,6 +31,7 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
     ...inputProps
 }) => {
     const theme = useTheme()
+    const { t } = useTranslation();
     const hasError = !!(errors && errors[name]);
     const errorMessage = (errors && errors[name]?.message) as string;
     validations = { ...validations, required: required ? `Please fill the ${label}` : false };
@@ -43,7 +45,7 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
         <>
             {showLabel && (
                 <InputLabel style={{ display: 'block', marginBottom: 4 }}>
-                    {label}
+                    {label ? t(label) : ''}
                     {required && <span style={{ color: 'red', marginLeft: 2 }}>*</span>}
                 </InputLabel>
             )}
@@ -55,7 +57,7 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
                         borderColor: theme.palette.divider,
                     },
                 }}
-                label={label}
+                label={label ? t(label) : undefined}
                 fullWidth={fullWidth}
                 disabled={disabled}
                 className={classes}

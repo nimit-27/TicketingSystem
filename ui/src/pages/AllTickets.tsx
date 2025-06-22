@@ -9,6 +9,7 @@ import { getStatuses } from "../services/StatusService";
 import PaginationControls from "../components/PaginationControls";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
+import { useTranslation } from "react-i18next";
 import MasterIcon from "../components/UI/Icons/MasterIcon";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
@@ -49,6 +50,7 @@ const AllTickets: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [statusOptions, setStatusOptions] = useState<string[]>([]);
+    const { t } = useTranslation();
 
     const priorityConfig: Record<string, { color: string; count: number }> = {
         Low: { color: 'success.light', count: 1 },
@@ -100,7 +102,7 @@ const AllTickets: React.FC = () => {
     const columns = useMemo(
         () => [
             {
-                title: "Ticket Id",
+                title: t('Ticket Id'),
                 dataIndex: "id",
                 key: "id",
                 render: (_: any, record: Ticket) => (
@@ -111,43 +113,43 @@ const AllTickets: React.FC = () => {
                 ),
             },
             {
-                title: "Requestor Name",
+                title: t('Requestor Name'),
                 key: "name",
                 render: (_: any, record: Ticket) => record.requestorName || "-",
             },
             {
-                title: "Email",
+                title: t('Email'),
                 key: "email",
                 render: (_: any, record: Ticket) => record.requestorEmailId || "-",
             },
             {
-                title: "Mobile",
+                title: t('Mobile'),
                 key: "mobile",
                 render: (_: any, record: Ticket) => record.requestorMobileNo || "-",
             },
             {
-                title: "Category",
+                title: t('Category'),
                 dataIndex: "category",
                 key: "category",
             },
             {
-                title: "Sub-Category",
+                title: t('Sub-Category'),
                 dataIndex: "subCategory",
                 key: "subCategory",
             },
             {
-                title: "Priority",
+                title: t('Priority'),
                 dataIndex: "priority",
                 key: "priority",
             },
             {
-                title: "Status",
+                title: t('Status'),
                 dataIndex: "status",
                 key: "status",
                 render: (value: any) => value || "-",
             },
             {
-                title: "Action",
+                title: t('Action'),
                 key: "action",
                 render: () => <VisibilityIcon fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
             },
@@ -157,7 +159,7 @@ const AllTickets: React.FC = () => {
 
     return (
         <div className="container">
-            <Title text="My Tickets" />
+            <Title textKey="My Tickets" />
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <GenericInput
                     label="Search by Id or Subject"
@@ -182,8 +184,8 @@ const AllTickets: React.FC = () => {
                     ]}
                 />
             </div>
-            {pending && <p>Loading...</p>}
-            {error && <p className="text-danger">Error loading tickets</p>}
+            {pending && <p>{t('Loading...')}</p>}
+            {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {!pending && viewMode === 'table' && (
                 <div>
                     <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} />
