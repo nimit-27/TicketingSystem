@@ -1,7 +1,8 @@
 package com.example.api.controller;
 
-import com.example.api.dto.FilegatorLoginRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,7 +21,7 @@ import java.util.List;
 public class FilegatorController {
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody FilegatorLoginRequest credentials,
+    public ResponseEntity<String> login(HttpSession session,
                                         HttpServletResponse servletResponse) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -34,9 +35,16 @@ public class FilegatorController {
         String csrfToken = init.getHeaders().getFirst("X-CSRF-Token");
         String sessionCookie = init.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
+        String username = (String) session.getAttribute("userId");
+        String password = (String) session.getAttribute("password");
+
+        if (username == null || password == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("username", credentials.getUsername());
-        body.add("password", credentials.getPassword());
+        body.add("username", username);
+        body.add("password", password);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

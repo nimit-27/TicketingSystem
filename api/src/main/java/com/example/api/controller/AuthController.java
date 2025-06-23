@@ -25,7 +25,11 @@ public class AuthController {
         return authService.authenticate(request.getUserId(), request.getPassword())
                 .map(emp -> {
                     session.setAttribute("employeeId", emp.getEmployeeId());
-                    return ResponseEntity.ok(Map.of("employeeId", emp.getEmployeeId(), "name", emp.getName()));
+                    session.setAttribute("userId", request.getUserId());
+                    session.setAttribute("password", request.getPassword());
+                    return ResponseEntity.ok(Map.of(
+                            "employeeId", emp.getEmployeeId(),
+                            "name", emp.getName()));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid credentials")));
