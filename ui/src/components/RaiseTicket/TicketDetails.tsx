@@ -243,9 +243,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 )}
                 {showIsMaster && (
                     <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
-                        <FormControlLabel
+                    <FormControlLabel
                             control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
-                            label="Mark this ticket as Master"
+                            label={t('Mark this ticket as Master')}
                         />
                     </div>
                 )}
@@ -283,7 +283,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 {showAttachment && (
                     <div className="col-md-6 d-flex align-items-center mb-3 px-4">
                         <label htmlFor="attachment" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
-                            Attachment
+                            {t('Attachment')}
                         </label>
                         <CustomFormInput
                             name="attachment"
@@ -312,14 +312,14 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 )}
                 {showAssignFurther && (
                     <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
-                        <FormControlLabel
+                    <FormControlLabel
                             control={
                                 <Checkbox
                                     disabled={disableAll}
                                     onChange={e => setAssignFurther?.(e.target.checked)}
                                 />
                             }
-                            label="Assign Further"
+                            label={t('Assign Further')}
                         />
                     </div>
                 )}

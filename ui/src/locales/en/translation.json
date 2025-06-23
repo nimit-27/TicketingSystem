@@ -64,5 +64,16 @@
   "Show more": "Show more",
   "No comments": "No comments",
   "No options available": "No options available",
-  "Ticket": "Ticket"
+  "Ticket": "Ticket",
+  "Category of Ticket": "Category of Ticket",
+  "Impact": "Impact",
+  "Subject": "Subject",
+  "Description": "Description",
+  "Attachment": "Attachment",
+  "No file chosen for attachment": "No file chosen for attachment",
+  "Update Status": "Update Status",
+  "Assign to Level": "Assign to Level",
+  "Assign to": "Assign to",
+  "Assign Further": "Assign Further",
+  "Mark this ticket as Master": "Mark this ticket as Master"
 }
