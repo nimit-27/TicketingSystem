@@ -1,5 +1,6 @@
 package com.example.api.controller;
 
+import com.example.api.dto.FilegatorLoginRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,7 +20,8 @@ import java.util.List;
 public class FilegatorController {
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(HttpServletResponse servletResponse) {
+    public ResponseEntity<String> login(@RequestBody FilegatorLoginRequest credentials,
+                                        HttpServletResponse servletResponse) {
         RestTemplate restTemplate = new RestTemplate();
 
         // obtain csrf token and session cookie
@@ -33,8 +35,8 @@ public class FilegatorController {
         String sessionCookie = init.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("username", "admin");
-        body.add("password", "admin123");
+        body.add("username", credentials.getUsername());
+        body.add("password", credentials.getPassword());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
