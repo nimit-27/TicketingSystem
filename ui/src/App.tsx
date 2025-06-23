@@ -7,11 +7,13 @@ import TicketDetails from './pages/TicketDetails';
 import CategoriesMaster from './pages/CategoriesMaster';
 import EscalationMaster from './pages/EscalationMaster';
 import SidebarLayout from './components/Layout/SidebarLayout';
+import Login from './pages/Login';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<SidebarLayout />}> 
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<SidebarLayout />}>
         <Route index element={<Navigate to="/create-ticket" replace />} />
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
