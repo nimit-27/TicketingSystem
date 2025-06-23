@@ -105,11 +105,21 @@ return [
             'config' => [],
         ],
         'Filegator\Services\Auth\AuthInterface' => [
-            'handler' => '\Filegator\Services\Auth\Adapters\JsonFile',
+            'handler' => '\Filegator\Services\Auth\Adapters\Databsse',
             'config' => [
-                'file' => __DIR__.'/private/users.json',
+                'driver' => 'mysqli',
+                'host' => 'localhost',
+                'username' => 'root',
+                'password' => 'cfg@1234',
+                'database' => 'ticketing_system',
             ],
         ],
+        // 'Filegator\Services\Auth\AuthInterface' => [
+        //     'handler' => '\Filegator\Services\Auth\Adapters\JsonFile',
+        //     'config' => [
+        //         'file' => __DIR__.'/private/users.json',
+        //     ],
+        // ],
         'Filegator\Services\Router\Router' => [
             'handler' => '\Filegator\Services\Router\Router',
             'config' => [

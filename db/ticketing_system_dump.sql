@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `ticketing_system` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `ticketing_system`;
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ticketing_system
@@ -72,6 +74,24 @@ INSERT INTO `categories` VALUES (2,'Payment Problems','bhavyar','2025-06-10 16:5
 UNLOCK TABLES;
 
 --
+-- Temporary view structure for view `cms_users`
+--
+
+DROP TABLE IF EXISTS `cms_users`;
+/*!50001 DROP VIEW IF EXISTS `cms_users`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `cms_users` AS SELECT 
+ 1 AS `id`,
+ 1 AS `username`,
+ 1 AS `name`,
+ 1 AS `role`,
+ 1 AS `password`,
+ 1 AS `permissions`,
+ 1 AS `homedir`*/;
+SET character_set_client = @saved_cs_client;
+
+--
 -- Table structure for table `employee_levels`
 --
 
@@ -112,6 +132,7 @@ CREATE TABLE `employees` (
   `mobile_no` varchar(15) DEFAULT NULL,
   `office` varchar(100) DEFAULT NULL,
   `user_id` varchar(50) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`employee_id`),
   UNIQUE KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -123,10 +144,35 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar'),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags'),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak'),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas'),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana'),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj'),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv'),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm'),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan');
+INSERT INTO `employees` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm',NULL),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas',NULL),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL);
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
+--
+-- Table structure for table `filegator_users`
+--
+
+DROP TABLE IF EXISTS `filegator_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `filegator_users` (
+  `employee_id` int NOT NULL,
+  `permissions` varchar(200) NOT NULL DEFAULT '',
+  `homedir` varchar(2000) NOT NULL DEFAULT '/',
+  PRIMARY KEY (`employee_id`),
+  CONSTRAINT `filegator_users_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `filegator_users`
+--
+
+LOCK TABLES `filegator_users` WRITE;
+/*!40000 ALTER TABLE `filegator_users` DISABLE KEYS */;
+INSERT INTO `filegator_users` VALUES (201,'','/'),(202,'','/helpdesk'),(203,'','/admin');
+/*!40000 ALTER TABLE `filegator_users` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `knowledge_base`
@@ -167,7 +213,7 @@ CREATE TABLE `levels` (
   `level_name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`level_id`),
   UNIQUE KEY `level_name` (`level_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -176,8 +222,59 @@ CREATE TABLE `levels` (
 
 LOCK TABLES `levels` WRITE;
 /*!40000 ALTER TABLE `levels` DISABLE KEYS */;
-INSERT INTO `levels` VALUES (1,'L1'),(2,'L2'),(3,'L3');
+INSERT INTO `levels` VALUES (4,'Admin'),(5,'Helpdesk'),(1,'L1'),(2,'L2'),(3,'L3');
 /*!40000 ALTER TABLE `levels` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `priority_master`
+--
+
+DROP TABLE IF EXISTS `priority_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `priority_master` (
+  `priority_id` int NOT NULL AUTO_INCREMENT,
+  `value` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`priority_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `priority_master`
+--
+
+LOCK TABLES `priority_master` WRITE;
+/*!40000 ALTER TABLE `priority_master` DISABLE KEYS */;
+INSERT INTO `priority_master` VALUES (1,'Critical'),(2,'High'),(3,'Medium'),(4,'Low');
+/*!40000 ALTER TABLE `priority_master` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `requestors`
+--
+
+DROP TABLE IF EXISTS `requestors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `requestors` (
+  `requestor_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) DEFAULT NULL,
+  `email_id` varchar(100) DEFAULT NULL,
+  `mobile_no` varchar(15) DEFAULT NULL,
+  `stakeholder_type` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`requestor_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `requestors`
+--
+
+LOCK TABLES `requestors` WRITE;
+/*!40000 ALTER TABLE `requestors` DISABLE KEYS */;
+INSERT INTO `requestors` VALUES (1,'Test User','user@example.com','9000000000','Farmer');
+/*!40000 ALTER TABLE `requestors` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -188,7 +285,7 @@ DROP TABLE IF EXISTS `roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `roles` (
-  `role_id` int NOT NULL AUTO_INCREMENT,
+  `role_id` varchar(100) NOT NULL,
   `role_name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -200,7 +297,32 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES ('admin','Admin'),('helpdesk','Helpdesk');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `severity_master`
+--
+
+DROP TABLE IF EXISTS `severity_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `severity_master` (
+  `severity_id` int NOT NULL AUTO_INCREMENT,
+  `value` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`severity_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `severity_master`
+--
+
+LOCK TABLES `severity_master` WRITE;
+/*!40000 ALTER TABLE `severity_master` DISABLE KEYS */;
+INSERT INTO `severity_master` VALUES (1,'CRITICAL'),(2,'HIGH'),(3,'MEDIUM'),(4,'LOW');
+/*!40000 ALTER TABLE `severity_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -348,8 +470,7 @@ CREATE TABLE `tickets` (
   PRIMARY KEY (`id`),
   KEY `master_id` (`master_id`),
   CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`master_id`) REFERENCES `tickets` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -358,52 +479,35 @@ CREATE TABLE `tickets` (
 
 LOCK TABLES `tickets` WRITE;
 /*!40000 ALTER TABLE `tickets` DISABLE KEYS */;
-INSERT INTO `tickets` VALUES (1,'2025-04-08','Call',101,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','software','printer','Low',NULL,0,1,'2025-06-09 09:53:04','ON_HOLD',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(2,'2025-06-03','Self',110,NULL,NULL,NULL,'Forgot my password','Issue related to password reset. Please assist.','Account','Password Reset','High','',1,1,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(3,'2025-04-16','Call',100,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',0,1,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(4,'2025-04-15','Self',153,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Low','',1,1,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(5,'2025-04-10','Call',191,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','High','',0,1,'2025-06-09 09:53:04','CLOSED','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(6,'2025-04-25','Call',195,NULL,NULL,NULL,'VPN fails during connection','Issue related to vpn. Please assist.','Network','VPN','Medium','',1,1,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(7,'2025-05-30','Email',186,NULL,NULL,NULL,'Can\'t connect to VPN','Issue related to vpn. Please assist.','Network','VPN','Low','',0,1,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(8,'2025-04-23','Email',127,NULL,NULL,NULL,'Printer not responding','Issue related to printer. Please assist.','Hardware','Printer','Low','',1,1,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(9,'2025-04-26','Call',161,NULL,NULL,NULL,'Can\'t access my account','Issue related to login. Please assist.','Account','Login','High','',0,1,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(11,'2025-04-11','Call',168,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',0,11,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(12,'2025-04-06','Self',146,NULL,NULL,NULL,'Login credentials not accepted','Issue related to login. Please assist.','Account','Login','Critical','',1,11,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(13,'2025-05-23','Self',199,NULL,NULL,NULL,'Outlook crashes on launch','Issue related to outlook. Please assist.','Software','Outlook','Medium','',0,11,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(14,'2025-04-26','Call',194,NULL,NULL,NULL,'Internet not working','Issue related to connectivity. Please assist.','Network','Connectivity','Medium','',1,11,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(15,'2025-05-21','Self',155,NULL,NULL,NULL,'Printer jammed','Issue related to printer. Please assist.','Hardware','Printer','Critical','',0,11,'2025-06-09 09:54:08','CLOSED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(16,'2025-05-05','Call',138,NULL,NULL,NULL,'Stuck at login screen','Issue related to login. Please assist.','Account','Login','Critical','',1,11,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(17,'2025-05-10','Email',150,NULL,NULL,NULL,'Printer not responding','Issue related to printer. Please assist.','Hardware','Printer','Critical','',0,11,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(18,'2025-04-16','Email',163,NULL,NULL,NULL,'VPN not working','Issue related to vpn. Please assist.','Network','VPN','Critical','',1,11,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(21,'2025-05-20','Call',154,NULL,NULL,NULL,'Blue screen error','Issue related to system crash. Please assist.','Hardware','System Crash','Low','',0,21,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(22,'2025-05-25','Self',122,NULL,NULL,NULL,'VPN not working','Issue related to vpn. Please assist.','Network','VPN','Low','',1,21,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(23,'2025-04-18','Email',162,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','High','',0,21,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(24,'2025-04-26','Call',199,NULL,NULL,NULL,'Email stuck in outbox','Issue related to outlook. Please assist.','Software','Outlook','Critical','',1,21,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(25,'2025-04-05','Email',118,NULL,NULL,NULL,'Forgot my password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',0,21,'2025-06-09 09:53:04','CLOSED','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(26,'2025-05-21','Self',131,NULL,NULL,NULL,'System crashes on boot','Issue related to system crash. Please assist.','Hardware','System Crash','Medium','',1,21,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(27,'2025-05-06','Call',100,NULL,NULL,NULL,'Outlook crashes on launch','Issue related to outlook. Please assist.','Software','Outlook','High','',0,21,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(31,'2025-05-14','Self',168,NULL,NULL,NULL,'VPN fails during connection','Issue related to vpn. Please assist.','Network','VPN','Critical','',0,31,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(32,'2025-04-20','Call',176,NULL,NULL,NULL,'Outlook not opening','Issue related to outlook. Please assist.','Software','Outlook','Low','',1,31,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(33,'2025-05-31','Call',197,NULL,NULL,NULL,'Printer jammed','Issue related to printer. Please assist.','Hardware','Printer','High','',0,31,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(34,'2025-05-04','Self',188,NULL,NULL,NULL,'Outlook not opening','Issue related to outlook. Please assist.','Software','Outlook','Critical','',1,31,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(35,'2025-05-10','Email',124,NULL,NULL,NULL,'False positive alerts','Issue related to antivirus. Please assist.','Software','Antivirus','Medium','',0,31,'2025-06-09 09:53:04','CLOSED','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(36,'2025-05-02','Call',142,NULL,NULL,NULL,'VPN not working','Issue related to vpn. Please assist.','Network','VPN','High','',1,31,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(41,'2025-05-19','Self',141,NULL,NULL,NULL,'Unable to login','Issue related to login. Please assist.','Account','Login','Low','',0,41,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(42,'2025-06-02','Self',149,NULL,NULL,NULL,'Login credentials not accepted','Issue related to login. Please assist.','Account','Login','Medium','',1,41,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(43,'2025-04-17','Email',140,NULL,NULL,NULL,'Printer jammed','Issue related to printer. Please assist.','Hardware','Printer','High','',0,41,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(44,'2025-05-29','Email',128,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',1,41,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(45,'2025-05-31','Self',148,NULL,NULL,NULL,'Can\'t print documents','Issue related to printer. Please assist.','Hardware','Printer','Critical','',0,41,'2025-06-09 09:54:08','CLOSED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(51,'2025-05-17','Call',125,NULL,NULL,NULL,'Printer not responding','Issue related to printer. Please assist.','Hardware','Printer','High','',0,51,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(52,'2025-05-21','Email',131,NULL,NULL,NULL,'Can\'t send email','Issue related to outlook. Please assist.','Software','Outlook','High','',1,51,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(53,'2025-05-05','Self',118,NULL,NULL,NULL,'Stuck at login screen','Issue related to login. Please assist.','Account','Login','Low','',0,51,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(54,'2025-04-08','Self',149,NULL,NULL,NULL,'Printer showing error code','Issue related to printer. Please assist.','Hardware','Printer','Low','',1,51,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(61,'2025-05-31','Email',126,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Low','',0,61,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(62,'2025-04-12','Self',164,NULL,NULL,NULL,'Login credentials not accepted','Issue related to login. Please assist.','Account','Login','High','',1,61,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(63,'2025-05-19','Email',172,NULL,NULL,NULL,'Login page not loading','Issue related to login. Please assist.','Account','Login','Low','',0,61,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(71,'2025-04-21','Self',112,NULL,NULL,NULL,'Email not syncing','Issue related to outlook. Please assist.','Software','Outlook','Low','',0,71,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(72,'2025-04-17','Call',155,NULL,NULL,NULL,'VPN disconnects randomly','Issue related to vpn. Please assist.','Network','VPN','Low','',1,71,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(81,'2025-06-02','Email',160,NULL,NULL,NULL,'VPN disconnects randomly','Issue related to vpn. Please assist.','Network','VPN','Low','',0,81,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(96,'2025-06-05','Email',1024,NULL,NULL,NULL,'Unable to access internal portal','The intranet portal shows a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(97,'2025-06-05','Email',1014,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal shows a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(98,'2025-06-05','Call',1111,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal shows a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(99,'2025-06-05','Call',1112,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(100,'2025-06-05','Call',1113,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:52','CLOSED','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(101,'2025-06-05','Call',1114,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(102,'2025-06-05','Call',1115,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(103,'2025-06-05','Call',1116,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(104,'2025-06-05','Call',1117,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(105,'2025-06-05','Call',1118,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:54:08','CLOSED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(106,'2025-06-08','Call',101,NULL,NULL,NULL,'T!','D!','software','laptop','Medium',NULL,0,NULL,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(107,'2025-06-12','Self',201,NULL,NULL,NULL,'s1','d1','2','1','Low',NULL,0,NULL,NULL,'ON_HOLD','','','nimit.jain',NULL,NULL,NULL,NULL,NULL),(108,'2025-06-12','Self',201,NULL,NULL,NULL,'s1','d1','2','1','Low',NULL,1,NULL,NULL,'ON_HOLD','','','nimit.jain',NULL,NULL,NULL,NULL,NULL),(109,'2025-06-12','Self',201,NULL,NULL,NULL,'s1','d1','2','1','Low',NULL,1,NULL,NULL,'RESOLVED','1','201','nimit.jain',NULL,NULL,NULL,NULL,NULL),(110,'2025-06-16','Email',201,NULL,NULL,NULL,'Ticket created by IT','Need to check this description box','Payment Problems','4','Low',NULL,0,NULL,NULL,'PENDING',NULL,NULL,'helpdesk.user',NULL,NULL,NULL,NULL,NULL);
-
---
--- Table structure for table `priority_master`
---
-
-DROP TABLE IF EXISTS `priority_master`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `priority_master` (
-  `priority_id` int NOT NULL AUTO_INCREMENT,
-  `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`priority_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `priority_master`
---
-
-LOCK TABLES `priority_master` WRITE;
-/*!40000 ALTER TABLE `priority_master` DISABLE KEYS */;
-INSERT INTO `priority_master` VALUES (1,'Critical'),(2,'High'),(3,'Medium'),(4,'Low');
-/*!40000 ALTER TABLE `priority_master` ENABLE KEYS */;
+INSERT INTO `tickets` VALUES (1,'2025-04-08','Call',101,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','software','printer','Low',NULL,0,1,'2025-06-09 09:53:04','ON_HOLD',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(2,'2025-06-03','Self',110,NULL,NULL,NULL,'Forgot my password','Issue related to password reset. Please assist.','Account','Password Reset','High','',1,1,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(3,'2025-04-16','Call',100,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',0,1,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(4,'2025-04-15','Self',153,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Low','',1,1,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(5,'2025-04-10','Call',191,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','High','',0,1,'2025-06-09 09:53:04','CLOSED','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(6,'2025-04-25','Call',195,NULL,NULL,NULL,'VPN fails during connection','Issue related to vpn. Please assist.','Network','VPN','Medium','',1,1,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(7,'2025-05-30','Email',186,NULL,NULL,NULL,'Can\'t connect to VPN','Issue related to vpn. Please assist.','Network','VPN','Low','',0,1,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(8,'2025-04-23','Email',127,NULL,NULL,NULL,'Printer not responding','Issue related to printer. Please assist.','Hardware','Printer','Low','',1,1,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(9,'2025-04-26','Call',161,NULL,NULL,NULL,'Can\'t access my account','Issue related to login. Please assist.','Account','Login','High','',0,1,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(11,'2025-04-11','Call',168,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',0,11,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(12,'2025-04-06','Self',146,NULL,NULL,NULL,'Login credentials not accepted','Issue related to login. Please assist.','Account','Login','Critical','',1,11,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(13,'2025-05-23','Self',199,NULL,NULL,NULL,'Outlook crashes on launch','Issue related to outlook. Please assist.','Software','Outlook','Medium','',0,11,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(14,'2025-04-26','Call',194,NULL,NULL,NULL,'Internet not working','Issue related to connectivity. Please assist.','Network','Connectivity','Medium','',1,11,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(15,'2025-05-21','Self',155,NULL,NULL,NULL,'Printer jammed','Issue related to printer. Please assist.','Hardware','Printer','Critical','',0,11,'2025-06-09 09:54:08','CLOSED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(16,'2025-05-05','Call',138,NULL,NULL,NULL,'Stuck at login screen','Issue related to login. Please assist.','Account','Login','Critical','',1,11,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(17,'2025-05-10','Email',150,NULL,NULL,NULL,'Printer not responding','Issue related to printer. Please assist.','Hardware','Printer','Critical','',0,11,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(18,'2025-04-16','Email',163,NULL,NULL,NULL,'VPN not working','Issue related to vpn. Please assist.','Network','VPN','Critical','',1,11,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(21,'2025-05-20','Call',154,NULL,NULL,NULL,'Blue screen error','Issue related to system crash. Please assist.','Hardware','System Crash','Low','',0,21,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(22,'2025-05-25','Self',122,NULL,NULL,NULL,'VPN not working','Issue related to vpn. Please assist.','Network','VPN','Low','',1,21,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(23,'2025-04-18','Email',162,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','High','',0,21,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(24,'2025-04-26','Call',199,NULL,NULL,NULL,'Email stuck in outbox','Issue related to outlook. Please assist.','Software','Outlook','Critical','',1,21,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(25,'2025-04-05','Email',118,NULL,NULL,NULL,'Forgot my password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',0,21,'2025-06-09 09:53:04','CLOSED','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(26,'2025-05-21','Self',131,NULL,NULL,NULL,'System crashes on boot','Issue related to system crash. Please assist.','Hardware','System Crash','Medium','',1,21,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(27,'2025-05-06','Call',100,NULL,NULL,NULL,'Outlook crashes on launch','Issue related to outlook. Please assist.','Software','Outlook','High','',0,21,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(31,'2025-05-14','Self',168,NULL,NULL,NULL,'VPN fails during connection','Issue related to vpn. Please assist.','Network','VPN','Critical','',0,31,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(32,'2025-04-20','Call',176,NULL,NULL,NULL,'Outlook not opening','Issue related to outlook. Please assist.','Software','Outlook','Low','',1,31,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(33,'2025-05-31','Call',197,NULL,NULL,NULL,'Printer jammed','Issue related to printer. Please assist.','Hardware','Printer','High','',0,31,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(34,'2025-05-04','Self',188,NULL,NULL,NULL,'Outlook not opening','Issue related to outlook. Please assist.','Software','Outlook','Critical','',1,31,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(35,'2025-05-10','Email',124,NULL,NULL,NULL,'False positive alerts','Issue related to antivirus. Please assist.','Software','Antivirus','Medium','',0,31,'2025-06-09 09:53:04','CLOSED','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(36,'2025-05-02','Call',142,NULL,NULL,NULL,'VPN not working','Issue related to vpn. Please assist.','Network','VPN','High','',1,31,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(41,'2025-05-19','Self',141,NULL,NULL,NULL,'Unable to login','Issue related to login. Please assist.','Account','Login','Low','',0,41,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(42,'2025-06-02','Self',149,NULL,NULL,NULL,'Login credentials not accepted','Issue related to login. Please assist.','Account','Login','Medium','',1,41,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(43,'2025-04-17','Email',140,NULL,NULL,NULL,'Printer jammed','Issue related to printer. Please assist.','Hardware','Printer','High','',0,41,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(44,'2025-05-29','Email',128,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Medium','',1,41,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(45,'2025-05-31','Self',148,NULL,NULL,NULL,'Can\'t print documents','Issue related to printer. Please assist.','Hardware','Printer','Critical','',0,41,'2025-06-09 09:54:08','CLOSED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(51,'2025-05-17','Call',125,NULL,NULL,NULL,'Printer not responding','Issue related to printer. Please assist.','Hardware','Printer','High','',0,51,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(52,'2025-05-21','Email',131,NULL,NULL,NULL,'Can\'t send email','Issue related to outlook. Please assist.','Software','Outlook','High','',1,51,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(53,'2025-05-05','Self',118,NULL,NULL,NULL,'Stuck at login screen','Issue related to login. Please assist.','Account','Login','Low','',0,51,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(54,'2025-04-08','Self',149,NULL,NULL,NULL,'Printer showing error code','Issue related to printer. Please assist.','Hardware','Printer','Low','',1,51,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(61,'2025-05-31','Email',126,NULL,NULL,NULL,'Can\'t change password','Issue related to password reset. Please assist.','Account','Password Reset','Low','',0,61,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(62,'2025-04-12','Self',164,NULL,NULL,NULL,'Login credentials not accepted','Issue related to login. Please assist.','Account','Login','High','',1,61,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(63,'2025-05-19','Email',172,NULL,NULL,NULL,'Login page not loading','Issue related to login. Please assist.','Account','Login','Low','',0,61,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(71,'2025-04-21','Self',112,NULL,NULL,NULL,'Email not syncing','Issue related to outlook. Please assist.','Software','Outlook','Low','',0,71,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(72,'2025-04-17','Call',155,NULL,NULL,NULL,'VPN disconnects randomly','Issue related to vpn. Please assist.','Network','VPN','Low','',1,71,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(81,'2025-06-02','Email',160,NULL,NULL,NULL,'VPN disconnects randomly','Issue related to vpn. Please assist.','Network','VPN','Low','',0,81,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(96,'2025-06-05','Email',1024,NULL,NULL,NULL,'Unable to access internal portal','The intranet portal shows a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(97,'2025-06-05','Email',1014,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal shows a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(98,'2025-06-05','Call',1111,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal shows a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(99,'2025-06-05','Call',1112,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:54:08','PENDING','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(100,'2025-06-05','Call',1113,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:52','CLOSED','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(101,'2025-06-05','Call',1114,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',0,NULL,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(102,'2025-06-05','Call',1115,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:54:08','REOPENED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(103,'2025-06-05','Call',1116,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:53:04','PENDING','L1',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(104,'2025-06-05','Call',1117,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:53:52','ON_HOLD','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(105,'2025-06-05','Call',1118,NULL,NULL,NULL,'Cannot access internal portal','The intranet portal a 403 forbidden error since morning.','IT Support','Network Issue','High','',1,NULL,'2025-06-09 09:54:08','CLOSED','L3',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(106,'2025-06-08','Call',101,NULL,NULL,NULL,'T!','D!','software','laptop','Medium',NULL,0,NULL,'2025-06-09 09:53:52','PENDING','L2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(107,'2025-06-12','Self',201,NULL,NULL,NULL,'s1','d1','2','1','Low',NULL,0,NULL,NULL,'ON_HOLD','','','nimit.jain',NULL,NULL,NULL,NULL,NULL),(108,'2025-06-12','Self',201,NULL,NULL,NULL,'s1','d1','2','1','Low',NULL,1,NULL,NULL,'ON_HOLD','','','nimit.jain',NULL,NULL,NULL,NULL,NULL),(109,'2025-06-12','Self',201,NULL,NULL,NULL,'s1','d1','2','1','Low',NULL,1,NULL,NULL,'RESOLVED','1','201','nimit.jain',NULL,NULL,NULL,NULL,NULL),(110,'2025-06-16','Email',201,NULL,NULL,NULL,'Ticket created by IT','Need to check this description box','Payment Problems','4','Low',NULL,0,NULL,NULL,'PENDING',NULL,NULL,'helpdesk.user',NULL,NULL,NULL,NULL,NULL),(111,'2025-06-17','Call',NULL,'John Doe','john@doe.com','12341234','T created by Farmer','Description input text allignment wrong','Payment Problems','4','Low',NULL,0,NULL,NULL,'PENDING','L1','arjunm','helpdesk.user',NULL,NULL,NULL,NULL,'Farmer');
+/*!40000 ALTER TABLE `tickets` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `severity_master`
+-- Final view structure for view `cms_users`
 --
 
-DROP TABLE IF EXISTS `severity_master`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `severity_master` (
-  `severity_id` int NOT NULL AUTO_INCREMENT,
-  `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`severity_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50001 DROP VIEW IF EXISTS `cms_users`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `cms_users` AS select `e`.`employee_id` AS `id`,`e`.`user_id` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`employee_levels` `el` join `levels` `l` on((`el`.`level_id` = `l`.`level_id`))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`employees` `e` join `filegator_users` `fu` on((`fu`.`employee_id` = `e`.`employee_id`))) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
---
--- Dumping data for table `severity_master`
---
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-LOCK TABLES `severity_master` WRITE;
-/*!40000 ALTER TABLE `severity_master` DISABLE KEYS */;
-INSERT INTO `severity_master` VALUES (1,'CRITICAL'),(2,'HIGH'),(3,'MEDIUM'),(4,'LOW');
-/*!40000 ALTER TABLE `severity_master` ENABLE KEYS */;
-UNLOCK TABLES;
+-- Dump completed on 2025-06-23 15:42:48
