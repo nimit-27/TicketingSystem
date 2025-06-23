@@ -64,5 +64,16 @@
   "Show more": "और दिखाएं",
   "No comments": "कोई टिप्पणी नहीं",
   "No options available": "कोई विकल्प उपलब्ध नहीं",
-  "Ticket": "टिकट"
+  "Ticket": "टिकट",
+  "Category of Ticket": "टिकट की श्रेणी",
+  "Impact": "प्रभाव",
+  "Subject": "विषय",
+  "Description": "विवरण",
+  "Attachment": "संलग्नक",
+  "No file chosen for attachment": "संलग्नक के लिए कोई फ़ाइल नहीं चुनी गई",
+  "Update Status": "स्थिति अपडेट करें",
+  "Assign to Level": "लेवल को असाइन करें",
+  "Assign to": "असाइन करें",
+  "Assign Further": "आगे असाइन करें",
+  "Mark this ticket as Master": "इस टिकट को मास्टर के रूप में चिन्हित करें"
 }
