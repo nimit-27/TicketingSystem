@@ -6,10 +6,7 @@ const KnowledgeBase: React.FC = () => {
     const [iframeSrc, setIframeSrc] = useState<string>("");
 
     useEffect(() => {
-        const creds = localStorage.getItem('creds');
-        if (!creds) return;
-        const { userId, password } = JSON.parse(creds);
-        initFilegatorSession(userId, password)
+        initFilegatorSession()
             .then(() => setIframeSrc("http://localhost:8080"))
             .catch(() => setIframeSrc("http://localhost:8080"));
     }, []);

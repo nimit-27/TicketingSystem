@@ -11,7 +11,6 @@ const Login: React.FC = () => {
         e.preventDefault();
         loginEmployee({ userId, password })
             .then(() => {
-                localStorage.setItem("creds", JSON.stringify({ userId, password }));
                 navigate("/");
             });
     };

@@ -28,6 +28,10 @@ public class Employee {
     private String mobileNo;
     private String office;
 
+    // Stores the employee's password for authentication
+    @Column(name = "password")
+    private String password;
+
     @ManyToMany(mappedBy = "employees")
     private Set<Level> levels;
 }
