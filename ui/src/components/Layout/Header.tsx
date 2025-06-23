@@ -17,11 +17,11 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const theme = useTheme();
   const initials = currentUserDetails.name
     ? currentUserDetails.name
-        .split(" ")
-        .map((n) => n.charAt(0))
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n.charAt(0))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "";
 
   return (
@@ -43,7 +43,11 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
         icon={collapsed ? "menu" : "chevronleft"}
         onClick={toggleSidebar}
       />
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div>
+        {theme.palette.mode === 'light' && <img src="./logo.png" style={{ height: '50px' }} />}
+        {theme.palette.mode === 'dark' && <img src="./fciLogo.png" style={{ height: '50px' }} />}
+      </div>
+      <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
           style={{
             color: theme.palette.getContrastText(theme.palette.primary.main),
