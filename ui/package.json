@@ -17,6 +17,7 @@
     "@types/react-dom": "^19.1.5",
     "antd": "^5.25.4",
     "axios": "^0.27.2",
+    "bcryptjs": "^2.4.3",
     "bootstrap": "^5.3.6",
     "i18next": "^25.2.1",
     "react": "^19.1.0",
@@ -25,7 +26,6 @@
     "react-i18next": "^15.5.3",
     "react-router-dom": "^7.6.1",
     "react-scripts": "5.0.1",
-    "bcryptjs": "^2.4.3",
     "sass": "^1.89.0",
     "typesense": "^1.2.1",
     "web-vitals": "^2.1.4"
