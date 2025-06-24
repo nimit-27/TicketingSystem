@@ -74,24 +74,6 @@ INSERT INTO `categories` VALUES (2,'Payment Problems','bhavyar','2025-06-10 16:5
 UNLOCK TABLES;
 
 --
--- Temporary view structure for view `cms_users`
---
-
-DROP TABLE IF EXISTS `cms_users`;
-/*!50001 DROP VIEW IF EXISTS `cms_users`*/;
-SET @saved_cs_client     = @@character_set_client;
-/*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `cms_users` AS SELECT 
- 1 AS `id`,
- 1 AS `username`,
- 1 AS `name`,
- 1 AS `role`,
- 1 AS `password`,
- 1 AS `permissions`,
- 1 AS `homedir`*/;
-SET character_set_client = @saved_cs_client;
-
---
 -- Table structure for table `employee_levels`
 --
 
@@ -144,7 +126,7 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm',NULL),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas',NULL),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL);
+INSERT INTO `employees` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm',NULL),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas',NULL),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL),(211,'Guest Account',NULL,NULL,NULL,'guest','');
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -170,7 +152,7 @@ CREATE TABLE `filegator_users` (
 
 LOCK TABLES `filegator_users` WRITE;
 /*!40000 ALTER TABLE `filegator_users` DISABLE KEYS */;
-INSERT INTO `filegator_users` VALUES (201,'','/'),(202,'','/helpdesk'),(203,'','/admin');
+INSERT INTO `filegator_users` VALUES (201,'','/'),(202,'','/helpdesk'),(203,'','/admin'),(211,'read','/guest');
 /*!40000 ALTER TABLE `filegator_users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -484,10 +466,28 @@ INSERT INTO `tickets` VALUES (1,'2025-04-08','Call',101,NULL,NULL,NULL,'Can\'t c
 UNLOCK TABLES;
 
 --
--- Final view structure for view `cms_users`
+-- Temporary view structure for view `users`
 --
 
-/*!50001 DROP VIEW IF EXISTS `cms_users`*/;
+DROP TABLE IF EXISTS `users`;
+/*!50001 DROP VIEW IF EXISTS `users`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `users` AS SELECT 
+ 1 AS `id`,
+ 1 AS `username`,
+ 1 AS `name`,
+ 1 AS `role`,
+ 1 AS `password`,
+ 1 AS `permissions`,
+ 1 AS `homedir`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `users`
+--
+
+/*!50001 DROP VIEW IF EXISTS `users`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
@@ -496,7 +496,7 @@ UNLOCK TABLES;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `cms_users` AS select `e`.`employee_id` AS `id`,`e`.`user_id` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`employee_levels` `el` join `levels` `l` on((`el`.`level_id` = `l`.`level_id`))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`employees` `e` join `filegator_users` `fu` on((`fu`.`employee_id` = `e`.`employee_id`))) */;
+/*!50001 VIEW `users` AS select `e`.`employee_id` AS `id`,`e`.`user_id` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`employee_levels` `el` join `levels` `l` on((`el`.`level_id` = `l`.`level_id`))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`employees` `e` join `filegator_users` `fu` on((`fu`.`employee_id` = `e`.`employee_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -510,4 +510,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-23 15:42:48
+-- Dump completed on 2025-06-24 13:13:53
