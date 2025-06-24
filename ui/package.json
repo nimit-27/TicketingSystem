@@ -25,6 +25,7 @@
     "react-i18next": "^15.5.3",
     "react-router-dom": "^7.6.1",
     "react-scripts": "5.0.1",
+    "bcryptjs": "^2.4.3",
     "sass": "^1.89.0",
     "typesense": "^1.2.1",
     "web-vitals": "^2.1.4"
