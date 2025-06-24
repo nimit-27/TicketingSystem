@@ -108,7 +108,7 @@ return [
             'handler' => '\Filegator\Services\Auth\Adapters\Database',
             'config' => [
                 'driver' => 'mysqli',
-                'host' => 'localhost',
+                'host' => '192.168.59.165', // IPv4 of host computer
                 'port' => 3306,
                 'username' => 'root',
                 'password' => '1234',

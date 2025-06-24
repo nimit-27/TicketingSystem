@@ -22,7 +22,7 @@ class User implements \JsonSerializable
 
     protected $name = '';
 
-    protected $available_roles = ['guest', 'user', 'admin'];
+    protected $available_roles = ['guest', 'user', 'admin', 'L1', 'L2', 'L3', 'helpdesk'];
 
     protected $available_permissions = ['read', 'write', 'upload', 'download', 'batchdownload', 'zip', 'chmod'];
 
@@ -104,6 +104,8 @@ class User implements \JsonSerializable
 
     public function setRole(string $role)
     {
+        error_log("Setting role to: " . $role);
+        
         $this->checkValidRole($role);
 
         $this->role = $role;
