@@ -105,12 +105,13 @@ return [
             'config' => [],
         ],
         'Filegator\Services\Auth\AuthInterface' => [
-            'handler' => '\Filegator\Services\Auth\Adapters\Databsse',
+            'handler' => '\Filegator\Services\Auth\Adapters\Database',
             'config' => [
                 'driver' => 'mysqli',
                 'host' => 'localhost',
+                'port' => 3306,
                 'username' => 'root',
-                'password' => 'cfg@1234',
+                'password' => '1234',
                 'database' => 'ticketing_system',
             ],
         ],
