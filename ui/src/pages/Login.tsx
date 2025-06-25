@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginEmployee } from "../services/AuthService";
-import bcrypt from "bcryptjs";
 
 const Login: React.FC = () => {
     const [userId, setUserId] = useState("");
@@ -10,8 +9,7 @@ const Login: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const hashed = bcrypt.hashSync(password, 10);
-        loginEmployee({ userId, password: hashed })
+        loginEmployee({ userId, password })
             .then(() => {
                 navigate("/");
             });
