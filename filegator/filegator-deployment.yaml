@@ -42,17 +42,20 @@ spec:
             path: "/mnt/d/14 9 13 9 20/Projects/Ticketing System/TicketingSystem/filegator/backend"
             type: Directory
         - name: ini-file
-          hostPath:
-            path: "/mnt/d/14 9 13 9 20/Projects/Ticketing System/TicketingSystem/filegator/backend/php.ini"
-            type: File
+          configMap:
+            name: filegator-config
+            items:
+              - key: php.ini
+                path: php.ini
         - name: config
-          hostPath:
-            path: "/mnt/d/14 9 13 9 20/Projects/Ticketing System/TicketingSystem/filegator/configuration.php"
-            type: File
+          configMap:
+            name: filegator-config
+            items:
+              - key: configuration.php
+                path: configuration.php
         - name: file-data
-          hostPath:
-            path: "/mnt/d/14 9 13 9 20/Projects/Ticketing System/TicketingSystem/filegator/data"
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: filegator-repository-pvc
 ---
 apiVersion: v1
 kind: Service
