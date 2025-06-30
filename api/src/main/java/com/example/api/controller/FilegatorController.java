@@ -21,7 +21,7 @@ import java.util.List;
 public class FilegatorController {
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(HttpSession session,
+    public ResponseEntity<String> loginToFilegator(HttpSession session,
                                         HttpServletResponse servletResponse) {
         RestTemplate restTemplate = new RestTemplate();
 

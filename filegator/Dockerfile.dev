@@ -13,6 +13,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 WORKDIR "/var/www/filegator/"
 
 COPY . .
+COPY ./backend/php.ini /usr/local/etc/php/php.ini
 RUN composer install
 RUN npm i
 RUN cp -n configuration_sample.php configuration.php

@@ -59,7 +59,8 @@ return [
         'Filegator\Services\Cors\Cors' => [
             'handler' => '\Filegator\Services\Cors\Cors',
             'config' => [
-                'enabled' => APP_ENV == 'production' ? false : true,
+                // 'enabled' => APP_ENV == 'production' ? false : true,
+                'enabled' => true,
             ],
         ],
         'Filegator\Services\Tmpfs\TmpfsInterface' => [
@@ -95,7 +96,8 @@ return [
                 'config' => [],
                 'adapter' => function () {
                     return new \League\Flysystem\Adapter\Local(
-                        __DIR__.'/repository'
+                        // __DIR__.'/repository'
+                        '/var/www/filegator/repository'
                     );
                 },
             ],
@@ -108,7 +110,7 @@ return [
             'handler' => '\Filegator\Services\Auth\Adapters\Database',
             'config' => [
                 'driver' => 'mysqli',
-                'host' => '192.168.59.165', // IPv4 of host computer
+                'host' => '192.168.51.165', // IPv4 of host computer
                 'port' => 3306,
                 'username' => 'root',
                 'password' => '1234',

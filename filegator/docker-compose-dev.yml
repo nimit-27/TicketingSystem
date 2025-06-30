@@ -16,7 +16,7 @@ services:
       - ./backend:/var/www/filegator/backend
       # mount custom configuration (create configuration.php file first):
       - ./backend/php.ini:/usr/local/etc/php/php.ini # <-- this line
-      #- ./configuration.php:/var/www/filegator/configuration.php
+      - ./configuration.php:/var/www/filegator/configuration.php
       # mount php dependencies locally:
       #- ./vendor:/var/www/filegator/vendor
       #- ./composer.json:/var/www/filegator/composer.json
@@ -24,8 +24,8 @@ services:
       # mount node dependencies locally:
       #- ./node_modules:/var/www/filegator/node_modules
       #- ./package.json:/var/www/filegator/package.json
-      - ./configuration.php:/var/www/filegator/configuration.php
       #- ./package-lock.json:/var/www/filegator/package-lock.json
+      - ./data:/var/www/filegator/repository
 # volumes:
 #   filegator_frontend:
 #   filegator_backend:
