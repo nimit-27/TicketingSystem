@@ -16,6 +16,6 @@ COPY . .
 COPY ./backend/php.ini /usr/local/etc/php/php.ini
 RUN composer install
 RUN npm i
-RUN cp -n configuration_sample.php configuration.php
+# RUN cp -n configuration_sample.php configuration.php
 
 CMD ["nohup", "bash", "-c", "npm run serve"]

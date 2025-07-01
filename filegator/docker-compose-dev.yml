@@ -12,11 +12,11 @@ services:
       # mount code:
       # - filegator_frontend:/var/www/filegator/frontend
       # - filegator_backend:/var/www/filegator/backend
-      - ./frontend:/var/www/filegator/frontend
-      - ./backend:/var/www/filegator/backend
+      # - /mnt/filegator/frontend:/var/www/filegator/frontend
+      # - /mnt/filegator/backend:/var/www/filegator/backend
       # mount custom configuration (create configuration.php file first):
-      - ./backend/php.ini:/usr/local/etc/php/php.ini # <-- this line
-      - ./configuration.php:/var/www/filegator/configuration.php
+      - /mnt/filegator/backend/php.ini:/usr/local/etc/php/php.ini # <-- this line
+      - /mnt/filegator/configuration.php:/var/www/filegator/configuration.php
       # mount php dependencies locally:
       #- ./vendor:/var/www/filegator/vendor
       #- ./composer.json:/var/www/filegator/composer.json
@@ -25,7 +25,7 @@ services:
       #- ./node_modules:/var/www/filegator/node_modules
       #- ./package.json:/var/www/filegator/package.json
       #- ./package-lock.json:/var/www/filegator/package-lock.json
-      - ./data:/var/www/filegator/repository
+      - /mnt/filegator/data:/var/www/filegator/repository
 # volumes:
 #   filegator_frontend:
 #   filegator_backend:
