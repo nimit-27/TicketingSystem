@@ -10,6 +10,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import TranslateIcon from '@mui/icons-material/Translate';
+import TimelineIcon from '@mui/icons-material/Timeline';
 
 // Define the icon map
 const iconMap = {
@@ -22,7 +23,8 @@ const iconMap = {
     chevronleft: ChevronLeftIcon,
     darkmode: DarkModeIcon,
     lightmode: LightModeIcon,
-    translate: TranslateIcon
+    translate: TranslateIcon,
+    timeline: TimelineIcon
 };
 
 // Valid keys for the icon map

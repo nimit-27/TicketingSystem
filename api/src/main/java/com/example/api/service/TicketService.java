@@ -10,6 +10,8 @@ import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
 import com.example.api.repository.LevelRepository;
 import com.example.api.service.AssignmentHistoryService;
+import com.example.api.service.StatusHistoryService;
+import com.example.api.enums.TicketStatus;
 import com.example.api.typesense.TypesenseClient;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
@@ -26,17 +28,20 @@ public class TicketService {
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
     private final LevelRepository levelRepository;
+    private final StatusHistoryService statusHistoryService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
                          EmployeeRepository employeeRepository, TicketCommentRepository commentRepository,
-                         AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository) {
+                         AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository,
+                         StatusHistoryService statusHistoryService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.employeeRepository = employeeRepository;
         this.commentRepository = commentRepository;
         this.assignmentHistoryService = assignmentHistoryService;
         this.levelRepository = levelRepository;
+        this.statusHistoryService = statusHistoryService;
     }
 
     public List<Ticket> getTickets() {
@@ -88,6 +93,7 @@ public class TicketService {
     public TicketDto updateTicket(int id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id).orElseThrow();
         String previousAssignedTo = existing.getAssignedTo();
+        TicketStatus previousStatus = existing.getStatus();
         existing.setCategory(updated.getCategory());
         existing.setStatus(updated.getStatus());
         existing.setSubCategory(updated.getSubCategory());
@@ -103,6 +109,10 @@ public class TicketService {
         Ticket saved = ticketRepository.save(existing);
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
+        }
+        if (updated.getStatus() != null && !updated.getStatus().equals(previousStatus)) {
+            String updatedBy = updated.getAssignedBy() != null ? updated.getAssignedBy() : existing.getAssignedBy();
+            statusHistoryService.addHistory(id, updatedBy, previousStatus, updated.getStatus());
         }
         return DtoMapper.toTicketDto(saved);
     }
