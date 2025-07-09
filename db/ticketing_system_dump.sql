@@ -46,6 +46,35 @@ LOCK TABLES `assignment_history` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `status_history`
+--
+
+DROP TABLE IF EXISTS `status_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `status_history` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ticket_id` int NOT NULL,
+  `updated_by` varchar(100) NOT NULL,
+  `previous_status` varchar(50) DEFAULT NULL,
+  `current_status` varchar(50) DEFAULT NULL,
+  `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_ticket_status_history` (`ticket_id`),
+  CONSTRAINT `fk_ticket_status_history` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `status_history`
+--
+
+LOCK TABLES `status_history` WRITE;
+/*!40000 ALTER TABLE `status_history` DISABLE KEYS */;
+/*!40000 ALTER TABLE `status_history` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `categories`
 --
 

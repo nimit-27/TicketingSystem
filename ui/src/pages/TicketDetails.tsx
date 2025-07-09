@@ -13,6 +13,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import GenericButton from "../components/UI/Button";
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
+import StatusHistory from "../components/StatusHistory";
 import { IconButton } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -49,6 +50,7 @@ const TicketDetails: React.FC = () => {
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
     const statusValue = useWatch({ control, name: 'status' });
     const [editing, setEditing] = useState<boolean>(false);
+    const [showHistory, setShowHistory] = useState<boolean>(false);
 
     // API calls
     const getTicketHandler = (ticketId: any) => {
@@ -155,6 +157,12 @@ const TicketDetails: React.FC = () => {
             </form>
 
             <CommentsSection ticketId={Number(ticketId)} />
+            <div className="mt-3">
+                <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
+                    {t('Track Ticket Status')}
+                </GenericButton>
+            </div>
+            {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
         </div>
     );
 };

@@ -75,5 +75,10 @@
   "Assign to Level": "लेवल को असाइन करें",
   "Assign to": "असाइन करें",
   "Assign Further": "आगे असाइन करें",
-  "Mark this ticket as Master": "इस टिकट को मास्टर के रूप में चिन्हित करें"
+  "Mark this ticket as Master": "इस टिकट को मास्टर के रूप में चिन्हित करें",
+  "Track Ticket Status": "टिकट स्थिति देखें",
+  "Updated By": "अद्यतन करने वाला",
+  "Timestamp": "समय",
+  "Previous Status": "पिछली स्थिति",
+  "Current Status": "वर्तमान स्थिति"
 }

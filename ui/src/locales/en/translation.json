@@ -75,5 +75,10 @@
   "Assign to Level": "Assign to Level",
   "Assign to": "Assign to",
   "Assign Further": "Assign Further",
-  "Mark this ticket as Master": "Mark this ticket as Master"
+  "Mark this ticket as Master": "Mark this ticket as Master",
+  "Track Ticket Status": "Track Ticket Status",
+  "Updated By": "Updated By",
+  "Timestamp": "Timestamp",
+  "Previous Status": "Previous Status",
+  "Current Status": "Current Status"
 }
