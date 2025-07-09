@@ -20,7 +20,7 @@ interface StatusHistoryProps {
 }
 
 const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
-    const { data, apiHandler } = useApi<HistoryEntry[]>();
+    const { data, apiHandler } = useApi<any>();
     const [view, setView] = useState<'table' | 'timeline'>('table');
     const { t } = useTranslation();
 
