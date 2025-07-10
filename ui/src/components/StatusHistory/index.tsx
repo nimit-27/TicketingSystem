@@ -33,19 +33,13 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const columns = [
         { title: t('Updated By'), dataIndex: 'updatedBy', key: 'updatedBy' },
         {
-            title: t('Timestamp'),
+            title: t('Updated On'),
             dataIndex: 'timestamp',
             key: 'timestamp',
             render: (v: string) => new Date(v).toLocaleString(),
         },
         {
-            title: t('Previous Status'),
-            dataIndex: 'previousStatus',
-            key: 'previousStatus',
-            render: (v: string) => v?.replace(/_/g, ' ')
-        },
-        {
-            title: t('Current Status'),
+            title: t('Status'),
             dataIndex: 'currentStatus',
             key: 'currentStatus',
             render: (v: string) => v?.replace(/_/g, ' ')

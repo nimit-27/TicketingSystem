@@ -34,7 +34,11 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
     const { t } = useTranslation();
     const hasError = !!(errors && errors[name]);
     const errorMessage = (errors && errors[name]?.message) as string;
-    validations = { ...validations, required: required ? `Please fill the ${label}` : false };
+    if (!disabled) {
+        validations = { ...validations, required: required ? `Please fill the ${label}` : false };
+    } else {
+        validations = {};
+    }
 
     const classes = `generic-input ${className ?? ''}`.trim();
     // let size: "small" | "medium" = !FciTheme ? "small" : "medium";

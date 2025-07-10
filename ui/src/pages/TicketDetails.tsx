@@ -10,11 +10,9 @@ import TicketDetailsForm from "../components/RaiseTicket/TicketDetails";
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import GenericButton from "../components/UI/Button";
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
-import StatusHistory from "../components/StatusHistory";
-import AssignmentHistory from "../components/AssignmentHistory";
+import HistorySidebar from "../components/HistorySidebar";
 import { IconButton } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -53,8 +51,6 @@ const TicketDetails: React.FC = () => {
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
     const statusValue = useWatch({ control, name: 'status' });
     const [editing, setEditing] = useState<boolean>(false);
-    const [showHistory, setShowHistory] = useState<boolean>(false);
-    const [showAssignmentHistory, setShowAssignmentHistory] = useState<boolean>(false);
 
     // API calls
     const getTicketHandler = (ticketId: any) => {
@@ -139,16 +135,7 @@ const TicketDetails: React.FC = () => {
                 </div>
             )}
 
-            <div className="mt-3 d-flex gap-2">
-                <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
-                    {t('Track Ticket Status')}
-                </GenericButton>
-                <GenericButton variant="outlined" onClick={() => setShowAssignmentHistory(!showAssignmentHistory)}>
-                    {t('Track Assignment History')}
-                </GenericButton>
-            </div>
-            {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
-            {showAssignmentHistory && <AssignmentHistory ticketId={Number(ticketId)} />}
+            <HistorySidebar ticketId={Number(ticketId)} />
             
             <form onSubmit={handleSubmit(onSubmitUpdate)}>
                 <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
