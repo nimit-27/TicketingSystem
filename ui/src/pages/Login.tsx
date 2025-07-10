@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginEmployee } from "../services/AuthService";
+import { loginUser } from "../services/AuthService";
 
 const Login: React.FC = () => {
     const [userId, setUserId] = useState("");
@@ -9,7 +9,7 @@ const Login: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        loginEmployee({ userId, password })
+        loginUser({ username: userId, password })
             .then(() => {
                 navigate("/");
             });

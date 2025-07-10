@@ -17,7 +17,7 @@ public class TicketDto {
     private int id;
     private Date reportedDate;
     private Mode mode;
-    private Integer employeeId;
+    private Integer userId;
     private String requestorName;
     private String requestorEmailId;
     private String requestorMobileNo;

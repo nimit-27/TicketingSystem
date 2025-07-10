@@ -46,7 +46,7 @@ public class DtoMapper {
         dto.setId(ticket.getId());
         dto.setReportedDate(ticket.getReportedDate());
         dto.setMode(ticket.getMode());
-        dto.setEmployeeId(ticket.getEmployeeId());
+        dto.setUserId(ticket.getUserId());
         dto.setRequestorName(ticket.getRequestorName());
         dto.setRequestorEmailId(ticket.getRequestorEmailId());
         dto.setRequestorMobileNo(ticket.getRequestorMobileNo());

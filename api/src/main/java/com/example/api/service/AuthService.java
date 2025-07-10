@@ -1,7 +1,7 @@
 package com.example.api.service;
 
-import com.example.api.models.Employee;
-import com.example.api.repository.EmployeeRepository;
+import com.example.api.models.User;
+import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
@@ -10,14 +10,14 @@ import java.util.Optional;
 
 @Service
 public class AuthService {
-    private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
 
-    public AuthService(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
+    public AuthService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    public Optional<Employee> authenticate(String userId, String password) {
-        return employeeRepository.findByUserId(userId)
+    public Optional<User> authenticate(String username, String password) {
+        return userRepository.findByUsername(username)
                 .filter(emp -> {
                     String stored = emp.getPassword();
                     if (stored == null) {

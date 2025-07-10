@@ -2,10 +2,10 @@ package com.example.api.service;
 
 import com.example.api.dto.TicketDto;
 import com.example.api.mapper.DtoMapper;
-import com.example.api.models.Employee;
+import com.example.api.models.User;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
-import com.example.api.repository.EmployeeRepository;
+import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
 import com.example.api.repository.LevelRepository;
@@ -24,7 +24,7 @@ import org.springframework.data.domain.Pageable;
 public class TicketService {
     private final TypesenseClient typesenseClient;
     private final TicketRepository ticketRepository;
-    private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
     private final LevelRepository levelRepository;
@@ -32,12 +32,12 @@ public class TicketService {
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
-                         EmployeeRepository employeeRepository, TicketCommentRepository commentRepository,
+                         UserRepository userRepository, TicketCommentRepository commentRepository,
                          AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository,
                          StatusHistoryService statusHistoryService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
-        this.employeeRepository = employeeRepository;
+        this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.assignmentHistoryService = assignmentHistoryService;
         this.levelRepository = levelRepository;
@@ -65,9 +65,9 @@ public class TicketService {
         if(ticket.isMaster()) ticket.setMasterId(null);
 
 
-        if (ticket.getEmployeeId() != 0) {
-            Employee employee = employeeRepository.findById(ticket.getEmployeeId()).orElseThrow();
-            ticket.setEmployee(employee);
+        if (ticket.getUserId() != 0) {
+            User user = userRepository.findById(ticket.getUserId()).orElseThrow();
+            ticket.setUser(user);
         }
 
         if (ticket.getAssignedToLevel() == null || ticket.getAssignedToLevel().isEmpty()) {
@@ -75,8 +75,8 @@ public class TicketService {
         }
         if (ticket.getAssignedTo() == null || ticket.getAssignedTo().isEmpty()) {
             levelRepository.findByLevelName("L1").ifPresent(level -> {
-                if (level.getEmployees() != null && !level.getEmployees().isEmpty()) {
-                    Employee emp = level.getEmployees().iterator().next();
+                if (level.getUsers() != null && !level.getUsers().isEmpty()) {
+                    User emp = level.getUsers().iterator().next();
                     ticket.setAssignedTo(emp.getUserId());
                 }
             });

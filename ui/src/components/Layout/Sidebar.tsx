@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const theme = useTheme();
 
   const bgColor = theme.palette.secondary.main;
-  const textColor = theme.palette.getContrastText(bgColor);
+  const textColor = theme.palette.mode === 'dark' ? '#FFA64D' : '#FFFFFF';
 
   return (
     <div

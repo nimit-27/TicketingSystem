@@ -6,7 +6,7 @@ import GenericInput from '../components/UI/Input/GenericInput';
 import GenericButton from '../components/UI/Button';
 import GenericTable from '../components/UI/GenericTable';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { addEmployee, deleteEmployee, getAllEmployees } from '../services/EmployeeService';
+import { addUser, deleteUser, getAllUsers } from '../services/UserService';
 import { useApi } from '../hooks/useApi';
 import { useDebounce } from '../hooks/useDebounce';
 import { useSnackbar } from '../context/SnackbarContext';
@@ -22,34 +22,34 @@ const EscalationMaster: React.FC = () => {
 
   const { showMessage } = useSnackbar();
 
-  const { data: employeeData, apiHandler } = useApi<any>();
+  const { data: userData, apiHandler } = useApi<any>();
   const { apiHandler: addApiHandler } = useApi<any>();
   const { apiHandler: deleteApiHandler } = useApi<any>();
 
-  const fetchEmployees = () => {
-    apiHandler(() => getAllEmployees());
+  const fetchUsers = () => {
+    apiHandler(() => getAllUsers());
   };
 
   useEffect(() => {
-    fetchEmployees();
+    fetchUsers();
   }, []);
 
   useEffect(() => {
-    if (Array.isArray(employeeData)) {
-      setFiltered(employeeData);
+    if (Array.isArray(userData)) {
+      setFiltered(userData);
     }
-  }, [employeeData]);
+  }, [userData]);
 
   useEffect(() => {
-    if (!Array.isArray(employeeData)) return;
+    if (!Array.isArray(userData)) return;
     const query = debouncedSearch.toLowerCase();
-    const list = employeeData.filter(emp =>
+    const list = userData.filter(emp =>
       emp.name.toLowerCase().includes(query) ||
       emp.emailId.toLowerCase().includes(query) ||
       emp.mobileNo.includes(query)
     );
     setFiltered(list);
-  }, [debouncedSearch, employeeData]);
+  }, [debouncedSearch, userData]);
 
   const handleSubmit = () => {
     if (!name || !email || !phone) return;
@@ -58,8 +58,8 @@ const EscalationMaster: React.FC = () => {
       emailId: email,
       mobileNo: phone,
     };
-    addApiHandler(() => addEmployee(payload)).then((res: any) => {
-      fetchEmployees();
+    addApiHandler(() => addUser(payload)).then((res: any) => {
+      fetchUsers();
       setName('');
       setEmail('');
       setPhone('');
@@ -70,7 +70,7 @@ const EscalationMaster: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    deleteApiHandler(() => deleteEmployee(id)).then(() => fetchEmployees());
+    deleteApiHandler(() => deleteUser(id)).then(() => fetchUsers());
   };
 
   const handleCancel = () => {

@@ -8,30 +8,30 @@ import lombok.Setter;
 import java.util.Set;
 
 @Entity
-@Table(name = "employees")
+@Table(name = "users")
 @Getter // Replaces @Data for getters
 @Setter // Replaces @Data for setters
 // IMPORTANT: Configure EqualsAndHashCode to only use the ID field
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Employee {
+public class User {
 
     @Id
-    @Column(name = "employee_id")
-    @EqualsAndHashCode.Include
-    private Integer employeeId;
-
     @Column(name = "user_id")
-    private String userId;
+    @EqualsAndHashCode.Include
+    private Integer userId;
+
+    @Column(name = "username")
+    private String username;
     private String name;
     @Column(name = "email_id")
     private String emailId;
     private String mobileNo;
     private String office;
 
-    // Stores the employee's password for authentication
+    // Stores the user's password for authentication
     @Column(name = "password")
     private String password;
 
-    @ManyToMany(mappedBy = "employees")
+    @ManyToMany(mappedBy = "users")
     private Set<Level> levels;
 }

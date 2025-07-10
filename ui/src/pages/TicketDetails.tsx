@@ -17,6 +17,7 @@ import StatusHistory from "../components/StatusHistory";
 import AssignmentHistory from "../components/AssignmentHistory";
 import { IconButton } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useSnackbar } from "../context/SnackbarContext";
 
 interface Ticket {
     id: number;
@@ -46,6 +47,7 @@ const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
     const { data: ticket, apiHandler: getTicketApiHandler } = useApi<any>();
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { showMessage } = useSnackbar();
     const { t } = useTranslation();
 
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
@@ -59,7 +61,13 @@ const TicketDetails: React.FC = () => {
         if (ticketId) getTicketApiHandler(() => getTicket(Number(ticketId)));
     }
     const updateTicketHandler = (ticketId: any, data: any) => {
-        if (ticketId && data) updateTicketApiHandler(() => updateTicket(Number(ticketId), data)).then(() => setEditing(false));
+        if (ticketId && data)
+            updateTicketApiHandler(() => updateTicket(Number(ticketId), data)).then((res: any) => {
+                setEditing(false);
+                if (res?.message) {
+                    showMessage(res.message, 'success');
+                }
+            });
     }
 
 
@@ -159,7 +167,7 @@ const TicketDetails: React.FC = () => {
                             <IconButton onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }}>
                                 <CloseIcon fontSize="small" />
                             </IconButton>
-                            <IconButton style={{ minWidth: 0, padding: 2 }}>
+                            <IconButton onClick={handleSubmit(onSubmitUpdate)} style={{ minWidth: 0, padding: 2 }}>
                                 <CheckIcon fontSize="small" />
                             </IconButton>
                         </>

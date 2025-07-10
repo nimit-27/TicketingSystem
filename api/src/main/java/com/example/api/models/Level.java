@@ -23,9 +23,9 @@ public class Level {
 
     @ManyToMany
     @JoinTable(
-            name = "employee_levels",
+            name = "user_levels",
             joinColumns = @JoinColumn(name = "level_id"),
-            inverseJoinColumns = @JoinColumn(name = "employee_id")
+            inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<Employee> employees;
+    private Set<User> users;
 }

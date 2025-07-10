@@ -1,8 +1,8 @@
 package com.example.api.service;
 
-import com.example.api.dto.EmployeeDto;
+import com.example.api.dto.UserDto;
 import com.example.api.dto.LevelDto;
-import com.example.api.models.Employee;
+import com.example.api.models.User;
 import com.example.api.models.Level;
 import com.example.api.repository.LevelRepository;
 import org.springframework.stereotype.Service;
@@ -29,22 +29,22 @@ public class LevelService {
         }).toList();
     }
 
-    public Optional<Set<EmployeeDto>> getEmployeesByLevel(String levelId) {
+    public Optional<Set<UserDto>> getUsersByLevel(String levelId) {
         return levelRepository
                 .findById(Integer.valueOf(levelId))
                 .map(level -> {
-                    Set<EmployeeDto> employeeDtos = new HashSet<EmployeeDto>();
-                    for (Employee employee : level.getEmployees()) { // This access triggers lazy loading
-                        EmployeeDto dto = new EmployeeDto();
-                        dto.setEmployeeId(employee.getEmployeeId());
-                        dto.setUserId(employee.getUserId());
-                        dto.setName(employee.getName());
-                        dto.setEmailId(employee.getEmailId());
-                        dto.setMobileNo(employee.getMobileNo());
-                        dto.setOffice(employee.getOffice());
-                        employeeDtos.add(dto);
+                    Set<UserDto> userDtos = new HashSet<>();
+                    for (User user : level.getUsers()) { // This access triggers lazy loading
+                        UserDto dto = new UserDto();
+                        dto.setUserId(user.getUserId());
+                        dto.setUsername(user.getUsername());
+                        dto.setName(user.getName());
+                        dto.setEmailId(user.getEmailId());
+                        dto.setMobileNo(user.getMobileNo());
+                        dto.setOffice(user.getOffice());
+                        userDtos.add(dto);
                     }
-                    return (employeeDtos);
+                    return userDtos;
                 });
     }
 }

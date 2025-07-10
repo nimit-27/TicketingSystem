@@ -1,15 +1,15 @@
 package com.example.api.dto;
 
 public class LoginRequest {
-    private String userId;
+    private String username;
     private String password;
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
