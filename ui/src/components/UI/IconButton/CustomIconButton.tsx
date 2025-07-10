@@ -11,6 +11,8 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import TranslateIcon from '@mui/icons-material/Translate';
 import TimelineIcon from '@mui/icons-material/Timeline';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 // Define the icon map
 const iconMap = {
@@ -24,7 +26,9 @@ const iconMap = {
     darkmode: DarkModeIcon,
     lightmode: LightModeIcon,
     translate: TranslateIcon,
-    timeline: TimelineIcon
+    timeline: TimelineIcon,
+    arrowdown: KeyboardArrowDownIcon,
+    arrowup: KeyboardArrowUpIcon
 };
 
 // Valid keys for the icon map

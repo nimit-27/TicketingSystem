@@ -4,7 +4,7 @@ import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
 import { getStatusHistory } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
-import { Paper } from '@mui/material';
+import { Paper, useTheme, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 interface HistoryEntry {
@@ -23,6 +23,8 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const { data, apiHandler } = useApi<any>();
     const [view, setView] = useState<'table' | 'timeline'>('table');
     const { t } = useTranslation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         apiHandler(() => getStatusHistory(ticketId));
@@ -67,7 +69,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             {view === 'table' ? (
                 <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
             ) : (
-                <Timeline>
+                <Timeline orientation={isMobile ? 'vertical' : 'horizontal'}>
                     {history.map((h, idx) => (
                         <TimelineItem key={h.id}>
                             <TimelineSeparator>

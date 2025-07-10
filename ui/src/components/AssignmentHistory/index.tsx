@@ -4,7 +4,7 @@ import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
 import { getAssignmentHistory } from '../../services/AssignmentHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
-import { Paper } from '@mui/material';
+import { Paper, useTheme, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 interface HistoryEntry {
@@ -22,6 +22,8 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
     const { data, apiHandler } = useApi<any>();
     const [view, setView] = useState<'table' | 'timeline'>('table');
     const { t } = useTranslation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         apiHandler(() => getAssignmentHistory(ticketId));
@@ -55,7 +57,7 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
             {view === 'table' ? (
                 <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
             ) : (
-                <Timeline>
+                <Timeline orientation={isMobile ? 'vertical' : 'horizontal'}>
                     {history.map((h, idx) => (
                         <TimelineItem key={h.id}>
                             <TimelineSeparator>
