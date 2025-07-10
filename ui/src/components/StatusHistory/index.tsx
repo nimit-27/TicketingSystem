@@ -26,6 +26,8 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+    const isDarkMode = theme.palette.mode === 'dark';
+
     useEffect(() => {
         apiHandler(() => getStatusHistory(ticketId));
     }, [ticketId]);
@@ -67,7 +69,9 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                 />
             </div>
             {view === 'table' ? (
-                <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
+                <div className={isDarkMode ? 'table-dark-theme' : ''}>
+                    <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
+                </div>
             ) : (
                 <Timeline>
                     {history.map((h, idx) => (
