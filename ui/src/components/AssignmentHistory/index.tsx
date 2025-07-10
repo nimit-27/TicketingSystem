@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table } from 'antd';
+import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
 import { getAssignmentHistory } from '../../services/AssignmentHistoryService';
@@ -55,7 +55,7 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
                 />
             </div>
             {view === 'table' ? (
-                <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
+                <GenericTable dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
             ) : (
                 <Timeline>
                     {history.map((h, idx) => (
