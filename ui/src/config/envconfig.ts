@@ -12,11 +12,11 @@ export const envConfig = {
         },
         fci: {
             userId: 'fci.user',
-            role: ['FCI_EMPLOYEE'],
+            role: ['FCI_User'],
             name: 'Narendra Modi',
-            email: 'fci.employee@example.com',
+            email: 'fci.User@example.com',
             phone: '9000000002',
-            employeeId: '201'
+            UserId: '201'
         },
         user: {
             userId: localStorage.getItem('userId') || 'nimit.jain',

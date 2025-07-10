@@ -10,7 +10,7 @@ import { useDebounce } from "../../hooks/useDebounce";
 import React, { useEffect, useState } from "react";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, FciTheme, isFciEmployee, isHelpdesk } from "../../config/config";
+import { currentUserDetails, FciTheme, isFciUser, isHelpdesk } from "../../config/config";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
@@ -21,10 +21,10 @@ interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
 }
 
-const FCI_EMPLOYEE = "fci";
-const NON_FCI_EMPLOYEE = "nonFci";
+const FCI_User = "fci";
+const NON_FCI_User = "nonFci";
 
-type ViewMode = typeof FCI_EMPLOYEE | typeof NON_FCI_EMPLOYEE;
+type ViewMode = typeof FCI_User | typeof NON_FCI_User;
 
 const stakeholderOptions: DropdownOption[] = [
     { label: "Farmer", value: "Farmer" },
@@ -39,25 +39,25 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const isDisabled = disableAll || disabled;
 
-    const { data, pending, success, apiHandler: getEmployeeDetailsApiHandler } = useApi<any>();
+    const { data, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
 
-    const employeeId = useWatch({ control, name: 'employeeId' });
+    const userId = useWatch({ control, name: 'userId' });
     const office = useWatch({ control, name: 'office' });
     const mobileNo = useWatch({ control, name: 'mobileNo' });
     const emailId = useWatch({ control, name: 'emailId' });
     const requestorName = useWatch({ control, name: 'requestorName' });
     const stakeholder = useWatch({ control, name: 'stakeholder' });
-    const debouncedEmployeeId = useDebounce(employeeId, 500);
+    const debouncedUserId = useDebounce(userId, 500);
 
     console.log({ stakeholder })
 
-    const getEmployeeDetailsHandler = (employeeId: any) => {
-        getEmployeeDetailsApiHandler(() => getEmployeeDetails(employeeId))
+    const getUserDetailsHandler = (userId: any) => {
+        getUserDetailsApiHandler(() => getUserDetails(userId))
     }
 
-    const clearEmployeeDetails = () => {
+    const clearUserDetails = () => {
         if (setValue) {
-            setValue("employeeId", "");
+            setValue("userId", "");
             setValue("requestorName", "");
             setValue("emailId", "");
             setValue("mobileNo", "");
@@ -66,12 +66,12 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         }
     }
 
-    const populateEmployeeDetails = (data: any) => {
+    const populateUserDetails = (data: any) => {
         if (setValue && data) {
             setValue("requestorName", data.requestorName);
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
-            if (isFciEmployee) {
+            if (isFciUser) {
                 setValue("role", data.role);
                 setValue("office", data.office);
             } else {
@@ -84,36 +84,36 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         if (success) {
             setVerified(true);
             if (setValue && data) {
-                populateEmployeeDetails(data)
+                populateUserDetails(data)
                 setDisabled(true)
             }
         } else setVerified(false);
     }, [pending, data]);
 
     useEffect(() => {
-        if (debouncedEmployeeId) {
+        if (debouncedUserId) {
             setDisabled(true);
-            if (disableAll || isFciEmployee) verifyEmployeeById(debouncedEmployeeId);
+            if (disableAll || isFciUser) verifyUserById(debouncedUserId);
         } else clearRequestorDetailsForm();
 
         setVerified(false);
-    }, [debouncedEmployeeId]);
+    }, [debouncedUserId]);
 
     useEffect(() => {
-        clearEmployeeDetails()
+        clearUserDetails()
     }, [viewMode])
 
     useEffect(() => {
-        // Ticket creation by FCI employee - SELF
-        if (isFciEmployee && createMode) {
-            const fciUser = currentUserDetails as typeof currentUserDetails & { employeeId: string };
-            if (setValue && fciUser.employeeId) setValue("employeeId", fciUser.employeeId);
+        // Ticket creation by FCI user - SELF
+        if (isFciUser && createMode) {
+            const fciUser = currentUserDetails as typeof currentUserDetails & { userId: string };
+            if (setValue && fciUser.userId) setValue("userId", fciUser.userId);
         }
-    }, [isFciEmployee, createMode]);
+    }, [isFciUser, createMode]);
 
-    const verifyEmployeeById = (employeeId: string) => {
-        // Logic to verify employee by ID
-        getEmployeeDetailsHandler(employeeId)
+    const verifyUserById = (userId: string) => {
+        // Logic to verify user by ID
+        getUserDetailsHandler(userId)
     };
 
     const clearRequestorDetailsForm = () => {
@@ -122,7 +122,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("requestorName", "");
             setValue("emailId", "");
             setValue("mobileNo", "");
-            setValue("employeeId", "");
+            setValue("userId", "");
             setValue("role", "");
             setValue("office", "");
             setValue("stakeholder", "");
@@ -131,28 +131,28 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setVerified(false);
     };
 
-    const showFciToggle = !isFciEmployee;
-    const showEmployeeId = viewMode === FCI_EMPLOYEE || isFciEmployee;
+    const showFciToggle = !isFciUser;
+    const showUserId = viewMode === FCI_User || isFciUser;
     const showRequestorName = true;
     const showEmailId = true;
     const showMobileNo = true;
     const showStakeholder = isHelpdesk && viewMode === "nonFci";
-    const showRole = viewMode === FCI_EMPLOYEE || isFciEmployee;
-    const showOffice = viewMode === FCI_EMPLOYEE || isFciEmployee;
+    const showRole = viewMode === FCI_User || isFciUser;
+    const showOffice = viewMode === FCI_User || isFciUser;
 
-    const isNonFci = viewMode === NON_FCI_EMPLOYEE && !isFciEmployee;
-    const isFciMode = viewMode === FCI_EMPLOYEE || isFciEmployee;
+    const isNonFci = viewMode === NON_FCI_User && !isFciUser;
+    const isFciMode = viewMode === FCI_User || isFciUser;
 
-    const isEmployeeIdDisabled = disableAll || isFciEmployee || !createMode; // isFciEmployee true means id will be auto fetched
-    const isNameDisabled = isDisabled || isFciEmployee || !createMode;
-    const isEmailIdDisabled = isDisabled || isFciEmployee || !createMode;
-    const isMobileNoDisabled = isDisabled || isFciEmployee || !createMode;
-    const isRoleDisabled = isDisabled || isFciEmployee || !createMode;
-    const isOfficeDisabled = isDisabled || isFciEmployee || !createMode;
+    const isUserIdDisabled = disableAll || isFciUser || !createMode; // isFciUser true means id will be auto fetched
+    const isNameDisabled = isDisabled || isFciUser || !createMode;
+    const isEmailIdDisabled = isDisabled || isFciUser || !createMode;
+    const isMobileNoDisabled = isDisabled || isFciUser || !createMode;
+    const isRoleDisabled = isDisabled || isFciUser || !createMode;
+    const isOfficeDisabled = isDisabled || isFciUser || !createMode;
     const isStakeholderDisabled = false || !createMode;
 
-    const isRequestorOrOnBehalfFci = !createMode && employeeId
-    const isRequestorOnBehalfNonFci = !createMode && !employeeId && stakeholder
+    const isRequestorOrOnBehalfFci = !createMode && userId
+    const isRequestorOnBehalfNonFci = !createMode && !userId && stakeholder
 
     return (
         <CustomFieldset title={t('Requestor Details')} className="mb-4">
@@ -162,18 +162,18 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     {isRequestorOrOnBehalfFci && (
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
-                                label="Employee ID"
-                                name="employeeId"
+                                label="User ID"
+                                name="userId"
                                 slotProps={{
-                                    inputLabel: { shrink: employeeId },
+                                    inputLabel: { shrink: userId },
                                     input: {
                                         endAdornment: !disableAll && (
                                             <InputAdornment position="end">
-                                                {(verified || employeeId) && (
+                                                {(verified || userId) && (
                                                     <CustomIconButton icon="Clear" onClick={clearRequestorDetailsForm} disabled={disableAll} />
                                                 )}
                                                 <VerifyIconButton
-                                                    onClick={() => verifyEmployeeById(employeeId)}
+                                                    onClick={() => verifyUserById(userId)}
                                                     pending={pending}
                                                     verified={verified}
                                                     disabled={!createMode}
@@ -184,7 +184,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 }}
                                 register={register}
                                 errors={errors}
-                                disabled={isEmployeeIdDisabled}
+                                disabled={isUserIdDisabled}
                             />
                         </div>
                     )}
@@ -192,7 +192,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
                                 slotProps={{
-                                    inputLabel: { shrink: requestorName || employeeId }
+                                    inputLabel: { shrink: requestorName || userId }
                                 }}
                                 label="Name"
                                 name="requestorName"
@@ -206,7 +206,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
                                 slotProps={{
-                                    inputLabel: { shrink: emailId || employeeId }
+                                    inputLabel: { shrink: emailId || userId }
                                 }}
                                 label="Email ID"
                                 name="emailId"
@@ -220,7 +220,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
                                 slotProps={{
-                                    inputLabel: { shrink: mobileNo || employeeId }
+                                    inputLabel: { shrink: mobileNo || userId }
                                 }}
                                 label="Mobile No."
                                 name="mobileNo"
@@ -249,7 +249,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
                                 slotProps={{
-                                    inputLabel: { shrink: employeeId || verified }
+                                    inputLabel: { shrink: userId || verified }
                                 }}
                                 label="Role"
                                 name="role"
@@ -281,28 +281,28 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         value={viewMode}
                         onChange={setViewMode}
                         options={[
-                            { label: t('FCI Employee'), value: 'fci' },
-                            { label: t('Non-FCI Employee'), value: 'nonFci' }
+                            { label: t('FCI User'), value: 'fci' },
+                            { label: t('Non-FCI User'), value: 'nonFci' }
                         ]}
                         radio={FciTheme}
                         disabled={disableAll}
                     />
                 </div>}
-                {showEmployeeId && (
+                {showUserId && (
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
-                            label="Employee ID"
-                            name="employeeId"
+                            label="User ID"
+                            name="userId"
                             slotProps={{
-                                inputLabel: { shrink: employeeId },
+                                inputLabel: { shrink: userId },
                                 input: {
                                     endAdornment: !disableAll && (
                                         <InputAdornment position="end">
-                                            {(verified || employeeId) && (
+                                            {(verified || userId) && (
                                                 <CustomIconButton icon="Clear" onClick={clearRequestorDetailsForm} disabled={disableAll} />
                                             )}
                                             <VerifyIconButton
-                                                onClick={() => verifyEmployeeById(employeeId)}
+                                                onClick={() => verifyUserById(userId)}
                                                 pending={pending}
                                                 verified={verified}
                                                 disabled={disableAll}
@@ -314,7 +314,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             register={register}
                             errors={errors}
                             required={isFciMode}
-                            disabled={isEmployeeIdDisabled}
+                            disabled={isUserIdDisabled}
                         />
                     </div>
                 )}
@@ -322,7 +322,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: requestorName || employeeId }
+                                inputLabel: { shrink: requestorName || userId }
                             }}
                             label="Name"
                             name="requestorName"
@@ -337,7 +337,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: emailId || employeeId }
+                                inputLabel: { shrink: emailId || userId }
                             }}
                             label="Email ID"
                             name="emailId"
@@ -352,7 +352,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: mobileNo || employeeId }
+                                inputLabel: { shrink: mobileNo || userId }
                             }}
                             label="Mobile No."
                             name="mobileNo"
@@ -381,7 +381,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
                             slotProps={{
-                                inputLabel: { shrink: employeeId || verified }
+                                inputLabel: { shrink: userId || verified }
                             }}
                             label="Role"
                             name="role"

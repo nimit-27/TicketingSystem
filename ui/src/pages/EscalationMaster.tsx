@@ -93,7 +93,7 @@ const EscalationMaster: React.FC = () => {
           style={{ color: 'gray', cursor: 'pointer' }}
           onClick={() => {
             if (window.confirm('Are you sure you want to delete this user?')) {
-              handleDelete(record.employeeId);
+              handleDelete(record.UserId);
             }
           }}
         />
@@ -128,7 +128,7 @@ const EscalationMaster: React.FC = () => {
       <div className="my-3 w-25">
         <GenericInput label="Search" fullWidth value={search} onChange={e => setSearch(e.target.value)} />
       </div>
-      <GenericTable columns={columns as any} dataSource={filtered} rowKey="employeeId" className="mt-4" pagination={false} />
+      <GenericTable columns={columns as any} dataSource={filtered} rowKey="UserId" className="mt-4" pagination={false} />
     </div>
   );
 };

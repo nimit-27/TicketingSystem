@@ -23,7 +23,7 @@ interface Ticket {
     id: number;
     reportedDate: string;
     mode: string;
-    employeeId: number;
+    UserId: number;
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
@@ -81,7 +81,7 @@ const TicketDetails: React.FC = () => {
             setValue("ticketId", ticket.id);
             setValue("reportedDate", ticket.reportedDate?.slice(0, 10));
             setValue("mode", ticket.mode);
-            setValue("employeeId", ticket.employeeId);
+            setValue("UserId", ticket.UserId);
             setValue("stakeholder", ticket.stakeholder);
             setValue("requestorName", ticket.requestorName);
             setValue("status", ticket.status);

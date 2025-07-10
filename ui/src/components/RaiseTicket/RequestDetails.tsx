@@ -5,7 +5,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, isFciEmployee, isHelpdesk } from "../../config/config";
+import { currentUserDetails, isFciUser, isHelpdesk } from "../../config/config";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,7 +36,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const mode = useWatch({ control, name: 'mode' });
 
     useEffect(() => {
-        if (currentUserDetails.role.includes("FCI_EMPLOYEE") && (!mode || mode !== "Self")) {
+        if (currentUserDetails.role.includes("FCI_User") && (!mode || mode !== "Self")) {
             setValue && setValue("mode", "Self");
         }
     }, [setValue, mode, currentUserDetails.role]);
@@ -72,7 +72,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             label="Mode"
                             options={isHelpdesk ? modeHelpdeskOptions : modeOptions}
                             className="form-select"
-                            disabled={disableAll || isFciEmployee}
+                            disabled={disableAll || isFciUser}
                         />
                     </div>
                 )}

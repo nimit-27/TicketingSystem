@@ -52,7 +52,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
 
     // getDropdownOptions(arr, label, value)
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
-    const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'employeeId');
+    const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'UserId');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = Array.isArray(statusList) ? statusList.map(s => ({ label: s.replace(/_/g, ' '), value: s })) : [];
