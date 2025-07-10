@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table } from 'antd';
+import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
 import { getStatusHistory } from '../../services/StatusHistoryService';
@@ -25,8 +25,6 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-    const isDarkMode = theme.palette.mode === 'dark';
 
     useEffect(() => {
         apiHandler(() => getStatusHistory(ticketId));
@@ -69,9 +67,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                 />
             </div>
             {view === 'table' ? (
-                <div className={isDarkMode ? 'table-dark-theme' : ''}>
-                    <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
-                </div>
+                <GenericTable dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
             ) : (
                 <Timeline>
                     {history.map((h, idx) => (

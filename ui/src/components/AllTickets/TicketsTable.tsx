@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Table } from 'antd';
+import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 
@@ -66,7 +66,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
     );
 
     return (
-        <Table
+        <GenericTable
             dataSource={tickets}
             columns={columns as any}
             rowKey="id"

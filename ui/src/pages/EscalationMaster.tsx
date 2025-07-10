@@ -4,7 +4,7 @@ import CustomFieldset from '../components/CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import GenericInput from '../components/UI/Input/GenericInput';
 import GenericButton from '../components/UI/Button';
-import { Table } from 'antd';
+import GenericTable from '../components/UI/GenericTable';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { addEmployee, deleteEmployee, getAllEmployees } from '../services/EmployeeService';
 import { useApi } from '../hooks/useApi';
@@ -128,7 +128,7 @@ const EscalationMaster: React.FC = () => {
       <div className="my-3 w-25">
         <GenericInput label="Search" fullWidth value={search} onChange={e => setSearch(e.target.value)} />
       </div>
-      <Table columns={columns as any} dataSource={filtered} rowKey="employeeId" className="mt-4" pagination={false} />
+      <GenericTable columns={columns as any} dataSource={filtered} rowKey="employeeId" className="mt-4" pagination={false} />
     </div>
   );
 };
