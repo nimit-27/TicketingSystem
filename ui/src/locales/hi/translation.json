@@ -80,5 +80,8 @@
   "Updated By": "अद्यतन करने वाला",
   "Timestamp": "समय",
   "Previous Status": "पिछली स्थिति",
-  "Current Status": "वर्तमान स्थिति"
+  "Current Status": "वर्तमान स्थिति",
+  "Track Assignment History": "असाइनमेंट इतिहास देखें",
+  "Assigned By": "द्वारा असाइन किया गया",
+  "Assigned To": "किसे असाइन किया गया"
 }

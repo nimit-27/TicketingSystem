@@ -71,6 +71,10 @@ CREATE TABLE `status_history` (
 
 LOCK TABLES `status_history` WRITE;
 /*!40000 ALTER TABLE `status_history` DISABLE KEYS */;
+INSERT INTO `status_history` VALUES 
+  (1,1,'arjunm','PENDING','ON_HOLD','2025-06-09 10:00:00'),
+  (2,5,'helpdesk.user','ON_HOLD','CLOSED','2025-06-09 10:05:00'),
+  (3,6,'eshas','PENDING','REOPENED','2025-06-09 10:10:00');
 /*!40000 ALTER TABLE `status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 

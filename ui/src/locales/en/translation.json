@@ -80,5 +80,8 @@
   "Updated By": "Updated By",
   "Timestamp": "Timestamp",
   "Previous Status": "Previous Status",
-  "Current Status": "Current Status"
+  "Current Status": "Current Status",
+  "Track Assignment History": "Track Assignment History",
+  "Assigned By": "Assigned By",
+  "Assigned To": "Assigned To"
 }

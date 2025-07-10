@@ -14,6 +14,7 @@ import GenericButton from "../components/UI/Button";
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
 import StatusHistory from "../components/StatusHistory";
+import AssignmentHistory from "../components/AssignmentHistory";
 import { IconButton } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
@@ -51,6 +52,7 @@ const TicketDetails: React.FC = () => {
     const statusValue = useWatch({ control, name: 'status' });
     const [editing, setEditing] = useState<boolean>(false);
     const [showHistory, setShowHistory] = useState<boolean>(false);
+    const [showAssignmentHistory, setShowAssignmentHistory] = useState<boolean>(false);
 
     // API calls
     const getTicketHandler = (ticketId: any) => {
@@ -157,12 +159,16 @@ const TicketDetails: React.FC = () => {
             </form>
 
             <CommentsSection ticketId={Number(ticketId)} />
-            <div className="mt-3">
+            <div className="mt-3 d-flex gap-2">
                 <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
                     {t('Track Ticket Status')}
                 </GenericButton>
+                <GenericButton variant="outlined" onClick={() => setShowAssignmentHistory(!showAssignmentHistory)}>
+                    {t('Track Assignment History')}
+                </GenericButton>
             </div>
             {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
+            {showAssignmentHistory && <AssignmentHistory ticketId={Number(ticketId)} />}
         </div>
     );
 };
