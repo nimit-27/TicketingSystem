@@ -61,8 +61,8 @@ const TicketDetails: React.FC = () => {
     const updateTicketHandler = (ticketId: any, data: any) => {
         if (ticketId && data) updateTicketApiHandler(() => updateTicket(Number(ticketId), data)).then(() => setEditing(false));
     }
-    
-    
+
+
     useEffect(() => {
         getTicketHandler(ticketId);
     }, [ticketId]);
@@ -131,19 +131,20 @@ const TicketDetails: React.FC = () => {
                 </div>
             )}
 
+            <div className="mt-3 d-flex gap-2">
+                <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
+                    {t('Track Ticket Status')}
+                </GenericButton>
+                <GenericButton variant="outlined" onClick={() => setShowAssignmentHistory(!showAssignmentHistory)}>
+                    {t('Track Assignment History')}
+                </GenericButton>
+            </div>
+            {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
+            {showAssignmentHistory && <AssignmentHistory ticketId={Number(ticketId)} />}
+            
             <form onSubmit={handleSubmit(onSubmitUpdate)}>
                 <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
 
-                <div className="mt-3 d-flex gap-2">
-                    <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
-                        {t('Track Ticket Status')}
-                    </GenericButton>
-                    <GenericButton variant="outlined" onClick={() => setShowAssignmentHistory(!showAssignmentHistory)}>
-                        {t('Track Assignment History')}
-                    </GenericButton>
-                </div>
-                {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
-                {showAssignmentHistory && <AssignmentHistory ticketId={Number(ticketId)} />}
 
                 <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
 

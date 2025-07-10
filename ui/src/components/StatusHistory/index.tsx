@@ -69,7 +69,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             {view === 'table' ? (
                 <Table dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
             ) : (
-                <Timeline orientation={isMobile ? 'vertical' : 'horizontal'}>
+                <Timeline>
                     {history.map((h, idx) => (
                         <TimelineItem key={h.id}>
                             <TimelineSeparator>
