@@ -35,7 +35,7 @@ public class FilegatorController {
         String csrfToken = init.getHeaders().getFirst("X-CSRF-Token");
         String sessionCookie = init.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
 
-        String username = (String) session.getAttribute("userId");
+        String username = (String) session.getAttribute("username");
         String password = (String) session.getAttribute("password");
 
         if (username == null || password == null) {

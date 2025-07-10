@@ -1,6 +1,6 @@
 package com.example.api.controller;
 
-import com.example.api.dto.EmployeeDto;
+import com.example.api.dto.UserDto;
 import com.example.api.dto.LevelDto;
 import com.example.api.service.LevelService;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +25,10 @@ public class LevelController {
         return ResponseEntity.ok(levelService.getAllLevels());
     }
 
-    @GetMapping("/{levelId}/employees")
-    public ResponseEntity<Set<EmployeeDto>> getEmployeeByLevel(@PathVariable String levelId) {
-        Optional<Set<EmployeeDto>> employeesOptional = levelService.getEmployeesByLevel(levelId);
+    @GetMapping("/{levelId}/users")
+    public ResponseEntity<Set<UserDto>> getUserByLevel(@PathVariable String levelId) {
+        Optional<Set<UserDto>> usersOptional = levelService.getUsersByLevel(levelId);
 
-        return employeesOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return usersOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

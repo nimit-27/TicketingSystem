@@ -5,9 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmployeeDto {
-    private Integer employeeId;
-    private String userId;
+public class UserDto {
+    private Integer userId;
+    private String username;
     private String name;
     private String emailId;
     private String mobileNo;

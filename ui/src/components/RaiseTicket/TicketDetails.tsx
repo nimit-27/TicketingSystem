@@ -8,7 +8,7 @@ import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import React, { useEffect, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
-import { getAllEmployeesByLevel, getAllLevels } from "../../services/LevelService";
+import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
 import { getStatuses } from "../../services/StatusService";
 import { currentUserDetails } from "../../config/config";
@@ -41,7 +41,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const { t } = useTranslation();
 
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
-    const { data: allEmployeesByLevel, pending, error, apiHandler: getAllEmployeesByLevelHandler } = useApi();
+    const { data: allUsersByLevel, pending, error, apiHandler: getAllUsersByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
     const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
     const { data: statusList, apiHandler: getStatusApiHandler } = useApi<any>();
@@ -52,7 +52,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
 
     // getDropdownOptions(arr, label, value)
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
-    const assignToOptions: DropdownOption[] = getDropdownOptions(allEmployeesByLevel, 'name', 'employeeId');
+    const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'employeeId');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = Array.isArray(statusList) ? statusList.map(s => ({ label: s.replace(/_/g, ' '), value: s })) : [];
@@ -89,7 +89,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     }, [])
 
     useEffect(() => {
-        assignedToLevel && getAllEmployeesByLevelHandler(() => getAllEmployeesByLevel(assignedToLevel))
+        assignedToLevel && getAllUsersByLevelHandler(() => getAllUsersByLevel(assignedToLevel))
     }, [assignedToLevel])
 
     useEffect(() => {

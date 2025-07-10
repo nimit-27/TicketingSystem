@@ -107,60 +107,60 @@ INSERT INTO `categories` VALUES (2,'Payment Problems','bhavyar','2025-06-10 16:5
 UNLOCK TABLES;
 
 --
--- Table structure for table `employee_levels`
+-- Table structure for table `user_levels`
 --
 
-DROP TABLE IF EXISTS `employee_levels`;
+DROP TABLE IF EXISTS `user_levels`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `employee_levels` (
-  `employee_id` int NOT NULL,
+CREATE TABLE `user_levels` (
+  `user_id` int NOT NULL,
   `level_id` int NOT NULL,
-  PRIMARY KEY (`employee_id`,`level_id`),
+  PRIMARY KEY (`user_id`,`level_id`),
   KEY `level_id` (`level_id`),
-  CONSTRAINT `employee_levels_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`),
-  CONSTRAINT `employee_levels_ibfk_2` FOREIGN KEY (`level_id`) REFERENCES `levels` (`level_id`)
+  CONSTRAINT `user_levels_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `user_levels_ibfk_2` FOREIGN KEY (`level_id`) REFERENCES `levels` (`level_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `employee_levels`
+-- Dumping data for table `user_levels`
 --
 
-LOCK TABLES `employee_levels` WRITE;
-/*!40000 ALTER TABLE `employee_levels` DISABLE KEYS */;
-INSERT INTO `employee_levels` VALUES (205,1),(203,3),(204,3),(201,4),(202,4),(211,6);
-/*!40000 ALTER TABLE `employee_levels` ENABLE KEYS */;
+LOCK TABLES `user_levels` WRITE;
+/*!40000 ALTER TABLE `user_levels` DISABLE KEYS */;
+INSERT INTO `user_levels` VALUES (205,1),(203,3),(204,3),(201,4),(202,4),(211,6);
+/*!40000 ALTER TABLE `user_levels` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `employees`
+-- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `employees`;
+DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `employees` (
-  `employee_id` int NOT NULL,
+CREATE TABLE `users` (
+  `user_id` int NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `email_id` varchar(100) DEFAULT NULL,
   `mobile_no` varchar(15) DEFAULT NULL,
   `office` varchar(100) DEFAULT NULL,
-  `user_id` varchar(50) DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`employee_id`),
-  UNIQUE KEY `user_id` (`user_id`)
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `employees`
+-- Dumping data for table `users`
 --
 
-LOCK TABLES `employees` WRITE;
-/*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas',NULL),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL),(211,'Guest Account',NULL,NULL,NULL,'guest','admin123');
-/*!40000 ALTER TABLE `employees` ENABLE KEYS */;
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas',NULL),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL),(211,'Guest Account',NULL,NULL,NULL,'guest','admin123');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -171,11 +171,11 @@ DROP TABLE IF EXISTS `filegator_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `filegator_users` (
-  `employee_id` int NOT NULL,
+  `user_id` int NOT NULL,
   `permissions` varchar(200) NOT NULL DEFAULT '',
   `homedir` varchar(2000) NOT NULL DEFAULT '/',
-  PRIMARY KEY (`employee_id`),
-  CONSTRAINT `filegator_users_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`)
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `filegator_users_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -460,7 +460,7 @@ CREATE TABLE `tickets` (
   `id` int NOT NULL AUTO_INCREMENT,
   `reported_date` date DEFAULT NULL,
   `mode` enum('Email','Self','Call') DEFAULT NULL,
-  `employee_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
   `requestor_name` varchar(100) DEFAULT NULL,
   `requestor_email_id` varchar(100) DEFAULT NULL,
   `requestor_mobile_no` varchar(15) DEFAULT NULL,
@@ -529,7 +529,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `users` AS select `e`.`employee_id` AS `id`,`e`.`user_id` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`employee_levels` `el` join `levels` `l` on(((`el`.`level_id` = `l`.`level_id`) and (`el`.`employee_id` = `e`.`employee_id`)))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`employees` `e` join `filegator_users` `fu` on((`fu`.`employee_id` = `e`.`employee_id`))) */;
+/*!50001 VIEW `users` AS select `e`.`user_id` AS `id`,`e`.`username` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`user_levels` `el` join `levels` `l` on(((`el`.`level_id` = `l`.`level_id`) and (`el`.`user_id` = `e`.`user_id`)))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`users` `e` join `filegator_users` `fu` on((`fu`.`user_id` = `e`.`user_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;

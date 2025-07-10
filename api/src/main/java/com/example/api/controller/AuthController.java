@@ -1,7 +1,7 @@
 package com.example.api.controller;
 
 import com.example.api.dto.LoginRequest;
-import com.example.api.models.Employee;
+import com.example.api.models.User;
 import com.example.api.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
@@ -22,13 +22,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
-        return authService.authenticate(request.getUserId(), request.getPassword())
+        return authService.authenticate(request.getUsername(), request.getPassword())
                 .map(emp -> {
-                    session.setAttribute("employeeId", emp.getEmployeeId());
-                    session.setAttribute("userId", request.getUserId());
+                    session.setAttribute("userId", emp.getUserId());
+                    session.setAttribute("username", request.getUsername());
                     session.setAttribute("password", request.getPassword());
                     return ResponseEntity.ok(Map.of(
-                            "employeeId", emp.getEmployeeId(),
+                            "userId", emp.getUserId(),
                             "name", emp.getName()));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)

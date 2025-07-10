@@ -22,11 +22,11 @@ public class Ticket {
     private Date reportedDate;
     @Enumerated(EnumType.STRING)
     private Mode mode;
-    @Column(name = "employee_id", insertable = false, updatable = false)
-    private Integer employeeId;
+    @Column(name = "user_id", insertable = false, updatable = false)
+    private Integer userId;
     @ManyToOne
-    @JoinColumn(name = "employee_id", referencedColumnName = "employee_id")
-    private Employee employee;
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private User user;
 
     @Column(name = "requestor_name")
     private String requestorName;

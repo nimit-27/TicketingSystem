@@ -1,0 +1,18 @@
+import axios from "axios";
+import { BASE_URL } from "./api";
+
+export function getUserDetails(payload: string) {
+    return axios.get(`${BASE_URL}/users/${payload}`);
+}
+
+export function getAllUsers() {
+    return axios.get(`${BASE_URL}/users`);
+}
+
+export function addUser(user: any) {
+    return axios.post(`${BASE_URL}/users`, user);
+}
+
+export function deleteUser(id: number) {
+    return axios.delete(`${BASE_URL}/users/${id}`);
+}
