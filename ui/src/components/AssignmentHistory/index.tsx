@@ -33,7 +33,7 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
         { title: t('Assigned By'), dataIndex: 'assignedBy', key: 'assignedBy' },
         { title: t('Assigned To'), dataIndex: 'assignedTo', key: 'assignedTo' },
         {
-            title: t('Timestamp'),
+            title: t('Assigned On'),
             dataIndex: 'timestamp',
             key: 'timestamp',
             render: (v: string) => new Date(v).toLocaleString(),
