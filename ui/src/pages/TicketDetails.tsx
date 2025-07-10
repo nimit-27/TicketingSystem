@@ -133,6 +133,18 @@ const TicketDetails: React.FC = () => {
 
             <form onSubmit={handleSubmit(onSubmitUpdate)}>
                 <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
+
+                <div className="mt-3 d-flex gap-2">
+                    <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
+                        {t('Track Ticket Status')}
+                    </GenericButton>
+                    <GenericButton variant="outlined" onClick={() => setShowAssignmentHistory(!showAssignmentHistory)}>
+                        {t('Track Assignment History')}
+                    </GenericButton>
+                </div>
+                {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
+                {showAssignmentHistory && <AssignmentHistory ticketId={Number(ticketId)} />}
+
                 <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
 
                 <TicketDetailsForm
@@ -159,16 +171,6 @@ const TicketDetails: React.FC = () => {
             </form>
 
             <CommentsSection ticketId={Number(ticketId)} />
-            <div className="mt-3 d-flex gap-2">
-                <GenericButton variant="outlined" onClick={() => setShowHistory(!showHistory)}>
-                    {t('Track Ticket Status')}
-                </GenericButton>
-                <GenericButton variant="outlined" onClick={() => setShowAssignmentHistory(!showAssignmentHistory)}>
-                    {t('Track Assignment History')}
-                </GenericButton>
-            </div>
-            {showHistory && <StatusHistory ticketId={Number(ticketId)} />}
-            {showAssignmentHistory && <AssignmentHistory ticketId={Number(ticketId)} />}
         </div>
     );
 };
