@@ -1,0 +1,7 @@
+notification:
+  senderEmail: jain.nimit99@gmail.com
+  enabled: true
+  templates:
+    email: templates/email
+    sms: templates/sms
+#  supportEmail:
