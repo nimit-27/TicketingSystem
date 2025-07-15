@@ -44,8 +44,12 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
         onClick={toggleSidebar}
       />
       <div>
-        {theme.palette.mode === 'light' && <img src="./logo.png" style={{ height: '50px' }} />}
-        {theme.palette.mode === 'dark' && <img src="./fciLogo.png" style={{ height: '50px' }} />}
+        {theme.palette.mode === 'light' && (
+          <img src="/logo.png" style={{ height: '50px' }} />
+        )}
+        {theme.palette.mode === 'dark' && (
+          <img src="/fciLogo.png" style={{ height: '50px' }} />
+        )}
       </div>
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
