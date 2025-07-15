@@ -506,14 +506,14 @@ UNLOCK TABLES;
 INSERT INTO `tickets` VALUES (112,'2025-06-24','Email',212,'Kevin Brooks','kevin.brooks@example.com','9123456790','System Crash','System crash when saving data','IT','Network','High','/files/log.txt',0,NULL,'2025-06-24 12:00:00','PENDING','L1','Kevin Brooks','admin','HIGH','HIGH','admin','Critical','Management');
 
 --
--- Temporary view structure for view `users`
+-- Temporary view structure for view `users_view`
 --
 
-DROP TABLE IF EXISTS `users`;
-/*!50001 DROP VIEW IF EXISTS `users`*/;
+DROP TABLE IF EXISTS `users_view`;
+/*!50001 DROP VIEW IF EXISTS `users_view`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `users` AS SELECT 
+/*!50001 CREATE VIEW `users_view` AS SELECT
  1 AS `id`,
  1 AS `username`,
  1 AS `name`,
@@ -524,10 +524,10 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
--- Final view structure for view `users`
+-- Final view structure for view `users_view`
 --
 
-/*!50001 DROP VIEW IF EXISTS `users`*/;
+/*!50001 DROP VIEW IF EXISTS `users_view`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
@@ -536,7 +536,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `users` AS select `e`.`user_id` AS `id`,`e`.`username` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`user_levels` `el` join `levels` `l` on(((`el`.`level_id` = `l`.`level_id`) and (`el`.`user_id` = `e`.`user_id`)))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`users` `e` join `filegator_users` `fu` on((`fu`.`user_id` = `e`.`user_id`))) */;
+/*!50001 VIEW `users_view` AS select `e`.`user_id` AS `id`,`e`.`username` AS `username`,`e`.`name` AS `name`,(select `l`.`level_name` from (`user_levels` `el` join `levels` `l` on(((`el`.`level_id` = `l`.`level_id`) and (`el`.`user_id` = `e`.`user_id`)))) order by `l`.`level_id` desc limit 1) AS `role`,`e`.`password` AS `password`,`fu`.`permissions` AS `permissions`,`fu`.`homedir` AS `homedir` from (`users` `e` join `filegator_users` `fu` on((`fu`.`user_id` = `e`.`user_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
