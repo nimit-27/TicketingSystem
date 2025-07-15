@@ -32,6 +32,9 @@ const darkTheme = createTheme({
       default: '#303030',
       paper: '#424242',
     },
+    action: {
+      disabledBackground: '#555555',
+    },
   },
   components: {
     MuiButton: {

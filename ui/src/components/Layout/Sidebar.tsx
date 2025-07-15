@@ -53,14 +53,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const theme = useTheme();
 
   const bgColor = theme.palette.secondary.main;
-  const textColor =
-    theme.palette.mode === 'dark'
-      ? theme.palette.success.main
-      : '#FFFFFF';
-  const sidebarBorder =
-    theme.palette.mode === 'dark'
-      ? `1px solid ${theme.palette.success.main}`
-      : undefined;
+  const textColor = '#ff9800';
+  const sidebarBorder = `1px solid ${textColor}`;
 
   return (
     <div
