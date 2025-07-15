@@ -57,7 +57,7 @@ class Database implements Service, AuthInterface
         if (! $user) return null;
 
         $ret = $this->getConnection()
-            ->fetch('SELECT * FROM users WHERE username = ?', $user->getUsername())
+            ->fetch('SELECT * FROM users_view WHERE username = ?', $user->getUsername())
         ;
 
         if ($ret && $hash == $ret->password.$ret->permissions.$ret->homedir.$ret->role) {
@@ -70,7 +70,7 @@ class Database implements Service, AuthInterface
     public function authenticate($username, $password): bool
     {
         $ret = $this->getConnection()
-            ->fetch('SELECT * FROM users WHERE username = ?', $username)
+            ->fetch('SELECT * FROM users_view WHERE username = ?', $username)
         ;
 
         if ($ret && $this->verifyPassword($password, $ret->password)) {
@@ -153,7 +153,7 @@ class Database implements Service, AuthInterface
     public function find($username): ?User
     {
         $row = $this->getConnection()
-            ->fetch('SELECT * FROM users WHERE username = ?', $username)
+            ->fetch('SELECT * FROM users_view WHERE username = ?', $username)
         ;
 
         if ($row) {
@@ -179,7 +179,7 @@ class Database implements Service, AuthInterface
         $users = new UsersCollection();
 
         $rows = $this->getConnection()
-            ->fetchAll('SELECT * FROM users')
+            ->fetchAll('SELECT * FROM users_view')
         ;
 
         foreach ($rows as $user) {
