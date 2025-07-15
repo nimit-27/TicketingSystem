@@ -5,6 +5,7 @@ import com.example.notification.enums.ChannelType;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class EmailNotifier implements Notifier {
     private final NotificationProperties properties;
     private final JavaMailSender mailSender;
 
-    public EmailNotifier(Configuration freemarker, NotificationProperties properties, JavaMailSender mailSender) {
+    public EmailNotifier(@Qualifier("freemarkerConfiguration") Configuration freemarker, NotificationProperties properties, JavaMailSender mailSender) {
         this.freemarker = freemarker;
         this.properties = properties;
         this.mailSender = mailSender;

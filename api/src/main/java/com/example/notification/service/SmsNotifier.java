@@ -7,6 +7,7 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
@@ -18,7 +19,7 @@ public class SmsNotifier implements Notifier {
     private final Configuration freemarker;
     private final TwilioProperties twilioProperties;
 
-    public SmsNotifier(NotificationProperties properties, Configuration freemarker, TwilioProperties twilioProperties) {
+    public SmsNotifier(NotificationProperties properties, @Qualifier("freemarkerConfiguration") Configuration freemarker, TwilioProperties twilioProperties) {
         this.properties = properties;
         this.freemarker = freemarker;
         this.twilioProperties = twilioProperties;

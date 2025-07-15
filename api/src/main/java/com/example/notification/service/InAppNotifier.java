@@ -4,6 +4,7 @@ import com.example.notification.config.NotificationProperties;
 import com.example.notification.enums.ChannelType;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ public class InAppNotifier implements Notifier{
     private final Configuration freemarker;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public InAppNotifier(Configuration freemarker, SimpMessagingTemplate messagingTemplate) {
+    public InAppNotifier(@Qualifier("freemarkerConfiguration") Configuration freemarker, SimpMessagingTemplate messagingTemplate) {
         this.freemarker = freemarker;
         this.messagingTemplate = messagingTemplate;
     }
