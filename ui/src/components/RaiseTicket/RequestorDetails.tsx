@@ -1,4 +1,4 @@
-import { InputAdornment, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
@@ -42,6 +42,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const { data, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
+    const mode = useWatch({ control, name: 'mode' });
+    const onBehalfFciUser = useWatch({ control, name: 'onBehalfFciUser' });
     const office = useWatch({ control, name: 'office' });
     const mobileNo = useWatch({ control, name: 'mobileNo' });
     const emailId = useWatch({ control, name: 'emailId' });
@@ -101,7 +103,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     useEffect(() => {
         clearUserDetails()
-    }, [viewMode])
+    }, [viewMode, onBehalfFciUser])
 
     useEffect(() => {
         // Ticket creation by FCI user - SELF
@@ -109,7 +111,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             const fciUser = currentUserDetails as typeof currentUserDetails & { userId: string };
             if (setValue && fciUser.userId) setValue("userId", fciUser.userId);
         }
-    }, [isFciUser, createMode]);
+        if (isHelpdesk && mode === 'Self' && createMode) {
+            const hdUser = currentUserDetails as typeof currentUserDetails & { userId: string };
+            if (setValue && hdUser.userId) {
+                setValue('userId', hdUser.userId);
+                verifyUserById(hdUser.userId);
+            }
+        }
+    }, [isFciUser, isHelpdesk, mode, createMode]);
 
     const verifyUserById = (userId: string) => {
         // Logic to verify user by ID
@@ -131,24 +140,39 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setVerified(false);
     };
 
-    const showFciToggle = !isFciUser;
-    const showUserId = viewMode === FCI_User || isFciUser;
+    const isSelfHelpdesk = isHelpdesk && mode === 'Self';
+
+    const showOnBehalfCheckbox = isHelpdesk && createMode && mode !== 'Self';
+
+    const showFciToggle = !isFciUser && !isHelpdesk;
+    const showUserId =
+        viewMode === FCI_User || isFciUser || onBehalfFciUser || isSelfHelpdesk;
+    const userIdLabel = isSelfHelpdesk ? 'User ID' : 'Employee ID';
     const showRequestorName = true;
     const showEmailId = true;
     const showMobileNo = true;
-    const showStakeholder = isHelpdesk && viewMode === "nonFci";
-    const showRole = viewMode === FCI_User || isFciUser;
-    const showOffice = viewMode === FCI_User || isFciUser;
+    const showStakeholder =
+        !onBehalfFciUser &&
+        !isSelfHelpdesk &&
+        viewMode === 'nonFci' &&
+        !isFciUser;
+    const showRole =
+        viewMode === FCI_User || isFciUser || onBehalfFciUser || isSelfHelpdesk;
+    const showOffice =
+        (viewMode === FCI_User || isFciUser || onBehalfFciUser) && !isSelfHelpdesk;
 
-    const isNonFci = viewMode === NON_FCI_User && !isFciUser;
-    const isFciMode = viewMode === FCI_User || isFciUser;
+    const isNonFci =
+        viewMode === NON_FCI_User && !isFciUser && !onBehalfFciUser && !isSelfHelpdesk;
+    const isFciMode =
+        viewMode === FCI_User || isFciUser || onBehalfFciUser || isSelfHelpdesk;
 
-    const isUserIdDisabled = disableAll || isFciUser || !createMode; // isFciUser true means id will be auto fetched
-    const isNameDisabled = isDisabled || isFciUser || !createMode;
-    const isEmailIdDisabled = isDisabled || isFciUser || !createMode;
-    const isMobileNoDisabled = isDisabled || isFciUser || !createMode;
-    const isRoleDisabled = isDisabled || isFciUser || !createMode;
-    const isOfficeDisabled = isDisabled || isFciUser || !createMode;
+    const isUserIdDisabled =
+        disableAll || isFciUser || isSelfHelpdesk || !createMode;
+    const isNameDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
+    const isEmailIdDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
+    const isMobileNoDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
+    const isRoleDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
+    const isOfficeDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
     const isStakeholderDisabled = false || !createMode;
 
     const isRequestorOrOnBehalfFci = !createMode && userId
@@ -162,7 +186,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     {isRequestorOrOnBehalfFci && (
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
-                                label="User ID"
+                                label={userIdLabel}
                                 name="userId"
                                 slotProps={{
                                     inputLabel: { shrink: userId },
@@ -276,6 +300,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 </div>
             }
             {createMode && <div className="row g-3">
+                {showOnBehalfCheckbox && (
+                    <div className="col-md-12 mb-3 px-4">
+                        <FormControlLabel
+                            control={<Checkbox {...register('onBehalfFciUser')} />}
+                            label={t('On behalf of FCI User')}
+                        />
+                    </div>
+                )}
                 {showFciToggle && <div className="col-md-5 px-4 w-100">
                     <ViewToggle
                         value={viewMode}
@@ -291,7 +323,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 {showUserId && (
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
-                            label="User ID"
+                            label={userIdLabel}
                             name="userId"
                             slotProps={{
                                 inputLabel: { shrink: userId },

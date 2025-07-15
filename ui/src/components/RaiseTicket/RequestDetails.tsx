@@ -20,13 +20,6 @@ const modeOptions: DropdownOption[] = [
     { label: "Email", value: "Email" }
 ];
 
-const modeHelpdeskOptions: DropdownOption[] = [
-    { label: "Call", value: "Call" },
-    { label: "Email", value: "Email" }
-];
-
-
-
 const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled }) => {
     const showTicketId = false;
     const showReportedDate = true;
@@ -36,10 +29,10 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const mode = useWatch({ control, name: 'mode' });
 
     useEffect(() => {
-        if (currentUserDetails.role.includes("FCI_User") && (!mode || mode !== "Self")) {
+        if (!isHelpdesk && (!mode || mode !== "Self")) {
             setValue && setValue("mode", "Self");
         }
-    }, [setValue, mode, currentUserDetails.role]);
+    }, [setValue, mode]);
 
     const { t } = useTranslation();
     return (
@@ -70,9 +63,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             control={control}
                             rules={{ required: true }}
                             label="Mode"
-                            options={isHelpdesk ? modeHelpdeskOptions : modeOptions}
+                            options={modeOptions}
                             className="form-select"
-                            disabled={disableAll || isFciUser}
+                            disabled={disableAll || !isHelpdesk}
                         />
                     </div>
                 )}

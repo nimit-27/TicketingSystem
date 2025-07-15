@@ -29,22 +29,30 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
       ? theme.palette.secondary.main
       : theme.palette.primary.main;
 
+  const iconColor =
+    theme.palette.mode === "dark"
+      ? theme.palette.success.main
+      : theme.palette.getContrastText(headerBgColor);
+
   return (
     <header
       style={{
         backgroundColor: headerBgColor,
-        color: theme.palette.getContrastText(headerBgColor),
+        color: iconColor,
         width: "100%",
         padding: "10px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        borderBottom: "1px solid lightgreen",
+        borderBottom:
+          theme.palette.mode === "dark"
+            ? `1px solid ${theme.palette.success.main}`
+            : undefined,
       }}
     >
       <CustomIconButton
         style={{
-          color: theme.palette.getContrastText(headerBgColor),
+          color: iconColor,
         }}
         icon={collapsed ? "menu" : "chevronleft"}
         onClick={toggleSidebar}
@@ -60,14 +68,14 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
           style={{
-            color: theme.palette.getContrastText(headerBgColor),
+            color: iconColor,
           }}
           icon={mode === "light" ? "darkmode" : "lightmode"}
           onClick={toggle}
         />
         <CustomIconButton
           style={{
-            color: theme.palette.getContrastText(headerBgColor),
+            color: iconColor,
           }}
           icon="translate"
           onClick={toggleLanguage}
