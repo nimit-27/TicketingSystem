@@ -13,10 +13,15 @@ import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.enums.TicketStatus;
 import com.example.api.typesense.TypesenseClient;
+import com.example.notification.enums.ChannelType;
+import com.example.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -29,12 +34,13 @@ public class TicketService {
     private final AssignmentHistoryService assignmentHistoryService;
     private final LevelRepository levelRepository;
     private final StatusHistoryService statusHistoryService;
+    private final NotificationService notificationService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
                          UserRepository userRepository, TicketCommentRepository commentRepository,
                          AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository,
-                         StatusHistoryService statusHistoryService) {
+                         StatusHistoryService statusHistoryService, NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
@@ -42,6 +48,7 @@ public class TicketService {
         this.assignmentHistoryService = assignmentHistoryService;
         this.levelRepository = levelRepository;
         this.statusHistoryService = statusHistoryService;
+        this.notificationService = notificationService;
     }
 
     public List<Ticket> getTickets() {
@@ -77,12 +84,34 @@ public class TicketService {
             levelRepository.findByLevelName("L1").ifPresent(level -> {
                 if (level.getUsers() != null && !level.getUsers().isEmpty()) {
                     User emp = level.getUsers().iterator().next();
-                    ticket.setAssignedTo(emp.getUserId());
+                    ticket.setAssignedTo(String.valueOf(emp.getUserId()));
                 }
             });
         }
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
+
+        // Prepare data model for Freemarker template
+        Map<String, Object> data = new HashMap<>();
+        if (saved.getUser() != null) {
+            data.put("username", saved.getUser().getName());
+        } else {
+            data.put("username", saved.getRequestorName());
+        }
+        data.put("ticketId", saved.getId());
+
+        // Send notification using EMAIL channel and TicketCreated template
+        try {
+            notificationService.sendNotification(
+                    ChannelType.EMAIL,
+                    "email/TicketCreated",
+                    data,
+                    saved.getUser() != null ? saved.getUser().getEmailId() : saved.getRequestorEmailId()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return DtoMapper.toTicketDto(saved);
     }
 

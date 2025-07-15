@@ -2,6 +2,8 @@ package com.example.api.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +21,7 @@ import java.util.List;
 @RequestMapping("/filegator")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class FilegatorController {
+    private static final Logger logger = LoggerFactory.getLogger(FilegatorController.class);
 
     @PostMapping("/login")
     public ResponseEntity<String> loginToFilegator(HttpSession session,
@@ -58,7 +61,7 @@ public class FilegatorController {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8081/?r=/login", request, String.class);
 
-        System.out.println("response of filegator login: " + response);
+        logger.info("response of filegator login: {}", response);
         List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
         if (cookies != null) {
             for (String cookie : cookies) {
