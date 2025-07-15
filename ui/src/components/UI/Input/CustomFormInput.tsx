@@ -55,7 +55,9 @@ const CustomFormInput: React.FC<CustomFormInputProps> = ({
             )}
             <TextField
                 sx={{
-                    backgroundColor: theme.palette.background.paper,
+                    backgroundColor: disabled
+                        ? theme.palette.action.disabledBackground
+                        : theme.palette.background.paper,
                     color: theme.palette.text.primary,
                     '& fieldset': {
                         borderColor: theme.palette.divider,

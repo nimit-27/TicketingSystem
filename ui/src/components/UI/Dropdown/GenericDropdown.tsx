@@ -51,7 +51,9 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
             {label && <InputLabel id={id ? `${id}-label` : undefined}>{t(label)}</InputLabel>}
             <Select
                 sx={{
-                    backgroundColor: theme.palette.background.paper
+                    backgroundColor: disabled
+                        ? theme.palette.action.disabledBackground
+                        : theme.palette.background.paper,
                     // color: theme.palette.text.primary,
                     // '& fieldset': {
                     //     borderColor: theme.palette.divider,

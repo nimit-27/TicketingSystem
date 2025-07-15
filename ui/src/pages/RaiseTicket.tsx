@@ -50,7 +50,7 @@ const RaiseTicket: React.FC<any> = () => {
     const onLinkToMasterTicketModalOpen = () => setLinkToMasterTicketModalOpen(true);
 
     return (
-        <div className="container">
+        <div className="container pb-5">
             <Title text="Raise Ticket" />
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}
