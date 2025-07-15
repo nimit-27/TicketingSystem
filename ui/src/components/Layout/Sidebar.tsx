@@ -54,6 +54,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   const bgColor = theme.palette.secondary.main;
   const textColor = theme.palette.mode === 'dark' ? '#FFA64D' : '#FFFFFF';
+  const sidebarBorder =
+    theme.palette.mode === 'dark' ? `1px solid ${textColor}` : undefined;
 
   return (
     <div
@@ -65,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         transition: "width 0.3s",
         display: "flex",
         flexDirection: "column",
+        borderRight: sidebarBorder,
       }}
     >
       <List component="nav">
