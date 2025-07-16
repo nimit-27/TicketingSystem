@@ -14,7 +14,7 @@ public class TicketComment {
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id", referencedColumnName = "id")
+    @JoinColumn(name = "ticket_id", referencedColumnName = "ticket_id")
     private Ticket ticket;
 
     private String comment;

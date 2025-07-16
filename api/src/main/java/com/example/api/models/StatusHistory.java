@@ -15,7 +15,7 @@ public class StatusHistory {
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id", referencedColumnName = "id")
+    @JoinColumn(name = "ticket_id", referencedColumnName = "ticket_id")
     private Ticket ticket;
 
     @Column(name = "updated_by")

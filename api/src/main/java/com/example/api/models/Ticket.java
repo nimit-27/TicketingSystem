@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name="ticket_id")
     private String id;
     @Column(name="reported_date")
     private Date reportedDate;
@@ -66,6 +67,7 @@ public class Ticket {
     @JsonProperty("isMaster")
     @Column(name = "is_master")
     private boolean isMaster;
+    @Column(name = "master_id")
     private String masterId;
     @Column(name = "last_modified")
     private LocalDateTime lastModified;

@@ -14,7 +14,7 @@ public class AssignmentHistory {
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id", referencedColumnName = "id")
+    @JoinColumn(name = "ticket_id", referencedColumnName = "ticket_id")
     private Ticket ticket;
 
     @Column(name = "assigned_by")
