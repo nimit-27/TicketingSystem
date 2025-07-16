@@ -148,7 +148,7 @@ public class TicketService {
 
     public TicketDto linkToMaster(String id, String masterId) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow();
-        ticket.setMasterId(masterId != null ? Integer.valueOf(masterId) : null);
+        ticket.setMasterId(masterId);
         Ticket saved = ticketRepository.save(ticket);
         return DtoMapper.toTicketDto(saved);
     }

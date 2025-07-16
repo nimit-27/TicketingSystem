@@ -27,7 +27,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const [selected, setSelected] = useState<any | null>(null);
     const [linked, setLinked] = useState(false);
     // TODO: replace with real current ticket details
-    const currentTicket = { id: 0, subject: 'Current Ticket' };
+    const currentTicket = { id: '', subject: 'Current Ticket' };
 
     let debouncedQuery = useDebounce(query, 500);
 
@@ -104,7 +104,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                                     icon="Link"
                                     color={linked ? 'success' : 'primary'}
                                     onClick={() => {
-                                        linkTicketToMaster(currentTicket.id.toString(), selected.id).then(() => setLinked(true));
+                                        linkTicketToMaster(currentTicket.id, selected.id).then(() => setLinked(true));
                                     }}
                                 />
                             </Tooltip>
