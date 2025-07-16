@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LevelDto {
-    private int levelId;
+    private String levelId;
     private String levelName;
 }

@@ -9,7 +9,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class CategoryDto {
-    private Integer categoryId;
+    private String categoryId;
     private String category;
     private String createdBy;
     private LocalDateTime timestamp;

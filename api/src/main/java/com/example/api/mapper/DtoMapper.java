@@ -14,7 +14,7 @@ public class DtoMapper {
     public static CategoryDto toCategoryDto(Category category) {
         if (category == null) return null;
         CategoryDto dto = new CategoryDto();
-        dto.setCategoryId(category.getCategoryId());
+        dto.setCategoryId(category.getCategoryId() != null ? String.valueOf(category.getCategoryId()) : null);
         dto.setCategory(category.getCategory());
         dto.setCreatedBy(category.getCreatedBy());
         dto.setTimestamp(category.getTimestamp());
@@ -31,22 +31,22 @@ public class DtoMapper {
     public static SubCategoryDto toSubCategoryDto(SubCategory subCategory) {
         if (subCategory == null) return null;
         SubCategoryDto dto = new SubCategoryDto();
-        dto.setSubCategoryId(subCategory.getSubCategoryId());
+        dto.setSubCategoryId(subCategory.getSubCategoryId() != null ? String.valueOf(subCategory.getSubCategoryId()) : null);
         dto.setSubCategory(subCategory.getSubCategory());
         dto.setCreatedBy(subCategory.getCreatedBy());
         dto.setTimestamp(subCategory.getTimestamp());
         dto.setLastUpdated(subCategory.getLastUpdated());
-        dto.setCategoryId(subCategory.getCategory() != null ? subCategory.getCategory().getCategoryId() : null);
+        dto.setCategoryId(subCategory.getCategory() != null ? String.valueOf(subCategory.getCategory().getCategoryId()) : null);
         return dto;
     }
 
     public static TicketDto toTicketDto(Ticket ticket) {
         if (ticket == null) return null;
         TicketDto dto = new TicketDto();
-        dto.setId(ticket.getId());
+        dto.setId(String.valueOf(ticket.getId()));
         dto.setReportedDate(ticket.getReportedDate());
         dto.setMode(ticket.getMode());
-        dto.setUserId(ticket.getUserId());
+        dto.setUserId(ticket.getUserId() != null ? String.valueOf(ticket.getUserId()) : null);
         dto.setRequestorName(ticket.getRequestorName());
         dto.setRequestorEmailId(ticket.getRequestorEmailId());
         dto.setRequestorMobileNo(ticket.getRequestorMobileNo());
@@ -66,7 +66,7 @@ public class DtoMapper {
         dto.setAssignedTo(ticket.getAssignedTo());
         dto.setAssignedBy(ticket.getAssignedBy());
         dto.setMaster(ticket.isMaster());
-        dto.setMasterId(ticket.getMasterId());
+        dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
         dto.setLastModified(ticket.getLastModified());
         return dto;
     }
