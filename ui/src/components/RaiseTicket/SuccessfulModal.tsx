@@ -4,12 +4,12 @@ import { useTranslation } from "react-i18next";
 
 interface SuccessfulModalProps {
     open: boolean;
-    ticketId: string | number;
+    ticketId: string;
     onClose: () => void;
 }
 
 const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClose }) => {
-    const encodedTicketId = encodeURIComponent(String(ticketId));
+    const encodedTicketId = encodeURIComponent(ticketId);
     const { t } = useTranslation();
 
     return (

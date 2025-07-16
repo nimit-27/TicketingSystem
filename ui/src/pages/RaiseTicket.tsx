@@ -18,7 +18,7 @@ const RaiseTicket: React.FC<any> = () => {
 
     const [successfullModalOpen, setSuccessfulModalOpen] = useState(false);
     const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
-    const [createdTicketId, setCreatedTicketId] = useState<string | number | null>(null);
+    const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
 
 
     const onSubmit = (data: any) => {
@@ -72,7 +72,7 @@ const RaiseTicket: React.FC<any> = () => {
             {/* Link to Master Ticket Modal */}
             <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} />
             {/* Successful Modal */}
-            <SuccessfulModal ticketId={String(createdTicketId ?? '')} open={successfullModalOpen} onClose={onClose} />
+            <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
         </div>
     )
 }
