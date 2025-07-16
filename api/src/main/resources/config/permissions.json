@@ -4,7 +4,7 @@
       "sidebar": {
         "tickets": { "show": true },
         "create-ticket": { "show": true },
-        "knowledge-base": { "show": true }
+        "faq": { "show": true }
       },
       "forms": {
         "RequestDetails": {
@@ -14,7 +14,7 @@
           "fields": {
             "ticketId": false,
             "reportedDate": true,
-            "mode": false
+            "mode": true
           }
         },
         "RequestorDetails": {
@@ -22,6 +22,7 @@
           "create": true,
           "update": false,
           "fields": {
+            "employeeId": false,
             "userId": true,
             "requestorName": true,
             "emailId": true,
