@@ -16,7 +16,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public Optional<User> getUserDetails(Integer userId) {
+    public Optional<User> getUserDetails(String userId) {
         return userRepository.findById(userId);
     }
 
@@ -37,7 +37,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Optional<User> updateUser(Integer id, User updated) {
+    public Optional<User> updateUser(String id, User updated) {
         return userRepository.findById(id)
                 .map(existing -> {
                     existing.setName(updated.getName());
@@ -49,7 +49,7 @@ public class UserService {
                 });
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUser(String id) {
         userRepository.deleteById(id);
     }
 }

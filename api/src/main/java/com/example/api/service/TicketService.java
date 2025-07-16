@@ -62,7 +62,7 @@ public class TicketService {
         return ticketPage.map(DtoMapper::toTicketDto);
     }
 
-    public TicketDto getTicket(int id) {
+    public TicketDto getTicket(String id) {
         Ticket ticket = ticketRepository.findById(id).orElse(null);
         return DtoMapper.toTicketDto(ticket);
     }
@@ -119,7 +119,7 @@ public class TicketService {
         return typesenseClient.searchTickets(query);
     }
 
-    public TicketDto updateTicket(int id, Ticket updated) {
+    public TicketDto updateTicket(String id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id).orElseThrow();
         String previousAssignedTo = existing.getAssignedTo();
         TicketStatus previousStatus = existing.getStatus();
@@ -146,14 +146,14 @@ public class TicketService {
         return DtoMapper.toTicketDto(saved);
     }
 
-    public TicketDto linkToMaster(int id, int masterId) {
+    public TicketDto linkToMaster(String id, String masterId) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow();
-        ticket.setMasterId(masterId);
+        ticket.setMasterId(masterId != null ? Integer.valueOf(masterId) : null);
         Ticket saved = ticketRepository.save(ticket);
         return DtoMapper.toTicketDto(saved);
     }
 
-    public TicketComment addComment(int ticketId, String comment) {
+    public TicketComment addComment(String ticketId, String comment) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         TicketComment tc = new TicketComment();
         tc.setTicket(ticket);
@@ -162,7 +162,7 @@ public class TicketService {
         return commentRepository.save(tc);
     }
 
-    public List<TicketComment> getComments(int ticketId, Integer count) {
+    public List<TicketComment> getComments(String ticketId, Integer count) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         List<TicketComment> list = commentRepository.findByTicketOrderByCreatedAtDesc(ticket);
         if (count == null || count >= list.size()) {
@@ -171,13 +171,13 @@ public class TicketService {
         return list.subList(0, count);
     }
 
-    public TicketComment updateComment(int commentId, String comment) {
+    public TicketComment updateComment(String commentId, String comment) {
         TicketComment existing = commentRepository.findById(commentId).orElseThrow();
         existing.setComment(comment);
         return commentRepository.save(existing);
     }
 
-    public void deleteComment(int commentId) {
+    public void deleteComment(String commentId) {
         commentRepository.deleteById(commentId);
     }
 
