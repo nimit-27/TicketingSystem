@@ -12,35 +12,40 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import CategoryIcon from "@mui/icons-material/Category";
 import { currentUserDetails } from "../../config/config";
+import { checkSidebarAccess } from "../../utils/permissions";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import { useTheme } from "@mui/material/styles";
 
 const menuItems = [
   {
+    key: "tickets",
     label: "My Tickets",
     to: "/tickets",
     icon: <ListAltIcon />,
   },
   {
+    key: "create-ticket",
     label: "Raise Ticket",
     to: "/create-ticket",
     icon: <AddCircleOutlineIcon />,
   },
   {
+    key: "knowledge-base",
     label: "Knowledge Base",
     to: "/knowledge-base",
     icon: <LibraryBooksIcon />,
   },
   {
+    key: "categories-master",
     label: "Categories Master",
     to: "/categories-master",
     icon: <CategoryIcon />,
   },
   {
+    key: "escalation-master",
     label: "Escalation Master",
     to: "/escalation-master",
     icon: <SupervisorAccountIcon />,
-    roles: ["ADMIN", "IT"],
   },
 ];
 
@@ -71,11 +76,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       }}
     >
       <List component="nav">
-        {menuItems.map(({ label, to, icon, roles }) => {
-          if (
-            roles &&
-            !roles.some((r) => currentUserDetails.role.includes(r))
-          ) {
+        {menuItems.map(({ key, label, to, icon }) => {
+          if (!checkSidebarAccess(key)) {
             return null;
           }
           return (

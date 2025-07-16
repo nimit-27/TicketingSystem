@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/AuthService";
+import { currentUserDetails } from "../config/config";
+import { setPermissions } from "../utils/permissions";
 
 const Login: React.FC = () => {
     const [userId, setUserId] = useState("");
@@ -9,8 +11,11 @@ const Login: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        loginUser({ username: userId, password })
-            .then(() => {
+        loginUser({ username: userId, password, roles: currentUserDetails.role as string[] })
+            .then(res => {
+                if (res.data && res.data.permissions) {
+                    setPermissions(res.data.permissions);
+                }
                 navigate("/");
             });
     };
