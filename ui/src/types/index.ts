@@ -9,16 +9,16 @@ export type FormProps<T extends FieldValues = FieldValues> = {
 };
 
 export interface SubCategory {
-    subCategoryId: number;
+    subCategoryId: string;
     subCategory: string;
     createdBy?: string;
     timestamp?: string;
-    categoryId?: number; // Optional, used when adding sub-categories directly
+    categoryId?: string; // Optional, used when adding sub-categories directly
     lastUpdated?: string;
 }
 
 export interface Category {
-    categoryId: number;
+    categoryId: string;
     category: string;
     createdBy?: string;
     timestamp?: string;
@@ -27,7 +27,7 @@ export interface Category {
 }
 
 export interface Ticket {
-    id: number;
+    id: string;
     subject: string;
     category: string;
     subCategory: string;

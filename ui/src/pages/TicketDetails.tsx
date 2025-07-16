@@ -18,10 +18,10 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
 
 interface Ticket {
-    id: number;
+    id: string;
     reportedDate: string;
     mode: string;
-    UserId: number;
+    UserId: string;
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
@@ -54,11 +54,11 @@ const TicketDetails: React.FC = () => {
 
     // API calls
     const getTicketHandler = (ticketId: any) => {
-        if (ticketId) getTicketApiHandler(() => getTicket(Number(ticketId)));
+        if (ticketId) getTicketApiHandler(() => getTicket(ticketId));
     }
     const updateTicketHandler = (ticketId: any, data: any) => {
         if (ticketId && data)
-            updateTicketApiHandler(() => updateTicket(Number(ticketId), data)).then((res: any) => {
+            updateTicketApiHandler(() => updateTicket(ticketId, data)).then((res: any) => {
                 setEditing(false);
                 if (res?.message) {
                     showMessage(res.message, 'success');
@@ -135,7 +135,7 @@ const TicketDetails: React.FC = () => {
                 </div>
             )}
 
-            <HistorySidebar ticketId={Number(ticketId)} />
+            <HistorySidebar ticketId={ticketId as string} />
             
             <form onSubmit={handleSubmit(onSubmitUpdate)}>
                 <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
@@ -166,7 +166,7 @@ const TicketDetails: React.FC = () => {
                 />
             </form>
 
-            <CommentsSection ticketId={Number(ticketId)} />
+            <CommentsSection ticketId={ticketId as string} />
         </div>
     );
 };

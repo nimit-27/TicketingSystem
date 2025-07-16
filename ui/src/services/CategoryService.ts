@@ -22,11 +22,11 @@ export function addSubCategory(subCategory: any) {
     return axios.post(`${BASE_URL}/categories/${subCategory?.categoryId}/sub-categories`, subCategory);
 }
 
-export function updateSubCategory(id: number, subCategory: any) {
+export function updateSubCategory(id: string, subCategory: any) {
     return axios.put(`${BASE_URL}/sub-categories/${id}`, subCategory);
 }
 
-export function deleteSubCategory(id: number) {
+export function deleteSubCategory(id: string) {
     return axios.delete(`${BASE_URL}/sub-categories/${id}`);
 }
 
@@ -44,15 +44,15 @@ export function addCategory(category: any) {
     return axios.post(`${BASE_URL}/categories`, category);
 }
 
-export function updateCategory(id: number, category: any) {
+export function updateCategory(id: string, category: any) {
     return axios.put(`${BASE_URL}/categories/${id}`, category);
 }
 
-export function deleteCategory(id: number) {
+export function deleteCategory(id: string) {
     return axios.delete(`${BASE_URL}/categories/${id}`);
 }
 
-export function deleteCategories(ids: number[]) {
+export function deleteCategories(ids: string[]) {
     const params = new URLSearchParams();
     ids.forEach(i => params.append('ids', i.toString()));
     return axios.delete(`${BASE_URL}/categories`, { params });

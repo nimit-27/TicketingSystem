@@ -8,7 +8,7 @@ import { Paper, useTheme, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 interface HistoryEntry {
-    id: number;
+    id: string;
     updatedBy: string;
     timestamp: string;
     previousStatus: string;
@@ -16,7 +16,7 @@ interface HistoryEntry {
 }
 
 interface StatusHistoryProps {
-    ticketId: number;
+    ticketId: string;
 }
 
 const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {

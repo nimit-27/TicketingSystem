@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 
 export interface TicketRow {
-    id: number;
+    id: string;
     subject: string;
     category: string;
     subCategory: string;
@@ -19,7 +19,7 @@ export interface TicketRow {
 
 interface TicketsTableProps {
     tickets: TicketRow[];
-    onRowClick: (id: number) => void;
+    onRowClick: (id: string) => void;
 }
 
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
