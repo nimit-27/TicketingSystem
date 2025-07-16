@@ -6,6 +6,7 @@ import CustomFormInput from "../UI/Input/CustomFormInput";
 import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
 import { currentUserDetails, isFciUser, isHelpdesk } from "../../config/config";
+import { checkFieldAccess } from "../../utils/permissions";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,9 +22,9 @@ const modeOptions: DropdownOption[] = [
 ];
 
 const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled }) => {
-    const showTicketId = false;
-    const showReportedDate = true;
-    const showModeDropdown = true;
+    const showTicketId = checkFieldAccess('RequestDetails', 'ticketId');
+    const showReportedDate = checkFieldAccess('RequestDetails', 'reportedDate');
+    const showModeDropdown = checkFieldAccess('RequestDetails', 'mode');
 
     const ticketId = useWatch({ control, name: 'ticketId' });
     const mode = useWatch({ control, name: 'mode' });

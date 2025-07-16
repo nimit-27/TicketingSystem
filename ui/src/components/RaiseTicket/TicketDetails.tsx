@@ -12,6 +12,7 @@ import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
 import { getStatuses } from "../../services/StatusService";
 import { currentUserDetails } from "../../config/config";
+import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
 
@@ -64,25 +65,25 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const subjectValue = useWatch({ control, name: 'subject' });
     const descriptionValue = useWatch({ control, name: 'description' });
 
-    let showAssignedToLevel = !createMode;
-    let showAssignedTo = !createMode;
-    let showCategory = true;
-    let showSubCategory = true;
-    let showPriority = true;
+    let showAssignedToLevel = checkFieldAccess('TicketDetails', 'assignedToLevel') && !createMode;
+    let showAssignedTo = checkFieldAccess('TicketDetails', 'assignedTo') && !createMode;
+    let showCategory = checkFieldAccess('TicketDetails', 'category');
+    let showSubCategory = checkFieldAccess('TicketDetails', 'subCategory');
+    let showPriority = checkFieldAccess('TicketDetails', 'priority');
     const isIT = currentUserDetails?.role.includes('IT');
-    let showSeverityFields = isIT;
-    let showSeverity = true;
-    let showRecommendedSeverity = true;
-    let showImpact = !isIT;
-    let showSelectedImpact = isIT;
-    let showIsMaster = true;
-    let showSubject = true;
-    let showDescription = true;
-    let showAttachment = true;
-    let showStatus = true;
-    let showAssignFurther = true;
-    let showAssignToLevelDropdown = true;
-    let showAssignToDropdown = true;
+    let showSeverityFields = checkFieldAccess('TicketDetails', 'severity');
+    let showSeverity = checkFieldAccess('TicketDetails', 'severity');
+    let showRecommendedSeverity = checkFieldAccess('TicketDetails', 'recommendedSeverity');
+    let showImpact = checkFieldAccess('TicketDetails', 'impact');
+    let showSelectedImpact = checkFieldAccess('TicketDetails', 'impact');
+    let showIsMaster = checkFieldAccess('TicketDetails', 'isMaster');
+    let showSubject = checkFieldAccess('TicketDetails', 'subject');
+    let showDescription = checkFieldAccess('TicketDetails', 'description');
+    let showAttachment = checkFieldAccess('TicketDetails', 'attachment');
+    let showStatus = checkFieldAccess('TicketDetails', 'status');
+    let showAssignFurther = checkFieldAccess('TicketDetails', 'assignFurther');
+    let showAssignToLevelDropdown = checkFieldAccess('TicketDetails', 'assignedToLevel');
+    let showAssignToDropdown = checkFieldAccess('TicketDetails', 'assignedTo');
 
     useEffect(() => {
         getAllLevelApiHandler(() => getAllLevels())

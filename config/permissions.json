@@ -1,0 +1,168 @@
+{
+  "roles": {
+    "USER": {
+      "sidebar": {
+        "tickets": { "show": true },
+        "create-ticket": { "show": true },
+        "knowledge-base": { "show": true }
+      },
+      "forms": {
+        "RequestDetails": {
+          "view": true,
+          "create": true,
+          "update": false,
+          "fields": {
+            "ticketId": false,
+            "reportedDate": true,
+            "mode": false
+          }
+        },
+        "RequestorDetails": {
+          "view": true,
+          "create": true,
+          "update": false,
+          "fields": {
+            "userId": true,
+            "requestorName": true,
+            "emailId": true,
+            "mobileNo": true,
+            "stakeholder": true,
+            "role": false,
+            "office": false
+          }
+        },
+        "TicketDetails": {
+          "view": true,
+          "create": true,
+          "update": false,
+          "fields": {
+            "assignedToLevel": false,
+            "assignedTo": false,
+            "category": true,
+            "subCategory": true,
+            "priority": true,
+            "severity": false,
+            "recommendedSeverity": false,
+            "impact": true,
+            "isMaster": true,
+            "subject": true,
+            "description": true,
+            "attachment": true,
+            "status": false,
+            "assignFurther": false
+          }
+        }
+      }
+    },
+    "ADMIN": {
+      "sidebar": {
+        "tickets": { "show": true },
+        "create-ticket": { "show": true },
+        "knowledge-base": { "show": true },
+        "categories-master": { "show": true },
+        "escalation-master": { "show": true }
+      },
+      "forms": {
+        "RequestDetails": {
+          "view": true,
+          "create": true,
+          "update": true,
+          "fields": {
+            "ticketId": true,
+            "reportedDate": true,
+            "mode": true
+          }
+        },
+        "RequestorDetails": {
+          "view": true,
+          "create": true,
+          "update": true,
+          "fields": {
+            "userId": true,
+            "requestorName": true,
+            "emailId": true,
+            "mobileNo": true,
+            "stakeholder": true,
+            "role": true,
+            "office": true
+          }
+        },
+        "TicketDetails": {
+          "view": true,
+          "create": true,
+          "update": true,
+          "fields": {
+            "assignedToLevel": true,
+            "assignedTo": true,
+            "category": true,
+            "subCategory": true,
+            "priority": true,
+            "severity": true,
+            "recommendedSeverity": true,
+            "impact": true,
+            "isMaster": true,
+            "subject": true,
+            "description": true,
+            "attachment": true,
+            "status": true,
+            "assignFurther": true
+          }
+        }
+      }
+    },
+    "HELPDESK": {
+      "sidebar": {
+        "tickets": { "show": true },
+        "create-ticket": { "show": true },
+        "knowledge-base": { "show": true }
+      },
+      "forms": {
+        "RequestDetails": {
+          "view": true,
+          "create": true,
+          "update": true,
+          "fields": {
+            "ticketId": true,
+            "reportedDate": true,
+            "mode": true
+          }
+        },
+        "RequestorDetails": {
+          "view": true,
+          "create": true,
+          "update": true,
+          "fields": {
+            "userId": true,
+            "requestorName": true,
+            "emailId": true,
+            "mobileNo": true,
+            "stakeholder": true,
+            "role": true,
+            "office": true
+          }
+        },
+        "TicketDetails": {
+          "view": true,
+          "create": true,
+          "update": true,
+          "fields": {
+            "assignedToLevel": true,
+            "assignedTo": true,
+            "category": true,
+            "subCategory": true,
+            "priority": true,
+            "severity": true,
+            "recommendedSeverity": true,
+            "impact": true,
+            "isMaster": true,
+            "subject": true,
+            "description": true,
+            "attachment": true,
+            "status": true,
+            "assignFurther": true
+          }
+        }
+      }
+    }
+  }
+}
