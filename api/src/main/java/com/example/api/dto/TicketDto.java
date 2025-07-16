@@ -14,10 +14,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class TicketDto {
-    private int id;
+    private String id;
     private Date reportedDate;
     private Mode mode;
-    private Integer userId;
+    private String userId;
     private String requestorName;
     private String requestorEmailId;
     private String requestorMobileNo;
@@ -40,6 +40,6 @@ public class TicketDto {
     private String assignedBy;
     @JsonProperty("isMaster")
     private boolean isMaster;
-    private Integer masterId;
+    private String masterId;
     private LocalDateTime lastModified;
 }

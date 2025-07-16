@@ -20,7 +20,7 @@ public class StatusHistoryService {
         this.ticketRepository = ticketRepository;
     }
 
-    public StatusHistory addHistory(int ticketId, String updatedBy, TicketStatus previousStatus, TicketStatus currentStatus) {
+    public StatusHistory addHistory(String ticketId, String updatedBy, TicketStatus previousStatus, TicketStatus currentStatus) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         StatusHistory history = new StatusHistory();
         history.setTicket(ticket);
@@ -31,7 +31,7 @@ public class StatusHistoryService {
         return historyRepository.save(history);
     }
 
-    public List<StatusHistory> getHistoryForTicket(int ticketId) {
+    public List<StatusHistory> getHistoryForTicket(String ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         return historyRepository.findByTicketOrderByTimestampAsc(ticket);
     }

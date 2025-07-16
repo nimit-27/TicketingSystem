@@ -28,12 +28,12 @@ public class DocumentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Document> updateDocument(@PathVariable Integer id, @RequestBody Document doc) {
+    public ResponseEntity<Document> updateDocument(@PathVariable String id, @RequestBody Document doc) {
         return ResponseEntity.ok(documentService.updateDocument(id, doc));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDocument(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteDocument(@PathVariable String id) {
         documentService.softDeleteDocument(id);
         return ResponseEntity.noContent().build();
     }

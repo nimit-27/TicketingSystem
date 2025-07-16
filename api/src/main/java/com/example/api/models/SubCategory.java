@@ -14,10 +14,10 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class SubCategory {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "sub_category_id")
     @EqualsAndHashCode.Include
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer subCategoryId;
+    private String subCategoryId;
 
     @Column(name = "sub_category")
     private String subCategory;

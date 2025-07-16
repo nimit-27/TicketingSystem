@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 public class Requestor {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "requestor_id")
-    private Integer requestorId;
+    private String requestorId;
 
     private String name;
 

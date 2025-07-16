@@ -22,7 +22,7 @@ public class DocumentService {
         return documentRepository.save(doc);
     }
 
-    public Document updateDocument(Integer id, Document doc) {
+    public Document updateDocument(String id, Document doc) {
         Document existing = documentRepository.findById(id).orElseThrow();
         existing.setTitle(doc.getTitle());
         existing.setDescription(doc.getDescription());
@@ -31,7 +31,7 @@ public class DocumentService {
         return documentRepository.save(existing);
     }
 
-    public void softDeleteDocument(Integer id) {
+    public void softDeleteDocument(String id) {
         Document existing = documentRepository.findById(id).orElseThrow();
 //        existing.setIsDeleted(true);
         documentRepository.save(existing);

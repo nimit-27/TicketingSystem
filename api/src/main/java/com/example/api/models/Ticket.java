@@ -16,14 +16,14 @@ import java.time.LocalDateTime;
 @Data
 public class Ticket {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
     @Column(name="reported_date")
     private Date reportedDate;
     @Enumerated(EnumType.STRING)
     private Mode mode;
     @Column(name = "user_id", insertable = false, updatable = false)
-    private Integer userId;
+    private String userId;
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
@@ -66,7 +66,7 @@ public class Ticket {
     @JsonProperty("isMaster")
     @Column(name = "is_master")
     private boolean isMaster;
-    private Integer masterId;
+    private String masterId;
     @Column(name = "last_modified")
     private LocalDateTime lastModified;
 }

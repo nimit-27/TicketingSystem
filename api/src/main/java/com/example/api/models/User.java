@@ -16,9 +16,10 @@ import java.util.Set;
 public class User {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id")
     @EqualsAndHashCode.Include
-    private Integer userId;
+    private String userId;
 
     @Column(name = "username")
     private String username;

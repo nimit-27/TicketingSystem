@@ -10,9 +10,9 @@ import lombok.Setter;
 @Setter
 public class Severity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "severity_id")
-    private Integer severityId;
+    private String severityId;
 
     @Column(name = "value")
     private String value;

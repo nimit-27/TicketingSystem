@@ -19,7 +19,7 @@ public class AssignmentHistoryService {
         this.ticketRepository = ticketRepository;
     }
 
-    public AssignmentHistory addHistory(int ticketId, String assignedBy, String assignedTo) {
+    public AssignmentHistory addHistory(String ticketId, String assignedBy, String assignedTo) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         AssignmentHistory history = new AssignmentHistory();
         history.setTicket(ticket);
@@ -29,7 +29,7 @@ public class AssignmentHistoryService {
         return historyRepository.save(history);
     }
 
-    public List<AssignmentHistory> getHistoryForTicket(int ticketId) {
+    public List<AssignmentHistory> getHistoryForTicket(String ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         return historyRepository.findByTicketOrderByTimestampAsc(ticket);
     }
