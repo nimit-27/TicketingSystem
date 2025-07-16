@@ -26,13 +26,15 @@ DROP TABLE IF EXISTS `assignment_history`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `assignment_history` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `assignment_history_id_str` varchar(36) NOT NULL,
   `ticket_id` int NOT NULL,
+  `ticket_id_str` varchar(36) NOT NULL,
   `assigned_by` varchar(100) NOT NULL,
   `assigned_to` varchar(100) NOT NULL,
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_ticket_assignment_history` (`ticket_id`),
-  CONSTRAINT `fk_ticket_assignment_history` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`)
+  PRIMARY KEY (`assignment_history_id_str`),
+  KEY `fk_ticket_assignment_history` (`ticket_id_str`),
+  CONSTRAINT `fk_ticket_assignment_history` FOREIGN KEY (`ticket_id_str`) REFERENCES `tickets` (`ticket_id_str`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -55,14 +57,16 @@ DROP TABLE IF EXISTS `status_history`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `status_history` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `status_history_id_str` varchar(36) NOT NULL,
   `ticket_id` int NOT NULL,
+  `ticket_id_str` varchar(36) NOT NULL,
   `updated_by` varchar(100) NOT NULL,
   `previous_status` varchar(50) DEFAULT NULL,
   `current_status` varchar(50) DEFAULT NULL,
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_ticket_status_history` (`ticket_id`),
-  CONSTRAINT `fk_ticket_status_history` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`)
+  PRIMARY KEY (`status_history_id_str`),
+  KEY `fk_ticket_status_history` (`ticket_id_str`),
+  CONSTRAINT `fk_ticket_status_history` FOREIGN KEY (`ticket_id_str`) REFERENCES `tickets` (`ticket_id_str`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -89,12 +93,13 @@ DROP TABLE IF EXISTS `categories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
+  `category_id_str` varchar(36) NOT NULL,
   `category` varchar(100) NOT NULL,
   `created_by` varchar(100) DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_by` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`category_id`)
+  PRIMARY KEY (`category_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -118,11 +123,13 @@ DROP TABLE IF EXISTS `user_levels`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_levels` (
   `user_id` int NOT NULL,
+  `user_id_str` varchar(36) NOT NULL,
   `level_id` int NOT NULL,
-  PRIMARY KEY (`user_id`,`level_id`),
-  KEY `level_id` (`level_id`),
-  CONSTRAINT `user_levels_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `user_levels_ibfk_2` FOREIGN KEY (`level_id`) REFERENCES `levels` (`level_id`)
+  `level_id_str` varchar(36) NOT NULL,
+  PRIMARY KEY (`user_id_str`,`level_id_str`),
+  KEY `level_id` (`level_id_str`),
+  CONSTRAINT `user_levels_ibfk_1` FOREIGN KEY (`user_id_str`) REFERENCES `users` (`user_id_str`),
+  CONSTRAINT `user_levels_ibfk_2` FOREIGN KEY (`level_id_str`) REFERENCES `levels` (`level_id_str`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -145,13 +152,14 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `user_id` int NOT NULL,
+  `user_id_str` varchar(36) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `email_id` varchar(100) DEFAULT NULL,
   `mobile_no` varchar(15) DEFAULT NULL,
   `office` varchar(100) DEFAULT NULL,
   `username` varchar(50) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`user_id`),
+  PRIMARY KEY (`user_id_str`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -176,10 +184,11 @@ DROP TABLE IF EXISTS `filegator_users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `filegator_users` (
   `user_id` int NOT NULL,
+  `user_id_str` varchar(36) NOT NULL,
   `permissions` varchar(200) NOT NULL DEFAULT '',
   `homedir` varchar(2000) NOT NULL DEFAULT '/',
-  PRIMARY KEY (`user_id`),
-  CONSTRAINT `filegator_users_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+  PRIMARY KEY (`user_id_str`),
+  CONSTRAINT `filegator_users_ibfk_1` FOREIGN KEY (`user_id_str`) REFERENCES `users` (`user_id_str`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -202,11 +211,12 @@ DROP TABLE IF EXISTS `knowledge_base`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `knowledge_base` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `knowledge_base_id_str` varchar(36) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text,
   `type` varchar(100) DEFAULT NULL,
   `attachment_path` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`knowledge_base_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -229,8 +239,9 @@ DROP TABLE IF EXISTS `levels`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `levels` (
   `level_id` int NOT NULL AUTO_INCREMENT,
+  `level_id_str` varchar(36) NOT NULL,
   `level_name` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`level_id`),
+  PRIMARY KEY (`level_id_str`),
   UNIQUE KEY `level_name` (`level_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -254,8 +265,9 @@ DROP TABLE IF EXISTS `priority_master`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `priority_master` (
   `priority_id` int NOT NULL AUTO_INCREMENT,
+  `priority_id_str` varchar(36) NOT NULL,
   `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`priority_id`)
+  PRIMARY KEY (`priority_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -278,11 +290,12 @@ DROP TABLE IF EXISTS `requestors`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `requestors` (
   `requestor_id` int NOT NULL AUTO_INCREMENT,
+  `requestor_id_str` varchar(36) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `email_id` varchar(100) DEFAULT NULL,
   `mobile_no` varchar(15) DEFAULT NULL,
   `stakeholder_type` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`requestor_id`)
+  PRIMARY KEY (`requestor_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -329,8 +342,9 @@ DROP TABLE IF EXISTS `severity_master`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `severity_master` (
   `severity_id` int NOT NULL AUTO_INCREMENT,
+  `severity_id_str` varchar(36) NOT NULL,
   `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`severity_id`)
+  PRIMARY KEY (`severity_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -353,15 +367,17 @@ DROP TABLE IF EXISTS `sub_categories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sub_categories` (
   `sub_category_id` int NOT NULL AUTO_INCREMENT,
+  `sub_category_id_str` varchar(36) NOT NULL,
   `sub_category` varchar(100) NOT NULL,
   `created_by` varchar(100) DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `category_id` int DEFAULT NULL,
+  `category_id_str` varchar(36) DEFAULT NULL,
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_by` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`sub_category_id`),
-  KEY `category_id` (`category_id`),
-  CONSTRAINT `sub_categories_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE CASCADE
+  PRIMARY KEY (`sub_category_id_str`),
+  KEY `category_id` (`category_id_str`),
+  CONSTRAINT `sub_categories_ibfk_1` FOREIGN KEY (`category_id_str`) REFERENCES `categories` (`category_id_str`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -410,9 +426,10 @@ DROP TABLE IF EXISTS `ticket_categories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ticket_categories` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `ticket_category_id_str` varchar(36) NOT NULL,
   `category` varchar(255) DEFAULT NULL,
   `subcategory` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`ticket_category_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -435,12 +452,14 @@ DROP TABLE IF EXISTS `ticket_comments`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ticket_comments` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `ticket_comment_id_str` varchar(36) NOT NULL,
   `ticket_id` int DEFAULT NULL,
+  `ticket_id_str` varchar(36) DEFAULT NULL,
   `comment` text,
   `created_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_ticket` (`ticket_id`),
-  CONSTRAINT `fk_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`)
+  PRIMARY KEY (`ticket_comment_id_str`),
+  KEY `fk_ticket` (`ticket_id_str`),
+  CONSTRAINT `fk_ticket` FOREIGN KEY (`ticket_id_str`) REFERENCES `tickets` (`ticket_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -463,6 +482,7 @@ DROP TABLE IF EXISTS `tickets`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tickets` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `ticket_id_str` varchar(36) NOT NULL,
   `reported_date` date DEFAULT NULL,
   `mode` enum('Email','Self','Call') DEFAULT NULL,
   `user_id` int DEFAULT NULL,
@@ -477,6 +497,7 @@ CREATE TABLE `tickets` (
   `attachment_path` varchar(512) DEFAULT NULL,
   `is_master` tinyint(1) DEFAULT NULL,
   `master_id` int DEFAULT NULL,
+  `master_id_str` varchar(36) DEFAULT NULL,
   `last_modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `status` varchar(20) DEFAULT NULL,
   `assigned_to_level` varchar(20) DEFAULT NULL,
@@ -487,9 +508,9 @@ CREATE TABLE `tickets` (
   `severity_recommended_by` varchar(100) DEFAULT NULL,
   `impact` varchar(50) DEFAULT NULL,
   `stakeholder` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `master_id` (`master_id`),
-  CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`master_id`) REFERENCES `tickets` (`id`)
+  PRIMARY KEY (`ticket_id_str`),
+  KEY `master_id` (`master_id_str`),
+  CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`master_id_str`) REFERENCES `tickets` (`ticket_id_str`)
 ) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
