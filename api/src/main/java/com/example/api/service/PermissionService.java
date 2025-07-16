@@ -20,11 +20,9 @@ public class PermissionService {
     @PostConstruct
     public void loadPermissions() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        InputStream is = new ClassPathResource("config/permissions.json").getInputStream();
-        Map<String, Object> permissions = mapper.readValue(is, new TypeReference<>() {});
-
-        File file = new File("config/permissions.json");
-        config = mapper.readValue(file, PermissionsConfig.class);
+        try (InputStream is = new ClassPathResource("config/permissions.json").getInputStream()) {
+            config = mapper.readValue(is, PermissionsConfig.class);
+        }
     }
 
     private List<RolePermission> getRolePermissions(List<String> roles) {
