@@ -77,7 +77,7 @@ const CategoriesMaster: React.FC = () => {
         }
     };
 
-    const handleDeleteCategory = (id: number) => {
+    const handleDeleteCategory = (id: string) => {
         if (window.confirm('Delete this category?')) {
             deleteCategory(id).then(() => {
                 if (selectedCategory?.categoryId === id) setSelectedCategory(null);
@@ -104,7 +104,7 @@ const CategoriesMaster: React.FC = () => {
         }
     };
 
-    const handleDeleteSubCategory = (id: number) => {
+    const handleDeleteSubCategory = (id: string) => {
         if (window.confirm('Delete this sub-category?')) {
             deleteSubCategory(id).then(() => fetchSubCategories());
         }

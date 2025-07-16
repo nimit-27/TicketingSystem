@@ -4,7 +4,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MasterIcon from '../UI/Icons/MasterIcon';
 
 export interface TicketCardData {
-    id: number;
+    id: string;
     subject: string;
     category: string;
     subCategory: string;

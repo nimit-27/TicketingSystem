@@ -6,13 +6,13 @@ import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 
 interface Comment {
-    id: number;
+    id: string;
     comment: string;
     createdAt: string;
 }
 
 interface CommentsSectionProps {
-    ticketId: number;
+    ticketId: string;
 }
 
 const timeSince = (dateStr: string) => {
@@ -36,7 +36,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
 
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState('');
-    const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editText, setEditText] = useState('');
     const [showMore, setShowMore] = useState(false);
 
@@ -69,7 +69,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
         setEditText(c.comment);
     };
 
-    const saveEdit = (id: number) => {
+    const saveEdit = (id: string) => {
         updateCommentApiHandler(() => updateComment(id, editText)).then(() => {
             setEditingCommentId(null);
             setEditText('');
@@ -77,7 +77,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
         });
     };
 
-    const removeComment = (id: number) => {
+    const removeComment = (id: string) => {
         deleteCommentApiHandler(() => deleteComment(id)).then(() => {
             loadComments(comments.length);
         });

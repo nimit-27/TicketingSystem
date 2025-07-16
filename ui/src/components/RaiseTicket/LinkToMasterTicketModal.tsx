@@ -57,7 +57,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     };
 
     const handleSelect = (id: string) => {
-        getTicket(Number(id)).then(res => {
+        getTicket(id).then(res => {
             setSelected(res.data);
             setQuery('');
             setResults([]);
@@ -104,7 +104,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                                     icon="Link"
                                     color={linked ? 'success' : 'primary'}
                                     onClick={() => {
-                                        linkTicketToMaster(currentTicket.id, selected.id).then(() => setLinked(true));
+                                        linkTicketToMaster(currentTicket.id.toString(), selected.id).then(() => setLinked(true));
                                     }}
                                 />
                             </Tooltip>

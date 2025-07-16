@@ -8,14 +8,14 @@ import { Paper, useTheme, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 interface HistoryEntry {
-    id: number;
+    id: string;
     assignedBy: string;
     assignedTo: string;
     timestamp: string;
 }
 
 interface AssignmentHistoryProps {
-    ticketId: number;
+    ticketId: string;
 }
 
 const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {

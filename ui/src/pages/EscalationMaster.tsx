@@ -69,7 +69,7 @@ const EscalationMaster: React.FC = () => {
     });
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     deleteApiHandler(() => deleteUser(id)).then(() => fetchUsers());
   };
 

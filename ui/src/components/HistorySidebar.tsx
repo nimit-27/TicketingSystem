@@ -6,7 +6,7 @@ import AssignmentHistory from './AssignmentHistory';
 import { useTranslation } from 'react-i18next';
 
 interface HistorySidebarProps {
-    ticketId: number;
+    ticketId: string;
 }
 
 const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId }) => {
