@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface StatusHistoryRepository extends JpaRepository<StatusHistory, Integer> {
+public interface StatusHistoryRepository extends JpaRepository<StatusHistory, String> {
     List<StatusHistory> findByTicketOrderByTimestampAsc(Ticket ticket);
 }

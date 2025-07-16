@@ -28,11 +28,11 @@ public class SubCategoryService {
             .toList();
     }
 
-    public Optional<SubCategory> getSubCategoryDetails(Integer subCategoryId) {
+    public Optional<SubCategory> getSubCategoryDetails(String subCategoryId) {
         return subCategoryRepository.findById(subCategoryId);
     }
 
-    public SubCategory saveSubCategory(Integer categoryId, SubCategory subCategory) {
+    public SubCategory saveSubCategory(String categoryId, SubCategory subCategory) {
         Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new RuntimeException("Category not found"));
         subCategory.setCategory(category);
@@ -42,7 +42,7 @@ public class SubCategoryService {
         return subCategoryRepository.save(subCategory);
     }
 
-    public Optional<SubCategory> updateSubCategory(Integer id, SubCategory updated) {
+    public Optional<SubCategory> updateSubCategory(String id, SubCategory updated) {
         return subCategoryRepository.findById(id)
             .map(existing -> {
                 existing.setSubCategory(updated.getSubCategory());
@@ -50,7 +50,7 @@ public class SubCategoryService {
             });
     }
 
-    public void deleteSubCategory(Integer id) {
+    public void deleteSubCategory(String id) {
         subCategoryRepository.deleteById(id);
     }
 }

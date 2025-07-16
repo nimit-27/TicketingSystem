@@ -34,7 +34,7 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public Optional<Category> updateCategory(Integer id, Category updated) {
+    public Optional<Category> updateCategory(String id, Category updated) {
         return categoryRepository.findById(id)
                 .map(existing -> {
                     existing.setCategory(updated.getCategory());
@@ -42,18 +42,18 @@ public class CategoryService {
                 });
     }
 
-    public void deleteCategory(Integer id) {
+    public void deleteCategory(String id) {
         categoryRepository.deleteById(id);
     }
 
     @Transactional
-    public void deleteCategories(List<Integer> ids) {
+    public void deleteCategories(List<String> ids) {
         categoryRepository.deleteAllById(ids);
     }
 
     public Optional<Set<SubCategoryDto>> getSubCategoriesByCategory(String categoryId) {
         return categoryRepository
-                .findById(Integer.valueOf(categoryId))
+                .findById(categoryId)
                 .map(category -> category.getSubCategories().stream()
                         .map(DtoMapper::toSubCategoryDto)
                         .collect(java.util.stream.Collectors.toSet()));

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface TicketRepository extends JpaRepository<Ticket, Integer> {
+public interface TicketRepository extends JpaRepository<Ticket, String> {
     public List<Ticket> findByIsMasterTrue();
 
     public List<Ticket> findByLastModifiedAfter(LocalDateTime lastSyncedTime);

@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Data
 public class AssignmentHistory {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")

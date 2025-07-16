@@ -31,7 +31,7 @@ public class LevelService {
 
     public Optional<Set<UserDto>> getUsersByLevel(String levelId) {
         return levelRepository
-                .findById(Integer.valueOf(levelId))
+                .findById(levelId)
                 .map(level -> {
                     Set<UserDto> userDtos = new HashSet<>();
                     for (User user : level.getUsers()) { // This access triggers lazy loading

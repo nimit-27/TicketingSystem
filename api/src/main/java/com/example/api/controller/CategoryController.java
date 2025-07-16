@@ -36,7 +36,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Integer categoryId,
+    public ResponseEntity<Category> updateCategory(@PathVariable String categoryId,
                                                    @RequestBody Category category) {
         return categoryService.updateCategory(categoryId, category)
                 .map(ResponseEntity::ok)
@@ -44,13 +44,13 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Integer categoryId) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable String categoryId) {
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteCategories(@RequestParam List<Integer> ids) {
+    public ResponseEntity<Void> deleteCategories(@RequestParam List<String> ids) {
         categoryService.deleteCategories(ids);
         return ResponseEntity.noContent().build();
     }
@@ -63,6 +63,6 @@ public class CategoryController {
 
     @PostMapping("/{categoryId}/sub-categories")
     public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId, @RequestBody SubCategory subCategory) {
-        return ResponseEntity.ok(subCategoryService.saveSubCategory(Integer.valueOf(categoryId), subCategory));
+        return ResponseEntity.ok(subCategoryService.saveSubCategory(categoryId, subCategory));
     }
 }

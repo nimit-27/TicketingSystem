@@ -15,9 +15,10 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Level {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "level_id")
     @EqualsAndHashCode.Include
-    private int levelId;
+    private String levelId;
     @Column(name = "level_name")
     private String levelName;
 
