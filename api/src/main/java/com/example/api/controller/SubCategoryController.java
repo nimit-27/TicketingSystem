@@ -25,22 +25,22 @@ public class SubCategoryController {
     }
 
     @GetMapping("/{subCategoryId}")
-    public ResponseEntity<SubCategory> getSubCategoryDetails(@PathVariable Integer subCategoryId) {
-        Optional<SubCategory> subCategory = subCategoryService.getSubCategoryDetails(subCategoryId);
+    public ResponseEntity<SubCategory> getSubCategoryDetails(@PathVariable String subCategoryId) {
+        Optional<SubCategory> subCategory = subCategoryService.getSubCategoryDetails(Integer.valueOf(subCategoryId));
         return subCategory.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).body(null));
     }
 
     @PutMapping("/{subCategoryId}")
-    public ResponseEntity<SubCategory> updateSubCategory(@PathVariable Integer subCategoryId,
+    public ResponseEntity<SubCategory> updateSubCategory(@PathVariable String subCategoryId,
                                                          @RequestBody SubCategory subCategory) {
-        return subCategoryService.updateSubCategory(subCategoryId, subCategory)
+        return subCategoryService.updateSubCategory(Integer.valueOf(subCategoryId), subCategory)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{subCategoryId}")
-    public ResponseEntity<Void> deleteSubCategory(@PathVariable Integer subCategoryId) {
-        subCategoryService.deleteSubCategory(subCategoryId);
+    public ResponseEntity<Void> deleteSubCategory(@PathVariable String subCategoryId) {
+        subCategoryService.deleteSubCategory(Integer.valueOf(subCategoryId));
         return ResponseEntity.noContent().build();
     }
 }

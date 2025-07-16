@@ -25,9 +25,9 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUserDetails(@PathVariable Integer userId) {
+    public ResponseEntity<?> getUserDetails(@PathVariable String userId) {
 //        Optional<User> user = userService.getUserDetails(userId);
-        return userService.getUserDetails(userId)
+        return userService.getUserDetails(Integer.valueOf(userId))
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity
                         .noContent()
@@ -42,16 +42,16 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer userId,
+    public ResponseEntity<User> updateUser(@PathVariable String userId,
                                                    @RequestBody User user) {
-        return userService.updateUser(userId, user)
+        return userService.updateUser(Integer.valueOf(userId), user)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer userId) {
-        userService.deleteUser(userId);
+    public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(Integer.valueOf(userId));
         return ResponseEntity.noContent().build();
     }
 }

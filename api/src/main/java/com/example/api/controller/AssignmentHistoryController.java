@@ -18,7 +18,7 @@ public class AssignmentHistoryController {
     }
 
     @GetMapping("/{ticketId}")
-    public ResponseEntity<List<AssignmentHistory>> getHistory(@PathVariable int ticketId) {
-        return ResponseEntity.ok(historyService.getHistoryForTicket(ticketId));
+    public ResponseEntity<List<AssignmentHistory>> getHistory(@PathVariable String ticketId) {
+        return ResponseEntity.ok(historyService.getHistoryForTicket(Integer.parseInt(ticketId)));
     }
 }

@@ -36,22 +36,23 @@ public class CategoryController {
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Integer categoryId,
+    public ResponseEntity<Category> updateCategory(@PathVariable String categoryId,
                                                    @RequestBody Category category) {
-        return categoryService.updateCategory(categoryId, category)
+        return categoryService.updateCategory(Integer.valueOf(categoryId), category)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Integer categoryId) {
-        categoryService.deleteCategory(categoryId);
+    public ResponseEntity<Void> deleteCategory(@PathVariable String categoryId) {
+        categoryService.deleteCategory(Integer.valueOf(categoryId));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteCategories(@RequestParam List<Integer> ids) {
-        categoryService.deleteCategories(ids);
+    public ResponseEntity<Void> deleteCategories(@RequestParam List<String> ids) {
+        List<Integer> intIds = ids.stream().map(Integer::valueOf).toList();
+        categoryService.deleteCategories(intIds);
         return ResponseEntity.noContent().build();
     }
 

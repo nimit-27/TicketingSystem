@@ -36,8 +36,8 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TicketDto> getTicket(@PathVariable int id) {
-        TicketDto dto = ticketService.getTicket(id);
+    public ResponseEntity<TicketDto> getTicket(@PathVariable String id) {
+        TicketDto dto = ticketService.getTicket(Integer.parseInt(id));
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
     }
@@ -49,28 +49,28 @@ public class TicketController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TicketDto> updateTicket(@PathVariable int id, @RequestBody Ticket ticket) {
-        return ResponseEntity.ok(ticketService.updateTicket(id, ticket));
+    public ResponseEntity<TicketDto> updateTicket(@PathVariable String id, @RequestBody Ticket ticket) {
+        return ResponseEntity.ok(ticketService.updateTicket(Integer.parseInt(id), ticket));
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<TicketComment> addComment(@PathVariable int id, @RequestBody String comment) {
-        return ResponseEntity.ok(ticketService.addComment(id, comment));
+    public ResponseEntity<TicketComment> addComment(@PathVariable String id, @RequestBody String comment) {
+        return ResponseEntity.ok(ticketService.addComment(Integer.parseInt(id), comment));
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<List<TicketComment>> getComments(@PathVariable int id, @RequestParam(required = false) Integer count) {
-        return ResponseEntity.ok(ticketService.getComments(id, count));
+    public ResponseEntity<List<TicketComment>> getComments(@PathVariable String id, @RequestParam(required = false) Integer count) {
+        return ResponseEntity.ok(ticketService.getComments(Integer.parseInt(id), count));
     }
 
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<TicketComment> updateComment(@PathVariable int commentId, @RequestBody String comment) {
-        return ResponseEntity.ok(ticketService.updateComment(commentId, comment));
+    public ResponseEntity<TicketComment> updateComment(@PathVariable String commentId, @RequestBody String comment) {
+        return ResponseEntity.ok(ticketService.updateComment(Integer.parseInt(commentId), comment));
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable int commentId) {
-        ticketService.deleteComment(commentId);
+    public ResponseEntity<Void> deleteComment(@PathVariable String commentId) {
+        ticketService.deleteComment(Integer.parseInt(commentId));
         return ResponseEntity.noContent().build();
     }
 
@@ -83,7 +83,7 @@ public class TicketController {
     }
 
     @PutMapping("/{id}/link/{masterId}")
-    public ResponseEntity<TicketDto> linkToMaster(@PathVariable int id, @PathVariable int masterId) {
-        return ResponseEntity.ok(ticketService.linkToMaster(id, masterId));
+    public ResponseEntity<TicketDto> linkToMaster(@PathVariable String id, @PathVariable String masterId) {
+        return ResponseEntity.ok(ticketService.linkToMaster(Integer.parseInt(id), Integer.parseInt(masterId)));
     }
 }

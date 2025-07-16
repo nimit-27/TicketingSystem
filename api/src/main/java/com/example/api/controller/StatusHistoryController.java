@@ -18,7 +18,7 @@ public class StatusHistoryController {
     }
 
     @GetMapping("/{ticketId}")
-    public ResponseEntity<List<StatusHistory>> getHistory(@PathVariable int ticketId) {
-        return ResponseEntity.ok(historyService.getHistoryForTicket(ticketId));
+    public ResponseEntity<List<StatusHistory>> getHistory(@PathVariable String ticketId) {
+        return ResponseEntity.ok(historyService.getHistoryForTicket(Integer.parseInt(ticketId)));
     }
 }
