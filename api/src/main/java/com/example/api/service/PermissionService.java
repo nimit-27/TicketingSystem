@@ -2,12 +2,15 @@ package com.example.api.service;
 
 import com.example.api.permissions.PermissionsConfig;
 import com.example.api.permissions.RolePermission;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Service
@@ -17,6 +20,9 @@ public class PermissionService {
     @PostConstruct
     public void loadPermissions() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        InputStream is = new ClassPathResource("config/permissions.json").getInputStream();
+        Map<String, Object> permissions = mapper.readValue(is, new TypeReference<>() {});
+
         File file = new File("config/permissions.json");
         config = mapper.readValue(file, PermissionsConfig.class);
     }
@@ -41,7 +47,8 @@ public class PermissionService {
                 .filter(m -> m != null)
                 .map(m -> m.get(key))
                 .anyMatch(obj -> {
-                    if (obj instanceof Map<?, ?> mp) {
+                    if (obj instanceof Map) {
+                        Map<?, ?> mp = (Map<?, ?>) obj;
                         Object show = mp.get("show");
                         return Boolean.TRUE.equals(show);
                     }
@@ -52,7 +59,7 @@ public class PermissionService {
     public boolean hasFormAccess(List<String> roles, String form, String action) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getForms)
-                .filter(m -> m != null)
+                .filter(Objects::nonNull)
                 .map(m -> m.get(form))
                 .anyMatch(obj -> checkAction(obj, action));
     }
@@ -60,10 +67,11 @@ public class PermissionService {
     public boolean hasFieldAccess(List<String> roles, String form, String field) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getForms)
-                .filter(m -> m != null)
+                .filter(Objects::nonNull)
                 .map(m -> m.get(form))
                 .anyMatch(obj -> {
-                    if (obj instanceof Map<?, ?> fm) {
+                    if (obj != null) {
+                        Map<?, ?> fm = (Map<?, ?>) obj;
                         Object fieldsObj = fm.get("fields");
                         if (fieldsObj instanceof Map<?, ?> fieldsMap) {
                             Object value = fieldsMap.get(field);
