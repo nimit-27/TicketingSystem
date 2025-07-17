@@ -73,7 +73,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const populateUserDetails = (data: any) => {
         if (setValue && data) {
-            setValue("requestorName", data.requestorName);
+            setValue("requestorName", data.name);
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
             if (fciUser) {
@@ -84,6 +84,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             }
         }
     }
+
+    useEffect(() => {
+        // When mode changes and is not "Self", enable the form fields
+        if (mode && mode !== "Self") {
+            setDisabled(false);
+            clearRequestorDetailsForm()
+        }
+    }, [mode]);
 
     useEffect(() => {
         if (success) {
@@ -172,6 +180,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isUserIdDisabled =
         disableAll || fciUser || isSelfHelpdesk || !createMode;
     const isNameDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
+    console.log({ isNameDisabled, isDisabled, isSelfHelpdesk, fciUser, createMode })
     const isEmailIdDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
     const isMobileNoDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
     const isRoleDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
@@ -255,7 +264,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 errors={errors}
                                 disabled={isMobileNoDisabled}
                                 type="tel"
-                                required={!createMode && !isMobileNoDisabled}
+                                required={!createMode}
                             />
                         </div>
                     )}
@@ -266,7 +275,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 name="stakeholder"
                                 control={control}
                                 options={stakeholderOptions}
-                                rules={{ required: !isStakeholderDisabled && isNonFci ? 'Please select Stakeholder' : false }}
+                                rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
                                 className="form-select"
                                 disabled={!createMode}
                             />
@@ -348,7 +357,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             }}
                             register={register}
                             errors={errors}
-                            required={isFciMode && !isUserIdDisabled}
+                            required={isFciMode}
                             disabled={isUserIdDisabled}
                         />
                     </div>
@@ -364,7 +373,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             register={register}
                             errors={errors}
                             disabled={isNameDisabled}
-                            required={isNonFci && !isNameDisabled}
+                            required={isNonFci}
                         />
                     </div>
                 )}
@@ -395,7 +404,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             errors={errors}
                             disabled={isMobileNoDisabled}
                             type="tel"
-                            required={isNonFci && !isMobileNoDisabled}
+                            required={isNonFci}
                         />
                     </div>
                 )}
@@ -406,7 +415,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="stakeholder"
                             control={control}
                             options={stakeholderOptions}
-                            rules={{ required: !isStakeholderDisabled && isNonFci ? 'Please select Stakeholder' : false }}
+                            rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
                             className="form-select"
                             disabled={isStakeholderDisabled}
                         />
