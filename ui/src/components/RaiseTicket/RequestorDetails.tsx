@@ -10,7 +10,7 @@ import { useDebounce } from "../../hooks/useDebounce";
 import React, { useEffect, useState } from "react";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, FciTheme, isFciUser, isHelpdesk } from "../../config/config";
+import { getCurrentUserDetails, FciTheme, isFciUser, isHelpdesk } from "../../config/config";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
@@ -36,6 +36,9 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const [disabled, setDisabled] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<ViewMode>("nonFci");
     const { t } = useTranslation();
+
+    const fciUser = isFciUser();
+    const helpdesk = isHelpdesk();
 
     const isDisabled = disableAll || disabled;
 
@@ -73,7 +76,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("requestorName", data.requestorName);
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
-            if (isFciUser) {
+            if (fciUser) {
                 setValue("role", data.role);
                 setValue("office", data.office);
             } else {
@@ -95,7 +98,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     useEffect(() => {
         if (debouncedUserId) {
             setDisabled(true);
-            if (disableAll || isFciUser) verifyUserById(debouncedUserId);
+            if (disableAll || fciUser) verifyUserById(debouncedUserId);
         } else clearRequestorDetailsForm();
 
         setVerified(false);
@@ -107,18 +110,18 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     useEffect(() => {
         // Ticket creation by FCI user - SELF
-        if (isFciUser && createMode) {
-            const fciUser = currentUserDetails as typeof currentUserDetails & { userId: string };
-            if (setValue && fciUser.userId) setValue("userId", fciUser.userId);
+        if (fciUser && createMode) {
+            const user = getCurrentUserDetails();
+            if (setValue && user.userId) setValue("userId", user.userId);
         }
-        if (isHelpdesk && mode === 'Self' && createMode) {
-            const hdUser = currentUserDetails as typeof currentUserDetails & { userId: string };
+        if (helpdesk && mode === 'Self' && createMode) {
+            const hdUser = getCurrentUserDetails();
             if (setValue && hdUser.userId) {
                 setValue('userId', hdUser.userId);
                 verifyUserById(hdUser.userId);
             }
         }
-    }, [isFciUser, isHelpdesk, mode, createMode]);
+    }, [fciUser, helpdesk, mode, createMode]);
 
     const verifyUserById = (userId: string) => {
         // Logic to verify user by ID
@@ -140,13 +143,13 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setVerified(false);
     };
 
-    const isSelfHelpdesk = isHelpdesk && mode === 'Self';
+    const isSelfHelpdesk = helpdesk && mode === 'Self';
 
-    const showOnBehalfCheckbox = isHelpdesk && createMode && mode !== 'Self';
+    const showOnBehalfCheckbox = helpdesk && createMode && mode !== 'Self';
 
-    const showFciToggle = !isFciUser && !isHelpdesk;
+    const showFciToggle = !fciUser && !helpdesk;
     const showUserId =
-        viewMode === FCI_User || isFciUser || onBehalfFciUser || isSelfHelpdesk;
+        viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk;
     const userIdLabel = isSelfHelpdesk ? 'User ID' : 'Employee ID';
     const showRequestorName = true;
     const showEmailId = true;
@@ -155,24 +158,24 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         !onBehalfFciUser &&
         !isSelfHelpdesk &&
         viewMode === 'nonFci' &&
-        !isFciUser;
+        !fciUser;
     const showRole =
-        viewMode === FCI_User || isFciUser || onBehalfFciUser || isSelfHelpdesk;
+        viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk;
     const showOffice =
-        (viewMode === FCI_User || isFciUser || onBehalfFciUser) && !isSelfHelpdesk;
+        (viewMode === FCI_User || fciUser || onBehalfFciUser) && !isSelfHelpdesk;
 
     const isNonFci =
-        viewMode === NON_FCI_User && !isFciUser && !onBehalfFciUser && !isSelfHelpdesk;
+        viewMode === NON_FCI_User && !fciUser && !onBehalfFciUser && !isSelfHelpdesk;
     const isFciMode =
-        viewMode === FCI_User || isFciUser || onBehalfFciUser || isSelfHelpdesk;
+        viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk;
 
     const isUserIdDisabled =
-        disableAll || isFciUser || isSelfHelpdesk || !createMode;
-    const isNameDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
-    const isEmailIdDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
-    const isMobileNoDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
-    const isRoleDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
-    const isOfficeDisabled = isDisabled || isFciUser || isSelfHelpdesk || !createMode;
+        disableAll || fciUser || isSelfHelpdesk || !createMode;
+    const isNameDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
+    const isEmailIdDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
+    const isMobileNoDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
+    const isRoleDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
+    const isOfficeDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
     const isStakeholderDisabled = false || !createMode;
 
     const isRequestorOrOnBehalfFci = !createMode && userId

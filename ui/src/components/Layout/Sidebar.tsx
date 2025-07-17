@@ -11,7 +11,6 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import CategoryIcon from "@mui/icons-material/Category";
-import { currentUserDetails } from "../../config/config";
 import { checkSidebarAccess } from "../../utils/permissions";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import { useTheme } from "@mui/material/styles";

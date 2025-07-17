@@ -11,7 +11,7 @@ import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
 import { getStatuses } from "../../services/StatusService";
-import { currentUserDetails } from "../../config/config";
+import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
@@ -70,7 +70,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     let showCategory = checkFieldAccess('TicketDetails', 'category');
     let showSubCategory = checkFieldAccess('TicketDetails', 'subCategory');
     let showPriority = checkFieldAccess('TicketDetails', 'priority');
-    const isIT = currentUserDetails?.role.includes('IT');
+    const isIT = getCurrentUserDetails()?.role.includes('IT');
     let showSeverityFields = checkFieldAccess('TicketDetails', 'severity');
     let showSeverity = checkFieldAccess('TicketDetails', 'severity');
     let showRecommendedSeverity = checkFieldAccess('TicketDetails', 'recommendedSeverity');
@@ -116,9 +116,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     }, [category])
 
     useEffect(() => {
-        // Set assignedBy to current userId from localStorage if available
         if (register && typeof register === 'function') {
-            register('assignedBy', { value: localStorage.getItem('userId') || currentUserDetails?.userId || 'john.doe' });
+            register('assignedBy', { value: getCurrentUserDetails()?.userId || 'john.doe' });
         }
     }, [register]);
 
@@ -324,7 +323,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                         />
                     </div>
                 )}
-                {!currentUserDetails?.role.includes("USER") && assignFurther && (
+                {!getCurrentUserDetails()?.role.includes("USER") && assignFurther && (
                     <>
                         {showAssignToLevelDropdown && (
                             <div className="col-md-4 mb-3  px-4">

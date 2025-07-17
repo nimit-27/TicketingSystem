@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/AuthService";
-import { currentUserDetails } from "../config/config";
+import { getCurrentUserDetails } from "../config/config";
 import { setPermissions } from "../utils/permissions";
+import { setUserDetails } from "../utils/Utils";
 
 const Login: React.FC = () => {
     const [userId, setUserId] = useState("");
@@ -11,10 +12,19 @@ const Login: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        loginUser({ username: userId, password, roles: currentUserDetails.role as string[] })
+        const roles = getCurrentUserDetails().role as string[];
+        loginUser({ username: userId, password, roles })
             .then(res => {
-                if (res.data && res.data.permissions) {
-                    setPermissions(res.data.permissions);
+                if (res.data) {
+                    if (res.data.permissions) {
+                        setPermissions(res.data.permissions);
+                    }
+                    const details = {
+                        userId: res.data.userId || userId,
+                        role: roles,
+                        name: res.data.name
+                    };
+                    setUserDetails(details);
                 }
                 navigate("/");
             });

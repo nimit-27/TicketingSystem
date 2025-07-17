@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { ThemeModeContext } from "../../context/ThemeContext";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import Avatar from "@mui/material/Avatar";
-import { currentUserDetails } from "../../config/config";
+import { getCurrentUserDetails } from "../../config/config";
 import { useTheme } from "@mui/material/styles";
 import { LanguageContext } from "../../context/LanguageContext";
 
@@ -15,8 +15,9 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggle, mode } = useContext(ThemeModeContext);
   const { toggleLanguage } = useContext(LanguageContext);
   const theme = useTheme();
-  const initials = currentUserDetails.name
-    ? currentUserDetails.name
+  const user = getCurrentUserDetails();
+  const initials = user.name
+    ? user.name
       .split(" ")
       .map((n) => n.charAt(0))
       .join("")

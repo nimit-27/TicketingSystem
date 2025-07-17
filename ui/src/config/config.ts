@@ -1,14 +1,21 @@
 import { envConfig } from './envconfig';
+import { getUserDetails } from '../utils/Utils';
 
 const Users = envConfig.Users;
 
 export const Roles = envConfig.Roles;
 export const devMode = envConfig.devMode;
-export const currentUserDetails = Users.helpdesk;
-// export const currentUserDetails = Users.fci
 export const FciTheme = envConfig.FciTheme;
 
-export const isFciUser = currentUserDetails.role.includes('FCI_User');
-export const isHelpdesk = currentUserDetails.role.includes('HELPDESK');
-console.log({ isFciUser, isHelpdesk });
+export function getCurrentUserDetails() {
+  return getUserDetails() || Users.helpdesk;
+}
+
+export function isFciUser() {
+  return getCurrentUserDetails().role.includes('FCI_User');
+}
+
+export function isHelpdesk() {
+  return getCurrentUserDetails().role.includes('HELPDESK');
+}
 
