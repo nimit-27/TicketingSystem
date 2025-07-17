@@ -24,7 +24,8 @@ export const useApi = <R,>(): UseApiResponse<R> => {
             startTransition(() => {
                 apiCall()
                     .then((response: any) => {
-                        const resp: ApiResponse<R> = response?.data ?? response;
+                        const resp: ApiResponse<R> = response?.data?.body ?? response;
+                        console.log(resp)
 
                         if (resp.success) {
                             setData(resp.data ?? null);
@@ -39,8 +40,7 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                         }
                     })
                     .catch((err: any) => {
-                        console.error(err);
-                        const message = err?.response?.data?.error?.message || err?.message || 'Something went wrong';
+                        const message = err?.response?.data?.apiError?.message || err?.message || 'Something went wrong';
                         setError(message);
                         showMessage(message, 'error');
                         setData(null);

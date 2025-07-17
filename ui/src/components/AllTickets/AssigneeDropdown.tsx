@@ -19,33 +19,40 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
-    const [levels, setLevels] = useState<Level[]>([]);
     const [selectedLevel, setSelectedLevel] = useState<string>('');
-    const [users, setUsers] = useState<User[]>([]);
-    const { apiHandler } = useApi<any>();
 
+    // Use useApi for all API calls
+    const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
+    const { data: usersData, apiHandler: getUsersByLevelApiHandler } = useApi<any>();
+    const { data: updateData, apiHandler: updateTicketApiHandler } = useApi<any>();
+
+    // Fetch levels on mount
     useEffect(() => {
-        getAllLevels().then(res => {
-            setLevels(res.data);
-            if (res.data[0]) {
-                setSelectedLevel(res.data[0].levelId);
-            }
-        });
+        getLevelsApiHandler(() => getAllLevels());
     }, []);
 
+    // Fetch users when selectedLevel changes
     useEffect(() => {
         if (selectedLevel) {
-            getAllUsersByLevel(selectedLevel).then(res => setUsers(res.data || []));
+            getUsersByLevelApiHandler(() => getAllUsersByLevel(selectedLevel));
         }
     }, [selectedLevel]);
 
+    // Call onAssigned and close menu when updateData changes
+    useEffect(() => {
+        if (updateData && updateData.success && updateData.user) {
+            onAssigned?.(updateData.user.name);
+            setAnchorEl(null);
+        }
+    }, [updateData, onAssigned]);
+
     const handleSelect = (u: User) => {
         const payload = { assignedTo: u.userId, assignedBy: getCurrentUserDetails()?.userId } as any;
-        apiHandler(() => updateTicket(ticketId, payload)).then(() => {
-            onAssigned?.(u.name);
-            setAnchorEl(null);
-        });
+        updateTicketApiHandler(() => updateTicket(ticketId, payload));
     };
+
+    const levels: Level[] = levelsData || [];
+    const users: User[] = usersData || [];
 
     const filtered = users.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
