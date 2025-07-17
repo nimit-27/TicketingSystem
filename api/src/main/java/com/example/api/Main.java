@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.example")
-@ConfigurationPropertiesScan(basePackages = "com.example")@EnableScheduling
+@ConfigurationPropertiesScan(basePackages = "com.example")
+@EnableScheduling
 public class Main {
 
 	public static void main(String[] args) {

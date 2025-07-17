@@ -29,6 +29,8 @@ public class TypesenseClient {
     }
 
     public SearchResult searchTickets(String query) throws Exception {
+        createTicketsCollectionsIfNotExists();
+
         SearchParameters searchParameters = new SearchParameters()
                 .q(query)
                 .queryBy("subject");
