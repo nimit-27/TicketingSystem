@@ -255,7 +255,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 errors={errors}
                                 disabled={isMobileNoDisabled}
                                 type="tel"
-                                required={!createMode}
+                                required={!createMode && !isMobileNoDisabled}
                             />
                         </div>
                     )}
@@ -266,7 +266,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 name="stakeholder"
                                 control={control}
                                 options={stakeholderOptions}
-                                rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
+                                rules={{ required: !isStakeholderDisabled && isNonFci ? 'Please select Stakeholder' : false }}
                                 className="form-select"
                                 disabled={!createMode}
                             />
@@ -348,7 +348,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             }}
                             register={register}
                             errors={errors}
-                            required={isFciMode}
+                            required={isFciMode && !isUserIdDisabled}
                             disabled={isUserIdDisabled}
                         />
                     </div>
@@ -364,7 +364,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             register={register}
                             errors={errors}
                             disabled={isNameDisabled}
-                            required={isNonFci}
+                            required={isNonFci && !isNameDisabled}
                         />
                     </div>
                 )}
@@ -395,7 +395,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             errors={errors}
                             disabled={isMobileNoDisabled}
                             type="tel"
-                            required={isNonFci}
+                            required={isNonFci && !isMobileNoDisabled}
                         />
                     </div>
                 )}
@@ -406,7 +406,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             name="stakeholder"
                             control={control}
                             options={stakeholderOptions}
-                            rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
+                            rules={{ required: !isStakeholderDisabled && isNonFci ? 'Please select Stakeholder' : false }}
                             className="form-select"
                             disabled={isStakeholderDisabled}
                         />
