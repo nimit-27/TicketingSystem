@@ -45,3 +45,16 @@ export interface ToggleOption {
   value: string;
   label?: string; // optional
 }
+
+export interface ApiError {
+    message: string;
+    status: number;
+    path: string;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: ApiError;
+    timestamp: string;
+}

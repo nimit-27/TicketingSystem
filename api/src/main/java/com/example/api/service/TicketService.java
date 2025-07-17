@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.TicketDto;
+import com.example.api.exception.TicketNotFoundException;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.User;
 import com.example.api.models.Ticket;
@@ -63,7 +64,8 @@ public class TicketService {
     }
 
     public TicketDto getTicket(String id) {
-        Ticket ticket = ticketRepository.findById(id).orElse(null);
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
         return DtoMapper.toTicketDto(ticket);
     }
 
@@ -120,7 +122,9 @@ public class TicketService {
     }
 
     public TicketDto updateTicket(String id, Ticket updated) {
-        Ticket existing = ticketRepository.findById(id).orElseThrow();
+        Ticket existing = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+
         String previousAssignedTo = existing.getAssignedTo();
         TicketStatus previousStatus = existing.getStatus();
         existing.setCategory(updated.getCategory());
@@ -147,14 +151,18 @@ public class TicketService {
     }
 
     public TicketDto linkToMaster(String id, String masterId) {
-        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+
         ticket.setMasterId(masterId);
         Ticket saved = ticketRepository.save(ticket);
         return DtoMapper.toTicketDto(saved);
     }
 
-    public TicketComment addComment(String ticketId, String comment) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+    public TicketComment addComment(String id, String comment) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+
         TicketComment tc = new TicketComment();
         tc.setTicket(ticket);
         tc.setComment(comment);
@@ -162,8 +170,9 @@ public class TicketService {
         return commentRepository.save(tc);
     }
 
-    public List<TicketComment> getComments(String ticketId, Integer count) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+    public List<TicketComment> getComments(String id, Integer count) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
         List<TicketComment> list = commentRepository.findByTicketOrderByCreatedAtDesc(ticket);
         if (count == null || count >= list.size()) {
             return list;

@@ -1,5 +1,7 @@
+
 import { useCallback, useState, useTransition } from "react";
 import { useSnackbar } from "../context/SnackbarContext";
+import { ApiResponse } from "../types";
 
 interface UseApiResponse<R> {
     data: R | null;
@@ -17,34 +19,36 @@ export const useApi = <R,>(): UseApiResponse<R> => {
 
     const { showMessage } = useSnackbar();
 
-    const apiHandler = useCallback((apiCall: () => Promise<R>): Promise<R> => {
-
-        // Do NOT add 'reject' parameter in the Promise. We are handling the errors here only.
+    const apiHandler = useCallback((apiCall: () => Promise<any>): Promise<R> => {
         return new Promise((resolve) => {
             startTransition(() => {
                 apiCall()
                     .then((response: any) => {
-                        console.log(response)
-                        const status = response?.status;
-                        const data = response?.data ?? response;
+                        const resp: ApiResponse<R> = response?.data ?? response;
 
-                        if (status && status !== 200) {
-                            throw new Error("Something went wrong");
+                        if (resp.success) {
+                            setData(resp.data ?? null);
+                            setSuccess(true);
+                            resolve(resp.data as R);
+                        } else {
+                            const message = resp.error?.message || 'Something went wrong';
+                            setError(message);
+                            showMessage(message, 'error');
+                            setData(null);
+                            setSuccess(false);
                         }
-                        setData(data?.response ?? data);
-                        setSuccess(true);
-                        resolve(data?.response ?? data);
-                    }).catch((err) => {
-                        console.error(err)
-                        const message = err?.message || 'Something went wrong';
-                        setError(err);
+                    })
+                    .catch((err: any) => {
+                        console.error(err);
+                        const message = err?.response?.data?.error?.message || err?.message || 'Something went wrong';
+                        setError(message);
                         showMessage(message, 'error');
                         setData(null);
                         setSuccess(false);
-                    })
-            })
-        })
-    }, [])
+                    });
+            });
+        });
+    }, [showMessage])
 
     return { data, pending, error, success, apiHandler }
 
