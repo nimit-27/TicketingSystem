@@ -5,7 +5,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
-import { currentUserDetails, isFciUser, isHelpdesk } from "../../config/config";
+import { isHelpdesk } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,12 +28,13 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
 
     const ticketId = useWatch({ control, name: 'ticketId' });
     const mode = useWatch({ control, name: 'mode' });
+    const helpdesk = isHelpdesk();
 
     useEffect(() => {
-        if (!isHelpdesk && (!mode || mode !== "Self")) {
+        if (!helpdesk && (!mode || mode !== "Self")) {
             setValue && setValue("mode", "Self");
         }
-    }, [setValue, mode]);
+    }, [setValue, mode, helpdesk]);
 
     const { t } = useTranslation();
     return (
@@ -66,7 +67,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             label="Mode"
                             options={modeOptions}
                             className="form-select"
-                            disabled={disableAll || !isHelpdesk}
+                            disabled={disableAll || !helpdesk}
                         />
                     </div>
                 )}
