@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import MasterIcon from "../components/UI/Icons/MasterIcon";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
+import AssigneeDropdown from "../components/AllTickets/AssigneeDropdown";
 import ViewToggle from "../components/UI/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
@@ -141,6 +142,13 @@ const AllTickets: React.FC = () => {
                 title: t('Priority'),
                 dataIndex: "priority",
                 key: "priority",
+            },
+            {
+                title: t('Assignee'),
+                key: 'assignee',
+                render: (_: any, record: Ticket) => (
+                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} />
+                )
             },
             {
                 title: t('Status'),

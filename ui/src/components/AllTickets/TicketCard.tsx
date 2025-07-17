@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, Typography, Box, Tooltip } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MasterIcon from '../UI/Icons/MasterIcon';
+import AssigneeDropdown from './AssigneeDropdown';
 
 export interface TicketCardData {
     id: string;
@@ -11,6 +12,7 @@ export interface TicketCardData {
     priority: string;
     isMaster: boolean;
     requestorName?: string;
+    assignedTo?: string;
 }
 
 interface PriorityConfig { color: string; count: number; }
@@ -35,6 +37,9 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 <Typography variant="body2">Category: {ticket.category}</Typography>
                 <Typography variant="body2">Sub-Category: {ticket.subCategory}</Typography>
             </CardContent>
+            <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+                <AssigneeDropdown ticketId={ticket.id} assigneeName={ticket.assignedTo} />
+            </Box>
             <Box sx={{ position: 'absolute', bottom: 4, right: 4, color: p.color }}>
                 <Tooltip title={ticket.priority}>
                     <Box sx={{ position: 'relative', width: 24, height: 24 + (p.count - 1) * 10 }}>

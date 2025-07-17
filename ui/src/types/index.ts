@@ -37,6 +37,7 @@ export interface Ticket {
     requestorEmailId?: string;
     requestorMobileNo?: string;
     status?: string;
+    assignedTo?: string;
 }
 
 export interface ToggleOption {

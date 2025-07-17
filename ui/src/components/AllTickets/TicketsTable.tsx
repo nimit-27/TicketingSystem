@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
+import AssigneeDropdown from './AssigneeDropdown';
 
 export interface TicketRow {
     id: string;
@@ -15,6 +16,7 @@ export interface TicketRow {
     requestorEmailId?: string;
     requestorMobileNo?: string;
     status?: string;
+    assignedTo?: string;
 }
 
 interface TicketsTableProps {
@@ -55,6 +57,13 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
             { title: t('Priority'), dataIndex: 'priority', key: 'priority' },
+            {
+                title: t('Assignee'),
+                key: 'assignee',
+                render: (_: any, record: TicketRow) => (
+                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} />
+                )
+            },
             { title: t('Status'), dataIndex: 'status', key: 'status', render: (v: any) => v || '-' },
             {
                 title: t('Action'),

@@ -522,7 +522,7 @@ CREATE TABLE `user_levels` (
 
 LOCK TABLES `user_levels` WRITE;
 /*!40000 ALTER TABLE `user_levels` DISABLE KEYS */;
-INSERT INTO `user_levels` VALUES (205,1),(203,3),(204,3),(201,4),(202,4),(211,6);
+INSERT INTO `user_levels` VALUES (205,1),(203,3),(204,3),(201,4),(202,4),(211,6),(206,1),(207,1),(208,2),(209,2),(210,3),(212,3),(213,2),(214,1);
 /*!40000 ALTER TABLE `user_levels` ENABLE KEYS */;
 UNLOCK TABLES;
 
