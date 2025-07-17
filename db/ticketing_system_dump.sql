@@ -73,6 +73,7 @@ LOCK TABLES `categories` WRITE;
 INSERT INTO `categories` VALUES ('2','Payment Problems','bhavyar','2025-06-10 16:51:58','2025-06-10 16:51:58',NULL),('3','Bug Reports','chirags','2025-06-10 16:51:58','2025-06-10 16:51:58',NULL),('4','IT',NULL,NULL,NULL,NULL),('5','Server',NULL,NULL,NULL,NULL),('6','New Category',NULL,NULL,NULL,NULL),('7','Network Issues','alexs','2025-06-24 12:00:00','2025-06-24 12:00:00','alexs');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
+INSERT INTO `categories` VALUES ('8','Customer Support',NULL,NULL,NULL,NULL),('9','Infrastructure',NULL,NULL,NULL,NULL);
 
 --
 -- Table structure for table `employee_levels`
@@ -367,6 +368,7 @@ LOCK TABLES `sub_categories` WRITE;
 /*!40000 ALTER TABLE `sub_categories` DISABLE KEYS */;
 INSERT INTO `sub_categories` VALUES ('1','UPI=',NULL,NULL,'2',NULL,NULL),('4','Payment Fail','nimit.jain','2025-06-11 22:15:40','2','2025-06-11 22:15:40',NULL),('5','Loading Time','helpdesk.user','2025-06-16 17:41:03','5','2025-06-16 17:41:03',NULL),('6','Latency','alexs','2025-06-24 12:05:00','2','2025-06-24 12:05:00','alexs');
 /*!40000 ALTER TABLE `sub_categories` ENABLE KEYS */;
+INSERT INTO `sub_categories` VALUES ('7','Login Issues',NULL,NULL,'2',NULL,NULL),('8','Hardware Failure','alexs','2025-06-24 12:30:00','5','2025-06-24 12:30:00','alexs');
 UNLOCK TABLES;
 
 --
@@ -551,6 +553,7 @@ CREATE TABLE `users` (
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas',NULL),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL),(211,'Guest Account',NULL,NULL,NULL,'guest','admin123'),(212,'Kevin Brooks','kevin.brooks@example.com','9123456790','Delhi','kevinb','password123');
+INSERT INTO `users` VALUES (213,'Lara Singh','lara.singh@example.com','9123456791','Chandigarh','laras','securepass'),(214,'Mohan Kumar','mohan.kumar@example.com','9123456792','Jaipur','mohank','pass1234');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
