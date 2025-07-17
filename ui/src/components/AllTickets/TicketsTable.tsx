@@ -68,7 +68,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
             {
                 title: t('Action'),
                 key: 'action',
-                render: () => <VisibilityIcon fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
+                render: (_: any, record: TicketRow) => <VisibilityIcon onClick={() => onRowClick(record.id)} fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
             },
         ],
         [t]
@@ -80,7 +80,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
             columns={columns as any}
             rowKey="id"
             pagination={false}
-            onRow={(record) => ({ onClick: () => onRowClick(record.id) })}
         />
     );
 };
