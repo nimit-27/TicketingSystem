@@ -45,3 +45,10 @@ export function updateComment(commentId: string, comment: string) {
 export function deleteComment(commentId: string) {
     return axios.delete(`${BASE_URL}/tickets/comments/${commentId}`);
 }
+
+export function searchTicketsPaginated(query: string, status?: string, master?: boolean, page: number = 0, size: number = 5) {
+    const params = new URLSearchParams({ query, page: String(page), size: String(size) });
+    if (status) params.append('status', status);
+    if (master !== undefined) params.append('master', String(master));
+    return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
+}

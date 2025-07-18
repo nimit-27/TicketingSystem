@@ -4,9 +4,12 @@ import TableRowsIcon from "@mui/icons-material/TableRows";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
-import { getTickets } from "../services/TicketService";
+import { getTickets, searchTicketsPaginated } from "../services/TicketService";
 import { getStatuses } from "../services/StatusService";
 import PaginationControls from "../components/PaginationControls";
+import { Switch, FormControlLabel, IconButton } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import { useTranslation } from "react-i18next";
@@ -19,7 +22,6 @@ import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { Ticket } from "../types";
-import { FciTheme } from "../config/config";
 
 const statusOptions = [
     { name: "All", id: "ALL" },
@@ -48,8 +50,10 @@ const AllTickets: React.FC = () => {
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
     const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("ALL");
+    const [masterOnly, setMasterOnly] = useState(false);
     const [statusOptions, setStatusOptions] = useState<string[]>([]);
     const { t } = useTranslation();
 
@@ -75,8 +79,16 @@ const AllTickets: React.FC = () => {
     }, [statusList]);
 
     useEffect(() => {
-        apiHandler(() => getTickets(page - 1, 5));
-    }, [page]);
+        apiHandler(() =>
+            searchTicketsPaginated(
+                debouncedSearch,
+                statusFilter === 'ALL' ? undefined : statusFilter,
+                masterOnly ? true : undefined,
+                page - 1,
+                pageSize
+            )
+        );
+    }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
     useEffect(() => {
         if (data) {
@@ -85,20 +97,6 @@ const AllTickets: React.FC = () => {
             setFiltered(resp.items || resp);
         }
     }, [data]);
-
-    useEffect(() => {
-        if (!data) return;
-        const resp = data;
-        let list: Ticket[] = resp.items || resp;
-        if (statusFilter !== 'ALL') {
-            list = list.filter(t => t.status === statusFilter);
-        }
-        const query = debouncedSearch.toLowerCase();
-        const f = list.filter((t: any) =>
-            t.subject.toLowerCase().includes(query) || String(t.id).includes(query)
-        );
-        setFiltered(f);
-    }, [debouncedSearch, data, statusFilter]);
 
     const columns = useMemo(
         () => [
@@ -170,18 +168,23 @@ const AllTickets: React.FC = () => {
             <Title textKey="My Tickets" />
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <GenericInput
-                    label="Search by Id or Subject"
+                    label="Search"
                     size="small"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    sx={{ mr: 2 }}
+                    sx={{ mr: 2, width: 250 }}
                 />
                 <DropdownController
                     label="Status"
                     value={statusFilter}
                     onChange={setStatusFilter}
                     options={statusOptions.map(s => ({ label: s, value: s }))}
-                    style={{ width: 150, marginRight: 8 }}
+                    style={{ width: 180, marginRight: 8 }}
+                />
+                <FormControlLabel
+                    control={<Switch checked={masterOnly} onChange={(e) => setMasterOnly(e.target.checked)} />}
+                    label="Master"
+                    sx={{ mr: 2 }}
                 />
                 <ViewToggle
                     value={viewMode}
@@ -197,7 +200,28 @@ const AllTickets: React.FC = () => {
             {!pending && viewMode === 'table' && (
                 <div>
                     <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} />
-                    <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} className="mt-3" />
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                        <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
+                        <div className="d-flex align-items-center">
+                            <IconButton size="small" onClick={() => setPageSize(ps => ps > 1 ? ps - 1 : 1)}>
+                                <ArrowDropDownIcon />
+                            </IconButton>
+                            <GenericInput
+                                type="number"
+                                value={pageSize}
+                                onChange={(e) => {
+                                    const v = parseInt(e.target.value, 10);
+                                    if (!isNaN(v) && v > 0) setPageSize(v);
+                                }}
+                                size="small"
+                                sx={{ width: 60, mx: 1 }}
+                            />
+                            <span>/ page</span>
+                            <IconButton size="small" onClick={() => setPageSize(ps => ps + 1)}>
+                                <ArrowDropUpIcon />
+                            </IconButton>
+                        </div>
+                    </div>
                 </div>
             )}
             {!pending && viewMode === 'grid' && (
