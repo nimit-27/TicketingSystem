@@ -36,7 +36,7 @@ public class TicketController {
         return ResponseEntity.ok(resp);
     }
 
-    @GetMapping("/{id:[0-9a-fA-F\-]{36}}")
+    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}")
     public ResponseEntity<TicketDto> getTicket(@PathVariable("id") String id) {
         TicketDto dto = ticketService.getTicket(id);
         if (dto == null) return ResponseEntity.notFound().build();
