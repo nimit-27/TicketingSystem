@@ -66,14 +66,14 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         <>
             <UserAvatar name={assigneeName || ''} onClick={(e) => setAnchorEl(e.currentTarget)} />
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
-                <Box sx={{ p: 1, width: 300 }}>
+                <Box sx={{ p: 1, width: 350 }}>
                     <TextField value={search} onChange={e => setSearch(e.target.value)} placeholder="Search" size="small" fullWidth />
                     <Box sx={{ mt: 1, mb: 1, display: 'flex', flexWrap: 'wrap' }}>
                         {levels.map(l => (
                             <Chip
                                 key={l.levelId}
                                 label={l.levelName}
-                                onClick={() => setSelectedLevel(l.levelId)}
+                                onClick={() => setSelectedLevel(prev => prev === l.levelId ? '' : l.levelId)}
                                 color={selectedLevel === l.levelId ? 'primary' : 'default'}
                                 size="small"
                                 sx={{ mr: 0.5, mb: 0.5 }}
