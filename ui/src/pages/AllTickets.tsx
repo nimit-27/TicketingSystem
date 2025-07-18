@@ -7,7 +7,7 @@ import { useDebounce } from "../hooks/useDebounce";
 import { getTickets, searchTicketsPaginated } from "../services/TicketService";
 import { getStatuses } from "../services/StatusService";
 import PaginationControls from "../components/PaginationControls";
-import { Switch, FormControlLabel, IconButton } from '@mui/material';
+import { IconButton } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import { useNavigate } from "react-router-dom";
@@ -181,10 +181,14 @@ const AllTickets: React.FC = () => {
                     options={statusOptions.map(s => ({ label: s, value: s }))}
                     style={{ width: 180, marginRight: 8 }}
                 />
-                <FormControlLabel
-                    control={<Switch checked={masterOnly} onChange={(e) => setMasterOnly(e.target.checked)} />}
-                    label="Master"
-                    sx={{ mr: 2 }}
+                <ViewToggle
+                    value={masterOnly ? 'master' : 'all'}
+                    onChange={(val: string) => setMasterOnly(val === 'master')}
+                    options={[
+                        { label: t('All'), value: 'all' },
+                        { label: t('Master'), value: 'master' }
+                    ]}
+                    radio
                 />
                 <ViewToggle
                     value={viewMode}
