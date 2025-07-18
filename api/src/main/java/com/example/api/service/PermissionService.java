@@ -1,28 +1,52 @@
 package com.example.api.service;
 
+import com.example.api.models.RolePermissionConfig;
 import com.example.api.permissions.PermissionsConfig;
 import com.example.api.permissions.RolePermission;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.example.api.repository.RolePermissionConfigRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 @Service
 public class PermissionService {
     private PermissionsConfig config;
+    private final RolePermissionConfigRepository repository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public PermissionService(RolePermissionConfigRepository repository) {
+        this.repository = repository;
+    }
 
     @PostConstruct
     public void loadPermissions() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        try (InputStream is = new ClassPathResource("config/permissions.json").getInputStream()) {
-            config = mapper.readValue(is, PermissionsConfig.class);
+        Map<String, RolePermission> map = new HashMap<>();
+        for (RolePermissionConfig rpc : repository.findAll()) {
+            RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
+            map.put(rpc.getRole(), rp);
         }
+        config = new PermissionsConfig();
+        config.setRoles(map);
+    }
+
+    public void updateRolePermissions(String role, RolePermission permission) throws IOException {
+        String json = objectMapper.writeValueAsString(permission);
+        RolePermissionConfig rpc = new RolePermissionConfig();
+        rpc.setRole(role);
+        rpc.setPermissions(json);
+        repository.save(rpc);
+
+        if (config == null) {
+            config = new PermissionsConfig();
+            config.setRoles(new HashMap<>());
+        }
+        if (config.getRoles() == null) {
+            config.setRoles(new HashMap<>());
+        }
+        config.getRoles().put(role, permission);
     }
 
     private List<RolePermission> getRolePermissions(List<String> roles) {
