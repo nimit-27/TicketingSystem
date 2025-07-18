@@ -2,165 +2,160 @@
   "roles": {
     "USER": {
       "sidebar": {
-        "tickets": { "show": true },
-        "create-ticket": { "show": true },
-        "faq": { "show": true }
+        "myTickets": { "show": true },
+        "raiseTickets": { "show": true },
+        "knowledgeBase": { "show": false },
+        "faq": { "show": true },
+        "categoriesMaster": { "show": true },
+        "escalationMaster": { "show": true }
       },
-      "forms": {
-        "RequestDetails": {
-          "view": true,
-          "create": true,
-          "update": false,
-          "fields": {
-            "ticketId": false,
-            "reportedDate": true,
-            "mode": true
-          }
+      "pages": {
+        "myTickets": {
+          "searchBar": true,
+          "statusFilter": true,
+          "masterFilterToggle": true,
+          "gridTableViewToggle": true,
+          "table": {
+            "masterTag": true,
+            "pagination": true,
+            "pageSize": true,
+            "columns": {
+              "ticketId": true,
+              "requestorName": true,
+              "email": true,
+              "mobile": true,
+              "category": true,
+              "subCategory": true,
+              "priority": true,
+              "assignee": true,
+              "status": true,
+              "action": true
+            }
+          },
+          "grid": true
         },
-        "RequestorDetails": {
-          "view": true,
-          "create": true,
-          "update": false,
-          "fields": {
-            "employeeId": false,
+        "ticketForm": {
+          "requestDetails": {
+            "ticketId": true,
+            "mode": true,
+            "reportedDate": true
+          },
+          "requestorDetails": {
             "userId": true,
             "requestorName": true,
             "emailId": true,
-            "mobileNo": true,
+            "phoneNumber": true,
             "stakeholder": true,
-            "role": false,
-            "office": false
-          }
-        },
-        "TicketDetails": {
-          "view": true,
-          "create": true,
-          "update": false,
-          "fields": {
-            "assignedToLevel": false,
-            "assignedTo": false,
+            "role": true,
+            "office": true,
+            "onBehalfOfFciUser": true
+          },
+          "ticketDetails": {
+            "editButton": false,
+            "assignedToLevel": true,
+            "assignedTo": true,
             "category": true,
             "subCategory": true,
             "priority": true,
-            "severity": false,
-            "recommendedSeverity": false,
+            "severityFields": {
+              "severity": true,
+              "selectedImpact": true,
+              "recommendedSeverity": false
+            },
             "impact": true,
-            "isMaster": true,
+            "isMasterCheckbox": true,
             "subject": true,
             "description": true,
             "attachment": true,
-            "status": false,
-            "assignFurther": false
+            "status": true,
+            "assignFurtherCheckbox": false,
+            "assignToLevelDropdown": false,
+            "assignToDropdown": false
+          },
+          "comments": {
+            "postComment": true,
+            "editButton": false,
+            "deleteButton": false
           }
         }
       }
     },
     "ADMIN": {
       "sidebar": {
-        "tickets": { "show": true },
-        "create-ticket": { "show": true },
-        "knowledge-base": { "show": true },
-        "categories-master": { "show": true },
-        "escalation-master": { "show": true }
+        "myTickets": { "show": true },
+        "raiseTickets": { "show": true },
+        "knowledgeBase": { "show": false },
+        "faq": { "show": true },
+        "categoriesMaster": { "show": true },
+        "escalationMaster": { "show": true }
       },
-      "forms": {
-        "RequestDetails": {
-          "view": true,
-          "create": true,
-          "update": true,
-          "fields": {
-            "ticketId": true,
-            "reportedDate": true,
-            "mode": true
-          }
+      "pages": {
+        "myTickets": {
+          "searchBar": true,
+          "statusFilter": true,
+          "masterFilterToggle": true,
+          "gridTableViewToggle": true,
+          "table": {
+            "masterTag": true,
+            "pagination": true,
+            "pageSize": true,
+            "columns": {
+              "ticketId": true,
+              "requestorName": true,
+              "email": true,
+              "mobile": true,
+              "category": true,
+              "subCategory": true,
+              "priority": true,
+              "assignee": true,
+              "status": true,
+              "action": true
+            }
+          },
+          "grid": true
         },
-        "RequestorDetails": {
-          "view": true,
-          "create": true,
-          "update": true,
-          "fields": {
+        "ticketForm": {
+          "requestDetails": {
+            "ticketId": true,
+            "mode": true,
+            "reportedDate": true
+          },
+          "requestorDetails": {
             "userId": true,
             "requestorName": true,
             "emailId": true,
-            "mobileNo": true,
+            "phoneNumber": true,
             "stakeholder": true,
             "role": true,
-            "office": true
-          }
-        },
-        "TicketDetails": {
-          "view": true,
-          "create": true,
-          "update": true,
-          "fields": {
+            "office": true,
+            "onBehalfOfFciUser": true
+          },
+          "ticketDetails": {
+            "editButton": true,
             "assignedToLevel": true,
             "assignedTo": true,
             "category": true,
             "subCategory": true,
             "priority": true,
-            "severity": true,
-            "recommendedSeverity": true,
+            "severityFields": {
+              "severity": true,
+              "selectedImpact": true,
+              "recommendedSeverity": true
+            },
             "impact": true,
-            "isMaster": true,
+            "isMasterCheckbox": true,
             "subject": true,
             "description": true,
             "attachment": true,
             "status": true,
-            "assignFurther": true
-          }
-        }
-      }
-    },
-    "HELPDESK": {
-      "sidebar": {
-        "tickets": { "show": true },
-        "create-ticket": { "show": true },
-        "knowledge-base": { "show": true }
-      },
-      "forms": {
-        "RequestDetails": {
-          "view": true,
-          "create": true,
-          "update": true,
-          "fields": {
-            "ticketId": true,
-            "reportedDate": true,
-            "mode": true
-          }
-        },
-        "RequestorDetails": {
-          "view": true,
-          "create": true,
-          "update": true,
-          "fields": {
-            "userId": true,
-            "requestorName": true,
-            "emailId": true,
-            "mobileNo": true,
-            "stakeholder": true,
-            "role": true,
-            "office": true
-          }
-        },
-        "TicketDetails": {
-          "view": true,
-          "create": true,
-          "update": true,
-          "fields": {
-            "assignedToLevel": true,
-            "assignedTo": true,
-            "category": true,
-            "subCategory": true,
-            "priority": true,
-            "severity": true,
-            "recommendedSeverity": true,
-            "impact": true,
-            "isMaster": true,
-            "subject": true,
-            "description": true,
-            "attachment": true,
-            "status": true,
-            "assignFurther": true
+            "assignFurtherCheckbox": true,
+            "assignToLevelDropdown": true,
+            "assignToDropdown": true
+          },
+          "comments": {
+            "postComment": true,
+            "editButton": true,
+            "deleteButton": true
           }
         }
       }

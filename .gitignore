@@ -35,3 +35,6 @@ node_modules/
 
 # Docker files not to track (if generated)
 docker-compose.override.yml
+
+# Filegator files
+filegator/filegator.tar

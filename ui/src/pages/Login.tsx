@@ -14,7 +14,8 @@ const Login: React.FC = () => {
         e.preventDefault();
         const roles = getCurrentUserDetails().role as string[];
         loginUser({ username: userId, password, roles })
-            .then(res => {
+            .then(response => {
+                let res = response.data.body
                 if (res.data) {
                     if (res.data.permissions) {
                         setPermissions(res.data.permissions);

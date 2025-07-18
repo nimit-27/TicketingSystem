@@ -1,3 +1,5 @@
+import { getUserPermissions, setUserPermissions } from './Utils';
+
 export interface SidebarItemPermission {
   show?: boolean;
   children?: { [key: string]: SidebarItemPermission };
@@ -6,12 +8,8 @@ export interface SidebarItemPermission {
 
 export interface RolePermission {
   sidebar?: { [key: string]: SidebarItemPermission };
-  forms?: { [form: string]: { [key: string]: any } };
+  pages?: { [form: string]: { [key: string]: any } };
 }
-import {
-  getUserPermissions,
-  setUserPermissions,
-} from './Utils';
 
 export function setPermissions(perm: RolePermission) {
   setUserPermissions(perm);
@@ -23,18 +21,17 @@ export function checkSidebarAccess(key: string): boolean {
 }
 
 export function checkFormAccess(
-  form: string,
+  section: string,
   type: 'view' | 'create' | 'update',
 ): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  const fp: any = perms?.forms?.[form];
+  const fp: any = perms?.pages?.[section];
   return !!fp && !!fp[type];
 }
 
-export function checkFieldAccess(form: string, field: string): boolean {
+export function checkFieldAccess(section: string, field: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  const fp: any = perms?.forms?.[form];
-  if (!fp) return false;
-  const fields: any = fp.fields || {};
+  const fields: any = perms?.pages?.ticketForm?.[section];
+  if (!fields) return false;
   return !!fields[field];
 }

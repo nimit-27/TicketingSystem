@@ -17,31 +17,31 @@ import { useTheme } from "@mui/material/styles";
 
 const menuItems = [
   {
-    key: "tickets",
+    key: "myTickets",
     label: "My Tickets",
     to: "/tickets",
     icon: <ListAltIcon />,
   },
   {
-    key: "create-ticket",
+    key: "raiseTickets",
     label: "Raise Ticket",
     to: "/create-ticket",
     icon: <AddCircleOutlineIcon />,
   },
   {
-    key: "knowledge-base",
+    key: "knowledgeBase",
     label: "Knowledge Base",
     to: "/knowledge-base",
     icon: <LibraryBooksIcon />,
   },
   {
-    key: "categories-master",
+    key: "categoriesMaster",
     label: "Categories Master",
     to: "/categories-master",
     icon: <CategoryIcon />,
   },
   {
-    key: "escalation-master",
+    key: "escalationMaster",
     label: "Escalation Master",
     to: "/escalation-master",
     icon: <SupervisorAccountIcon />,

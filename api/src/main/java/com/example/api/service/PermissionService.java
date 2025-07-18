@@ -1,28 +1,52 @@
 package com.example.api.service;
 
+import com.example.api.models.RolePermissionConfig;
 import com.example.api.permissions.PermissionsConfig;
 import com.example.api.permissions.RolePermission;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.example.api.repository.RolePermissionConfigRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 @Service
 public class PermissionService {
     private PermissionsConfig config;
+    private final RolePermissionConfigRepository repository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public PermissionService(RolePermissionConfigRepository repository) {
+        this.repository = repository;
+    }
 
     @PostConstruct
     public void loadPermissions() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        try (InputStream is = new ClassPathResource("config/permissions.json").getInputStream()) {
-            config = mapper.readValue(is, PermissionsConfig.class);
+        Map<String, RolePermission> map = new HashMap<>();
+        for (RolePermissionConfig rpc : repository.findAll()) {
+            RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
+            map.put(rpc.getRole(), rp);
         }
+        config = new PermissionsConfig();
+        config.setRoles(map);
+    }
+
+    public void updateRolePermissions(String role, RolePermission permission) throws IOException {
+        String json = objectMapper.writeValueAsString(permission);
+        RolePermissionConfig rpc = new RolePermissionConfig();
+        rpc.setRole(role);
+        rpc.setPermissions(json);
+        repository.save(rpc);
+
+        if (config == null) {
+            config = new PermissionsConfig();
+            config.setRoles(new HashMap<>());
+        }
+        if (config.getRoles() == null) {
+            config.setRoles(new HashMap<>());
+        }
+        config.getRoles().put(role, permission);
     }
 
     private List<RolePermission> getRolePermissions(List<String> roles) {
@@ -42,21 +66,20 @@ public class PermissionService {
     public boolean hasSidebarAccess(List<String> roles, String key) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getSidebar)
-                .filter(m -> m != null)
+                .filter(Objects::nonNull)
                 .map(m -> m.get(key))
                 .anyMatch(obj -> {
-                    if (obj instanceof Map) {
-                        Map<?, ?> mp = (Map<?, ?>) obj;
+                    if (obj instanceof Map<?, ?> mp) {
                         Object show = mp.get("show");
                         return Boolean.TRUE.equals(show);
                     }
-                    return false;
+                    return Boolean.TRUE.equals(obj);
                 });
     }
 
     public boolean hasFormAccess(List<String> roles, String form, String action) {
         return getRolePermissions(roles).stream()
-                .map(RolePermission::getForms)
+                .map(RolePermission::getPages)
                 .filter(Objects::nonNull)
                 .map(m -> m.get(form))
                 .anyMatch(obj -> checkAction(obj, action));
@@ -64,7 +87,7 @@ public class PermissionService {
 
     public boolean hasFieldAccess(List<String> roles, String form, String field) {
         return getRolePermissions(roles).stream()
-                .map(RolePermission::getForms)
+                .map(RolePermission::getPages)
                 .filter(Objects::nonNull)
                 .map(m -> m.get(form))
                 .anyMatch(obj -> {
@@ -91,23 +114,31 @@ public class PermissionService {
     public RolePermission mergeRolePermissions(List<String> roles) {
         RolePermission result = new RolePermission();
         result.setSidebar(new HashMap<>());
-        result.setForms(new HashMap<>());
+        result.setPages(new HashMap<>());
         for (RolePermission rp : getRolePermissions(roles)) {
             mergeOuter(result.getSidebar(), rp.getSidebar());
-            mergeOuter(result.getForms(), rp.getForms());
+            mergeOuter(result.getPages(), rp.getPages());
         }
         return result;
     }
 
-    private void mergeOuter(Map<String, Map<String, Object>> target,
-                            Map<String, Map<String, Object>> source) {
+    private void mergeOuter(Map<String, Object> target,
+                            Map<String, Object> source) {
         if (source == null) {
             return;
         }
         source.forEach((key, value) -> {
-            Map<String, Object> existing =
-                    target.computeIfAbsent(key, k -> new HashMap<>());
-            deepMerge(existing, value);
+            Object existing = target.get(key);
+            if (existing instanceof Map<?, ?> exMap && value instanceof Map<?, ?> srcMap) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> ex = (Map<String, Object>) exMap;
+                @SuppressWarnings("unchecked")
+                Map<String, Object> src = (Map<String, Object>) srcMap;
+                deepMerge(ex, src);
+                target.put(key, ex);
+            } else {
+                target.put(key, value);
+            }
         });
     }
 

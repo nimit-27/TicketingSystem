@@ -35,26 +35,6 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         getAllUsersApiHandler(() => getAllUsers());
     }, []);
 
-    // Build user level mapping
-    useEffect(() => {
-        const lvls = levelsData as Level[] | undefined;
-        if (Array.isArray(lvls)) {
-            Promise.all(
-                lvls.map(l =>
-                    getAllUsersByLevel(l.levelId).then(res =>
-                        (res.data as User[]).map(u => ({ id: u.userId, level: l.levelName }))
-                    )
-                )
-            ).then(res => {
-                const map: Record<string, string> = {};
-                res.flat().forEach(r => {
-                    map[r.id] = r.level;
-                });
-                setUserLevels(map);
-            });
-        }
-    }, [levelsData]);
-
     // Fetch users when selectedLevel changes
     useEffect(() => {
         if (selectedLevel) {
