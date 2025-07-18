@@ -26,7 +26,7 @@ const SidebarLayout: React.FC = () => {
       <Header collapsed={collapsed} toggleSidebar={toggleSidebar} />
       <div
         className="d-flex pb-2"
-        style={{ maxHeight: "97vh", minHeight: "97vh" }}
+        style={{ height: "calc(100vh - 70px)" }}
       >
         {isMobile ? (
           <Drawer
