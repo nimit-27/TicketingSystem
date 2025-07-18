@@ -121,6 +121,11 @@ public class TicketService {
         return typesenseClient.searchTickets(query);
     }
 
+    public Page<TicketDto> searchTickets(String query, TicketStatus status, Boolean master, Pageable pageable) {
+        Page<Ticket> page = ticketRepository.searchTickets(query, status, master, pageable);
+        return page.map(DtoMapper::toTicketDto);
+    }
+
     public TicketDto updateTicket(String id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.typesense.model.SearchResult;
+import com.example.api.enums.TicketStatus;
 
 import java.util.List;
 
@@ -61,6 +62,18 @@ public class TicketController {
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<TicketComment>> getComments(@PathVariable String id, @RequestParam(required = false) Integer count) {
         return ResponseEntity.ok(ticketService.getComments(id, count));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<PaginationResponse<TicketDto>> searchTickets(
+            @RequestParam String query,
+            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false) Boolean master,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<TicketDto> p = ticketService.searchTickets(query, status, master, PageRequest.of(page, size));
+        PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
+        return ResponseEntity.ok(resp);
     }
 
     @PutMapping("/comments/{commentId}")
