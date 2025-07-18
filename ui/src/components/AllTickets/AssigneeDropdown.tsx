@@ -14,13 +14,14 @@ interface AssigneeDropdownProps {
 }
 
 interface Level { levelId: string; levelName: string; }
-interface User { userId: string; name: string; }
+interface User { userId: string; username: string; name: string; }
 
 const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
+    const [userLevels, setUserLevels] = useState<Record<string, string>>({});
 
     // Use useApi for all API calls
     const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
@@ -33,6 +34,26 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         getLevelsApiHandler(() => getAllLevels());
         getAllUsersApiHandler(() => getAllUsers());
     }, []);
+
+    // Build user level mapping
+    useEffect(() => {
+        const lvls = levelsData as Level[] | undefined;
+        if (Array.isArray(lvls)) {
+            Promise.all(
+                lvls.map(l =>
+                    getAllUsersByLevel(l.levelId).then(res =>
+                        (res.data as User[]).map(u => ({ id: u.userId, level: l.levelName }))
+                    )
+                )
+            ).then(res => {
+                const map: Record<string, string> = {};
+                res.flat().forEach(r => {
+                    map[r.id] = r.level;
+                });
+                setUserLevels(map);
+            });
+        }
+    }, [levelsData]);
 
     // Fetch users when selectedLevel changes
     useEffect(() => {
@@ -59,7 +80,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
 
     const filtered = users.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.userId.toLowerCase().includes(search.toLowerCase())
+        u.username.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -85,10 +106,10 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                             <ListItemButton key={u.userId} onClick={() => handleSelect(u)}>
                                 <Box sx={{ display: 'flex', width: '100%' }}>
                                     <Box sx={{ width: 60 }}>
-                                        {selectedLevel ? levels.find(l => l.levelId === selectedLevel)?.levelName : ''}
+                                        {selectedLevel ? levels.find(l => l.levelId === selectedLevel)?.levelName : userLevels[u.userId]}
                                     </Box>
                                     <Box sx={{ flexGrow: 1 }}>{u.name}</Box>
-                                    <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.userId}</Box>
+                                    <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.username}</Box>
                                 </Box>
                             </ListItemButton>
                         ))}
