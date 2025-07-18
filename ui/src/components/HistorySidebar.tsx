@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Drawer, Tabs, Tab, Box, Button, IconButton } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import StatusHistory from './StatusHistory';
 import AssignmentHistory from './AssignmentHistory';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +45,18 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
                     </Button>
                 </div>
             )}
-            <Drawer anchor="right" open={open} onClose={handleClose} variant="persistent">
+            {open && (
+                <IconButton onClick={handleClose} sx={{ position: 'fixed', right: 400, top: '50%', transform: 'translateY(-50%)', zIndex: 1300 }}>
+                    <ChevronRightIcon />
+                </IconButton>
+            )}
+            <Drawer
+                anchor="right"
+                open={open}
+                onClose={handleClose}
+                variant="persistent"
+                PaperProps={{ sx: { top: '70px', height: 'calc(100vh - 70px)' } }}
+            >
                 <Box sx={{ width: 400, position: 'relative', p: 2 }}>
                     <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>
                         <ChevronLeftIcon />
