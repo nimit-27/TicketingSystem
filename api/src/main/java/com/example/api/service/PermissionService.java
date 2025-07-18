@@ -42,21 +42,20 @@ public class PermissionService {
     public boolean hasSidebarAccess(List<String> roles, String key) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getSidebar)
-                .filter(m -> m != null)
+                .filter(Objects::nonNull)
                 .map(m -> m.get(key))
                 .anyMatch(obj -> {
-                    if (obj instanceof Map) {
-                        Map<?, ?> mp = (Map<?, ?>) obj;
+                    if (obj instanceof Map<?, ?> mp) {
                         Object show = mp.get("show");
                         return Boolean.TRUE.equals(show);
                     }
-                    return false;
+                    return Boolean.TRUE.equals(obj);
                 });
     }
 
     public boolean hasFormAccess(List<String> roles, String form, String action) {
         return getRolePermissions(roles).stream()
-                .map(RolePermission::getForms)
+                .map(RolePermission::getPages)
                 .filter(Objects::nonNull)
                 .map(m -> m.get(form))
                 .anyMatch(obj -> checkAction(obj, action));
@@ -64,7 +63,7 @@ public class PermissionService {
 
     public boolean hasFieldAccess(List<String> roles, String form, String field) {
         return getRolePermissions(roles).stream()
-                .map(RolePermission::getForms)
+                .map(RolePermission::getPages)
                 .filter(Objects::nonNull)
                 .map(m -> m.get(form))
                 .anyMatch(obj -> {
@@ -91,23 +90,31 @@ public class PermissionService {
     public RolePermission mergeRolePermissions(List<String> roles) {
         RolePermission result = new RolePermission();
         result.setSidebar(new HashMap<>());
-        result.setForms(new HashMap<>());
+        result.setPages(new HashMap<>());
         for (RolePermission rp : getRolePermissions(roles)) {
             mergeOuter(result.getSidebar(), rp.getSidebar());
-            mergeOuter(result.getForms(), rp.getForms());
+            mergeOuter(result.getPages(), rp.getPages());
         }
         return result;
     }
 
-    private void mergeOuter(Map<String, Map<String, Object>> target,
-                            Map<String, Map<String, Object>> source) {
+    private void mergeOuter(Map<String, Object> target,
+                            Map<String, Object> source) {
         if (source == null) {
             return;
         }
         source.forEach((key, value) -> {
-            Map<String, Object> existing =
-                    target.computeIfAbsent(key, k -> new HashMap<>());
-            deepMerge(existing, value);
+            Object existing = target.get(key);
+            if (existing instanceof Map<?, ?> exMap && value instanceof Map<?, ?> srcMap) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> ex = (Map<String, Object>) exMap;
+                @SuppressWarnings("unchecked")
+                Map<String, Object> src = (Map<String, Object>) srcMap;
+                deepMerge(ex, src);
+                target.put(key, ex);
+            } else {
+                target.put(key, value);
+            }
         });
     }
 
