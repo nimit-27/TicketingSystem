@@ -7,10 +7,11 @@ import { useTranslation } from 'react-i18next';
 
 interface HistorySidebarProps {
     ticketId: string;
+    open: boolean;
+    setOpen: (open: boolean) => void;
 }
 
-const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId }) => {
-    const [open, setOpen] = useState(false);
+const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen }) => {
     const [tab, setTab] = useState<'status' | 'assignment'>('status');
     const { t } = useTranslation();
 
@@ -43,7 +44,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId }) => {
                     </Button>
                 </div>
             )}
-            <Drawer anchor="right" open={open} onClose={handleClose}>
+            <Drawer anchor="right" open={open} onClose={handleClose} variant="persistent">
                 <Box sx={{ width: 400, position: 'relative', p: 2 }}>
                     <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>
                         <ChevronLeftIcon />

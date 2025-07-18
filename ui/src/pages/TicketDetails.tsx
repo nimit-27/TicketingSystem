@@ -51,6 +51,7 @@ const TicketDetails: React.FC = () => {
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
     const statusValue = useWatch({ control, name: 'status' });
     const [editing, setEditing] = useState<boolean>(false);
+    const [historyOpen, setHistoryOpen] = useState<boolean>(false);
 
     // API calls
     const getTicketHandler = (ticketId: any) => {
@@ -121,8 +122,9 @@ const TicketDetails: React.FC = () => {
     };
 
     return (
-        <div className="container">
-            <Title text={`${t('Ticket')} ${ticketId}: ${ticket?.subject}`} />
+        <div className="container" style={{ display: 'flex' }}>
+            <div style={{ flexGrow: 1, marginRight: historyOpen ? 400 : 0 }}>
+                <Title text={`${t('Ticket')} ${ticketId}: ${ticket?.subject}`} />
             {ticket && (
                 <div className="m-3 d-flex align-items-center">
                     <p className="mb-0 me-2">{t('Status')}: {ticket.status}</p>
@@ -135,9 +137,7 @@ const TicketDetails: React.FC = () => {
                 </div>
             )}
 
-            <HistorySidebar ticketId={ticketId as string} />
-            
-            <form onSubmit={handleSubmit(onSubmitUpdate)}>
+                <form onSubmit={handleSubmit(onSubmitUpdate)}>
                 <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
 
 
@@ -166,7 +166,9 @@ const TicketDetails: React.FC = () => {
                 />
             </form>
 
-            <CommentsSection ticketId={ticketId as string} />
+                <CommentsSection ticketId={ticketId as string} />
+            </div>
+            <HistorySidebar ticketId={ticketId as string} open={historyOpen} setOpen={setHistoryOpen} />
         </div>
     );
 };
