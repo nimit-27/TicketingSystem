@@ -49,6 +49,21 @@ public class PermissionService {
         config.getRoles().put(role, permission);
     }
 
+    public void overwritePermissions(PermissionsConfig permissions) throws IOException {
+        repository.deleteAll();
+        if (permissions != null && permissions.getRoles() != null) {
+            for (Map.Entry<String, RolePermission> entry : permissions.getRoles().entrySet()) {
+                String json = objectMapper.writeValueAsString(entry.getValue());
+                RolePermissionConfig rpc = new RolePermissionConfig();
+                rpc.setRole(entry.getKey());
+                rpc.setPermissions(json);
+                repository.save(rpc);
+            }
+        }
+
+        loadPermissions();
+    }
+
     private List<RolePermission> getRolePermissions(List<String> roles) {
         List<RolePermission> list = new ArrayList<>();
         if (config == null || config.getRoles() == null) {
