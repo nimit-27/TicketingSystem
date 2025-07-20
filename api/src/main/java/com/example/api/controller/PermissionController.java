@@ -19,6 +19,22 @@ public class PermissionController {
         this.permissionService = permissionService;
     }
 
+    @GetMapping
+    public ResponseEntity<PermissionsConfig> getAllPermissions() {
+        PermissionsConfig cfg = new PermissionsConfig();
+        cfg.setRoles(permissionService.getAllRolePermissions());
+        return ResponseEntity.ok(cfg);
+    }
+
+    @GetMapping("/{role}")
+    public ResponseEntity<RolePermission> getRolePermission(@PathVariable String role) {
+        RolePermission perm = permissionService.getRolePermission(role);
+        if (perm == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(perm);
+    }
+
     @PostMapping
     public ResponseEntity<Void> overwritePermissions(@RequestBody PermissionsConfigDto dto) throws IOException {
         PermissionsConfig config = new PermissionsConfig();

@@ -7,7 +7,8 @@
         "knowledgeBase": { "show": false },
         "faq": { "show": true },
         "categoriesMaster": { "show": true },
-        "escalationMaster": { "show": true }
+        "escalationMaster": { "show": true },
+        "permissionsManager": { "show": false }
       },
       "pages": {
         "myTickets": {
@@ -87,7 +88,8 @@
         "knowledgeBase": { "show": false },
         "faq": { "show": true },
         "categoriesMaster": { "show": true },
-        "escalationMaster": { "show": true }
+        "escalationMaster": { "show": true },
+        "permissionsManager": { "show": true }
       },
       "pages": {
         "myTickets": {
