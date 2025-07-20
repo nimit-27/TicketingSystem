@@ -13,6 +13,7 @@ import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import CategoryIcon from "@mui/icons-material/Category";
 import { checkSidebarAccess } from "../../utils/permissions";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import LockIcon from '@mui/icons-material/Lock';
 import { useTheme } from "@mui/material/styles";
 
 const menuItems = [
@@ -45,6 +46,12 @@ const menuItems = [
     label: "Escalation Master",
     to: "/escalation-master",
     icon: <SupervisorAccountIcon />,
+  },
+  {
+    key: "permissionsManager",
+    label: "Permissions Manager",
+    to: "/permissions",
+    icon: <LockIcon />,
   },
 ];
 

@@ -64,6 +64,20 @@ public class PermissionService {
         loadPermissions();
     }
 
+    public Map<String, RolePermission> getAllRolePermissions() {
+        if (config == null || config.getRoles() == null) {
+            return Collections.emptyMap();
+        }
+        return config.getRoles();
+    }
+
+    public RolePermission getRolePermission(String role) {
+        if (config == null || config.getRoles() == null) {
+            return null;
+        }
+        return config.getRoles().get(role);
+    }
+
     private List<RolePermission> getRolePermissions(List<String> roles) {
         List<RolePermission> list = new ArrayList<>();
         if (config == null || config.getRoles() == null) {
