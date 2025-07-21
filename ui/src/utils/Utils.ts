@@ -1,6 +1,6 @@
 export interface UserDetails {
   userId: string;
-  role: string[];
+  role?: string[];
   name?: string;
   email?: string;
   phone?: string;

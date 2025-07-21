@@ -1,34 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/AuthService";
 import { getCurrentUserDetails } from "../config/config";
-import { setPermissions } from "../utils/permissions";
-import { setUserDetails } from "../utils/Utils";
+import { RolePermission, setPermissions } from "../utils/permissions";
+import { setUserDetails, UserDetails } from "../utils/Utils";
+import { useApi } from "../hooks/useApi";
+
+type LoginResponse = {
+    permissions?: RolePermission;
+    userId?: string;
+    role?: string[];
+    name?: string;
+    [key: string]: any;
+};
 
 const Login: React.FC = () => {
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
+    const { data: loginData, apiHandler: loginApiHandler } = useApi()
+
+    useEffect(() => {
+        if (loginData) {
+            const res: LoginResponse = loginData
+            if (res) {
+                if (res.permissions) {
+                    setPermissions(res.permissions);
+                }
+                const details: UserDetails = {
+                    userId: res.userId || userId,
+                    role: res.role,
+                    name: res.name
+                };
+                setUserDetails(details);
+            }
+            navigate("/");
+        }
+    }, [loginData, userId, navigate]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const roles = getCurrentUserDetails().role as string[];
-        loginUser({ username: userId, password, roles })
-            .then(response => {
-                let res = response.data.body
-                if (res.data) {
-                    if (res.data.permissions) {
-                        setPermissions(res.data.permissions);
-                    }
-                    const details = {
-                        userId: res.data.userId || userId,
-                        role: roles,
-                        name: res.data.name
-                    };
-                    setUserDetails(details);
-                }
-                navigate("/");
-            });
+
+        loginApiHandler(() => loginUser({ username: userId, password, roles }))
+
+        // loginUser({ username: userId, password, roles })
+        //     .then(response => {
+        //         let res = response.data.body
+        //         if (res.data) {
+        //             if (res.data.permissions) {
+        //                 setPermissions(res.data.permissions);
+        //             }
+        //             const details = {
+        //                 userId: res.data.userId || userId,
+        //                 role: roles,
+        //                 name: res.data.name
+        //             };
+        //             setUserDetails(details);
+        //         }
+        //         navigate("/");
+        //     });
     };
 
     return (

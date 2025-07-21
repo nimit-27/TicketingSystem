@@ -12,10 +12,10 @@ export function getCurrentUserDetails() {
 }
 
 export function isFciUser() {
-  return getCurrentUserDetails().role.includes('FCI_User');
+  return getCurrentUserDetails()?.role?.includes?.('FCI_User');
 }
 
 export function isHelpdesk() {
-  return getCurrentUserDetails().role.includes('HELPDESK');
+  return getCurrentUserDetails()?.role?.includes('HELPDESK');
 }
 

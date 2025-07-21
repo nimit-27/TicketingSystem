@@ -70,7 +70,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     let showCategory = checkFieldAccess('ticketDetails', 'category');
     let showSubCategory = checkFieldAccess('ticketDetails', 'subCategory');
     let showPriority = checkFieldAccess('ticketDetails', 'priority');
-    const isIT = getCurrentUserDetails()?.role.includes('IT');
+    const isIT = getCurrentUserDetails()?.role?.includes('IT');
     let showSeverityFields = checkFieldAccess('ticketDetails', 'severity');
     let showSeverity = checkFieldAccess('ticketDetails', 'severity');
     let showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity');
@@ -323,7 +323,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                         />
                     </div>
                 )}
-                {!getCurrentUserDetails()?.role.includes("USER") && assignFurther && (
+                {!getCurrentUserDetails()?.role?.includes("USER") && assignFurther && (
                     <>
                         {showAssignToLevelDropdown && (
                             <div className="col-md-4 mb-3  px-4">
