@@ -9,7 +9,7 @@ interface TreeProps {
     onChange: (data: any) => void;
 }
 
-const setValue = (obj: any, path: string[], value: any) => {
+const setValue = (obj: any, path: string[], value: any): object => {
     if (path.length === 1) {
         return { ...obj, [path[0]]: value };
     }

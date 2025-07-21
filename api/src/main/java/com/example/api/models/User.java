@@ -35,4 +35,6 @@ public class User {
 
     @ManyToMany(mappedBy = "users")
     private Set<Level> levels;
+
+    private String roles;
 }

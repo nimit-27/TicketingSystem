@@ -2,6 +2,7 @@ package com.example.api.controller;
 
 import com.example.api.dto.LoginRequest;
 import com.example.api.models.User;
+import com.example.api.permissions.RolePermission;
 import com.example.api.service.AuthService;
 import com.example.api.service.PermissionService;
 import jakarta.servlet.http.HttpSession;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,8 +34,11 @@ public class AuthController {
                     session.setAttribute("username", request.getUsername());
                     session.setAttribute("password", request.getPassword());
 
-                    var permissions = permissionService.mergeRolePermissions(
-                            request.getRoles() == null ? List.of() : request.getRoles());
+                    RolePermission permissions = permissionService.mergeRolePermissions(
+                        emp.getRoles() == null ? List.of() : List.of(emp.getRoles().split("\\|")));
+
+
+                    System.out.println("Perm: " + permissions);
 
                     return ResponseEntity.ok(Map.of(
                             "userId", emp.getUserId(),
