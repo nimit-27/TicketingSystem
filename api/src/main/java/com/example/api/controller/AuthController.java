@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
@@ -29,6 +31,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+        try {
+            // Reload permissions on each login so that any changes in the database
+            // are reflected in the login response.
+            permissionService.loadPermissions();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to load permissions"));
+        }
+
         return authService.authenticate(request.getUsername(), request.getPassword())
                 .map(emp -> {
                     session.setAttribute("userId", emp.getUserId());
@@ -36,8 +47,7 @@ public class AuthController {
                     session.setAttribute("password", request.getPassword());
 
                     RolePermission permissions = permissionService.mergeRolePermissions(
-                        emp.getRoles() == null ? List.of() : Arrays.asList(emp.getRoles().split("\\|")));
-
+                            emp.getRoles() == null ? List.of() : Arrays.asList(emp.getRoles().split("\\|")));
 
                     System.out.println("Perm: " + permissions);
 
