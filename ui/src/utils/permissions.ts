@@ -17,6 +17,7 @@ export function setPermissions(perm: RolePermission) {
 
 export function checkSidebarAccess(key: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
+  console.log(perms)
   return perms?.sidebar?.[key]?.show ?? false;
 }
 

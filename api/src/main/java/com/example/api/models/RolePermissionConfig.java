@@ -18,6 +18,6 @@ public class RolePermissionConfig {
     private String role;
 
     @Lob
-    @Column(name = "permissions", columnDefinition = "TEXT")
+    @Column(name = "permissions", columnDefinition = "json")
     private String permissions;
 }
