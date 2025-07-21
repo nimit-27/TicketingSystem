@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public class AuthController {
                     session.setAttribute("password", request.getPassword());
 
                     RolePermission permissions = permissionService.mergeRolePermissions(
-                        emp.getRoles() == null ? List.of() : List.of(emp.getRoles().split("\\|")));
+                        emp.getRoles() == null ? List.of() : Arrays.asList(emp.getRoles().split("\\|")));
 
 
                     System.out.println("Perm: " + permissions);
