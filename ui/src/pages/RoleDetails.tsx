@@ -5,11 +5,13 @@ import { getRolePermission, updateRolePermission } from '../services/PermissionS
 import Title from '../components/Title';
 import PermissionTree from '../components/Permissions/PermissionTree';
 import { Button } from '@mui/material';
+import { useSnackbar } from '../context/SnackbarContext';
 
 const RoleDetails: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>();
     const { data, apiHandler } = useApi<any>();
     const [perm, setPerm] = useState<any>(null);
+    const { showMessage } = useSnackbar();
 
     useEffect(() => {
         if (roleId) {
@@ -23,7 +25,9 @@ const RoleDetails: React.FC = () => {
 
     const handleSubmit = () => {
         if (roleId) {
-            updateRolePermission(roleId, perm);
+            updateRolePermission(roleId, perm).then(() => {
+                showMessage('Permissions updated successfully', 'success');
+            });
         }
     };
 
