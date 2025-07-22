@@ -13,6 +13,7 @@ import TranslateIcon from '@mui/icons-material/Translate';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CodeIcon from '@mui/icons-material/Code';
 
 // Define the icon map
 const iconMap = {
@@ -28,7 +29,8 @@ const iconMap = {
     translate: TranslateIcon,
     timeline: TimelineIcon,
     arrowdown: KeyboardArrowDownIcon,
-    arrowup: KeyboardArrowUpIcon
+    arrowup: KeyboardArrowUpIcon,
+    code: CodeIcon
 };
 
 // Valid keys for the icon map

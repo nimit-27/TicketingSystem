@@ -11,6 +11,7 @@ import reportWebVitals from "./reportWebVitals";
 import { SnackbarProvider } from "./context/SnackbarContext";
 import CustomThemeProvider from "./context/ThemeContext";
 import LanguageProvider from "./context/LanguageContext";
+import DevModeProvider from "./context/DevModeContext";
 import "./i18n";
 
 const root = ReactDOM.createRoot(
@@ -21,9 +22,11 @@ root.render(
     <BrowserRouter>
       <LanguageProvider>
         <CustomThemeProvider>
-          <SnackbarProvider>
-            <App />
-          </SnackbarProvider>
+          <DevModeProvider>
+            <SnackbarProvider>
+              <App />
+            </SnackbarProvider>
+          </DevModeProvider>
         </CustomThemeProvider>
       </LanguageProvider>
     </BrowserRouter>

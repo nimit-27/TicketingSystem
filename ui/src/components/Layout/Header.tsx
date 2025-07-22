@@ -5,6 +5,7 @@ import Avatar from "@mui/material/Avatar";
 import { getCurrentUserDetails } from "../../config/config";
 import { useTheme } from "@mui/material/styles";
 import { LanguageContext } from "../../context/LanguageContext";
+import { DevModeContext } from "../../context/DevModeContext";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -14,6 +15,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggle, mode } = useContext(ThemeModeContext);
   const { toggleLanguage } = useContext(LanguageContext);
+  const { toggleDevMode, devMode } = useContext(DevModeContext);
   const theme = useTheme();
   const user = getCurrentUserDetails();
   const initials = user.name
@@ -80,6 +82,13 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           }}
           icon="translate"
           onClick={toggleLanguage}
+        />
+        <CustomIconButton
+          style={{
+            color: devMode ? theme.palette.warning.main : iconColor,
+          }}
+          icon="code"
+          onClick={toggleDevMode}
         />
         <Avatar
           sx={{
