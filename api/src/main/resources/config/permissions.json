@@ -2,47 +2,178 @@
   "roles": {
     "USER": {
       "sidebar": {
-        "myTickets": { "show": true },
-        "raiseTickets": { "show": true },
-        "knowledgeBase": { "show": false },
-        "faq": { "show": true },
-        "categoriesMaster": { "show": true },
-        "escalationMaster": { "show": true },
-        "permissionsManager": { "show": true }
+        "myTickets": {
+          "show": true
+        },
+        "raiseTickets": {
+          "show": true
+        },
+        "knowledgeBase": {
+          "show": false
+        },
+        "faq": {
+          "show": true
+        },
+        "categoriesMaster": {
+          "show": true
+        },
+        "escalationMaster": {
+          "show": true
+        },
+        "permissionsManager": {
+          "show": true
+        }
       },
       "pages": {
         "myTickets": {
-          "metadata": { "name": "My Tickets", "fields": "section" },
+          "metadata": {
+            "name": "My Tickets",
+            "fields": "section"
+          },
           "children": {
-            "searchBar": { "metadata": { "name": "Search Bar", "fields": "input" }, "show": true },
-            "statusFilter": { "metadata": { "name": "Status Filter", "fields": "input" }, "show": true },
-            "masterFilterToggle": { "metadata": { "name": "Master Filter Toggle", "fields": "button" }, "show": true },
-            "gridTableViewToggle": { "metadata": { "name": "Grid/Table Toggle", "fields": "button" }, "show": true },
+            "searchBar": {
+              "metadata": {
+                "name": "Search Bar",
+                "fields": "input"
+              },
+              "show": true
+            },
+            "statusFilter": {
+              "metadata": {
+                "name": "Status Filter",
+                "fields": "input"
+              },
+              "show": true
+            },
+            "masterFilterToggle": {
+              "metadata": {
+                "name": "Master Filter Toggle",
+                "fields": "button"
+              },
+              "show": true
+            },
+            "gridTableViewToggle": {
+              "metadata": {
+                "name": "Grid/Table Toggle",
+                "fields": "button"
+              },
+              "show": true
+            },
             "table": {
-              "metadata": { "name": "Tickets Table", "fields": "table" },
+              "metadata": {
+                "name": "Tickets Table",
+                "fields": "table"
+              },
               "show": true,
               "children": {
-                "masterTag": { "metadata": { "name": "Master Tag", "fields": "section" }, "show": true },
-                "pagination": { "metadata": { "name": "Pagination", "fields": "section" }, "show": true },
-                "pageSize": { "metadata": { "name": "Page Size", "fields": "input" }, "show": true },
+                "masterTag": {
+                  "metadata": {
+                    "name": "Master Tag",
+                    "fields": "section"
+                  },
+                  "show": true
+                },
+                "pagination": {
+                  "metadata": {
+                    "name": "Pagination",
+                    "fields": "section"
+                  },
+                  "show": true
+                },
+                "pageSize": {
+                  "metadata": {
+                    "name": "Page Size",
+                    "fields": "input"
+                  },
+                  "show": true
+                },
                 "columns": {
-                  "metadata": { "name": "Columns", "fields": "section" },
+                  "metadata": {
+                    "name": "Columns",
+                    "fields": "section"
+                  },
                   "children": {
-                    "ticketId": { "metadata": { "name": "Ticket Id", "fields": "column" }, "show": true },
-                    "requestorName": { "metadata": { "name": "Requestor Name", "fields": "column" }, "show": true },
-                    "email": { "metadata": { "name": "Email", "fields": "column" }, "show": true },
-                    "mobile": { "metadata": { "name": "Mobile", "fields": "column" }, "show": true },
-                    "category": { "metadata": { "name": "Category", "fields": "column" }, "show": true },
-                    "subCategory": { "metadata": { "name": "Sub-Category", "fields": "column" }, "show": true },
-                    "priority": { "metadata": { "name": "Priority", "fields": "column" }, "show": true },
-                    "assignee": { "metadata": { "name": "Assignee", "fields": "column" }, "show": true },
-                    "status": { "metadata": { "name": "Status", "fields": "column" }, "show": true },
-                    "action": { "metadata": { "name": "Action", "fields": "column" }, "show": true }
+                    "ticketId": {
+                      "metadata": {
+                        "name": "Ticket Id",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "requestorName": {
+                      "metadata": {
+                        "name": "Requestor Name",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "email": {
+                      "metadata": {
+                        "name": "Email",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "mobile": {
+                      "metadata": {
+                        "name": "Mobile",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "category": {
+                      "metadata": {
+                        "name": "Category",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "subCategory": {
+                      "metadata": {
+                        "name": "Sub-Category",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "priority": {
+                      "metadata": {
+                        "name": "Priority",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "assignee": {
+                      "metadata": {
+                        "name": "Assignee",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "status": {
+                      "metadata": {
+                        "name": "Status",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "action": {
+                      "metadata": {
+                        "name": "Action",
+                        "fields": "column"
+                      },
+                      "show": true
+                    }
                   }
                 }
               }
             },
-            "grid": { "metadata": { "name": "Grid View", "fields": "section" }, "show": true }
+            "grid": {
+              "metadata": {
+                "name": "Grid View",
+                "fields": "section"
+              },
+              "show": true
+            }
           }
         },
         "ticketForm": {
@@ -93,47 +224,185 @@
     },
     "ADMIN": {
       "sidebar": {
-        "myTickets": { "show": true },
-        "raiseTickets": { "show": true },
-        "knowledgeBase": { "show": false },
-        "faq": { "show": true },
-        "categoriesMaster": { "show": true },
-        "escalationMaster": { "show": true },
-        "permissionsManager": { "show": true }
+        "show": true,
+        "metadata": {
+          "name": "Sidebar",
+          "fields": "section"
+        },
+        "children": {
+          "myTickets": {
+            "show": true
+          },
+          "raiseTickets": {
+            "show": true
+          },
+          "knowledgeBase": {
+            "show": false
+          },
+          "faq": {
+            "show": true
+          },
+          "categoriesMaster": {
+            "show": true
+          },
+          "escalationMaster": {
+            "show": true
+          },
+          "permissionsManager": {
+            "show": true
+          }
+        }
       },
       "pages": {
         "myTickets": {
-          "metadata": { "name": "My Tickets", "fields": "section" },
+          "metadata": {
+            "name": "My Tickets",
+            "fields": "section"
+          },
           "children": {
-            "searchBar": { "metadata": { "name": "Search Bar", "fields": "input" }, "show": true },
-            "statusFilter": { "metadata": { "name": "Status Filter", "fields": "input" }, "show": true },
-            "masterFilterToggle": { "metadata": { "name": "Master Filter Toggle", "fields": "button" }, "show": true },
-            "gridTableViewToggle": { "metadata": { "name": "Grid/Table Toggle", "fields": "button" }, "show": true },
+            "searchBar": {
+              "metadata": {
+                "name": "Search Bar",
+                "fields": "input"
+              },
+              "show": true
+            },
+            "statusFilter": {
+              "metadata": {
+                "name": "Status Filter",
+                "fields": "input"
+              },
+              "show": true
+            },
+            "masterFilterToggle": {
+              "metadata": {
+                "name": "Master Filter Toggle",
+                "fields": "button"
+              },
+              "show": true
+            },
+            "gridTableViewToggle": {
+              "metadata": {
+                "name": "Grid/Table Toggle",
+                "fields": "button"
+              },
+              "show": true
+            },
             "table": {
-              "metadata": { "name": "Tickets Table", "fields": "table" },
+              "metadata": {
+                "name": "Tickets Table",
+                "fields": "table"
+              },
               "show": true,
               "children": {
-                "masterTag": { "metadata": { "name": "Master Tag", "fields": "section" }, "show": true },
-                "pagination": { "metadata": { "name": "Pagination", "fields": "section" }, "show": true },
-                "pageSize": { "metadata": { "name": "Page Size", "fields": "input" }, "show": true },
+                "masterTag": {
+                  "metadata": {
+                    "name": "Master Tag",
+                    "fields": "section"
+                  },
+                  "show": true
+                },
+                "pagination": {
+                  "metadata": {
+                    "name": "Pagination",
+                    "fields": "section"
+                  },
+                  "show": true
+                },
+                "pageSize": {
+                  "metadata": {
+                    "name": "Page Size",
+                    "fields": "input"
+                  },
+                  "show": true
+                },
                 "columns": {
-                  "metadata": { "name": "Columns", "fields": "section" },
+                  "metadata": {
+                    "name": "Columns",
+                    "fields": "section"
+                  },
                   "children": {
-                    "ticketId": { "metadata": { "name": "Ticket Id", "fields": "column" }, "show": true },
-                    "requestorName": { "metadata": { "name": "Requestor Name", "fields": "column" }, "show": true },
-                    "email": { "metadata": { "name": "Email", "fields": "column" }, "show": true },
-                    "mobile": { "metadata": { "name": "Mobile", "fields": "column" }, "show": true },
-                    "category": { "metadata": { "name": "Category", "fields": "column" }, "show": true },
-                    "subCategory": { "metadata": { "name": "Sub-Category", "fields": "column" }, "show": true },
-                    "priority": { "metadata": { "name": "Priority", "fields": "column" }, "show": true },
-                    "assignee": { "metadata": { "name": "Assignee", "fields": "column" }, "show": true },
-                    "status": { "metadata": { "name": "Status", "fields": "column" }, "show": true },
-                    "action": { "metadata": { "name": "Action", "fields": "column" }, "show": true }
+                    "ticketId": {
+                      "metadata": {
+                        "name": "Ticket Id",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "requestorName": {
+                      "metadata": {
+                        "name": "Requestor Name",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "email": {
+                      "metadata": {
+                        "name": "Email",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "mobile": {
+                      "metadata": {
+                        "name": "Mobile",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "category": {
+                      "metadata": {
+                        "name": "Category",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "subCategory": {
+                      "metadata": {
+                        "name": "Sub-Category",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "priority": {
+                      "metadata": {
+                        "name": "Priority",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "assignee": {
+                      "metadata": {
+                        "name": "Assignee",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "status": {
+                      "metadata": {
+                        "name": "Status",
+                        "fields": "column"
+                      },
+                      "show": true
+                    },
+                    "action": {
+                      "metadata": {
+                        "name": "Action",
+                        "fields": "column"
+                      },
+                      "show": true
+                    }
                   }
                 }
               }
             },
-            "grid": { "metadata": { "name": "Grid View", "fields": "section" }, "show": true }
+            "grid": {
+              "metadata": {
+                "name": "Grid View",
+                "fields": "section"
+              },
+              "show": true
+            }
           }
         },
         "ticketForm": {

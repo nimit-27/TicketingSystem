@@ -23,9 +23,15 @@ const setValue = (obj: any, path: string[], value: any): object => {
 const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (path: string[], value: any) => void }> = ({ label, value, path, onChange }) => {
     const defaultOpen = path.length === 1 && (label === 'pages' || label === 'sidebar');
     const [open, setOpen] = useState(defaultOpen);
+    
+    if(label === "show" || label === "metadata") return;
+    
     const hasChildren = value && typeof value === 'object' && value.children;
     const nodeLabel = value?.metadata?.name || label;
     const show = Boolean(value?.show);
+    
+
+    console.log({value});
 
     if (hasChildren) {
         const entries = Object.entries(value.children);
