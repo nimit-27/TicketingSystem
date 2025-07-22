@@ -26,16 +26,26 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     const isObject = value && typeof value === 'object' && !Array.isArray(value);
 
     if (isObject) {
+        const hasShow = 'show' in value;
+        const filteredEntries = Object.entries(value).filter(([k]) => k !== 'show');
+
         return (
             <div style={{ marginLeft: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <IconButton size="small" onClick={() => setOpen(o => !o)}>
                         {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
+                    {true && (
+                        <Checkbox
+                            size="small"
+                            checked={Boolean(value?.show ?? false)}
+                            onChange={e => onChange([...path, "show"], e.target.checked)}
+                        />
+                    )}
                     <span>{label}</span>
                 </div>
                 <Collapse in={open} timeout="auto" unmountOnExit>
-                    {Object.entries(value).map(([k, v]) => (
+                    {filteredEntries.map(([k, v]) => (
                         <Node key={k} label={k} value={v} path={[...path, k]} onChange={onChange} />
                     ))}
                 </Collapse>
@@ -58,6 +68,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
 const PermissionTree: React.FC<TreeProps> = ({ data, path = [], onChange }) => {
     const handleChange = (p: string[], value: any) => {
         onChange(setValue(data, p.slice(path.length), value));
+        console.log({ data });
     };
 
     return (
