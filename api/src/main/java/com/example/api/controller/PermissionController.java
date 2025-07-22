@@ -49,4 +49,10 @@ public class PermissionController {
         permissionService.updateRolePermissions(role, permission);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/load")
+    public ResponseEntity<Void> loadPermissions() throws IOException {
+        permissionService.loadPermissions();
+        return ResponseEntity.ok().build();
+    }
 }

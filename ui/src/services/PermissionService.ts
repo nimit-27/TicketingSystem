@@ -16,3 +16,7 @@ export function getRolePermission(role: string) {
 export function updateRolePermission(role: string, perm: any) {
     return axios.put(`${BASE_URL}/permissions/${role}`, perm);
 }
+
+export function loadPermissions() {
+    return axios.post(`${BASE_URL}/permissions/load`);
+}
