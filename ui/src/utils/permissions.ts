@@ -36,3 +36,15 @@ export function checkFieldAccess(section: string, field: string): boolean {
   if (!fields) return false;
   return !!fields[field];
 }
+
+export function checkMyTicketsAccess(key: string): boolean {
+  const perms = getUserPermissions() as RolePermission | null;
+  return perms?.pages?.myTickets?.children?.[key]?.show ?? false;
+}
+
+export function checkMyTicketsColumnAccess(column: string): boolean {
+  const perms = getUserPermissions() as RolePermission | null;
+  return (
+    perms?.pages?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? false
+  );
+}

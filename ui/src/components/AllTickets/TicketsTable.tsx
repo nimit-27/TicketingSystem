@@ -4,6 +4,7 @@ import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
+import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 
 export interface TicketRow {
     id: string;
@@ -31,7 +32,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
             {
                 title: t('Ticket Id'),
                 dataIndex: 'id',
-                key: 'id',
+                key: 'ticketId',
                 render: (_: any, record: TicketRow) => (
                     <div className="d-flex align-items-center">
                         {record.id}
@@ -41,7 +42,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
             },
             {
                 title: t('Requestor Name'),
-                key: 'name',
+                key: 'requestorName',
                 render: (_: any, record: TicketRow) => record.requestorName || '-',
             },
             {
@@ -70,7 +71,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
                 key: 'action',
                 render: (_: any, record: TicketRow) => <VisibilityIcon onClick={() => onRowClick(record.id)} fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
             },
-        ],
+        ].filter(col => col.key && checkMyTicketsColumnAccess(col.key.toString())),
         [t]
     );
 

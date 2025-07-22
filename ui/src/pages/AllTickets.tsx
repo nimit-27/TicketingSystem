@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import MasterIcon from "../components/UI/Icons/MasterIcon";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
+import { checkMyTicketsAccess } from "../utils/permissions";
 import AssigneeDropdown from "../components/AllTickets/AssigneeDropdown";
 import ViewToggle from "../components/UI/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
@@ -56,6 +57,7 @@ const AllTickets: React.FC = () => {
     const [masterOnly, setMasterOnly] = useState(false);
     const [statusOptions, setStatusOptions] = useState<string[]>([]);
     const { t } = useTranslation();
+    const showTable = checkMyTicketsAccess('table');
 
     const priorityConfig: Record<string, { color: string; count: number }> = {
         Low: { color: 'success.light', count: 1 },
@@ -199,7 +201,7 @@ const AllTickets: React.FC = () => {
             </div>
             {pending && <p>{t('Loading...')}</p>}
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
-            {!pending && viewMode === 'table' && (
+            {!pending && viewMode === 'table' && showTable && (
                 <div>
                     <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
