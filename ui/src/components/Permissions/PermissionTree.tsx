@@ -21,7 +21,8 @@ const setValue = (obj: any, path: string[], value: any): object => {
 };
 
 const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (path: string[], value: any) => void }> = ({ label, value, path, onChange }) => {
-    const [open, setOpen] = useState(true);
+    const defaultOpen = path.length === 1 && (label === 'pages' || label === 'sidebar');
+    const [open, setOpen] = useState(defaultOpen);
     const isObject = value && typeof value === 'object' && !Array.isArray(value);
 
     if (isObject) {
@@ -43,11 +44,14 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     }
 
     return (
-        <FormControlLabel
-            style={{ marginLeft: 16 }}
-            control={<Checkbox checked={Boolean(value)} onChange={e => onChange(path, e.target.checked)} />}
-            label={label}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 16 }}>
+            <Checkbox
+                size="small"
+                checked={Boolean(value)}
+                onChange={e => onChange(path, e.target.checked)}
+            />
+            <span>{label}</span>
+        </div>
     );
 };
 
