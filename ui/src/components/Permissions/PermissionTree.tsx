@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Checkbox, Collapse, FormControlLabel, IconButton } from '@mui/material';
+import { Checkbox, Collapse, IconButton } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
@@ -23,11 +23,12 @@ const setValue = (obj: any, path: string[], value: any): object => {
 const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (path: string[], value: any) => void }> = ({ label, value, path, onChange }) => {
     const defaultOpen = path.length === 1 && (label === 'pages' || label === 'sidebar');
     const [open, setOpen] = useState(defaultOpen);
-    const isObject = value && typeof value === 'object' && !Array.isArray(value);
+    const hasChildren = value && typeof value === 'object' && value.children;
+    const nodeLabel = value?.metadata?.name || label;
+    const show = Boolean(value?.show);
 
-    if (isObject) {
-        const filteredEntries = Object.entries(value).filter(([k]) => k !== 'show');
-
+    if (hasChildren) {
+        const entries = Object.entries(value.children);
         return (
             <div style={{ marginLeft: 16 }}>
                 <div className='border-bottom' style={{ display: 'flex', alignItems: 'center' }}>
@@ -36,14 +37,14 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                     </IconButton>
                     <Checkbox
                         size="small"
-                        checked={Boolean(value?.show ?? false)}
-                        onChange={e => onChange([...path, "show"], e.target.checked)}
+                        checked={show}
+                        onChange={e => onChange([...path, 'show'], e.target.checked)}
                     />
-                    <span>{label}</span>
+                    <span>{nodeLabel}</span>
                 </div>
                 <Collapse in={open} timeout="auto" unmountOnExit>
-                    {filteredEntries.map(([k, v]) => (
-                        <Node key={k} label={k} value={v} path={[...path, k]} onChange={onChange} />
+                    {entries.map(([k, v]) => (
+                        <Node key={k} label={k} value={v} path={[...path, 'children', k]} onChange={onChange} />
                     ))}
                 </Collapse>
             </div>
@@ -54,10 +55,10 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
         <div className='border-bottom' style={{ display: 'flex', alignItems: 'center', marginLeft: 16 }}>
             <Checkbox
                 size="small"
-                checked={Boolean(value)}
-                onChange={e => onChange(path, e.target.checked)}
+                checked={show}
+                onChange={e => onChange([...path, 'show'], e.target.checked)}
             />
-            <span>{label}</span>
+            <span>{nodeLabel}</span>
         </div>
     );
 };
