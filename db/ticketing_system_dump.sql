@@ -270,6 +270,10 @@ DROP TABLE IF EXISTS `role_permission_config`;
 CREATE TABLE `role_permission_config` (
   `role` varchar(100) NOT NULL,
   `permissions` json DEFAULT NULL,
+  `created_by` varchar(100) DEFAULT NULL,
+  `created_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
