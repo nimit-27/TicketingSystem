@@ -49,8 +49,8 @@ const menuItems = [
   },
   {
     key: "permissionsManager",
-    label: "Permissions Manager",
-    to: "/permissions",
+    label: "Role Master",
+    to: "/role-master",
     icon: <LockIcon />,
   },
 ];

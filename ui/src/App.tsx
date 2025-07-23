@@ -6,7 +6,7 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import TicketDetails from './pages/TicketDetails';
 import CategoriesMaster from './pages/CategoriesMaster';
 import EscalationMaster from './pages/EscalationMaster';
-import PermissionsManager from './pages/PermissionsManager';
+import RoleMaster from './pages/RoleMaster';
 import RoleDetails from './pages/RoleDetails';
 import SidebarLayout from './components/Layout/SidebarLayout';
 import Login from './pages/Login';
@@ -23,8 +23,8 @@ function App() {
         <Route path="knowledge-base" element={<KnowledgeBase />} />
         <Route path="categories-master" element={<CategoriesMaster />} />
         <Route path="escalation-master" element={<EscalationMaster />} />
-        <Route path="permissions" element={<PermissionsManager />} />
-        <Route path="permissions/:roleId" element={<RoleDetails />} />
+        <Route path="role-master" element={<RoleMaster />} />
+        <Route path="role-master/:roleId" element={<RoleDetails />} />
       </Route>
     </Routes>
   );
