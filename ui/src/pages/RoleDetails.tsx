@@ -27,14 +27,20 @@ const RoleDetails: React.FC = () => {
         if (data) setPerm(data);
     }, [data]);
 
-    const handleSubmit = () => {
+    function handleSubmit(this: any) {
         if (roleId) {
-            updateRolePermission(roleId, perm).then(() => {
+            updateRolePermission(roleId, this ?? perm).then(() => {
                 showMessage('Permissions updated successfully', 'success');
                 loadPermissions();
             });
         }
     };
+
+    const handleJsonEdit = (json: any) => {
+        setPerm(json);
+        setOpenJson(false);
+        handleSubmit.call(json);
+    }
 
     if (!roleId) return null;
 
@@ -47,7 +53,7 @@ const RoleDetails: React.FC = () => {
             {perm && <PermissionTree data={perm} onChange={setPerm} />}
             <Button variant="contained" className="mt-3" onClick={handleSubmit}>Save</Button>
             {devMode && (
-                <JsonEditModal open={openJson} data={perm} onCancel={() => setOpenJson(false)} onSubmit={(p) => { setPerm(p); setOpenJson(false); handleSubmit(); }} />
+                <JsonEditModal open={openJson} data={perm} onCancel={() => setOpenJson(false)} onSubmit={handleJsonEdit} />
             )}
         </div>
     );
