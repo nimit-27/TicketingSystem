@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
-import { getRolePermission, updateRolePermission, loadPermissions } from '../services/PermissionService';
+import { getRolePermission, updateRolePermission, loadPermissions } from '../services/RoleService';
 import Title from '../components/Title';
 import PermissionTree from '../components/Permissions/PermissionTree';
 import JsonEditModal from '../components/Permissions/JsonEditModal';

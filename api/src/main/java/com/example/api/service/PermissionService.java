@@ -37,6 +37,13 @@ public class PermissionService {
         Role rpc = new Role();
         rpc.setRole(role);
         rpc.setPermissions(json);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (isNew) {
+            rpc.setCreatedOn(now);
+            rpc.setCreatedBy("SYSTEM");
+        }
+        rpc.setUpdatedOn(now);
+        rpc.setUpdatedBy("SYSTEM");
         repository.save(rpc);
 
         if (config == null) {
@@ -57,6 +64,11 @@ public class PermissionService {
                 Role rpc = new Role();
                 rpc.setRole(entry.getKey());
                 rpc.setPermissions(json);
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                rpc.setCreatedOn(now);
+                rpc.setUpdatedOn(now);
+                rpc.setCreatedBy("SYSTEM");
+                rpc.setUpdatedBy("SYSTEM");
                 repository.save(rpc);
             }
         }
