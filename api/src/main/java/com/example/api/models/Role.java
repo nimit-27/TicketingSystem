@@ -8,6 +8,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "role_permission_config")
 @Getter
@@ -20,4 +22,16 @@ public class RolePermissionConfig {
     @Lob
     @Column(name = "permissions", columnDefinition = "json")
     private String permissions;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "created_on")
+    private LocalDateTime createdOn;
+
+    @Column(name = "updated_on")
+    private LocalDateTime updatedOn;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
 }
