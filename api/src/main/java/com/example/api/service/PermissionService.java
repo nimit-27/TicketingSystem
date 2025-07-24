@@ -38,10 +38,10 @@ public class PermissionService {
         rpc.setRole(role);
         rpc.setPermissions(json);
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        if (isNew) {
-            rpc.setCreatedOn(now);
-            rpc.setCreatedBy("SYSTEM");
-        }
+//        if (isNew) {
+//            rpc.setCreatedOn(now);
+//            rpc.setCreatedBy("SYSTEM");
+//        }
         rpc.setUpdatedOn(now);
         rpc.setUpdatedBy("SYSTEM");
         repository.save(rpc);

@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.example")
 @ConfigurationPropertiesScan(basePackages = "com.example")
-@EnableScheduling
+//@EnableScheduling
 public class Main {
 
 	public static void main(String[] args) {

@@ -9,7 +9,16 @@ import Title from '../components/Title';
 import { useNavigate } from 'react-router-dom';
 import { getAllRoles } from '../services/RoleService';
 
-const PermissionsManager: React.FC = () => {
+const formatDate = (inputDate: string) => {
+    const date = new Date(inputDate);
+    return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    });
+};
+
+const RoleMaster: React.FC = () => {
     const { data: rolesData, apiHandler: getAllRolesApiHandler } = useApi<any>();
     const { data, apiHandler } = useApi<any>();
     const [view, setView] = useState<'table' | 'grid'>('table');
@@ -35,18 +44,12 @@ const PermissionsManager: React.FC = () => {
     };
 
     const columns = [
-        { title: 'Role', dataIndex: 'role', key: 'role' },
-        { title: 'Created By', key: 'cb', render: () => '-' },
-        { title: 'Created On', key: 'co', render: () => '-' },
-        { title: 'Updated By', key: 'ub', render: () => '-' },
-        { title: 'Updated On', key: 'uo', render: () => '-' },
-        {
-            title: 'Action',
-            key: 'action',
-            render: (_: any, r: any) => (
-                <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600' }} onClick={() => navigate(`/role-master/${r.role}`)} />
-            )
-        }
+        { title: 'Role', key: 'role', dataIndex: 'role' },
+        { title: 'Created By', key: 'createdBy', dataIndex: 'createdBy' },
+        { title: 'Created On', key: 'createdOn', dataIndex: 'createdOn', render: (date: string) => formatDate(date) },
+        { title: 'Updated By', key: 'updatedBy', dataIndex: 'updatedBy' },
+        { title: 'Updated On', key: 'updatedOn', dataIndex: 'updatedOn' },
+        { title: 'Action', key: 'action', dataIndex: 'action' }
     ];
 
     return (
@@ -57,7 +60,7 @@ const PermissionsManager: React.FC = () => {
                 <ViewToggle value={view} onChange={setView} options={[{ icon: 'grid', value: 'grid' }, { icon: 'table', value: 'table' }]} />
             </div>
             {view === 'table' ? (
-                <GenericTable dataSource={roles.map(r => ({ role: r }))} columns={columns as any} rowKey="role" pagination={false} />
+                <GenericTable dataSource={rolesData} columns={columns as any} rowKey="role" pagination={false} />
             ) : (
                 <div className="row">
                     {roles.map(r => (
@@ -73,4 +76,4 @@ const PermissionsManager: React.FC = () => {
     );
 };
 
-export default PermissionsManager;
+export default RoleMaster;

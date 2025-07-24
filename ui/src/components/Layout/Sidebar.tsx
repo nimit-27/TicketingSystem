@@ -48,7 +48,7 @@ const menuItems = [
     icon: <SupervisorAccountIcon />,
   },
   {
-    key: "permissionsManager",
+    key: "RoleMaster",
     label: "Role Master",
     to: "/role-master",
     icon: <LockIcon />,

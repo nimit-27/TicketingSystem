@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Setter
+@Getter
 public class RoleDto {
     private String role;
     private String createdBy;
