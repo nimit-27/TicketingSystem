@@ -59,7 +59,7 @@ const RoleMaster: React.FC = () => {
         const permissions = customPerm || { sidebar: {}, pages: {} };
         const list = selectedPerms.filter(p => p !== 'Custom');
         // if (list.length > 0) permissionsList = list;
-        const payload = { roleName, permissions, permissionsList: list ?? [] }
+        const payload = { role: roleName, permissions, permissionsList: list ?? [] }
         addRole(payload);
     };
 
