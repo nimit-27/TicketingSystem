@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Chip } from '@mui/material';
+import { Button, Autocomplete, TextField } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
-import { addRole, getAllPermissions, updateRolePermission } from '../services/RoleService';
+import { addRole, getAllPermissions } from '../services/RoleService';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
 import { useNavigate } from 'react-router-dom';
 import { getAllRoles } from '../services/RoleService';
 import GenericInput from '../components/UI/Input/GenericInput';
-import CustomFieldset from '../components/CustomFieldset';
 import PermissionsModal from '../components/Permissions/PermissionsModal';
 
 const formatDate = (inputDate: string) => {
@@ -44,10 +43,14 @@ const RoleMaster: React.FC = () => {
 
     const roles = data?.roles ? Object.keys(data.roles) : [];
 
-    const togglePerm = (perm: string) => {
-        setSelectedPerms(prev =>
-            prev.includes(perm) ? prev.filter(p => p !== perm) : [...prev, perm]
-        );
+    const handlePermChange = (_: any, value: string[]) => {
+        if (value.includes('Custom') && !selectedPerms.includes('Custom')) {
+            setOpenCustom(true);
+        }
+        if (!value.includes('Custom')) {
+            setCustomPerm(null);
+        }
+        setSelectedPerms(value);
     };
 
     const handleCreate = () => {
@@ -93,28 +96,22 @@ const RoleMaster: React.FC = () => {
             </div>
             {creating && (
                 <div className="mb-3">
-                    <GenericInput label="Role name" value={roleName} onChange={e => setRoleName(e.target.value)} fullWidth className="mb-2" />
-                    <CustomFieldset title="Select Permission/s">
-                        <div className="mb-2">
-                            <Chip
-                                label="Custom"
-                                onClick={() => setOpenCustom(true)}
-                                color={selectedPerms.includes('Custom') ? 'primary' : 'default'}
-                                variant={selectedPerms.includes('Custom') ? 'filled' : 'outlined'}
-                                sx={{ mr: 1, mb: 1, cursor: 'pointer' }}
-                            />
-                            {roles.map(r => (
-                                <Chip
-                                    key={r}
-                                    label={r}
-                                    onClick={() => togglePerm(r)}
-                                    color={selectedPerms.includes(r) ? 'primary' : 'default'}
-                                    variant={selectedPerms.includes(r) ? 'filled' : 'outlined'}
-                                    sx={{ mr: 1, mb: 1, cursor: 'pointer' }}
-                                />
-                            ))}
-                        </div>
-                    </CustomFieldset>
+                    <div className="d-flex mb-2">
+                        <GenericInput
+                            label="Role name"
+                            value={roleName}
+                            onChange={e => setRoleName(e.target.value)}
+                            className="me-2 w-50"
+                        />
+                        <Autocomplete
+                            multiple
+                            options={["Custom", ...roles]}
+                            value={selectedPerms}
+                            onChange={handlePermChange}
+                            className="w-50"
+                            renderInput={(params) => <TextField {...params} label="Permissions" />}
+                        />
+                    </div>
                     <div className="mt-2">
                         <Button variant="contained" onClick={handleSubmit} className="me-2">Submit</Button>
                         <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
@@ -138,6 +135,7 @@ const RoleMaster: React.FC = () => {
                 open={openCustom}
                 roles={roles}
                 permissions={data?.roles || {}}
+                title="Custom Permissions"
                 onClose={() => setOpenCustom(false)}
                 onSubmit={(perm) => {
                     setCustomPerm(perm);
