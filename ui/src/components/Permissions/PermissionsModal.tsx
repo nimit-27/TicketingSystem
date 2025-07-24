@@ -10,9 +10,10 @@ interface PermissionsModalProps {
   defaultRole?: string;
   onClose: () => void;
   onSubmit: (perm: any) => void;
+  title?: string;
 }
 
-const PermissionsModal: React.FC<PermissionsModalProps> = ({ open, roles, permissions, defaultRole = 'User', onClose, onSubmit }) => {
+const PermissionsModal: React.FC<PermissionsModalProps> = ({ open, roles, permissions, defaultRole = 'User', onClose, onSubmit, title }) => {
   const [role, setRole] = useState<string>(defaultRole);
   const [perm, setPerm] = useState<any>(null);
 
@@ -39,6 +40,7 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({ open, roles, permis
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={{ bgcolor: 'background.paper', p: 2, maxHeight: '80vh', overflow: 'auto', maxWidth: '80vw', margin: '5% auto' }}>
+        {title && <h4 className="text-center mb-2">{title}</h4>}
         <GenericDropdown
           label="Permissions' Role"
           value={role}
