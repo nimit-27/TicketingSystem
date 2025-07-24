@@ -16,4 +16,5 @@ public class RoleDto {
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
     private String updatedBy;
+    private String[] permissionsList;
 }

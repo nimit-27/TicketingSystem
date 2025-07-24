@@ -5,6 +5,10 @@ export function getAllRoles() {
     return axios.get(`${BASE_URL}/roles`);
 }
 
+export function addRole(body: any) {
+    return axios.post(`${BASE_URL}/roles`, body);
+}
+
 export function savePermissions(config: any) {
     return axios.post(`${BASE_URL}/permissions`, config);
 }

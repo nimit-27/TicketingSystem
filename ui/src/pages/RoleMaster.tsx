@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
-import { getAllPermissions, updateRolePermission } from '../services/RoleService';
+import { addRole, getAllPermissions, updateRolePermission } from '../services/RoleService';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
@@ -56,10 +56,11 @@ const RoleMaster: React.FC = () => {
 
     const handleSubmit = () => {
         if (!roleName) return;
-        const payload: any = customPerm || { sidebar: {}, pages: {} };
+        const permissions = customPerm || { sidebar: {}, pages: {} };
         const list = selectedPerms.filter(p => p !== 'Custom');
-        if (list.length > 0) payload.permissionsList = list;
-        updateRolePermission(roleName, payload).then(() => navigate(`/role-master/${roleName}`));
+        // if (list.length > 0) permissionsList = list;
+        const payload = { roleName, permissions, permissionsList: list ?? [] }
+        addRole(payload);
     };
 
     const handleCancel = () => {
@@ -75,8 +76,13 @@ const RoleMaster: React.FC = () => {
         { title: 'Created On', key: 'createdOn', dataIndex: 'createdOn', render: (date: string) => formatDate(date) },
         { title: 'Updated By', key: 'updatedBy', dataIndex: 'updatedBy' },
         { title: 'Updated On', key: 'updatedOn', dataIndex: 'updatedOn' },
-        { title: 'Action', key: 'action', dataIndex: 'action' }
-    ];
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_: any, r: any) => (
+                <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600' }} onClick={() => navigate(`/role-master/${r.role}`)} />
+            )
+        }];
 
     return (
         <div className="container">

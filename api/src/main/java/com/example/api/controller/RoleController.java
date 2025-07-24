@@ -1,13 +1,12 @@
 package com.example.api.controller;
 
 import com.example.api.dto.RoleDto;
+import com.example.api.models.Role;
 import com.example.api.service.RoleService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,5 +20,10 @@ public class RoleController {
     @GetMapping
     public ResponseEntity<List<RoleDto>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
+    }
+
+    @PostMapping
+    public ResponseEntity<RoleDto> addRole(@RequestBody RoleDto roleDto) throws JsonProcessingException {
+        return ResponseEntity.ok(roleService.addRole(roleDto));
     }
 }
