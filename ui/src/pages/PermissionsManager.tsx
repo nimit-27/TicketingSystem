@@ -7,11 +7,19 @@ import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
 import { useNavigate } from 'react-router-dom';
+import { getAllRoles } from '../services/RoleService';
 
 const PermissionsManager: React.FC = () => {
+    const { data: rolesData, apiHandler: getAllRolesApiHandler } = useApi<any>();
     const { data, apiHandler } = useApi<any>();
     const [view, setView] = useState<'table' | 'grid'>('table');
     const navigate = useNavigate();
+
+    console.log({ rolesData });
+
+    useEffect(() => {
+        getAllRolesApiHandler(() => getAllRoles());
+    }, []);
 
     useEffect(() => {
         apiHandler(() => getAllPermissions());

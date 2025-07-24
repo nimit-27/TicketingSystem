@@ -1,9 +1,9 @@
 package com.example.api.service;
 
-import com.example.api.models.RolePermissionConfig;
+import com.example.api.models.Role;
 import com.example.api.permissions.PermissionsConfig;
 import com.example.api.permissions.RolePermission;
-import com.example.api.repository.RolePermissionConfigRepository;
+import com.example.api.repository.RoleRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +14,17 @@ import java.util.*;
 @Service
 public class PermissionService {
     private PermissionsConfig config;
-    private final RolePermissionConfigRepository repository;
+    private final RoleRepository repository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PermissionService(RolePermissionConfigRepository repository) {
+    public PermissionService(RoleRepository repository) {
         this.repository = repository;
     }
 
     @PostConstruct
     public void loadPermissions() throws IOException {
         Map<String, RolePermission> map = new HashMap<>();
-        for (RolePermissionConfig rpc : repository.findAll()) {
+        for (Role rpc : repository.findAll()) {
             RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
             map.put(rpc.getRole(), rp);
         }
@@ -34,7 +34,7 @@ public class PermissionService {
 
     public void updateRolePermissions(String role, RolePermission permission) throws IOException {
         String json = objectMapper.writeValueAsString(permission);
-        RolePermissionConfig rpc = new RolePermissionConfig();
+        Role rpc = new Role();
         rpc.setRole(role);
         rpc.setPermissions(json);
         repository.save(rpc);
@@ -54,7 +54,7 @@ public class PermissionService {
         if (permissions != null && permissions.getRoles() != null) {
             for (Map.Entry<String, RolePermission> entry : permissions.getRoles().entrySet()) {
                 String json = objectMapper.writeValueAsString(entry.getValue());
-                RolePermissionConfig rpc = new RolePermissionConfig();
+                Role rpc = new Role();
                 rpc.setRole(entry.getKey());
                 rpc.setPermissions(json);
                 repository.save(rpc);

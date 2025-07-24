@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "role_permission_config")
 @Getter
 @Setter
-public class RolePermissionConfig {
+public class Role {
     @Id
     @Column(name = "role", length = 100)
     private String role;

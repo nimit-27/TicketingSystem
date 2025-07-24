@@ -1,9 +1,11 @@
 package com.example.api.mapper;
 
 import com.example.api.dto.CategoryDto;
+import com.example.api.dto.RoleDto;
 import com.example.api.dto.SubCategoryDto;
 import com.example.api.dto.TicketDto;
 import com.example.api.models.Category;
+import com.example.api.models.Role;
 import com.example.api.models.SubCategory;
 import com.example.api.models.Ticket;
 
@@ -68,6 +70,16 @@ public class DtoMapper {
         dto.setMaster(ticket.isMaster());
         dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
         dto.setLastModified(ticket.getLastModified());
+        return dto;
+    }
+
+    public static RoleDto toRoleDto(Role role) {
+        RoleDto dto = new RoleDto();
+        dto.setRole(role.getRole());
+        dto.setCreatedBy(role.getCreatedBy());
+        dto.setCreatedOn(role.getCreatedOn());
+        dto.setUpdatedBy(role.getUpdatedBy());
+        dto.setUpdatedOn(role.getUpdatedOn());
         return dto;
     }
 }
