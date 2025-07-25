@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import GenericInput from '../components/UI/Input/GenericInput';
 import PermissionsModal from '../components/Permissions/PermissionsModal';
 import { DevModeContext } from '../context/DevModeContext';
+import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 
 const formatDate = (inputDate: string) => {
     const date = new Date(inputDate);
@@ -105,7 +106,8 @@ const RoleMaster: React.FC = () => {
             render: (_: any, r: any) => (
                 <>
                     <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600', marginRight: 1 }} onClick={() => navigate(`/role-master/${r.role}`)} />
-                    <span className="text-danger" style={{ cursor: 'pointer' }} onClick={() => handleDelete(r.role)}>Delete</span>
+                    <CustomIconButton icon="delete" onClick={() => handleDelete(r.role)} />
+                    {/* <span className="text-danger" style={{ cursor: 'pointer' }} onClick={() => handleDelete(r.role)}>Delete</span> */}
                 </>
             )
         }];

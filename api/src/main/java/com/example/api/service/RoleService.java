@@ -17,13 +17,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionService permissionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Value("${app.developerMode:false}")
     private boolean developerMode;
+
+    // Add a constructor for the required beans (without developerMode)
+    public RoleService(RoleRepository roleRepository, PermissionService permissionService) {
+        this.roleRepository = roleRepository;
+        this.permissionService = permissionService;
+    }
 
     public List<RoleDto> getAllRoles() {
         List<Role> roles = roleRepository.findByIsDeletedFalse();
