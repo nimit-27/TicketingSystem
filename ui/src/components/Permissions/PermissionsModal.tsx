@@ -42,7 +42,7 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({ open, roles, permis
       <Box sx={{ bgcolor: 'background.paper', p: 2, maxHeight: '80vh', overflow: 'auto', maxWidth: '80vw', margin: '5% auto' }}>
         {title && <h4 className="text-center mb-2">{title}</h4>}
         <GenericDropdown
-          label="Permissions' Role"
+          label="Select Base Permissions"
           value={role}
           onChange={handleRoleChange as any}
           options={roleOptions}
