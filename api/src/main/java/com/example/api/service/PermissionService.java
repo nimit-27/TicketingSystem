@@ -24,7 +24,7 @@ public class PermissionService {
     @PostConstruct
     public void loadPermissions() throws IOException {
         Map<String, RolePermission> map = new HashMap<>();
-        for (Role rpc : repository.findAll()) {
+        for (Role rpc : repository.findByIsDeletedFalse()) {
             RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
             map.put(rpc.getRole(), rp);
         }

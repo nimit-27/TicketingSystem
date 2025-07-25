@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Button, Autocomplete, TextField } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
-import { addRole, getAllPermissions, loadPermissions, getAllRoles } from '../services/RoleService';
+import { addRole, getAllPermissions, loadPermissions, getAllRoles, deleteRoles, deleteRole } from '../services/RoleService';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
 import { useNavigate } from 'react-router-dom';
 import GenericInput from '../components/UI/Input/GenericInput';
 import PermissionsModal from '../components/Permissions/PermissionsModal';
+import { DevModeContext } from '../context/DevModeContext';
 
 const formatDate = (inputDate: string) => {
     const date = new Date(inputDate);
@@ -29,6 +30,8 @@ const RoleMaster: React.FC = () => {
     const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
     const [openCustom, setOpenCustom] = useState(false);
     const [customPerm, setCustomPerm] = useState<any>(null);
+    const [selectedRows, setSelectedRows] = useState<React.Key[]>([]);
+    const { devMode } = useContext(DevModeContext);
 
     console.log({ rolesData });
 
@@ -77,6 +80,19 @@ const RoleMaster: React.FC = () => {
         setCustomPerm(null);
     };
 
+    const handleDelete = (id: string) => {
+        deleteRole(id, devMode).then(() => getAllRolesApiHandler(() => getAllRoles()));
+    };
+
+    const handleMultiDelete = () => {
+        if (selectedRows.length) {
+            deleteRoles(selectedRows as string[], devMode).then(() => {
+                setSelectedRows([]);
+                getAllRolesApiHandler(() => getAllRoles());
+            });
+        }
+    };
+
     const columns = [
         { title: 'Role', key: 'role', dataIndex: 'role' },
         { title: 'Created By', key: 'createdBy', dataIndex: 'createdBy' },
@@ -87,7 +103,10 @@ const RoleMaster: React.FC = () => {
             title: 'Action',
             key: 'action',
             render: (_: any, r: any) => (
-                <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600' }} onClick={() => navigate(`/role-master/${r.role}`)} />
+                <>
+                    <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600', marginRight: 1 }} onClick={() => navigate(`/role-master/${r.role}`)} />
+                    <span className="text-danger" style={{ cursor: 'pointer' }} onClick={() => handleDelete(r.role)}>Delete</span>
+                </>
             )
         }];
 
@@ -126,7 +145,11 @@ const RoleMaster: React.FC = () => {
                 </div>
             )}
             {view === 'table' ? (
-                <GenericTable dataSource={rolesData} columns={columns as any} rowKey="role" pagination={false} />
+                <>
+                    <Button variant="outlined" color="error" disabled={!selectedRows.length} onClick={handleMultiDelete} className="mb-2">Delete Selected</Button>
+                    <GenericTable dataSource={rolesData} columns={columns as any} rowKey="role" pagination={false}
+                        rowSelection={{ selectedRowKeys: selectedRows, onChange: setSelectedRows }} />
+                </>
             ) : (
                 <div className="row">
                     {roles.map(r => (

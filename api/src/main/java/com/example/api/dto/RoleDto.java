@@ -17,4 +17,5 @@ public class RoleDto {
     private LocalDateTime updatedOn;
     private String updatedBy;
     private String[] permissionsList;
+    private boolean isDeleted;
 }

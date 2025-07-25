@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Collections;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -25,5 +26,19 @@ public class RoleController {
     @PostMapping
     public ResponseEntity<RoleDto> addRole(@RequestBody RoleDto roleDto) throws JsonProcessingException {
         return ResponseEntity.ok(roleService.addRole(roleDto));
+    }
+
+    @DeleteMapping("/{role}")
+    public ResponseEntity<Void> deleteRole(@PathVariable String role,
+                                           @RequestParam(required = false, defaultValue = "false") boolean hard) {
+        roleService.deleteRoles(Collections.singletonList(role), hard);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteRoles(@RequestParam List<String> ids,
+                                            @RequestParam(required = false, defaultValue = "false") boolean hard) {
+        roleService.deleteRoles(ids, hard);
+        return ResponseEntity.noContent().build();
     }
 }
