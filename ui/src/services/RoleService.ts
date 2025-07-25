@@ -28,3 +28,11 @@ export function updateRolePermission(role: string, perm: any) {
 export function loadPermissions() {
     return axios.post(`${BASE_URL}/permissions/load`);
 }
+
+export function deleteRoles(ids: string[], hard?: boolean) {
+    return axios.delete(`${BASE_URL}/roles`, { params: { ids, hard } });
+}
+
+export function deleteRole(id: string, hard?: boolean) {
+    return axios.delete(`${BASE_URL}/roles/${id}`, { params: { hard } });
+}

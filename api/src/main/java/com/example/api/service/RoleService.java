@@ -1,6 +1,5 @@
 package com.example.api.service;
 
-import com.example.api.controller.PermissionController;
 import com.example.api.dto.RoleDto;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.Role;
@@ -9,6 +8,7 @@ import com.example.api.repository.RoleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,9 +22,11 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionService permissionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    @Value("${app.developerMode:false}")
+    private boolean developerMode;
 
     public List<RoleDto> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
+        List<Role> roles = roleRepository.findByIsDeletedFalse();
         return roles.stream().map(DtoMapper::toRoleDto).collect(Collectors.toList());
     }
 
@@ -48,5 +50,18 @@ public class RoleService {
 
         Role addedRole = roleRepository.save(role);
         return DtoMapper.toRoleDto(addedRole);
+    }
+
+    public void deleteRoles(List<String> roles, boolean hardDelete) {
+        if (hardDelete && developerMode) {
+            roleRepository.deleteAllById(roles);
+        } else {
+            for (String r : roles) {
+                roleRepository.findById(r).ifPresent(role -> {
+                    role.setDeleted(true);
+                    roleRepository.save(role);
+                });
+            }
+        }
     }
 }
