@@ -16,6 +16,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import ViewToggle from "../UI/ViewToggle";
 import { useTranslation } from "react-i18next";
+import { checkFieldAccess } from "../../utils/permissions";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -156,20 +157,18 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const showOnBehalfCheckbox = helpdesk && createMode && mode !== 'Self';
 
     const showFciToggle = !fciUser && !helpdesk;
-    const showUserId =
-        viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk;
-    const userIdLabel = isSelfHelpdesk ? 'User ID' : 'Employee ID';
-    const showRequestorName = true;
-    const showEmailId = true;
-    const showMobileNo = true;
-    const showStakeholder =
+    const showUserId = checkFieldAccess('requestorDetails', 'userId') 
+    const showRequestorName = checkFieldAccess('requestorDetails', 'requestorName');
+    const showEmailId = checkFieldAccess('requestorDetails', 'emailId');
+    const showMobileNo = checkFieldAccess('requestorDetails', 'mobileNo');
+    const showStakeholder = checkFieldAccess('requestorDetails', 'stakeholder') &&
         !onBehalfFciUser &&
         !isSelfHelpdesk &&
         viewMode === 'nonFci' &&
         !fciUser;
-    const showRole =
-        viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk;
-    const showOffice =
+    const showRole = checkFieldAccess('requestorDetails', 'role') &&
+        (viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk);
+    const showOffice = checkFieldAccess('requestorDetails', 'office') &&
         (viewMode === FCI_User || fciUser || onBehalfFciUser) && !isSelfHelpdesk;
 
     const isNonFci =
@@ -198,7 +197,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     {isRequestorOrOnBehalfFci && (
                         <div className={`${inputColStyling}`}>
                             <CustomFormInput
-                                label={userIdLabel}
+                                label="User ID"
                                 name="userId"
                                 slotProps={{
                                     inputLabel: { shrink: userId },
@@ -335,7 +334,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 {showUserId && (
                     <div className={`${inputColStyling}`}>
                         <CustomFormInput
-                            label={userIdLabel}
+                            label="User ID"
                             name="userId"
                             slotProps={{
                                 inputLabel: { shrink: userId },

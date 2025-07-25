@@ -32,9 +32,9 @@ export function checkFormAccess(
 
 export function checkFieldAccess(section: string, field: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  const fields: any = perms?.pages?.ticketForm?.[section];
+  const fields: any = perms?.pages?.children?.ticketForm?.children?.[section]?.children;
   if (!fields) return false;
-  return !!fields[field];
+  return !!fields[field]?.show;
 }
 
 export function checkMyTicketsAccess(key: string): boolean {
