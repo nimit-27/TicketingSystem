@@ -65,7 +65,7 @@ const RoleMaster: React.FC = () => {
 
     const handleSubmit = () => {
         if (!roleName) return;
-        const permissions = customPerm || { sidebar: {}, pages: {} };
+        const permissions = customPerm ||  null;
         const list = selectedPerms.filter(p => p !== 'Custom');
         const payload = { role: roleName, permissions, permissionsList: list ?? [] };
         addRole(payload)

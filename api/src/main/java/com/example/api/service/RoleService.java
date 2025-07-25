@@ -37,15 +37,22 @@ public class RoleService {
     }
 
     public RoleDto addRole(RoleDto roleDto) throws JsonProcessingException {
+
         String[] permissionsList = roleDto.getPermissionsList();
-        RolePermission rolePermission = null;
-        if (permissionsList.length == 1) {
-            rolePermission = permissionService.getRolePermission(String.valueOf(Arrays.stream(permissionsList).findFirst()));
-        } else {
-            rolePermission = permissionService.mergeRolePermissions(List.of(permissionsList));
+
+        String json = "";
+        RolePermission rolePermission = roleDto.getPermissions();
+
+        if(rolePermission == null) {
+            if (permissionsList.length == 1) {
+                rolePermission = permissionService.getRolePermission(
+                        Arrays.stream(permissionsList).findFirst().orElse(null));
+            } else {
+                rolePermission = permissionService.mergeRolePermissions(List.of(permissionsList));
+            }
         }
 
-        String json = objectMapper.writeValueAsString(rolePermission);
+        json = objectMapper.writeValueAsString(rolePermission);
 
         Role role = new Role();
         role.setRole(roleDto.getRole());
