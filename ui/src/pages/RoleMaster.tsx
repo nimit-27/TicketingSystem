@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Button, Autocomplete, TextField } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
-import { addRole, getAllPermissions } from '../services/RoleService';
+import { addRole, getAllPermissions, loadPermissions, getAllRoles } from '../services/RoleService';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
 import { useNavigate } from 'react-router-dom';
-import { getAllRoles } from '../services/RoleService';
 import GenericInput from '../components/UI/Input/GenericInput';
 import PermissionsModal from '../components/Permissions/PermissionsModal';
 
@@ -43,14 +42,17 @@ const RoleMaster: React.FC = () => {
 
     const roles = data?.roles ? Object.keys(data.roles) : [];
 
-    const handlePermChange = (_: any, value: string[]) => {
-        if (value.includes('Custom') && !selectedPerms.includes('Custom')) {
-            setOpenCustom(true);
-        }
-        if (!value.includes('Custom')) {
+    const handlePermChange = (_: any, val: any) => {
+        const value = Array.isArray(val) ? val : [val];
+        if (value.includes('Custom')) {
+            if (!selectedPerms.includes('Custom')) {
+                setOpenCustom(true);
+            }
+            setSelectedPerms(['Custom']);
+        } else {
             setCustomPerm(null);
+            setSelectedPerms(value);
         }
-        setSelectedPerms(value);
     };
 
     const handleCreate = () => {
@@ -61,9 +63,11 @@ const RoleMaster: React.FC = () => {
         if (!roleName) return;
         const permissions = customPerm || { sidebar: {}, pages: {} };
         const list = selectedPerms.filter(p => p !== 'Custom');
-        // if (list.length > 0) permissionsList = list;
-        const payload = { role: roleName, permissions, permissionsList: list ?? [] }
-        addRole(payload);
+        const payload = { role: roleName, permissions, permissionsList: list ?? [] };
+        addRole(payload)
+            .then(() => loadPermissions())
+            .then(() => getAllRolesApiHandler(() => getAllRoles()))
+            .then(() => handleCancel());
     };
 
     const handleCancel = () => {
@@ -104,11 +108,14 @@ const RoleMaster: React.FC = () => {
                             className="me-2 w-50"
                         />
                         <Autocomplete
-                            multiple
+                            multiple={!selectedPerms.includes('Custom')}
                             options={["Custom", ...roles]}
-                            value={selectedPerms}
+                            value={selectedPerms.includes('Custom') ? 'Custom' : selectedPerms}
                             onChange={handlePermChange}
                             className="w-50"
+                            renderOption={(props, option) => (
+                                <li {...props} style={{ fontStyle: option === 'Custom' ? 'italic' : 'normal' }}>{option}</li>
+                            )}
                             renderInput={(params) => <TextField {...params} label="Permissions" />}
                         />
                     </div>
