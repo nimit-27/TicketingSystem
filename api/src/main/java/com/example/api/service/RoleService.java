@@ -88,4 +88,12 @@ public class RoleService {
             roleRepository.save(role);
         });
     }
+
+    public void renameRole(String oldRole, String newRole, String updatedBy) {
+        roleRepository.renameRole(oldRole, newRole, updatedBy, LocalDateTime.now());
+        try {
+            permissionService.loadPermissions();
+        } catch (Exception ignored) {
+        }
+    }
 }

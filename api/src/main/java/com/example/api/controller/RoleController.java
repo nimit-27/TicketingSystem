@@ -35,6 +35,12 @@ public class RoleController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{role}/rename")
+    public ResponseEntity<Void> renameRole(@PathVariable String role, @RequestBody RoleDto roleDto) {
+        roleService.renameRole(role, roleDto.getRole(), roleDto.getUpdatedBy());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{role}")
     public ResponseEntity<Void> deleteRole(@PathVariable String role,
                                            @RequestParam(required = false, defaultValue = "false") boolean hard) {
