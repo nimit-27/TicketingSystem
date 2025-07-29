@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Checkbox, Collapse, IconButton, TextField } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -42,6 +42,17 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     const [adding, setAdding] = useState(false);
     const [newChild, setNewChild] = useState('');
     const [addedChildren, setAddedChildren] = useState(false);
+
+    useEffect(() => {
+        if (!devMode && adding) {
+            if (addedChildren) {
+                onChange([...path, 'children'], undefined, true);
+                setAddedChildren(false);
+            }
+            setAdding(false);
+            setNewChild('');
+        }
+    }, [devMode]);
 
     if (label === "show" || label === "metadata") return null;
 

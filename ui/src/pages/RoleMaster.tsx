@@ -29,6 +29,7 @@ const RoleMaster: React.FC = () => {
     const [creating, setCreating] = useState(false);
     const [roleName, setRoleName] = useState('');
     const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
+    const [prevPerms, setPrevPerms] = useState<string[]>([]);
     const [openCustom, setOpenCustom] = useState(false);
     const [customPerm, setCustomPerm] = useState<any>(null);
     const [selectedRows, setSelectedRows] = useState<React.Key[]>([]);
@@ -50,6 +51,7 @@ const RoleMaster: React.FC = () => {
         const value = Array.isArray(val) ? val : [val];
         if (value.includes('Custom')) {
             if (!selectedPerms.includes('Custom')) {
+                setPrevPerms(selectedPerms.length ? selectedPerms : ['User']);
                 setOpenCustom(true);
             }
             setSelectedPerms(['Custom']);
@@ -79,6 +81,14 @@ const RoleMaster: React.FC = () => {
         setRoleName('');
         setSelectedPerms([]);
         setCustomPerm(null);
+    };
+
+    const handleCustomClose = () => {
+        setOpenCustom(false);
+        if (selectedPerms.includes('Custom')) {
+            const fallback = prevPerms.length ? prevPerms : ['User'];
+            setSelectedPerms(fallback);
+        }
     };
 
     const handleDelete = (id: string) => {
@@ -168,7 +178,7 @@ const RoleMaster: React.FC = () => {
                 roles={roles}
                 permissions={data?.roles || {}}
                 title="Custom Permissions"
-                onClose={() => setOpenCustom(false)}
+                onClose={handleCustomClose}
                 onSubmit={(perm) => {
                     setCustomPerm(perm);
                     if (!selectedPerms.includes('Custom')) setSelectedPerms(p => [...p, 'Custom']);
