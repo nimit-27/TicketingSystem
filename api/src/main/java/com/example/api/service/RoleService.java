@@ -62,7 +62,7 @@ public class RoleService {
         role.setCreatedBy(roleDto.getCreatedBy());
         role.setUpdatedOn(now);
         // updatedBy will be same as createdBy at creation
-        role.setUpdatedBy(roleDto.getUpdatedBy() != null ? roleDto.getUpdatedBy() : roleDto.getCreatedBy());
+        role.setUpdatedBy(roleDto.getUpdatedBy());
 
         Role addedRole = roleRepository.save(role);
         return DtoMapper.toRoleDto(addedRole);

@@ -73,7 +73,7 @@ const RoleMaster: React.FC = () => {
         const permissions = customPerm ||  null;
         const list = selectedPerms.filter(p => p !== 'Custom');
         const user = getCurrentUserDetails();
-        const payload = { role: roleName, permissions, permissionsList: list ?? [], createdBy: user?.userId, updatedBy: user?.userId };
+        const payload = { role: roleName, permissions, permissionsList: list ?? [], createdBy: user?.name, updatedBy: user?.name };
         addRole(payload)
             .then(() => loadPermissions())
             .then(() => getAllRolesApiHandler(() => getAllRoles()))

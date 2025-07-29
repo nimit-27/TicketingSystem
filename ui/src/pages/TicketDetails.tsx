@@ -13,6 +13,7 @@ import CommentsSection from "../components/Comments/CommentsSection";
 import HistorySidebar from "../components/HistorySidebar";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
+import { checkFieldAccess } from "../utils/permissions";
 
 interface Ticket {
     id: string;
@@ -118,6 +119,9 @@ const TicketDetails: React.FC = () => {
         setValue("assignedTo", ticket.assignTo);
     };
 
+    const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
+    
+
     return (
         <div className="container" style={{ display: 'flex' }}>
             <div style={{ flexGrow: 1, marginRight: historyOpen ? 400 : 0 }}>
@@ -146,7 +150,7 @@ const TicketDetails: React.FC = () => {
                     errors={errors}
                     subjectDisabled
                     disableAll={!editing}
-                    actionElement={editing ? (
+                    actionElement={allowEdit && editing ? (
                         <>
                             <CustomIconButton icon="close" onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }} />
                             <CustomIconButton icon="check" onClick={handleSubmit(onSubmitUpdate)} style={{ minWidth: 0, padding: 2 }} />
