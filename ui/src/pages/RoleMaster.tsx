@@ -3,6 +3,7 @@ import { Button, Autocomplete, TextField, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
 import { addRole, getAllPermissions, loadPermissions, getAllRoles, deleteRoles, deleteRole } from '../services/RoleService';
+import { getCurrentUserDetails } from '../config/config';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
@@ -71,7 +72,8 @@ const RoleMaster: React.FC = () => {
         if (!roleName) return;
         const permissions = customPerm ||  null;
         const list = selectedPerms.filter(p => p !== 'Custom');
-        const payload = { role: roleName, permissions, permissionsList: list ?? [] };
+        const user = getCurrentUserDetails();
+        const payload = { role: roleName, permissions, permissionsList: list ?? [], createdBy: user?.userId, updatedBy: user?.userId };
         addRole(payload)
             .then(() => loadPermissions())
             .then(() => getAllRolesApiHandler(() => getAllRoles()))
@@ -93,15 +95,19 @@ const RoleMaster: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
-        deleteRole(id, devMode).then(() => getAllRolesApiHandler(() => getAllRoles()));
+        if (window.confirm('Delete this role?')) {
+            deleteRole(id, devMode).then(() => getAllRolesApiHandler(() => getAllRoles()));
+        }
     };
 
     const handleMultiDelete = () => {
         if (selectedRows.length) {
-            deleteRoles(selectedRows as string[], devMode).then(() => {
-                setSelectedRows([]);
-                getAllRolesApiHandler(() => getAllRoles());
-            });
+            if (window.confirm('Delete selected roles?')) {
+                deleteRoles(selectedRows as string[], devMode).then(() => {
+                    setSelectedRows([]);
+                    getAllRolesApiHandler(() => getAllRoles());
+                });
+            }
         }
     };
 

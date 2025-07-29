@@ -28,6 +28,13 @@ public class RoleController {
         return ResponseEntity.ok(roleService.addRole(roleDto));
     }
 
+    @PutMapping("/{role}")
+    public ResponseEntity<Void> updateRole(@PathVariable String role, @RequestBody RoleDto roleDto) {
+        roleDto.setRole(role);
+        roleService.updateRole(roleDto);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{role}")
     public ResponseEntity<Void> deleteRole(@PathVariable String role,
                                            @RequestParam(required = false, defaultValue = "false") boolean hard) {

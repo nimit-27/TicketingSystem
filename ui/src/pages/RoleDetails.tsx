@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
-import { getRolePermission, updateRolePermission, loadPermissions } from '../services/RoleService';
+import { getRolePermission, updateRolePermission, updateRole, loadPermissions } from '../services/RoleService';
+import { getCurrentUserDetails } from '../config/config';
 import Title from '../components/Title';
 import PermissionTree from '../components/Permissions/PermissionTree';
 import JsonEditModal from '../components/Permissions/JsonEditModal';
@@ -30,8 +31,11 @@ const RoleDetails: React.FC = () => {
     function handleSubmit(this: any) {
         if (roleId) {
             updateRolePermission(roleId, this ?? perm).then(() => {
-                showMessage('Permissions updated successfully', 'success');
-                loadPermissions();
+                const user = getCurrentUserDetails();
+                updateRole(roleId, { updatedBy: user?.userId }).then(() => {
+                    showMessage('Permissions updated successfully', 'success');
+                    loadPermissions();
+                });
             });
         }
     };
