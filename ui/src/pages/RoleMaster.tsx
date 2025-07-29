@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Button, Autocomplete, TextField } from '@mui/material';
+import { Button, Autocomplete, TextField, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
 import { addRole, getAllPermissions, loadPermissions, getAllRoles, deleteRoles, deleteRole } from '../services/RoleService';
@@ -11,6 +11,7 @@ import GenericInput from '../components/UI/Input/GenericInput';
 import PermissionsModal from '../components/Permissions/PermissionsModal';
 import { DevModeContext } from '../context/DevModeContext';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
+import { useTranslation } from 'react-i18next';
 
 const formatDate = (inputDate: string) => {
     const date = new Date(inputDate);
@@ -34,6 +35,7 @@ const RoleMaster: React.FC = () => {
     const [customPerm, setCustomPerm] = useState<any>(null);
     const [selectedRows, setSelectedRows] = useState<React.Key[]>([]);
     const { devMode } = useContext(DevModeContext);
+    const { t } = useTranslation();
 
     console.log({ rolesData });
 
@@ -51,7 +53,7 @@ const RoleMaster: React.FC = () => {
         const value = Array.isArray(val) ? val : [val];
         if (value.includes('Custom')) {
             if (!selectedPerms.includes('Custom')) {
-                setPrevPerms(selectedPerms.length ? selectedPerms : ['User']);
+                setPrevPerms(selectedPerms);
                 setOpenCustom(true);
             }
             setSelectedPerms(['Custom']);
@@ -86,8 +88,7 @@ const RoleMaster: React.FC = () => {
     const handleCustomClose = () => {
         setOpenCustom(false);
         if (selectedPerms.includes('Custom')) {
-            const fallback = prevPerms.length ? prevPerms : ['User'];
-            setSelectedPerms(fallback);
+            setSelectedPerms(prevPerms);
         }
     };
 
@@ -144,6 +145,15 @@ const RoleMaster: React.FC = () => {
                             value={selectedPerms.includes('Custom') ? 'Custom' : selectedPerms}
                             onChange={handlePermChange}
                             className="w-50"
+                            renderTags={(value, getTagProps) =>
+                                value.length === 0 ? (
+                                    <em className="ms-1" style={{ color: '#888' }}>{t('No selection')}</em>
+                                ) : (
+                                    value.map((option, index) => (
+                                        <Chip label={option} {...getTagProps({ index })} />
+                                    ))
+                                )
+                            }
                             renderOption={(props, option) => (
                                 <li {...props} style={{ fontStyle: option === 'Custom' ? 'italic' : 'normal' }}>{option}</li>
                             )}
