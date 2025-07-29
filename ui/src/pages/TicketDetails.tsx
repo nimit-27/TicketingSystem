@@ -7,13 +7,10 @@ import Title from "../components/Title";
 import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetailsForm from "../components/RaiseTicket/TicketDetails";
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
-import CheckIcon from '@mui/icons-material/Check';
+import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
 import HistorySidebar from "../components/HistorySidebar";
-import { IconButton } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -151,17 +148,11 @@ const TicketDetails: React.FC = () => {
                     disableAll={!editing}
                     actionElement={editing ? (
                         <>
-                            <IconButton onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }}>
-                                <CloseIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton onClick={handleSubmit(onSubmitUpdate)} style={{ minWidth: 0, padding: 2 }}>
-                                <CheckIcon fontSize="small" />
-                            </IconButton>
+                            <CustomIconButton icon="close" onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }} />
+                            <CustomIconButton icon="check" onClick={handleSubmit(onSubmitUpdate)} style={{ minWidth: 0, padding: 2 }} />
                         </>
                     ) : (
-                        <IconButton onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }}>
-                            <EditIcon fontSize="small" />
-                        </IconButton>
+                        <CustomIconButton icon="edit" onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }} />
                     )}
                 />
             </form>
