@@ -60,6 +60,9 @@ public class RoleService {
         LocalDateTime now = LocalDateTime.now();
         role.setCreatedOn(now);
         role.setCreatedBy(roleDto.getCreatedBy());
+        role.setUpdatedOn(now);
+        // updatedBy will be same as createdBy at creation
+        role.setUpdatedBy(roleDto.getUpdatedBy() != null ? roleDto.getUpdatedBy() : roleDto.getCreatedBy());
 
         Role addedRole = roleRepository.save(role);
         return DtoMapper.toRoleDto(addedRole);
@@ -76,5 +79,13 @@ public class RoleService {
                 });
             }
         }
+    }
+
+    public void updateRole(RoleDto dto) {
+        roleRepository.findById(dto.getRole()).ifPresent(role -> {
+            role.setUpdatedBy(dto.getUpdatedBy());
+            role.setUpdatedOn(LocalDateTime.now());
+            roleRepository.save(role);
+        });
     }
 }
