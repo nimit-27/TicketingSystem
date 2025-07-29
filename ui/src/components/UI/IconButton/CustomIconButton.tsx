@@ -14,6 +14,9 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CodeIcon from '@mui/icons-material/Code';
+import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
 
 // Define the icon map
 const iconMap = {
@@ -30,7 +33,10 @@ const iconMap = {
     timeline: TimelineIcon,
     arrowdown: KeyboardArrowDownIcon,
     arrowup: KeyboardArrowUpIcon,
-    code: CodeIcon
+    code: CodeIcon,
+    close: CloseIcon,
+    add: AddIcon,
+    check: CheckIcon
 };
 
 // Valid keys for the icon map

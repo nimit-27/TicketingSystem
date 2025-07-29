@@ -58,3 +58,12 @@ export interface ApiResponse<T> {
     error?: ApiError;
     timestamp: string;
 }
+
+export interface PermissionNode {
+    show?: boolean;
+    metadata?: {
+        type?: string;
+        name?: string;
+    };
+    children?: { [key: string]: PermissionNode } | null;
+}
