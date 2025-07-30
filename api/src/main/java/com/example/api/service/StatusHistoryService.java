@@ -1,6 +1,8 @@
 package com.example.api.service;
 
+import com.example.api.dto.StatusHistoryDto;
 import com.example.api.enums.TicketStatus;
+import com.example.api.mapper.DtoMapper;
 import com.example.api.models.StatusHistory;
 import com.example.api.models.Ticket;
 import com.example.api.repository.StatusHistoryRepository;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StatusHistoryService {
@@ -31,8 +34,8 @@ public class StatusHistoryService {
         return historyRepository.save(history);
     }
 
-    public List<StatusHistory> getHistoryForTicket(String ticketId) {
+    public List<StatusHistoryDto> getHistoryForTicket(String ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
-        return historyRepository.findByTicketOrderByTimestampAsc(ticket);
+        return historyRepository.findByTicketOrderByTimestampAsc(ticket).stream().map(DtoMapper::toStatusHistoryDto).collect(Collectors.toUnmodifiableList());
     }
 }

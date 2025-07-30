@@ -91,4 +91,16 @@ public class DtoMapper {
         userDto.setRoles(user.getRoles());
         return userDto;
     }
+
+    public static StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
+        if (statusHistory == null) return null;
+        StatusHistoryDto dto = new StatusHistoryDto();
+        dto.setId(statusHistory.getId());
+        dto.setTicketId(statusHistory.getTicket() != null ? statusHistory.getTicket().getId() : null);
+        dto.setUpdatedBy(statusHistory.getUpdatedBy());
+        dto.setPreviousStatus(statusHistory.getPreviousStatus());
+        dto.setCurrentStatus(statusHistory.getCurrentStatus());
+        dto.setTimestamp(statusHistory.getTimestamp());
+        return dto;
+    }
 }

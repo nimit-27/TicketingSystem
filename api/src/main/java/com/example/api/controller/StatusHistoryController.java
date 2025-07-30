@@ -1,5 +1,6 @@
 package com.example.api.controller;
 
+import com.example.api.dto.StatusHistoryDto;
 import com.example.api.models.StatusHistory;
 import com.example.api.service.StatusHistoryService;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class StatusHistoryController {
     }
 
     @GetMapping("/{ticketId}")
-    public ResponseEntity<List<StatusHistory>> getHistory(@PathVariable String ticketId) {
+    public ResponseEntity<List<StatusHistoryDto>> getHistory(@PathVariable String ticketId) {
         return ResponseEntity.ok(historyService.getHistoryForTicket(ticketId));
     }
 }
