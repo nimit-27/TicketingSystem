@@ -72,11 +72,10 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                             </TimelineSeparator>
                             <TimelineContent>
                                 <Paper elevation={2} sx={{ p: 1 }}>
-                                    <strong>{h.currentStatus.replace(/_/g, ' ')}</strong>
+                                    <strong>{h?.currentStatus?.replace(/_/g, ' ')}</strong>
                                     <div style={{ fontSize: 12 }}>
                                         {new Date(h.timestamp).toLocaleString()} - {h.updatedBy}
                                     </div>
-                                    <div style={{ fontSize: 12 }}>{t('Previous Status')}: {h.previousStatus.replace(/_/g, ' ')}</div>
                                 </Paper>
                             </TimelineContent>
                         </TimelineItem>
