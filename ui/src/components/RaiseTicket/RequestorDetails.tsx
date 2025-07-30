@@ -121,7 +121,18 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         // Ticket creation by FCI user - SELF
         if (fciUser && createMode) {
             const user = getCurrentUserDetails();
-            if (setValue && user.userId) setValue("userId", user.userId);
+            if (setValue && user.userId) {
+                setValue("userId", user.userId);
+                verifyUserById(user.userId);
+            }
+        }
+        // Ticket creation by normal user - SELF
+        if (!fciUser && !helpdesk && createMode) {
+            const user = getCurrentUserDetails();
+            if (setValue && user.userId) {
+                setValue('userId', user.userId);
+                verifyUserById(user.userId);
+            }
         }
         if (helpdesk && mode === 'Self' && createMode) {
             const hdUser = getCurrentUserDetails();
@@ -156,8 +167,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const showOnBehalfCheckbox = helpdesk && createMode && mode !== 'Self';
 
-    const showFciToggle = !fciUser && !helpdesk;
-    const showUserId = checkFieldAccess('requestorDetails', 'userId') 
+    const showFciToggle = false;
+    const showUserId = checkFieldAccess('requestorDetails', 'userId')
     const showRequestorName = checkFieldAccess('requestorDetails', 'requestorName');
     const showEmailId = checkFieldAccess('requestorDetails', 'emailId');
     const showMobileNo = checkFieldAccess('requestorDetails', 'mobileNo');
