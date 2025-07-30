@@ -45,15 +45,19 @@ public class AuthController {
                     session.setAttribute("userId", emp.getUserId());
                     session.setAttribute("username", request.getUsername());
                     session.setAttribute("password", request.getPassword());
+                    session.setAttribute("roles", emp.getRoles());
 
-                    RolePermission permissions = permissionService.mergeRolePermissions(
-                            emp.getRoles() == null ? List.of() : Arrays.asList(emp.getRoles().split("\\|")));
+                    List<String> roles = emp.getRoles() == null ? List.of()
+                            : Arrays.asList(emp.getRoles().split("\\|")); // split roles into list
 
+                    RolePermission permissions = permissionService.mergeRolePermissions(roles);
                     System.out.println("Perm: " + permissions);
 
                     return ResponseEntity.ok(Map.of(
                             "userId", emp.getUserId(),
                             "name", emp.getName(),
+                            "username", emp.getUsername(),
+                            "roles", roles,
                             "permissions", permissions
                     ));
                 })

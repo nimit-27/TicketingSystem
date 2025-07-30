@@ -16,6 +16,7 @@ export function isFciUser() {
 }
 
 export function isHelpdesk() {
+  return true;
   return getCurrentUserDetails()?.role?.includes('HELPDESK');
 }
 

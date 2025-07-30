@@ -28,7 +28,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
 
     const ticketId = useWatch({ control, name: 'ticketId' });
     const mode = useWatch({ control, name: 'mode' });
-    const helpdesk = isHelpdesk();
+    const helpdesk = true
 
     // useEffect(() => {
     //     if ((!mode || mode !== "Self")) {

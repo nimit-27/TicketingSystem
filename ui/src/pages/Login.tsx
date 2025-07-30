@@ -9,7 +9,8 @@ import { useApi } from "../hooks/useApi";
 type LoginResponse = {
     permissions?: RolePermission;
     userId?: string;
-    role?: string[];
+    username?: string;
+    roles?: string[];
     name?: string;
     [key: string]: any;
 };
@@ -30,7 +31,8 @@ const Login: React.FC = () => {
                 }
                 const details: UserDetails = {
                     userId: res.userId || userId,
-                    role: res.role,
+                    username: res.username,
+                    role: res.roles,
                     name: res.name
                 };
                 setUserDetails(details);

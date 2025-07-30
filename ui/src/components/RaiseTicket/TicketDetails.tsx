@@ -81,9 +81,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     let showDescription = checkFieldAccess('ticketDetails', 'description');
     let showAttachment = checkFieldAccess('ticketDetails', 'attachment');
     let showStatus = checkFieldAccess('ticketDetails', 'status');
-    let showAssignFurther = checkFieldAccess('ticketDetails', 'assignFurther');
-    let showAssignToLevelDropdown = checkFieldAccess('ticketDetails', 'assignedToLevel');
-    let showAssignToDropdown = checkFieldAccess('ticketDetails', 'assignedTo');
+    let showAssignFurther = checkFieldAccess('ticketDetails', 'assignFurtherCheckbox');
+    let showAssignToLevelDropdown = checkFieldAccess('ticketDetails', 'assignToLevelDropdown');
+    let showAssignToDropdown = checkFieldAccess('ticketDetails', 'assignToDropdown');
 
     useEffect(() => {
         getAllLevelApiHandler(() => getAllLevels())
