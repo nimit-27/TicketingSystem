@@ -43,7 +43,7 @@ const Login: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const roles = getCurrentUserDetails().role as string[];
+        const roles = getCurrentUserDetails()?.role as string[];
 
         loginApiHandler(() => loginUser({ username: userId, password, roles }))
 

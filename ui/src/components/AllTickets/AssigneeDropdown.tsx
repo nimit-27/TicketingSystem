@@ -45,13 +45,13 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     // Call onAssigned and close menu when updateData changes
     useEffect(() => {
         if (updateData && updateData.success && updateData.user) {
-            onAssigned?.(updateData.user.name);
+            onAssigned?.(updateData.user?.name);
             setAnchorEl(null);
         }
     }, [updateData, onAssigned]);
 
     const handleSelect = (u: User) => {
-        const payload = { assignedTo: u.userId, assignedBy: getCurrentUserDetails()?.userId } as any;
+        const payload = { assignedTo: u.username, assignedBy: getCurrentUserDetails()?.username } as any;
         updateTicketApiHandler(() => updateTicket(ticketId, payload));
     };
 

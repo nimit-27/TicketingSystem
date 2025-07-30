@@ -54,7 +54,7 @@ const RoleDetails: React.FC = () => {
     const submitRename = () => {
         if (!roleId || !roleName || roleId === roleName) { setEditing(false); return; }
         const user = getCurrentUserDetails();
-        renameRole(roleId, roleName, user?.userId).then(() => {
+        renameRole(roleId, roleName, user?.username).then(() => {
             showMessage('Role updated successfully', 'success');
             navigate(`/role-master/${roleName}`);
         });

@@ -65,7 +65,7 @@ const CategoriesMaster: React.FC = () => {
         const name = categoryInput.trim();
         if (!name) return;
         if (!categories.find(c => c.category.toLowerCase() === name.toLowerCase())) {
-            addCategory({ category: name, createdBy: getCurrentUserDetails().userId }).then(() => fetchCategories());
+            addCategory({ category: name, createdBy: getCurrentUserDetails()?.userId }).then(() => fetchCategories());
         }
         setCategoryInput('');
     }
@@ -90,7 +90,7 @@ const CategoriesMaster: React.FC = () => {
         const name = subCategoryInput.trim();
         if (!name || !selectedCategory) return;
         if (!selectedCategory.subCategories.find(sc => sc.subCategory.toLowerCase() === name.toLowerCase())) {
-            const newSub = { subCategory: name, categoryId: selectedCategory.categoryId, createdBy: getCurrentUserDetails().userId };
+            const newSub = { subCategory: name, categoryId: selectedCategory.categoryId, createdBy: getCurrentUserDetails()?.userId };
 
             addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => fetchSubCategories());
         }

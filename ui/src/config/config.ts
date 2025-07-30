@@ -8,7 +8,7 @@ export const devMode = envConfig.devMode;
 export const FciTheme = envConfig.FciTheme;
 
 export function getCurrentUserDetails() {
-  return getUserDetails() || Users.helpdesk;
+  return getUserDetails();
 }
 
 export function isFciUser() {

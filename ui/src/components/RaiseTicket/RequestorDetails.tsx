@@ -121,24 +121,24 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         // Ticket creation by FCI user - SELF
         if (fciUser && createMode) {
             const user = getCurrentUserDetails();
-            if (setValue && user.userId) {
-                setValue("userId", user.userId);
-                verifyUserById(user.userId);
+            if (setValue && user?.userId) {
+                setValue("userId", user?.userId);
+                verifyUserById(user?.userId);
             }
         }
         // Ticket creation by normal user - SELF
         if (!fciUser && !helpdesk && createMode) {
             const user = getCurrentUserDetails();
-            if (setValue && user.userId) {
-                setValue('userId', user.userId);
-                verifyUserById(user.userId);
+            if (setValue && user?.userId) {
+                setValue('userId', user?.userId);
+                verifyUserById(user?.userId);
             }
         }
         if (helpdesk && mode === 'Self' && createMode) {
-            const hdUser = getCurrentUserDetails();
-            if (setValue && hdUser.userId) {
-                setValue('userId', hdUser.userId);
-                verifyUserById(hdUser.userId);
+            const user = getCurrentUserDetails();
+            if (setValue && user?.userId) {
+                setValue('userId', user?.userId);
+                verifyUserById(user?.userId);
             }
         }
     }, [fciUser, helpdesk, mode, createMode]);

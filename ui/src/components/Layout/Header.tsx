@@ -18,8 +18,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggleDevMode, devMode } = useContext(DevModeContext);
   const theme = useTheme();
   const user = getCurrentUserDetails();
-  const initials = user.name
-    ? user.name
+  const initials = user?.name
+    ? user?.name
       .split(" ")
       .map((n) => n.charAt(0))
       .join("")

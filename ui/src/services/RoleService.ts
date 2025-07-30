@@ -29,7 +29,7 @@ export function updateRole(role: string, body: any) {
     return axios.put(`${BASE_URL}/roles/${role}`, body);
 }
 
-export function renameRole(oldRole: string, newRole: string, updatedBy: string) {
+export function renameRole(oldRole: string, newRole: string, updatedBy: string | undefined) {
     return axios.put(`${BASE_URL}/roles/${oldRole}/rename`, { role: newRole, updatedBy });
 }
 
