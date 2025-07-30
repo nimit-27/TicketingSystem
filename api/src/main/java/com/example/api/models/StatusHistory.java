@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class StatusHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "status_history_id")
     private String id;
 
     @ManyToOne
