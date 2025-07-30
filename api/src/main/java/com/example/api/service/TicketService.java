@@ -9,7 +9,6 @@ import com.example.api.models.TicketComment;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
-import com.example.api.repository.LevelRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.enums.TicketStatus;
@@ -33,21 +32,19 @@ public class TicketService {
     private final UserRepository userRepository;
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
-    private final LevelRepository levelRepository;
     private final StatusHistoryService statusHistoryService;
     private final NotificationService notificationService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
                          UserRepository userRepository, TicketCommentRepository commentRepository,
-                         AssignmentHistoryService assignmentHistoryService, LevelRepository levelRepository,
+                         AssignmentHistoryService assignmentHistoryService,
                          StatusHistoryService statusHistoryService, NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.assignmentHistoryService = assignmentHistoryService;
-        this.levelRepository = levelRepository;
         this.statusHistoryService = statusHistoryService;
         this.notificationService = notificationService;
     }
@@ -79,19 +76,20 @@ public class TicketService {
             ticket.setUser(user);
         }
 
-        if (ticket.getAssignedToLevel() == null || ticket.getAssignedToLevel().isEmpty()) {
-            ticket.setAssignedToLevel("L1");
-        }
-        if (ticket.getAssignedTo() == null || ticket.getAssignedTo().isEmpty()) {
-            levelRepository.findByLevelName("L1").ifPresent(level -> {
-                if (level.getUsers() != null && !level.getUsers().isEmpty()) {
-                    User emp = level.getUsers().iterator().next();
-                    ticket.setAssignedTo(String.valueOf(emp.getUserId()));
-                }
-            });
+        boolean isAssigned = ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty();
+        if (!isAssigned) {
+            ticket.setStatus(TicketStatus.OPEN);
+        } else if (ticket.getStatus() == null) {
+            ticket.setStatus(TicketStatus.ASSIGNED);
         }
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
+
+        statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), null, TicketStatus.OPEN);
+        if (isAssigned) {
+            assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo());
+            statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), TicketStatus.OPEN, TicketStatus.ASSIGNED);
+        }
 
         // Prepare data model for Freemarker template
         Map<String, Object> data = new HashMap<>();
