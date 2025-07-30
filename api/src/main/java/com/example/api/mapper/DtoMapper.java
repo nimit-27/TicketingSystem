@@ -45,7 +45,7 @@ public class DtoMapper {
     public static TicketDto toTicketDto(Ticket ticket) {
         if (ticket == null) return null;
         TicketDto dto = new TicketDto();
-        dto.setId(String.valueOf(ticket.getId()));
+        dto.setId(ticket.getId());
         dto.setReportedDate(ticket.getReportedDate());
         dto.setMode(ticket.getMode());
         dto.setUserId(ticket.getUserId() != null ? String.valueOf(ticket.getUserId()) : null);
