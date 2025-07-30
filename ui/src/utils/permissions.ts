@@ -26,7 +26,7 @@ export function checkFormAccess(
   type: 'view' | 'create' | 'update',
 ): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  const fp: any = perms?.pages?.[section];
+  const fp: any = perms?.pages?.children?.[section];
   return !!fp && !!fp[type];
 }
 
@@ -39,12 +39,12 @@ export function checkFieldAccess(section: string, field: string): boolean {
 
 export function checkMyTicketsAccess(key: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  return perms?.pages?.myTickets?.children?.[key]?.show ?? false;
+  return perms?.pages?.children?.myTickets?.children?.[key]?.show ?? false;
 }
 
 export function checkMyTicketsColumnAccess(column: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
   return (
-    perms?.pages?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? false
+    perms?.pages?.children?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? false
   );
 }

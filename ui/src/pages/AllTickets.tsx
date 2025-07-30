@@ -201,7 +201,7 @@ const AllTickets: React.FC = () => {
             </div>
             {pending && <p>{t('Loading...')}</p>}
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
-            {!pending && viewMode === 'table' && showTable && (
+            {viewMode === 'table' && showTable && (
                 <div>
                     <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
