@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.UserDto;
+import com.example.api.mapper.DtoMapper;
 import com.example.api.models.User;
 import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,8 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public Optional<User> getUserDetails(String userId) {
-        return userRepository.findById(userId);
+    public Optional<UserDto> getUserDetails(String userId) {
+        return userRepository.findById(userId).map(DtoMapper::toUserDto);
     }
 
     public List<UserDto> getAllUsers() {

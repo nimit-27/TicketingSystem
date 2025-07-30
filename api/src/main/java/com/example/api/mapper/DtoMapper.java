@@ -1,13 +1,7 @@
 package com.example.api.mapper;
 
-import com.example.api.dto.CategoryDto;
-import com.example.api.dto.RoleDto;
-import com.example.api.dto.SubCategoryDto;
-import com.example.api.dto.TicketDto;
-import com.example.api.models.Category;
-import com.example.api.models.Role;
-import com.example.api.models.SubCategory;
-import com.example.api.models.Ticket;
+import com.example.api.dto.*;
+import com.example.api.models.*;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,5 +77,18 @@ public class DtoMapper {
         dto.setUpdatedOn(role.getUpdatedOn());
         dto.setDeleted(role.isDeleted());
         return dto;
+    }
+
+    public static UserDto toUserDto(User user) {
+        if(user == null) return null;
+        UserDto userDto = new UserDto();
+        userDto.setUserId(user.getUserId());
+        userDto.setUsername(user.getUsername());
+        userDto.setName(user.getName());
+        userDto.setEmailId(user.getEmailId());
+        userDto.setMobileNo(user.getMobileNo());
+        userDto.setOffice(user.getOffice());
+        userDto.setRoles(user.getRoles());
+        return userDto;
     }
 }
