@@ -85,10 +85,10 @@ public class TicketService {
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
 
-        statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), null, TicketStatus.OPEN);
+        statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), null, TicketStatus.OPEN, false);
         if (isAssigned) {
             assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo());
-            statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), TicketStatus.OPEN, TicketStatus.ASSIGNED);
+            statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), TicketStatus.OPEN, TicketStatus.ASSIGNED, false);
         }
 
         // Prepare data model for Freemarker template
@@ -130,25 +130,34 @@ public class TicketService {
 
         String previousAssignedTo = existing.getAssignedTo();
         TicketStatus previousStatus = existing.getStatus();
-        existing.setCategory(updated.getCategory());
-        existing.setStatus(updated.getStatus());
-        existing.setSubCategory(updated.getSubCategory());
-        existing.setPriority(updated.getPriority());
-        existing.setSeverity(updated.getSeverity());
-        existing.setRecommendedSeverity(updated.getRecommendedSeverity());
-        existing.setImpact(updated.getImpact());
-        existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
-        existing.setDescription(updated.getDescription());
-        existing.setAttachmentPath(updated.getAttachmentPath());
-        existing.setAssignedToLevel(updated.getAssignedToLevel());
-        existing.setAssignedTo(updated.getAssignedTo());
+        if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
+        if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
+        if (updated.getSubCategory() != null) existing.setSubCategory(updated.getSubCategory());
+        if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
+        if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
+        if (updated.getRecommendedSeverity() != null) existing.setRecommendedSeverity(updated.getRecommendedSeverity());
+        if (updated.getImpact() != null) existing.setImpact(updated.getImpact());
+        if (updated.getSeverityRecommendedBy() != null) existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
+        if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
+        if (updated.getAttachmentPath() != null) existing.setAttachmentPath(updated.getAttachmentPath());
+        if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
+        if (updated.getAssignedTo() != null) {
+            existing.setAssignedTo(updated.getAssignedTo());
+            if (!updated.getAssignedTo().equals(previousAssignedTo) && updated.getStatus() == null) {
+                existing.setStatus(TicketStatus.ASSIGNED);
+            }
+        }
         Ticket saved = ticketRepository.save(existing);
+        String updatedBy = updated.getAssignedBy() != null ? updated.getAssignedBy() : existing.getAssignedBy();
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
+            if (updated.getStatus() == null && previousStatus != TicketStatus.ASSIGNED) {
+                statusHistoryService.addHistory(id, updatedBy, previousStatus, TicketStatus.ASSIGNED, false);
+                previousStatus = TicketStatus.ASSIGNED;
+            }
         }
         if (updated.getStatus() != null && !updated.getStatus().equals(previousStatus)) {
-            String updatedBy = updated.getAssignedBy() != null ? updated.getAssignedBy() : existing.getAssignedBy();
-            statusHistoryService.addHistory(id, updatedBy, previousStatus, updated.getStatus());
+            statusHistoryService.addHistory(id, updatedBy, previousStatus, updated.getStatus(), false);
         }
         return DtoMapper.toTicketDto(saved);
     }

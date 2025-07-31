@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/ticket-statuses")
+@RequestMapping("/status-master")
 @CrossOrigin(origins = "http://localhost:3000")
-public class TicketStatusController {
+public class StatusMasterController {
+
     private final StatusMasterService service;
 
-    public TicketStatusController(StatusMasterService service) {
+    public StatusMasterController(StatusMasterService service) {
         this.service = service;
     }
 

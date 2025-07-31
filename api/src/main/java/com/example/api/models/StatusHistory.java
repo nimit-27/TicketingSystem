@@ -32,4 +32,7 @@ public class StatusHistory {
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
+
+    @Column(name = "sla_flag")
+    private Boolean slaFlag;
 }
