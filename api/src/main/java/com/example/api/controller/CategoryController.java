@@ -6,6 +6,7 @@ import com.example.api.models.Category;
 import com.example.api.models.SubCategory;
 import com.example.api.service.CategoryService;
 import com.example.api.service.SubCategoryService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +17,10 @@ import java.util.Set;
 @RestController
 @RequestMapping("/categories")
 @CrossOrigin(origins = "http://localhost:3000")
+@AllArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
     private final SubCategoryService subCategoryService;
-
-    public CategoryController(CategoryService categoryService, SubCategoryService subCategoryService) {
-        this.categoryService = categoryService;
-        this.subCategoryService = subCategoryService;
-    }
 
     @GetMapping
     public ResponseEntity<List<CategoryDto>> getAllCategories() {

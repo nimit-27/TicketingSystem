@@ -3,6 +3,7 @@ package com.example.api.controller;
 import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.SubCategory;
 import com.example.api.service.SubCategoryService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,12 +13,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/sub-categories")
 @CrossOrigin(origins = "http://localhost:3000")
+@AllArgsConstructor
 public class SubCategoryController {
     private final SubCategoryService subCategoryService;
-
-    public SubCategoryController(SubCategoryService subCategoryService) {
-        this.subCategoryService = subCategoryService;
-    }
 
     @GetMapping
     public ResponseEntity<List<SubCategoryDto>> getAllSubCategories() {

@@ -4,20 +4,17 @@ import com.example.api.models.AssignmentHistory;
 import com.example.api.models.Ticket;
 import com.example.api.repository.AssignmentHistoryRepository;
 import com.example.api.repository.TicketRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class AssignmentHistoryService {
     private final AssignmentHistoryRepository historyRepository;
     private final TicketRepository ticketRepository;
-
-    public AssignmentHistoryService(AssignmentHistoryRepository historyRepository, TicketRepository ticketRepository) {
-        this.historyRepository = historyRepository;
-        this.ticketRepository = ticketRepository;
-    }
 
     public AssignmentHistory addHistory(String ticketId, String assignedBy, String assignedTo) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();

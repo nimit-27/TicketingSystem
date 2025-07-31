@@ -3,6 +3,7 @@ package com.example.api.controller;
 import com.example.api.dto.UserDto;
 import com.example.api.dto.LevelDto;
 import com.example.api.service.LevelService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +14,9 @@ import java.util.Set;
 @RestController
 @RequestMapping("/levels")
 @CrossOrigin(origins = "http://localhost:3000")
+@AllArgsConstructor
 public class LevelController {
     private final LevelService levelService;
-
-    public LevelController(LevelService levelService) {
-        this.levelService = levelService;
-    }
 
     @GetMapping
     public ResponseEntity<List<LevelDto>> getAllLevels() {

@@ -2,6 +2,7 @@ package com.example.api.controller;
 
 import com.example.api.models.Document;
 import com.example.api.service.DocumentService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,12 +11,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/documents")
 @CrossOrigin(origins = "http://localhost:3000")
+@AllArgsConstructor
 public class DocumentController {
     private final DocumentService documentService;
-
-    public DocumentController(DocumentService documentService) {
-        this.documentService = documentService;
-    }
 
     @GetMapping
     public ResponseEntity<List<Document>> getDocuments() {

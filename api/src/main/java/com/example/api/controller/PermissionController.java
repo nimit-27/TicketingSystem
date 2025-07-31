@@ -4,6 +4,7 @@ import com.example.api.dto.PermissionsConfigDto;
 import com.example.api.permissions.RolePermission;
 import com.example.api.permissions.PermissionsConfig;
 import com.example.api.service.PermissionService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,12 +13,9 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/permissions")
 @CrossOrigin(origins = "http://localhost:3000")
+@AllArgsConstructor
 public class PermissionController {
     private final PermissionService permissionService;
-
-    public PermissionController(PermissionService permissionService) {
-        this.permissionService = permissionService;
-    }
 
     @GetMapping
     public ResponseEntity<PermissionsConfig> getAllPermissions() {

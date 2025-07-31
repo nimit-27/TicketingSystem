@@ -6,6 +6,7 @@ import com.example.api.permissions.RolePermission;
 import com.example.api.service.AuthService;
 import com.example.api.service.PermissionService;
 import jakarta.servlet.http.HttpSession;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,14 +21,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@AllArgsConstructor
 public class AuthController {
     private final AuthService authService;
     private final PermissionService permissionService;
-
-    public AuthController(AuthService authService, PermissionService permissionService) {
-        this.authService = authService;
-        this.permissionService = permissionService;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {

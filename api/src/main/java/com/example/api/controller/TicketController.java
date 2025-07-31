@@ -5,6 +5,7 @@ import com.example.api.dto.TicketDto;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.service.TicketService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +19,9 @@ import java.util.List;
 @RequestMapping("/tickets")
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
+@AllArgsConstructor
 public class TicketController {
     private final TicketService ticketService;
-
-    @Autowired
-    public TicketController(TicketService ticketService) {
-        this.ticketService = ticketService;
-    }
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
