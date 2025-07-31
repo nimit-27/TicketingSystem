@@ -1,6 +1,5 @@
 package com.example.api.models;
 
-import com.example.api.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,13 +21,11 @@ public class StatusHistory {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "previous_status")
-    private TicketStatus previousStatus;
+    private String previousStatus;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "current_status")
-    private TicketStatus currentStatus;
+    private String currentStatus;
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;

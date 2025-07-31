@@ -11,6 +11,7 @@ import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
+import com.example.api.service.TicketStatusWorkflowService;
 import com.example.api.enums.TicketStatus;
 import com.example.api.typesense.TypesenseClient;
 import com.example.notification.enums.ChannelType;
@@ -34,18 +35,22 @@ public class TicketService {
     private final AssignmentHistoryService assignmentHistoryService;
     private final StatusHistoryService statusHistoryService;
     private final NotificationService notificationService;
+    private final TicketStatusWorkflowService workflowService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
                          UserRepository userRepository, TicketCommentRepository commentRepository,
                          AssignmentHistoryService assignmentHistoryService,
-                         StatusHistoryService statusHistoryService, NotificationService notificationService) {
+                         StatusHistoryService statusHistoryService,
+                         TicketStatusWorkflowService workflowService,
+                         NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.assignmentHistoryService = assignmentHistoryService;
         this.statusHistoryService = statusHistoryService;
+        this.workflowService = workflowService;
         this.notificationService = notificationService;
     }
 
@@ -85,10 +90,14 @@ public class TicketService {
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
 
-        statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), null, TicketStatus.OPEN, false);
+        String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
+        boolean sla = workflowService.getSlaFlagByStatusId(openId);
+        statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), null, openId, sla);
         if (isAssigned) {
             assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo());
-            statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), TicketStatus.OPEN, TicketStatus.ASSIGNED, false);
+            String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
+            boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
+            statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), openId, assignedId, slaAssigned);
         }
 
         // Prepare data model for Freemarker template
@@ -152,12 +161,18 @@ public class TicketService {
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
             if (updated.getStatus() == null && previousStatus != TicketStatus.ASSIGNED) {
-                statusHistoryService.addHistory(id, updatedBy, previousStatus, TicketStatus.ASSIGNED, false);
+                String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
+                boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
+                String prevId = workflowService.getStatusIdByCode(previousStatus.name());
+                statusHistoryService.addHistory(id, updatedBy, prevId, assignedId, slaAssigned);
                 previousStatus = TicketStatus.ASSIGNED;
             }
         }
         if (updated.getStatus() != null && !updated.getStatus().equals(previousStatus)) {
-            statusHistoryService.addHistory(id, updatedBy, previousStatus, updated.getStatus(), false);
+            String prevId = workflowService.getStatusIdByCode(previousStatus.name());
+            String currId = workflowService.getStatusIdByCode(updated.getStatus().name());
+            boolean slaCurr = workflowService.getSlaFlagByStatusId(currId);
+            statusHistoryService.addHistory(id, updatedBy, prevId, currId, slaCurr);
         }
         return DtoMapper.toTicketDto(saved);
     }

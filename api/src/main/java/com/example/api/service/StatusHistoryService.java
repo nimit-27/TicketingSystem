@@ -1,7 +1,6 @@
 package com.example.api.service;
 
 import com.example.api.dto.StatusHistoryDto;
-import com.example.api.enums.TicketStatus;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.StatusHistory;
 import com.example.api.models.Ticket;
@@ -23,7 +22,7 @@ public class StatusHistoryService {
         this.ticketRepository = ticketRepository;
     }
 
-    public StatusHistory addHistory(String ticketId, String updatedBy, TicketStatus previousStatus, TicketStatus currentStatus, Boolean slaFlag) {
+    public StatusHistory addHistory(String ticketId, String updatedBy, String previousStatus, String currentStatus, Boolean slaFlag) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         StatusHistory history = new StatusHistory();
         history.setTicket(ticket);
