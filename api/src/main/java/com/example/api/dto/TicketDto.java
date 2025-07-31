@@ -32,6 +32,7 @@ public class TicketDto {
     private String impact;
     private String severityRecommendedBy;
     private TicketStatus status;
+    private String statusId;
     private String attachmentPath;
     private String assignToLevel;
     private String assignTo;

@@ -304,7 +304,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 {showStatus && (
                     <div className="col-md-12 mb-3 px-4">
                         <GenericDropdownController
-                            name="status"
+                            name="statusId"
                             control={control}
                             label="Update Status"
                             options={statusOptions}

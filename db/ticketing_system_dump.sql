@@ -555,6 +555,7 @@ CREATE TABLE `tickets` (
   `master_id` varchar(36) DEFAULT NULL,
   `last_modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `status` varchar(20) DEFAULT NULL,
+  `status_id` varchar(36) DEFAULT NULL,
   `assigned_to_level` varchar(20) DEFAULT NULL,
   `assigned_to` varchar(100) DEFAULT NULL,
   `assigned_by` varchar(50) DEFAULT NULL,

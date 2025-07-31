@@ -24,16 +24,6 @@ import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { Ticket } from "../types";
 
-const statusOptions = [
-    { name: "All", id: "ALL" },
-    { name: "Pending", id: "PENDING" },
-    { name: "On Hold", id: "ON_HOLD" },
-    { name: "Closed", id: "CLOSED" },
-    { name: "Reopened", id: "REOPENED" },
-    { name: "Resolved", id: "RESOLVED" },
-    { name: "Assign Further", id: "ASSIGN_FURTHER" }
-];
-
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
     Array.isArray(arr)
@@ -53,9 +43,9 @@ const AllTickets: React.FC = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [totalPages, setTotalPages] = useState(1);
-    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
-    const [statusOptions, setStatusOptions] = useState<string[]>([]);
+    const [statusOptions, setStatusOptions] = useState<any[]>([{ statusName: 'All', statusNameValue: 'All' }]);
     const { t } = useTranslation();
     const showTable = checkMyTicketsAccess('table');
 
@@ -66,7 +56,7 @@ const AllTickets: React.FC = () => {
         Critical: { color: 'error.dark', count: 4 }
     };
 
-    const statusFilterOptions: DropdownOption[] = getDropdownOptions(statusOptions, "name", "id")
+    const statusFilterOptions: DropdownOption[] = getDropdownOptions(statusOptions, "statusName", "statusNameValue")
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -76,7 +66,7 @@ const AllTickets: React.FC = () => {
 
     useEffect(() => {
         if (Array.isArray(statusList)) {
-            setStatusOptions(['ALL', ...statusList]);
+            setStatusOptions([{ statusName: 'All', statusNameValue: 'All' }, ...statusList.map((s: any) => ({ ...s, statusNameValue: s.statusName }))]);
         }
     }, [statusList]);
 
@@ -84,7 +74,7 @@ const AllTickets: React.FC = () => {
         apiHandler(() =>
             searchTicketsPaginated(
                 debouncedSearch,
-                statusFilter === 'ALL' ? undefined : statusFilter,
+                statusFilter === 'All' ? undefined : statusFilter,
                 masterOnly ? true : undefined,
                 page - 1,
                 pageSize
@@ -180,7 +170,7 @@ const AllTickets: React.FC = () => {
                     label="Status"
                     value={statusFilter}
                     onChange={setStatusFilter}
-                    options={statusOptions.map(s => ({ label: s, value: s }))}
+                    options={statusFilterOptions}
                     style={{ width: 180, marginRight: 8 }}
                 />
                 <Chip
