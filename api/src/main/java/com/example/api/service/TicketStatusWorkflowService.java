@@ -1,6 +1,6 @@
 package com.example.api.service;
 
-import com.example.api.models.StatusMaster;
+import com.example.api.models.Status;
 import com.example.api.models.TicketStatusWorkflow;
 import com.example.api.repository.StatusMasterRepository;
 import com.example.api.repository.TicketStatusWorkflowRepository;
@@ -21,7 +21,7 @@ public class TicketStatusWorkflowService {
         this.statusMasterRepository = statusMasterRepository;
     }
 
-    public List<StatusMaster> getNextStatusesByCurrentStatus(String statusId) {
+    public List<Status> getNextStatusesByCurrentStatus(String statusId) {
         Integer id = Integer.valueOf(statusId);
         List<Integer> nextIds = workflowRepository.findByCurrentStatus(id)
                 .stream()
@@ -36,13 +36,13 @@ public class TicketStatusWorkflowService {
     }
 
     public String getStatusIdByCode(String statusCode) {
-        Optional<StatusMaster> sm = statusMasterRepository.findByStatusCode(statusCode);
-        return sm.map(StatusMaster::getStatusId).orElse(null);
+        Optional<Status> sm = Optional.ofNullable(statusMasterRepository.findByStatusCode(statusCode));
+        return sm.map(Status::getStatusId).orElse(null);
     }
 
     public boolean getSlaFlagByStatusId(String statusId) {
         return statusMasterRepository.findById(statusId)
-                .map(StatusMaster::getSlaFlag)
+                .map(Status::getSlaFlag)
                 .orElse(false);
     }
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Table(name = "status_master")
 @Getter
 @Setter
-public class StatusMaster {
+public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "status_id")

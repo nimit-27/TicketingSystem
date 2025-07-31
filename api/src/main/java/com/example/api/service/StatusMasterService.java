@@ -1,6 +1,6 @@
 package com.example.api.service;
 
-import com.example.api.models.StatusMaster;
+import com.example.api.models.Status;
 import com.example.api.repository.StatusMasterRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class StatusMasterService {
         this.repository = repository;
     }
 
-    public List<StatusMaster> getAllStatuses() {
+    public List<Status> getAllStatuses() {
         return repository.findAll();
     }
 }

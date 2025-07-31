@@ -1,6 +1,6 @@
 package com.example.api.controller;
 
-import com.example.api.models.StatusMaster;
+import com.example.api.models.Status;
 import com.example.api.models.TicketStatusWorkflow;
 import com.example.api.service.TicketStatusWorkflowService;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ public class TicketStatusWorkflowController {
     private final TicketStatusWorkflowService service;
 
     @GetMapping("/status/{statusId}")
-    public ResponseEntity<List<StatusMaster>> getNextStatuses(@PathVariable String statusId) {
+    public ResponseEntity<List<Status>> getNextStatuses(@PathVariable String statusId) {
         return ResponseEntity.ok(service.getNextStatusesByCurrentStatus(statusId));
     }
 

@@ -1,6 +1,6 @@
 package com.example.api.controller;
 
-import com.example.api.models.StatusMaster;
+import com.example.api.models.Status;
 import com.example.api.service.StatusMasterService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class StatusMasterController {
     private final StatusMasterService service;
 
     @GetMapping
-    public ResponseEntity<List<StatusMaster>> getStatuses() {
+    public ResponseEntity<List<Status>> getStatuses() {
         return ResponseEntity.ok(service.getAllStatuses());
     }
 }
