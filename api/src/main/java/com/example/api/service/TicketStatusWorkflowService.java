@@ -45,4 +45,10 @@ public class TicketStatusWorkflowService {
                 .map(Status::getSlaFlag)
                 .orElse(false);
     }
+
+    public String getStatusCodeById(String statusId) {
+        return statusMasterRepository.findById(statusId)
+                .map(Status::getStatusCode)
+                .orElse(null);
+    }
 }

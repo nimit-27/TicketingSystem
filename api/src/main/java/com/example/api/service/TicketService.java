@@ -9,6 +9,7 @@ import com.example.api.models.TicketComment;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
+import com.example.api.repository.StatusMasterRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
@@ -36,6 +37,7 @@ public class TicketService {
     private final StatusHistoryService statusHistoryService;
     private final NotificationService notificationService;
     private final TicketStatusWorkflowService workflowService;
+    private final StatusMasterRepository statusMasterRepository;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
@@ -43,6 +45,7 @@ public class TicketService {
                          AssignmentHistoryService assignmentHistoryService,
                          StatusHistoryService statusHistoryService,
                          TicketStatusWorkflowService workflowService,
+                         StatusMasterRepository statusMasterRepository,
                          NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
@@ -51,6 +54,7 @@ public class TicketService {
         this.assignmentHistoryService = assignmentHistoryService;
         this.statusHistoryService = statusHistoryService;
         this.workflowService = workflowService;
+        this.statusMasterRepository = statusMasterRepository;
         this.notificationService = notificationService;
     }
 
@@ -59,16 +63,27 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
+    private TicketDto mapWithStatusId(Ticket ticket) {
+        TicketDto dto = DtoMapper.toTicketDto(ticket);
+        if (ticket.getStatus() != null) {
+            dto.setStatusId(ticket.getStatus().getStatusId());
+        } else if (ticket.getTicketStatus() != null) {
+            String sid = workflowService.getStatusIdByCode(ticket.getTicketStatus().name());
+            dto.setStatusId(sid);
+        }
+        return dto;
+    }
+
     public Page<TicketDto> getTickets(Pageable pageable) {
         Page<Ticket> ticketPage = ticketRepository.findAll(pageable);
 
-        return ticketPage.map(DtoMapper::toTicketDto);
+        return ticketPage.map(this::mapWithStatusId);
     }
 
     public TicketDto getTicket(String id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        return DtoMapper.toTicketDto(ticket);
+        return mapWithStatusId(ticket);
     }
 
     public TicketDto addTicket(Ticket ticket) {
@@ -81,11 +96,27 @@ public class TicketService {
             ticket.setUser(user);
         }
 
+        if (ticket.getStatus() == null && ticket.getTicketStatus() != null) {
+            String id = workflowService.getStatusIdByCode(ticket.getTicketStatus().name());
+            if (id != null) {
+                statusMasterRepository.findById(id).ifPresent(ticket::setStatus);
+            }
+        }
+        if (ticket.getTicketStatus() == null && ticket.getStatus() != null) {
+            String code = ticket.getStatus().getStatusCode();
+            if (code != null) {
+                ticket.setTicketStatus(TicketStatus.valueOf(code));
+            }
+        }
         boolean isAssigned = ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty();
         if (!isAssigned) {
-            ticket.setStatus(TicketStatus.OPEN);
+            ticket.setTicketStatus(TicketStatus.OPEN);
+            String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
+            statusMasterRepository.findById(openId).ifPresent(ticket::setStatus);
         } else if (ticket.getStatus() == null) {
-            ticket.setStatus(TicketStatus.ASSIGNED);
+            ticket.setTicketStatus(TicketStatus.ASSIGNED);
+            String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
+            statusMasterRepository.findById(assignId).ifPresent(ticket::setStatus);
         }
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
@@ -121,16 +152,16 @@ public class TicketService {
             e.printStackTrace();
         }
 
-        return DtoMapper.toTicketDto(saved);
+        return mapWithStatusId(saved);
     }
 
     public SearchResult search(String query) throws Exception {
         return typesenseClient.searchTickets(query);
     }
 
-    public Page<TicketDto> searchTickets(String query, TicketStatus status, Boolean master, Pageable pageable) {
-        Page<Ticket> page = ticketRepository.searchTickets(query, status, master, pageable);
-        return page.map(DtoMapper::toTicketDto);
+    public Page<TicketDto> searchTickets(String query, String statusName, Boolean master, Pageable pageable) {
+        Page<Ticket> page = ticketRepository.searchTickets(query, statusName, master, pageable);
+        return page.map(this::mapWithStatusId);
     }
 
     public TicketDto updateTicket(String id, Ticket updated) {
@@ -138,9 +169,24 @@ public class TicketService {
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
         String previousAssignedTo = existing.getAssignedTo();
-        TicketStatus previousStatus = existing.getStatus();
+        TicketStatus previousStatus = existing.getTicketStatus();
+        String previousStatusId = existing.getStatus() != null ? existing.getStatus().getStatusId()
+                : (previousStatus != null ? workflowService.getStatusIdByCode(previousStatus.name()) : null);
+
+        TicketStatus updatedStatus = updated.getTicketStatus();
+        String updatedStatusId = updated.getStatus() != null ? updated.getStatus().getStatusId() : null;
+        if (updatedStatus == null && updatedStatusId != null) {
+            String code = workflowService.getStatusCodeById(updatedStatusId);
+            if (code != null) {
+                updatedStatus = TicketStatus.valueOf(code);
+            }
+        }
+        if (updatedStatusId == null && updatedStatus != null) {
+            updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
+        }
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
-        if (updated.getStatus() != null) existing.setStatus(updated.getStatus());
+        if (updatedStatus != null) existing.setTicketStatus(updatedStatus);
+        if (updatedStatusId != null) statusMasterRepository.findById(updatedStatusId).ifPresent(existing::setStatus);
         if (updated.getSubCategory() != null) existing.setSubCategory(updated.getSubCategory());
         if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
         if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
@@ -152,29 +198,32 @@ public class TicketService {
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
         if (updated.getAssignedTo() != null) {
             existing.setAssignedTo(updated.getAssignedTo());
-            if (!updated.getAssignedTo().equals(previousAssignedTo) && updated.getStatus() == null) {
-                existing.setStatus(TicketStatus.ASSIGNED);
+            if (!updated.getAssignedTo().equals(previousAssignedTo) && updatedStatus == null && updatedStatusId == null) {
+                existing.setTicketStatus(TicketStatus.ASSIGNED);
+                String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
+                statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
             }
         }
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getAssignedBy() != null ? updated.getAssignedBy() : existing.getAssignedBy();
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
-            if (updated.getStatus() == null && previousStatus != TicketStatus.ASSIGNED) {
+            if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
                 String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
-                String prevId = workflowService.getStatusIdByCode(previousStatus.name());
+                String prevId = previousStatusId;
                 statusHistoryService.addHistory(id, updatedBy, prevId, assignedId, slaAssigned);
                 previousStatus = TicketStatus.ASSIGNED;
-            }
+                previousStatusId = assignedId;
+                }
         }
-        if (updated.getStatus() != null && !updated.getStatus().equals(previousStatus)) {
-            String prevId = workflowService.getStatusIdByCode(previousStatus.name());
-            String currId = workflowService.getStatusIdByCode(updated.getStatus().name());
+        if (updatedStatusId != null && !updatedStatusId.equals(previousStatusId)) {
+            String prevId = previousStatusId;
+            String currId = updatedStatusId;
             boolean slaCurr = workflowService.getSlaFlagByStatusId(currId);
             statusHistoryService.addHistory(id, updatedBy, prevId, currId, slaCurr);
         }
-        return DtoMapper.toTicketDto(saved);
+        return mapWithStatusId(saved);
     }
 
     public TicketDto linkToMaster(String id, String masterId) {
@@ -183,7 +232,7 @@ public class TicketService {
 
         ticket.setMasterId(masterId);
         Ticket saved = ticketRepository.save(ticket);
-        return DtoMapper.toTicketDto(saved);
+        return mapWithStatusId(saved);
     }
 
     public TicketComment addComment(String id, String comment) {

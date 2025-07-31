@@ -18,6 +18,6 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     public List<Ticket> findByLastModifiedAfter(LocalDateTime lastSyncedTime);
 
-    @Query("SELECT t FROM Ticket t WHERE (:status IS NULL OR t.status = :status) AND (:master IS NULL OR t.isMaster = :master) AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
-    Page<Ticket> searchTickets(@Param("query") String query, @Param("status") TicketStatus status, @Param("master") Boolean master, Pageable pageable);
+    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s WHERE (:statusName IS NULL OR s.statusName = :statusName) AND (:master IS NULL OR t.isMaster = :master) AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
+    Page<Ticket> searchTickets(@Param("query") String query, @Param("statusName") String statusName, @Param("master") Boolean master, Pageable pageable);
 }

@@ -14,6 +14,7 @@ import HistorySidebar from "../components/HistorySidebar";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
 import { checkFieldAccess } from "../utils/permissions";
+import { getStatusList } from "../utils/Utils";
 
 interface Ticket {
     id: string;
@@ -33,6 +34,7 @@ interface Ticket {
     impact?: string;
     severityRecommendedBy?: string;
     status: string;
+    statusId?: string;
     assignToLevel?: string;
     assignTo?: string;
     assignedToLevel?: string;
@@ -47,7 +49,7 @@ const TicketDetails: React.FC = () => {
     const { t } = useTranslation();
 
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm();
-    const statusValue = useWatch({ control, name: 'status' });
+    const statusValue = useWatch({ control, name: 'statusId' });
     const [editing, setEditing] = useState<boolean>(false);
     const [historyOpen, setHistoryOpen] = useState<boolean>(false);
 
@@ -79,7 +81,7 @@ const TicketDetails: React.FC = () => {
             setValue("UserId", ticket.UserId);
             setValue("stakeholder", ticket.stakeholder);
             setValue("requestorName", ticket.requestorName);
-            setValue("status", ticket.status);
+            setValue("statusId", ticket.statusId);
             setValue("category", ticket.category);
             setValue("subCategory", ticket.subCategory);
             setValue("priority", ticket.priority);
@@ -100,8 +102,10 @@ const TicketDetails: React.FC = () => {
 
     const handleReopenToggle = (e: any) => {
         const checked = e.target.checked;
-        if (checked) setValue("status", "REOPENED");
-        else if (ticket) setValue("status", ticket.status);
+        const list = getStatusList();
+        const reopen = list?.find((s: any) => s.statusCode === 'REOPENED')?.statusId;
+        if (checked && reopen) setValue("statusId", reopen);
+        else if (ticket) setValue("statusId", ticket.statusId);
     };
 
     // Reset fields back to the original data
@@ -114,7 +118,7 @@ const TicketDetails: React.FC = () => {
         setValue("impact", ticket.impact);
         setValue("severityRecommendedBy", ticket.severityRecommendedBy);
         setValue("description", ticket.description);
-        setValue("status", ticket.status);
+        setValue("statusId", ticket.statusId);
         setValue("assignedToLevel", ticket.assignToLevel);
         setValue("assignedTo", ticket.assignTo);
     };
@@ -130,7 +134,7 @@ const TicketDetails: React.FC = () => {
                 <div className="m-3 d-flex align-items-center">
                     <p className="mb-0 me-2">{t('Status')}: {ticket.status}</p>
                     <Switch
-                        checked={statusValue === 'REOPENED'}
+                        checked={statusValue === getStatusList()?.find((s: any) => s.statusCode === 'REOPENED')?.statusId}
                         onChange={handleReopenToggle}
                         size="small"
                     />

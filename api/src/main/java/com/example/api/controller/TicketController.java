@@ -64,11 +64,11 @@ public class TicketController {
     @GetMapping("/search")
     public ResponseEntity<PaginationResponse<TicketDto>> searchTickets(
             @RequestParam String query,
-            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false, name = "status") String statusName,
             @RequestParam(required = false) Boolean master,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<TicketDto> p = ticketService.searchTickets(query, status, master, PageRequest.of(page, size));
+        Page<TicketDto> p = ticketService.searchTickets(query, statusName, master, PageRequest.of(page, size));
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         return ResponseEntity.ok(resp);
     }
