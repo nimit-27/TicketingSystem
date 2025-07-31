@@ -17,4 +17,5 @@ public class StatusHistoryDto {
     private TicketStatus previousStatus;
     private TicketStatus currentStatus;
     private LocalDateTime timestamp;
+    private Boolean slaFlag;
 }

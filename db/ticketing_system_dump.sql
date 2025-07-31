@@ -338,6 +338,37 @@ INSERT INTO `severity_master` VALUES ('1','CRITICAL'),('2','HIGH'),('3','MEDIUM'
 UNLOCK TABLES;
 
 --
+-- Table structure for table `status_master`
+--
+
+DROP TABLE IF EXISTS `status_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `status_master` (
+  `status_id` varchar(36) NOT NULL,
+  `status_name` varchar(100) DEFAULT NULL,
+  `status_code` varchar(50) DEFAULT NULL,
+  `sla_flag` tinyint(1) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `status_master`
+--
+
+LOCK TABLES `status_master` WRITE;
+/*!40000 ALTER TABLE `status_master` DISABLE KEYS */;
+INSERT INTO `status_master` VALUES
+('1','Open','OPEN',0,'Ticket is created'),
+('2','Assigned','ASSIGNED',0,'Ticket assigned to engineer'),
+('3','Pending','PENDING',0,'Work in progress'),
+('4','Closed','CLOSED',0,'Ticket closed');
+/*!40000 ALTER TABLE `status_master` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `status_history`
 --
 
@@ -351,6 +382,7 @@ CREATE TABLE `status_history` (
   `previous_status` varchar(50) DEFAULT NULL,
   `current_status` varchar(50) DEFAULT NULL,
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  `sla_flag` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`status_history_id`),
   KEY `fk_ticket_status_history` (`ticket_id`),
   CONSTRAINT `fk_ticket_status_history` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)
