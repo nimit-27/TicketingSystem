@@ -35,7 +35,7 @@ interface Ticket {
     status: string;
     assignToLevel?: string;
     assignTo?: string;
-    assignedAtLevel?: string;
+    assignedToLevel?: string;
     assignedTo?: string;
 }
 

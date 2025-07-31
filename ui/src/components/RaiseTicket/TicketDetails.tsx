@@ -53,20 +53,24 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
 
     // getDropdownOptions(arr, label, value)
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
-    const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'UserId');
+    const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'username');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
-    const statusOptions: DropdownOption[] = Array.isArray(statusList) ? statusList.map(s => ({ label: s.replace(/_/g, ' '), value: s })) : [];
+    const statusOptions: DropdownOption[] = getDropdownOptions(statusList, 'statusName', 'statusId');
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: string) => ({ label: p, value: p })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: string) => ({ label: s, value: s })) : [];
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
     const assignedToLevel = useWatch({ control, name: 'assignedToLevel' });
+    const assignToLevel = useWatch({ control, name: 'assignToLevel' });
     const category = useWatch({ control, name: 'category' });
     const subjectValue = useWatch({ control, name: 'subject' });
     const descriptionValue = useWatch({ control, name: 'description' });
 
     let showAssignedToLevel = checkFieldAccess('ticketDetails', 'assignedToLevel') && !createMode;
     let showAssignedTo = checkFieldAccess('ticketDetails', 'assignedTo') && !createMode;
+    let showAssignFurther = checkFieldAccess('ticketDetails', 'assignFurtherCheckbox');
+    let showAssignToLevelDropdown = checkFieldAccess('ticketDetails', 'assignToLevelDropdown');
+    let showAssignToDropdown = checkFieldAccess('ticketDetails', 'assignToDropdown');
     let showCategory = checkFieldAccess('ticketDetails', 'category');
     let showSubCategory = checkFieldAccess('ticketDetails', 'subCategory');
     let showPriority = checkFieldAccess('ticketDetails', 'priority');
@@ -83,17 +87,14 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const userRoles = getCurrentUserDetails()?.role || [];
     const isTeamLead = userRoles.includes('TEAM_LEAD') || userRoles.includes('TL') || userRoles.includes('TeamLead');
     let showStatus = checkFieldAccess('ticketDetails', 'status') && !createMode && !isTeamLead;
-    let showAssignFurther = checkFieldAccess('ticketDetails', 'assignFurtherCheckbox');
-    let showAssignToLevelDropdown = checkFieldAccess('ticketDetails', 'assignToLevelDropdown');
-    let showAssignToDropdown = checkFieldAccess('ticketDetails', 'assignToDropdown');
 
     useEffect(() => {
         getAllLevelApiHandler(() => getAllLevels())
     }, [])
 
     useEffect(() => {
-        assignedToLevel && getAllUsersByLevelHandler(() => getAllUsersByLevel(assignedToLevel))
-    }, [assignedToLevel])
+        assignToLevel && getAllUsersByLevelHandler(() => getAllUsersByLevel(assignToLevel))
+    }, [assignToLevel])
 
     useEffect(() => {
         getCategoriesApiHandler(() => getCategories())
@@ -119,7 +120,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
 
     useEffect(() => {
         if (register && typeof register === 'function') {
-            register('assignedBy', { value: getCurrentUserDetails()?.userId || 'john.doe' });
+            register('assignedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
         }
     }, [register]);
 
@@ -330,7 +331,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                         {showAssignToLevelDropdown && (
                             <div className="col-md-4 mb-3  px-4">
                                 <GenericDropdownController
-                                    name="assignedToLevel"
+                                    name="assignToLevel"
                                     control={control}
                                     label="Assign to Level"
                                     options={assignLevelOptions}
@@ -341,7 +342,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                         {showAssignToDropdown && (
                             <div className="col-md-4 mb-3 px-4">
                                 <GenericDropdownController
-                                    name="assignedTo"
+                                    name="assignTo"
                                     control={control}
                                     label="Assign to"
                                     options={assignToOptions}
