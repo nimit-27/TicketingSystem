@@ -11,13 +11,13 @@ interface AssigneeDropdownProps {
     ticketId: string;
     assigneeName?: string;
     onAssigned?: (name: string) => void;
-    searchTicketsPaginatedApi?: () => void;
+    searchCurrentTicketsPaginatedApi?: () => void;
 }
 
 interface Level { levelId: string; levelName: string; }
 interface User { userId: string; username: string; name: string; }
 
-const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchTicketsPaginatedApi }) => {
+const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
@@ -28,7 +28,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getUsersByLevelApiHandler } = useApi<any>();
     const { data: allUsersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
-    const { data: updateData, apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { data: updateTicketData, apiHandler: updateTicketApiHandler, pending: updateTicketPending, success: updateTicketSuccess } = useApi<any>();
 
     // Fetch levels on mount
     useEffect(() => {
@@ -43,18 +43,18 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         }
     }, [selectedLevel]);
 
-    // Call onAssigned and close menu when updateData changes
+    // Call onAssigned and close menu when updateTicketData changes
     useEffect(() => {
-        if (updateData && updateData.success && updateData.user) {
-            onAssigned?.(updateData.user?.name);
-            setAnchorEl(null);
-            searchTicketsPaginatedApi && searchTicketsPaginatedApi()
+        if (updateTicketSuccess) {
+            // onAssigned?.(updateTicketData.user?.name);
+            searchCurrentTicketsPaginatedApi && searchCurrentTicketsPaginatedApi()
         }
-    }, [updateData, onAssigned]);
+    }, [updateTicketSuccess, onAssigned]);
 
     const handleSelect = (u: User) => {
         const payload = { assignedTo: u.username, assignedBy: getCurrentUserDetails()?.username } as any;
         updateTicketApiHandler(() => updateTicket(ticketId, payload));
+        setAnchorEl(null);
     };
 
     const levels: Level[] = levelsData || [];

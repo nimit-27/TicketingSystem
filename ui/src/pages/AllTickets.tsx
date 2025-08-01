@@ -36,6 +36,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
 const AllTickets: React.FC = () => {
     const { data, pending, error, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: statusList, apiHandler: statusApiHandler } = useApi();
+
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
@@ -60,15 +61,15 @@ const AllTickets: React.FC = () => {
 
     const debouncedSearch = useDebounce(search, 300);
 
-    const searchTicketsPaginatedApi = () => searchTicketsPaginatedApiHandler(() =>
-            searchTicketsPaginated(
-                debouncedSearch,
-                statusFilter === 'All' ? undefined : statusFilter,
-                masterOnly ? true : undefined,
-                page - 1,
-                pageSize
-            )
-        );
+    const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
+        console.log("searchTicketsPaginatedApi called")
+        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size));
+    }
+
+    const searchCurrentTicketsPaginatedApi = () => {
+        console.log("search Current TicketsPaginatedApi called")
+        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize))
+    }
 
     useEffect(() => {
         statusApiHandler(() => getStatuses());
@@ -81,7 +82,7 @@ const AllTickets: React.FC = () => {
     }, [statusList]);
 
     useEffect(() => {
-        searchTicketsPaginatedApi()
+        searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
     }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
     useEffect(() => {
@@ -130,7 +131,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchTicketsPaginatedApi={searchTicketsPaginatedApi} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">

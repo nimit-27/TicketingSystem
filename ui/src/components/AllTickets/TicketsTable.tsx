@@ -24,10 +24,10 @@ export interface TicketRow {
 interface TicketsTableProps {
     tickets: TicketRow[];
     onRowClick: (id: string) => void;
-    searchTicketsPaginatedApi: () => void;
+    searchCurrentTicketsPaginatedApi: () => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchTicketsPaginatedApi }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi }) => {
     const { t } = useTranslation();
     const columns = useMemo(
         () => [
@@ -64,7 +64,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
                 title: t('Assignee'),
                 key: 'assignee',
                 render: (_: any, record: TicketRow) => (
-                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} searchTicketsPaginatedApi={searchTicketsPaginatedApi} />
+                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} />
                 )
             },
             { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || '-' },
