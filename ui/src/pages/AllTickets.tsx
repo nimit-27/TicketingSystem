@@ -42,7 +42,8 @@ const AllTickets: React.FC = () => {
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
+    const [tablePageSize, setTablePageSize] = useState(5);
+    const pageSize = viewMode === 'grid' ? 1 : tablePageSize;
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
@@ -66,9 +67,13 @@ const AllTickets: React.FC = () => {
         searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size));
     }
 
-    const searchCurrentTicketsPaginatedApi = () => {
+    const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
+
+    const searchCurrentTicketsPaginatedApi = async (id: string) => {
         console.log("search Current TicketsPaginatedApi called")
-        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize))
+        setRefreshingTicketId(id);
+        await searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize));
+        setRefreshingTicketId(null);
     }
 
     useEffect(() => {
@@ -131,38 +136,44 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">
-                            <IconButton size="small" onClick={() => setPageSize(ps => ps > 1 ? ps - 1 : 1)}>
+                            <IconButton size="small" onClick={() => setTablePageSize(ps => ps > 1 ? ps - 1 : 1)}>
                                 <ArrowDropDownIcon />
                             </IconButton>
                             <GenericInput
                                 type="number"
-                                value={pageSize}
+                                value={tablePageSize}
                                 onChange={(e) => {
                                     const v = parseInt(e.target.value, 10);
-                                    if (!isNaN(v) && v > 0) setPageSize(v);
+                                    if (!isNaN(v) && v > 0) setTablePageSize(v);
                                 }}
                                 size="small"
                                 sx={{ width: 60, mx: 1 }}
                             />
                             <span>/ page</span>
-                            <IconButton size="small" onClick={() => setPageSize(ps => ps + 1)}>
+                            <IconButton size="small" onClick={() => setTablePageSize(ps => ps + 1)}>
                                 <ArrowDropUpIcon />
                             </IconButton>
                         </div>
                     </div>
                 </div>
             )}
-            {!pending && viewMode === 'grid' && (
-                <div className="row">
-                    {filtered.map((t) => (
-                        <div className="col-md-4 mb-3" key={t.id}>
-                            <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => navigate(`/tickets/${t.id}`)} />
-                        </div>
-                    ))}
+            {viewMode === 'grid' && (
+                <div className="grid-overlay-container">
+                    {pending && <div className="grid-overlay" />}
+                    <div className="row">
+                        {filtered.map((t) => (
+                            <div className="col-md-4 mb-3" key={t.id}>
+                                <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => navigate(`/tickets/${t.id}`)} />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="d-flex justify-content-center mt-3">
+                        <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
+                    </div>
                 </div>
             )}
         </div>
