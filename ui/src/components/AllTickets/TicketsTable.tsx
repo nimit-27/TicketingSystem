@@ -5,6 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
+import { getStatusNameById } from '../../utils/Utils';
 
 export interface TicketRow {
     id: string;
@@ -23,9 +24,10 @@ export interface TicketRow {
 interface TicketsTableProps {
     tickets: TicketRow[];
     onRowClick: (id: string) => void;
+    searchTicketsPaginatedApi: () => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchTicketsPaginatedApi }) => {
     const { t } = useTranslation();
     const columns = useMemo(
         () => [
@@ -62,10 +64,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick }) => {
                 title: t('Assignee'),
                 key: 'assignee',
                 render: (_: any, record: TicketRow) => (
-                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} />
+                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} searchTicketsPaginatedApi={searchTicketsPaginatedApi} />
                 )
             },
-            { title: t('Status'), dataIndex: 'status', key: 'status', render: (v: any) => v || '-' },
+            { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || '-' },
             {
                 title: t('Action'),
                 key: 'action',

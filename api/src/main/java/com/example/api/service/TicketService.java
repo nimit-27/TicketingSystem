@@ -207,7 +207,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getAssignedBy() != null ? updated.getAssignedBy() : existing.getAssignedBy();
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
-            assignmentHistoryService.addHistory(id, previousAssignedTo, updated.getAssignedTo());
+            assignmentHistoryService.addHistory(id, updated.getAssignedBy(), updated.getAssignedTo());
             if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
                 String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);

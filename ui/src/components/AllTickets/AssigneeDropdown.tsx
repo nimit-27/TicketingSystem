@@ -11,12 +11,13 @@ interface AssigneeDropdownProps {
     ticketId: string;
     assigneeName?: string;
     onAssigned?: (name: string) => void;
+    searchTicketsPaginatedApi?: () => void;
 }
 
 interface Level { levelId: string; levelName: string; }
 interface User { userId: string; username: string; name: string; }
 
-const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned }) => {
+const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchTicketsPaginatedApi }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
@@ -47,6 +48,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         if (updateData && updateData.success && updateData.user) {
             onAssigned?.(updateData.user?.name);
             setAnchorEl(null);
+            searchTicketsPaginatedApi && searchTicketsPaginatedApi()
         }
     }, [updateData, onAssigned]);
 

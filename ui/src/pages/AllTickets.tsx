@@ -34,7 +34,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         : [];
 
 const AllTickets: React.FC = () => {
-    const { data, pending, error, apiHandler } = useApi<any>();
+    const { data, pending, error, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: statusList, apiHandler: statusApiHandler } = useApi();
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
@@ -60,6 +60,16 @@ const AllTickets: React.FC = () => {
 
     const debouncedSearch = useDebounce(search, 300);
 
+    const searchTicketsPaginatedApi = () => searchTicketsPaginatedApiHandler(() =>
+            searchTicketsPaginated(
+                debouncedSearch,
+                statusFilter === 'All' ? undefined : statusFilter,
+                masterOnly ? true : undefined,
+                page - 1,
+                pageSize
+            )
+        );
+
     useEffect(() => {
         statusApiHandler(() => getStatuses());
     }, []);
@@ -71,15 +81,7 @@ const AllTickets: React.FC = () => {
     }, [statusList]);
 
     useEffect(() => {
-        apiHandler(() =>
-            searchTicketsPaginated(
-                debouncedSearch,
-                statusFilter === 'All' ? undefined : statusFilter,
-                masterOnly ? true : undefined,
-                page - 1,
-                pageSize
-            )
-        );
+        searchTicketsPaginatedApi()
     }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
     useEffect(() => {
@@ -89,71 +91,6 @@ const AllTickets: React.FC = () => {
             setFiltered(resp.items || resp);
         }
     }, [data]);
-
-    const columns = useMemo(
-        () => [
-            {
-                title: t('Ticket Id'),
-                dataIndex: "id",
-                key: "id",
-                render: (_: any, record: Ticket) => (
-                    <div className="d-flex align-items-center">
-                        {record.id}
-                        {record.isMaster && <MasterIcon />}
-                    </div>
-                ),
-            },
-            {
-                title: t('Requestor Name'),
-                key: "name",
-                render: (_: any, record: Ticket) => record.requestorName || "-",
-            },
-            {
-                title: t('Email'),
-                key: "email",
-                render: (_: any, record: Ticket) => record.requestorEmailId || "-",
-            },
-            {
-                title: t('Mobile'),
-                key: "mobile",
-                render: (_: any, record: Ticket) => record.requestorMobileNo || "-",
-            },
-            {
-                title: t('Category'),
-                dataIndex: "category",
-                key: "category",
-            },
-            {
-                title: t('Sub-Category'),
-                dataIndex: "subCategory",
-                key: "subCategory",
-            },
-            {
-                title: t('Priority'),
-                dataIndex: "priority",
-                key: "priority",
-            },
-            {
-                title: t('Assignee'),
-                key: 'assignee',
-                render: (_: any, record: Ticket) => (
-                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} />
-                )
-            },
-            {
-                title: t('Status'),
-                dataIndex: "status",
-                key: "status",
-                render: (value: any) => value || "-",
-            },
-            {
-                title: t('Action'),
-                key: "action",
-                render: () => <VisibilityIcon fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
-            },
-        ],
-        []
-    );
 
     return (
         <div className="container">
@@ -193,7 +130,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchTicketsPaginatedApi={searchTicketsPaginatedApi} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">

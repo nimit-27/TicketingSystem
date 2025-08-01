@@ -42,3 +42,9 @@ export function getStatusList(): any[] | null {
   const data = sessionStorage.getItem(STATUS_LIST_KEY);
   return data ? JSON.parse(data) : null;
 }
+
+export function getStatusNameById(statusId: string): any | null {
+  const statusList = getStatusList();
+  console.log({ statusId })
+  return statusList ? statusList?.find(status => status.statusId === statusId)?.statusName : null;
+}
