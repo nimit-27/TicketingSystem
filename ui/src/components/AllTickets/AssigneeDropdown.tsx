@@ -11,7 +11,7 @@ interface AssigneeDropdownProps {
     ticketId: string;
     assigneeName?: string;
     onAssigned?: (name: string) => void;
-    searchCurrentTicketsPaginatedApi?: () => void;
+    searchCurrentTicketsPaginatedApi?: (id: string) => void;
 }
 
 interface Level { levelId: string; levelName: string; }
@@ -47,7 +47,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     useEffect(() => {
         if (updateTicketSuccess) {
             // onAssigned?.(updateTicketData.user?.name);
-            searchCurrentTicketsPaginatedApi && searchCurrentTicketsPaginatedApi()
+            searchCurrentTicketsPaginatedApi && searchCurrentTicketsPaginatedApi(ticketId)
         }
     }, [updateTicketSuccess, onAssigned]);
 

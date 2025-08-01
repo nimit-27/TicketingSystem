@@ -24,10 +24,11 @@ export interface TicketRow {
 interface TicketsTableProps {
     tickets: TicketRow[];
     onRowClick: (id: string) => void;
-    searchCurrentTicketsPaginatedApi: () => void;
+    searchCurrentTicketsPaginatedApi: (id: string) => void;
+    refreshingTicketId?: string | null;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId }) => {
     const { t } = useTranslation();
     const columns = useMemo(
         () => [
@@ -83,6 +84,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
             columns={columns as any}
             rowKey="id"
             pagination={false}
+            rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
         />
     );
 };
