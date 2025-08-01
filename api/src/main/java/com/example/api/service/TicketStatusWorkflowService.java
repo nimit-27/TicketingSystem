@@ -21,14 +21,9 @@ public class TicketStatusWorkflowService {
         this.statusMasterRepository = statusMasterRepository;
     }
 
-    public List<Status> getNextStatusesByCurrentStatus(String statusId) {
+    public List<TicketStatusWorkflow> getNextStatusesByCurrentStatus(String statusId) {
         Integer id = Integer.valueOf(statusId);
-        List<Integer> nextIds = workflowRepository.findByCurrentStatus(id)
-                .stream()
-                .map(TicketStatusWorkflow::getNextStatus)
-                .collect(Collectors.toList());
-        return statusMasterRepository.findAllById(
-                nextIds.stream().map(Object::toString).collect(Collectors.toList()));
+        return workflowRepository.findByCurrentStatus(id);
     }
 
     public List<TicketStatusWorkflow> getAllMappings() {
