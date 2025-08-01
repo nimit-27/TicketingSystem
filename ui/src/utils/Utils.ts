@@ -45,6 +45,5 @@ export function getStatusList(): any[] | null {
 
 export function getStatusNameById(statusId: string): any | null {
   const statusList = getStatusList();
-  console.log({ statusId })
   return statusList ? statusList?.find(status => status.statusId === statusId)?.statusName : null;
 }

@@ -16,7 +16,7 @@ import java.util.List;
 public class TicketStatusWorkflowController {
     private final TicketStatusWorkflowService service;
 
-    @GetMapping("/status/{statusId}")
+    @GetMapping("/next-statuse-list/{statusId}")
     public ResponseEntity<List<Status>> getNextStatuses(@PathVariable String statusId) {
         return ResponseEntity.ok(service.getNextStatusesByCurrentStatus(statusId));
     }

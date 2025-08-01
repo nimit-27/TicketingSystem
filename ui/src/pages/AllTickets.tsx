@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -63,18 +63,25 @@ const AllTickets: React.FC = () => {
     const debouncedSearch = useDebounce(search, 300);
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
-        console.log("searchTicketsPaginatedApi called")
         searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size));
     }
 
     const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
 
-    const searchCurrentTicketsPaginatedApi = async (id: string) => {
-        console.log("search Current TicketsPaginatedApi called")
-        setRefreshingTicketId(id);
-        await searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize));
-        setRefreshingTicketId(null);
-    }
+    const searchCurrentTicketsPaginatedApi = useCallback(
+        async (id: string) => {
+            setRefreshingTicketId(id);
+            await searchTicketsPaginatedApiHandler(() =>
+                searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize)
+            );
+            setRefreshingTicketId(null);
+        },
+        [debouncedSearch, statusFilter, masterOnly, page, pageSize]
+    );
+
+    useEffect(() => {
+        searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
+    }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
     useEffect(() => {
         statusApiHandler(() => getStatuses());
@@ -85,10 +92,6 @@ const AllTickets: React.FC = () => {
             setStatusOptions([{ statusName: 'All', statusNameValue: 'All' }, ...statusList.map((s: any) => ({ ...s, statusNameValue: s.statusName }))]);
         }
     }, [statusList]);
-
-    useEffect(() => {
-        searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
     useEffect(() => {
         if (data) {

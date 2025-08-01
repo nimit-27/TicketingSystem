@@ -10,7 +10,7 @@ import React, { useEffect, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
-import { getStatuses } from "../../services/StatusService";
+import { getNextStatusListByStatusId, getStatuses } from "../../services/StatusService";
 import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
@@ -46,6 +46,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
     const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
     const { data: statusList, apiHandler: getStatusApiHandler } = useApi<any>();
+    const { data: nextStatusListByStatusIdData, apiHandler: getNextStatusListByStatusIdApiHandler } = useApi<any>();
     const { data: priorityList, apiHandler: getPriorityApiHandler } = useApi<any>();
     const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
 
@@ -59,12 +60,14 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const statusOptions: DropdownOption[] = getDropdownOptions(statusList, 'statusName', 'statusId');
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: string) => ({ label: p, value: p })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: string) => ({ label: s, value: s })) : [];
+
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
     const assignedToLevel = useWatch({ control, name: 'assignedToLevel' });
     const assignToLevel = useWatch({ control, name: 'assignToLevel' });
     const category = useWatch({ control, name: 'category' });
     const subjectValue = useWatch({ control, name: 'subject' });
     const descriptionValue = useWatch({ control, name: 'description' });
+    const currentStatus = useWatch({ control, name: 'statusId' });
 
     let showAssignedToLevel = checkFieldAccess('ticketDetails', 'assignedToLevel') && !createMode;
     let showAssignedTo = checkFieldAccess('ticketDetails', 'assignedTo') && !createMode;
@@ -74,7 +77,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     let showCategory = checkFieldAccess('ticketDetails', 'category');
     let showSubCategory = checkFieldAccess('ticketDetails', 'subCategory');
     let showPriority = checkFieldAccess('ticketDetails', 'priority');
-    const isIT = getCurrentUserDetails()?.role?.includes('IT');
     let showSeverityFields = checkFieldAccess('ticketDetails', 'severity');
     let showSeverity = checkFieldAccess('ticketDetails', 'severity');
     let showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity');
@@ -87,6 +89,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const userRoles = getCurrentUserDetails()?.role || [];
     const isTeamLead = userRoles.includes('TEAM_LEAD') || userRoles.includes('TL') || userRoles.includes('TeamLead');
     let showStatus = checkFieldAccess('ticketDetails', 'status') && !createMode && !isTeamLead;
+
+    console.log({ nextStatusListByStatusIdData })
+
+    const getNextStatusListByStatusIdApi = (statusId: string) => getNextStatusListByStatusIdApiHandler(() => getNextStatusListByStatusId(statusId))
 
     useEffect(() => {
         getAllLevelApiHandler(() => getAllLevels())
@@ -103,6 +109,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     useEffect(() => {
         getStatusApiHandler(() => getStatuses())
     }, [])
+
+    useEffect(() => {
+        currentStatus && getNextStatusListByStatusIdApi(currentStatus)
+    }, [currentStatus])
 
     useEffect(() => {
         getPriorityApiHandler(() => getPriorities())
@@ -246,7 +256,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 )}
                 {showIsMaster && (
                     <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
-                    <FormControlLabel
+                        <FormControlLabel
                             control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
                             label={t('Mark this ticket as Master')}
                         />
@@ -315,7 +325,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                 )}
                 {showAssignFurther && (
                     <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
-                    <FormControlLabel
+                        <FormControlLabel
                             control={
                                 <Checkbox
                                     disabled={disableAll}

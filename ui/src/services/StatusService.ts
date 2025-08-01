@@ -23,3 +23,7 @@ export function getStatuses() {
         return res;
     });
 }
+
+export function getNextStatusListByStatusId(statusId: string) {
+    return axios.get(`${BASE_URL}/next-status-list/${statusId}`);
+}
