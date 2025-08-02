@@ -25,5 +25,5 @@ export function getStatuses() {
 }
 
 export function getNextStatusListByStatusId(statusId: string) {
-    return axios.get(`${BASE_URL}/next-status-list/${statusId}`);
+    return axios.get(`${BASE_URL}/status-workflow/status/${statusId}`);
 }
