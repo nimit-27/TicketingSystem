@@ -67,6 +67,17 @@ const TicketDetails: React.FC = () => {
             });
     }
 
+    const handleStatusChange = (statusId: string) => {
+        if (!ticketId) return Promise.resolve();
+        return updateTicketApiHandler(() => updateTicket(ticketId, { statusId })).then((res: any) => {
+            if (res?.message) {
+                showMessage(res.message, 'success');
+            }
+            getTicketHandler(ticketId);
+            return res;
+        });
+    };
+
 
     useEffect(() => {
         getTicketHandler(ticketId);
@@ -154,6 +165,7 @@ const TicketDetails: React.FC = () => {
                     errors={errors}
                     subjectDisabled
                     disableAll={!editing}
+                    onStatusChange={handleStatusChange}
                     actionElement={allowEdit && editing ? (
                         <>
                             <CustomIconButton icon="close" onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }} />

@@ -6,7 +6,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
@@ -20,6 +20,7 @@ interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
     subjectDisabled?: boolean;
     actionElement?: React.ReactNode;
+    onStatusChange?: (statusId: string) => Promise<any> | void;
 }
 
 const impactOptions: DropdownOption[] = [
@@ -37,7 +38,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors, disableAll = false, subjectDisabled = false, actionElement, createMode, onStatusChange }) => {
 
     const { t } = useTranslation();
 
@@ -90,8 +91,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const isTeamLead = userRoles.includes('TEAM_LEAD') || userRoles.includes('TL') || userRoles.includes('TeamLead');
     let showStatus = checkFieldAccess('ticketDetails', 'status') && !createMode && !isTeamLead;
 
-    console.log({ nextStatusListByStatusIdData })
-
     const getNextStatusListByStatusIdApi = (statusId: string) => getNextStatusListByStatusIdApiHandler(() => getNextStatusListByStatusId(statusId))
 
     useEffect(() => {
@@ -110,9 +109,23 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
         getStatusApiHandler(() => getStatuses())
     }, [])
 
+    const initialStatusLoaded = useRef(false);
     useEffect(() => {
-        currentStatus && getNextStatusListByStatusIdApi(currentStatus)
-    }, [currentStatus])
+        if (!currentStatus) return;
+        if (!initialStatusLoaded.current) {
+            initialStatusLoaded.current = true;
+            getNextStatusListByStatusIdApi(currentStatus);
+        } else {
+            const updateAndFetch = async () => {
+                try {
+                    await onStatusChange?.(currentStatus);
+                } finally {
+                    getNextStatusListByStatusIdApi(currentStatus);
+                }
+            };
+            updateAndFetch();
+        }
+    }, [currentStatus, onStatusChange]);
 
     useEffect(() => {
         getPriorityApiHandler(() => getPriorities())
