@@ -57,7 +57,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'username');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
-    const statusOptions: DropdownOption[] = getDropdownOptions(statusList, 'statusName', 'statusId');
+    const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'currentStatus');
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: string) => ({ label: p, value: p })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: string) => ({ label: s, value: s })) : [];
 
