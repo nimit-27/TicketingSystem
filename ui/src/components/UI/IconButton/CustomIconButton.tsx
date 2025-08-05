@@ -17,6 +17,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // Define the icon map
 const iconMap = {
@@ -36,7 +37,8 @@ const iconMap = {
     code: CodeIcon,
     close: CloseIcon,
     add: AddIcon,
-    check: CheckIcon
+    check: CheckIcon,
+    moreVert: MoreVertIcon
 };
 
 // Valid keys for the icon map
