@@ -8,5 +8,6 @@ public enum TicketStatus {
     ON_HOLD,
     REOPENED,
     RESOLVED,
-    ASSIGN_FURTHER
+    ASSIGN_FURTHER,
+    CANCELLED
 }

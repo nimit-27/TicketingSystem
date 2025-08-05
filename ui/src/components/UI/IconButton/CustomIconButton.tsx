@@ -18,6 +18,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ReplayIcon from '@mui/icons-material/Replay';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import DoneIcon from '@mui/icons-material/Done';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 // Define the icon map
 const iconMap = {
@@ -38,7 +42,11 @@ const iconMap = {
     close: CloseIcon,
     add: AddIcon,
     check: CheckIcon,
-    moreVert: MoreVertIcon
+    moreVert: MoreVertIcon,
+    replay: ReplayIcon,
+    play: PlayArrowIcon,
+    done: DoneIcon,
+    arrowUpward: ArrowUpwardIcon
 };
 
 // Valid keys for the icon map

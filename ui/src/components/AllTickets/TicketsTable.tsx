@@ -6,19 +6,13 @@ import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
-import CustomIconButton from '../UI/IconButton/CustomIconButton';
+import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { Menu, MenuItem, IconButton, ListItemIcon } from '@mui/material';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { TicketStatusWorkflow } from '../../types';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import ReplayIcon from '@mui/icons-material/Replay';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import DoneIcon from '@mui/icons-material/Done';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 export interface TicketRow {
     id: string;
@@ -62,19 +56,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
             case 'Approve':
             case 'Resolve':
             case 'Complete':
-                return <CheckIcon fontSize="small" />;
-            case 'Reject':
-                return <CloseIcon fontSize="small" />;
+                return <IconComponent icon="check" fontSize="small" />;
+            case 'Cancel/ Reject':
+                return <IconComponent icon="close" fontSize="small" />;
             case 'Close':
-                return <CloseIcon fontSize="small" />;
+                return <IconComponent icon="close" fontSize="small" />;
             case 'Reopen':
-                return <ReplayIcon fontSize="small" />;
+                return <IconComponent icon="replay" fontSize="small" />;
             case 'Start':
-                return <PlayArrowIcon fontSize="small" />;
+                return <IconComponent icon="playArrow" fontSize="small" />;
             case 'Escalate':
-                return <ArrowUpwardIcon fontSize="small" />;
+                return <IconComponent icon="arrowUpward" fontSize="small" />;
             default:
-                return <DoneIcon fontSize="small" />;
+                return <IconComponent icon="done" fontSize="small" />;
         }
     };
 
