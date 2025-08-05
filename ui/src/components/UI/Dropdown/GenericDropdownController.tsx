@@ -5,6 +5,7 @@ interface GenericDropdownControllerProps<T extends FieldValues = any> extends Om
     name: string;
     control: Control<T>;
     rules?: RegisterOptions;
+    onChange?: GenericDropdownProps["onChange"];
 }
 
 const GenericDropdownController: React.FC<GenericDropdownControllerProps> = ({

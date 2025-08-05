@@ -9,13 +9,14 @@ export function getStatusListFromApi() {
 }
 
 export function getStatuses() {
+    debugger
     if (statusCache) {
-        return Promise.resolve({ data: statusCache } as any);
+        return Promise.resolve({ data: statusCache, source: 'cache' } as any);
     }
     const stored = getStatusList();
     if (stored) {
         statusCache = stored;
-        return Promise.resolve({ data: stored } as any);
+        return Promise.resolve({ data: stored, source: 'cache' } as any);
     }
     return getStatusListFromApi().then(res => {
         statusCache = res.data.body.data;

@@ -47,7 +47,7 @@ const AllTickets: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
-    const [statusOptions, setStatusOptions] = useState<any[]>([{ statusName: 'All', statusNameValue: 'All' }]);
+    const [statusOptions, setStatusOptions] = useState<any[]>([{ statusName: 'All', statusId: 'All' }]);
     const { t } = useTranslation();
     const showTable = checkMyTicketsAccess('table');
 
@@ -58,7 +58,8 @@ const AllTickets: React.FC = () => {
         Critical: { color: 'error.dark', count: 4 }
     };
 
-    const statusFilterOptions: DropdownOption[] = getDropdownOptions(statusOptions, "statusName", "statusNameValue")
+    const statusFilterOptions: DropdownOption[] = getDropdownOptions(statusList, "statusName", "statusId")
+    console.log({statusFilterOptions, statusList});
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -83,9 +84,9 @@ const AllTickets: React.FC = () => {
         searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
     }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
-    useEffect(() => {
-        statusApiHandler(() => getStatuses());
-    }, []);
+    // useEffect(() => {
+    //     statusApiHandler(() => getStatuses());
+    // }, []);
 
     useEffect(() => {
         if (Array.isArray(statusList)) {

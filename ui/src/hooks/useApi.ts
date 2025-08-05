@@ -24,8 +24,8 @@ export const useApi = <R,>(): UseApiResponse<R> => {
             startTransition(() => {
                 apiCall()
                     .then((response: any) => {
+                        console.log(response)
                         const resp: ApiResponse<R> = response?.data?.body ?? response;
-                        // console.log(resp)
 
                         if (resp.success) {
                             setData(resp.data ?? null);

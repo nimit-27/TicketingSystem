@@ -151,6 +151,7 @@ const TicketDetails: React.FC = () => {
                 <TicketDetailsForm
                     register={register}
                     control={control}
+                    setValue={setValue}
                     errors={errors}
                     subjectDisabled
                     disableAll={!editing}

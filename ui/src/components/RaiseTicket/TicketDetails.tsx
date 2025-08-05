@@ -37,10 +37,13 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setValue, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
 
     const { t } = useTranslation();
 
+    const [assignFurther, setAssignFurther] = useState<boolean>(false);
+
+    // useApi hook initializations
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allUsersByLevel, pending, error, apiHandler: getAllUsersByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
@@ -57,11 +60,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'username');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
-    const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'currentStatus');
+    const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'nextStatus');
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: string) => ({ label: p, value: p })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: string) => ({ label: s, value: s })) : [];
 
-    const [assignFurther, setAssignFurther] = useState<boolean>(false);
     const assignedToLevel = useWatch({ control, name: 'assignedToLevel' });
     const assignToLevel = useWatch({ control, name: 'assignToLevel' });
     const category = useWatch({ control, name: 'category' });
@@ -109,6 +111,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
     useEffect(() => {
         getStatusApiHandler(() => getStatuses())
     }, [])
+
+    // useEffect(() => {
+    //     setValue && nextStatusListByStatusIdData && setValue("statusId", nextStatusListByStatusIdData[0]?.currentStatus);
+    // }, [statusOptions]);
 
     useEffect(() => {
         currentStatus && getNextStatusListByStatusIdApi(currentStatus)
@@ -316,6 +322,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, errors
                         <GenericDropdownController
                             name="statusId"
                             control={control}
+                            // onChange={handleExplicitStatusChange}
                             label="Update Status"
                             options={statusOptions}
                             className="form-select w-25"

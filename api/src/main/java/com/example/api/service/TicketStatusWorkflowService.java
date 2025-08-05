@@ -6,6 +6,7 @@ import com.example.api.repository.StatusMasterRepository;
 import com.example.api.repository.TicketStatusWorkflowRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,8 +23,14 @@ public class TicketStatusWorkflowService {
     }
 
     public List<TicketStatusWorkflow> getNextStatusesByCurrentStatus(String statusId) {
+        List<TicketStatusWorkflow> ticketStatusWorkflowList = new ArrayList<>();
+
         Integer id = Integer.valueOf(statusId);
-        return workflowRepository.findByCurrentStatus(id);
+        Optional<TicketStatusWorkflow> currentTicketStatusWorkflow = workflowRepository.findById(id);
+
+        currentTicketStatusWorkflow.ifPresent(ticketStatusWorkflowList::add);
+        ticketStatusWorkflowList.addAll(workflowRepository.findByCurrentStatus(id));
+        return ticketStatusWorkflowList;
     }
 
     public List<TicketStatusWorkflow> getAllMappings() {

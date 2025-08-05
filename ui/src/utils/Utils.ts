@@ -1,3 +1,5 @@
+import { getStatusListFromApi } from "../services/StatusService";
+
 export interface UserDetails {
   userId: string;
   username?: string;
@@ -10,6 +12,8 @@ export interface UserDetails {
 const USER_KEY = 'userDetails';
 const PERM_KEY = 'userPermissions';
 const STATUS_LIST_KEY = 'statusList';
+
+let statusCache: any[] | null = null;
 
 export function setUserDetails(details: UserDetails) {
   sessionStorage.setItem(USER_KEY, JSON.stringify(details));
@@ -46,4 +50,21 @@ export function getStatusList(): any[] | null {
 export function getStatusNameById(statusId: string): any | null {
   const statusList = getStatusList();
   return statusList ? statusList?.find(status => status.statusId === statusId)?.statusName : null;
+}
+
+export async function getStatuses() {
+    debugger
+    if (statusCache) {
+        return { data: statusCache, source: 'cache' };
+    }
+    const stored = getStatusList();
+    if (stored) {
+        statusCache = stored;
+        return { data: stored, source: 'cache' };
+    }
+    return getStatusListFromApi().then(res => {
+        statusCache = res.data.body.data;
+        setStatusList(res.data.body.data);
+        return res;
+    });
 }
