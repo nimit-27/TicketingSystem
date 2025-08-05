@@ -1,6 +1,5 @@
 package com.example.api.controller;
 
-import com.example.api.models.Status;
 import com.example.api.models.TicketStatusWorkflow;
 import com.example.api.service.TicketStatusWorkflowService;
 import lombok.AllArgsConstructor;
@@ -8,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/status-workflow")
@@ -22,7 +22,7 @@ public class TicketStatusWorkflowController {
     }
 
     @GetMapping("/mappings")
-    public ResponseEntity<List<TicketStatusWorkflow>> getMappings() {
+    public ResponseEntity<Map<String, List<TicketStatusWorkflow>>> getMappings() {
         return ResponseEntity.ok(service.getAllMappings());
     }
 }

@@ -17,7 +17,8 @@ import ViewToggle from "../components/UI/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
-import { Ticket } from "../types";
+import { Ticket, TicketStatusWorkflow } from "../types";
+import { getStatusWorkflowMappings } from "../services/StatusService";
 
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
@@ -30,7 +31,9 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
 
 const AllTickets: React.FC = () => {
     const { data, pending, error, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
+    const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
     const [statusList, setStatusList] = useState<any[]>([]);
+    const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
 
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
@@ -81,7 +84,14 @@ const AllTickets: React.FC = () => {
 
     useEffect(() => {
         getStatuses().then(setStatusList);
+        workflowApiHandler(() => getStatusWorkflowMappings());
     }, []);
+
+    useEffect(() => {
+        if (workflowData) {
+            setWorkflowMap(workflowData);
+        }
+    }, [workflowData]);
 
     useEffect(() => {
         if (data) {
@@ -129,7 +139,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,8 +34,9 @@ public class TicketStatusWorkflowService {
         return ticketStatusWorkflowList;
     }
 
-    public List<TicketStatusWorkflow> getAllMappings() {
-        return workflowRepository.findAll();
+    public Map<String, List<TicketStatusWorkflow>> getAllMappings() {
+        return workflowRepository.findAll().stream()
+                .collect(Collectors.groupingBy(tsw -> String.valueOf(tsw.getCurrentStatus())));
     }
 
     public String getStatusIdByCode(String statusCode) {

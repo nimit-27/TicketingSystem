@@ -36,8 +36,15 @@ export interface Ticket {
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
-    status?: string;
+    statusId?: string;
     assignedTo?: string;
+}
+
+export interface TicketStatusWorkflow {
+    id: number;
+    action: string;
+    currentStatus: number;
+    nextStatus: number;
 }
 
 export interface ToggleOption {
