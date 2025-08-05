@@ -46,7 +46,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
         const list = statusWorkflows[record.statusId] || [];
         setActions(list);
         setCurrentTicketId(record.id);
-        setAnchorEl(event.currentTarget);
+        setAnchorEl(event.currentTarget as HTMLElement);
     };
 
     const handleClose = () => {
