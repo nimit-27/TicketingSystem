@@ -7,11 +7,18 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
-import { Menu, MenuItem } from '@mui/material';
+import { Menu, MenuItem, IconButton, ListItemIcon } from '@mui/material';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { TicketStatusWorkflow } from '../../types';
+import UserAvatar from '../UI/UserAvatar/UserAvatar';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import ReplayIcon from '@mui/icons-material/Replay';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import DoneIcon from '@mui/icons-material/Done';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 export interface TicketRow {
     id: string;
@@ -42,8 +49,37 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
+    const disallowed = ['Assign', 'Further Assign'];
+
+    const getAvailableActions = (statusId?: string) =>
+        (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
+
+    const allowAssigneeChange = (statusId?: string) =>
+        (statusWorkflows[statusId || ''] || []).some(a => disallowed.includes(a.action));
+
+    const getActionIcon = (action: string) => {
+        switch (action) {
+            case 'Approve':
+            case 'Resolve':
+            case 'Complete':
+                return <CheckIcon fontSize="small" />;
+            case 'Reject':
+                return <CloseIcon fontSize="small" />;
+            case 'Close':
+                return <CloseIcon fontSize="small" />;
+            case 'Reopen':
+                return <ReplayIcon fontSize="small" />;
+            case 'Start':
+                return <PlayArrowIcon fontSize="small" />;
+            case 'Escalate':
+                return <ArrowUpwardIcon fontSize="small" />;
+            default:
+                return <DoneIcon fontSize="small" />;
+        }
+    };
+
     const openMenu = (event: React.MouseEvent, record: any) => {
-        const list = statusWorkflows[record.statusId] || [];
+        const list = getAvailableActions(record.statusId);
         setActions(list);
         setCurrentTicketId(record.id);
         setAnchorEl(event.currentTarget as HTMLElement);
@@ -54,10 +90,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
         setCurrentTicketId('');
     };
 
-    const handleActionClick = (wf: TicketStatusWorkflow) => {
+    const handleActionClick = (wf: TicketStatusWorkflow, ticketId?: string) => {
+        const id = ticketId || currentTicketId;
         const payload = { status: { statusId: String(wf.nextStatus) }, assignedBy: getCurrentUserDetails()?.username } as any;
-        updateTicketApiHandler(() => updateTicket(currentTicketId, payload)).then(() => {
-            searchCurrentTicketsPaginatedApi(currentTicketId);
+        updateTicketApiHandler(() => updateTicket(id, payload)).then(() => {
+            searchCurrentTicketsPaginatedApi(id);
         });
         handleClose();
     };
@@ -96,21 +133,51 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
             {
                 title: t('Assignee'),
                 key: 'assignee',
-                render: (_: any, record: TicketRow) => (
-                    <AssigneeDropdown ticketId={record.id} assigneeName={record.assignedTo} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} />
-                )
+                render: (_: any, record: TicketRow) => {
+                    if (allowAssigneeChange(record.statusId)) {
+                        return (
+                            <AssigneeDropdown
+                                ticketId={record.id}
+                                assigneeName={record.assignedTo}
+                                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                            />
+                        );
+                    }
+                    return record.assignedTo ? <UserAvatar name={record.assignedTo} /> : '-';
+                }
             },
             { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || '-' },
             {
                 title: t('Action'),
                 key: 'action',
-                render: (_: any, record: TicketRow) => <>
-                    <VisibilityIcon onClick={() => onRowClick(record.id)} fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />
-                    <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
-                </>,
+                render: (_: any, record: TicketRow) => {
+                    const recordActions = getAvailableActions(record.statusId);
+                    return (
+                        <>
+                            <VisibilityIcon
+                                onClick={() => onRowClick(record.id)}
+                                fontSize="small"
+                                sx={{ color: 'grey.600', cursor: 'pointer' }}
+                            />
+                            {recordActions.length <= 2 ? (
+                                recordActions.map(a => (
+                                    <IconButton
+                                        key={a.id}
+                                        size="small"
+                                        onClick={() => handleActionClick(a, record.id)}
+                                    >
+                                        {getActionIcon(a.action)}
+                                    </IconButton>
+                                ))
+                            ) : (
+                                <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
+                            )}
+                        </>
+                    );
+                }
             },
         ].filter(col => col.key && checkMyTicketsColumnAccess(col.key.toString())),
-        [t]
+        [t, statusWorkflows]
     );
 
     return (
@@ -124,7 +191,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 {actions.map(a => (
-                    <MenuItem key={a.id} onClick={() => handleActionClick(a)}>{a.action}</MenuItem>
+                    <MenuItem key={a.id} onClick={() => handleActionClick(a)}>
+                        <ListItemIcon>
+                            {getActionIcon(a.action)}
+                        </ListItemIcon>
+                        {a.action}
+                    </MenuItem>
                 ))}
             </Menu>
         </>
