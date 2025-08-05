@@ -6,6 +6,7 @@ import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
+import CustomIconButton from '../UI/IconButton/CustomIconButton';
 
 export interface TicketRow {
     id: string;
@@ -30,6 +31,12 @@ interface TicketsTableProps {
 
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId }) => {
     const { t } = useTranslation();
+
+    const openMenu = (event: React.MouseEvent, record: any) => {
+        // Handle menu opening logic here
+        console.log('Open menu for:', record?.statusId);
+    };
+
     const columns = useMemo(
         () => [
             {
@@ -72,7 +79,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
             {
                 title: t('Action'),
                 key: 'action',
-                render: (_: any, record: TicketRow) => <VisibilityIcon onClick={() => onRowClick(record.id)} fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />,
+                render: (_: any, record: TicketRow) => <>
+                    <VisibilityIcon onClick={() => onRowClick(record.id)} fontSize="small" sx={{ color: 'grey.600', cursor: 'pointer' }} />
+                    <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
+                </>,
             },
         ].filter(col => col.key && checkMyTicketsColumnAccess(col.key.toString())),
         [t]
