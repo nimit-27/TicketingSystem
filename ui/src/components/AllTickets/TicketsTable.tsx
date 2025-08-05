@@ -43,7 +43,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
-    const disallowed = ['Assign', 'Further Assign'];
+    const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
     const getAvailableActions = (statusId?: string) =>
         (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
