@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -7,6 +7,11 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
+import { Menu, MenuItem } from '@mui/material';
+import { updateTicket } from '../../services/TicketService';
+import { useApi } from '../../hooks/useApi';
+import { getCurrentUserDetails } from '../../config/config';
+import { TicketStatusWorkflow } from '../../types';
 
 export interface TicketRow {
     id: string;
@@ -18,7 +23,7 @@ export interface TicketRow {
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
-    status?: string;
+    statusId?: string;
     assignedTo?: string;
 }
 
@@ -27,14 +32,34 @@ interface TicketsTableProps {
     onRowClick: (id: string) => void;
     searchCurrentTicketsPaginatedApi: (id: string) => void;
     refreshingTicketId?: string | null;
+    statusWorkflows: Record<string, TicketStatusWorkflow[]>;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows }) => {
     const { t } = useTranslation();
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [currentTicketId, setCurrentTicketId] = useState<string>('');
+    const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const openMenu = (event: React.MouseEvent, record: any) => {
-        // Handle menu opening logic here
-        console.log('Open menu for:', record?.statusId);
+        const list = statusWorkflows[record.statusId] || [];
+        setActions(list);
+        setCurrentTicketId(record.id);
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+        setCurrentTicketId('');
+    };
+
+    const handleActionClick = (wf: TicketStatusWorkflow) => {
+        const payload = { status: { statusId: String(wf.nextStatus) }, assignedBy: getCurrentUserDetails()?.username } as any;
+        updateTicketApiHandler(() => updateTicket(currentTicketId, payload)).then(() => {
+            searchCurrentTicketsPaginatedApi(currentTicketId);
+        });
+        handleClose();
     };
 
     const columns = useMemo(
@@ -89,13 +114,20 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
     );
 
     return (
-        <GenericTable
-            dataSource={tickets}
-            columns={columns as any}
-            rowKey="id"
-            pagination={false}
-            rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
-        />
+        <>
+            <GenericTable
+                dataSource={tickets}
+                columns={columns as any}
+                rowKey="id"
+                pagination={false}
+                rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
+            />
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                {actions.map(a => (
+                    <MenuItem key={a.id} onClick={() => handleActionClick(a)}>{a.action}</MenuItem>
+                ))}
+            </Menu>
+        </>
     );
 };
 

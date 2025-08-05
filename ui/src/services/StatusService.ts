@@ -8,3 +8,7 @@ export function getStatusListFromApi() {
 export function getNextStatusListByStatusId(statusId: string) {
     return axios.get(`${BASE_URL}/status-workflow/status/${statusId}`);
 }
+
+export function getStatusWorkflowMappings() {
+    return axios.get(`${BASE_URL}/status-workflow/mappings`);
+}
