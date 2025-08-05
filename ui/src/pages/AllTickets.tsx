@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import TableRowsIcon from "@mui/icons-material/TableRows";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
-import { getTickets, searchTicketsPaginated } from "../services/TicketService";
-import { getStatuses } from "../services/StatusService";
+import { searchTicketsPaginated } from "../services/TicketService";
+import { getStatuses } from "../utils/Utils";
 import PaginationControls from "../components/PaginationControls";
 import { IconButton, Chip } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -13,11 +10,9 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import { useTranslation } from "react-i18next";
-import MasterIcon from "../components/UI/Icons/MasterIcon";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
 import { checkMyTicketsAccess } from "../utils/permissions";
-import AssigneeDropdown from "../components/AllTickets/AssigneeDropdown";
 import ViewToggle from "../components/UI/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
@@ -35,7 +30,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
 
 const AllTickets: React.FC = () => {
     const { data, pending, error, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
-    const { data: statusList, apiHandler: statusApiHandler } = useApi();
+    const [statusList, setStatusList] = useState<any[]>([]);
 
     const navigate = useNavigate();
     const [search, setSearch] = useState("");
@@ -47,7 +42,6 @@ const AllTickets: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
-    const [statusOptions, setStatusOptions] = useState<any[]>([{ statusName: 'All', statusId: 'All' }]);
     const { t } = useTranslation();
     const showTable = checkMyTicketsAccess('table');
 
@@ -58,8 +52,9 @@ const AllTickets: React.FC = () => {
         Critical: { color: 'error.dark', count: 4 }
     };
 
-    const statusFilterOptions: DropdownOption[] = getDropdownOptions(statusList, "statusName", "statusId")
-    console.log({statusFilterOptions, statusList});
+    const statusFilterOptions: DropdownOption[] = useMemo(() => (
+        [{ label: 'All', value: 'All' }, ...getDropdownOptions(statusList, 'statusName', 'statusId')]
+    ), [statusList]);
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -84,15 +79,9 @@ const AllTickets: React.FC = () => {
         searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
     }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
 
-    // useEffect(() => {
-    //     statusApiHandler(() => getStatuses());
-    // }, []);
-
     useEffect(() => {
-        if (Array.isArray(statusList)) {
-            setStatusOptions([{ statusName: 'All', statusNameValue: 'All' }, ...statusList.map((s: any) => ({ ...s, statusNameValue: s.statusName }))]);
-        }
-    }, [statusList]);
+        getStatuses().then(setStatusList);
+    }, []);
 
     useEffect(() => {
         if (data) {

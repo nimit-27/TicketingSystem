@@ -52,19 +52,18 @@ export function getStatusNameById(statusId: string): any | null {
   return statusList ? statusList?.find(status => status.statusId === statusId)?.statusName : null;
 }
 
-export async function getStatuses() {
-    debugger
+export async function getStatuses(): Promise<any[]> {
     if (statusCache) {
-        return { data: statusCache, source: 'cache' };
+        return statusCache;
     }
     const stored = getStatusList();
     if (stored) {
         statusCache = stored;
-        return { data: stored, source: 'cache' };
+        return stored;
     }
-    return getStatusListFromApi().then(res => {
-        statusCache = res.data.body.data;
-        setStatusList(res.data.body.data);
-        return res;
-    });
+    const res = await getStatusListFromApi();
+    const list = res.data.body.data;
+    statusCache = list;
+    setStatusList(list);
+    return list;
 }
