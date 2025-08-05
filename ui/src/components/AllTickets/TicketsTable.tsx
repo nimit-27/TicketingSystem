@@ -7,7 +7,7 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
-import { Menu, MenuItem, IconButton, ListItemIcon } from '@mui/material';
+import { Menu, MenuItem, IconButton, ListItemIcon, Tooltip } from '@mui/material';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -155,13 +155,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
                             />
                             {recordActions.length <= 2 ? (
                                 recordActions.map(a => (
-                                    <IconButton
-                                        key={a.id}
-                                        size="small"
-                                        onClick={() => handleActionClick(a, record.id)}
-                                    >
-                                        {getActionIcon(a.action)}
-                                    </IconButton>
+                                    <Tooltip key={a.id} title={a.action} placement="top">
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => handleActionClick(a, record.id)}
+                                        >
+                                            {getActionIcon(a.action)}
+                                        </IconButton>
+                                    </Tooltip>
                                 ))
                             ) : (
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
