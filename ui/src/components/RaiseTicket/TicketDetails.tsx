@@ -10,7 +10,7 @@ import React, { useEffect, useState } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
-import { getNextStatusListByStatusId, getStatuses } from "../../services/StatusService";
+import { getNextStatusListByStatusId } from "../../services/StatusService";
 import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
@@ -48,7 +48,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const { data: allUsersByLevel, pending, error, apiHandler: getAllUsersByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
     const { data: allSubCategories, pending: isSubCategoriesLoading, error: subCategoriesError, apiHandler: getSubCategoriesApiHandler } = useApi();
-    const { data: statusList, apiHandler: getStatusApiHandler } = useApi<any>();
     const { data: nextStatusListByStatusIdData, apiHandler: getNextStatusListByStatusIdApiHandler } = useApi<any>();
     const { data: priorityList, apiHandler: getPriorityApiHandler } = useApi<any>();
     const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
@@ -108,9 +107,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
         getCategoriesApiHandler(() => getCategories())
     }, [])
 
-    useEffect(() => {
-        getStatusApiHandler(() => getStatuses())
-    }, [])
 
     // useEffect(() => {
     //     setValue && nextStatusListByStatusIdData && setValue("statusId", nextStatusListByStatusIdData[0]?.currentStatus);
