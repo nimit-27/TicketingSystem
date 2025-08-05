@@ -215,13 +215,15 @@ public class TicketService {
                 statusHistoryService.addHistory(id, updatedBy, prevId, assignedId, slaAssigned);
                 previousStatus = TicketStatus.ASSIGNED;
                 previousStatusId = assignedId;
-                }
+            }
+        }
+        // ensure status history is recorded whenever status changes via actions
+        if (updatedStatusId == null && updatedStatus != null) {
+            updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
         if (updatedStatusId != null && !updatedStatusId.equals(previousStatusId)) {
-            String prevId = previousStatusId;
-            String currId = updatedStatusId;
-            boolean slaCurr = workflowService.getSlaFlagByStatusId(currId);
-            statusHistoryService.addHistory(id, updatedBy, prevId, currId, slaCurr);
+            boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
+            statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr);
         }
         return mapWithStatusId(saved);
     }
