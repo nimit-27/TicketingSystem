@@ -115,84 +115,86 @@ const AllTickets: React.FC = () => {
     }, [data]);
 
     return (
-        <div className="container">
-            <Title textKey="My Tickets" />
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <GenericInput
-                    label="Search"
-                    size="small"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    sx={{ mr: 2, width: 250 }}
-                />
-                <DropdownController
-                    label="Status"
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={statusFilterOptions}
-                    style={{ width: 180, marginRight: 8 }}
-                />
-                <Chip
-                    label={t('Master')}
-                    color={masterOnly ? 'primary' : 'default'}
-                    variant={masterOnly ? 'filled' : 'outlined'}
-                    onClick={() => setMasterOnly(prev => !prev)}
-                    sx={{ mr: 1 }}
-                />
-                <ViewToggle
-                    value={viewMode}
-                    onChange={setViewMode}
-                    options={[
-                        { icon: 'grid', value: 'grid' },
-                        { icon: 'table', value: 'table' }
-                    ]}
-                />
-            </div>
-            {pending && <p>{t('Loading...')}</p>}
-            {error && <p className="text-danger">{t('Error loading tickets')}</p>}
-            {viewMode === 'table' && showTable && (
-                <div>
-                    <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                        <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
-                        <div className="d-flex align-items-center">
-                            <IconButton size="small" onClick={() => setTablePageSize(ps => ps > 1 ? ps - 1 : 1)}>
-                                <ArrowDropDownIcon />
-                            </IconButton>
-                            <GenericInput
-                                type="number"
-                                value={tablePageSize}
-                                onChange={(e) => {
-                                    const v = parseInt(e.target.value, 10);
-                                    if (!isNaN(v) && v > 0) setTablePageSize(v);
-                                }}
-                                size="small"
-                                sx={{ width: 60, mx: 1 }}
-                            />
-                            <span>/ page</span>
-                            <IconButton size="small" onClick={() => setTablePageSize(ps => ps + 1)}>
-                                <ArrowDropUpIcon />
-                            </IconButton>
+        <div className="container" style={{ display: 'flex' }}>
+            <div style={{ flexGrow: 1 }}>
+                <Title textKey="My Tickets" />
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <GenericInput
+                        label="Search"
+                        size="small"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        sx={{ mr: 2, width: 250 }}
+                    />
+                    <DropdownController
+                        label="Status"
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        options={statusFilterOptions}
+                        style={{ width: 180, marginRight: 8 }}
+                    />
+                    <Chip
+                        label={t('Master')}
+                        color={masterOnly ? 'primary' : 'default'}
+                        variant={masterOnly ? 'filled' : 'outlined'}
+                        onClick={() => setMasterOnly(prev => !prev)}
+                        sx={{ mr: 1 }}
+                    />
+                    <ViewToggle
+                        value={viewMode}
+                        onChange={setViewMode}
+                        options={[
+                            { icon: 'grid', value: 'grid' },
+                            { icon: 'table', value: 'table' }
+                        ]}
+                    />
+                </div>
+                {pending && <p>{t('Loading...')}</p>}
+                {error && <p className="text-danger">{t('Error loading tickets')}</p>}
+                {viewMode === 'table' && showTable && (
+                    <div>
+                        <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
+                        <div className="d-flex justify-content-between align-items-center mt-3">
+                            <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
+                            <div className="d-flex align-items-center">
+                                <IconButton size="small" onClick={() => setTablePageSize(ps => ps > 1 ? ps - 1 : 1)}>
+                                    <ArrowDropDownIcon />
+                                </IconButton>
+                                <GenericInput
+                                    type="number"
+                                    value={tablePageSize}
+                                    onChange={(e) => {
+                                        const v = parseInt(e.target.value, 10);
+                                        if (!isNaN(v) && v > 0) setTablePageSize(v);
+                                    }}
+                                    size="small"
+                                    sx={{ width: 60, mx: 1 }}
+                                />
+                                <span>/ page</span>
+                                <IconButton size="small" onClick={() => setTablePageSize(ps => ps + 1)}>
+                                    <ArrowDropUpIcon />
+                                </IconButton>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-            {viewMode === 'grid' && (
-                <div className="grid-overlay-container">
-                    {pending && <div className="grid-overlay" />}
-                    <div className="row">
-                        {filtered.map((t) => (
-                            <div className="col-md-4 mb-3" key={t.id}>
-                                <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); }} />
-                            </div>
-                        ))}
+                )}
+                {viewMode === 'grid' && (
+                    <div className="grid-overlay-container">
+                        {pending && <div className="grid-overlay" />}
+                        <div className="row">
+                            {filtered.map((t) => (
+                                <div className="col-md-4 mb-3" key={t.id}>
+                                    <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); }} />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="d-flex justify-content-center mt-3">
+                            <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
+                        </div>
                     </div>
-                    <div className="d-flex justify-content-center mt-3">
-                        <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
-                    </div>
-                </div>
-            )}
-            <ViewTicket ticketId={selectedTicketId} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+                )}
+            </div>
+            <ViewTicket ticketId={selectedTicketId} open={sidebarOpen} onClose={() => { setSidebarOpen(false); setSelectedTicketId(null); }} />
         </div>
     );
 };
