@@ -7,11 +7,11 @@ import PaginationControls from "../components/PaginationControls";
 import { IconButton, Chip } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
-import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import { useTranslation } from "react-i18next";
 import TicketsTable from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
+import ViewTicket from "../components/AllTickets/ViewTicket";
 import { checkMyTicketsAccess } from "../utils/permissions";
 import ViewToggle from "../components/UI/ViewToggle";
 import GenericInput from "../components/UI/Input/GenericInput";
@@ -37,8 +37,9 @@ const AllTickets: React.FC = () => {
 
     console.log({ workflowData })
 
-    const navigate = useNavigate();
     const [search, setSearch] = useState("");
+    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
     const [page, setPage] = useState(1);
@@ -141,7 +142,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => { setSelectedTicketId(id); setSidebarOpen(true); }} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">
@@ -172,7 +173,7 @@ const AllTickets: React.FC = () => {
                     <div className="row">
                         {filtered.map((t) => (
                             <div className="col-md-4 mb-3" key={t.id}>
-                                <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => navigate(`/tickets/${t.id}`)} />
+                                <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); }} />
                             </div>
                         ))}
                     </div>
@@ -181,6 +182,7 @@ const AllTickets: React.FC = () => {
                     </div>
                 </div>
             )}
+            <ViewTicket ticketId={selectedTicketId} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
     );
 };
