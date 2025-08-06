@@ -20,5 +20,6 @@ public class RoleDto {
     private String updatedBy;
     private RolePermission permissions;
     private String[] permissionsList;
+    private String allowedStatusActionIds;
     private boolean isDeleted;
 }

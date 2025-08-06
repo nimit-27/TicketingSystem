@@ -23,8 +23,8 @@ public class Role {
     @Column(name = "permissions", columnDefinition = "json")
     private String permissions;
 
-    @Column(name = "allowed_status_actions_ids")
-    private String allowedStatusActionsIds;
+    @Column(name = "allowed_status_action_ids")
+    private String allowedStatusActionIds;
 
     @Column(name = "created_by")
     private String createdBy;
