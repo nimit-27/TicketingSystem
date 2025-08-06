@@ -69,7 +69,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             case 'Recommend Escalation':
                 return <IconComponent icon="northEast" fontSize="small" />;
             case 'Close':
-                return <IconComponent icon="doneAll" fontSize="small" />;
+                return <IconComponent icon="doneAll" fontSize="small" className='text-success' />;
             case 'Reopen':
                 return <IconComponent icon="replay" fontSize="small" />;
             case 'Start':

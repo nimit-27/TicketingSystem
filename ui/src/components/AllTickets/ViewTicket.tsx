@@ -9,6 +9,7 @@ import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket } from '../../services/TicketService';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
+import CustomIconButton from '../UI/IconButton/CustomIconButton';
 
 interface ViewTicketProps {
   ticketId: string | null;
@@ -66,6 +67,17 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
     onClose();
   };
 
+  const cancelEditing = () => {
+    setEditing(false);
+    if (ticket) {
+      setSubject(ticket.subject || '');
+      setDescription(ticket.description || '');
+      setPriority(ticket.priority || '');
+      setSeverity(ticket.severity || '');
+      setRecommendedSeverity(ticket.recommendedSeverity || '');
+    }
+  }
+
   const renderText = (value: string, onChange: (v: string) => void, multiline?: boolean) => (
     editing ? (
       <TextField
@@ -90,7 +102,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
         onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
         fullWidth
         size="small"
-        // sx={{ mt: 1 }}
+      // sx={{ mt: 1 }}
       >
         {(Array.isArray(options) && options.length > 0) ? options.map(o => (
           <MenuItem key={o} value={o}>{o}</MenuItem>
@@ -126,17 +138,11 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
             <Box>
               {editing ? (
                 <>
-                  <IconButton size="small" onClick={() => { setEditing(false); if (ticket) { setSubject(ticket.subject || ''); setDescription(ticket.description || ''); setPriority(ticket.priority || ''); setSeverity(ticket.severity || ''); setRecommendedSeverity(ticket.recommendedSeverity || ''); } }}>
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={handleSave}>
-                    <CheckIcon fontSize="small" />
-                  </IconButton>
+                  <CustomIconButton icon="close" onClick={cancelEditing} />
+                  <CustomIconButton icon="check" onClick={handleSave} />
                 </>
               ) : (
-                <IconButton size="small" onClick={() => setEditing(true)}>
-                  <EditIcon fontSize="small" />
-                </IconButton>
+                <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
               )}
             </Box>
           </Box>
@@ -154,12 +160,18 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
             {renderText(description, setDescription, true)}
           </Box>
           <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">Priority</Typography>
-            {renderSelect(priority, setPriority, priorityOptions)}
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
-            {renderSelect(severity, setSeverity, severityOptions)}
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
-            {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+              <Typography variant="body2" color="text.secondary">Priority</Typography>
+              {renderSelect(priority, setPriority, priorityOptions)}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
+              {renderSelect(severity, setSeverity, severityOptions)}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
+              {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
+            </Box>
           </Box>
         </Box>
       )}

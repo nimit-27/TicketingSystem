@@ -64,20 +64,26 @@ interface CustomIconButtonProps extends IconButtonProps {
 }
 
 // Helper component to render icon
-export const IconComponent: React.FC<{ icon: string; fontSize?: 'small' | 'medium' | 'large' }> = ({
+export const IconComponent: React.FC<{ icon: string; fontSize?: 'small' | 'medium' | 'large'; className?: string }> = ({
     icon,
     fontSize = 'small',
+    className,
 }) => {
     const key = icon as IconKey;
     const Icon = iconMap[key];
 
-    return Icon ? <Icon fontSize={fontSize} /> : null;
+    return Icon ? <Icon fontSize={fontSize} className={className} /> : null;
 };
 
-const CustomIconButton: React.FC<CustomIconButtonProps> = ({ icon, ...props }) => {
+interface CustomIconButtonProps extends IconButtonProps {
+    icon: string;
+    className?: string;
+}
+
+const CustomIconButton: React.FC<CustomIconButtonProps> = ({ icon, className, ...props }) => {
     return (
-        <IconButton {...props}>
-            <IconComponent icon={icon} />
+        <IconButton {...props} className={className}>
+            <IconComponent icon={icon} className={className} />
         </IconButton>
     );
 };
