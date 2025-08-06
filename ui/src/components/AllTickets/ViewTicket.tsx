@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Drawer, Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import { Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent, Paper } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket } from '../../services/TicketService';
@@ -103,8 +104,13 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleDateString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.assignedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
 
+  if (!open) return null;
+
   return (
-    <Drawer anchor="right" open={open} onClose={handleClose} variant="persistent" PaperProps={{ sx: { width: 400, p: 2 } }}>
+    <Paper sx={{ width: 400, p: 2, height: 'calc(100vh - 70px)', position: 'relative', overflowY: 'auto', borderLeft: '1px solid', borderColor: 'divider' }}>
+      <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>
+        <ChevronRightIcon />
+      </IconButton>
       {ticket && (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -152,7 +158,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
           </Box>
         </Box>
       )}
-    </Drawer>
+    </Paper>
   );
 };
 
