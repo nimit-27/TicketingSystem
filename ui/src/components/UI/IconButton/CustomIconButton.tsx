@@ -21,7 +21,9 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ReplayIcon from '@mui/icons-material/Replay';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import DoneIcon from '@mui/icons-material/Done';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
 const iconMap = {
@@ -46,7 +48,12 @@ const iconMap = {
     replay: ReplayIcon,
     play: PlayArrowIcon,
     done: DoneIcon,
-    arrowUpward: ArrowUpwardIcon
+    arrowUpward: ArrowUpwardIcon,
+    doneAll: DoneAllIcon,
+    pause: PauseCircleOutline,
+    northEast: NorthEast,
+    moving: Moving,
+    personAddAlt: PersonAddAlt
 };
 
 // Valid keys for the icon map

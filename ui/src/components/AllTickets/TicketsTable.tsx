@@ -54,14 +54,22 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const getActionIcon = (action: string) => {
         switch (action) {
-            case 'Approve':
+            case 'Assign':
+                return <IconComponent icon="personAddAlt" fontSize="small" />;
             case 'Resolve':
-            case 'Complete':
                 return <IconComponent icon="check" fontSize="small" />;
             case 'Cancel/ Reject':
                 return <IconComponent icon="close" fontSize="small" />;
+            case 'On Hold (Pending with Requester)':
+            case 'On Hold (Pending with Service Provider)':
+            case 'On Hold (Pending with FCI)':
+                return <IconComponent icon="pause" fontSize="small" />;
+            case 'Approve Escalation':
+                return <IconComponent icon="moving" fontSize="small" />;
+            case 'Recommend Escalation':
+                return <IconComponent icon="northEast" fontSize="small" />;
             case 'Close':
-                return <IconComponent icon="close" fontSize="small" />;
+                return <IconComponent icon="doneAll" fontSize="small" />;
             case 'Reopen':
                 return <IconComponent icon="replay" fontSize="small" />;
             case 'Start':
