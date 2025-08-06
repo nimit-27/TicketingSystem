@@ -116,7 +116,7 @@ const AllTickets: React.FC = () => {
 
     return (
         <div className="container" style={{ display: 'flex' }}>
-            <div style={{ flexGrow: 1 }}>
+            <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey="My Tickets" />
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <GenericInput

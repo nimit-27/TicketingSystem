@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent, Paper } from '@mui/material';
+import { Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent, Paper, Drawer } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -79,7 +79,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
         sx={{ mt: 1 }}
       />
     ) : (
-      <Typography sx={{ mt: 1 }}>{value || '-'}</Typography>
+      <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || '-'}</Typography>
     )
   );
 
@@ -90,11 +90,11 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
         onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
         fullWidth
         size="small"
-        sx={{ mt: 1 }}
+        // sx={{ mt: 1 }}
       >
-        {options.map(o => (
+        {(Array.isArray(options) && options.length > 0) ? options.map(o => (
           <MenuItem key={o} value={o}>{o}</MenuItem>
-        ))}
+        )) : <MenuItem key="" value="">None</MenuItem>}
       </Select>
     ) : (
       <Typography color="text.secondary" sx={{ mt: 1 }}>{value || '-'}</Typography>
@@ -107,12 +107,17 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
   if (!open) return null;
 
   return (
-    <Paper sx={{ width: 400, p: 2, height: 'calc(100vh - 70px)', position: 'relative', overflowY: 'auto', borderLeft: '1px solid', borderColor: 'divider' }}>
-      <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>
+    <Drawer anchor="right"
+      open={open}
+      onClose={handleClose}
+      variant="persistent"
+      PaperProps={{ sx: { top: '70px', height: 'calc(100vh - 70px)' } }}
+    >
+      <IconButton onClick={handleClose}>
         <ChevronRightIcon />
       </IconButton>
       {ticket && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box sx={{ width: 400, position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
@@ -121,7 +126,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
             <Box>
               {editing ? (
                 <>
-                  <IconButton size="small" onClick={() => { setEditing(false); if(ticket){ setSubject(ticket.subject||''); setDescription(ticket.description||''); setPriority(ticket.priority||''); setSeverity(ticket.severity||''); setRecommendedSeverity(ticket.recommendedSeverity||''); } }}>
+                  <IconButton size="small" onClick={() => { setEditing(false); if (ticket) { setSubject(ticket.subject || ''); setDescription(ticket.description || ''); setPriority(ticket.priority || ''); setSeverity(ticket.severity || ''); setRecommendedSeverity(ticket.recommendedSeverity || ''); } }}>
                     <CloseIcon fontSize="small" />
                   </IconButton>
                   <IconButton size="small" onClick={handleSave}>
@@ -142,7 +147,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
             {createdInfo}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
             {updatedInfo}
           </Typography>
           <Box sx={{ mt: 2 }}>
@@ -158,7 +163,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
           </Box>
         </Box>
       )}
-    </Paper>
+    </Drawer>
   );
 };
 
