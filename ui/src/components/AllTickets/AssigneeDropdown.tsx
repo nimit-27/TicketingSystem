@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Box, TextField, Chip, List, ListItemButton } from '@mui/material';
+import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton } from '@mui/material';
 import { getAllLevels, getAllUsersByLevel } from '../../services/LevelService';
 import { getAllUsers } from '../../services/UserService';
 import { updateTicket } from '../../services/TicketService';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
 interface AssigneeDropdownProps {
     ticketId: string;
@@ -67,7 +68,13 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
 
     return (
         <>
-            <UserAvatar name={assigneeName || ''} onClick={(e) => setAnchorEl(e.currentTarget)} />
+            {assigneeName ? (
+                <UserAvatar name={assigneeName} onClick={(e) => setAnchorEl(e.currentTarget)} />
+            ) : (
+                <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
+                    <PersonAddAltIcon fontSize="small" />
+                </IconButton>
+            )}
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
                 <Box sx={{ p: 1, width: 350 }}>
                     <TextField value={search} onChange={e => setSearch(e.target.value)} placeholder="Search" size="small" fullWidth />
