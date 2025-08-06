@@ -32,11 +32,12 @@ interface TicketsTableProps {
     tickets: TicketRow[];
     onRowClick: (id: string) => void;
     searchCurrentTicketsPaginatedApi: (id: string) => void;
+    onIdClick: (id: string) => void;
     refreshingTicketId?: string | null;
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows }) => {
     const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
@@ -100,7 +101,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onRowClick, search
                 dataIndex: 'id',
                 key: 'ticketId',
                 render: (_: any, record: TicketRow) => (
-                    <div className="d-flex align-items-center">
+                    <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
                         {record.id}
                         {record.isMaster && <MasterIcon />}
                     </div>

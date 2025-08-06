@@ -71,6 +71,13 @@ const AllTickets: React.FC = () => {
         searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size));
     }
 
+    const onIdClick = (id: string) => {
+        if (id) {
+            setSelectedTicketId(id); 
+            setSidebarOpen(true);
+        }
+    }
+
     const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
 
     const searchCurrentTicketsPaginatedApi = useCallback(
@@ -145,7 +152,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
+                    <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">
