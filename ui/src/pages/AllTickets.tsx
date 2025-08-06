@@ -19,6 +19,7 @@ import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { Ticket, TicketStatusWorkflow } from "../types";
 import { getStatusWorkflowMappings } from "../services/StatusService";
+import { useNavigate } from "react-router-dom";
 
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
@@ -36,6 +37,8 @@ const AllTickets: React.FC = () => {
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
 
     console.log({ workflowData })
+
+    const navigate = useNavigate();
 
     const [search, setSearch] = useState("");
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
@@ -142,7 +145,7 @@ const AllTickets: React.FC = () => {
             {error && <p className="text-danger">{t('Error loading tickets')}</p>}
             {viewMode === 'table' && showTable && (
                 <div>
-                    <TicketsTable tickets={filtered} onRowClick={(id: any) => { setSelectedTicketId(id); setSidebarOpen(true); }} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
+                    <TicketsTable tickets={filtered} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                         <div className="d-flex align-items-center">
