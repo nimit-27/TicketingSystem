@@ -19,6 +19,7 @@ import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { Ticket, TicketStatusWorkflow } from "../types";
 import { getStatusWorkflowMappings } from "../services/StatusService";
+import { getCurrentUserDetails } from "../config/config";
 import { useNavigate } from "react-router-dom";
 
 
@@ -97,7 +98,8 @@ const AllTickets: React.FC = () => {
 
     useEffect(() => {
         getStatuses().then(setStatusList);
-        workflowApiHandler(() => getStatusWorkflowMappings());
+        const roles = getCurrentUserDetails()?.role || [];
+        workflowApiHandler(() => getStatusWorkflowMappings(roles));
     }, []);
 
     useEffect(() => {
