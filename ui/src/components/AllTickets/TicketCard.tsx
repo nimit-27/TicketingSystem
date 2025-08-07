@@ -110,24 +110,32 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
             onClick={onClick}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
-            sx={{ cursor: 'pointer', border: '2px solid', borderColor: (theme: any) => `${theme.palette[p.color.split('.')[0]]?.[p.color.split('.')[1]]}40`, boxShadow: 'none', height: '100%', position: 'relative', transition: 'background-color 0.2s, transform 0.2s', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)', transform: 'scale(1.02)' }, borderRadius: 2 }}
+            sx={{ cursor: 'pointer', border: '1px solid', borderColor: 'grey.300', boxShadow: 'none', height: '100%', position: 'relative', transition: 'background-color 0.2s, transform 0.2s', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)', transform: 'scale(1.02)' }, borderRadius: 2 }}
         >
             <CardContent sx={{ pb: 6 }}>
-                <Typography color="text.secondary" sx={{ fontSize: '10px' }} title={ticket.id}>
+                <Typography color="text.secondary" sx={{ fontSize: '8px' }} title={ticket.id}>
                     {ticket.id}
                 </Typography>
-                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ display: 'flex', alignItems: 'center', fontSize: '16px', fontWeight: 'bold' }}>
                     <span style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ticket.subject}>{ticket.subject}</span>
-                    {ticket.isMaster && <MasterIcon />}
                 </Typography>
-                <Typography color="text.secondary" sx={{ fontSize: '10px' }} title={`${ticket.category} > ${ticket.subCategory}`}>
-                    {ticket.category} &gt; {ticket.subCategory}
-                </Typography>
+                <Tooltip
+                    title={<React.Fragment><div>Category: {ticket.category}</div><div>Sub-Category: {ticket.subCategory}</div></React.Fragment>}
+                >
+                    <Typography
+                        color="text.secondary"
+                        sx={{ fontSize: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <span>{ticket.category} &gt; {ticket.subCategory}</span>
+                        {ticket.isMaster && <MasterIcon />}
+                    </Typography>
+                </Tooltip>
                 <Typography sx={{ fontSize: '12px', mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }} title={ticket.description}>
                     {ticket.description}
                 </Typography>
             </CardContent>
-            <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Box sx={{ position: 'absolute', top: 8, right: 8 }} onClick={(e) => e.stopPropagation()}>
                 {allowAssigneeChange(ticket.statusId) ? (
                     <AssigneeDropdown ticketId={ticket.id} assigneeName={ticket.assignedTo} />
                 ) : (
@@ -135,7 +143,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 )}
             </Box>
             {hover && (
-                <Box sx={{ position: 'absolute', bottom: 4, right: 4, display: 'flex', gap: 0.5 }}>
+                <Box sx={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'center' }}>
                     <VisibilityIcon
                         onClick={(e) => { e.stopPropagation(); navigate(`/tickets/${ticket.id}`); }}
                         fontSize="small"
@@ -160,10 +168,10 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     )}
                 </Box>
             )}
-            <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', alignItems: 'center', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
                 {statusName && (
                     <Tooltip title={statusName}>
-                        <Chip label={truncatedStatus} size="small" />
+                        <Chip label={truncatedStatus} size="small" sx={{ fontSize: '8px', height: 18, cursor: 'default' }} onClick={(e) => e.stopPropagation()} />
                     </Tooltip>
                 )}
                 <Tooltip title={ticket.priority}>
