@@ -52,7 +52,7 @@ public class TicketStatusWorkflowService {
             return Map.of();
         }
         for (Role role : roleRepository.findAllById(roles)) {
-            String allowed = role.getAllowedStatusActionsIds();
+            String allowed = role.getAllowedStatusActionIds();
             if (allowed != null && !allowed.isBlank()) {
                 for (String s : allowed.split("\\|")) {
                     if (!s.isBlank()) {
