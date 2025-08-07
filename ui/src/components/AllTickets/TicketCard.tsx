@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon } from '@mui/material';
+import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon, Chip } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
@@ -11,10 +11,12 @@ import { updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
+import { getStatusNameById } from '../../utils/Utils';
 
 export interface TicketCardData {
     id: string;
     subject: string;
+    description?: string;
     category: string;
     subCategory: string;
     priority: string;
@@ -100,23 +102,30 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     };
 
     const recordActions = getAvailableActions(ticket.statusId);
+    const statusName = getStatusNameById(ticket.statusId || '') || '';
+    const truncatedStatus = statusName.length > 12 ? `${statusName.slice(0, 12)}...` : statusName;
 
     return (
         <Card
             onClick={onClick}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
-            sx={{ cursor: 'pointer', border: '2px solid', borderColor: (theme: any) => `${theme.palette[p.color.split('.')[0]]?.[p.color.split('.')[1]]}40`, boxShadow: 'none', height: '100%', position: 'relative', transition: 'background-color 0.2s, transform 0.2s', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)', transform: 'scale(1.02)' } }}
+            sx={{ cursor: 'pointer', border: '2px solid', borderColor: (theme: any) => `${theme.palette[p.color.split('.')[0]]?.[p.color.split('.')[1]]}40`, boxShadow: 'none', height: '100%', position: 'relative', transition: 'background-color 0.2s, transform 0.2s', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)', transform: 'scale(1.02)' }, borderRadius: 2 }}
         >
-            <CardContent sx={{ pb: 4 }}>
+            <CardContent sx={{ pb: 6 }}>
+                <Typography color="text.secondary" sx={{ fontSize: '10px' }} title={ticket.id}>
+                    {ticket.id}
+                </Typography>
                 <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ticket.subject}>{ticket.subject}</span>
                     {ticket.isMaster && <MasterIcon />}
                 </Typography>
-                <Typography variant="body2">Id: {ticket.id}</Typography>
-                <Typography variant="body2">Requestor: {ticket.requestorName || '-'}</Typography>
-                <Typography variant="body2">Category: {ticket.category}</Typography>
-                <Typography variant="body2">Sub-Category: {ticket.subCategory}</Typography>
+                <Typography color="text.secondary" sx={{ fontSize: '10px' }} title={`${ticket.category} > ${ticket.subCategory}`}>
+                    {ticket.category} &gt; {ticket.subCategory}
+                </Typography>
+                <Typography sx={{ fontSize: '12px', mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }} title={ticket.description}>
+                    {ticket.description}
+                </Typography>
             </CardContent>
             <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
                 {allowAssigneeChange(ticket.statusId) ? (
@@ -126,7 +135,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 )}
             </Box>
             {hover && (
-                <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', gap: 0.5 }}>
+                <Box sx={{ position: 'absolute', bottom: 4, right: 4, display: 'flex', gap: 0.5 }}>
                     <VisibilityIcon
                         onClick={(e) => { e.stopPropagation(); navigate(`/tickets/${ticket.id}`); }}
                         fontSize="small"
@@ -151,9 +160,14 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     )}
                 </Box>
             )}
-            <Box sx={{ position: 'absolute', bottom: 4, right: 4, color: p.color }}>
+            <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {statusName && (
+                    <Tooltip title={statusName}>
+                        <Chip label={truncatedStatus} size="small" />
+                    </Tooltip>
+                )}
                 <Tooltip title={ticket.priority}>
-                    <Box sx={{ position: 'relative', width: 24, height: 24 + (p.count - 1) * 10 }}>
+                    <Box sx={{ position: 'relative', width: 24, height: 24 + (p.count - 1) * 10, color: p.color }}>
                         {Array.from({ length: p.count }).map((_, i) => (
                             <KeyboardArrowUpIcon
                                 key={i}
