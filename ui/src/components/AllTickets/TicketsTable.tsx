@@ -7,7 +7,7 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
-import { Menu, MenuItem, IconButton, ListItemIcon, Tooltip } from '@mui/material';
+import { Menu, MenuItem, ListItemIcon, Tooltip } from '@mui/material';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -55,29 +55,29 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const getActionIcon = (action: string) => {
         switch (action) {
             case 'Assign':
-                return <IconComponent icon="personAddAlt" fontSize="small" />;
+                return { icon: 'personAddAlt' };
             case 'Resolve':
-                return <IconComponent icon="check" fontSize="small" />;
+                return { icon: 'check', className: 'icon-blue' };
             case 'Cancel/ Reject':
-                return <IconComponent icon="close" fontSize="small" />;
+                return { icon: 'close', className: 'icon-red' };
             case 'On Hold (Pending with Requester)':
             case 'On Hold (Pending with Service Provider)':
             case 'On Hold (Pending with FCI)':
-                return <IconComponent icon="pause" fontSize="small" />;
+                return { icon: 'pause', className: 'icon-yellow' };
             case 'Approve Escalation':
-                return <IconComponent icon="moving" fontSize="small" />;
+                return { icon: 'moving' };
             case 'Recommend Escalation':
-                return <IconComponent icon="northEast" fontSize="small" />;
+                return { icon: 'northEast' };
             case 'Close':
-                return <IconComponent icon="doneAll" fontSize="small" className='text-success' />;
+                return { icon: 'doneAll', className: 'icon-green' };
             case 'Reopen':
-                return <IconComponent icon="replay" fontSize="small" />;
+                return { icon: 'replay' };
             case 'Start':
-                return <IconComponent icon="playArrow" fontSize="small" />;
+                return { icon: 'playArrow' };
             case 'Escalate':
-                return <IconComponent icon="arrowUpward" fontSize="small" />;
+                return { icon: 'arrowUpward' };
             default:
-                return <IconComponent icon="done" fontSize="small" />;
+                return { icon: 'done', className: 'icon-green' };
         }
     };
 
@@ -163,16 +163,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 sx={{ color: 'grey.600', cursor: 'pointer' }}
                             />
                             {recordActions.length <= 2 ? (
-                                recordActions.map(a => (
-                                    <Tooltip key={a.id} title={a.action} placement="top">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleActionClick(a, record.id)}
-                                        >
-                                            {getActionIcon(a.action)}
-                                        </IconButton>
-                                    </Tooltip>
-                                ))
+                                recordActions.map(a => {
+                                    const { icon, className } = getActionIcon(a.action);
+                                    return (
+                                        <Tooltip key={a.id} title={a.action} placement="top">
+                                            <CustomIconButton
+                                                size="small"
+                                                onClick={() => handleActionClick(a, record.id)}
+                                                icon={icon}
+                                                className={className}
+                                            />
+                                        </Tooltip>
+                                    );
+                                })
                             ) : (
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
                             )}
@@ -194,14 +197,17 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                {actions.map(a => (
-                    <MenuItem key={a.id} onClick={() => handleActionClick(a)}>
-                        <ListItemIcon>
-                            {getActionIcon(a.action)}
-                        </ListItemIcon>
-                        {a.action}
-                    </MenuItem>
-                ))}
+                {actions.map(a => {
+                    const { icon, className } = getActionIcon(a.action);
+                    return (
+                        <MenuItem key={a.id} onClick={() => handleActionClick(a)}>
+                            <ListItemIcon>
+                                <IconComponent icon={icon} className={className} />
+                            </ListItemIcon>
+                            {a.action}
+                        </MenuItem>
+                    );
+                })}
             </Menu>
         </>
     );
