@@ -21,6 +21,11 @@ public class TicketStatusWorkflowController {
         return ResponseEntity.ok(service.getNextStatusesByCurrentStatus(statusId));
     }
 
+    @GetMapping("/actions")
+    public ResponseEntity<List<TicketStatusWorkflow>> getAllActions() {
+        return ResponseEntity.ok(service.getAllStatusActions());
+    }
+
     @GetMapping("/mappings")
     public ResponseEntity<Map<String, List<TicketStatusWorkflow>>> getMappings() {
         return ResponseEntity.ok(service.getAllMappings());
