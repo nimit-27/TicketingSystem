@@ -30,6 +30,10 @@ public class TicketStatusWorkflowService {
         this.roleRepository = roleRepository;
     }
 
+    public List<TicketStatusWorkflow> getAllStatusActions() {
+        return workflowRepository.findAll();
+    }
+
     public List<TicketStatusWorkflow> getNextStatusesByCurrentStatus(String statusId) {
         List<TicketStatusWorkflow> ticketStatusWorkflowList = new ArrayList<>();
 

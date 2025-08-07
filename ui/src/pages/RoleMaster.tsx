@@ -3,6 +3,7 @@ import { Button, Autocomplete, TextField, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
 import { addRole, getAllPermissions, loadPermissions, getAllRoles, deleteRoles, deleteRole } from '../services/RoleService';
+import { getStatusActions } from '../services/StatusService';
 import { getCurrentUserDetails } from '../config/config';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
@@ -26,11 +27,13 @@ const formatDate = (inputDate: string) => {
 const RoleMaster: React.FC = () => {
     const { data: rolesData, apiHandler: getAllRolesApiHandler } = useApi<any>();
     const { data, apiHandler } = useApi<any>();
+    const { data: statusActions, apiHandler: actionsApiHandler } = useApi<any>();
     const [view, setView] = useState<'table' | 'grid'>('table');
     const navigate = useNavigate();
     const [creating, setCreating] = useState(false);
     const [roleName, setRoleName] = useState('');
     const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
+    const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
     const [prevPerms, setPrevPerms] = useState<string[]>([]);
     const [openCustom, setOpenCustom] = useState(false);
     const [customPerm, setCustomPerm] = useState<any>(null);
@@ -46,6 +49,7 @@ const RoleMaster: React.FC = () => {
 
     useEffect(() => {
         apiHandler(() => getAllPermissions());
+        actionsApiHandler(() => getStatusActions());
     }, []);
 
     const roles = data?.roles ? Object.keys(data.roles) : [];
@@ -73,7 +77,8 @@ const RoleMaster: React.FC = () => {
         const permissions = customPerm ||  null;
         const list = selectedPerms.filter(p => p !== 'Custom');
         const user = getCurrentUserDetails();
-        const payload = { role: roleName, permissions, permissionsList: list ?? [], createdBy: user?.name, updatedBy: user?.name };
+        const allowedStatusActionIds = selectedActionIds.join('|');
+        const payload = { role: roleName, permissions, permissionsList: list ?? [], allowedStatusActionIds, createdBy: user?.name, updatedBy: user?.name };
         addRole(payload)
             .then(() => loadPermissions())
             .then(() => getAllRolesApiHandler(() => getAllRoles()))
@@ -84,6 +89,7 @@ const RoleMaster: React.FC = () => {
         setCreating(false);
         setRoleName('');
         setSelectedPerms([]);
+        setSelectedActionIds([]);
         setCustomPerm(null);
     };
 
@@ -166,6 +172,20 @@ const RoleMaster: React.FC = () => {
                             renderInput={(params) => <TextField {...params} label="Permissions" />}
                         />
                     </div>
+                    <Autocomplete
+                        multiple
+                        options={statusActions || []}
+                        value={(statusActions || []).filter((a: any) => selectedActionIds.includes(String(a.id)))}
+                        onChange={(_, val) => setSelectedActionIds(val.map((a: any) => String(a.id)))}
+                        className="w-50 mb-2"
+                        getOptionLabel={(option: any) => option.action}
+                        renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                                <Chip label={option.action} {...getTagProps({ index })} />
+                            ))
+                        }
+                        renderInput={(params) => <TextField {...params} label="Status Actions" />}
+                    />
                     <div className="mt-2">
                         <Button variant="contained" onClick={handleSubmit} className="me-2">Submit</Button>
                         <Button variant="outlined" onClick={handleCancel}>Cancel</Button>

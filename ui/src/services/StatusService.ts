@@ -12,3 +12,7 @@ export function getNextStatusListByStatusId(statusId: string) {
 export function getStatusWorkflowMappings(roles: string[]) {
     return axios.post(`${BASE_URL}/status-workflow/mappings`, roles);
 }
+
+export function getStatusActions() {
+    return axios.get(`${BASE_URL}/status-workflow/actions`);
+}
