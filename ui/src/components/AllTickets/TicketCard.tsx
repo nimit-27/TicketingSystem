@@ -1,8 +1,16 @@
-import React from 'react';
-import { Card, CardContent, Typography, Box, Tooltip } from '@mui/material';
+import React, { useState } from 'react';
+import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
+import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
+import { TicketStatusWorkflow } from '../../types';
+import { useApi } from '../../hooks/useApi';
+import { updateTicket } from '../../services/TicketService';
+import { getCurrentUserDetails } from '../../config/config';
+import { useNavigate } from 'react-router-dom';
+import UserAvatar from '../UI/UserAvatar/UserAvatar';
 
 export interface TicketCardData {
     id: string;
@@ -13,6 +21,7 @@ export interface TicketCardData {
     isMaster: boolean;
     requestorName?: string;
     assignedTo?: string;
+    statusId?: string;
 }
 
 interface PriorityConfig { color: string; count: number; }
@@ -21,12 +30,84 @@ interface TicketCardProps {
     ticket: TicketCardData;
     priorityConfig: Record<string, PriorityConfig>;
     onClick?: () => void;
+    statusWorkflows: Record<string, TicketStatusWorkflow[]>;
+    searchCurrentTicketsPaginatedApi: (id: string) => void;
 }
-
-const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick }) => {
+const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick, statusWorkflows, searchCurrentTicketsPaginatedApi }) => {
     const p = priorityConfig[ticket.priority as keyof typeof priorityConfig] || { color: 'grey.400', count: 1 };
+    const [hover, setHover] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const navigate = useNavigate();
+
+    const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
+
+    const getAvailableActions = (statusId?: string) =>
+        (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
+
+    const allowAssigneeChange = (statusId?: string) =>
+        (statusWorkflows[statusId || ''] || []).some(a => disallowed.includes(a.action));
+
+    const getActionIcon = (action: string) => {
+        switch (action) {
+            case 'Assign':
+                return { icon: 'personAddAlt' };
+            case 'Resolve':
+                return { icon: 'check', className: 'icon-blue' };
+            case 'Cancel/ Reject':
+                return { icon: 'close', className: 'icon-red' };
+            case 'On Hold (Pending with Requester)':
+            case 'On Hold (Pending with Service Provider)':
+            case 'On Hold (Pending with FCI)':
+                return { icon: 'pause', className: 'icon-yellow' };
+            case 'Approve Escalation':
+                return { icon: 'moving' };
+            case 'Recommend Escalation':
+                return { icon: 'northEast' };
+            case 'Close':
+                return { icon: 'doneAll', className: 'icon-green' };
+            case 'Reopen':
+                return { icon: 'replay' };
+            case 'Start':
+                return { icon: 'playArrow' };
+            case 'Escalate':
+                return { icon: 'arrowUpward' };
+            default:
+                return { icon: 'done', className: 'icon-green' };
+        }
+    };
+
+    const openMenu = (event: React.MouseEvent, record: TicketCardData) => {
+        event.stopPropagation();
+        const list = getAvailableActions(record.statusId);
+        setActions(list);
+        setAnchorEl(event.currentTarget as HTMLElement);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleActionClick = (wf: TicketStatusWorkflow, e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        const id = ticket.id;
+        const payload = { status: { statusId: String(wf.nextStatus) }, assignedBy: getCurrentUserDetails()?.username } as any;
+        updateTicketApiHandler(() => updateTicket(id, payload)).then(() => {
+            searchCurrentTicketsPaginatedApi(id);
+        });
+        handleClose();
+    };
+
+    const recordActions = getAvailableActions(ticket.statusId);
+
     return (
-        <Card onClick={onClick} sx={{ cursor: 'pointer', border: '2px solid', borderColor: (theme: any) => `${theme.palette[p.color.split('.')[0]]?.[p.color.split('.')[1]]}40`, boxShadow: 'none', height: '100%', position: 'relative', transition: 'background-color 0.2s, transform 0.2s', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)', transform: 'scale(1.02)' } }}>
+        <Card
+            onClick={onClick}
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            sx={{ cursor: 'pointer', border: '2px solid', borderColor: (theme: any) => `${theme.palette[p.color.split('.')[0]]?.[p.color.split('.')[1]]}40`, boxShadow: 'none', height: '100%', position: 'relative', transition: 'background-color 0.2s, transform 0.2s', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)', transform: 'scale(1.02)' } }}
+        >
             <CardContent sx={{ pb: 4 }}>
                 <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ticket.subject}>{ticket.subject}</span>
@@ -38,8 +119,38 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 <Typography variant="body2">Sub-Category: {ticket.subCategory}</Typography>
             </CardContent>
             <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                <AssigneeDropdown ticketId={ticket.id} assigneeName={ticket.assignedTo} />
+                {allowAssigneeChange(ticket.statusId) ? (
+                    <AssigneeDropdown ticketId={ticket.id} assigneeName={ticket.assignedTo} />
+                ) : (
+                    ticket.assignedTo ? <UserAvatar name={ticket.assignedTo} /> : null
+                )}
             </Box>
+            {hover && (
+                <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', gap: 0.5 }}>
+                    <VisibilityIcon
+                        onClick={(e) => { e.stopPropagation(); navigate(`/tickets/${ticket.id}`); }}
+                        fontSize="small"
+                        sx={{ color: 'grey.600', cursor: 'pointer' }}
+                    />
+                    {recordActions.length <= 2 ? (
+                        recordActions.map(a => {
+                            const { icon, className } = getActionIcon(a.action);
+                            return (
+                                <Tooltip key={a.id} title={a.action} placement="top">
+                                    <CustomIconButton
+                                        size="small"
+                                        icon={icon}
+                                        className={className}
+                                        onClick={(e) => handleActionClick(a, e)}
+                                    />
+                                </Tooltip>
+                            );
+                        })
+                    ) : (
+                        <CustomIconButton icon="moreVert" onClick={(e) => openMenu(e, ticket)} />
+                    )}
+                </Box>
+            )}
             <Box sx={{ position: 'absolute', bottom: 4, right: 4, color: p.color }}>
                 <Tooltip title={ticket.priority}>
                     <Box sx={{ position: 'relative', width: 24, height: 24 + (p.count - 1) * 10 }}>
@@ -53,6 +164,19 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     </Box>
                 </Tooltip>
             </Box>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} onClick={(e)=>e.stopPropagation()}>
+                {actions.map(a => {
+                    const { icon, className } = getActionIcon(a.action);
+                    return (
+                        <MenuItem key={a.id} onClick={(e) => handleActionClick(a, e)}>
+                            <ListItemIcon>
+                                <IconComponent icon={icon} className={className} />
+                            </ListItemIcon>
+                            {a.action}
+                        </MenuItem>
+                    );
+                })}
+            </Menu>
         </Card>
     );
 };

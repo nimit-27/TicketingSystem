@@ -186,7 +186,13 @@ const AllTickets: React.FC = () => {
                         <div className="row">
                             {filtered.map((t) => (
                                 <div className="col-md-4 mb-3" key={t.id}>
-                                    <TicketCard ticket={t} priorityConfig={priorityConfig} onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); }} />
+                                    <TicketCard
+                                        ticket={t}
+                                        priorityConfig={priorityConfig}
+                                        statusWorkflows={workflowMap}
+                                        searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                                        onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); }}
+                                    />
                                 </div>
                             ))}
                         </div>

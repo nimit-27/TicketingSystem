@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent, Paper, Drawer } from '@mui/material';
+import { Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent, Drawer } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket } from '../../services/TicketService';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
+import CommentsSection from '../Comments/CommentsSection';
+import { useNavigate } from 'react-router-dom';
 
 interface ViewTicketProps {
   ticketId: string | null;
@@ -66,6 +69,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
     setEditing(false);
     onClose();
   };
+  const navigate = useNavigate();
 
   const cancelEditing = () => {
     setEditing(false);
@@ -125,9 +129,16 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
       variant="persistent"
       PaperProps={{ sx: { top: '70px', height: 'calc(100vh - 70px)' } }}
     >
-      <IconButton onClick={handleClose}>
-        <ChevronRightIcon />
-      </IconButton>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, pt: 1 }}>
+        <IconButton onClick={handleClose}>
+          <ChevronRightIcon />
+        </IconButton>
+        {ticketId && (
+          <IconButton onClick={() => navigate(`/tickets/${ticketId}`)}>
+            <VisibilityIcon />
+          </IconButton>
+        )}
+      </Box>
       {ticket && (
         <Box sx={{ width: 400, position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -173,6 +184,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
               {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
             </Box>
           </Box>
+          <CommentsSection ticketId={ticketId as string} />
         </Box>
       )}
     </Drawer>

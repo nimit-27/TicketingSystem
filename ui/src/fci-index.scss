@@ -14,6 +14,23 @@
   --fci-info-color: #1e88e5;
 }
 
+/* Utility classes for icon colors */
+.icon-green {
+  color: var(--fci-success-color);
+}
+
+.icon-red {
+  color: var(--fci-danger-color);
+}
+
+.icon-yellow {
+  color: var(--fci-warning-color);
+}
+
+.icon-blue {
+  color: var(--fci-info-color);
+}
+
 .generic-button {
   background-color: var(--fci-success-color) !important;
   height: 50px;
