@@ -13,6 +13,7 @@ import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { TicketStatusWorkflow } from '../../types';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
+import RequestorDetails from './RequestorDetails';
 
 export interface TicketRow {
     id: string;
@@ -118,17 +119,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             {
                 title: t('Requestor Name'),
                 key: 'requestorName',
-                render: (_: any, record: TicketRow) => record.requestorName || '-',
-            },
-            {
-                title: t('Email'),
-                key: 'email',
-                render: (_: any, record: TicketRow) => record.requestorEmailId || '-',
-            },
-            {
-                title: t('Mobile'),
-                key: 'mobile',
-                render: (_: any, record: TicketRow) => record.requestorMobileNo || '-',
+                render: (_: any, record: TicketRow) =>
+                    record.requestorName ? (
+                        <Tooltip
+                            title={<RequestorDetails email={record.requestorEmailId} phone={record.requestorMobileNo} />}
+                            placement="top"
+                            arrow
+                            componentsProps={{ tooltip: { sx: { pointerEvents: 'auto' } } }}
+                        >
+                            <span>{record.requestorName}</span>
+                        </Tooltip>
+                    ) : (
+                        '-' as any
+                    ),
             },
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
