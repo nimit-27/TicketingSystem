@@ -382,6 +382,7 @@ CREATE TABLE `status_master` (
   `status_code` varchar(50) DEFAULT NULL,
   `sla_flag` tinyint(1) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `color` varchar(7) DEFAULT NULL,
   PRIMARY KEY (`status_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -392,7 +393,18 @@ CREATE TABLE `status_master` (
 
 LOCK TABLES `status_master` WRITE;
 /*!40000 ALTER TABLE `status_master` DISABLE KEYS */;
-INSERT INTO `status_master` VALUES (1,'Open (New)','OPEN',0,'The ticket has been created but not yet assigned'),(2,'Assigned (In Progress)','ASSIGNED',1,'The ticket has been assigned to a support agent or team'),(3,'On Hold (Pending with Requester)','PENDING_WITH_REQUESTER',0,'Waiting for additional information from the requester'),(4,'On Hold (Pending with Service Provider)','PENDING_WITH_SERVICE_PROVIDER',1,'Waiting for additional information/ resolution from the third-party service provider'),(5,'On Hold (Pending with FCI)','PENDING_WITH_FCI',0,'Waiting for resolution from FCI or its empanelled vendors'),(6,'Awaiting Escalation Approval','AWAITING_ESCALATION_APPROVAL',0,'Resolution or action requires managerial approval before proceeding'),(7,'Resolved','RESOLVED',0,'The issue has been fixed, but the ticket remains open for confirmation from the requester'),(8,'Closed','CLOSED',0,'The ticket has been resolved and confirmed by the requester or automatically closed after a period of inactivity'),(9,'Cancelled','CANCELLED',0,'The ticket was withdrawn by the requester or deemed invalid'),(10,'Reopened','REOPENED',0,'A previously resolved ticket has been reopened due to recurrence or incomplete resolution'),(11,'Escalated','ESCALATED',0,'New severity can be recommended by some designated users');
+INSERT INTO `status_master` VALUES 
+(1,'Open (New)','OPEN',0,'The ticket has been created but not yet assigned','#2196F3'),
+(2,'Assigned (In Progress)','ASSIGNED',1,'The ticket has been assigned to a support agent or team','#9C27B0'),
+(3,'On Hold (Pending with Requester)','PENDING_WITH_REQUESTER',0,'Waiting for additional information from the requester','#FFC107'),
+(4,'On Hold (Pending with Service Provider)','PENDING_WITH_SERVICE_PROVIDER',1,'Waiting for additional information/ resolution from the third-party service provider','#FF9800'),
+(5,'On Hold (Pending with FCI)','PENDING_WITH_FCI',0,'Waiting for resolution from FCI or its empanelled vendors','#FFB74D'),
+(6,'Awaiting Escalation Approval','AWAITING_ESCALATION_APPROVAL',0,'Resolution or action requires managerial approval before proceeding','#E91E63'),
+(7,'Resolved','RESOLVED',0,'The issue has been fixed, but the ticket remains open for confirmation from the requester','#4CAF50'),
+(8,'Closed','CLOSED',0,'The ticket has been resolved and confirmed by the requester or automatically closed after a period of inactivity','#607D8B'),
+(9,'Cancelled','CANCELLED',0,'The ticket was withdrawn by the requester or deemed invalid','#F44336'),
+(10,'Reopened','REOPENED',0,'A previously resolved ticket has been reopened due to recurrence or incomplete resolution','#3F51B5'),
+(11,'Escalated','ESCALATED',0,'New severity can be recommended by some designated users','#FF5722');
 /*!40000 ALTER TABLE `status_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
