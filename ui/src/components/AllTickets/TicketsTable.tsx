@@ -14,6 +14,7 @@ import { getCurrentUserDetails } from '../../config/config';
 import { TicketStatusWorkflow } from '../../types';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
+import PriorityBar from './PriorityBar';
 
 export interface TicketRow {
     id: string;
@@ -46,6 +47,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
+
+    const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
 
     const getAvailableActions = (statusId?: string) =>
         (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
@@ -135,7 +138,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
-            { title: t('Priority'), dataIndex: 'priority', key: 'priority' },
+            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string) => <PriorityBar value={priorityMap[v] || 0} /> },
             {
                 title: t('Assignee'),
                 key: 'assignee',

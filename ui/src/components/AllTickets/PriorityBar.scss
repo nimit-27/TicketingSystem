@@ -1,0 +1,12 @@
+.priority-progress {
+  width: 60px;
+  height: 8px;
+}
+
+.priority-progress .progress-bar {
+  transition: width 0.5s ease;
+}
+
+.bg-orange {
+  background-color: orange;
+}
