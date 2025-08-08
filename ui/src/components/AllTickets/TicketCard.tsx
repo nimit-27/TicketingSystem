@@ -139,7 +139,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 {allowAssigneeChange(ticket.statusId) ? (
                     <AssigneeDropdown ticketId={ticket.id} assigneeName={ticket.assignedTo} />
                 ) : (
-                    ticket.assignedTo ? <UserAvatar name={ticket.assignedTo} /> : null
+                    ticket.assignedTo ? (
+                        <Tooltip title={ticket.assignedTo}>
+                            <span><UserAvatar name={ticket.assignedTo} /></span>
+                        </Tooltip>
+                    ) : null
                 )}
             </Box>
             {hover && (

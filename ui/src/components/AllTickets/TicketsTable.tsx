@@ -146,7 +146,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             />
                         );
                     }
-                    return record.assignedTo ? <UserAvatar name={record.assignedTo} /> : '-';
+                    return record.assignedTo ? (
+                        <Tooltip title={record.assignedTo}>
+                            <span><UserAvatar name={record.assignedTo} /></span>
+                        </Tooltip>
+                    ) : '-';
                 }
             },
             { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || '-' },

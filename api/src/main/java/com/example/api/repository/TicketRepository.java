@@ -18,6 +18,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     public List<Ticket> findByLastModifiedAfter(LocalDateTime lastSyncedTime);
 
+    List<Ticket> findByTicketStatusAndLastModifiedBefore(TicketStatus ticketStatus, LocalDateTime time);
+
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
             "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
             "AND (:master IS NULL OR t.isMaster = :master) " +

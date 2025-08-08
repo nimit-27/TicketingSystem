@@ -139,7 +139,14 @@ const RoleMaster: React.FC = () => {
         <div className="container">
             <Title textKey="Role Master" />
             <div className="d-flex justify-content-between mb-3">
-                <Button variant="contained" onClick={handleCreate}>Create Role</Button>
+                {creating ? (
+                    <div>
+                        <Button variant="contained" onClick={handleSubmit} className="me-2">Submit</Button>
+                        <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
+                    </div>
+                ) : (
+                    <Button variant="contained" onClick={handleCreate}>Create Role</Button>
+                )}
                 <ViewToggle value={view} onChange={setView} options={[{ icon: 'grid', value: 'grid' }, { icon: 'table', value: 'table' }]} />
             </div>
             {creating && (
@@ -153,6 +160,7 @@ const RoleMaster: React.FC = () => {
                         />
                         <Autocomplete
                             multiple={!selectedPerms.includes('Custom')}
+                            disableCloseOnSelect={!selectedPerms.includes('Custom')}
                             options={["Custom", ...roles]}
                             value={selectedPerms.includes('Custom') ? 'Custom' : selectedPerms}
                             onChange={handlePermChange}
@@ -174,6 +182,7 @@ const RoleMaster: React.FC = () => {
                     </div>
                     <Autocomplete
                         multiple
+                        disableCloseOnSelect
                         options={statusActions || []}
                         value={(statusActions || []).filter((a: any) => selectedActionIds.includes(String(a.id)))}
                         onChange={(_, val) => setSelectedActionIds(val.map((a: any) => String(a.id)))}
@@ -186,10 +195,6 @@ const RoleMaster: React.FC = () => {
                         }
                         renderInput={(params) => <TextField {...params} label="Status Actions" />}
                     />
-                    <div className="mt-2">
-                        <Button variant="contained" onClick={handleSubmit} className="me-2">Submit</Button>
-                        <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
-                    </div>
                 </div>
             )}
             {view === 'table' ? (

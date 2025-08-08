@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton } from '@mui/material';
+import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton, Tooltip } from '@mui/material';
 import { getAllLevels, getAllUsersByLevel } from '../../services/LevelService';
 import { getAllUsers } from '../../services/UserService';
 import { updateTicket } from '../../services/TicketService';
@@ -69,7 +69,9 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     return (
         <>
             {assigneeName ? (
-                <UserAvatar name={assigneeName} onClick={(e) => setAnchorEl(e.currentTarget)} />
+                <Tooltip title={assigneeName}>
+                    <span><UserAvatar name={assigneeName} onClick={(e) => setAnchorEl(e.currentTarget)} /></span>
+                </Tooltip>
             ) : (
                 <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
                     <PersonAddAltIcon fontSize="small" />

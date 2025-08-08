@@ -48,7 +48,8 @@ const AllTickets: React.FC = () => {
     const [filtered, setFiltered] = useState<Ticket[]>([]);
     const [page, setPage] = useState(1);
     const [tablePageSize, setTablePageSize] = useState(5);
-    const pageSize = viewMode === 'grid' ? 1 : tablePageSize;
+    const [gridPageSize, setGridPageSize] = useState(5);
+    const pageSize = viewMode === 'grid' ? gridPageSize : tablePageSize;
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
@@ -196,8 +197,27 @@ const AllTickets: React.FC = () => {
                                 </div>
                             ))}
                         </div>
-                        <div className="d-flex justify-content-center mt-3">
+                        <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
+                            <div className="d-flex align-items-center">
+                                <IconButton size="small" onClick={() => setGridPageSize(ps => ps > 1 ? ps - 1 : 1)}>
+                                    <ArrowDropDownIcon />
+                                </IconButton>
+                                <GenericInput
+                                    type="number"
+                                    value={gridPageSize}
+                                    onChange={(e) => {
+                                        const v = parseInt(e.target.value, 10);
+                                        if (!isNaN(v) && v > 0) setGridPageSize(v);
+                                    }}
+                                    size="small"
+                                    sx={{ width: 60, mx: 1 }}
+                                />
+                                <span>/ page</span>
+                                <IconButton size="small" onClick={() => setGridPageSize(ps => ps + 1)}>
+                                    <ArrowDropUpIcon />
+                                </IconButton>
+                            </div>
                         </div>
                     </div>
                 )}
