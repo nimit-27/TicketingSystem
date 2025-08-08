@@ -152,3 +152,8 @@ $i: 0;
     }
   }
 }
+
+// highlight latest history row
+tr.latest-row > td {
+  background-color: #fff3e0 !important;
+}

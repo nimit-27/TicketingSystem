@@ -40,7 +40,9 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
         },
     ];
 
-    const history = Array.isArray(data) ? data : [];
+    const history = Array.isArray(data)
+        ? [...data].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        : [];
 
     return (
         <div>
@@ -55,13 +57,19 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
                 />
             </div>
             {view === 'table' ? (
-                <GenericTable dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
+                <GenericTable
+                    dataSource={history}
+                    columns={columns as any}
+                    rowKey="id"
+                    pagination={false}
+                    rowClassName={(_, idx) => (idx === 0 ? 'latest-row' : '')}
+                />
             ) : (
                 <Timeline>
                     {history.map((h, idx) => (
                         <TimelineItem key={h.id}>
                             <TimelineSeparator>
-                                <TimelineDot />
+                                <TimelineDot sx={{ bgcolor: idx === 0 ? 'warning.light' : undefined }} />
                                 {idx < history.length - 1 && <TimelineConnector />}
                             </TimelineSeparator>
                             <TimelineContent>
