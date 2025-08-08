@@ -7,6 +7,7 @@ import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import './AssigneeDropdown.scss';
 
 interface AssigneeDropdownProps {
     ticketId: string;
@@ -70,10 +71,20 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         <>
             {assigneeName ? (
                 <Tooltip title={assigneeName}>
-                    <span><UserAvatar name={assigneeName} onClick={(e) => setAnchorEl(e.currentTarget)} /></span>
+                    <span>
+                        <UserAvatar
+                            name={assigneeName}
+                            onClick={(e) => setAnchorEl(e.currentTarget)}
+                            className="assignee-btn shadow"
+                        />
+                    </span>
                 </Tooltip>
             ) : (
-                <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
+                <IconButton
+                    size="small"
+                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    className="assignee-btn shadow"
+                >
                     <PersonAddAltIcon fontSize="small" />
                 </IconButton>
             )}
