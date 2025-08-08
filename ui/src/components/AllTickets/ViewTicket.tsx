@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, IconButton, TextField, MenuItem, Select, SelectChangeEvent, Drawer } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
@@ -13,6 +10,8 @@ import { getSeverities } from '../../services/SeverityService';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import CommentsSection from '../Comments/CommentsSection';
 import { useNavigate } from 'react-router-dom';
+import Histories from '../../pages/Histories';
+import { useTranslation } from 'react-i18next';
 
 interface ViewTicketProps {
   ticketId: string | null;
@@ -70,6 +69,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
     onClose();
   };
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const cancelEditing = () => {
     setEditing(false);
@@ -184,6 +184,12 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
               {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
             </Box>
           </Box>
+          {ticketId && (
+            <Box component="fieldset" sx={{ mt: 2, borderColor: 'divider', borderRadius: 1 }}>
+              <legend>{t('History')}</legend>
+              <Histories ticketId={ticketId} />
+            </Box>
+          )}
           <CommentsSection ticketId={ticketId as string} />
         </Box>
       )}

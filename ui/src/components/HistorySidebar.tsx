@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Drawer, Tabs, Tab, Box, Button, IconButton } from '@mui/material';
+import { Drawer, Box, Button, IconButton } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import StatusHistory from './StatusHistory';
-import AssignmentHistory from './AssignmentHistory';
 import { useTranslation } from 'react-i18next';
+import Histories from '../pages/Histories';
 
 interface HistorySidebarProps {
     ticketId: string;
@@ -61,15 +60,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
                     <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>
                         <ChevronLeftIcon />
                     </IconButton>
-                    <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-                        <Tab label={t('Status History')} value="status" />
-                        <Tab label={t('Assignment History')} value="assignment" />
-                    </Tabs>
-                    <Box sx={{ mt: 2 }}>
-                        {tab === 'status'
-                            ? <StatusHistory ticketId={ticketId} />
-                            : <AssignmentHistory ticketId={ticketId} />}
-                    </Box>
+                    <Histories ticketId={ticketId} currentTab={tab} onTabChange={(k) => setTab(k as 'status' | 'assignment')} />
                 </Box>
             </Drawer>
         </>
