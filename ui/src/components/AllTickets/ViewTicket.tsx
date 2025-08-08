@@ -11,6 +11,7 @@ import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import CommentsSection from '../Comments/CommentsSection';
 import { useNavigate } from 'react-router-dom';
 import Histories from '../../pages/Histories';
+import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 
 interface ViewTicketProps {
@@ -185,10 +186,9 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
             </Box>
           </Box>
           {ticketId && (
-            <Box component="fieldset" sx={{ mt: 2, borderColor: 'divider', borderRadius: 1 }}>
-              <legend>{t('History')}</legend>
+            <CustomFieldset title={t('History')} style={{ marginTop: 16 }}>
               <Histories ticketId={ticketId} />
-            </Box>
+            </CustomFieldset>
           )}
           <CommentsSection ticketId={ticketId as string} />
         </Box>

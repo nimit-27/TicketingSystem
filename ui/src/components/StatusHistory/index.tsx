@@ -6,6 +6,7 @@ import { getStatusHistory } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
 import { Paper, useTheme, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { getStatuses } from '../../utils/Utils';
 
 interface HistoryEntry {
     id: string;
@@ -25,10 +26,21 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [statusMap, setStatusMap] = useState<Record<string, string>>({});
 
     useEffect(() => {
         apiHandler(() => getStatusHistory(ticketId));
     }, [ticketId]);
+
+    useEffect(() => {
+        getStatuses().then(list => {
+            const map: Record<string, string> = {};
+            list.forEach((s: any) => {
+                map[s.statusId] = s.statusName;
+            });
+            setStatusMap(map);
+        });
+    }, []);
 
     const columns = [
         { title: t('Updated By'), dataIndex: 'updatedBy', key: 'updatedBy' },
@@ -42,11 +54,13 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             title: t('Status'),
             dataIndex: 'currentStatus',
             key: 'currentStatus',
-            render: (v: string) => v?.replace(/_/g, ' ')
+            render: (v: string) => (statusMap[v]?.replace(/_/g, ' ') || v?.replace(/_/g, ' '))
         },
     ];
 
-    const history = Array.isArray(data) ? data : [];
+    const history = Array.isArray(data)
+        ? [...data].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        : [];
 
     return (
         <div>
@@ -61,18 +75,24 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                 />
             </div>
             {view === 'table' ? (
-                <GenericTable dataSource={history} columns={columns as any} rowKey="id" pagination={false} />
+                <GenericTable
+                    dataSource={history}
+                    columns={columns as any}
+                    rowKey="id"
+                    pagination={false}
+                    rowClassName={(_, idx) => (idx === 0 ? 'latest-row' : '')}
+                />
             ) : (
                 <Timeline>
                     {history.map((h, idx) => (
                         <TimelineItem key={h.id}>
                             <TimelineSeparator>
-                                <TimelineDot />
+                                <TimelineDot sx={{ bgcolor: idx === 0 ? 'warning.light' : undefined }} />
                                 {idx < history.length - 1 && <TimelineConnector />}
                             </TimelineSeparator>
                             <TimelineContent>
                                 <Paper elevation={2} sx={{ p: 1 }}>
-                                    <strong>{h?.currentStatus?.replace(/_/g, ' ')}</strong>
+                                    <strong>{(statusMap[h?.currentStatus]?.replace(/_/g, ' ') || h?.currentStatus?.replace(/_/g, ' '))}</strong>
                                     <div style={{ fontSize: 12 }}>
                                         {new Date(h.timestamp).toLocaleString()} - {h.updatedBy}
                                     </div>
