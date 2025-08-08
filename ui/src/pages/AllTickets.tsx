@@ -56,11 +56,11 @@ const AllTickets: React.FC = () => {
     const { t } = useTranslation();
     const showTable = checkMyTicketsAccess('table');
 
-    const priorityConfig: Record<string, { color: string; count: number }> = {
-        Low: { color: 'success.light', count: 1 },
-        Medium: { color: 'warning.light', count: 2 },
-        High: { color: 'error.main', count: 3 },
-        Critical: { color: 'error.dark', count: 4 }
+    const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
+        Low: { color: 'success.light', count: 1, label: 'Low' },
+        Medium: { color: 'warning.light', count: 2, label: 'Medium' },
+        High: { color: 'error.main', count: 3, label: 'High' },
+        Critical: { color: 'error.dark', count: 4, label: 'Critical' }
     };
 
     const statusFilterOptions: DropdownOption[] = useMemo(() => (

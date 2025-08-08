@@ -66,11 +66,9 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
                         <Tab label={t('Assignment History')} value="assignment" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
-                        {tab === 'status' ? (
-                            <StatusHistory ticketId={ticketId} />
-                        ) : (
-                            <AssignmentHistory ticketId={ticketId} />
-                        )}
+                        {tab === 'status'
+                            ? <StatusHistory ticketId={ticketId} />
+                            : <AssignmentHistory ticketId={ticketId} />}
                     </Box>
                 </Box>
             </Drawer>

@@ -26,6 +26,12 @@ export interface TicketCardData {
     statusId?: string;
 }
 
+interface PriorityConfig {
+    // Define the properties of PriorityConfig as needed, for example:
+    color: string;
+    label: string;
+}
+
 interface TicketCardProps {
     ticket: TicketCardData;
     priorityConfig?: Record<string, PriorityConfig>;
