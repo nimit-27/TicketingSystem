@@ -24,4 +24,7 @@ public class Status {
     private Boolean slaFlag;
 
     private String description;
+
+    @Column(name = "color")
+    private String color;
 }

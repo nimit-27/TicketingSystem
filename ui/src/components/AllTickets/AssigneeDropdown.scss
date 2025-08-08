@@ -7,6 +7,10 @@
   transform: scale(1.1);
 }
 
+.assignee-btn.shadow {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
 .assignee-btn::after {
   content: '';
   position: absolute;

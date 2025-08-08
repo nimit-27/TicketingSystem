@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon, Chip } from '@mui/material';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
@@ -11,7 +10,8 @@ import { updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
-import { getStatusNameById } from '../../utils/Utils';
+import { getStatusNameById, getStatusColorById } from '../../utils/Utils';
+import PriorityBar from './PriorityBar';
 
 export interface TicketCardData {
     id: string;
@@ -26,17 +26,15 @@ export interface TicketCardData {
     statusId?: string;
 }
 
-interface PriorityConfig { color: string; count: number; }
-
 interface TicketCardProps {
     ticket: TicketCardData;
-    priorityConfig: Record<string, PriorityConfig>;
+    priorityConfig?: Record<string, PriorityConfig>;
     onClick?: () => void;
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
     searchCurrentTicketsPaginatedApi: (id: string) => void;
 }
 const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick, statusWorkflows, searchCurrentTicketsPaginatedApi }) => {
-    const p = priorityConfig[ticket.priority as keyof typeof priorityConfig] || { color: 'grey.400', count: 1 };
+    const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
     const [hover, setHover] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
@@ -103,6 +101,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
 
     const recordActions = getAvailableActions(ticket.statusId);
     const statusName = getStatusNameById(ticket.statusId || '') || '';
+    const statusColor = getStatusColorById(ticket.statusId || '') || undefined;
     const truncatedStatus = statusName.length > 12 ? `${statusName.slice(0, 12)}...` : statusName;
 
     return (
@@ -147,7 +146,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 )}
             </Box>
             {hover && (
-                <Box sx={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'center' }}>
+                <Box sx={{ position: 'absolute', bottom: 4, right: 4, display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'flex-end' }}>
                     <VisibilityIcon
                         onClick={(e) => { e.stopPropagation(); navigate(`/tickets/${ticket.id}`); }}
                         fontSize="small"
@@ -175,19 +174,16 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
             <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', alignItems: 'center', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
                 {statusName && (
                     <Tooltip title={statusName}>
-                        <Chip label={truncatedStatus} size="small" sx={{ fontSize: '8px', height: 18, cursor: 'default' }} onClick={(e) => e.stopPropagation()} />
+                        <Chip
+                            label={truncatedStatus}
+                            size="small"
+                            sx={{ fontSize: '8px', height: 18, cursor: 'default', bgcolor: statusColor, color: '#fff' }}
+                            onClick={(e) => e.stopPropagation()}
+                        />
                     </Tooltip>
                 )}
                 <Tooltip title={ticket.priority}>
-                    <Box sx={{ position: 'relative', width: 24, height: 24 + (p.count - 1) * 10, color: p.color }}>
-                        {Array.from({ length: p.count }).map((_, i) => (
-                            <KeyboardArrowUpIcon
-                                key={i}
-                                fontSize="small"
-                                sx={{ position: 'absolute', left: 0, top: `${i * 10}px`, zIndex: p.count - i }}
-                            />
-                        ))}
-                    </Box>
+                    <PriorityBar value={priorityMap[ticket.priority] || 0} />
                 </Tooltip>
             </Box>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} onClick={(e)=>e.stopPropagation()}>

@@ -52,6 +52,11 @@ export function getStatusNameById(statusId: string): any | null {
   return statusList ? statusList?.find(status => status.statusId === statusId)?.statusName : null;
 }
 
+export function getStatusColorById(statusId: string): string | null {
+  const statusList = getStatusList();
+  return statusList ? statusList?.find(status => status.statusId === statusId)?.color || null : null;
+}
+
 export async function getStatuses(): Promise<any[]> {
     if (statusCache) {
         return statusCache;
