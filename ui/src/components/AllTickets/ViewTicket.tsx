@@ -186,11 +186,13 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
             </Box>
           </Box>
           {ticketId && (
-            <CustomFieldset title={t('History')} style={{ marginTop: 16 }}>
+            <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
               <Histories ticketId={ticketId} />
             </CustomFieldset>
           )}
-          <CommentsSection ticketId={ticketId as string} />
+          <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+            <CommentsSection ticketId={ticketId as string} />
+          </CustomFieldset>
         </Box>
       )}
     </Drawer>

@@ -85,7 +85,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
 
     const { t } = useTranslation();
     return (
-        <CustomFieldset title={t('Comments')} className="mt-4">
+        <>
             <div className="border p-3 mb-3">
                 <textarea
                     className="form-control mb-2"
@@ -126,7 +126,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                     <button className="btn btn-link" onClick={() => loadComments()}>{t('Show more')}</button>
                 )}
             </div>
-        </CustomFieldset>
+        </>
     );
 };
 

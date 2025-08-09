@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
 import { checkFieldAccess } from "../utils/permissions";
 import { getStatusList } from "../utils/Utils";
+import CustomFieldset from "../components/CustomFieldset";
 
 interface Ticket {
     id: string;
@@ -124,49 +125,51 @@ const TicketDetails: React.FC = () => {
     };
 
     const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
-    
+
 
     return (
         <div className="container" style={{ display: 'flex' }}>
             <div style={{ flexGrow: 1, marginRight: historyOpen ? 400 : 0 }}>
                 <Title text={`${t('Ticket')} ${ticketId}: ${ticket?.subject}`} />
-            {ticket && (
-                <div className="m-3 d-flex align-items-center">
-                    <p className="mb-0 me-2">{t('Status')}: {ticket.status}</p>
-                    <Switch
-                        checked={statusValue === getStatusList()?.find((s: any) => s.statusCode === 'REOPENED')?.statusId}
-                        onChange={handleReopenToggle}
-                        size="small"
-                    />
-                    <span className="ms-1">{t('Reopen Ticket')}</span>
-                </div>
-            )}
+                {ticket && (
+                    <div className="m-3 d-flex align-items-center">
+                        <p className="mb-0 me-2">{t('Status')}: {ticket.status}</p>
+                        <Switch
+                            checked={statusValue === getStatusList()?.find((s: any) => s.statusCode === 'REOPENED')?.statusId}
+                            onChange={handleReopenToggle}
+                            size="small"
+                        />
+                        <span className="ms-1">{t('Reopen Ticket')}</span>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit(onSubmitUpdate)}>
-                <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
+                    <RequestDetails register={register} control={control} errors={errors} disableAll isFieldSetDisabled />
 
 
-                <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
+                    <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} disableAll />
 
-                <TicketDetailsForm
-                    register={register}
-                    control={control}
-                    setValue={setValue}
-                    errors={errors}
-                    subjectDisabled
-                    disableAll={!editing}
-                    actionElement={allowEdit && editing ? (
-                        <>
-                            <CustomIconButton icon="close" onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }} />
-                            <CustomIconButton icon="check" onClick={handleSubmit(onSubmitUpdate)} style={{ minWidth: 0, padding: 2 }} />
-                        </>
-                    ) : (
-                        <CustomIconButton icon="edit" onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }} />
-                    )}
-                />
-            </form>
+                    <TicketDetailsForm
+                        register={register}
+                        control={control}
+                        setValue={setValue}
+                        errors={errors}
+                        subjectDisabled
+                        disableAll={!editing}
+                        actionElement={allowEdit && editing ? (
+                            <>
+                                <CustomIconButton icon="close" onClick={() => { resetFields(); setEditing(false); }} style={{ minWidth: 0, padding: 2 }} />
+                                <CustomIconButton icon="check" onClick={handleSubmit(onSubmitUpdate)} style={{ minWidth: 0, padding: 2 }} />
+                            </>
+                        ) : (
+                            <CustomIconButton icon="edit" onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }} />
+                        )}
+                    />
+                </form>
 
-                <CommentsSection ticketId={ticketId as string} />
+                <CustomFieldset title={t('Comments')} className="mt-4">
+                    <CommentsSection ticketId={ticketId as string} />
+                </CustomFieldset>
             </div>
             <HistorySidebar ticketId={ticketId as string} open={historyOpen} setOpen={setHistoryOpen} />
         </div>

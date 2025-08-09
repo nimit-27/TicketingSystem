@@ -25,8 +25,8 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
     const toggleCollapse = () => setCollapsed(!collapsed);
 
     if (FciTheme) return (
-        <div className="form-container">
-            <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{cursor:'pointer'}}>
+        <div className="form-container" style={{ ...style }}>
+            <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
                 <h4 className="mb-0">{title}</h4>
                 <CustomIconButton icon={collapsed ? 'arrowdown' : 'arrowup'} size="small" />
             </div>
