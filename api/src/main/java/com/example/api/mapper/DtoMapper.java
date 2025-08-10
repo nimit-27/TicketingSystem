@@ -104,6 +104,7 @@ public class DtoMapper {
         dto.setCurrentStatus(statusHistory.getCurrentStatus());
         dto.setTimestamp(statusHistory.getTimestamp());
         dto.setSlaFlag(statusHistory.getSlaFlag());
+        dto.setRemark(statusHistory.getRemark());
         return dto;
     }
 }

@@ -25,4 +25,7 @@ public class AssignmentHistory {
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
+
+    @Column(name = "remark")
+    private String remark;
 }

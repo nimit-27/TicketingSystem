@@ -77,4 +77,7 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "status_id", referencedColumnName = "status_id")
     private Status status;
+
+    @Transient
+    private String remark;
 }

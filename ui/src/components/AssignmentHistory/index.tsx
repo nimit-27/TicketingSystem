@@ -12,6 +12,7 @@ interface HistoryEntry {
     assignedBy: string;
     assignedTo: string;
     timestamp: string;
+    remark?: string;
 }
 
 interface AssignmentHistoryProps {
@@ -38,6 +39,7 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
             key: 'timestamp',
             render: (v: string) => new Date(v).toLocaleString(),
         },
+        { title: t('Remark'), dataIndex: 'remark', key: 'remark', render: (v: string) => v || '-' },
     ];
 
     const history = Array.isArray(data)
@@ -78,6 +80,7 @@ const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ ticketId }) => {
                                     <div style={{ fontSize: 12 }}>
                                         {new Date(h.timestamp).toLocaleString()} - {h.assignedBy}
                                     </div>
+                                    {h.remark && <div style={{ fontSize: 12 }}>{h.remark}</div>}
                                 </Paper>
                             </TimelineContent>
                         </TimelineItem>

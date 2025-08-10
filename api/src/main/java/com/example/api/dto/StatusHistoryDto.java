@@ -15,4 +15,5 @@ public class StatusHistoryDto {
     private String currentStatus;
     private LocalDateTime timestamp;
     private Boolean slaFlag;
+    private String remark;
 }

@@ -22,7 +22,7 @@ public class StatusHistoryService {
         this.ticketRepository = ticketRepository;
     }
 
-    public StatusHistory addHistory(String ticketId, String updatedBy, String previousStatus, String currentStatus, Boolean slaFlag) {
+    public StatusHistory addHistory(String ticketId, String updatedBy, String previousStatus, String currentStatus, Boolean slaFlag, String remark) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         StatusHistory history = new StatusHistory();
         history.setTicket(ticket);
@@ -31,6 +31,7 @@ public class StatusHistoryService {
         history.setCurrentStatus(currentStatus);
         history.setTimestamp(LocalDateTime.now());
         history.setSlaFlag(slaFlag);
+        history.setRemark(remark);
         return historyRepository.save(history);
     }
 
