@@ -32,4 +32,7 @@ public class StatusHistory {
 
     @Column(name = "sla_flag")
     private Boolean slaFlag;
+
+    @Column(name = "remark")
+    private String remark;
 }

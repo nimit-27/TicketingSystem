@@ -8,6 +8,7 @@ import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { Menu, MenuItem, ListItemIcon, Tooltip } from '@mui/material';
+import { Input, Button } from 'antd';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -45,6 +46,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+    const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
+    const [remark, setRemark] = useState('');
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
@@ -97,13 +101,63 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setCurrentTicketId('');
     };
 
-    const handleActionClick = (wf: TicketStatusWorkflow, ticketId?: string) => {
-        const id = ticketId || currentTicketId;
-        const payload = { status: { statusId: String(wf.nextStatus) }, assignedBy: getCurrentUserDetails()?.username } as any;
+    const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
+        setSelectedAction(wf);
+        setCurrentTicketId(ticketId);
+        setRemark('');
+        setExpandedRowKeys([ticketId]);
+        handleClose();
+    };
+
+    const submitAction = () => {
+        if (!selectedAction) return;
+        const id = currentTicketId;
+        const payload = {
+            status: { statusId: String(selectedAction.nextStatus) },
+            assignedBy: getCurrentUserDetails()?.username,
+            remark
+        } as any;
         updateTicketApiHandler(() => updateTicket(id, payload)).then(() => {
             searchCurrentTicketsPaginatedApi(id);
         });
-        handleClose();
+        cancelAction();
+    };
+
+    const cancelAction = () => {
+        setExpandedRowKeys([]);
+        setSelectedAction(null);
+        setCurrentTicketId('');
+        setRemark('');
+    };
+
+    const getConfirmationText = (action: string) => {
+        switch (action) {
+            case 'Reopen':
+                return 'If you are sure you want to Reopen the ticket, please add a remark and submit';
+            case 'Resolve':
+                return 'If you are sure you want to Resolve the ticket, please add a remark and submit';
+            case 'Close':
+                return 'If you are sure you want to Close the ticket, please add a remark and submit';
+            default:
+                return `If you are sure you want to ${action} the ticket, please add a remark and submit`;
+        }
+    };
+
+    const expandedRowRender = (record: TicketRow) => {
+        if (record.id !== currentTicketId || !selectedAction) return null;
+        const text = getConfirmationText(selectedAction.action);
+        return (
+            <div className="row align-items-center w-100">
+                <div className="col-md-6">{text}</div>
+                <div className="col-md-4">
+                    <Input value={remark} onChange={e => setRemark(e.target.value)} />
+                </div>
+                <div className="col-md-2 d-flex gap-2">
+                    <Button type="primary" size="small" onClick={submitAction}>Submit</Button>
+                    <Button size="small" onClick={cancelAction}>Cancel</Button>
+                </div>
+            </div>
+        );
     };
 
     const columns = useMemo(
@@ -205,12 +259,13 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 rowKey="id"
                 pagination={false}
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
+                expandable={{ expandedRowRender, expandedRowKeys, expandIcon: () => null }}
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 {actions.map(a => {
                     const { icon, className } = getActionIcon(a.action);
                     return (
-                        <MenuItem key={a.id} onClick={() => handleActionClick(a)}>
+                        <MenuItem key={a.id} onClick={() => handleActionClick(a, currentTicketId)}>
                             <ListItemIcon>
                                 <IconComponent icon={icon} className={className} />
                             </ListItemIcon>

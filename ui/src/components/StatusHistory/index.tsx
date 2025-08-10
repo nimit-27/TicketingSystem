@@ -14,6 +14,7 @@ interface HistoryEntry {
     timestamp: string;
     previousStatus: string;
     currentStatus: string;
+    remark?: string;
 }
 
 interface StatusHistoryProps {
@@ -56,6 +57,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             key: 'currentStatus',
             render: (v: string) => (statusMap[v]?.replace(/_/g, ' ') || v?.replace(/_/g, ' '))
         },
+        { title: t('Remark'), dataIndex: 'remark', key: 'remark', render: (v: string) => v || '-' },
     ];
 
     const history = Array.isArray(data)
@@ -96,6 +98,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                                     <div style={{ fontSize: 12 }}>
                                         {new Date(h.timestamp).toLocaleString()} - {h.updatedBy}
                                     </div>
+                                    {h.remark && <div style={{ fontSize: 12 }}>{h.remark}</div>}
                                 </Paper>
                             </TimelineContent>
                         </TimelineItem>

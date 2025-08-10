@@ -30,6 +30,7 @@ CREATE TABLE `assignment_history` (
   `assigned_by` varchar(100) NOT NULL,
   `assigned_to` varchar(100) NOT NULL,
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  `remark` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_ticket_assignment_history` (`ticket_id`),
   CONSTRAINT `fk_ticket_assignment_history` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)
@@ -353,6 +354,7 @@ CREATE TABLE `status_history` (
   `current_status` varchar(50) DEFAULT NULL,
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
   `sla_flag` tinyint DEFAULT NULL,
+  `remark` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`status_history_id`),
   KEY `fk_ticket_status_history` (`ticket_id`),
   CONSTRAINT `fk_ticket_status_history` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)

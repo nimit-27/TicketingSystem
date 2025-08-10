@@ -16,13 +16,14 @@ public class AssignmentHistoryService {
     private final AssignmentHistoryRepository historyRepository;
     private final TicketRepository ticketRepository;
 
-    public AssignmentHistory addHistory(String ticketId, String assignedBy, String assignedTo) {
+    public AssignmentHistory addHistory(String ticketId, String assignedBy, String assignedTo, String remark) {
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
         AssignmentHistory history = new AssignmentHistory();
         history.setTicket(ticket);
         history.setAssignedBy(assignedBy);
         history.setAssignedTo(assignedTo);
         history.setTimestamp(LocalDateTime.now());
+        history.setRemark(remark);
         return historyRepository.save(history);
     }
 
