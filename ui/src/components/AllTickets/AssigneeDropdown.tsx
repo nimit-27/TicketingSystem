@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton, Tooltip } from '@mui/material';
 import { getAllLevels, getAllUsersByLevel } from '../../services/LevelService';
 import { getAllUsers } from '../../services/UserService';
-import { updateTicket } from '../../services/TicketService';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
-import { getCurrentUserDetails } from '../../config/config';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import './AssigneeDropdown.scss';
+import ActionRemarkComponent from './ActionRemarkComponent';
 
 interface AssigneeDropdownProps {
     ticketId: string;
@@ -25,12 +24,13 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const [search, setSearch] = useState('');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
     const [userLevels, setUserLevels] = useState<Record<string, string>>({});
+    const [showActionRemark, setShowActionRemark] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     // Use useApi for all API calls
     const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getUsersByLevelApiHandler } = useApi<any>();
     const { data: allUsersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
-    const { data: updateTicketData, apiHandler: updateTicketApiHandler, pending: updateTicketPending, success: updateTicketSuccess } = useApi<any>();
 
     // Fetch levels on mount
     useEffect(() => {
@@ -45,17 +45,21 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         }
     }, [selectedLevel]);
 
-    // Call onAssigned and close menu when updateTicketData changes
-    useEffect(() => {
-        if (updateTicketSuccess) {
-            // onAssigned?.(updateTicketData.user?.name);
-            searchCurrentTicketsPaginatedApi && searchCurrentTicketsPaginatedApi(ticketId)
-        }
-    }, [updateTicketSuccess, onAssigned]);
 
     const handleSelect = (u: User) => {
-        const payload = { assignedTo: u.username, assignedBy: getCurrentUserDetails()?.username } as any;
-        updateTicketApiHandler(() => updateTicket(ticketId, payload));
+        setSelectedUser(u);
+        setShowActionRemark(true);
+    };
+
+    const handleCancelRemark = () => {
+        setShowActionRemark(false);
+        setSelectedUser(null);
+    };
+
+    const handleSuccess = () => {
+        searchCurrentTicketsPaginatedApi && searchCurrentTicketsPaginatedApi(ticketId);
+        onAssigned && selectedUser && onAssigned(selectedUser.name);
+        handleCancelRemark();
         setAnchorEl(null);
     };
 
@@ -116,6 +120,15 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                             </ListItemButton>
                         ))}
                     </List>
+                    {showActionRemark && selectedUser && (
+                        <ActionRemarkComponent
+                            ticket={{ id: ticketId }}
+                            actionName="Assign"
+                            payload={{ assignedTo: selectedUser.username }}
+                            onCancel={handleCancelRemark}
+                            onSuccess={handleSuccess}
+                        />
+                    )}
                 </Box>
             </Menu>
         </>

@@ -8,11 +8,8 @@ import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { Menu, MenuItem, ListItemIcon, Tooltip } from '@mui/material';
-import { Input, Button } from 'antd';
-import { updateTicket } from '../../services/TicketService';
-import { useApi } from '../../hooks/useApi';
-import { getCurrentUserDetails } from '../../config/config';
 import { TicketStatusWorkflow } from '../../types';
+import ActionRemarkComponent from './ActionRemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityBar from './PriorityBar';
@@ -45,10 +42,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
-    const { apiHandler: updateTicketApiHandler } = useApi<any>();
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
-    const [remark, setRemark] = useState('');
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
@@ -104,59 +99,26 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
         setSelectedAction(wf);
         setCurrentTicketId(ticketId);
-        setRemark('');
         setExpandedRowKeys([ticketId]);
         handleClose();
-    };
-
-    const submitAction = () => {
-        if (!selectedAction) return;
-        const id = currentTicketId;
-        const payload = {
-            status: { statusId: String(selectedAction.nextStatus) },
-            assignedBy: getCurrentUserDetails()?.username,
-            remark
-        } as any;
-        updateTicketApiHandler(() => updateTicket(id, payload)).then(() => {
-            searchCurrentTicketsPaginatedApi(id);
-        });
-        cancelAction();
     };
 
     const cancelAction = () => {
         setExpandedRowKeys([]);
         setSelectedAction(null);
         setCurrentTicketId('');
-        setRemark('');
-    };
-
-    const getConfirmationText = (action: string) => {
-        switch (action) {
-            case 'Reopen':
-                return 'If you are sure you want to Reopen the ticket, please add a remark and submit';
-            case 'Resolve':
-                return 'If you are sure you want to Resolve the ticket, please add a remark and submit';
-            case 'Close':
-                return 'If you are sure you want to Close the ticket, please add a remark and submit';
-            default:
-                return `If you are sure you want to ${action} the ticket, please add a remark and submit`;
-        }
     };
 
     const expandedRowRender = (record: TicketRow) => {
         if (record.id !== currentTicketId || !selectedAction) return null;
-        const text = getConfirmationText(selectedAction.action);
         return (
-            <div className="row align-items-center w-100">
-                <div className="col-md-6">{text}</div>
-                <div className="col-md-4">
-                    <Input value={remark} onChange={e => setRemark(e.target.value)} />
-                </div>
-                <div className="col-md-2 d-flex gap-2">
-                    <Button type="primary" size="small" onClick={submitAction}>Submit</Button>
-                    <Button size="small" onClick={cancelAction}>Cancel</Button>
-                </div>
-            </div>
+            <ActionRemarkComponent
+                ticket={record}
+                actionName={selectedAction.action}
+                payload={{ status: { statusId: String(selectedAction.nextStatus) } }}
+                onCancel={cancelAction}
+                onSuccess={() => searchCurrentTicketsPaginatedApi(record.id)}
+            />
         );
     };
 
