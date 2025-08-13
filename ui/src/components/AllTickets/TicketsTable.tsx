@@ -12,7 +12,7 @@ import { TicketStatusWorkflow } from '../../types';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
-import PriorityIcon from './PriorityIcon';
+import PriorityIcon from '../UI/Icons/PriorityIcon';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';

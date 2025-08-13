@@ -1,6 +1,6 @@
 import React from 'react';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { Box } from '@mui/material';
+import { IconComponent } from '../IconButton/CustomIconButton';
 
 interface PriorityIconProps {
   level: number;
@@ -18,7 +18,8 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
       {Array.from({ length: count }).map((_, i) => (
-        <ArrowUpwardIcon key={i} sx={{ fontSize: 16, color, mt: i ? -0.5 : 0 }} />
+        <IconComponent icon='arrowup' fontSize='small' className='priority-icon' key={i} />
+        // <ArrowUpwardIcon key={i} sx={{ fontSize: 16, color, mt: i ? -0.5 : 0 }} />
       ))}
     </Box>
   );

@@ -8,7 +8,7 @@ import { TicketStatusWorkflow } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { getStatusNameById, getStatusColorById } from '../../utils/Utils';
-import PriorityIcon from './PriorityIcon';
+import PriorityIcon from '../UI/Icons/PriorityIcon';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
