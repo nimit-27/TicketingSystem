@@ -7,6 +7,8 @@ import { useApi } from '../../hooks/useApi';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import './AssigneeDropdown.scss';
 import ActionRemarkComponent from './ActionRemarkComponent';
+import { updateTicket } from '../../services/TicketService';
+import { getCurrentUserDetails } from '../../config/config';
 
 interface AssigneeDropdownProps {
     ticketId: string;
@@ -31,6 +33,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getUsersByLevelApiHandler } = useApi<any>();
     const { data: allUsersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     // Fetch levels on mount
     useEffect(() => {
@@ -122,11 +125,18 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                     </List>
                     {showActionRemark && selectedUser && (
                         <ActionRemarkComponent
-                            ticket={{ id: ticketId }}
                             actionName="Assign"
-                            payload={{ assignedTo: selectedUser.username }}
                             onCancel={handleCancelRemark}
-                            onSuccess={handleSuccess}
+                            onSubmit={(remark) => {
+                                const payload = {
+                                    assignedTo: selectedUser.username,
+                                    remark,
+                                    assignedBy: getCurrentUserDetails()?.username,
+                                };
+                                updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
+                                    handleSuccess();
+                                });
+                            }}
                         />
                     )}
                 </Box>

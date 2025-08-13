@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
-import { updateTicket } from '../../services/TicketService';
-import { useApi } from '../../hooks/useApi';
-import { getCurrentUserDetails } from '../../config/config';
-
 interface ActionRemarkProps {
-  ticket: any;
   actionName: string;
-  payload: Record<string, any>;
+  onSubmit: (remark: string) => void;
   onCancel: () => void;
-  onSuccess?: () => void;
 }
 
 const getConfirmationText = (action: string) => {
@@ -25,20 +19,15 @@ const getConfirmationText = (action: string) => {
   }
 };
 
-const ActionRemarkComponent: React.FC<ActionRemarkProps> = ({ ticket, actionName, payload, onCancel, onSuccess }) => {
+const ActionRemarkComponent: React.FC<ActionRemarkProps> = ({ actionName, onSubmit, onCancel }) => {
   const [remark, setRemark] = useState('');
-  const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
   const submit = () => {
-    const id = ticket.id;
-    const reqPayload = {
-      ...payload,
-      remark,
-      assignedBy: getCurrentUserDetails()?.username,
-    } as any;
-    updateTicketApiHandler(() => updateTicket(id, reqPayload)).then(() => {
-      onSuccess && onSuccess();
-    });
+    onSubmit(remark);
+  };
+
+  const cancelRemark = () => {
+    setRemark('');
     onCancel();
   };
 
@@ -50,7 +39,7 @@ const ActionRemarkComponent: React.FC<ActionRemarkProps> = ({ ticket, actionName
         <Button variant="contained" size="small" onClick={submit}>
           Submit
         </Button>
-        <Button variant="outlined" size="small" onClick={onCancel}>
+        <Button variant="outlined" size="small" onClick={cancelRemark}>
           Cancel
         </Button>
       </Box>

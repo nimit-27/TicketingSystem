@@ -13,6 +13,9 @@ import ActionRemarkComponent from './ActionRemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityBar from './PriorityBar';
+import { updateTicket } from '../../services/TicketService';
+import { useApi } from '../../hooks/useApi';
+import { getCurrentUserDetails } from '../../config/config';
 
 export interface TicketRow {
     id: string;
@@ -44,6 +47,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
@@ -113,11 +117,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         if (record.id !== currentTicketId || !selectedAction) return null;
         return (
             <ActionRemarkComponent
-                ticket={record}
                 actionName={selectedAction.action}
-                payload={{ status: { statusId: String(selectedAction.nextStatus) } }}
                 onCancel={cancelAction}
-                onSuccess={() => searchCurrentTicketsPaginatedApi(record.id)}
+                onSubmit={(remark) => {
+                    const reqPayload = {
+                        status: { statusId: String(selectedAction.nextStatus) },
+                        remark,
+                        assignedBy: getCurrentUserDetails()?.username,
+                    } as any;
+                    updateTicketApiHandler(() => updateTicket(record.id, reqPayload)).then(() => {
+                        searchCurrentTicketsPaginatedApi(record.id);
+                        cancelAction();
+                    });
+                }}
             />
         );
     };
