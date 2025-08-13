@@ -59,20 +59,22 @@ const iconMap = {
 // Valid keys for the icon map
 type IconKey = keyof typeof iconMap;
 
-interface CustomIconButtonProps extends IconButtonProps {
-    icon: string; // passed in as string, handled internally
-}
-
 // Helper component to render icon
-export const IconComponent: React.FC<{ icon: string; fontSize?: 'small' | 'medium' | 'large'; className?: string }> = ({
+export const IconComponent: React.FC<{
+    icon: string;
+    fontSize?: 'small' | 'medium' | 'large';
+    className?: string;
+    style?: React.CSSProperties;
+}> = ({
     icon,
     fontSize = 'small',
     className,
+    style,
 }) => {
     const key = icon as IconKey;
     const Icon = iconMap[key];
 
-    return Icon ? <Icon fontSize={fontSize} className={className} /> : null;
+    return Icon ? <Icon fontSize={fontSize} className={className} style={style} /> : null;
 };
 
 interface CustomIconButtonProps extends IconButtonProps {
