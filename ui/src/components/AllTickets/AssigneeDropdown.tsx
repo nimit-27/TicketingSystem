@@ -59,6 +59,18 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         setSelectedUser(null);
     };
 
+    const handleSubmitRemark = (remark: string, selectedUser: User) => {
+        const payload = {
+            assignedTo: selectedUser.username,
+            remark,
+            assignedBy: getCurrentUserDetails()?.username,
+            updatedBy: getCurrentUserDetails()?.username
+        };
+        updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
+            handleSuccess();
+        });
+    }
+
     const handleSuccess = () => {
         searchCurrentTicketsPaginatedApi && searchCurrentTicketsPaginatedApi(ticketId);
         onAssigned && selectedUser && onAssigned(selectedUser.name);
@@ -127,16 +139,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                         <ActionRemarkComponent
                             actionName="Assign"
                             onCancel={handleCancelRemark}
-                            onSubmit={(remark) => {
-                                const payload = {
-                                    assignedTo: selectedUser.username,
-                                    remark,
-                                    assignedBy: getCurrentUserDetails()?.username,
-                                };
-                                updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
-                                    handleSuccess();
-                                });
-                            }}
+                            onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
                         />
                     )}
                 </Box>

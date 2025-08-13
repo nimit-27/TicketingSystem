@@ -105,6 +105,20 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
         handleClose();
     };
 
+    const handleSubmitRemark = (remark: string) => {
+        const id = ticket.id;
+        const reqPayload = {
+            updatedBy: getCurrentUserDetails()?.username,
+            status: { statusId: String(selectedAction?.nextStatus) },
+            remark,
+        } as any;
+        updateTicketApiHandler(() => updateTicket(id, reqPayload)).then(() => {
+            searchCurrentTicketsPaginatedApi(ticket.id);
+            cancelAction();
+        });
+
+    }
+
     const cancelAction = () => {
         setShowActionRemark(false);
         setSelectedAction(null);
@@ -146,15 +160,18 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 </Typography>
             </CardContent>
             <Box sx={{ position: 'absolute', top: 8, right: 8 }} onClick={(e) => e.stopPropagation()}>
-                {allowAssigneeChange(ticket.statusId) ? (
-                    <AssigneeDropdown ticketId={ticket.id} assigneeName={ticket.assignedTo} />
-                ) : (
-                    ticket.assignedTo ? (
-                        <Tooltip title={ticket.assignedTo}>
+                {allowAssigneeChange(ticket.statusId)
+                    ? <AssigneeDropdown
+                        ticketId={ticket.id}
+                        assigneeName={ticket.assignedTo}
+                        searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                    />
+                    : ticket.assignedTo
+                        ? <Tooltip title={ticket.assignedTo}>
                             <span><UserAvatar name={ticket.assignedTo} /></span>
                         </Tooltip>
-                    ) : null
-                )}
+                        : null
+                }
             </Box>
             {hover && (
                 <Box sx={{ position: 'absolute', bottom: 4, right: 4, display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -197,7 +214,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     <PriorityBar value={priorityMap[ticket.priority] || 0} />
                 </Tooltip>
             </Box>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} onClick={(e)=>e.stopPropagation()}>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} onClick={(e) => e.stopPropagation()}>
                 {actions.map(a => {
                     const { icon, className } = getActionIcon(a.action);
                     return (
@@ -211,22 +228,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 })}
             </Menu>
             {showActionRemark && selectedAction && (
-                <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'grey.300' }} onClick={(e)=>e.stopPropagation()}>
+                <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'grey.300' }} onClick={(e) => e.stopPropagation()}>
                     <ActionRemarkComponent
                         actionName={selectedAction.action}
                         onCancel={cancelAction}
-                        onSubmit={(remark) => {
-                            const id = ticket.id;
-                            const reqPayload = {
-                                status: { statusId: String(selectedAction.nextStatus) },
-                                remark,
-                                assignedBy: getCurrentUserDetails()?.username,
-                            } as any;
-                            updateTicketApiHandler(() => updateTicket(id, reqPayload)).then(() => {
-                                searchCurrentTicketsPaginatedApi(ticket.id);
-                                cancelAction();
-                            });
-                        }}
+                        onSubmit={handleSubmitRemark}
                     />
                 </Box>
             )}
