@@ -10,6 +10,9 @@ import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { getStatusNameById, getStatusColorById } from '../../utils/Utils';
 import PriorityBar from './PriorityBar';
 import ActionRemarkComponent from './ActionRemarkComponent';
+import { updateTicket } from '../../services/TicketService';
+import { useApi } from '../../hooks/useApi';
+import { getCurrentUserDetails } from '../../config/config';
 
 export interface TicketCardData {
     id: string;
@@ -45,6 +48,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     const navigate = useNavigate();
     const [showActionRemark, setShowActionRemark] = useState(false);
     const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
@@ -209,13 +213,19 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
             {showActionRemark && selectedAction && (
                 <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'grey.300' }} onClick={(e)=>e.stopPropagation()}>
                     <ActionRemarkComponent
-                        ticket={ticket}
                         actionName={selectedAction.action}
-                        payload={{ status: { statusId: String(selectedAction.nextStatus) } }}
                         onCancel={cancelAction}
-                        onSuccess={() => {
-                            searchCurrentTicketsPaginatedApi(ticket.id);
-                            cancelAction();
+                        onSubmit={(remark) => {
+                            const id = ticket.id;
+                            const reqPayload = {
+                                status: { statusId: String(selectedAction.nextStatus) },
+                                remark,
+                                assignedBy: getCurrentUserDetails()?.username,
+                            } as any;
+                            updateTicketApiHandler(() => updateTicket(id, reqPayload)).then(() => {
+                                searchCurrentTicketsPaginatedApi(ticket.id);
+                                cancelAction();
+                            });
                         }}
                     />
                 </Box>
