@@ -18,7 +18,13 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
       {Array.from({ length: count }).map((_, i) => (
-        <IconComponent icon='arrowup' fontSize='small' className='priority-icon' key={i} />
+        <IconComponent
+          icon='arrowup'
+          fontSize='small'
+          className='priority-icon'
+          style={{ fontSize: 16, color, marginTop: i ? -4 : 0 }}
+          key={i}
+        />
         // <ArrowUpwardIcon key={i} sx={{ fontSize: 16, color, mt: i ? -0.5 : 0 }} />
       ))}
     </Box>
