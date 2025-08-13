@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon, Chip, TextField, Button } from '@mui/material';
+import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { TicketStatusWorkflow } from '../../types';
-import { useApi } from '../../hooks/useApi';
-import { updateTicket } from '../../services/TicketService';
-import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { getStatusNameById, getStatusColorById } from '../../utils/Utils';
 import PriorityBar from './PriorityBar';
+import ActionRemarkComponent from './ActionRemarkComponent';
 
 export interface TicketCardData {
     id: string;
@@ -44,11 +42,9 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     const [hover, setHover] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
-    const { apiHandler: updateTicketApiHandler } = useApi<any>();
     const navigate = useNavigate();
-    const [showRemark, setShowRemark] = useState(false);
+    const [showActionRemark, setShowActionRemark] = useState(false);
     const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
-    const [remark, setRemark] = useState('');
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
@@ -101,42 +97,13 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     const handleActionClick = (wf: TicketStatusWorkflow, e?: React.MouseEvent) => {
         e?.stopPropagation();
         setSelectedAction(wf);
-        setShowRemark(true);
-        setRemark('');
+        setShowActionRemark(true);
         handleClose();
     };
 
-    const submitAction = () => {
-        if (!selectedAction) return;
-        const id = ticket.id;
-        const payload = {
-            status: { statusId: String(selectedAction.nextStatus) },
-            assignedBy: getCurrentUserDetails()?.username,
-            remark
-        } as any;
-        updateTicketApiHandler(() => updateTicket(id, payload)).then(() => {
-            searchCurrentTicketsPaginatedApi(id);
-        });
-        cancelAction();
-    };
-
     const cancelAction = () => {
-        setShowRemark(false);
+        setShowActionRemark(false);
         setSelectedAction(null);
-        setRemark('');
-    };
-
-    const getConfirmationText = (action: string) => {
-        switch (action) {
-            case 'Reopen':
-                return 'If you are sure you want to Reopen the ticket, please add a remark and submit';
-            case 'Resolve':
-                return 'If you are sure you want to Resolve the ticket, please add a remark and submit';
-            case 'Close':
-                return 'If you are sure you want to Close the ticket, please add a remark and submit';
-            default:
-                return `If you are sure you want to ${action} the ticket, please add a remark and submit`;
-        }
     };
 
     const recordActions = getAvailableActions(ticket.statusId);
@@ -239,14 +206,18 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     );
                 })}
             </Menu>
-            {showRemark && selectedAction && (
-                <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'grey.300', display: 'flex', flexDirection: 'column', gap: 1 }} onClick={(e)=>e.stopPropagation()}>
-                    <Typography variant="body2">{getConfirmationText(selectedAction.action)}</Typography>
-                    <TextField size="small" value={remark} onChange={(e) => setRemark(e.target.value)} />
-                    <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                        <Button variant="contained" size="small" onClick={submitAction}>Submit</Button>
-                        <Button variant="outlined" size="small" onClick={cancelAction}>Cancel</Button>
-                    </Box>
+            {showActionRemark && selectedAction && (
+                <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'grey.300' }} onClick={(e)=>e.stopPropagation()}>
+                    <ActionRemarkComponent
+                        ticket={ticket}
+                        actionName={selectedAction.action}
+                        payload={{ status: { statusId: String(selectedAction.nextStatus) } }}
+                        onCancel={cancelAction}
+                        onSuccess={() => {
+                            searchCurrentTicketsPaginatedApi(ticket.id);
+                            cancelAction();
+                        }}
+                    />
                 </Box>
             )}
         </Card>
