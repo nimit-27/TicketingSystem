@@ -122,25 +122,29 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                             />
                         ))}
                     </Box>
-                    <List dense>
-                        {filtered.map(u => (
-                            <ListItemButton key={u.userId} onClick={() => handleSelect(u)}>
-                                <Box sx={{ display: 'flex', width: '100%' }}>
-                                    <Box sx={{ width: 60 }}>
-                                        {selectedLevel ? levels.find(l => l.levelId === selectedLevel)?.levelName : userLevels[u.userId]}
+                    <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
+                        <List dense>
+                            {filtered.map(u => (
+                                <ListItemButton key={u.userId} onClick={() => handleSelect(u)}>
+                                    <Box sx={{ display: 'flex', width: '100%' }}>
+                                        <Box sx={{ width: 60 }}>
+                                            {selectedLevel ? levels.find(l => l.levelId === selectedLevel)?.levelName : userLevels[u.userId]}
+                                        </Box>
+                                        <Box sx={{ flexGrow: 1 }}>{u.name}</Box>
+                                        <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.username}</Box>
                                     </Box>
-                                    <Box sx={{ flexGrow: 1 }}>{u.name}</Box>
-                                    <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.username}</Box>
-                                </Box>
-                            </ListItemButton>
-                        ))}
-                    </List>
+                                </ListItemButton>
+                            ))}
+                        </List>
+                    </Box>
                     {showActionRemark && selectedUser && (
-                        <ActionRemarkComponent
-                            actionName="Assign"
-                            onCancel={handleCancelRemark}
-                            onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
-                        />
+                        <Box sx={{ mt: 1 }}>
+                            <ActionRemarkComponent
+                                actionName="Assign"
+                                onCancel={handleCancelRemark}
+                                onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
+                            />
+                        </Box>
                     )}
                 </Box>
             </Menu>

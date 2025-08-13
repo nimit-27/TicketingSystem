@@ -8,7 +8,7 @@ import { TicketStatusWorkflow } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { getStatusNameById, getStatusColorById } from '../../utils/Utils';
-import PriorityBar from './PriorityBar';
+import PriorityIcon from './PriorityIcon';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
@@ -211,7 +211,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     </Tooltip>
                 )}
                 <Tooltip title={ticket.priority}>
-                    <PriorityBar value={priorityMap[ticket.priority] || 0} />
+                    <PriorityIcon level={priorityMap[ticket.priority] || 0} />
                 </Tooltip>
             </Box>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} onClick={(e) => e.stopPropagation()}>

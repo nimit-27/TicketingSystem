@@ -12,7 +12,7 @@ import { TicketStatusWorkflow } from '../../types';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
-import PriorityBar from './PriorityBar';
+import PriorityIcon from './PriorityIcon';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -166,7 +166,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
-            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string) => <PriorityBar value={priorityMap[v] || 0} /> },
+            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string) => <PriorityIcon level={priorityMap[v] || 0} /> },
             {
                 title: t('Assignee'),
                 key: 'assignee',
