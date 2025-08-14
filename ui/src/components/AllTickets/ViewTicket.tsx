@@ -5,6 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket } from '../../services/TicketService';
+import { getCurrentUserDetails } from '../../config/config';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
@@ -57,7 +58,8 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
       description,
       priority,
       severity,
-      recommendedSeverity
+      recommendedSeverity,
+      updatedBy: getCurrentUserDetails()?.username
     };
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
       setEditing(false);
@@ -119,7 +121,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
   );
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleDateString() : ''}` : '';
-  const updatedInfo = ticket ? `Updated by ${ticket.assignedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
+  const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
 
   if (!open) return null;
 

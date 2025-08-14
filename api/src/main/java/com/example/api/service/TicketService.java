@@ -91,7 +91,9 @@ public class TicketService {
     public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
         if(ticket.isMaster()) ticket.setMasterId(null);
-
+        if (ticket.getUpdatedBy() == null) {
+            ticket.setUpdatedBy(ticket.getAssignedBy());
+        }
 
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             User user = userRepository.findById(ticket.getUserId()).orElseThrow();
@@ -125,12 +127,12 @@ public class TicketService {
 
         String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
         boolean sla = workflowService.getSlaFlagByStatusId(openId);
-        statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), null, openId, sla, null);
+        statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, null);
         if (isAssigned) {
             assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), null);
             String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
             boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
-            statusHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), openId, assignedId, slaAssigned, null);
+            statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null);
         }
 
         // Prepare data model for Freemarker template
@@ -211,10 +213,13 @@ public class TicketService {
                 statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
             }
         }
+        if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
         Ticket saved = ticketRepository.save(existing);
-        String updatedBy = updated.getAssignedBy() != null ? updated.getAssignedBy() : existing.getAssignedBy();
+        String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
-            assignmentHistoryService.addHistory(id, updated.getAssignedBy(), updated.getAssignedTo(), remark);
+            assignmentHistoryService.addHistory(id,
+                    updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy,
+                    updated.getAssignedTo(), remark);
             if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
                 String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);

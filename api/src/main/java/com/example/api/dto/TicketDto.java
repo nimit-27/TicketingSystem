@@ -40,6 +40,7 @@ public class TicketDto {
     private String assignedToLevel;
     private String assignedTo;
     private String assignedBy;
+    private String updatedBy;
     @JsonProperty("isMaster")
     private boolean isMaster;
     private String masterId;

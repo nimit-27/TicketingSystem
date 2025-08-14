@@ -67,6 +67,9 @@ public class Ticket {
     @Column(name = "assigned_by")
     private String assignedBy;
 
+    @Column(name = "updated_by")
+    private String updatedBy;
+
     @JsonProperty("isMaster")
     @Column(name = "is_master")
     private boolean isMaster;

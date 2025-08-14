@@ -124,6 +124,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         status: { statusId: String(selectedAction.nextStatus) },
                         remark,
                         assignedBy: getCurrentUserDetails()?.username,
+                        updatedBy: getCurrentUserDetails()?.username,
                     } as any;
                     updateTicketApiHandler(() => updateTicket(record.id, reqPayload)).then(() => {
                         searchCurrentTicketsPaginatedApi(record.id);
