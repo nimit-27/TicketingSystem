@@ -133,6 +133,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     useEffect(() => {
         if (register && typeof register === 'function') {
             register('assignedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
+            register('updatedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
         }
     }, [register]);
 

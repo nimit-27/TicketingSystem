@@ -39,6 +39,9 @@ export interface Ticket {
     requestorMobileNo?: string;
     statusId?: string;
     assignedTo?: string;
+    assignedBy?: string;
+    updatedBy?: string;
+    lastModified?: string;
 }
 
 export interface TicketStatusWorkflow {
