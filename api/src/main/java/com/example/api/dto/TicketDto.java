@@ -4,6 +4,7 @@ import com.example.api.enums.Mode;
 import com.example.api.enums.Priority;
 import com.example.api.enums.Severity;
 import com.example.api.enums.TicketStatus;
+import com.example.api.enums.FeedbackStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,4 +44,6 @@ public class TicketDto {
     private boolean isMaster;
     private String masterId;
     private LocalDateTime lastModified;
+    private LocalDateTime resolvedAt;
+    private FeedbackStatus feedbackStatus;
 }

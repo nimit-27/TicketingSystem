@@ -4,6 +4,7 @@ import com.example.api.enums.Mode;
 import com.example.api.enums.Priority;
 import com.example.api.enums.Severity;
 import com.example.api.enums.TicketStatus;
+import com.example.api.enums.FeedbackStatus;
 import com.example.api.models.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -73,6 +74,13 @@ public class Ticket {
     private String masterId;
     @Column(name = "last_modified")
     private LocalDateTime lastModified;
+
+    @Column(name = "resolved_at")
+    private LocalDateTime resolvedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "feedback_status")
+    private FeedbackStatus feedbackStatus;
 
     @ManyToOne
     @JoinColumn(name = "status_id", referencedColumnName = "status_id")

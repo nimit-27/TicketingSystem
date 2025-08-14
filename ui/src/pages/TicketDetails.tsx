@@ -11,6 +11,8 @@ import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import Switch from "@mui/material/Switch";
 import CommentsSection from "../components/Comments/CommentsSection";
 import HistorySidebar from "../components/HistorySidebar";
+import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarContext";
 import { checkFieldAccess } from "../utils/permissions";
@@ -40,10 +42,13 @@ interface Ticket {
     assignTo?: string;
     assignedToLevel?: string;
     assignedTo?: string;
+    resolvedAt?: string;
+    feedbackStatus?: string;
 }
 
 const TicketDetails: React.FC = () => {
     const { ticketId } = useParams();
+    const navigate = useNavigate();
     const { data: ticket, apiHandler: getTicketApiHandler } = useApi<any>();
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
     const { showMessage } = useSnackbar();
@@ -140,6 +145,16 @@ const TicketDetails: React.FC = () => {
                             size="small"
                         />
                         <span className="ms-1">{t('Reopen Ticket')}</span>
+                        {ticket.feedbackStatus === 'PENDING' && (
+                            <Button variant="outlined" size="small" className="ms-3" onClick={() => navigate(`/tickets/${ticketId}/feedback`)}>
+                                Submit Feedback
+                            </Button>
+                        )}
+                        {ticket.feedbackStatus === 'PROVIDED' && (
+                            <Button variant="outlined" size="small" className="ms-3" onClick={() => navigate(`/tickets/${ticketId}/feedback`)}>
+                                View Feedback
+                            </Button>
+                        )}
                     </div>
                 )}
 

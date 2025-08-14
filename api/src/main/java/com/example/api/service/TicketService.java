@@ -14,6 +14,7 @@ import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
 import com.example.api.enums.TicketStatus;
+import com.example.api.enums.FeedbackStatus;
 import com.example.api.typesense.TypesenseClient;
 import com.example.notification.enums.ChannelType;
 import com.example.notification.service.NotificationService;
@@ -188,6 +189,10 @@ public class TicketService {
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
         if (updatedStatus != null) existing.setTicketStatus(updatedStatus);
         if (updatedStatusId != null) statusMasterRepository.findById(updatedStatusId).ifPresent(existing::setStatus);
+        if (updatedStatus == TicketStatus.RESOLVED && existing.getResolvedAt() == null) {
+            existing.setResolvedAt(LocalDateTime.now());
+            existing.setFeedbackStatus(FeedbackStatus.PENDING);
+        }
         if (updated.getSubCategory() != null) existing.setSubCategory(updated.getSubCategory());
         if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
         if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
