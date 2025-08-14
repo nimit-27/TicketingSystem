@@ -1,5 +1,6 @@
 CREATE DATABASE  IF NOT EXISTS `ticketing_system` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `ticketing_system`;
+SET FOREIGN_KEY_CHECKS = 0;
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ticketing_system
@@ -51,6 +52,7 @@ UNLOCK TABLES;
 -- Table structure for table `categories`
 --
 
+DROP TABLE IF EXISTS `sub_categories`;
 DROP TABLE IF EXISTS `categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -403,7 +405,6 @@ UNLOCK TABLES;
 -- Table structure for table `sub_categories`
 --
 
-DROP TABLE IF EXISTS `sub_categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sub_categories` (
@@ -686,6 +687,7 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `users_view`;
+SET FOREIGN_KEY_CHECKS = 1;
 /*!50001 DROP VIEW IF EXISTS `users_view`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
