@@ -65,6 +65,8 @@ public class DtoMapper {
         dto.setMaster(ticket.isMaster());
         dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
         dto.setLastModified(ticket.getLastModified());
+        dto.setResolvedAt(ticket.getResolvedAt());
+        dto.setFeedbackStatus(ticket.getFeedbackStatus());
         return dto;
     }
 

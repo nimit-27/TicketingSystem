@@ -4,6 +4,7 @@ import RaiseTicket from './pages/RaiseTicket';
 import AllTickets from './pages/AllTickets';
 import KnowledgeBase from './pages/KnowledgeBase';
 import TicketDetails from './pages/TicketDetails';
+import CustomerSatisfactionForm from './pages/CustomerSatisfactionForm';
 import CategoriesMaster from './pages/CategoriesMaster';
 import EscalationMaster from './pages/EscalationMaster';
 import RoleMaster from './pages/RoleMaster';
@@ -20,6 +21,7 @@ function App() {
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
         <Route path="tickets/:ticketId" element={<TicketDetails />} />
+        <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />
         <Route path="categories-master" element={<CategoriesMaster />} />
         <Route path="escalation-master" element={<EscalationMaster />} />
