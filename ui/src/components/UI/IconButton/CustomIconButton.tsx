@@ -23,6 +23,14 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import CategoryIcon from "@mui/icons-material/Category";
+import LockIcon from '@mui/icons-material/Lock';
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
@@ -53,7 +61,15 @@ const iconMap = {
     pause: PauseCircleOutline,
     northEast: NorthEast,
     moving: Moving,
-    personAddAlt: PersonAddAlt
+    personAddAlt: PersonAddAlt,
+    listAlt:ListAltIcon,
+    lock: LockIcon,
+    addCircleOutline: AddCircleOutlineIcon,
+    libraryBooks: LibraryBooksIcon,
+    category: CategoryIcon,
+    supervisorAccount: SupervisorAccountIcon,
+    manageAccounts: ManageAccountsIcon,
+    questionAnswer: QuestionAnswerIcon,
 };
 
 // Valid keys for the icon map

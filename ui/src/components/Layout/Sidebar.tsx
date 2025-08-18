@@ -4,54 +4,60 @@ import { Link } from "react-router-dom";
 import {
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import ListAltIcon from "@mui/icons-material/ListAlt";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import CategoryIcon from "@mui/icons-material/Category";
 import { checkSidebarAccess } from "../../utils/permissions";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
-import LockIcon from '@mui/icons-material/Lock';
 import { useTheme } from "@mui/material/styles";
+import { IconComponent } from "../UI/IconButton/CustomIconButton";
 
 const menuItems = [
   {
+    key: "allTickets",
+    label: "All Tickets",
+    to: "/tickets",
+    icon: "listAlt",
+  },
+  {
     key: "myTickets",
     label: "My Tickets",
-    to: "/tickets",
-    icon: <ListAltIcon />,
+    to: "/my-tickets",
+    icon: "listAlt",
   },
   {
     key: "raiseTickets",
     label: "Raise Ticket",
     to: "/create-ticket",
-    icon: <AddCircleOutlineIcon />,
+    icon: "addCircleOutline",
+  },
+  {
+    key: "faq",
+    label: "FAQ",
+    to: "/faq",
+    icon: "questionAnswer",
   },
   {
     key: "knowledgeBase",
     label: "Knowledge Base",
     to: "/knowledge-base",
-    icon: <LibraryBooksIcon />,
+    icon: "libraryBooks",
   },
   {
     key: "categoriesMaster",
     label: "Categories Master",
     to: "/categories-master",
-    icon: <CategoryIcon />,
+    icon: "category",
   },
   {
     key: "escalationMaster",
     label: "Escalation Master",
     to: "/escalation-master",
-    icon: <SupervisorAccountIcon />,
+    icon: "supervisorAccount",
   },
   {
     key: "roleMaster",
     label: "Role Master",
     to: "/role-master",
-    icon: <LockIcon />,
+    icon: "manageAccounts",
   },
 ];
 
@@ -88,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           }
           return (
             <ListItemButton component={Link} to={to} key={label}>
-              <ListItemIcon style={{ color: textColor }}>{icon}</ListItemIcon>
+              <IconComponent icon={icon} style={{ color: textColor }} className="me-2" />
               {!collapsed && (
                 <ListItemText
                   primaryTypographyProps={{
