@@ -11,6 +11,8 @@ import RoleMaster from './pages/RoleMaster';
 import RoleDetails from './pages/RoleDetails';
 import SidebarLayout from './components/Layout/SidebarLayout';
 import Login from './pages/Login';
+import MyTickets from './pages/MyTickets';
+import Faq from './pages/Faq';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         <Route index element={<Navigate to="/create-ticket" replace />} />
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
+        <Route path="my-tickets" element={<MyTickets />} />
+        <Route path="faq" element={<Faq />} />
         <Route path="tickets/:ticketId" element={<TicketDetails />} />
         <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />
