@@ -46,7 +46,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const { data, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
-    const mode = useWatch({ control, name: 'mode' });
+    const mode = useWatch({ control, name: 'mode', defaultValue: 'Self' });
     const onBehalfFciUser = useWatch({ control, name: 'onBehalfFciUser' });
     const office = useWatch({ control, name: 'office' });
     const mobileNo = useWatch({ control, name: 'mobileNo' });
@@ -165,7 +165,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const isSelfHelpdesk = helpdesk && mode === 'Self';
 
-    const showOnBehalfCheckbox = helpdesk && createMode && mode !== 'Self';
+    const showOnBehalfCheckbox = checkFieldAccess('requestorDetails', 'onBehalfOfFciUser') && createMode && mode !== 'Self';
 
     const showFciToggle = false;
     const showUserId = checkFieldAccess('requestorDetails', 'userId')
