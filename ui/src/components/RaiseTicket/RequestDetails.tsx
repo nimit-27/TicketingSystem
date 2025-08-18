@@ -21,9 +21,9 @@ const modeOptions: DropdownOption[] = [
     { label: "Email", value: "Email" }
 ];
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled, createMode }) => {
     const showTicketId = false; // Hide Ticket ID field in create form
-    const showReportedDate = checkFieldAccess('requestDetails', 'reportedDate');
+    const showReportedDate = checkFieldAccess('requestDetails', 'reportedDate') && !createMode;
     const showModeDropdown = checkFieldAccess('requestDetails', 'mode');
 
     const ticketId = useWatch({ control, name: 'ticketId' });
@@ -78,7 +78,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             required
                             errors={errors}
                             label="Reported Date"
-                            defaultValue={new Date().toISOString().slice(0, 10)}
                             disabled
                         />
                     </div>
