@@ -3,7 +3,7 @@ import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetails from "../components/RaiseTicket/TicketDetails";
 import SuccessfulModal from "../components/RaiseTicket/SuccessfulModal";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import Title from "../components/Title";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
 import GenericButton from "../components/UI/Button";
@@ -11,13 +11,16 @@ import { useApi } from "../hooks/useApi";
 import { addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
+import { useTranslation } from "react-i18next";
 
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors } } = useForm();
+    const reportedDate = new Date().toISOString().slice(0, 10);
 
     const { data, pending, error, success, apiHandler } = useApi();
 
     const { devMode } = useContext(DevModeContext);
+    const { t } = useTranslation();
 
     const isMaster = useWatch({ control, name: 'isMaster' });
 
@@ -40,7 +43,7 @@ const RaiseTicket: React.FC<any> = () => {
             requestorEmailId: emailId,
             requestorMobileNo: mobileNo,
             stakeholder,
-            reportedDate: new Date().toISOString().slice(0, 10)
+            reportedDate
         };
 
         apiHandler(() => addTicket(payload))
@@ -56,7 +59,7 @@ const RaiseTicket: React.FC<any> = () => {
 
     return (
         <div className="container pb-5">
-            <Title text="Raise Ticket" />
+            <Title text="Raise Ticket" rightContent={<span>{t('Reported Date')}: {reportedDate}</span>} />
             {devMode && <CustomIconButton icon="listAlt" onClick={() => console.table(getValues())} />}
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}
