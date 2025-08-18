@@ -82,7 +82,7 @@ const TicketDetails: React.FC = () => {
     useEffect(() => {
         if (ticket) {
             setValue("ticketId", ticket.id);
-            setValue("reportedDate", ticket.reportedDate?.slice(0, 10));
+            setValue("reportedDate", ticket.reportedDate);
             setValue("mode", ticket.mode);
             setValue("UserId", ticket.UserId);
             setValue("stakeholder", ticket.stakeholder);

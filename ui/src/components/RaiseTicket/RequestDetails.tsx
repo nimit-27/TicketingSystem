@@ -30,11 +30,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const mode = useWatch({ control, name: 'mode' });
     const helpdesk = true
 
-    // useEffect(() => {
-    //     if ((!mode || mode !== "Self")) {
-    //         setValue && setValue("mode", "Self");
-    //     }
-    // }, [setValue, mode]);
+    useEffect(() => {
+        setValue && setValue("mode", "Self");
+    }, [setValue]);
 
     const { t } = useTranslation();
     return (
