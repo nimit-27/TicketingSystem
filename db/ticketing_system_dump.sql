@@ -277,7 +277,7 @@ CREATE TABLE `role_permission_config` (
   `created_by` varchar(100) DEFAULT NULL,
   `is_deleted` tinyint DEFAULT '0',
   `allowed_status_action_ids` varchar(50) DEFAULT NULL,
-  `desccription` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -58,6 +58,7 @@ public class RoleService {
         role.setRole(roleDto.getRole());
         role.setPermissions(json);
         role.setAllowedStatusActionIds(roleDto.getAllowedStatusActionIds());
+        role.setDescription(roleDto.getDescription());
         LocalDateTime now = LocalDateTime.now();
         role.setCreatedOn(now);
         role.setCreatedBy(roleDto.getCreatedBy());
@@ -87,6 +88,9 @@ public class RoleService {
             role.setUpdatedBy(dto.getUpdatedBy());
             role.setUpdatedOn(LocalDateTime.now());
             role.setAllowedStatusActionIds(dto.getAllowedStatusActionIds());
+            if (dto.getDescription() != null) {
+                role.setDescription(dto.getDescription());
+            }
             roleRepository.save(role);
         });
     }
