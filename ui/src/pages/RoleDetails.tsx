@@ -19,6 +19,7 @@ const RoleDetails: React.FC = () => {
     const { data: rolesData, apiHandler: rolesApiHandler } = useApi<any>();
     const [perm, setPerm] = useState<any>(null);
     const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
+    const [description, setDescription] = useState('');
     const { showMessage } = useSnackbar();
     const { devMode } = useContext(DevModeContext);
     const [openJson, setOpenJson] = useState(false);
@@ -38,8 +39,13 @@ const RoleDetails: React.FC = () => {
     useEffect(() => {
         if (rolesData && roleId) {
             const role = (rolesData as any[]).find(r => r.role === roleId);
-            if (role && role.allowedStatusActionIds) {
-                setSelectedActionIds(role.allowedStatusActionIds.split('|'));
+            if (role) {
+                if (role.allowedStatusActionIds) {
+                    setSelectedActionIds(role.allowedStatusActionIds.split('|'));
+                }
+                if (role.description) {
+                    setDescription(role.description);
+                }
             }
         }
     }, [rolesData, roleId]);
@@ -85,7 +91,7 @@ const RoleDetails: React.FC = () => {
 
     return (
         <div className="container">
-            <div className="d-flex align-items-center mb-3">
+            <div className="d-flex align-items-center mb-1">
                 {editing ? (
                     <>
                         <TextField value={roleName} onChange={e => setRoleName(e.target.value)} size="small" className="me-2" />
@@ -99,6 +105,7 @@ const RoleDetails: React.FC = () => {
                     </>
                 )}
             </div>
+            {description && <p className="text-muted mb-3">{description}</p>}
             {devMode && (
                 <Chip label="JSON" size="small" onClick={() => setOpenJson(true)} sx={{ mb: 1 }} />
             )}
@@ -117,7 +124,12 @@ const RoleDetails: React.FC = () => {
                 }
                 renderInput={(params) => <TextField {...params} label="Status Actions" />}
             />
-            {perm && <PermissionTree data={perm} onChange={setPerm} />}
+            {perm && (
+                <>
+                    <h5>Permissions</h5>
+                    <PermissionTree data={perm} onChange={setPerm} />
+                </>
+            )}
             <Button variant="contained" className="mt-3" onClick={handleSubmit}>Save</Button>
             {devMode && (
                 <JsonEditModal open={openJson} data={perm} onCancel={() => setOpenJson(false)} onSubmit={handleJsonEdit} />

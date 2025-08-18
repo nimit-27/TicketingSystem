@@ -81,6 +81,7 @@ public class DtoMapper {
         dto.setUpdatedOn(role.getUpdatedOn());
         dto.setAllowedStatusActionIds(role.getAllowedStatusActionIds());
         dto.setDeleted(role.isDeleted());
+        dto.setDescription(role.getDescription());
         return dto;
     }
 

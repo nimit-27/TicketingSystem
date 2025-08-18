@@ -1,19 +1,16 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Button, Autocomplete, TextField, Chip } from '@mui/material';
+import { Button } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
 import { addRole, getAllPermissions, loadPermissions, getAllRoles, deleteRoles, deleteRole } from '../services/RoleService';
 import { getStatusActions } from '../services/StatusService';
-import { getCurrentUserDetails } from '../config/config';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
 import { useNavigate } from 'react-router-dom';
-import GenericInput from '../components/UI/Input/GenericInput';
-import PermissionsModal from '../components/Permissions/PermissionsModal';
 import { DevModeContext } from '../context/DevModeContext';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
-import { useTranslation } from 'react-i18next';
+import CreateRole from './CreateRole';
 
 const formatDate = (inputDate: string) => {
     const date = new Date(inputDate);
@@ -31,17 +28,8 @@ const RoleMaster: React.FC = () => {
     const [view, setView] = useState<'table' | 'grid'>('table');
     const navigate = useNavigate();
     const [creating, setCreating] = useState(false);
-    const [roleName, setRoleName] = useState('');
-    const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
-    const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
-    const [prevPerms, setPrevPerms] = useState<string[]>([]);
-    const [openCustom, setOpenCustom] = useState(false);
-    const [customPerm, setCustomPerm] = useState<any>(null);
     const [selectedRows, setSelectedRows] = useState<React.Key[]>([]);
     const { devMode } = useContext(DevModeContext);
-    const { t } = useTranslation();
-
-    console.log({ rolesData });
 
     useEffect(() => {
         getAllRolesApiHandler(() => getAllRoles());
@@ -54,50 +42,19 @@ const RoleMaster: React.FC = () => {
 
     const roles = data?.roles ? Object.keys(data.roles) : [];
 
-    const handlePermChange = (_: any, val: any) => {
-        const value = Array.isArray(val) ? val : [val];
-        if (value.includes('Custom')) {
-            if (!selectedPerms.includes('Custom')) {
-                setPrevPerms(selectedPerms);
-                setOpenCustom(true);
-            }
-            setSelectedPerms(['Custom']);
-        } else {
-            setCustomPerm(null);
-            setSelectedPerms(value);
-        }
-    };
-
     const handleCreate = () => {
         setCreating(true);
     };
 
-    const handleSubmit = () => {
-        if (!roleName) return;
-        const permissions = customPerm ||  null;
-        const list = selectedPerms.filter(p => p !== 'Custom');
-        const user = getCurrentUserDetails();
-        const allowedStatusActionIds = selectedActionIds.join('|');
-        const payload = { role: roleName, permissions, permissionsList: list ?? [], allowedStatusActionIds, createdBy: user?.name, updatedBy: user?.name };
+    const handleCreateSubmit = (payload: any) => {
         addRole(payload)
             .then(() => loadPermissions())
             .then(() => getAllRolesApiHandler(() => getAllRoles()))
-            .then(() => handleCancel());
+            .then(() => setCreating(false));
     };
 
     const handleCancel = () => {
         setCreating(false);
-        setRoleName('');
-        setSelectedPerms([]);
-        setSelectedActionIds([]);
-        setCustomPerm(null);
-    };
-
-    const handleCustomClose = () => {
-        setOpenCustom(false);
-        if (selectedPerms.includes('Custom')) {
-            setSelectedPerms(prevPerms);
-        }
     };
 
     const handleDelete = (id: string) => {
@@ -119,6 +76,7 @@ const RoleMaster: React.FC = () => {
 
     const columns = [
         { title: 'Role', key: 'role', dataIndex: 'role' },
+        { title: 'Description', key: 'description', dataIndex: 'description' },
         { title: 'Created By', key: 'createdBy', dataIndex: 'createdBy' },
         { title: 'Created On', key: 'createdOn', dataIndex: 'createdOn', render: (date: string) => formatDate(date) },
         { title: 'Updated By', key: 'updatedBy', dataIndex: 'updatedBy' },
@@ -140,92 +98,33 @@ const RoleMaster: React.FC = () => {
             <Title textKey="Role Master" />
             <div className="d-flex justify-content-between mb-3">
                 {creating ? (
-                    <div>
-                        <Button variant="contained" onClick={handleSubmit} className="me-2">Submit</Button>
-                        <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
-                    </div>
+                    <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
                 ) : (
                     <Button variant="contained" onClick={handleCreate}>Create Role</Button>
                 )}
                 <ViewToggle value={view} onChange={setView} options={[{ icon: 'grid', value: 'grid' }, { icon: 'table', value: 'table' }]} />
             </div>
             {creating && (
-                <div className="mb-3">
-                    <div className="d-flex mb-2">
-                        <GenericInput
-                            label="Role name"
-                            value={roleName}
-                            onChange={e => setRoleName(e.target.value)}
-                            className="me-2 w-50"
-                        />
-                        <Autocomplete
-                            multiple={!selectedPerms.includes('Custom')}
-                            disableCloseOnSelect={!selectedPerms.includes('Custom')}
-                            options={["Custom", ...roles]}
-                            value={selectedPerms.includes('Custom') ? 'Custom' : selectedPerms}
-                            onChange={handlePermChange}
-                            className="w-50"
-                            renderTags={(value, getTagProps) =>
-                                value.length === 0 ? (
-                                    <em className="ms-1" style={{ color: '#888' }}>{t('No selection')}</em>
-                                ) : (
-                                    value.map((option, index) => (
-                                        <Chip label={option} {...getTagProps({ index })} />
-                                    ))
-                                )
-                            }
-                            renderOption={(props, option) => (
-                                <li {...props} style={{ fontStyle: option === 'Custom' ? 'italic' : 'normal' }}>{option}</li>
-                            )}
-                            renderInput={(params) => <TextField {...params} label="Permissions" />}
-                        />
-                    </div>
-                    <Autocomplete
-                        multiple
-                        disableCloseOnSelect
-                        options={statusActions || []}
-                        value={(statusActions || []).filter((a: any) => selectedActionIds.includes(String(a.id)))}
-                        onChange={(_, val) => setSelectedActionIds(val.map((a: any) => String(a.id)))}
-                        className="w-50 mb-2"
-                        getOptionLabel={(option: any) => option.action}
-                        renderTags={(value, getTagProps) =>
-                            value.map((option, index) => (
-                                <Chip label={option.action} {...getTagProps({ index })} />
-                            ))
-                        }
-                        renderInput={(params) => <TextField {...params} label="Status Actions" />}
-                    />
-                </div>
+                <CreateRole roles={roles} permissions={data?.roles || {}} statusActions={statusActions || []} onSubmit={handleCreateSubmit} onCancel={handleCancel} />
             )}
             {view === 'table' ? (
                 <>
                     <Button variant="outlined" color="error" disabled={!selectedRows.length} onClick={handleMultiDelete} className="mb-2">Delete Selected</Button>
-                    <GenericTable dataSource={rolesData} columns={columns as any} rowKey="role" pagination={false}
+                    <GenericTable dataSource={rolesData} columns={columns as any} rowKey="role" pagination={{ pageSize: 10 }}
                         rowSelection={{ selectedRowKeys: selectedRows, onChange: setSelectedRows }} />
                 </>
             ) : (
                 <div className="row">
-                    {roles.map(r => (
-                        <div className="col-md-3 mb-3" key={r}>
-                            <div className="card p-3" style={{ cursor: 'pointer' }} onClick={() => navigate(`/role-master/${r}`)}>
-                                <b>{r}</b>
+                    {(rolesData || []).map((r: any) => (
+                        <div className="col-md-3 mb-3" key={r.role}>
+                            <div className="card p-3" style={{ cursor: 'pointer' }} onClick={() => navigate(`/role-master/${r.role}`)}>
+                                <b>{r.role}</b>
+                                {r.description && <p className="mb-0 small text-muted">{r.description}</p>}
                             </div>
                         </div>
                     ))}
                 </div>
             )}
-            <PermissionsModal
-                open={openCustom}
-                roles={roles}
-                permissions={data?.roles || {}}
-                title="Custom Permissions"
-                onClose={handleCustomClose}
-                onSubmit={(perm) => {
-                    setCustomPerm(perm);
-                    if (!selectedPerms.includes('Custom')) setSelectedPerms(p => [...p, 'Custom']);
-                    setOpenCustom(false);
-                }}
-            />
         </div>
     );
 };
