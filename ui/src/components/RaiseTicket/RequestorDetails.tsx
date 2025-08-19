@@ -65,8 +65,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const allUsers = usersData || [];
     const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholder === stakeholder);
 
-    console.log({ stakeholder })
-
     const getUserDetailsHandler = (userId: any) => {
         getUserDetailsApiHandler(() => getUserDetails(userId))
     }
@@ -208,7 +206,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isUserIdDisabled =
         disableAll || fciUser || isSelfHelpdesk || !createMode;
     const isNameDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
-    console.log({ isNameDisabled, isDisabled, isSelfHelpdesk, fciUser, createMode })
     const isEmailIdDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
     const isMobileNoDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
     const isRoleDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
@@ -348,7 +345,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )}
-                <div className="col-md-12 px-4">
+                <div className="col-md-6 px-4">
                     <Autocomplete
                         options={filteredUsers}
                         getOptionLabel={(option: any) => option.name || ''}
@@ -388,6 +385,19 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         disabled={disableAll}
                     />
                 </div>
+                {showStakeholder && (
+                    <div className="col-md-6 px-4">
+                        <GenericDropdownController
+                            label="Stakeholder"
+                            name="stakeholder"
+                            control={control}
+                            options={stakeholderOptions}
+                            rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
+                            className="form-select"
+                            disabled={isStakeholderDisabled}
+                        />
+                    </div>
+                )}
                 {showFciToggle && <div className="col-md-5 px-4 w-100">
                     <ViewToggle
                         value={viewMode}
@@ -430,63 +440,22 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )}
-                {showRequestorName && (
+                {showRequestorName && requestorName && (
                     <div className={`${inputColStyling}`}>
-                        <CustomFormInput
-                            slotProps={{
-                                inputLabel: { shrink: requestorName || userId }
-                            }}
-                            label="Name"
-                            name="requestorName"
-                            register={register}
-                            errors={errors}
-                            disabled={isNameDisabled}
-                            required={isNonFci}
-                        />
+                        <label className="form-label d-block">Name</label>
+                        <p className="mb-0">{requestorName}</p>
                     </div>
                 )}
-                {showEmailId && (
+                {showEmailId && emailId && (
                     <div className={`${inputColStyling}`}>
-                        <CustomFormInput
-                            slotProps={{
-                                inputLabel: { shrink: emailId || userId }
-                            }}
-                            label="Email ID"
-                            name="emailId"
-                            register={register}
-                            errors={errors}
-                            disabled={isEmailIdDisabled}
-                            type="email"
-                        />
+                        <label className="form-label d-block">Email ID</label>
+                        <p className="mb-0">{emailId}</p>
                     </div>
                 )}
-                {showMobileNo && (
+                {showMobileNo && mobileNo && (
                     <div className={`${inputColStyling}`}>
-                        <CustomFormInput
-                            slotProps={{
-                                inputLabel: { shrink: mobileNo || userId }
-                            }}
-                            label="Mobile No."
-                            name="mobileNo"
-                            register={register}
-                            errors={errors}
-                            disabled={isMobileNoDisabled}
-                            type="tel"
-                            required={isNonFci}
-                        />
-                    </div>
-                )}
-                {showStakeholder && (
-                    <div className={`${inputColStyling}`}>
-                        <GenericDropdownController
-                            label="Stakeholder"
-                            name="stakeholder"
-                            control={control}
-                            options={stakeholderOptions}
-                            rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
-                            className="form-select"
-                            disabled={isStakeholderDisabled}
-                        />
+                        <label className="form-label d-block">Mobile No.</label>
+                        <p className="mb-0">{mobileNo}</p>
                     </div>
                 )}
                 {showRole && (
