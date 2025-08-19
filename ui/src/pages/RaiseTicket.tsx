@@ -11,16 +11,15 @@ import { useApi } from "../hooks/useApi";
 import { addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
-import { useTranslation } from "react-i18next";
+import { formatDateWithSuffix } from "../utils/Utils";
 
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors } } = useForm();
-    const reportedDate = new Date().toISOString().slice(0, 10);
+    const reportedDate = formatDateWithSuffix(new Date());
 
     const { data, pending, error, success, apiHandler } = useApi();
 
     const { devMode } = useContext(DevModeContext);
-    const { t } = useTranslation();
 
     const isMaster = useWatch({ control, name: 'isMaster' });
 
@@ -59,7 +58,7 @@ const RaiseTicket: React.FC<any> = () => {
 
     return (
         <div className="container pb-5">
-            <Title text="Raise Ticket" rightContent={<span>{t('Reported Date')}: {reportedDate}</span>} />
+            <Title text="Raise Ticket" rightContent={<span>{reportedDate}</span>} />
             {devMode && <CustomIconButton icon="listAlt" onClick={() => console.table(getValues())} />}
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}
