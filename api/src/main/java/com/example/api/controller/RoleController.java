@@ -28,28 +28,28 @@ public class RoleController {
         return ResponseEntity.ok(roleService.addRole(roleDto));
     }
 
-    @PutMapping("/{role}")
-    public ResponseEntity<Void> updateRole(@PathVariable String role, @RequestBody RoleDto roleDto) {
-        roleDto.setRole(role);
+    @PutMapping("/{roleId}")
+    public ResponseEntity<Void> updateRole(@PathVariable Integer roleId, @RequestBody RoleDto roleDto) {
+        roleDto.setRoleId(roleId);
         roleService.updateRole(roleDto);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{role}/rename")
-    public ResponseEntity<Void> renameRole(@PathVariable String role, @RequestBody RoleDto roleDto) {
-        roleService.renameRole(role, roleDto.getRole(), roleDto.getUpdatedBy());
+    @PutMapping("/{roleId}/rename")
+    public ResponseEntity<Void> renameRole(@PathVariable Integer roleId, @RequestBody RoleDto roleDto) {
+        roleService.renameRole(roleId, roleDto.getRole(), roleDto.getUpdatedBy());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{role}")
-    public ResponseEntity<Void> deleteRole(@PathVariable String role,
+    @DeleteMapping("/{roleId}")
+    public ResponseEntity<Void> deleteRole(@PathVariable Integer roleId,
                                            @RequestParam(required = false, defaultValue = "false") boolean hard) {
-        roleService.deleteRoles(Collections.singletonList(role), hard);
+        roleService.deleteRoles(Collections.singletonList(roleId), hard);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteRoles(@RequestParam List<String> ids,
+    public ResponseEntity<Void> deleteRoles(@RequestParam List<Integer> ids,
                                             @RequestParam(required = false, defaultValue = "false") boolean hard) {
         roleService.deleteRoles(ids, hard);
         return ResponseEntity.noContent().build();

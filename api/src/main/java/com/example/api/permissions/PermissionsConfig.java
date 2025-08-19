@@ -8,5 +8,5 @@ import java.util.Map;
 @Getter
 @Setter
 public class PermissionsConfig {
-    private Map<String, RolePermission> roles;
+    private Map<Integer, RolePermission> roles;
 }

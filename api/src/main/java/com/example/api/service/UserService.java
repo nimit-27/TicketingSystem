@@ -30,6 +30,7 @@ public class UserService {
             dto.setEmailId(emp.getEmailId());
             dto.setMobileNo(emp.getMobileNo());
             dto.setOffice(emp.getOffice());
+            dto.setRoles(emp.getRoles());
             return dto;
         }).toList();
     }

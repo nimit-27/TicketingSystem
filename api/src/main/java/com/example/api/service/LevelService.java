@@ -42,6 +42,7 @@ public class LevelService {
                         dto.setEmailId(user.getEmailId());
                         dto.setMobileNo(user.getMobileNo());
                         dto.setOffice(user.getOffice());
+                        dto.setRoles(user.getRoles());
                         userDtos.add(dto);
                     }
                     return userDtos;

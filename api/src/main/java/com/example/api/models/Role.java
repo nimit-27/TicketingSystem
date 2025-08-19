@@ -1,10 +1,6 @@
 package com.example.api.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +12,10 @@ import java.time.LocalDateTime;
 @Setter
 public class Role {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "role_id")
+    private Integer roleId;
+
     @Column(name = "role", length = 100)
     private String role;
 

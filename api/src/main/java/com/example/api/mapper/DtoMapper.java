@@ -74,6 +74,7 @@ public class DtoMapper {
     public static RoleDto toRoleDto(Role role) {
         if(role == null) return null;
         RoleDto dto = new RoleDto();
+        dto.setRoleId(role.getRoleId());
         dto.setRole(role.getRole());
         dto.setCreatedBy(role.getCreatedBy());
         dto.setCreatedOn(role.getCreatedOn());

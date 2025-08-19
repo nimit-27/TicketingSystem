@@ -23,19 +23,19 @@ public class PermissionService {
 
     @PostConstruct
     public void loadPermissions() throws IOException {
-        Map<String, RolePermission> map = new HashMap<>();
+        Map<Integer, RolePermission> map = new HashMap<>();
         for (Role rpc : repository.findByIsDeletedFalse()) {
             RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
-            map.put(rpc.getRole(), rp);
+            map.put(rpc.getRoleId(), rp);
         }
         config = new PermissionsConfig();
         config.setRoles(map);
     }
 
-    public void updateRolePermissions(String role, RolePermission permission) throws IOException {
+    public void updateRolePermissions(Integer roleId, RolePermission permission) throws IOException {
         String json = objectMapper.writeValueAsString(permission);
         Role rpc = new Role();
-        rpc.setRole(role);
+        rpc.setRoleId(roleId);
         rpc.setPermissions(json);
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
 //        if (isNew) {
@@ -53,16 +53,16 @@ public class PermissionService {
         if (config.getRoles() == null) {
             config.setRoles(new HashMap<>());
         }
-        config.getRoles().put(role, permission);
+        config.getRoles().put(roleId, permission);
     }
 
     public void overwritePermissions(PermissionsConfig permissions) throws IOException {
         repository.deleteAll();
         if (permissions != null && permissions.getRoles() != null) {
-            for (Map.Entry<String, RolePermission> entry : permissions.getRoles().entrySet()) {
+            for (Map.Entry<Integer, RolePermission> entry : permissions.getRoles().entrySet()) {
                 String json = objectMapper.writeValueAsString(entry.getValue());
                 Role rpc = new Role();
-                rpc.setRole(entry.getKey());
+                rpc.setRoleId(entry.getKey());
                 rpc.setPermissions(json);
                 java.time.LocalDateTime now = java.time.LocalDateTime.now();
                 rpc.setCreatedOn(now);
@@ -76,21 +76,21 @@ public class PermissionService {
         loadPermissions();
     }
 
-    public Map<String, RolePermission> getAllRolePermissions() {
+    public Map<Integer, RolePermission> getAllRolePermissions() {
         if (config == null || config.getRoles() == null) {
             return Collections.emptyMap();
         }
         return config.getRoles();
     }
 
-    public RolePermission getRolePermission(String role) {
+    public RolePermission getRolePermission(Integer roleId) {
         if (config == null || config.getRoles() == null) {
             return null;
         }
-        return config.getRoles().get(role);
+        return config.getRoles().get(roleId);
     }
 
-    private List<RolePermission> getRolePermissions(List<String> roles) {
+    private List<RolePermission> getRolePermissions(List<Integer> roles) {
         List<RolePermission> list = new ArrayList<>();
         if (config == null || config.getRoles() == null) {
             return list;
@@ -104,7 +104,7 @@ public class PermissionService {
         return list;
     }
 
-    public boolean hasSidebarAccess(List<String> roles, String key) {
+    public boolean hasSidebarAccess(List<Integer> roles, String key) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getSidebar)
                 .filter(Objects::nonNull)
@@ -118,7 +118,7 @@ public class PermissionService {
                 });
     }
 
-    public boolean hasFormAccess(List<String> roles, String form, String action) {
+    public boolean hasFormAccess(List<Integer> roles, String form, String action) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getPages)
                 .filter(Objects::nonNull)
@@ -126,7 +126,7 @@ public class PermissionService {
                 .anyMatch(obj -> checkAction(obj, action));
     }
 
-    public boolean hasFieldAccess(List<String> roles, String form, String field) {
+    public boolean hasFieldAccess(List<Integer> roles, String form, String field) {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getPages)
                 .filter(Objects::nonNull)
@@ -152,7 +152,7 @@ public class PermissionService {
         return false;
     }
 
-    public RolePermission mergeRolePermissions(List<String> roles) {
+    public RolePermission mergeRolePermissions(List<Integer> roles) {
         RolePermission result = new RolePermission();
         result.setSidebar(new HashMap<>());
         result.setPages(new HashMap<>());

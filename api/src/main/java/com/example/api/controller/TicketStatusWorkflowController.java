@@ -33,6 +33,7 @@ public class TicketStatusWorkflowController {
 
     @PostMapping("/mappings")
     public ResponseEntity<Map<String, List<TicketStatusWorkflow>>> getMappingsByRole(@RequestBody List<String> roles) {
-        return ResponseEntity.ok(service.getMappingsByRoles(roles));
+        List<Integer> ids = roles.stream().map(Integer::parseInt).toList();
+        return ResponseEntity.ok(service.getMappingsByRoles(ids));
     }
 }
