@@ -32,6 +32,9 @@ import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
+import PersonIcon from '@mui/icons-material/Person';
+import CallIcon from '@mui/icons-material/Call';
+import EmailIcon from '@mui/icons-material/Email';
 
 // Define the icon map
 const iconMap = {
@@ -70,6 +73,9 @@ const iconMap = {
     supervisorAccount: SupervisorAccountIcon,
     manageAccounts: ManageAccountsIcon,
     questionAnswer: QuestionAnswerIcon,
+    person: PersonIcon,
+    call: CallIcon,
+    email: EmailIcon,
 };
 
 // Valid keys for the icon map

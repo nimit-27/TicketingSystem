@@ -3,6 +3,7 @@ import { cardContainer1Header } from "../constants/bootstrapClasses";
 import { FciTheme } from "../config/config";
 import { useTheme } from "@mui/material";
 import CustomIconButton from "./UI/IconButton/CustomIconButton";
+import Fieldset from "./UI/Fieldset";
 
 interface CustomFieldsetProps {
     title: string;
@@ -44,31 +45,17 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
     );
 
     return (
-        <fieldset
-            className={`border p-4 pt-5 position-relative rounded mb-4 ${className}`}
-            style={{
-                ...style
-            }}
+        <Fieldset
+            title={
+                <>
+                    <span>{title}</span>
+                    <CustomIconButton icon={collapsed ? 'arrowdown' : 'arrowup'} size="small" />
+                </>
+            }
+            className={className}
+            style={style}
+            legendProps={{ onClick: toggleCollapse }}
         >
-            <legend
-                className={`${cardContainer1Header} d-flex justify-content-between align-items-center`}
-                style={{
-                    width: "calc(100% - 2rem)",
-                    fontSize: "1rem",
-                    fontWeight: "500",
-                    padding: "0 8px",
-                    margin: "0",
-                    position: "absolute",
-                    top: "-1.1rem",
-                    left: "1rem",
-                    backgroundColor: "white",
-                    display: "flex"
-                }}
-                onClick={toggleCollapse}
-            >
-                <span>{title}</span>
-                <CustomIconButton icon={collapsed ? 'arrowdown' : 'arrowup'} size="small" />
-            </legend>
             {!collapsed && (
                 <div>
                     {actionElement && (
@@ -79,7 +66,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
                     {children}
                 </div>
             )}
-        </fieldset>
+        </Fieldset>
     );
 };
 
