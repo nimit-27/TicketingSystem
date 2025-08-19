@@ -1,50 +1,64 @@
-import { Autocomplete, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
-import { FieldValues, Controller } from "react-hook-form";
+import { Icon, IconButton, InputAdornment } from "@mui/material";
 import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
-import { searchEmployees } from "../../services/UserService";
+import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
+import { getEmployeeDetails } from "../../services/UserService";
+import { FieldValues } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
+import { useEffect, useState } from "react";
+import ClearIcon from '@mui/icons-material/Clear';
 
 interface RequestorDetailsProps extends FormProps {
     formData: FieldValues;
 }
 
-interface EmployeeOption {
-    id: string;
-    name: string;
-    username: string;
-    emailId: string;
-    mobileNo: string;
-    role?: string;
-    office?: string;
-}
+const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, formData }) => {
+    const [verified, setVerified] = useState<boolean>(false);
+    const [disabled, setDisabled] = useState<boolean>(false);
 
-const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, control, formData }) => {
-    const [options, setOptions] = useState<EmployeeOption[]>([]);
-    const [inputValue, setInputValue] = useState<string>("");
-    const { pending, apiHandler } = useApi<EmployeeOption[]>();
+    const { data, error, pending, success, apiHandler } = useApi<any>();
 
     useEffect(() => {
-        if (!inputValue) {
-            setOptions([]);
-            return;
-        }
-        apiHandler(() => searchEmployees(inputValue, formData?.stakeholder)).then((res) => {
-            setOptions(res || []);
-        });
-    }, [inputValue, formData?.stakeholder]);
+        if (success) {
+            setVerified(true);
 
-    const handleSelect = (option: EmployeeOption | null) => {
-        if (!option || !setValue) return;
-        setValue("employeeId", option.id);
-        setValue("name", option.name);
-        setValue("username", option.username);
-        setValue("emailId", option.emailId);
-        setValue("mobileNo", option.mobileNo);
-        setValue("role", option.role);
-        setValue("office", option.office);
+            if (setValue && data) {
+                setValue("name", data.name);
+                setValue("emailId", data.emailId);
+                setValue("mobileNo", data.mobileNo);
+                setValue("role", data.role);
+                setValue("office", data.office);
+                setDisabled(true)
+            }
+        } else {
+            setVerified(false);
+        }
+    }, [pending, data]);
+
+    useEffect(() => {
+        formData?.employeeId ? setDisabled(true) : clearForm();
+
+        setVerified(false);
+    }, [formData?.employeeId]);
+
+    const verifyEmployeeById = () => {
+        // Logic to verify employee by ID
+        console.log("Verifying employee by ID...: ", formData.employeeId);
+        apiHandler(() => getEmployeeDetails(formData.employeeId))
+    };
+
+    const clearForm = () => {
+        if (!!setValue) {
+            setValue("employeeId", "");
+            setValue("name", "");
+            setValue("emailId", "");
+            setValue("mobileNo", "");
+            setValue("role", "");
+            setValue("office", "");
+        }
+        setDisabled(false);
+        setVerified(false);
     };
 
     return (
@@ -54,103 +68,93 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             {/* Inputs */}
             <div className="row g-3">
                 <div className="col-md-4">
-                    <Controller
-                        name="employeeId"
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field }) => (
-                            <Autocomplete
-                                options={options}
-                                value={options.find((o) => o.id === field.value) || null}
-                                onChange={(_, value) => {
-                                    field.onChange(value ? value.id : "");
-                                    handleSelect(value);
-                                }}
-                                inputValue={inputValue}
-                                onInputChange={(_, value) => setInputValue(value)}
-                                getOptionLabel={(option) => option.name}
-                                renderOption={(props, option) => (
-                                    <li {...props}>
-                                        <span className="fw-bold me-2">{option.name}</span>
-                                        <span className="text-muted">
-                                            {option.username} {option.mobileNo} {option.emailId}
-                                        </span>
-                                    </li>
-                                )}
-                                loading={pending}
-                                renderInput={(params) => (
-                                    <TextField {...params} label="Requestor" size="small" />
-                                )}
-                            />
-                        )}
-                    />
-                </div>
-                <div className="col-md-4">
                     <CustomFormInput
-                        slotProps={{ inputLabel: { shrink: !!formData?.name } }}
-                        label="Name"
-                        name="name"
+                        label="Employee ID"
+                        name="employeeId"
+                        slotProps={{
+                            input: {
+                                endAdornment: <InputAdornment position="end">
+                                    {(verified || formData?.employeeId) && <IconButton onClick={clearForm}>
+                                        <ClearIcon fontSize="small" />
+                                    </IconButton>}
+                                    <VerifyIconButton
+                                        onClick={verifyEmployeeById}
+                                        pending={pending}
+                                        verified={verified} />
+                                </InputAdornment>
+                            }
+                        }}
                         register={register}
                         errors={errors}
-                        disabled
                         required
                     />
                 </div>
                 <div className="col-md-4">
                     <CustomFormInput
-                        slotProps={{ inputLabel: { shrink: !!formData?.username } }}
-                        label="Username"
-                        name="username"
+                        slotProps={{
+                            inputLabel: { shrink: formData?.employeeId || verified }
+                        }}
+                        label="Name"
+                        name="name"
                         register={register}
                         errors={errors}
-                        disabled
+                        disabled={disabled}
+                        required
                     />
                 </div>
                 <div className="col-md-4">
                     <CustomFormInput
-                        slotProps={{ inputLabel: { shrink: !!formData?.emailId } }}
+                        slotProps={{
+                            inputLabel: { shrink: formData?.employeeId || verified }
+                        }}
                         label="Email ID"
                         name="emailId"
                         register={register}
                         errors={errors}
-                        disabled
+                        disabled={disabled}
                         type="email"
                     />
                 </div>
                 <div className="col-md-4">
                     <CustomFormInput
-                        slotProps={{ inputLabel: { shrink: !!formData?.mobileNo } }}
+                        slotProps={{
+                            inputLabel: { shrink: formData?.employeeId || verified }
+                        }}
                         label="Mobile No."
                         name="mobileNo"
                         register={register}
                         errors={errors}
-                        disabled
+                        disabled={disabled}
                         type="tel"
                     />
                 </div>
                 <div className="col-md-4">
                     <CustomFormInput
-                        slotProps={{ inputLabel: { shrink: !!formData?.role } }}
+                        slotProps={{
+                            inputLabel: { shrink: formData?.employeeId || verified }
+                        }}
                         label="Role"
                         name="role"
                         register={register}
                         errors={errors}
-                        disabled
+                        disabled={disabled}
                     />
                 </div>
                 <div className="col-md-4">
                     <CustomFormInput
-                        slotProps={{ inputLabel: { shrink: !!formData?.office } }}
+                        slotProps={{
+                            inputLabel: { shrink: formData?.office || verified }
+                        }}
                         label="Office"
                         name="office"
                         register={register}
                         errors={errors}
-                        disabled
+                        disabled={disabled}
                     />
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
 export default RequestorDetails;
