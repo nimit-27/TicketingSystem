@@ -192,6 +192,10 @@ public class PermissionService {
             Object existing = target.get(key);
             if (existing instanceof Map<?, ?> && value instanceof Map<?, ?>) {
                 deepMerge((Map<String, Object>) existing, (Map<String, Object>) value);
+            } else if ("show".equals(key)
+                    && existing instanceof Boolean exBool
+                    && value instanceof Boolean srcBool) {
+                target.put(key, exBool || srcBool);
             } else {
                 target.put(key, value);
             }
