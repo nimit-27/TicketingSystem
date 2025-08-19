@@ -1,7 +1,5 @@
 import { inputColStyling } from "../../constants/bootstrapClasses";
-import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { FormProps } from "../../types";
-import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
@@ -9,22 +7,23 @@ import { isHelpdesk } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import CustomIconButton from "../UI/IconButton/CustomIconButton";
 
 interface RequestDetailsProps extends FormProps {
     disableAll?: boolean;
     isFieldSetDisabled?: boolean;
 }
 
-const modeOptions: DropdownOption[] = [
-    { label: "Self", value: "Self" },
-    { label: "Call", value: "Call" },
-    { label: "Email", value: "Email" }
+const modeOptions = [
+    { label: "Self", value: "Self", icon: "person" },
+    { label: "Call", value: "Call", icon: "call" },
+    { label: "Email", value: "Email", icon: "email" }
 ];
 
 const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled, createMode }) => {
     const showTicketId = false; // Hide Ticket ID field in create form
     const showReportedDate = checkFieldAccess('requestDetails', 'reportedDate') && !createMode;
-    const showModeDropdown = checkFieldAccess('requestDetails', 'mode');
+    const showModeField = checkFieldAccess('requestDetails', 'mode');
 
     const ticketId = useWatch({ control, name: 'ticketId' });
     const mode = useWatch({ control, name: 'mode' });
@@ -36,54 +35,59 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
 
     const { t } = useTranslation();
     return (
-        <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
-            {/* Inputs in a row */}
-            <div className="row g-3">
-                {/* Ticket ID - Input - System Generated */}
-                {showTicketId && (
-                    <div className={`${inputColStyling}`}>
-                        <CustomFormInput
-                            slotProps={{
-                                inputLabel: { shrink: ticketId }
-                            }}
-                            name="ticketId"
-                            register={register}
-                            required
-                            errors={errors}
-                            label="Ticket ID"
-                            disabled={disableAll}
-                        />
+        <>
+            {showModeField && (
+                <CustomFieldset title={t('Request Mode')}>
+                    <div className="d-flex gap-4">
+                        {modeOptions.map(opt => (
+                            <div key={opt.value} className="text-center">
+                                <CustomIconButton
+                                    icon={opt.icon}
+                                    color={mode === opt.value ? 'primary' : 'default'}
+                                    onClick={() => setValue && setValue('mode', opt.value)}
+                                    disabled={disableAll || !helpdesk}
+                                />
+                                <div>{t(opt.label)}</div>
+                            </div>
+                        ))}
                     </div>
-                )}
-                {/* Ticket Lodged Through - Dropdown - Self/Call/Mail */}
-                {showModeDropdown && (
-                    <div className={`${inputColStyling}`}>
-                        <GenericDropdownController
-                            name="mode"
-                            control={control}
-                            rules={{ required: true }}
-                            label="Mode"
-                            options={modeOptions}
-                            className="form-select"
-                            disabled={disableAll || !helpdesk}
-                        />
-                    </div>
-                )}
-                {/* Reported Date - Input - System Generated */}
-                {showReportedDate && (
-                    <div className={`${inputColStyling}`}>
-                        <CustomFormInput
-                            name="reportedDate"
-                            register={register}
-                            required
-                            errors={errors}
-                            label="Reported Date"
-                            disabled
-                        />
-                    </div>
-                )}
-            </div>
-        </CustomFieldset>
+                </CustomFieldset>
+            )}
+            <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
+                {/* Inputs in a row */}
+                <div className="row g-3">
+                    {/* Ticket ID - Input - System Generated */}
+                    {showTicketId && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                slotProps={{
+                                    inputLabel: { shrink: ticketId }
+                                }}
+                                name="ticketId"
+                                register={register}
+                                required
+                                errors={errors}
+                                label="Ticket ID"
+                                disabled={disableAll}
+                            />
+                        </div>
+                    )}
+                    {/* Reported Date - Input - System Generated */}
+                    {showReportedDate && (
+                        <div className={`${inputColStyling}`}>
+                            <CustomFormInput
+                                name="reportedDate"
+                                register={register}
+                                required
+                                errors={errors}
+                                label="Reported Date"
+                                disabled
+                            />
+                        </div>
+                    )}
+                </div>
+            </CustomFieldset>
+        </>
     )
 };
 

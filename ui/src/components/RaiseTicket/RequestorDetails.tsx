@@ -1,9 +1,9 @@
-import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup, Autocomplete, TextField } from "@mui/material";
 import { inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
-import { getUserDetails } from "../../services/UserService";
+import { getUserDetails, getAllUsers } from "../../services/UserService";
 import { FieldValues, useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -36,6 +36,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const [verified, setVerified] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<ViewMode>("nonFci");
+    const [selectedUser, setSelectedUser] = useState<any | null>(null);
+    const [searchText, setSearchText] = useState("");
     const { t } = useTranslation();
 
     const fciUser = isFciUser();
@@ -44,6 +46,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isDisabled = disableAll || disabled;
 
     const { data, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
+    const { data: usersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
     const mode = useWatch({ control, name: 'mode', defaultValue: 'Self' });
@@ -54,6 +57,13 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const requestorName = useWatch({ control, name: 'requestorName' });
     const stakeholder = useWatch({ control, name: 'stakeholder' });
     const debouncedUserId = useDebounce(userId, 500);
+
+    useEffect(() => {
+        getAllUsersApiHandler(() => getAllUsers());
+    }, [getAllUsersApiHandler]);
+
+    const allUsers = usersData || [];
+    const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholder === stakeholder);
 
     console.log({ stakeholder })
 
@@ -85,6 +95,12 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             }
         }
     }
+
+    useEffect(() => {
+        setSelectedUser(null);
+        setSearchText("");
+        clearUserDetails();
+    }, [stakeholder]);
 
     useEffect(() => {
         // When mode changes and is not "Self", enable the form fields
@@ -161,6 +177,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         }
         setDisabled(false);
         setVerified(false);
+        setSelectedUser(null);
+        setSearchText("");
     };
 
     const isSelfHelpdesk = helpdesk && mode === 'Self';
@@ -330,6 +348,46 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )}
+                <div className="col-md-12 px-4">
+                    <Autocomplete
+                        options={filteredUsers}
+                        getOptionLabel={(option: any) => option.name || ''}
+                        renderOption={(props, option: any) => (
+                            <li {...props} key={option.userId}>
+                                <span className="fw-semibold">{option.name}</span>
+                                <span className="text-muted ms-2">{option.username} {option.mobileNo} {option.emailId}</span>
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField {...params} label="Search User" size="small" />
+                        )}
+                        value={selectedUser}
+                        inputValue={searchText}
+                        onInputChange={(e, val) => setSearchText(val)}
+                        onChange={(e, val: any) => {
+                            setSelectedUser(val);
+                            if (val) {
+                                populateUserDetails(val);
+                                setValue && setValue('userId', val.userId);
+                            } else {
+                                clearUserDetails();
+                            }
+                        }}
+                        filterOptions={(options, params) =>
+                            options.filter((o: any) => {
+                                const txt = params.inputValue.toLowerCase();
+                                return (
+                                    o.name?.toLowerCase().includes(txt) ||
+                                    o.userId?.toString().toLowerCase().includes(txt) ||
+                                    o.username?.toLowerCase().includes(txt) ||
+                                    o.emailId?.toLowerCase().includes(txt) ||
+                                    o.mobileNo?.toLowerCase().includes(txt)
+                                );
+                            })
+                        }
+                        disabled={disableAll}
+                    />
+                </div>
                 {showFciToggle && <div className="col-md-5 px-4 w-100">
                     <ViewToggle
                         value={viewMode}
