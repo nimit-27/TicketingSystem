@@ -73,6 +73,15 @@ $i: 0;
   $i: $i + 5;
 }
 
+$font-size: 8;
+
+@while $font-size <= 40 {
+  .fs-#{$font-size} {
+    font-size: #{$font-size}px !important;
+  }
+  $font-size: $font-size + 1;
+}
+
 // Only fci file
 .form-container {
   padding: 20px;

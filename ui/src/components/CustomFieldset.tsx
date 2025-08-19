@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { cardContainer1Header } from "../constants/bootstrapClasses";
+import { basicFieldset1Header, cardContainer1Header } from "../constants/bootstrapClasses";
 import { FciTheme } from "../config/config";
 import { useTheme } from "@mui/material";
 import CustomIconButton from "./UI/IconButton/CustomIconButton";
 import Fieldset from "./UI/Fieldset";
 
 interface CustomFieldsetProps {
-    title: string;
+    title?: string;
+    variant?: "bordered" | "basic" | "underlined";
     children: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
@@ -14,7 +15,7 @@ interface CustomFieldsetProps {
     disabled?: boolean;
 }
 
-const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, className = "", style, actionElement, disabled }) => {
+const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, variant = "underlined", children, className = "", style, actionElement, disabled }) => {
     const theme = useTheme();
     const [collapsed, setCollapsed] = useState(false);
 
@@ -25,7 +26,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
 
     const toggleCollapse = () => setCollapsed(!collapsed);
 
-    if (FciTheme) return (
+    if (variant === "underlined") return (
         <div className="form-container" style={{ ...style }}>
             <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
                 <h4 className="mb-0">{title}</h4>
@@ -44,7 +45,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
         </div>
     );
 
-    return (
+    if (variant === "bordered") return (
         <Fieldset
             title={
                 <>
@@ -68,6 +69,28 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, children, classN
             )}
         </Fieldset>
     );
+
+    if (variant === "basic") return (
+        <fieldset
+            className={`border p-2 px-3 position-relative rounded mb-4 ${className}`}
+            style={style}
+        >
+            <legend
+                className={`${basicFieldset1Header} d-flex justify-content-between align-items-center`}
+                style={{
+                    width: "min-content",
+                    marginRight: "2rem",
+                }}
+            >
+                {title}
+            </legend>
+            {children}
+        </fieldset>
+    );
+
+
 };
+
+
 
 export default CustomFieldset;

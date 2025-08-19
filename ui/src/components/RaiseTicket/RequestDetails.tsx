@@ -37,8 +37,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     return (
         <>
             {showModeField && (
-                <CustomFieldset title={t('Request Mode')}>
-                    <div className="d-flex gap-4">
+                <CustomFieldset variant="basic" title={t('Request Mode')} style={{width: 'fit-content'}} className="d-flex">
+                    <div className="d-flex gap-2">
                         {modeOptions.map(opt => (
                             <div key={opt.value} className="text-center">
                                 <CustomIconButton
@@ -53,41 +53,41 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                     </div>
                 </CustomFieldset>
             )}
-            <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
-                {/* Inputs in a row */}
-                <div className="row g-3">
-                    {/* Ticket ID - Input - System Generated */}
-                    {showTicketId && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                slotProps={{
-                                    inputLabel: { shrink: ticketId }
-                                }}
-                                name="ticketId"
-                                register={register}
-                                required
-                                errors={errors}
-                                label="Ticket ID"
-                                disabled={disableAll}
-                            />
-                        </div>
-                    )}
-                    {/* Reported Date - Input - System Generated */}
-                    {showReportedDate && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                name="reportedDate"
-                                register={register}
-                                required
-                                errors={errors}
-                                label="Reported Date"
-                                disabled
-                            />
-                        </div>
-                    )}
-                </div>
-            </CustomFieldset>
         </>
+            // <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
+            //     {/* Inputs in a row */}
+            //     <div className="row g-3">
+            //         {/* Ticket ID - Input - System Generated */}
+            //         {showTicketId && (
+            //             <div className={`${inputColStyling}`}>
+            //                 <CustomFormInput
+            //                     slotProps={{
+            //                         inputLabel: { shrink: ticketId }
+            //                     }}
+            //                     name="ticketId"
+            //                     register={register}
+            //                     required
+            //                     errors={errors}
+            //                     label="Ticket ID"
+            //                     disabled={disableAll}
+            //                 />
+            //             </div>
+            //         )}
+            //         {/* Reported Date - Input - System Generated */}
+            //         {showReportedDate && (
+            //             <div className={`${inputColStyling}`}>
+            //                 <CustomFormInput
+            //                     name="reportedDate"
+            //                     register={register}
+            //                     required
+            //                     errors={errors}
+            //                     label="Reported Date"
+            //                     disabled
+            //                 />
+            //             </div>
+            //         )}
+            //     </div>
+            // </CustomFieldset>
     )
 };
 
