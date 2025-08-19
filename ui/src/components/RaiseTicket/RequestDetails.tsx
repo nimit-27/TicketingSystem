@@ -1,13 +1,17 @@
 import { cardContainer1, cardContainer1Header } from "../../constants/bootstrapClasses";
-import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { FormProps } from "../../types";
-import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import CustomFormInput from "../UI/Input/CustomFormInput";
+import CustomIconButton from "../UI/IconButton/CustomIconButton";
+import CustomFieldset from "../UI/Fieldset/CustomFieldset";
+import PersonIcon from "@mui/icons-material/Person";
+import CallIcon from "@mui/icons-material/Call";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import { Controller } from "react-hook-form";
 
-const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
-    { label: "Self", value: "Self" },
-    { label: "Call", value: "Call" },
-    { label: "Mail", value: "Mail" }
+const ticketModes = [
+    { label: "Self", value: "Self", icon: <PersonIcon /> },
+    { label: "Call", value: "Call", icon: <CallIcon /> },
+    { label: "Mail", value: "Mail", icon: <MailOutlineIcon /> }
 ];
 
 const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
@@ -32,16 +36,27 @@ const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
                     disabled
                 />
             </div>
-            {/* Ticket Lodged Through - Dropdown - Self/Call/Mail */}
+            {/* Ticket Lodged Through - Icons */}
             <div className="col-md-4">
-                <GenericDropdownController
+                <Controller
                     name="mode"
                     control={control}
                     rules={{ required: true }}
-
-                    label="Mode"
-                    options={ticketLodgedThroughDropdownOptions}
-                    className="form-select"
+                    render={({ field }) => (
+                        <CustomFieldset title="Request Mode">
+                            <div className="d-flex justify-content-around">
+                                {ticketModes.map((m) => (
+                                    <CustomIconButton
+                                        key={m.value}
+                                        label={m.label}
+                                        icon={m.icon}
+                                        selected={field.value === m.value}
+                                        onClick={() => field.onChange(m.value)}
+                                    />
+                                ))}
+                            </div>
+                        </CustomFieldset>
+                    )}
                 />
             </div>
         </div>
