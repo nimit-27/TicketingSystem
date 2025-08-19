@@ -45,10 +45,11 @@ public class RoleService {
 
         if(rolePermission == null) {
             if (permissionsList.length == 1) {
-                rolePermission = permissionService.getRolePermission(
-                        Arrays.stream(permissionsList).findFirst().orElse(null));
+                Integer id = Integer.valueOf(Arrays.stream(permissionsList).findFirst().orElse("0"));
+                rolePermission = permissionService.getRolePermission(id);
             } else {
-                rolePermission = permissionService.mergeRolePermissions(List.of(permissionsList));
+                List<Integer> ids = Arrays.stream(permissionsList).map(Integer::valueOf).toList();
+                rolePermission = permissionService.mergeRolePermissions(ids);
             }
         }
 
@@ -70,11 +71,11 @@ public class RoleService {
         return DtoMapper.toRoleDto(addedRole);
     }
 
-    public void deleteRoles(List<String> roles, boolean hardDelete) {
+    public void deleteRoles(List<Integer> roles, boolean hardDelete) {
         if (hardDelete && developerMode) {
             roleRepository.deleteAllById(roles);
         } else {
-            for (String r : roles) {
+            for (Integer r : roles) {
                 roleRepository.findById(r).ifPresent(role -> {
                     role.setDeleted(true);
                     roleRepository.save(role);
@@ -84,7 +85,7 @@ public class RoleService {
     }
 
     public void updateRole(RoleDto dto) {
-        roleRepository.findById(dto.getRole()).ifPresent(role -> {
+        roleRepository.findById(dto.getRoleId()).ifPresent(role -> {
             role.setUpdatedBy(dto.getUpdatedBy());
             role.setUpdatedOn(LocalDateTime.now());
             role.setAllowedStatusActionIds(dto.getAllowedStatusActionIds());
@@ -95,8 +96,8 @@ public class RoleService {
         });
     }
 
-    public void renameRole(String oldRole, String newRole, String updatedBy) {
-        roleRepository.renameRole(oldRole, newRole, updatedBy, LocalDateTime.now());
+    public void renameRole(Integer roleId, String newRole, String updatedBy) {
+        roleRepository.renameRole(roleId, newRole, updatedBy, LocalDateTime.now());
         try {
             permissionService.loadPermissions();
         } catch (Exception ignored) {

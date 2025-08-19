@@ -24,9 +24,9 @@ public class PermissionController {
         return ResponseEntity.ok(cfg);
     }
 
-    @GetMapping("/{role}")
-    public ResponseEntity<RolePermission> getRolePermission(@PathVariable String role) {
-        RolePermission perm = permissionService.getRolePermission(role);
+    @GetMapping("/{roleId}")
+    public ResponseEntity<RolePermission> getRolePermission(@PathVariable Integer roleId) {
+        RolePermission perm = permissionService.getRolePermission(roleId);
         if (perm == null) {
             return ResponseEntity.notFound().build();
         }
@@ -41,10 +41,10 @@ public class PermissionController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{role}")
-    public ResponseEntity<Void> updatePermission(@PathVariable String role,
+    @PutMapping("/{roleId}")
+    public ResponseEntity<Void> updatePermission(@PathVariable Integer roleId,
                                                  @RequestBody RolePermission permission) throws IOException {
-        permissionService.updateRolePermissions(role, permission);
+        permissionService.updateRolePermissions(roleId, permission);
         return ResponseEntity.ok().build();
     }
 

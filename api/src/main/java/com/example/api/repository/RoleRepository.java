@@ -8,13 +8,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
-public interface RoleRepository extends JpaRepository<Role, String> {
+public interface RoleRepository extends JpaRepository<Role, Integer> {
     List<Role> findByIsDeletedFalse();
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE role_permission_config SET role = :newRole, updated_by = :updatedBy, updated_on = :updatedOn WHERE role = :oldRole", nativeQuery = true)
-    void renameRole(@Param("oldRole") String oldRole,
+    @Query(value = "UPDATE role_permission_config SET role = :newRole, updated_by = :updatedBy, updated_on = :updatedOn WHERE role_id = :roleId", nativeQuery = true)
+    void renameRole(@Param("roleId") Integer roleId,
                     @Param("newRole") String newRole,
                     @Param("updatedBy") String updatedBy,
                     @Param("updatedOn") java.time.LocalDateTime updatedOn);

@@ -18,7 +18,7 @@ interface AssigneeDropdownProps {
 }
 
 interface Level { levelId: string; levelName: string; }
-interface User { userId: string; username: string; name: string; }
+interface User { userId: string; username: string; name: string; roles?: string; }
 
 const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -80,8 +80,12 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
 
     const levels: Level[] = levelsData || [];
     const users: User[] = selectedLevel ? (usersData || []) : (allUsersData || []);
+    const allowedRoleIds = ['2', '3', '4', '6', '8'];
+    const allowedUsers = users.filter(u =>
+        u.roles?.split('|').some(r => allowedRoleIds.includes(r))
+    );
 
-    const filtered = users.filter(u =>
+    const filtered = allowedUsers.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
         u.username.toLowerCase().includes(search.toLowerCase())
     );

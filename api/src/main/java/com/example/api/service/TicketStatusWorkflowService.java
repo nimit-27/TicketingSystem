@@ -50,7 +50,7 @@ public class TicketStatusWorkflowService {
                 .collect(Collectors.groupingBy(tsw -> String.valueOf(tsw.getCurrentStatus())));
     }
 
-    public Map<String, List<TicketStatusWorkflow>> getMappingsByRoles(List<String> roles) {
+    public Map<String, List<TicketStatusWorkflow>> getMappingsByRoles(List<Integer> roles) {
         Set<Integer> ids = new HashSet<>();
         if (roles == null || roles.isEmpty()) {
             return Map.of();
