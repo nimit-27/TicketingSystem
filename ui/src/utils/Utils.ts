@@ -72,3 +72,17 @@ export async function getStatuses(): Promise<any[]> {
     setStatusList(list);
     return list;
 }
+
+export function formatDateWithSuffix(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const day = d.getDate();
+  const j = day % 10,
+    k = day % 100;
+  const suffix = j === 1 && k !== 11 ? 'st'
+    : j === 2 && k !== 12 ? 'nd'
+    : j === 3 && k !== 13 ? 'rd'
+    : 'th';
+  const month = d.toLocaleString('default', { month: 'long' });
+  const year = d.getFullYear();
+  return `${day}${suffix} ${month}, ${year}`;
+}
