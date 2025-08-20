@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup, Autocomplete, TextField } from "@mui/material";
+import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup, Autocomplete, TextField, Card } from "@mui/material";
 import { formFieldValue, inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
@@ -406,49 +406,54 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )} */}
-                {showSearchUserAutocomplete && <div className="col-md-6 p-0">
-                    <Autocomplete
-                        options={filteredUsers}
-                        getOptionLabel={(option: any) => option.name || ''}
-                        renderOption={(props, option: any) => (
-                            <li {...props} key={option.userId}>
-                                <span className="fw-semibold">{option.name}</span>
-                                <span className="text-muted ms-2">{option.username} | {option.mobileNo} | {option.emailId}</span>
-                            </li>
-                        )}
-                        renderInput={(params) => (
-                            <TextField {...params} label="Search User" size="medium" />
-                        )}
-                        value={selectedUser}
-                        inputValue={searchText}
-                        onInputChange={(e, val) => setSearchText(val)}
-                        onChange={handleSelectUserChange}
-                        filterOptions={handleFilterOptions}
-                        disabled={disableAll}
-                    />
-                </div>}
-                {showStakeholder && (
-                    <div className="col-md-6 px-4">
-                        <GenericDropdownController
-                            label="Stakeholder"
-                            name="stakeholder"
-                            control={control}
-                            options={stakeholderOptions}
-                            rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
-                            className="form-select"
-                            disabled={isStakeholderDisabled}
-                        />
+                {showRequestorDetailsCard && (
+                    <div className="col-md-6">
+                        <Card className="p-2 mb-4" elevation={1}>
+                            {showUserId && userId && renderReadOnlyField("User ID", userId)}
+                            {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
+                            {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
+                            {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
+                            {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
+                            {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
+                        </Card>
                     </div>
                 )}
-
-                {showRequestorDetailsCard && <CustomFieldset variant="basic" className="d-flex flex-column col-5 mb-4">
-                    {showUserId && userId && renderReadOnlyField("User ID", userId)}
-                    {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
-                    {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
-                    {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
-                    {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
-                    {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
-                </CustomFieldset>}
+                {(showSearchUserAutocomplete || showStakeholder) && (
+                    <div className="col-md-6 d-flex flex-column">
+                        {showSearchUserAutocomplete && (
+                            <Autocomplete
+                                options={filteredUsers}
+                                getOptionLabel={(option: any) => option.name || ''}
+                                renderOption={(props, option: any) => (
+                                    <li {...props} key={option.userId}>
+                                        <span className="fw-semibold">{option.name}</span>
+                                         <span className="text-muted ms-2">{option.username} | {option.mobileNo} | {option.emailId}</span>
+                                    </li>
+                                )}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Search User" size="medium" />
+                                )}
+                                value={selectedUser}
+                                inputValue={searchText}
+                                onInputChange={(e, val) => setSearchText(val)}
+                                onChange={handleSelectUserChange}
+                                filterOptions={handleFilterOptions}
+                                disabled={disableAll}
+                            />
+                        )}
+                        {showStakeholder && (
+                            <GenericDropdownController
+                                label="Stakeholder"
+                                name="stakeholder"
+                                control={control}
+                                options={stakeholderOptions}
+                                rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
+                                className="form-select mt-3"
+                                disabled={isStakeholderDisabled}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
         </CustomFieldset>
     )

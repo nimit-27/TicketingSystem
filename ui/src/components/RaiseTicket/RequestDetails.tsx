@@ -8,6 +8,7 @@ import { checkFieldAccess } from "../../utils/permissions";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
+import { useTheme } from "@mui/material/styles";
 
 interface RequestDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -28,6 +29,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const ticketId = useWatch({ control, name: 'ticketId' });
     const mode = useWatch({ control, name: 'mode' });
     const helpdesk = true
+    const theme = useTheme();
 
     useEffect(() => {
         setValue && setValue("mode", "Self");
@@ -43,9 +45,14 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             <div key={opt.value} className="text-center">
                                 <CustomIconButton
                                     icon={opt.icon}
-                                    color={mode === opt.value ? 'primary' : 'default'}
                                     onClick={() => setValue && setValue('mode', opt.value)}
                                     disabled={disableAll || !helpdesk}
+                                    sx={{
+                                        color: theme.palette.primary.main,
+                                        border: `1px solid ${theme.palette.primary.main}`,
+                                        borderRadius: '50%',
+                                        backgroundColor: mode === opt.value ? theme.palette.secondary.main : 'transparent',
+                                    }}
                                 />
                                 <div>{t(opt.label)}</div>
                             </div>
