@@ -61,6 +61,7 @@ CREATE TABLE `categories` (
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_by` varchar(50) DEFAULT NULL,
+  `isActive` enum('Y','N') NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -71,7 +72,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES ('2','Payment Problems','bhavyar','2025-06-10 11:21:58','2025-06-10 11:21:58',NULL),('3','Bug Reports','chirags','2025-06-10 11:21:58','2025-06-10 11:21:58',NULL),('4','IT',NULL,NULL,NULL,NULL),('5','Server',NULL,NULL,NULL,NULL),('6','New Category',NULL,NULL,NULL,NULL),('7','Network Issues','alexs','2025-06-24 06:30:00','2025-06-24 06:30:00','alexs'),('8','Customer Support',NULL,NULL,NULL,NULL),('9','Infrastructure',NULL,NULL,NULL,NULL);
+INSERT INTO `categories` VALUES ('1','System Issues','teaml1','2025-08-20 04:57:28','2025-08-20 04:57:28',NULL,'Y'),('10','Any other issues related to Anna Darpan only',NULL,'2025-08-20 04:57:28','2025-08-20 04:57:28',NULL,'Y'),('2','Single User Access','bhavyar','2025-06-10 11:21:58','2025-08-20 04:57:28',NULL,'Y'),('3','Data Management','chirags','2025-06-10 11:21:58','2025-08-20 04:57:28',NULL,'Y'),('4','Mobile Application related issues',NULL,NULL,'2025-08-20 04:57:28',NULL,'Y'),('5','System Bug',NULL,NULL,'2025-08-20 04:57:28',NULL,'Y'),('6','Workflow related issue',NULL,NULL,'2025-08-20 04:57:28',NULL,'Y'),('7','Integration & Middleware','alexs','2025-06-24 06:30:00','2025-08-20 04:57:28','alexs','Y'),('8','Reporting & Analytics Tools',NULL,NULL,'2025-08-20 04:57:28',NULL,'Y'),('9','Cosmetic Changes',NULL,NULL,'2025-08-20 04:57:28',NULL,'Y');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -159,6 +160,35 @@ INSERT INTO `filegator_users` VALUES (201,'','/'),(202,'','/helpdesk'),(203,'','
 UNLOCK TABLES;
 
 --
+-- Table structure for table `helpdesk_support_levels`
+--
+
+DROP TABLE IF EXISTS `helpdesk_support_levels`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `helpdesk_support_levels` (
+  `hl_id` tinyint unsigned NOT NULL,
+  `hl_level` varchar(3) NOT NULL,
+  `hl_name` varchar(80) NOT NULL,
+  `hl_descriptions` text NOT NULL,
+  `st_id` tinyint unsigned DEFAULT NULL,
+  `hl_active_flg` enum('Y','N') NOT NULL DEFAULT 'Y',
+  PRIMARY KEY (`hl_id`),
+  UNIQUE KEY `uq_hl_level` (`hl_level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `helpdesk_support_levels`
+--
+
+LOCK TABLES `helpdesk_support_levels` WRITE;
+/*!40000 ALTER TABLE `helpdesk_support_levels` DISABLE KEYS */;
+INSERT INTO `helpdesk_support_levels` VALUES (1,'L1','Level 1 – Basic Support','First point of contact for users',1,'Y'),(2,'L2','Level 2 – Technical Support','More in-depth technical assistance',1,'Y'),(3,'L3','Level 3 – Expert Support','Advanced troubleshooting and root cause analysis',1,'Y'),(4,'L4','Level 4 – External Support','Support from external vendors or third-party providers',2,'Y');
+/*!40000 ALTER TABLE `helpdesk_support_levels` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `knowledge_base`
 --
 
@@ -218,9 +248,14 @@ DROP TABLE IF EXISTS `priority_master`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `priority_master` (
-  `priority_id` varchar(36) NOT NULL,
-  `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`priority_id`)
+  `tp_id` varchar(2) NOT NULL,
+  `tp_level` varchar(80) NOT NULL,
+  `tp_description` text NOT NULL,
+  `tp_weightage` tinyint unsigned NOT NULL,
+  `tp_active_flg` enum('Y','N') NOT NULL DEFAULT 'Y',
+  PRIMARY KEY (`tp_id`),
+  UNIQUE KEY `uq_ticket_priority_level` (`tp_level`),
+  CONSTRAINT `ck_tp_weightage` CHECK ((`tp_weightage` between 1 and 10))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -230,7 +265,7 @@ CREATE TABLE `priority_master` (
 
 LOCK TABLES `priority_master` WRITE;
 /*!40000 ALTER TABLE `priority_master` DISABLE KEYS */;
-INSERT INTO `priority_master` VALUES ('1','Critical'),('2','High'),('3','Medium'),('4','Low');
+INSERT INTO `priority_master` VALUES ('P1','P1 - Urgent (Impacting 100% users)','Needs immediate attention; business operations halted',4,'Y'),('P2','P2 – High (Impacting more than 50% users)','Needs quick resolution; affects multiple users or processes',3,'Y'),('P3','P3 – Medium (Impacting 25% to 50% users)','Can be scheduled; affects limited users',2,'Y'),('P4','P4 – Low (Impacting single user)','No immediate impact; informational or enhancement request',1,'Y');
 /*!40000 ALTER TABLE `priority_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -325,9 +360,14 @@ DROP TABLE IF EXISTS `severity_master`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `severity_master` (
-  `severity_id` varchar(36) NOT NULL,
-  `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`severity_id`)
+  `ts_id` varchar(2) NOT NULL,
+  `ts_level` varchar(40) NOT NULL,
+  `ts_description` text NOT NULL,
+  `ts_weightage` tinyint unsigned NOT NULL,
+  `ts_active_flg` enum('Y','N') NOT NULL DEFAULT 'Y',
+  PRIMARY KEY (`ts_id`),
+  UNIQUE KEY `uq_ticket_severity_level` (`ts_level`),
+  CONSTRAINT `ck_ts_weightage` CHECK ((`ts_weightage` between 1 and 10))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -337,7 +377,7 @@ CREATE TABLE `severity_master` (
 
 LOCK TABLES `severity_master` WRITE;
 /*!40000 ALTER TABLE `severity_master` DISABLE KEYS */;
-INSERT INTO `severity_master` VALUES ('1','CRITICAL'),('2','HIGH'),('3','MEDIUM'),('4','LOW');
+INSERT INTO `severity_master` VALUES ('S1','Critical - S1','Complete system outage or major functionality failure affecting business continuity',4,'Y'),('S2','High - S2','Major functionality impacted, but workaround exists',3,'Y'),('S3','Medium - S3','Partial functionality affected, minimal business impact',2,'Y'),('S4','Low - S4','Minor issue, cosmetic or informational',1,'Y');
 /*!40000 ALTER TABLE `severity_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -411,9 +451,12 @@ DROP TABLE IF EXISTS `sub_categories`;
 CREATE TABLE `sub_categories` (
   `sub_category_id` varchar(36) NOT NULL,
   `sub_category` varchar(100) NOT NULL,
+  `description` text,
   `created_by` varchar(100) DEFAULT NULL,
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `category_id` varchar(36) DEFAULT NULL,
+  `severity_id` varchar(3) NOT NULL DEFAULT 'S4',
+  `isActive` enum('Y','N') NOT NULL DEFAULT 'Y',
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_by` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`sub_category_id`),
@@ -428,7 +471,7 @@ CREATE TABLE `sub_categories` (
 
 LOCK TABLES `sub_categories` WRITE;
 /*!40000 ALTER TABLE `sub_categories` DISABLE KEYS */;
-INSERT INTO `sub_categories` VALUES ('1','UPI=',NULL,NULL,'2',NULL,NULL),('4','Payment Fail','nimit.jain','2025-06-11 16:45:40','2','2025-06-11 16:45:40',NULL),('5','Loading Time','helpdesk.user','2025-06-16 12:11:03','5','2025-06-16 12:11:03',NULL),('6','Latency','alexs','2025-06-24 06:35:00','2','2025-06-24 06:35:00','alexs'),('7','Login Issues',NULL,NULL,'2',NULL,NULL),('8','Hardware Failure','alexs','2025-06-24 07:00:00','5','2025-06-24 07:00:00','alexs');
+INSERT INTO `sub_categories` VALUES ('10001','<Given By User>','<Given By User>',NULL,'2025-08-20 05:03:57','10','S4','Y','2025-08-20 05:03:57',NULL),('1001','Entire application not available','Entire application not available',NULL,'2025-08-20 05:03:57','1','S1','Y','2025-08-20 05:03:57',NULL),('1002','SMS gateway not working','SMS gateway not working',NULL,'2025-08-20 05:03:57','1','S2','Y','2025-08-20 05:03:57',NULL),('1003','E-Mail gateway not working','E-Mail gateway not working',NULL,'2025-08-20 05:03:57','1','S2','Y','2025-08-20 05:03:57',NULL),('1004','System Slow response','System Slow response',NULL,'2025-08-20 05:03:57','1','S3','Y','2025-08-20 05:03:57',NULL),('2001','Login Issues','Login Issues',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2002','Mail not received while resetting Password','Mail not received while resetting Password',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2003','OTP not received during login','OTP not received during login',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2004','Account Locked','Account Locked',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2005','Password Reset Issue','Password Reset Issue',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2006','Role-based access (Role assignment issue)','Role-based access (Role assignment issue)',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2007','Incorrect Permissions','Incorrect Permissions',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2008','MFA (Multi-Factor Authentication) Problems','MFA (Multi-Factor Authentication) Problems',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('2009','SSO Authentication Problem','SSO Authentication Problem',NULL,'2025-08-20 05:03:57','2','S4','Y','2025-08-20 05:03:57',NULL),('3001','Data Entry Errors','Data Entry Errors',NULL,'2025-08-20 05:03:57','3','S4','Y','2025-08-20 05:03:57',NULL),('3002','Data loss/corruption','Data loss/corruption',NULL,'2025-08-20 05:03:57','3','S1','Y','2025-08-20 05:03:57',NULL),('3003','Data Synchronization Issues','Data Synchronization Issues',NULL,'2025-08-20 05:03:57','3','S2','Y','2025-08-20 05:03:57',NULL),('4001','Mobile android application downloading issue','Mobile android application downloading issue',NULL,'2025-08-20 05:03:57','4','S3','Y','2025-08-20 05:03:57',NULL),('4002','Mobile IOS application downloading issue','Mobile IOS application downloading issue',NULL,'2025-08-20 05:03:57','4','S3','Y','2025-08-20 05:03:57',NULL),('4003','Unable to login in Mobile application','Unable to login in Mobile application',NULL,'2025-08-20 05:03:57','4','S4','Y','2025-08-20 05:03:57',NULL),('5001','Unable to generate Token','Unable to generate Token',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5002','Unable to generate Gatepass','Unable to generate Gatepass',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5003','Weighbridge is integrated but unable to record the weight','Weighbridge is integrated but unable to record the weight',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5004','Unable to record quality parameters','Unable to record quality parameters',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5005','Unable to record no. of bags/weight (during unloading)','Unable to record no. of bags/weight (during unloading)',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5006','Unable to record no. of bags/weight (during loading)','Unable to record no. of bags/weight (during loading)',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5007','System displaying wrong calculations','System displaying wrong calculations',NULL,'2025-08-20 05:03:57','5','S1','Y','2025-08-20 05:03:57',NULL),('5008','Unable to generate WCM','Unable to generate WCM',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5009','Unable to generate Truckchit','Unable to generate Truckchit',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5010','Unable to generate Release Order (RO)','Unable to generate Release Order (RO)',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5011','Not able to view Release Order (RO)','Not able to view Release Order (RO)',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('5012','Unable to view or download the report','Unable to view or download the report',NULL,'2025-08-20 05:03:57','5','S3','Y','2025-08-20 05:03:57',NULL),('6001','Workflows not functioning as desired','Workflows not functioning as desired',NULL,'2025-08-20 05:03:57','6','S1','Y','2025-08-20 05:03:57',NULL),('7001','API Failures','API Failures',NULL,'2025-08-20 05:03:57','7','S1','Y','2025-08-20 05:03:57',NULL),('7002','Data Mapping Errors','Data Mapping Errors',NULL,'2025-08-20 05:03:57','7','S1','Y','2025-08-20 05:03:57',NULL),('7003','Sync Delays Between Systems','Sync Delays Between Systems',NULL,'2025-08-20 05:03:57','7','S2','Y','2025-08-20 05:03:57',NULL),('7004','Data Sync Problems','Data Sync Problems',NULL,'2025-08-20 05:03:57','7','S1','Y','2025-08-20 05:03:57',NULL),('7005','Certificate Expiry or Authentication Failures','Certificate Expiry or Authentication Failures',NULL,'2025-08-20 05:03:57','7','S1','Y','2025-08-20 05:03:57',NULL),('8001','Dashboard Not Loading','Dashboard Not Loading',NULL,'2025-08-20 05:03:57','8','S3','Y','2025-08-20 05:03:57',NULL),('8002','Data Discrepancies','Data Discrepancies',NULL,'2025-08-20 05:03:57','8','S1','Y','2025-08-20 05:03:57',NULL),('8003','Report Scheduling Failures','Report Scheduling Failures',NULL,'2025-08-20 05:03:57','8','S3','Y','2025-08-20 05:03:57',NULL),('8004','KPI Calculation Errors','KPI Calculation Errors',NULL,'2025-08-20 05:03:57','8','S1','Y','2025-08-20 05:03:57',NULL),('9001','Error message is not clear','Error message is not clear',NULL,'2025-08-20 05:03:57','9','S4','Y','2025-08-20 05:03:57',NULL),('9002','usability improvement','usability improvement',NULL,'2025-08-20 05:03:57','9','S4','Y','2025-08-20 05:03:57',NULL),('9003','Minor change on User Interace (UI)','Minor change on User Interace (UI)',NULL,'2025-08-20 05:03:57','9','S4','Y','2025-08-20 05:03:57',NULL);
 /*!40000 ALTER TABLE `sub_categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -680,7 +723,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm','ADMIN'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL,'ADMIN'),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL,'ADMIN'),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL,'ADMIN'),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas','admin123','Requestor'),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL,'ADMIN'),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL,'ADMIN'),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL,'ADMIN'),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL,'ADMIN'),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL,'ADMIN'),(211,'Guest Account',NULL,NULL,NULL,'guest','admin123','ADMIN'),(212,'Kevin Brooks','kevin.brooks@example.com','9123456790','Delhi','kevinb','password123','ADMIN'),(213,'Lara Singh','lara.singh@example.com','9123456791','Chandigarh','laras','securepass','ADMIN'),(214,'Mohan Kumar','mohan.kumar@example.com','9123456792','Jaipur','mohank','pass1234','ADMIN'),(215,'User Name','user.name@example.com','1111111111','Delhi','usern','admin123','USER'),(216,'Team Lead Name 1','team.lead1@example.com','1212121212','Delhi','teaml1','admin123','HELPDESK|Team Lead');
+INSERT INTO `users` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm','ADMIN'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar',NULL,'2'),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags',NULL,'2'),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak',NULL,'2'),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas','admin123','5'),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana',NULL,'1'),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj',NULL,'3'),(208,'Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','harshv',NULL,'4'),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm',NULL,'6'),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan',NULL,'5|7'),(211,'Guest Account',NULL,NULL,NULL,'guest','admin123','5'),(212,'Kevin Brooks','kevin.brooks@example.com','9123456790','Delhi','kevinb','password123','8'),(213,'Lara Singh','lara.singh@example.com','9123456791','Chandigarh','laras','securepass','5|7|8'),(214,'Mohan Kumar','mohan.kumar@example.com','9123456792','Jaipur','mohank','pass1234','ADMIN'),(215,'User Name','user.name@example.com','1111111111','Delhi','usern','admin123','USER'),(216,'Team Lead Name 1','team.lead1@example.com','1212121212','Delhi','teaml1','admin123','5|7');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -737,4 +780,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-19 12:00:50
+-- Dump completed on 2025-08-20 10:35:11
