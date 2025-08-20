@@ -118,7 +118,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         // When mode changes and is not "Self", enable the form fields
         if (mode && mode !== "Self") {
             setDisabled(false);
-            clearRequestorDetailsForm()
+            // clearRequestorDetailsForm()
         }
         // If mode is "Self", populate the logged in user details
         else if (mode === "Self") {
@@ -271,153 +271,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const renderReadOnlyField = (label: string, value: string) => (
         <div className={`${formFieldValue}`}>
-            <p className="mb-0 text-muted fs-12">{label}</p>
-            <p className="mb-0 fs-14">{value}</p>
+            <p className="mb-0 text-muted fs-16">{label}</p>
+            <p className="mb-0 fs-16">{value}</p>
         </div>
     );
 
     return (
-        <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
-            {/* Inputs */}
-            {!createMode &&
-                <div className="row g-3">
-                    {isRequestorOrOnBehalfFci && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                label="User ID"
-                                name="userId"
-                                slotProps={{
-                                    inputLabel: { shrink: userId },
-                                    input: {
-                                        endAdornment: !disableAll && (
-                                            <InputAdornment position="end">
-                                                {(verified || userId) && (
-                                                    <CustomIconButton icon="Clear" onClick={clearRequestorDetailsForm} disabled={disableAll} />
-                                                )}
-                                                <VerifyIconButton
-                                                    onClick={() => verifyUserById(userId)}
-                                                    pending={pending}
-                                                    verified={verified}
-                                                    disabled={!createMode}
-                                                />
-                                            </InputAdornment>
-                                        )
-                                    }
-                                }}
-                                register={register}
-                                errors={errors}
-                                disabled={isUserIdDisabled}
-                            />
-                        </div>
-                    )}
-                    {showRequestorName && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                slotProps={{
-                                    inputLabel: { shrink: requestorName || userId }
-                                }}
-                                label="Name"
-                                name="requestorName"
-                                register={register}
-                                errors={errors}
-                                disabled={!createMode}
-                            />
-                        </div>
-                    )}
-                    {true && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                slotProps={{
-                                    inputLabel: { shrink: emailId || userId }
-                                }}
-                                label="Email ID"
-                                name="emailId"
-                                register={register}
-                                errors={errors}
-                                disabled={!createMode}
-                            />
-                        </div>
-                    )}
-                    {true && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                slotProps={{
-                                    inputLabel: { shrink: mobileNo || userId }
-                                }}
-                                label="Mobile No."
-                                name="mobileNo"
-                                register={register}
-                                errors={errors}
-                                disabled={isMobileNoDisabled}
-                                type="tel"
-                                required={!createMode}
-                            />
-                        </div>
-                    )}
-                    {isRequestorOnBehalfNonFci && (
-                        <div className={`${inputColStyling}`}>
-                            <GenericDropdownController
-                                label="Stakeholder"
-                                name="stakeholder"
-                                control={control}
-                                options={stakeholderOptions}
-                                rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
-                                className="form-select"
-                                disabled={!createMode}
-                            />
-                        </div>
-                    )}
-                    {isRequestorOrOnBehalfFci && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                slotProps={{
-                                    inputLabel: { shrink: userId || verified }
-                                }}
-                                label="Role"
-                                name="role"
-                                register={register}
-                                errors={errors}
-                                disabled={!createMode}
-                            />
-                        </div>
-                    )}
-                    {isRequestorOrOnBehalfFci && (
-                        <div className={`${inputColStyling}`}>
-                            <CustomFormInput
-                                slotProps={{
-                                    inputLabel: { shrink: office || verified }
-                                }}
-                                label="Office"
-                                name="office"
-                                register={register}
-                                errors={errors}
-                                disabled={!createMode}
-                            />
-                        </div>
-                    )}
-                </div>
-            }
-            <div className="row g-3">
-                {/* {showOnBehalfCheckbox && (
-                    <div className="col-md-12 mb-3 px-4">
-                        <FormControlLabel
-                            control={<Checkbox {...register('onBehalfFciUser')} />}
-                            label={t('On behalf of FCI User')}
-                        />
-                    </div>
-                )} */}
-                {showRequestorDetailsCard && (
-                    <div className="col-md-6">
-                        <Card className="p-2 mb-4" elevation={1}>
-                            {showUserId && userId && renderReadOnlyField("User ID", userId)}
-                            {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
-                            {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
-                            {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
-                            {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
-                            {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
-                        </Card>
-                    </div>
-                )}
+        <CustomFieldset variant="bordered" title={t('Requestor Details')} className="row mb-1">
+            <div className="row w-100">
                 {(showSearchUserAutocomplete || showStakeholder) && (
                     <div className="col-md-6 d-flex flex-column">
                         {showSearchUserAutocomplete && (
@@ -427,12 +288,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 renderOption={(props, option: any) => (
                                     <li {...props} key={option.userId}>
                                         <span className="fw-semibold">{option.name}</span>
-                                         <span className="text-muted ms-2">{option.username} | {option.mobileNo} | {option.emailId}</span>
+                                        <span className="text-muted ms-2">{option.username} | {option.mobileNo} | {option.emailId}</span>
                                     </li>
                                 )}
-                                renderInput={(params) => (
-                                    <TextField {...params} label="Search User" size="medium" />
-                                )}
+                                renderInput={(params) => <TextField {...params} label="Search User" size="small" />}
                                 value={selectedUser}
                                 inputValue={searchText}
                                 onInputChange={(e, val) => setSearchText(val)}
@@ -454,8 +313,152 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         )}
                     </div>
                 )}
+                <CustomFieldset variant="basic" className="col-md-6 mb-3">
+                    {showUserId && userId && renderReadOnlyField("User ID", userId)}
+                    {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
+                    {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
+                    {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
+                    {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
+                    {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
+                </CustomFieldset>
             </div>
+
         </CustomFieldset>
+        // <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
+        //     {/* Inputs */}
+        //     {!createMode &&
+        //         <div className="row g-3">
+        //             {isRequestorOrOnBehalfFci && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <CustomFormInput
+        //                         label="User ID"
+        //                         name="userId"
+        //                         slotProps={{
+        //                             inputLabel: { shrink: userId },
+        //                             input: {
+        //                                 endAdornment: !disableAll && (
+        //                                     <InputAdornment position="end">
+        //                                         {(verified || userId) && (
+        //                                             <CustomIconButton icon="Clear" onClick={clearRequestorDetailsForm} disabled={disableAll} />
+        //                                         )}
+        //                                         <VerifyIconButton
+        //                                             onClick={() => verifyUserById(userId)}
+        //                                             pending={pending}
+        //                                             verified={verified}
+        //                                             disabled={!createMode}
+        //                                         />
+        //                                     </InputAdornment>
+        //                                 )
+        //                             }
+        //                         }}
+        //                         register={register}
+        //                         errors={errors}
+        //                         disabled={isUserIdDisabled}
+        //                     />
+        //                 </div>
+        //             )}
+        //             {showRequestorName && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <CustomFormInput
+        //                         slotProps={{
+        //                             inputLabel: { shrink: requestorName || userId }
+        //                         }}
+        //                         label="Name"
+        //                         name="requestorName"
+        //                         register={register}
+        //                         errors={errors}
+        //                         disabled={!createMode}
+        //                     />
+        //                 </div>
+        //             )}
+        //             {true && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <CustomFormInput
+        //                         slotProps={{
+        //                             inputLabel: { shrink: emailId || userId }
+        //                         }}
+        //                         label="Email ID"
+        //                         name="emailId"
+        //                         register={register}
+        //                         errors={errors}
+        //                         disabled={!createMode}
+        //                     />
+        //                 </div>
+        //             )}
+        //             {true && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <CustomFormInput
+        //                         slotProps={{
+        //                             inputLabel: { shrink: mobileNo || userId }
+        //                         }}
+        //                         label="Mobile No."
+        //                         name="mobileNo"
+        //                         register={register}
+        //                         errors={errors}
+        //                         disabled={isMobileNoDisabled}
+        //                         type="tel"
+        //                         required={!createMode}
+        //                     />
+        //                 </div>
+        //             )}
+        //             {isRequestorOnBehalfNonFci && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <GenericDropdownController
+        //                         label="Stakeholder"
+        //                         name="stakeholder"
+        //                         control={control}
+        //                         options={stakeholderOptions}
+        //                         rules={{ required: isNonFci ? 'Please select Stakeholder' : false }}
+        //                         className="form-select"
+        //                         disabled={!createMode}
+        //                     />
+        //                 </div>
+        //             )}
+        //             {isRequestorOrOnBehalfFci && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <CustomFormInput
+        //                         slotProps={{
+        //                             inputLabel: { shrink: userId || verified }
+        //                         }}
+        //                         label="Role"
+        //                         name="role"
+        //                         register={register}
+        //                         errors={errors}
+        //                         disabled={!createMode}
+        //                     />
+        //                 </div>
+        //             )}
+        //             {isRequestorOrOnBehalfFci && (
+        //                 <div className={`${inputColStyling}`}>
+        //                     <CustomFormInput
+        //                         slotProps={{
+        //                             inputLabel: { shrink: office || verified }
+        //                         }}
+        //                         label="Office"
+        //                         name="office"
+        //                         register={register}
+        //                         errors={errors}
+        //                         disabled={!createMode}
+        //                     />
+        //                 </div>
+        //             )}
+        //         </div>
+        //     }
+        //     <div className="row g-3">
+        //         {showRequestorDetailsCard && (
+        //             <div className="col-md-6" >
+        //                 <Card className="d-flex flex-column p-2 mb-4 justify-content-center" elevation={1} style={{ minHeight: '150px' }}>
+        //                     {showUserId && userId && renderReadOnlyField("User ID", userId)}
+        //                     {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
+        //                     {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
+        //                     {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
+        //                     {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
+        //                     {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
+        //                 </Card>
+        //             </div>
+        //         )}
+        //     </div>
+        // </CustomFieldset>
     )
     return (
         <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-4">

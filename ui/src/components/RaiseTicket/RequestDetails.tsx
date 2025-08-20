@@ -39,7 +39,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     return (
         <>
             {showModeField && (
-                <CustomFieldset variant="basic" title={t('Request Mode')} style={{width: 'fit-content'}} className="d-flex">
+                <CustomFieldset variant="basic" title={t('Request Mode')} style={{ width: 'fit-content' }} className="d-flex">
                     <div className="d-flex gap-2">
                         {modeOptions.map(opt => (
                             <div key={opt.value} className="text-center">
@@ -47,12 +47,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                                     icon={opt.icon}
                                     onClick={() => setValue && setValue('mode', opt.value)}
                                     disabled={disableAll || !helpdesk}
-                                    sx={{
-                                        color: theme.palette.primary.main,
-                                        border: `1px solid ${theme.palette.primary.main}`,
-                                        borderRadius: '50%',
-                                        backgroundColor: mode === opt.value ? theme.palette.secondary.main : 'transparent',
-                                    }}
+                                    sx={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main, }}
                                 />
                                 <div>{t(opt.label)}</div>
                             </div>
@@ -61,40 +56,40 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                 </CustomFieldset>
             )}
         </>
-            // <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
-            //     {/* Inputs in a row */}
-            //     <div className="row g-3">
-            //         {/* Ticket ID - Input - System Generated */}
-            //         {showTicketId && (
-            //             <div className={`${inputColStyling}`}>
-            //                 <CustomFormInput
-            //                     slotProps={{
-            //                         inputLabel: { shrink: ticketId }
-            //                     }}
-            //                     name="ticketId"
-            //                     register={register}
-            //                     required
-            //                     errors={errors}
-            //                     label="Ticket ID"
-            //                     disabled={disableAll}
-            //                 />
-            //             </div>
-            //         )}
-            //         {/* Reported Date - Input - System Generated */}
-            //         {showReportedDate && (
-            //             <div className={`${inputColStyling}`}>
-            //                 <CustomFormInput
-            //                     name="reportedDate"
-            //                     register={register}
-            //                     required
-            //                     errors={errors}
-            //                     label="Reported Date"
-            //                     disabled
-            //                 />
-            //             </div>
-            //         )}
-            //     </div>
-            // </CustomFieldset>
+        // <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
+        //     {/* Inputs in a row */}
+        //     <div className="row g-3">
+        //         {/* Ticket ID - Input - System Generated */}
+        //         {showTicketId && (
+        //             <div className={`${inputColStyling}`}>
+        //                 <CustomFormInput
+        //                     slotProps={{
+        //                         inputLabel: { shrink: ticketId }
+        //                     }}
+        //                     name="ticketId"
+        //                     register={register}
+        //                     required
+        //                     errors={errors}
+        //                     label="Ticket ID"
+        //                     disabled={disableAll}
+        //                 />
+        //             </div>
+        //         )}
+        //         {/* Reported Date - Input - System Generated */}
+        //         {showReportedDate && (
+        //             <div className={`${inputColStyling}`}>
+        //                 <CustomFormInput
+        //                     name="reportedDate"
+        //                     register={register}
+        //                     required
+        //                     errors={errors}
+        //                     label="Reported Date"
+        //                     disabled
+        //                 />
+        //             </div>
+        //         )}
+        //     </div>
+        // </CustomFieldset>
     )
 };
 

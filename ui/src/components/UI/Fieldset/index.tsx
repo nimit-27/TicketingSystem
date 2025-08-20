@@ -18,14 +18,14 @@ const Fieldset: React.FC<FieldsetProps> = ({ title, children, className = "", st
         >
             <legend
                 {...legendProps}
-                className={`${cardContainer1Header} d-flex justify-content-between align-items-center`}
+                className={`${cardContainer1Header} d-flex align-items-center`}
                 style={{
-                    width: "calc(100% - 2rem)",
+                    width: "auto",
                     fontSize: "1rem",
                     fontWeight: "500",
                     padding: "0 8px",
                     margin: 0,
-                    position: "absolute",
+                    position: !collapsed ? "absolute" : undefined,
                     top: collapsed ? '0' : '-1.1rem',
                     left: "1rem",
                     backgroundColor: "white",
