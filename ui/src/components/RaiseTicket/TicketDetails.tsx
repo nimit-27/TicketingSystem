@@ -139,6 +139,237 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
 
 
     return (
+        <CustomFieldset variant="bordered" title={t('Ticket Details')} actionElement={actionElement}>
+            <div className="row">
+                {showAssignedToLevel && (
+                    <div className="col-md-6 mb-3 px-4">
+                        <CustomFormInput
+                            name="assignedToLevel"
+                            label="Assigned To Level"
+                            slotProps={{
+                                inputLabel: { shrink: subjectValue }
+                            }}
+                            register={register}
+                            errors={errors}
+                            disabled
+                        />
+                    </div>
+                )}
+                {showAssignedTo && (
+                    <div className="col-md-6 mb-3 px-4">
+                        <CustomFormInput
+                            name="assignedTo"
+                            label="Assigned to"
+                            slotProps={{
+                                inputLabel: { shrink: subjectValue }
+                            }}
+                            register={register}
+                            errors={errors}
+                            disabled
+                        />
+                    </div>
+                )}
+                {showCategory && (
+                    <div className="col-md-4 mb-3 px-4">
+                        <GenericDropdownController
+                            name="category"
+                            control={control}
+                            label="Category of Ticket"
+                            options={categoryOptions}
+                            className="form-select"
+                            disabled={disableAll}
+                        />
+                    </div>
+                )}
+                {showSubCategory && (
+                    <div className="col-md-4 mb-3 px-4">
+                        <GenericDropdownController
+                            name="subCategory"
+                            control={control}
+                            label="Sub-Category"
+                            options={subCategoryOptions}
+                            className="form-select"
+                            disabled={disableAll || !category}
+                        />
+                    </div>
+                )}
+                {showPriority && (
+                    <div className="col-md-4 mb-3 px-4">
+                        <GenericDropdownController
+                            name="priority"
+                            control={control}
+                            label="Priority"
+                            options={priorityOptions}
+                            className="form-select"
+                            disabled={disableAll}
+                        />
+                    </div>
+                )}
+                {showSeverityFields && (
+                    <>
+                        {showSelectedImpact && (
+                            <div className="col-md-4 mb-3 px-4">
+                                <GenericDropdownController
+                                    name="impact"
+                                    control={control}
+                                    label="Selected Impact"
+                                    options={impactOptions}
+                                    className="form-select"
+                                    disabled
+                                />
+                            </div>
+                        )}
+                        {showRecommendedSeverity && (
+                            <div className="col-md-4 mb-3 px-4">
+                                <GenericDropdownController
+                                    name="recommendedSeverity"
+                                    control={control}
+                                    label="Recommended Severity"
+                                    options={severityOptions}
+                                    className="form-select"
+                                    disabled
+                                />
+                            </div>
+                        )}
+                        {showSeverity && (
+                            <div className="col-md-4 mb-3 px-4">
+                                <GenericDropdownController
+                                    name="severity"
+                                    control={control}
+                                    label="Confirm Severity"
+                                    options={severityOptions}
+                                    className="form-select"
+                                    disabled={disableAll}
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+                {showImpact && (
+                    <div className="col-md-4 mb-3 px-4">
+                        <GenericDropdownController
+                            name="impact"
+                            control={control}
+                            label="Impact"
+                            options={impactOptions}
+                            className="form-select"
+                            disabled={disableAll}
+                        />
+                    </div>
+                )}
+                {showIsMaster && (
+                    <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
+                        <FormControlLabel
+                            control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
+                            label={t('Mark this ticket as Master')}
+                        />
+                    </div>
+                )}
+                {showSubject && (
+                    <div className="col-md-12 mb-3 px-4">
+                        <CustomFormInput
+                            slotProps={{
+                                inputLabel: { shrink: subjectValue }
+                            }}
+                            label="Subject"
+                            name="subject"
+                            register={register}
+                            errors={errors}
+                            type="text"
+                            disabled={disableAll || subjectDisabled}
+                        />
+                    </div>
+                )}
+                {showDescription && (
+                    <div className="col-md-12 mb-3 px-4">
+                        <CustomFormInput
+                            slotProps={{
+                                inputLabel: { shrink: descriptionValue }
+                            }}
+                            label="Description"
+                            name="description"
+                            register={register}
+                            errors={errors}
+                            multiline
+                            rows={4}
+                            disabled={disableAll}
+                        />
+                    </div>
+                )}
+                {showAttachment && (
+                    <div className="col-md-6 d-flex align-items-center mb-3 px-4">
+                        <label htmlFor="attachment" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
+                            {t('Attachment')}
+                        </label>
+                        <CustomFormInput
+                            name="attachment"
+                            register={register}
+                            errors={errors}
+                            type="file"
+                            size="medium"
+                            className="form-control"
+                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf" }}
+                            disabled={disableAll}
+                        />
+                    </div>
+                )}
+                <div className="col-md-6 mb-3"></div>
+                {showStatus && (
+                    <div className="col-md-12 mb-3 px-4">
+                        <GenericDropdownController
+                            name="statusId"
+                            control={control}
+                            // onChange={handleExplicitStatusChange}
+                            label="Update Status"
+                            options={statusOptions}
+                            className="form-select w-25"
+                            disabled={disableAll}
+                        />
+                    </div>
+                )}
+                {showAssignFurther && (
+                    <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    disabled={disableAll}
+                                    onChange={e => setAssignFurther?.(e.target.checked)}
+                                />
+                            }
+                            label={t('Assign Further')}
+                        />
+                    </div>
+                )}
+                {!getCurrentUserDetails()?.role?.includes("USER") && assignFurther && (
+                    <>
+                        {showAssignToLevelDropdown && (
+                            <div className="col-md-4 mb-3  px-4">
+                                <GenericDropdownController
+                                    name="assignToLevel"
+                                    control={control}
+                                    label="Assign to Level"
+                                    options={assignLevelOptions}
+                                    className="form-select"
+                                />
+                            </div>
+                        )}
+                        {showAssignToDropdown && (
+                            <div className="col-md-4 mb-3 px-4">
+                                <GenericDropdownController
+                                    name="assignTo"
+                                    control={control}
+                                    label="Assign to"
+                                    options={assignToOptions}
+                                    className="form-select"
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </CustomFieldset>
+    )
+    return (
         <CustomFieldset title={t('Ticket Details')} actionElement={actionElement}>
             <div className="row">
                 {showAssignedToLevel && (
