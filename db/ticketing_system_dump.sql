@@ -61,7 +61,7 @@ CREATE TABLE `categories` (
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_by` varchar(50) DEFAULT NULL,
-  `isActive` enum('Y','N') NOT NULL DEFAULT 'Y',
+  `is_active` enum('Y','N') NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -265,7 +265,7 @@ CREATE TABLE `priority_master` (
 
 LOCK TABLES `priority_master` WRITE;
 /*!40000 ALTER TABLE `priority_master` DISABLE KEYS */;
-INSERT INTO `priority_master` VALUES ('P1','P1 - Urgent (Impacting 100% users)','Needs immediate attention; business operations halted',4,'Y'),('P2','P2 – High (Impacting more than 50% users)','Needs quick resolution; affects multiple users or processes',3,'Y'),('P3','P3 – Medium (Impacting 25% to 50% users)','Can be scheduled; affects limited users',2,'Y'),('P4','P4 – Low (Impacting single user)','No immediate impact; informational or enhancement request',1,'Y');
+INSERT INTO `priority_master` VALUES ('P1','P1 | Urgent (Impacting 100% users)','Needs immediate attention; business operations halted',4,'Y'),('P2','P2 | High (Impacting more than 50% users)','Needs quick resolution; affects multiple users or processes',3,'Y'),('P3','P3 | Medium (Impacting 25% to 50% users)','Can be scheduled; affects limited users',2,'Y'),('P4','P4 | Low (Impacting single user)','No immediate impact; informational or enhancement request',1,'Y');
 /*!40000 ALTER TABLE `priority_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -382,6 +382,59 @@ INSERT INTO `severity_master` VALUES ('S1','Critical - S1','Complete system outa
 UNLOCK TABLES;
 
 --
+-- Table structure for table `stakeholder`
+--
+
+DROP TABLE IF EXISTS `stakeholder`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `stakeholder` (
+  `stakeholder_id` int NOT NULL AUTO_INCREMENT,
+  `description` varchar(100) NOT NULL,
+  `sg_id` int NOT NULL,
+  `is_active` char(1) NOT NULL DEFAULT 'Y',
+  PRIMARY KEY (`stakeholder_id`),
+  KEY `fk_stakeholder_group` (`sg_id`),
+  CONSTRAINT `fk_stakeholder_group` FOREIGN KEY (`sg_id`) REFERENCES `stakeholder_group` (`sg_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `stakeholder`
+--
+
+LOCK TABLES `stakeholder` WRITE;
+/*!40000 ALTER TABLE `stakeholder` DISABLE KEYS */;
+INSERT INTO `stakeholder` VALUES (1,'FCI Users',1,'Y'),(2,'Contractors',2,'Y'),(3,'Millers',2,'Y'),(4,'Farmer',2,'Y'),(5,'State Agencies',2,'Y'),(6,'Helpdesk Support',3,'Y'),(7,'Helpdesk Admin',3,'Y');
+/*!40000 ALTER TABLE `stakeholder` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `stakeholder_group`
+--
+
+DROP TABLE IF EXISTS `stakeholder_group`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `stakeholder_group` (
+  `sg_id` int NOT NULL AUTO_INCREMENT,
+  `description` varchar(100) NOT NULL,
+  `is_active` char(1) NOT NULL DEFAULT 'Y',
+  PRIMARY KEY (`sg_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `stakeholder_group`
+--
+
+LOCK TABLES `stakeholder_group` WRITE;
+/*!40000 ALTER TABLE `stakeholder_group` DISABLE KEYS */;
+INSERT INTO `stakeholder_group` VALUES (1,'Internal','Y'),(2,'External','Y'),(3,'Helpdesk','Y');
+/*!40000 ALTER TABLE `stakeholder_group` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `status_history`
 --
 
@@ -456,7 +509,7 @@ CREATE TABLE `sub_categories` (
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `category_id` varchar(36) DEFAULT NULL,
   `severity_id` varchar(3) NOT NULL DEFAULT 'S4',
-  `isActive` enum('Y','N') NOT NULL DEFAULT 'Y',
+  `is_active` enum('Y','N') NOT NULL DEFAULT 'Y',
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_by` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`sub_category_id`),
@@ -780,4 +833,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-20 10:35:11
+-- Dump completed on 2025-08-20 17:03:55
