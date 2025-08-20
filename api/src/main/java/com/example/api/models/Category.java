@@ -32,6 +32,12 @@ public class Category {
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
 
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @Column(name = "isActive")
+    private String isActive;
+
     @OneToMany(mappedBy = "category")
     private Set<SubCategory> subCategories;
 }

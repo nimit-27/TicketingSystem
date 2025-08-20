@@ -1,13 +1,14 @@
 import axios from 'axios';
 import { BASE_URL } from './api';
+import { PriorityInfo } from '../types';
 
-let priorityCache: any[] | null = null;
+let priorityCache: PriorityInfo[] | null = null;
 
 export function getPriorities() {
     if (priorityCache) {
         return Promise.resolve({ data: priorityCache } as any);
     }
-    return axios.get(`${BASE_URL}/priorities`).then(res => {
+    return axios.get<PriorityInfo[]>(`${BASE_URL}/priorities`).then(res => {
         priorityCache = res.data;
         return res;
     });

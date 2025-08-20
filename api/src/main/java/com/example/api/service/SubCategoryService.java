@@ -4,6 +4,7 @@ import com.example.api.dto.SubCategoryDto;
 import com.example.api.models.Category;
 import com.example.api.models.SubCategory;
 import com.example.api.repository.CategoryRepository;
+import com.example.api.repository.SeverityRepository;
 import com.example.api.repository.SubCategoryRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,14 @@ import com.example.api.mapper.DtoMapper;
 public class SubCategoryService {
     private final SubCategoryRepository subCategoryRepository;
     private final CategoryRepository categoryRepository;
+    private final SeverityRepository severityRepository;
 
-    public SubCategoryService(SubCategoryRepository subCategoryRepository, CategoryRepository categoryRepository) {
+    public SubCategoryService(SubCategoryRepository subCategoryRepository,
+                              CategoryRepository categoryRepository,
+                              SeverityRepository severityRepository) {
         this.subCategoryRepository = subCategoryRepository;
         this.categoryRepository = categoryRepository;
+        this.severityRepository = severityRepository;
     }
 
     public List<SubCategoryDto> getAllSubCategories() {
@@ -36,9 +41,16 @@ public class SubCategoryService {
         Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new RuntimeException("Category not found"));
         subCategory.setCategory(category);
+        if (subCategory.getSeverity() != null && subCategory.getSeverity().getId() != null) {
+            severityRepository.findById(subCategory.getSeverity().getId())
+                    .ifPresent(subCategory::setSeverity);
+        }
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         subCategory.setTimestamp(now);
         subCategory.setLastUpdated(now);
+        if (subCategory.getIsActive() == null) {
+            subCategory.setIsActive("Y");
+        }
         return subCategoryRepository.save(subCategory);
     }
 

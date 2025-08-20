@@ -1,5 +1,6 @@
 package com.example.api.controller;
 
+import com.example.api.models.Priority;
 import com.example.api.service.PriorityService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class PriorityController {
     private final PriorityService priorityService;
 
     @GetMapping
-    public ResponseEntity<List<String>> getPriorities() {
-        return ResponseEntity.ok(priorityService.getAllValues());
+    public ResponseEntity<List<Priority>> getPriorities() {
+        return ResponseEntity.ok(priorityService.getAll());
     }
 }

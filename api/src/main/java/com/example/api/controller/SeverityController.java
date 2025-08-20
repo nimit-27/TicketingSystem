@@ -1,5 +1,6 @@
 package com.example.api.controller;
 
+import com.example.api.models.Severity;
 import com.example.api.service.SeverityService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class SeverityController {
     private final SeverityService severityService;
 
     @GetMapping
-    public ResponseEntity<List<String>> getSeverities() {
-        return ResponseEntity.ok(severityService.getAllValues());
+    public ResponseEntity<List<Severity>> getSeverities() {
+        return ResponseEntity.ok(severityService.getAll());
     }
 }

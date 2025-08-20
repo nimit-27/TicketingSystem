@@ -1,8 +1,6 @@
 package com.example.api.models;
 
 import com.example.api.enums.Mode;
-import com.example.api.enums.Priority;
-import com.example.api.enums.Severity;
 import com.example.api.enums.TicketStatus;
 import com.example.api.enums.FeedbackStatus;
 import com.example.api.models.Status;
@@ -44,13 +42,10 @@ public class Ticket {
     private String category;
     @Column(name="sub_category")
     private String subCategory;
-    @Enumerated(EnumType.STRING)
-    private Priority priority;
-    @Enumerated(EnumType.STRING)
-    private Severity severity;
-    @Enumerated(EnumType.STRING)
+    private String priority;
+    private String severity;
     @Column(name = "recommended_severity")
-    private Severity recommendedSeverity;
+    private String recommendedSeverity;
     private String impact;
     @Column(name = "severity_recommended_by")
     private String severityRecommendedBy;

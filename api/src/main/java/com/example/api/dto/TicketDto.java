@@ -1,8 +1,6 @@
 package com.example.api.dto;
 
 import com.example.api.enums.Mode;
-import com.example.api.enums.Priority;
-import com.example.api.enums.Severity;
 import com.example.api.enums.TicketStatus;
 import com.example.api.enums.FeedbackStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,9 +25,9 @@ public class TicketDto {
     private String description;
     private String category;
     private String subCategory;
-    private Priority priority;
-    private Severity severity;
-    private Severity recommendedSeverity;
+    private String priority;
+    private String severity;
+    private String recommendedSeverity;
     private String impact;
     private String severityRecommendedBy;
     private TicketStatus status;

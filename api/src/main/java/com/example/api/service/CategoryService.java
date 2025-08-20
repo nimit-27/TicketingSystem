@@ -31,6 +31,9 @@ public class CategoryService {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         category.setTimestamp(now);
         category.setLastUpdated(now);
+        if (category.getIsActive() == null) {
+            category.setIsActive("Y");
+        }
         return categoryRepository.save(category);
     }
 
@@ -38,6 +41,8 @@ public class CategoryService {
         return categoryRepository.findById(id)
                 .map(existing -> {
                     existing.setCategory(updated.getCategory());
+                    if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
+                    if (updated.getIsActive() != null) existing.setIsActive(updated.getIsActive());
                     return categoryRepository.save(existing);
                 });
     }

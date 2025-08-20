@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.models.Severity;
 import com.example.api.repository.SeverityRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,7 @@ public class SeverityService {
         this.repository = repository;
     }
 
-    public List<String> getAllValues() {
-        return repository.findAll().stream().map(s -> s.getValue()).toList();
+    public List<Severity> getAll() {
+        return repository.findAll();
     }
 }

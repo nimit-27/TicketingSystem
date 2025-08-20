@@ -15,6 +15,8 @@ public class DtoMapper {
         dto.setCreatedBy(category.getCreatedBy());
         dto.setTimestamp(category.getTimestamp());
         dto.setLastUpdated(category.getLastUpdated());
+        dto.setUpdatedBy(category.getUpdatedBy());
+        dto.setIsActive(category.getIsActive());
         if (category.getSubCategories() != null) {
             Set<SubCategoryDto> subDtos = category.getSubCategories().stream()
                     .map(DtoMapper::toSubCategoryDto)
@@ -29,10 +31,14 @@ public class DtoMapper {
         SubCategoryDto dto = new SubCategoryDto();
         dto.setSubCategoryId(subCategory.getSubCategoryId() != null ? String.valueOf(subCategory.getSubCategoryId()) : null);
         dto.setSubCategory(subCategory.getSubCategory());
+        dto.setDescription(subCategory.getDescription());
         dto.setCreatedBy(subCategory.getCreatedBy());
         dto.setTimestamp(subCategory.getTimestamp());
         dto.setLastUpdated(subCategory.getLastUpdated());
         dto.setCategoryId(subCategory.getCategory() != null ? String.valueOf(subCategory.getCategory().getCategoryId()) : null);
+        dto.setSeverityId(subCategory.getSeverity() != null ? subCategory.getSeverity().getId() : null);
+        dto.setUpdatedBy(subCategory.getUpdatedBy());
+        dto.setIsActive(subCategory.getIsActive());
         return dto;
     }
 

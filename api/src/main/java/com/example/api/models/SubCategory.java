@@ -22,6 +22,9 @@ public class SubCategory {
     @Column(name = "sub_category")
     private String subCategory;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "created_by")
     private String createdBy;
 
@@ -32,8 +35,18 @@ public class SubCategory {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne
+    @JoinColumn(name = "severity_id")
+    private Severity severity;
+
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @Column(name = "isActive")
+    private String isActive;
 
     public SubCategory() {}
 

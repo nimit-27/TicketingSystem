@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.models.Priority;
 import com.example.api.repository.PriorityRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,7 @@ public class PriorityService {
         this.repository = repository;
     }
 
-    public List<String> getAllValues() {
-        return repository.findAll().stream().map(p -> p.getValue()).toList();
+    public List<Priority> getAll() {
+        return repository.findAll();
     }
 }
