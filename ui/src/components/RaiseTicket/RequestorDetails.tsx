@@ -45,7 +45,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const isDisabled = disableAll || disabled;
 
-    const { data, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
+    const { data: userDetailsData, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
@@ -58,10 +58,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const stakeholder = useWatch({ control, name: 'stakeholder' });
     const debouncedUserId = useDebounce(userId, 500);
 
-    useEffect(() => {
-        getAllUsersApiHandler(() => getAllUsers());
-    }, [getAllUsersApiHandler]);
-
     const allUsers = usersData || [];
     const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholder === stakeholder);
 
@@ -70,6 +66,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }
 
     const clearUserDetails = () => {
+        console.log("Clearing user details");
         if (setValue) {
             setValue("userId", "");
             setValue("requestorName", "");
@@ -81,6 +78,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }
 
     const populateUserDetails = (data: any) => {
+        console.log("Populating user details:", data);
+        setSelectedUser(data)
         if (setValue && data) {
             setValue("requestorName", data.name);
             setValue("emailId", data.emailId);
@@ -92,13 +91,28 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 setValue("stakeholder", data.stakeholder)
             }
         }
-    }
+    };
 
     useEffect(() => {
-        setSelectedUser(null);
-        setSearchText("");
-        clearUserDetails();
-    }, [stakeholder]);
+        getAllUsersApiHandler(() => getAllUsers());
+    }, [getAllUsersApiHandler]);
+
+    // On initial render, if mode is Self, verify and populate logged-in user details
+    // useEffect(() => {
+    //     if (mode === "Self") {
+    //         const user = getCurrentUserDetails();
+    //         if (setValue && user?.userId) {
+    //             setValue("userId", user?.userId);
+    //             verifyUserById(user?.userId);
+    //         }
+    //     }
+    // }, []);
+
+    // useEffect(() => {
+    //     setSelectedUser(null);
+    //     setSearchText("");
+    //     clearUserDetails();
+    // }, [stakeholder]);
 
     useEffect(() => {
         // When mode changes and is not "Self", enable the form fields
@@ -106,17 +120,29 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setDisabled(false);
             clearRequestorDetailsForm()
         }
+        // If mode is "Self", populate the logged in user details
+        else if (mode === "Self") {
+            const user = getCurrentUserDetails();
+            if (setValue && user?.userId) {
+                setValue("userId", user?.userId);
+                verifyUserById(user?.userId);
+            }
+        }
     }, [mode]);
 
+    console.log({ pending, userDetailsData, success });
     useEffect(() => {
+        console.log("Pending:", pending, "Success:", success);
         if (success) {
+            console.log("Pending:", pending);
             setVerified(true);
-            if (setValue && data) {
-                populateUserDetails(data)
+            if (setValue && userDetailsData) {
+                console.log("Data:", userDetailsData);
+                populateUserDetails(userDetailsData)
                 setDisabled(true)
             }
         } else setVerified(false);
-    }, [pending, data]);
+    }, [pending, userDetailsData, success]);
 
     useEffect(() => {
         if (debouncedUserId) {
@@ -179,6 +205,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setSearchText("");
     };
 
+    const showSearchUserAutocomplete = mode !== 'Self' && createMode
+    const showRequestorDetailsCard = selectedUser && Object.keys(selectedUser).length > 0;
+    // const showRequestorDetailsCard = userDetailsData && Object.keys(userDetailsData).length > 0;
+    // const showRequestorDetailsCard = checkFieldAccess('requestorDetails', 'showRequestorDetailsCard') && !createMode;
     const isSelfHelpdesk = helpdesk && mode === 'Self';
 
     const showOnBehalfCheckbox = checkFieldAccess('requestorDetails', 'onBehalfOfFciUser') && createMode && mode !== 'Self';
@@ -376,7 +406,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         />
                     </div>
                 )} */}
-                <div className="col-md-6 p-0">
+                {showSearchUserAutocomplete && <div className="col-md-6 p-0">
                     <Autocomplete
                         options={filteredUsers}
                         getOptionLabel={(option: any) => option.name || ''}
@@ -396,7 +426,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         filterOptions={handleFilterOptions}
                         disabled={disableAll}
                     />
-                </div>
+                </div>}
                 {showStakeholder && (
                     <div className="col-md-6 px-4">
                         <GenericDropdownController
@@ -411,18 +441,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                     </div>
                 )}
 
-                {showUserId && userId && (
-                    <div className={`${inputColStyling}`}>
-                        {renderReadOnlyField("User ID", userId)}
-                    </div>
-                )}
-                <CustomFieldset variant="basic" className="d-flex mb-4">
+                {showRequestorDetailsCard && <CustomFieldset variant="basic" className="d-flex flex-column col-5 mb-4">
+                    {showUserId && userId && renderReadOnlyField("User ID", userId)}
                     {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
                     {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
                     {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
                     {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
                     {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
-                </CustomFieldset>
+                </CustomFieldset>}
             </div>
         </CustomFieldset>
     )

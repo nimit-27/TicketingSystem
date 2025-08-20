@@ -31,10 +31,11 @@ import LockIcon from '@mui/icons-material/Lock';
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 import PersonIcon from '@mui/icons-material/Person';
 import CallIcon from '@mui/icons-material/Call';
 import EmailIcon from '@mui/icons-material/Email';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
 const iconMap = {
@@ -76,6 +77,7 @@ const iconMap = {
     person: PersonIcon,
     call: CallIcon,
     email: EmailIcon,
+    infoOutlined: InfoOutlinedIcon,
 };
 
 // Valid keys for the icon map

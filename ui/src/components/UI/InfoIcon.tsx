@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-
+import { IconComponent } from './IconButton/CustomIconButton';
 export interface InfoIconProps {
   content?: React.ReactNode;
   text?: string;
@@ -24,12 +23,13 @@ const InfoIcon: React.FC<InfoIconProps> = ({ content, text, title }) => {
   const open = Boolean(anchorEl);
 
   return (
-    <>
-      <InfoOutlinedIcon
-        fontSize="small"
-        sx={{ ml: 0.5, cursor: 'pointer' }}
-        onMouseEnter={handleOpen}
-        onMouseLeave={handleClose}
+    <div 
+      onMouseEnter={handleOpen}
+      onMouseLeave={handleClose}
+    >
+      <IconComponent
+        icon='infoOutlined'
+        style={{ cursor: 'pointer' }}
       />
       <Popover
         open={open}
@@ -57,7 +57,7 @@ const InfoIcon: React.FC<InfoIconProps> = ({ content, text, title }) => {
           )}
         </Box>
       </Popover>
-    </>
+    </div>
   );
 };
 
