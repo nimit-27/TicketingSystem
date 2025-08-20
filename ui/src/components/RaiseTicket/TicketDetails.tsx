@@ -15,6 +15,8 @@ import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
+import InfoIcon from "../UI/InfoIcon";
+import { PriorityInfo, SeverityInfo } from "../../types";
 
 interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -60,8 +62,24 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'nextStatus');
-    const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: string) => ({ label: p, value: p })) : [];
-    const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: string) => ({ label: s, value: s })) : [];
+    const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: PriorityInfo) => ({ label: p.level, value: p.level })) : [];
+    const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level })) : [];
+
+    const priorityContent = Array.isArray(priorityList) ? (
+        <div>
+            {priorityList.map((p: PriorityInfo) => (
+                <div key={p.id}>{p.level} - {p.description}</div>
+            ))}
+        </div>
+    ) : undefined;
+
+    const severityContent = Array.isArray(severityList) ? (
+        <div>
+            {severityList.map((s: SeverityInfo) => (
+                <div key={s.id}>{s.level} - {s.description}</div>
+            ))}
+        </div>
+    ) : undefined;
 
     const assignedToLevel = useWatch({ control, name: 'assignedToLevel' });
     const assignToLevel = useWatch({ control, name: 'assignToLevel' });
@@ -194,15 +212,16 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showPriority && (
-                    <div className="col-md-4 mb-3 px-4">
+                    <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
                         <GenericDropdownController
                             name="priority"
                             control={control}
                             label="Priority"
                             options={priorityOptions}
-                            className="form-select"
+                            className="form-select flex-grow-1"
                             disabled={disableAll}
                         />
+                        <InfoIcon content={priorityContent} />
                     </div>
                 )}
                 {showSeverityFields && (
@@ -232,15 +251,16 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             </div>
                         )}
                         {showSeverity && (
-                            <div className="col-md-4 mb-3 px-4">
+                            <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
                                 <GenericDropdownController
                                     name="severity"
                                     control={control}
                                     label="Confirm Severity"
                                     options={severityOptions}
-                                    className="form-select"
+                                    className="form-select flex-grow-1"
                                     disabled={disableAll}
                                 />
+                                <InfoIcon content={severityContent} />
                             </div>
                         )}
                     </>

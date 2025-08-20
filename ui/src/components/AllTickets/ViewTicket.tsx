@@ -8,6 +8,8 @@ import { getTicket, updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
+import InfoIcon from '../UI/InfoIcon';
+import { PriorityInfo, SeverityInfo } from '../../types';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import CommentsSection from '../Comments/CommentsSection';
 import { useNavigate } from 'react-router-dom';
@@ -32,12 +34,20 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
   const [recommendedSeverity, setRecommendedSeverity] = useState('');
   const [priorityOptions, setPriorityOptions] = useState<string[]>([]);
   const [severityOptions, setSeverityOptions] = useState<string[]>([]);
+  const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
+  const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
 
   useEffect(() => {
     if (open && ticketId) {
       getTicketHandler(() => getTicket(ticketId));
-      getPriorities().then(res => setPriorityOptions(res.data || []));
-      getSeverities().then(res => setSeverityOptions(res.data || []));
+      getPriorities().then(res => {
+        setPriorityOptions((res.data || []).map((p: PriorityInfo) => p.level));
+        setPriorityDetails(res.data || []);
+      });
+      getSeverities().then(res => {
+        setSeverityOptions((res.data || []).map((s: SeverityInfo) => s.level));
+        setSeverityDetails(res.data || []);
+      });
     }
   }, [open, ticketId, getTicketHandler]);
 
@@ -174,13 +184,27 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
             {renderText(description, setDescription, true)}
           </Box>
           <Box sx={{ mt: 2 }}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
               <Typography variant="body2" color="text.secondary">Priority</Typography>
               {renderSelect(priority, setPriority, priorityOptions)}
+              <InfoIcon content={(
+                <div>
+                  {priorityDetails.map(p => (
+                    <div key={p.id}>{p.level} - {p.description}</div>
+                  ))}
+                </div>
+              )} />
             </Box>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
               {renderSelect(severity, setSeverity, severityOptions)}
+              <InfoIcon content={(
+                <div>
+                  {severityDetails.map(s => (
+                    <div key={s.id}>{s.level} - {s.description}</div>
+                  ))}
+                </div>
+              )} />
             </Box>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>

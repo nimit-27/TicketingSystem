@@ -14,5 +14,7 @@ public class CategoryDto {
     private String createdBy;
     private LocalDateTime timestamp;
     private LocalDateTime lastUpdated;
+    private String updatedBy;
+    private String isActive;
     private Set<SubCategoryDto> subCategories;
 }

@@ -26,6 +26,18 @@ export interface Category {
     subCategories: SubCategory[];
 }
 
+export interface PriorityInfo {
+    id: string;
+    level: string;
+    description: string;
+}
+
+export interface SeverityInfo {
+    id: string;
+    level: string;
+    description: string;
+}
+
 export interface Ticket {
     id: string;
     subject: string;
