@@ -56,6 +56,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, variant = "under
             className={className}
             style={style}
             legendProps={{ onClick: toggleCollapse }}
+            collapsed={collapsed}
         >
             {!collapsed && (
                 <div>

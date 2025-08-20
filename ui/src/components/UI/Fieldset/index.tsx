@@ -7,12 +7,13 @@ interface FieldsetProps {
     className?: string;
     style?: React.CSSProperties;
     legendProps?: React.HTMLAttributes<HTMLLegendElement>;
+    collapsed?: boolean;
 }
 
-const Fieldset: React.FC<FieldsetProps> = ({ title, children, className = "", style, legendProps }) => {
+const Fieldset: React.FC<FieldsetProps> = ({ title, children, className = "", style, legendProps, collapsed = false }) => {
     return (
         <fieldset
-            className={`border p-4 pt-5 position-relative rounded mb-4 ${className}`}
+            className={`border ${collapsed ? 'p-4' : 'p-4 pt-5'} position-relative rounded mb-4 ${className}`}
             style={style}
         >
             <legend
@@ -25,7 +26,7 @@ const Fieldset: React.FC<FieldsetProps> = ({ title, children, className = "", st
                     padding: "0 8px",
                     margin: 0,
                     position: "absolute",
-                    top: "-1.1rem",
+                    top: collapsed ? '0' : '-1.1rem',
                     left: "1rem",
                     backgroundColor: "white",
                     display: "flex",
