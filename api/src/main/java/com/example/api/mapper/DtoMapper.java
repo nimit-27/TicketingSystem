@@ -68,6 +68,7 @@ public class DtoMapper {
         dto.setAssignedToLevel(ticket.getAssignedToLevel());
         dto.setAssignedTo(ticket.getAssignedTo());
         dto.setAssignedBy(ticket.getAssignedBy());
+        dto.setLevelId(ticket.getLevelId());
         dto.setUpdatedBy(ticket.getUpdatedBy());
         dto.setMaster(ticket.isMaster());
         dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
@@ -102,6 +103,12 @@ public class DtoMapper {
         userDto.setMobileNo(user.getMobileNo());
         userDto.setOffice(user.getOffice());
         userDto.setRoles(user.getRoles());
+        if (user.getLevels() != null) {
+            String levels = user.getLevels().stream()
+                    .map(Level::getLevelId)
+                    .collect(java.util.stream.Collectors.joining("|"));
+            userDto.setLevels(levels);
+        }
         return userDto;
     }
 

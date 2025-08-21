@@ -57,6 +57,9 @@ public class Ticket {
 
     @Column(name = "assigned_to_level")
     private String assignedToLevel;
+
+    @Column(name = "level_id")
+    private String levelId;
     @Column(name = "assigned_to")
     private String assignedTo;
     @Column(name = "assigned_by")

@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class LevelService {
@@ -43,6 +44,12 @@ public class LevelService {
                         dto.setMobileNo(user.getMobileNo());
                         dto.setOffice(user.getOffice());
                         dto.setRoles(user.getRoles());
+                        if (user.getLevels() != null) {
+                            String levelsStr = user.getLevels().stream()
+                                    .map(Level::getLevelId)
+                                    .collect(Collectors.joining("|"));
+                            dto.setLevels(levelsStr);
+                        }
                         userDtos.add(dto);
                     }
                     return userDtos;
