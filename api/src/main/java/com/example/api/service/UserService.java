@@ -2,14 +2,12 @@ package com.example.api.service;
 
 import com.example.api.dto.UserDto;
 import com.example.api.mapper.DtoMapper;
-import com.example.api.models.Level;
 import com.example.api.models.User;
 import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -33,10 +31,9 @@ public class UserService {
             dto.setMobileNo(emp.getMobileNo());
             dto.setOffice(emp.getOffice());
             dto.setRoles(emp.getRoles());
-            String levels = emp.getLevels() != null ? emp.getLevels().stream()
-                    .map(Level::getLevelId)
-                    .collect(Collectors.joining("|")) : null;
-            dto.setLevels(levels);
+            if (emp.getUserLevel() != null && emp.getUserLevel().getLevelId() != null) {
+                dto.setLevels(java.util.Arrays.asList(emp.getUserLevel().getLevelId().split("\\|")));
+            }
             return dto;
         }).toList();
     }

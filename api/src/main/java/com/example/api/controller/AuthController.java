@@ -43,6 +43,7 @@ public class AuthController {
                     session.setAttribute("username", request.getUsername());
                     session.setAttribute("password", request.getPassword());
                     session.setAttribute("roles", emp.getRoles());
+                    session.setAttribute("levels", emp.getUserLevel() != null ? emp.getUserLevel().getLevelId() : null);
 
                     List<String> roles = emp.getRoles() == null ? List.of()
                             : Arrays.asList(emp.getRoles().split("\\|"));
@@ -50,6 +51,10 @@ public class AuthController {
                             .filter(r -> !r.isBlank())
                             .map(Integer::parseInt)
                             .toList();
+
+                    List<String> levels = emp.getUserLevel() == null || emp.getUserLevel().getLevelId() == null
+                            ? List.of()
+                            : Arrays.asList(emp.getUserLevel().getLevelId().split("\\|"));
 
                     RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
                     System.out.println("Perm: " + permissions);
@@ -59,7 +64,8 @@ public class AuthController {
                             "name", emp.getName(),
                             "username", emp.getUsername(),
                             "roles", roles,
-                            "permissions", permissions
+                            "permissions", permissions,
+                            "levels", levels
                     ));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)

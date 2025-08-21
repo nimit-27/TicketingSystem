@@ -11,6 +11,7 @@ type LoginResponse = {
     userId?: string;
     username?: string;
     roles?: string[];
+    levels?: string[];
     name?: string;
     [key: string]: any;
 };
@@ -33,6 +34,7 @@ const Login: React.FC = () => {
                     userId: res.userId || userId,
                     username: res.username,
                     role: res.roles,
+                    levels: res.levels,
                     name: res.name
                 };
                 setUserDetails(details);

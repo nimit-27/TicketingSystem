@@ -26,10 +26,11 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
             "AND (:master IS NULL OR t.isMaster = :master) " +
             "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:levelId IS NULL OR t.levelId = :levelId) " +
             "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
-    Page<Ticket> searchTickets(@Param("query") String query, @Param("statusId") String statusName, @Param("master") Boolean master, @Param("assignedTo") String assignedTo, Pageable pageable);
+    Page<Ticket> searchTickets(@Param("query") String query, @Param("statusId") String statusName, @Param("master") Boolean master, @Param("assignedTo") String assignedTo, @Param("levelId") String levelId, Pageable pageable);
 }
