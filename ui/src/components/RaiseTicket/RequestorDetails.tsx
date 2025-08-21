@@ -18,6 +18,7 @@ import ViewToggle from "../UI/ViewToggle";
 import { useTranslation } from "react-i18next";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getStakeholders } from "../../services/StakeholderService";
+import UserAvatar from "../UI/UserAvatar/UserAvatar";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -272,8 +273,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const renderReadOnlyField = (label: string, value: string) => (
         <div className={`${formFieldValue}`}>
-            <p className="mb-0 text-muted fs-16">{label}</p>
-            <p className="mb-0 fs-16">{value}</p>
+            <p className="mb-0 text-muted ts-13">{label}</p>
+            <p className="mb-0 ts-13">{value}</p>
         </div>
     );
 
@@ -314,13 +315,27 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         )}
                     </div>
                 )}
-                <CustomFieldset variant="basic" className="col-md-6 mb-3">
-                    {showUserId && userId && renderReadOnlyField("User ID", userId)}
-                    {showRequestorName && requestorName && renderReadOnlyField("Name", requestorName)}
-                    {showEmailId && emailId && renderReadOnlyField("Email ID", emailId)}
-                    {showMobileNo && mobileNo && renderReadOnlyField("Mobile No.", mobileNo)}
-                    {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
-                    {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
+                <CustomFieldset variant="basic" className="col-md-6 mb-3" style={{ background: "#02ff194d" }} >
+                    <div className="d-flex align-items-center justify-content-center mb-2">
+                        <UserAvatar name={requestorName} />
+                        {/* <span className="ms-2 fs-5">{requestorName}</span> */}
+                    </div>
+                    <div className="d-flex flex-column align-items-center mb-2 justify-content-center">
+                        {showRequestorName && requestorName && (
+                            <div className="fw-semibold">{requestorName}</div>
+                        )}
+                        {(showEmailId && emailId) || (showMobileNo && mobileNo) ? (
+                            <div className="text-muted">
+                                {showEmailId && emailId && <span className="ts-14">{emailId}</span>}
+                                {showEmailId && emailId && showMobileNo && mobileNo && <span> | </span>}
+                                {showMobileNo && mobileNo && <span className="ts-13">{mobileNo}</span>}
+                            </div>
+                        ) : null}
+                    </div>
+                    <div>
+                        {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
+                        {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
+                    </div>
                 </CustomFieldset>
             </div>
 
