@@ -19,6 +19,9 @@ public class UserLevel {
     @Column(name = "level_id")
     private String levelId;
 
+    @Column(name = "level_ids")
+    private String levelIds;
+
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")

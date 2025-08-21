@@ -9,10 +9,7 @@ import com.example.api.repository.LevelRepository;
 import com.example.api.repository.UserLevelRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class LevelService {
@@ -43,5 +40,10 @@ public class LevelService {
             }
         }
         return Optional.of(userDtos);
+    }
+
+    public List<String> getLevelListByUserId(Integer userId) {
+        UserLevel userLevel = userLevelRepository.findByUserId(userId);
+        return Arrays.asList(userLevel.getLevelIds().split("\\|"));
     }
 }

@@ -2,6 +2,7 @@ package com.example.api.mapper;
 
 import com.example.api.dto.*;
 import com.example.api.models.*;
+import com.example.api.service.LevelService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -106,7 +107,7 @@ public class DtoMapper {
         userDto.setOffice(user.getOffice());
         userDto.setRoles(user.getRoles());
         if (user.getUserLevel() != null && user.getUserLevel().getLevelId() != null) {
-            List<String> levels = Arrays.asList(user.getUserLevel().getLevelId().split("\\|"));
+            List<String> levels = Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
             userDto.setLevels(levels);
         }
         return userDto;

@@ -31,8 +31,8 @@ public class UserService {
             dto.setMobileNo(emp.getMobileNo());
             dto.setOffice(emp.getOffice());
             dto.setRoles(emp.getRoles());
-            if (emp.getUserLevel() != null && emp.getUserLevel().getLevelId() != null) {
-                dto.setLevels(java.util.Arrays.asList(emp.getUserLevel().getLevelId().split("\\|")));
+            if (emp.getUserLevel() != null && emp.getUserLevel().getLevelIds() != null) {
+                dto.setLevels(java.util.Arrays.asList(emp.getUserLevel().getLevelIds().split("\\|")));
             }
             return dto;
         }).toList();
