@@ -18,7 +18,7 @@ interface AssigneeDropdownProps {
 }
 
 interface Level { levelId: string; levelName: string; }
-interface User { userId: string; username: string; name: string; roles?: string; levels?: string; levelId?: string; levelName?: string; }
+interface User { userId: string; username: string; name: string; roles?: string; levels?: string[]; levelId?: string; levelName?: string; }
 
 const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -83,7 +83,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const levelMap = Object.fromEntries(levels.map(l => [l.levelId, l.levelName]));
     const baseUsers: User[] = selectedLevel ? (usersData || []) : (allUsersData || []);
     const expandedUsers: User[] = baseUsers.flatMap(u => {
-        const ids = u.levels ? u.levels.split('|') : [''];
+        const ids = u.levels && u.levels.length ? u.levels : [''];
         return ids.map(id => ({ ...u, levelId: id, levelName: levelMap[id] }));
     });
     const allowedRoleIds = ['2', '3', '4', '6', '8'];

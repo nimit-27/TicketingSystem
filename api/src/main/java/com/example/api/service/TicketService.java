@@ -163,8 +163,8 @@ public class TicketService {
         return typesenseClient.searchTickets(query);
     }
 
-    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master, String assignedTo, Pageable pageable) {
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, pageable);
+    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master, String assignedTo, String levelId, Pageable pageable) {
+        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, levelId, pageable);
         return page.map(this::mapWithStatusId);
     }
 

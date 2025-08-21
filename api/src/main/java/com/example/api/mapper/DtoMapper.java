@@ -3,6 +3,8 @@ package com.example.api.mapper;
 import com.example.api.dto.*;
 import com.example.api.models.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -103,10 +105,8 @@ public class DtoMapper {
         userDto.setMobileNo(user.getMobileNo());
         userDto.setOffice(user.getOffice());
         userDto.setRoles(user.getRoles());
-        if (user.getLevels() != null) {
-            String levels = user.getLevels().stream()
-                    .map(Level::getLevelId)
-                    .collect(java.util.stream.Collectors.joining("|"));
+        if (user.getUserLevel() != null && user.getUserLevel().getLevelId() != null) {
+            List<String> levels = Arrays.asList(user.getUserLevel().getLevelId().split("\\|"));
             userDto.setLevels(levels);
         }
         return userDto;

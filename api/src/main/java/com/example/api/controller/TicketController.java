@@ -67,9 +67,10 @@ public class TicketController {
             @RequestParam(required = false, name = "status") String statusId,
             @RequestParam(required = false) Boolean master,
             @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String levelId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, PageRequest.of(page, size));
+        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, levelId, PageRequest.of(page, size));
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         return ResponseEntity.ok(resp);
     }

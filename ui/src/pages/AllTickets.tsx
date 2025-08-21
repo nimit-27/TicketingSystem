@@ -53,6 +53,9 @@ const AllTickets: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
+    const levels = getCurrentUserDetails()?.levels || [];
+    const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
+    const showLevelFilterToggle = levels.length > 1;
     const { t } = useTranslation();
     const showTable = checkMyTicketsAccess('table');
 
@@ -70,7 +73,7 @@ const AllTickets: React.FC = () => {
     const debouncedSearch = useDebounce(search, 300);
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
-        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size));
+        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, undefined, levelFilter));
     }
 
     const onIdClick = (id: string) => {
@@ -86,7 +89,7 @@ const AllTickets: React.FC = () => {
         async (id: string) => {
             setRefreshingTicketId(id);
             await searchTicketsPaginatedApiHandler(() =>
-                searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize)
+                searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize, undefined, levelFilter)
             );
             setRefreshingTicketId(null);
         },
@@ -95,7 +98,7 @@ const AllTickets: React.FC = () => {
 
     useEffect(() => {
         searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize]);
 
     useEffect(() => {
         getStatuses().then(setStatusList);
@@ -136,6 +139,16 @@ const AllTickets: React.FC = () => {
                         options={statusFilterOptions}
                         style={{ width: 180, marginRight: 8 }}
                     />
+                    {showLevelFilterToggle && levels.map(l => (
+                        <Chip
+                            key={l}
+                            label={l}
+                            color={levelFilter === l ? 'primary' : 'default'}
+                            variant={levelFilter === l ? 'filled' : 'outlined'}
+                            onClick={() => setLevelFilter(prev => prev === l ? undefined : l)}
+                            sx={{ mr: 1 }}
+                        />
+                    ))}
                     <Chip
                         label={t('Master')}
                         color={masterOnly ? 'primary' : 'default'}

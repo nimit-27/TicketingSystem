@@ -53,6 +53,9 @@ const MyTickets: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
+    const levels = getCurrentUserDetails()?.levels || [];
+    const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
+    const showLevelFilterToggle = levels.length > 1;
 
     const showSearchBar = checkMyTicketsAccess('searchBar');
     const showStatusFilter = checkMyTicketsAccess('statusFilter');
@@ -74,7 +77,7 @@ const MyTickets: React.FC = () => {
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
         const username = getCurrentUserDetails()?.username || "";
-        return searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, username));
+        return searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, username, levelFilter));
     };
 
     const onIdClick = (id: string) => {
@@ -92,12 +95,12 @@ const MyTickets: React.FC = () => {
             await searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
             setRefreshingTicketId(null);
         },
-        [debouncedSearch, statusFilter, masterOnly, page, pageSize]
+        [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize]
     );
 
     useEffect(() => {
         searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, page, pageSize]);
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize]);
 
     useEffect(() => {
         getStatuses().then(setStatusList);
@@ -142,6 +145,16 @@ const MyTickets: React.FC = () => {
                             style={{ width: 180, marginRight: 8 }}
                         />
                     )}
+                    {showLevelFilterToggle && levels.map(l => (
+                        <Chip
+                            key={l}
+                            label={l}
+                            color={levelFilter === l ? 'primary' : 'default'}
+                            variant={levelFilter === l ? 'filled' : 'outlined'}
+                            onClick={() => setLevelFilter(prev => prev === l ? undefined : l)}
+                            sx={{ mr: 1 }}
+                        />
+                    ))}
                     {showMasterFilterToggle && (
                         <Chip
                             label={t('Master')}

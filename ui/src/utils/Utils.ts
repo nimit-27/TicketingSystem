@@ -4,6 +4,7 @@ export interface UserDetails {
   userId: string;
   username?: string;
   role?: string[];
+  levels?: string[];
   name?: string;
   email?: string;
   phone?: string;
