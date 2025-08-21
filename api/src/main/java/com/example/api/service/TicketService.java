@@ -129,7 +129,7 @@ public class TicketService {
         boolean sla = workflowService.getSlaFlagByStatusId(openId);
         statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, null);
         if (isAssigned) {
-            assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), null);
+            assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), saved.getLevelId(), null);
             String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
             boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
             statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null);
@@ -205,6 +205,7 @@ public class TicketService {
         if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
         if (updated.getAttachmentPath() != null) existing.setAttachmentPath(updated.getAttachmentPath());
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
+        if (updated.getLevelId() != null) existing.setLevelId(updated.getLevelId());
         if (updated.getAssignedTo() != null) {
             existing.setAssignedTo(updated.getAssignedTo());
             if (!updated.getAssignedTo().equals(previousAssignedTo) && updatedStatus == null && updatedStatusId == null) {
@@ -219,7 +220,9 @@ public class TicketService {
         if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id,
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy,
-                    updated.getAssignedTo(), remark);
+                    updated.getAssignedTo(),
+                    updated.getLevelId() != null ? updated.getLevelId() : existing.getLevelId(),
+                    remark);
             if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
                 String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
@@ -237,7 +240,7 @@ public class TicketService {
             boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
             if ((updated.getAssignedTo() == null || updated.getAssignedTo().equals(previousAssignedTo)) && remark != null && !remark.isBlank()) {
-                assignmentHistoryService.addHistory(id, updatedBy, existing.getAssignedTo(), remark);
+                assignmentHistoryService.addHistory(id, updatedBy, existing.getAssignedTo(), existing.getLevelId(), remark);
             }
         }
         return mapWithStatusId(saved);

@@ -18,14 +18,13 @@ interface AssigneeDropdownProps {
 }
 
 interface Level { levelId: string; levelName: string; }
-interface User { userId: string; username: string; name: string; roles?: string; }
+interface User { userId: string; username: string; name: string; roles?: string; levels?: string; levelId?: string; levelName?: string; }
 
 const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
-    const [userLevels, setUserLevels] = useState<Record<string, string>>({});
     const [showActionRemark, setShowActionRemark] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -62,6 +61,8 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const handleSubmitRemark = (remark: string, selectedUser: User) => {
         const payload = {
             assignedTo: selectedUser.username,
+            assignedToLevel: selectedUser.levelId,
+            levelId: selectedUser.levelId,
             remark,
             assignedBy: getCurrentUserDetails()?.username,
             updatedBy: getCurrentUserDetails()?.username
@@ -79,9 +80,14 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     };
 
     const levels: Level[] = levelsData || [];
-    const users: User[] = selectedLevel ? (usersData || []) : (allUsersData || []);
+    const levelMap = Object.fromEntries(levels.map(l => [l.levelId, l.levelName]));
+    const baseUsers: User[] = selectedLevel ? (usersData || []) : (allUsersData || []);
+    const expandedUsers: User[] = baseUsers.flatMap(u => {
+        const ids = u.levels ? u.levels.split('|') : [''];
+        return ids.map(id => ({ ...u, levelId: id, levelName: levelMap[id] }));
+    });
     const allowedRoleIds = ['2', '3', '4', '6', '8'];
-    const allowedUsers = users.filter(u =>
+    const allowedUsers = expandedUsers.filter(u =>
         u.roles?.split('|').some(r => allowedRoleIds.includes(r))
     );
 
@@ -129,11 +135,9 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                     <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
                         <List dense>
                             {filtered.map(u => (
-                                <ListItemButton key={u.userId} onClick={() => handleSelect(u)}>
+                                <ListItemButton key={`${u.userId}-${u.levelId}`} onClick={() => handleSelect(u)}>
                                     <Box sx={{ display: 'flex', width: '100%' }}>
-                                        <Box sx={{ width: 60 }}>
-                                            {selectedLevel ? levels.find(l => l.levelId === selectedLevel)?.levelName : userLevels[u.userId]}
-                                        </Box>
+                                        <Box sx={{ width: 60 }}>{u.levelName}</Box>
                                         <Box sx={{ flexGrow: 1 }}>{u.name}</Box>
                                         <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.username}</Box>
                                     </Box>

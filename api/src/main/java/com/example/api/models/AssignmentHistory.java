@@ -23,6 +23,9 @@ public class AssignmentHistory {
     @Column(name = "assigned_to")
     private String assignedTo;
 
+    @Column(name = "level_id")
+    private String levelId;
+
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
