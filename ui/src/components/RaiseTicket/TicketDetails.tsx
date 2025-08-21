@@ -59,10 +59,10 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     // getDropdownOptions(arr, label, value)
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
     const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'username');
-    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'category');
+    const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'categoryId');
     const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'nextStatus');
-    const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: PriorityInfo) => ({ label: p.level, value: p.level })) : [];
+    const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: PriorityInfo) => ({ label: p.level, value: p.id })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level })) : [];
 
     const priorityContent = Array.isArray(priorityList) ? (
@@ -140,11 +140,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     }, [])
 
     useEffect(() => {
-        if (category && Array.isArray(allCategories)) {
-            const selectedCategory = allCategories.find((cat: any) => cat.category === category);
-            if (selectedCategory?.categoryId) {
-                getSubCategoriesApiHandler(() => getSubCategories(selectedCategory.categoryId));
-            }
+        if (category) {
+            getSubCategoriesApiHandler(() => getSubCategories(category));
         }
     }, [category])
 
@@ -196,6 +193,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             options={categoryOptions}
                             className="form-select"
                             disabled={disableAll}
+                            rules={{ required: 'Please select Category' }}
                         />
                     </div>
                 )}
@@ -208,6 +206,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             options={subCategoryOptions}
                             className="form-select"
                             disabled={disableAll || !category}
+                            rules={{ required: 'Please select Sub Category' }}
                         />
                     </div>
                 )}
@@ -220,6 +219,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             options={priorityOptions}
                             className="form-select flex-grow-1"
                             disabled={disableAll}
+                            rules={{ required: 'Please select Priority' }}
                         />
                         <InfoIcon content={priorityContent} />
                     </div>
@@ -297,6 +297,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             errors={errors}
                             type="text"
                             disabled={disableAll || subjectDisabled}
+                            required
                         />
                     </div>
                 )}
@@ -313,6 +314,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             multiline
                             rows={4}
                             disabled={disableAll}
+                            required
                         />
                     </div>
                 )}

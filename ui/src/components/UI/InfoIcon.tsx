@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import { grey } from '@mui/material/colors';
 import { IconComponent } from './IconButton/CustomIconButton';
 export interface InfoIconProps {
   content?: React.ReactNode;
@@ -23,23 +24,28 @@ const InfoIcon: React.FC<InfoIconProps> = ({ content, text, title }) => {
   const open = Boolean(anchorEl);
 
   return (
-    <div 
-      onMouseEnter={handleOpen}
-      onMouseLeave={handleClose}
-    >
+    <div onMouseEnter={handleOpen} onMouseLeave={handleClose} style={{ display: 'inline-block' }}>
       <IconComponent
         icon='infoOutlined'
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', color: grey[500] }}
       />
       <Popover
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
+        onMouseLeave={handleClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         disableRestoreFocus
-        PaperProps={{ sx: { pointerEvents: 'none', p: 1 } }}
+        PaperProps={{
+          sx: {
+            p: 0,
+            borderRadius: 2,
+            opacity: 0.9,
+            transition: 'opacity 0.3s ease-in-out'
+          }
+        }}
       >
-        <Box onMouseEnter={handleOpen} onMouseLeave={handleClose}>
+        <Box sx={{ p: 1, border: 1, borderRadius: 2 }}>
           {title && (
             <Typography variant="subtitle2" gutterBottom>
               {title}
