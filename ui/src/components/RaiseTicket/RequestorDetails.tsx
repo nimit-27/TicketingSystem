@@ -17,6 +17,7 @@ import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import ViewToggle from "../UI/ViewToggle";
 import { useTranslation } from "react-i18next";
 import { checkFieldAccess } from "../../utils/permissions";
+import { getStakeholders } from "../../services/StakeholderService";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -26,11 +27,6 @@ const FCI_User = "fci";
 const NON_FCI_User = "nonFci";
 
 type ViewMode = typeof FCI_User | typeof NON_FCI_User;
-
-const stakeholderOptions: DropdownOption[] = [
-    { label: "Farmer", value: "Farmer" },
-    { label: "Miller", value: "Miller" }
-];
 
 const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, setValue, control, disableAll = false, createMode }) => {
     const [verified, setVerified] = useState<boolean>(false);
@@ -47,6 +43,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const { data: userDetailsData, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
+    const { data: stakeholderData, apiHandler: getStakeholdersApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
     const mode = useWatch({ control, name: 'mode', defaultValue: 'Self' });
@@ -60,6 +57,9 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const allUsers = usersData || [];
     const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholder === stakeholder);
+    const stakeholderOptions: DropdownOption[] = Array.isArray(stakeholderData)
+        ? stakeholderData.map((s: any) => ({ label: s.description, value: s.id }))
+        : [];
 
     const getUserDetailsHandler = (userId: any) => {
         getUserDetailsApiHandler(() => getUserDetails(userId))
@@ -95,7 +95,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     useEffect(() => {
         getAllUsersApiHandler(() => getAllUsers());
-    }, [getAllUsersApiHandler]);
+        getStakeholdersApiHandler(() => getStakeholders());
+    }, [getAllUsersApiHandler, getStakeholdersApiHandler]);
 
     // On initial render, if mode is Self, verify and populate logged-in user details
     // useEffect(() => {

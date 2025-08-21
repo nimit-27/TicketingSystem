@@ -118,4 +118,25 @@ public class DtoMapper {
         dto.setRemark(statusHistory.getRemark());
         return dto;
     }
+
+    public static StakeholderDto toStakeholderDto(Stakeholder stakeholder) {
+        if (stakeholder == null) return null;
+        StakeholderDto dto = new StakeholderDto();
+        dto.setId(stakeholder.getId());
+        dto.setDescription(stakeholder.getDescription());
+        dto.setStakeholderGroupId(stakeholder.getStakeholderGroup() != null
+                ? stakeholder.getStakeholderGroup().getId()
+                : null);
+        dto.setIsActive(stakeholder.getIsActive());
+        return dto;
+    }
+
+    public static StakeholderGroupDto toStakeholderGroupDto(StakeholderGroup group) {
+        if (group == null) return null;
+        StakeholderGroupDto dto = new StakeholderGroupDto();
+        dto.setId(group.getId());
+        dto.setDescription(group.getDescription());
+        dto.setIsActive(group.getIsActive());
+        return dto;
+    }
 }
