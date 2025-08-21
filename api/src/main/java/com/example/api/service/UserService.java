@@ -6,6 +6,7 @@ import com.example.api.models.User;
 import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ public class UserService {
             dto.setRoles(emp.getRoles());
             if (emp.getUserLevel() != null && emp.getUserLevel().getLevelIds() != null) {
                 dto.setLevels(java.util.Arrays.asList(emp.getUserLevel().getLevelIds().split("\\|")));
-            }
+            } else dto.setLevels(Collections.emptyList());
             return dto;
         }).toList();
     }

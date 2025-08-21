@@ -43,7 +43,7 @@ public class AuthController {
                     session.setAttribute("username", request.getUsername());
                     session.setAttribute("password", request.getPassword());
                     session.setAttribute("roles", emp.getRoles());
-                    session.setAttribute("levels", emp.getUserLevel() != null ? emp.getUserLevel().getLevelId() : null);
+                    session.setAttribute("levels", emp.getUserLevel() != null ? emp.getUserLevel().getLevelIds() : null);
 
                     List<String> roles = emp.getRoles() == null ? List.of()
                             : Arrays.asList(emp.getRoles().split("\\|"));
@@ -52,9 +52,9 @@ public class AuthController {
                             .map(Integer::parseInt)
                             .toList();
 
-                    List<String> levels = emp.getUserLevel() == null || emp.getUserLevel().getLevelId() == null
+                    List<String> levels = emp.getUserLevel() == null || emp.getUserLevel().getLevelIds() == null
                             ? List.of()
-                            : Arrays.asList(emp.getUserLevel().getLevelId().split("\\|"));
+                            : Arrays.asList(emp.getUserLevel().getLevelIds().split("\\|"));
 
                     RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
                     System.out.println("Perm: " + permissions);
