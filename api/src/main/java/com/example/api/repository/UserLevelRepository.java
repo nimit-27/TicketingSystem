@@ -8,5 +8,5 @@ import java.util.List;
 public interface UserLevelRepository extends JpaRepository<UserLevel, String> {
     List<UserLevel> findByLevelIdContaining(String levelId);
 
-    UserLevel findByUserId(Integer userId);
+    UserLevel findByUserId(String userId);
 }

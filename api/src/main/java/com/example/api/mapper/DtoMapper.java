@@ -5,6 +5,7 @@ import com.example.api.models.*;
 import com.example.api.service.LevelService;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -109,6 +110,8 @@ public class DtoMapper {
         if (user.getUserLevel() != null && user.getUserLevel().getLevelIds() != null) {
             List<String> levels = Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
             userDto.setLevels(levels);
+        } else {
+            userDto.setLevels(Collections.emptyList());
         }
         return userDto;
     }

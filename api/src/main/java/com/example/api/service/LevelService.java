@@ -42,8 +42,11 @@ public class LevelService {
         return Optional.of(userDtos);
     }
 
-    public List<String> getLevelListByUserId(Integer userId) {
+    public List<String> getLevelListByUserId(String userId) {
         UserLevel userLevel = userLevelRepository.findByUserId(userId);
+        if (userLevel == null || userLevel.getLevelIds() == null) {
+            return Collections.emptyList();
+        }
         return Arrays.asList(userLevel.getLevelIds().split("\\|"));
     }
 }
