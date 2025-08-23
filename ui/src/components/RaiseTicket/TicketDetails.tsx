@@ -15,7 +15,7 @@ import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
-import InfoIcon from "../UI/InfoIcon";
+import InfoIcon from "../UI/Icons/InfoIcon";
 import { PriorityInfo, SeverityInfo } from "../../types";
 
 interface TicketDetailsProps extends FormProps {

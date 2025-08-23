@@ -8,7 +8,7 @@ import { getTicket, updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
-import InfoIcon from '../UI/InfoIcon';
+import InfoIcon from '../UI/Icons/InfoIcon';
 import { PriorityInfo, SeverityInfo } from '../../types';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import CommentsSection from '../Comments/CommentsSection';
