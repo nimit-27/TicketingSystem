@@ -4,8 +4,10 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Drawer from "@mui/material/Drawer";
 import { useTheme, useMediaQuery } from "@mui/material";
+import { useAuthGuard } from "../../hooks/useAuthGuard";
 
 const SidebarLayout: React.FC = () => {
+  useAuthGuard();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [collapsedState, setCollapsedState] = useState(false);
