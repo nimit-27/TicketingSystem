@@ -1,3 +1,4 @@
+import React from 'react';
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import RaiseTicket from './pages/RaiseTicket';
@@ -13,12 +14,22 @@ import SidebarLayout from './components/Layout/SidebarLayout';
 import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import Faq from './pages/Faq';
+import { getUserDetails, getUserPermissions } from './utils/Utils';
+
+const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
+  const user = getUserDetails();
+  const perms = getUserPermissions();
+  if (!user?.userId || !perms) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<SidebarLayout />}>
+      <Route path="/" element={<RequireAuth><SidebarLayout /></RequireAuth>}>
         <Route index element={<Navigate to="/create-ticket" replace />} />
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
