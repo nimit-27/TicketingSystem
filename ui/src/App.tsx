@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import RaiseTicket from './pages/RaiseTicket';
