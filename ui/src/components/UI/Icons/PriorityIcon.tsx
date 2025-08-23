@@ -16,17 +16,17 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level }) => {
   const count = Math.min(Math.max(level, 1), 3);
   const color = getColor(count);
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <IconComponent
+    <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
+      {Array.from({ length: count }).map((_, i) => {
+        console.log({ i })
+        return <IconComponent
           icon='arrowup'
           fontSize='small'
-          className='priority-icon'
-          style={{ fontSize: 16, color, marginTop: i ? -4 : 0 }}
+          className='priority-icon position-absolute'
+          style={{ fontSize: 30, color, top: (2 - i) * 6 - 20 }}
           key={i}
         />
-        // <ArrowUpwardIcon key={i} sx={{ fontSize: 16, color, mt: i ? -0.5 : 0 }} />
-      ))}
+      })}
     </Box>
   );
 };
