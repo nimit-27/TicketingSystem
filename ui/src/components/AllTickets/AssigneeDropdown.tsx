@@ -80,11 +80,10 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     };
 
     const levels: Level[] = levelsData || [];
-    const levelMap = Object.fromEntries(levels.map(l => [l.levelId, l.levelName]));
     const baseUsers: User[] = selectedLevel ? (usersData || []) : (allUsersData || []);
     const expandedUsers: User[] = baseUsers.flatMap(u => {
         const ids = u.levels && u.levels.length ? u.levels : [''];
-        return ids.map(id => ({ ...u, levelId: id, levelName: levelMap[id] }));
+        return ids.map(id => ({ ...u, levelId: id }));
     });
     const allowedRoleIds = ['2', '3', '4', '6', '8'];
     const allowedUsers = expandedUsers.filter(u =>
@@ -124,7 +123,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                         {levels.map(l => (
                             <Chip
                                 key={l.levelId}
-                                label={l.levelName}
+                                label={l.levelId}
                                 onClick={() => setSelectedLevel(prev => prev === l.levelId ? '' : l.levelId)}
                                 color={selectedLevel === l.levelId ? 'primary' : 'default'}
                                 size="small"
@@ -137,7 +136,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                             {filtered.map(u => (
                                 <ListItemButton key={`${u.userId}-${u.levelId}`} onClick={() => handleSelect(u)}>
                                     <Box sx={{ display: 'flex', width: '100%' }}>
-                                        <Box sx={{ width: 60 }}>{u.levelName}</Box>
+                                        <Box sx={{ width: 60 }}>{u.levelId}</Box>
                                         <Box sx={{ flexGrow: 1 }}>{u.name}</Box>
                                         <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.username}</Box>
                                     </Box>
