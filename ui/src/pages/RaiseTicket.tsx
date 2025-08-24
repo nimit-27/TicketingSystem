@@ -14,7 +14,7 @@ import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
 import { formatDateWithSuffix } from "../utils/Utils";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, getValues, formState: { errors } } = useForm();
+    const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
     const reportedDate = formatDateWithSuffix(new Date());
 
     const { data, pending, error, success, apiHandler } = useApi();
@@ -42,7 +42,7 @@ const RaiseTicket: React.FC<any> = () => {
             requestorEmailId: emailId,
             requestorMobileNo: mobileNo,
             stakeholder,
-            reportedDate
+            reportedDate: new Date()
         };
 
         apiHandler(() => addTicket(payload))
@@ -52,7 +52,30 @@ const RaiseTicket: React.FC<any> = () => {
             })
     };
 
-    const onClose = () => setSuccessfulModalOpen(false);
+    const clearTicketDetailsFields = () => {
+        resetField('assignedToLevel');
+        resetField('assignedTo');
+        resetField('assignFurther');
+        resetField('assignToLevel');
+        resetField('assignTo');
+        resetField('category');
+        resetField('subCategory');
+        resetField('priority');
+        resetField('severity');
+        resetField('impact');
+        resetField('recommendedSeverity');
+        resetField('isMaster');
+        resetField('subject');
+        resetField('description');
+        resetField('attachment');
+        resetField('statusId');
+        // Add/remove fields as per your TicketDetails form
+    };
+
+    const onClose = () => {
+        setSuccessfulModalOpen(false);
+        clearTicketDetailsFields();
+    };
     const onLinkToMasterTicketModalClose = () => setLinkToMasterTicketModalOpen(false);
     const onLinkToMasterTicketModalOpen = () => setLinkToMasterTicketModalOpen(true);
 

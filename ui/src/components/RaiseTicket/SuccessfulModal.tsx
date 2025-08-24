@@ -1,6 +1,7 @@
 import { Box, Modal } from "@mui/material";
 import './SuccessfulModal.scss'
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 interface SuccessfulModalProps {
     open: boolean;
@@ -11,6 +12,12 @@ interface SuccessfulModalProps {
 const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClose }) => {
     const encodedTicketId = encodeURIComponent(ticketId);
     const { t } = useTranslation();
+    const navigate = useNavigate();
+
+    const handleGoToMyTickets = () => {
+        onClose();
+        navigate('/my-tickets');
+    };
 
     return (
         <Modal open={open} onClose={onClose}>
@@ -39,9 +46,12 @@ const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClo
                         </ul>
                     </div>
 
-                    <div className="text-center">
-                        <button className="btn btn-success px-4" onClick={onClose}>
-                            {t('OKAY')}
+                    <div className="text-center d-flex flex-column flex-md-row justify-content-center gap-2 mt-3">
+                        <button className="btn btn-outline-primary px-4" onClick={onClose}>
+                            {t('Raise New Ticket')}
+                        </button>
+                        <button className="btn btn-outline-secondary px-4" onClick={handleGoToMyTickets}>
+                            {t('Go to My Tickets')}
                         </button>
                     </div>
                 </div>
