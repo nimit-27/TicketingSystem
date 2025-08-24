@@ -31,7 +31,7 @@ public class LevelService {
     }
 
     public Optional<Set<UserDto>> getUsersByLevel(String levelId) {
-        List<UserLevel> userLevels = userLevelRepository.findByLevelIdContaining(levelId);
+        List<UserLevel> userLevels = userLevelRepository.findByLevelIdsContaining(levelId);
         if (userLevels.isEmpty()) return Optional.empty();
         Set<UserDto> userDtos = new HashSet<>();
         for (UserLevel ul : userLevels) {
