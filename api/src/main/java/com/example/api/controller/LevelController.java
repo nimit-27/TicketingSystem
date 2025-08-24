@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,8 +26,8 @@ public class LevelController {
 
     @GetMapping("/{levelId}/users")
     public ResponseEntity<Set<UserDto>> getUserByLevel(@PathVariable String levelId) {
-        Optional<Set<UserDto>> usersOptional = levelService.getUsersByLevel(levelId);
+        Set<UserDto> users = levelService.getUsersByLevel(levelId).orElseGet(Collections::emptySet);
 
-        return usersOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(users);
     }
 }

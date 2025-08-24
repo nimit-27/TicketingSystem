@@ -85,7 +85,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         const ids = u.levels && u.levels.length ? u.levels : [''];
         return ids.map(id => ({ ...u, levelId: id }));
     });
-    const allowedRoleIds = ['2', '3', '4', '6', '8'];
+    const allowedRoleIds = ['3', '8'];
     const allowedUsers = expandedUsers.filter(u =>
         u.roles?.split('|').some(r => allowedRoleIds.includes(r))
     );
