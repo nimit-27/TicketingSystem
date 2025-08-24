@@ -44,7 +44,7 @@ const SidebarLayout: React.FC = () => {
         )}
         <div
           className="flex-grow-1 p-3"
-          style={{ marginTop: "0", overflowY: "scroll" }}
+          style={{ marginTop: "0", overflowY: "scroll", overflowX: "clip" }}
         >
           <Outlet />
         </div>
