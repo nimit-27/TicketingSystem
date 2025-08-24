@@ -21,7 +21,7 @@ const menuItems = [
     key: "myTickets",
     label: "My Tickets",
     to: "/my-tickets",
-    icon: "listAlt",
+    icon: "portrait",
   },
   {
     key: "raiseTickets",

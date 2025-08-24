@@ -40,21 +40,25 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
         <>
             {showModeField && (
                 // <CustomFieldset variant="basic" title={t('Request Mode')} style={{ width: 'fit-content' }} className="d-flex">
-                    <div className="d-flex gap-4 align-items-center px-4 py-2 border rounded-2 mb-4" style={{ width: 'fit-content' }}>
-                        <span className="text-muted fs-6 ">Request Mode</span>
-                        {modeOptions.map(opt => (
-                            <div key={opt.value} className="text-center">
-                                <CustomIconButton
-                                    className="p-0 m-0"
-                                    icon={opt.icon}
-                                    onClick={() => setValue && setValue('mode', opt.value)}
-                                    disabled={disableAll || !helpdesk}
-                                    sx={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main, }}
-                                />
-                                <p className="p-0 m-0" style={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}>{t(opt.label)}</p>
-                            </div>
-                        ))}
-                    </div>
+                <div className="d-flex gap-4 align-items-center px-4 py-2 border rounded-2 mb-4" style={{ width: 'fit-content' }}>
+                    <span className="text-muted fs-6 ">Request Mode</span>
+                    {modeOptions.map(opt => (
+                        <div
+                            key={opt.value}
+                            onClick={() => setValue && setValue('mode', opt.value)}
+                            style={{ cursor: 'pointer' }}
+                            className="text-center"
+                        >
+                            <CustomIconButton
+                                className="p-0 m-0"
+                                icon={opt.icon}
+                                disabled={disableAll || !helpdesk}
+                                sx={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}
+                            />
+                            <p className="p-0 m-0" style={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}>{t(opt.label)}</p>
+                        </div>
+                    ))}
+                </div>
                 // </CustomFieldset>
             )}
         </>
