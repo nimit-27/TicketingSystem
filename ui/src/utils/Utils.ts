@@ -1,4 +1,5 @@
 import { getStatusListFromApi } from "../services/StatusService";
+import i18n from "../i18n";
 
 export interface UserDetails {
   userId: string;
@@ -81,6 +82,12 @@ export function truncateWithEllipsis(str: string, maxLength: number): string {
 
 export function formatDateWithSuffix(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (i18n.language === 'hi') {
+    const day = d.getDate();
+    const month = d.toLocaleString('hi-IN', { month: 'long' });
+    const year = d.getFullYear();
+    return `${day} ${month}, ${year}`;
+  }
   const day = d.getDate();
   const j = day % 10,
     k = day % 100;
@@ -88,7 +95,7 @@ export function formatDateWithSuffix(date: string | Date): string {
     : j === 2 && k !== 12 ? 'nd'
     : j === 3 && k !== 13 ? 'rd'
     : 'th';
-  const month = d.toLocaleString('default', { month: 'long' });
+  const month = d.toLocaleString('en-US', { month: 'long' });
   const year = d.getFullYear();
   return `${day}${suffix} ${month}, ${year}`;
 }

@@ -33,7 +33,6 @@
   "Search by Id or Subject": "Search by Id or Subject",
   "Ticket Id": "Ticket Id",
   "Requestor Name": "Requestor Name",
-  "Email": "Email",
   "Mobile": "Mobile",
   "Category": "Category",
   "Sub-Category": "Sub-Category",
@@ -45,10 +44,8 @@
   "Knowledge Base": "Knowledge Base",
   "Escalation Master": "Escalation Master",
   "Ticket Details": "Ticket Details",
-  "Category": "Category",
   "Add Category": "Add Category",
   "Other Categories": "Other Categories",
-  "Sub-Category": "Sub-Category",
   "Add Sub-Category": "Add Sub-Category",
   "Other Sub-Categories": "Other Sub-Categories",
   "User to be added for Escalation": "User to be added for Escalation",
@@ -84,15 +81,16 @@
   "Current Status": "Current Status",
   "Track Assignment History": "Track Assignment History",
   "Assigned By": "Assigned By",
-  "Assigned To": "Assigned To"
-  ,"Status History": "Status History"
-  ,"Assignment History": "Assignment History"
-  ,"Updated On": "Updated On"
-  ,"Assigned On": "Assigned On"
-  ,"Collapse": "Collapse"
-  ,"On behalf of FCI User": "On behalf of FCI User"
-  ,"All": "All"
-  ,"Master": "Master"
-  ,"Employee ID": "Employee ID"
-  ,"Role Master": "Role Master"
+  "Assigned To": "Assigned To",
+  "Status History": "Status History",
+  "Assignment History": "Assignment History",
+  "Updated On": "Updated On",
+  "Assigned On": "Assigned On",
+  "Collapse": "Collapse",
+  "On behalf of FCI User": "On behalf of FCI User",
+  "All": "All",
+  "Master": "Master",
+  "Employee ID": "Employee ID",
+  "Role Master": "Role Master",
+  "Request Mode": "Request Mode"
 }

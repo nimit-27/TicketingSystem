@@ -220,9 +220,12 @@ DROP TABLE IF EXISTS `priority_master`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `priority_master` (
-  `priority_id` varchar(36) NOT NULL,
-  `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`priority_id`)
+  `tp_id` varchar(36) NOT NULL,
+  `tp_level` varchar(50) DEFAULT NULL,
+  `tp_description` varchar(255) DEFAULT NULL,
+  `tp_weightage` int DEFAULT NULL,
+  `tp_active_flg` varchar(1) DEFAULT 'Y',
+  PRIMARY KEY (`tp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -232,7 +235,11 @@ CREATE TABLE `priority_master` (
 
 LOCK TABLES `priority_master` WRITE;
 /*!40000 ALTER TABLE `priority_master` DISABLE KEYS */;
-INSERT INTO `priority_master` VALUES ('1','Critical'),('2','High'),('3','Medium'),('4','Low');
+INSERT INTO `priority_master` VALUES
+('1','Critical','Highest priority requiring immediate attention',4,'Y'),
+('2','High','High priority issue',3,'Y'),
+('3','Medium','Medium priority',2,'Y'),
+('4','Low','Low priority',1,'Y');
 /*!40000 ALTER TABLE `priority_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -325,9 +332,12 @@ DROP TABLE IF EXISTS `severity_master`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `severity_master` (
-  `severity_id` varchar(36) NOT NULL,
-  `value` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`severity_id`)
+  `ts_id` varchar(36) NOT NULL,
+  `ts_level` varchar(50) DEFAULT NULL,
+  `ts_description` varchar(255) DEFAULT NULL,
+  `ts_weightage` int DEFAULT NULL,
+  `ts_active_flg` varchar(1) DEFAULT 'Y',
+  PRIMARY KEY (`ts_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -337,7 +347,11 @@ CREATE TABLE `severity_master` (
 
 LOCK TABLES `severity_master` WRITE;
 /*!40000 ALTER TABLE `severity_master` DISABLE KEYS */;
-INSERT INTO `severity_master` VALUES ('1','CRITICAL'),('2','HIGH'),('3','MEDIUM'),('4','LOW');
+INSERT INTO `severity_master` VALUES
+('1','CRITICAL','Critical severity',4,'Y'),
+('2','HIGH','High severity',3,'Y'),
+('3','MEDIUM','Medium severity',2,'Y'),
+('4','LOW','Low severity',1,'Y');
 /*!40000 ALTER TABLE `severity_master` ENABLE KEYS */;
 UNLOCK TABLES;
 

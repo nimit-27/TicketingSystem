@@ -25,7 +25,7 @@ const InfoIcon: React.FC<InfoIconProps> = ({ content, text, title }) => {
 
   return (
     // <div className='m-2' onMouseEnter={handleOpen} style={{ display: 'inline-block' }}>
-     <div className='m-2' onMouseEnter={handleOpen} onMouseLeave={handleClose} style={{ display: 'inline-block' }}>
+     <div className='m-2' onMouseEnter={handleOpen} style={{ display: 'inline-block' }}>
       <IconComponent
         icon='infoOutlined'
         style={{ cursor: 'pointer', color: grey[500] }}
@@ -34,7 +34,7 @@ const InfoIcon: React.FC<InfoIconProps> = ({ content, text, title }) => {
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
-        // onMouseLeave={handleClose}
+        onMouseLeave={handleClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         disableRestoreFocus
         PaperProps={{
@@ -48,7 +48,7 @@ const InfoIcon: React.FC<InfoIconProps> = ({ content, text, title }) => {
         }}
       >
         {/* Dark Mode pending */}
-        <Box className="border rounded-2 m-2 p-2" style={{ opacity: 0.90, borderColor: "aeaeae" }}> 
+        <Box onMouseLeave={handleClose} className="border rounded-2 m-2 p-2" style={{ opacity: 0.90, borderColor: "aeaeae" }}>
           {title && <Typography variant="subtitle2" gutterBottom>{title}</Typography>}
           {text && <Typography variant="body2" gutterBottom>{text}</Typography>}
           {content

@@ -33,7 +33,6 @@
   "Search by Id or Subject": "आईडी या विषय से खोजें",
   "Ticket Id": "टिकट आईडी",
   "Requestor Name": "अनुरोधकर्ता नाम",
-  "Email": "ईमेल",
   "Mobile": "मोबाइल",
   "Category": "श्रेणी",
   "Sub-Category": "उप-श्रेणी",
@@ -45,10 +44,8 @@
   "Knowledge Base": "नॉलेज बेस",
   "Escalation Master": "एस्केलेशन मास्टर",
   "Ticket Details": "टिकट विवरण",
-  "Category": "श्रेणी",
   "Add Category": "श्रेणी जोड़ें",
   "Other Categories": "अन्य श्रेणियाँ",
-  "Sub-Category": "उप-श्रेणी",
   "Add Sub-Category": "उप-श्रेणी जोड़ें",
   "Other Sub-Categories": "अन्य उप-श्रेणियाँ",
   "User to be added for Escalation": "एस्‍कलेशन के लिए उपयोगकर्ता जोड़ें",
@@ -84,14 +81,16 @@
   "Current Status": "वर्तमान स्थिति",
   "Track Assignment History": "असाइनमेंट इतिहास देखें",
   "Assigned By": "द्वारा असाइन किया गया",
-  "Assigned To": "किसे असाइन किया गया"
-  ,"Status History": "स्थिति इतिहास"
-  ,"Assignment History": "असाइनमेंट इतिहास"
-  ,"Updated On": "अद्यतन दिनांक"
-  ,"Assigned On": "असाइन किया गया दिनांक"
-  ,"Collapse": "बंद करें"
-  ,"On behalf of FCI User": "एफसीआई उपयोगकर्ता की ओर से"
-  ,"All": "सभी"
-  ,"Master": "मास्टर"
-  ,"Employee ID": "कर्मचारी आईडी"
+  "Assigned To": "किसे असाइन किया गया",
+  "Status History": "स्थिति इतिहास",
+  "Assignment History": "असाइनमेंट इतिहास",
+  "Updated On": "अद्यतन दिनांक",
+  "Assigned On": "असाइन किया गया दिनांक",
+  "Collapse": "बंद करें",
+  "On behalf of FCI User": "एफसीआई उपयोगकर्ता की ओर से",
+  "All": "सभी",
+  "Master": "मास्टर",
+  "Employee ID": "कर्मचारी आईडी",
+  "Request Mode": "अनुरोध का माध्यम",
+  "Role Master": "रोल मास्टर"
 }
