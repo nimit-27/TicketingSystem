@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
-import { getStatusNameById } from '../../utils/Utils';
+import { getStatusNameById, truncateWithEllipsis } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { Menu, MenuItem, ListItemIcon, Tooltip } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
@@ -143,7 +143,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 key: 'ticketId',
                 render: (_: any, record: TicketRow) => (
                     <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
-                        {record.id}
+                        {truncateWithEllipsis(record.id, 12)}
                         {record.isMaster && <MasterIcon />}
                     </div>
                 ),

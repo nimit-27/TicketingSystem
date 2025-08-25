@@ -74,6 +74,11 @@ export async function getStatuses(): Promise<any[]> {
     return list;
 }
 
+export function truncateWithEllipsis(str: string, maxLength: number): string {
+  if (!str) return str;
+  return str.length > maxLength ? `${str.slice(0, maxLength)}...` : str;
+}
+
 export function formatDateWithSuffix(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const day = d.getDate();
