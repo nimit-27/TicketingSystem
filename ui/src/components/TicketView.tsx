@@ -171,7 +171,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
         {updatedInfo}
       </Typography>
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
         {renderText(description, setDescription, true)}
       </Box>
       <Box sx={{ mt: 2 }}>
