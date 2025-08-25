@@ -62,6 +62,7 @@ public class DtoMapper {
         dto.setCategory(ticket.getCategory());
         dto.setSubCategory(ticket.getSubCategory());
         dto.setPriority(ticket.getPriority());
+        dto.setPriorityId(ticket.getPriority());
         dto.setSeverity(ticket.getSeverity());
         dto.setRecommendedSeverity(ticket.getRecommendedSeverity());
         dto.setImpact(ticket.getImpact());

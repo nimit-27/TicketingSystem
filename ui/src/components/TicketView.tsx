@@ -28,6 +28,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
+  const [priorityId, setPriorityId] = useState('');
   const [severity, setSeverity] = useState('');
   const [recommendedSeverity, setRecommendedSeverity] = useState('');
   const [priorityOptions, setPriorityOptions] = useState<string[]>([]);
@@ -59,6 +60,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSubject(ticket.subject || '');
       setDescription(ticket.description || '');
       setPriority(ticket.priority || '');
+      setPriorityId(ticket.priorityId || '');
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
     }
@@ -69,7 +71,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     const payload = {
       subject,
       description,
-      priority,
+      priority: priorityId,
       severity,
       recommendedSeverity,
       updatedBy: getCurrentUserDetails()?.username
@@ -86,6 +88,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSubject(ticket.subject || '');
       setDescription(ticket.description || '');
       setPriority(ticket.priority || '');
+      setPriorityId(ticket.priorityId || '');
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
     }
@@ -164,7 +167,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <Box sx={{ mt: 2 }}>
         {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary">Priority</Typography>
-          {renderSelect(priority, setPriority, priorityOptions)}
+          {renderSelect(priority, (val: string) => {
+            setPriority(val);
+            const selected = priorityDetails.find(p => p.level === val);
+            setPriorityId(selected ? selected.id : '');
+          }, priorityOptions)}
           <InfoIcon content={(
             <div>
               {priorityDetails.map(p => (

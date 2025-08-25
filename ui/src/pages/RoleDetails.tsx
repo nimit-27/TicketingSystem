@@ -18,6 +18,8 @@ const RoleDetails: React.FC = () => {
     const { data: actions, apiHandler: actionsApiHandler } = useApi<any>();
     const { data: rolesData, apiHandler: rolesApiHandler } = useApi<any>();
     const [perm, setPerm] = useState<any>(null);
+    const [modifiedPermissions, setModifiedPermissions] = useState<any | null>(null);
+    const isPermissionsModified = modifiedPermissions !== null;
     const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
     const [description, setDescription] = useState('');
     const { showMessage } = useSnackbar();
@@ -54,24 +56,34 @@ const RoleDetails: React.FC = () => {
         if (data) setPerm(data);
     }, [data]);
 
-    function handleSubmit(this: any) {
+    const handleSubmit = (submitPerm = isPermissionsModified ? modifiedPermissions : perm) => {
         if (roleId) {
-            updateRolePermission(roleId, this ?? perm).then(() => {
+            updateRolePermission(roleId, submitPerm).then(() => {
                 const user = getCurrentUserDetails();
                 const allowedStatusActionIds = selectedActionIds.join('|');
                 updateRole(roleId, { updatedBy: user?.userId, allowedStatusActionIds }).then(() => {
                     showMessage('Permissions updated successfully', 'success');
                     loadPermissions();
+                    setPerm(submitPerm);
+                    setModifiedPermissions(null);
                 });
             });
         }
     };
 
     const handleJsonEdit = (json: any) => {
-        setPerm(json);
+        setModifiedPermissions(json);
         setOpenJson(false);
-        handleSubmit.call(json);
+        handleSubmit(json);
     }
+
+    const handlePermissionChange = (p: any) => {
+        setModifiedPermissions(p);
+    };
+
+    const cancelPermissionChanges = () => {
+        setModifiedPermissions(null);
+    };
 
     const submitRename = () => {
         if (!roleId || !roleName || roleId === roleName) { setEditing(false); return; }
@@ -127,10 +139,15 @@ const RoleDetails: React.FC = () => {
             {perm && (
                 <>
                     <h5>Permissions</h5>
-                    <PermissionTree data={perm} onChange={setPerm} />
+                    <div style={{ maxHeight: 400, overflowY: 'auto', border: '1px solid #ddd', padding: 8 }}>
+                        <PermissionTree data={isPermissionsModified ? modifiedPermissions : perm} onChange={handlePermissionChange} />
+                    </div>
                 </>
             )}
-            <Button variant="contained" className="mt-3" onClick={handleSubmit}>Save</Button>
+            <div className="mt-3">
+                <Button variant="contained" onClick={() => handleSubmit()} className="me-2">Save</Button>
+                <Button variant="outlined" onClick={cancelPermissionChanges} disabled={!isPermissionsModified}>Cancel</Button>
+            </div>
             {devMode && (
                 <JsonEditModal open={openJson} data={perm} onCancel={() => setOpenJson(false)} onSubmit={handleJsonEdit} />
             )}

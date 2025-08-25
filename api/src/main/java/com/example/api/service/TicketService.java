@@ -12,6 +12,7 @@ import com.example.api.repository.TicketRepository;
 import com.example.api.repository.StatusMasterRepository;
 import com.example.api.repository.CategoryRepository;
 import com.example.api.repository.SubCategoryRepository;
+import com.example.api.repository.PriorityRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
@@ -44,6 +45,7 @@ public class TicketService {
     private final StatusMasterRepository statusMasterRepository;
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
+    private final PriorityRepository priorityRepository;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
@@ -54,6 +56,7 @@ public class TicketService {
                          StatusMasterRepository statusMasterRepository,
                          CategoryRepository categoryRepository,
                          SubCategoryRepository subCategoryRepository,
+                         PriorityRepository priorityRepository,
                          NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
@@ -65,6 +68,7 @@ public class TicketService {
         this.statusMasterRepository = statusMasterRepository;
         this.categoryRepository = categoryRepository;
         this.subCategoryRepository = subCategoryRepository;
+        this.priorityRepository = priorityRepository;
         this.notificationService = notificationService;
     }
 
@@ -85,6 +89,12 @@ public class TicketService {
             dto.setSubCategoryId(ticket.getSubCategory());
             subCategoryRepository.findById(ticket.getSubCategory())
                     .ifPresent(sub -> dto.setSubCategory(sub.getSubCategory()));
+        }
+        // priority info
+        if (ticket.getPriority() != null) {
+            dto.setPriorityId(ticket.getPriority());
+            priorityRepository.findById(ticket.getPriority())
+                    .ifPresent(p -> dto.setPriority(p.getLevel()));
         }
         // status info
         if (ticket.getStatus() != null) {
