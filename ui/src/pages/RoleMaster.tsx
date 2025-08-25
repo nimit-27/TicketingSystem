@@ -86,8 +86,8 @@ const RoleMaster: React.FC = () => {
             key: 'action',
             render: (_: any, r: any) => (
                 <>
-                    <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600', marginRight: 1 }} onClick={() => navigate(`/role-master/${r.role}`)} />
-                    <CustomIconButton icon="delete" onClick={() => handleDelete(r.role)} />
+                    <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600', marginRight: 1 }} onClick={() => navigate(`/role-master/${r.roleId}`)} />
+                    <CustomIconButton icon="delete" onClick={() => handleDelete(r.roleId)} />
                     {/* <span className="text-danger" style={{ cursor: 'pointer' }} onClick={() => handleDelete(r.role)}>Delete</span> */}
                 </>
             )

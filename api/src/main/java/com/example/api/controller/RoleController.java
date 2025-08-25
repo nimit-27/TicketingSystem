@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Collections;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -21,6 +22,11 @@ public class RoleController {
     @GetMapping
     public ResponseEntity<List<RoleDto>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
+    }
+
+    @GetMapping("/{roleId}")
+    public ResponseEntity<RoleDto> getRoleById(Integer roleId) {
+        return ResponseEntity.ok(roleService.getRoleById(roleId));
     }
 
     @PostMapping

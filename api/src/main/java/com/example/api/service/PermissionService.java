@@ -34,17 +34,18 @@ public class PermissionService {
 
     public void updateRolePermissions(Integer roleId, RolePermission permission) throws IOException {
         String json = objectMapper.writeValueAsString(permission);
-        Role rpc = new Role();
-        rpc.setRoleId(roleId);
-        rpc.setPermissions(json);
+        Role existingRole = repository.findById(roleId).orElseThrow();
+//        Role rpc = new Role();
+//        rpc.setRoleId(roleId);
+        existingRole.setPermissions(json);
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
 //        if (isNew) {
 //            rpc.setCreatedOn(now);
 //            rpc.setCreatedBy("SYSTEM");
 //        }
-        rpc.setUpdatedOn(now);
-        rpc.setUpdatedBy("SYSTEM");
-        repository.save(rpc);
+        existingRole.setUpdatedOn(now);
+        existingRole.setUpdatedBy("SYSTEM");
+        repository.save(existingRole);
 
         if (config == null) {
             config = new PermissionsConfig();

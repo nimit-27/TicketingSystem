@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +35,11 @@ public class RoleService {
     public List<RoleDto> getAllRoles() {
         List<Role> roles = roleRepository.findByIsDeletedFalse();
         return roles.stream().map(DtoMapper::toRoleDto).collect(Collectors.toList());
+    }
+
+    public RoleDto getRoleById(Integer roleId) {
+        Role role = roleRepository.findById(roleId).orElseThrow();
+        return DtoMapper.toRoleDto(role);
     }
 
     public RoleDto addRole(RoleDto roleDto) throws JsonProcessingException {
