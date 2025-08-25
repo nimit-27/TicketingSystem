@@ -17,9 +17,10 @@ import { useTranslation } from 'react-i18next';
 interface TicketViewProps {
   ticketId: string;
   showHistory?: boolean;
+  sidebar?: boolean;
 }
 
-const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false }) => {
+const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false }) => {
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: updateTicketHandler } = useApi<any>();
   const [editing, setEditing] = useState(false);
@@ -38,12 +39,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false }
     if (ticketId) {
       getTicketHandler(() => getTicket(ticketId));
       getPriorities().then(res => {
-        setPriorityOptions((res.data || []).map((p: PriorityInfo) => p.level));
-        setPriorityDetails(res.data || []);
+        const priorityData = Array.isArray(res?.data) ? res.data : [];
+        setPriorityOptions(priorityData.map((p: PriorityInfo) => p.level));
+        setPriorityDetails(priorityData);
       });
       getSeverities().then(res => {
-        setSeverityOptions((res.data || []).map((s: SeverityInfo) => s.level));
-        setSeverityDetails(res.data || []);
+        const severityData = Array.isArray(res?.data) ? res.data : [];
+        setSeverityOptions(severityData.map((s: SeverityInfo) => s.level));
+        setSeverityDetails(severityData);
       });
     }
   }, [ticketId, getTicketHandler]);

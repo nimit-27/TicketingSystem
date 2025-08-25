@@ -16,9 +16,9 @@ const Title: React.FC<TitleProps> = ({ text, textKey, rightContent }) => {
                 <h2 className="m-0">{label}</h2>
                 <div>{rightContent}</div>
             </div>
-            <div className="position-relative">
+            {/* <div className="position-relative">
                 <hr className="position-absolute" style={{ width: '100vw', left: '-28px', top: '-35px' }} />
-            </div>
+            </div> */}
         </>
     );
 };
