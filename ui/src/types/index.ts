@@ -45,6 +45,7 @@ export interface Ticket {
     category: string;
     subCategory: string;
     priority: string;
+    priorityId?: string;
     isMaster: boolean;
     requestorName?: string;
     requestorEmailId?: string;
