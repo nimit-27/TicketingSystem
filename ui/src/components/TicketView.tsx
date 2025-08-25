@@ -43,7 +43,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (ticketId) {
       getTicketHandler(() => getTicket(ticketId));
       getPriorities().then(res => {
-        const priorityData = Array.isArray(res?.data) ? res.data : [];
+        console.log(res?.data?.body?.data)
+        const priorityData = Array.isArray(res?.data?.body?.data) ? res.data?.body?.data : [];
         setPriorityOptions(priorityData.map((p: PriorityInfo) => p.level));
         setPriorityDetails(priorityData);
       });
@@ -176,7 +177,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Box>
       <Box sx={{ mt: 2 }}>
         {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary">Priority</Typography>
+          <Typography className="me-2" color="text.secondary">Priority</Typography>
           {renderSelect(priority, (val: string) => {
             setPriority(val);
             const selected = priorityDetails.find(p => p.level === val);
