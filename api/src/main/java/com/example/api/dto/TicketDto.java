@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 public class TicketDto {
     private String id;
+    private String shortId;
     private Date reportedDate;
     private Mode mode;
     private String userId;
@@ -24,7 +25,9 @@ public class TicketDto {
     private String subject;
     private String description;
     private String category;
+    private String categoryId;
     private String subCategory;
+    private String subCategoryId;
     private String priority;
     private String severity;
     private String recommendedSeverity;
@@ -32,6 +35,8 @@ public class TicketDto {
     private String severityRecommendedBy;
     private TicketStatus status;
     private String statusId;
+    private String statusLabel;
+    private String statusName;
     private String attachmentPath;
     private String assignToLevel;
     private String assignTo;
