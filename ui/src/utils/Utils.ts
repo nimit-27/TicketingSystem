@@ -92,3 +92,9 @@ export function formatDateWithSuffix(date: string | Date): string {
   const year = d.getFullYear();
   return `${day}${suffix} ${month}, ${year}`;
 }
+
+export function logout() {
+  sessionStorage.clear();
+  statusCache = null;
+  window.location.href = '/login';
+}

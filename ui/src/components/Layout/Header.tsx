@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { ThemeModeContext } from "../../context/ThemeContext";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import Avatar from "@mui/material/Avatar";
@@ -6,6 +6,7 @@ import { getCurrentUserDetails } from "../../config/config";
 import { useTheme } from "@mui/material/styles";
 import { LanguageContext } from "../../context/LanguageContext";
 import { DevModeContext } from "../../context/DevModeContext";
+import UserMenu from "./UserMenu";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -18,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggleDevMode, devMode } = useContext(DevModeContext);
   const theme = useTheme();
   const user = getCurrentUserDetails();
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const initials = user?.name
     ? user?.name
       .split(" ")
@@ -36,6 +38,14 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
     theme.palette.mode === "dark"
       ? theme.palette.success.main
       : theme.palette.getContrastText(headerBgColor);
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
 
   return (
     <header
@@ -96,11 +106,14 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
             width: 32,
             height: 32,
             fontSize: 14,
+            cursor: "pointer",
           }}
+          onClick={handleAvatarClick}
         >
           {initials}
         </Avatar>
       </div>
+      <UserMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose} />
     </header>
   );
 };
