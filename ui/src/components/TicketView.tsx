@@ -13,6 +13,7 @@ import CommentsSection from './Comments/CommentsSection';
 import Histories from '../pages/Histories';
 import CustomFieldset from './CustomFieldset';
 import { useTranslation } from 'react-i18next';
+import { checkFieldAccess } from '../utils/permissions';
 
 interface TicketViewProps {
   ticketId: string;
@@ -34,6 +35,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
   const { t } = useTranslation();
+
+  const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
 
   useEffect(() => {
     if (ticketId) {
@@ -134,7 +137,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
           <Typography variant="subtitle1">{ticket.id}</Typography>
         </Box>
-        <Box>
+        {allowEdit && <Box>
           {editing ? (
             <>
               <CustomIconButton icon="close" onClick={cancelEditing} />
@@ -143,7 +146,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           ) : (
             <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
           )}
-        </Box>
+        </Box>}
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         {ticket.category} &gt; {ticket.subCategory}
@@ -159,7 +162,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         {renderText(description, setDescription, true)}
       </Box>
       <Box sx={{ mt: 2 }}>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+        {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary">Priority</Typography>
           {renderSelect(priority, setPriority, priorityOptions)}
           <InfoIcon content={(
@@ -169,8 +172,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               ))}
             </div>
           )} />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+        </Box>}
+        {severity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
           {renderSelect(severity, setSeverity, severityOptions)}
           <InfoIcon content={(
@@ -180,11 +183,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               ))}
             </div>
           )} />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+        </Box>}
+        {recommendedSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
           {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
-        </Box>
+        </Box>}
       </Box>
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
