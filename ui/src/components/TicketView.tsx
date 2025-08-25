@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -128,9 +128,19 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     )
   );
 
+  
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleDateString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
 
+  const priorityInfoContent = useCallback(() =>
+    <div>
+      {priorityDetails.map(p => (
+        <div key={p.id}>{p.level} - {p.description}</div>
+      ))}
+    </div>,
+    [priorityDetails]
+  );
+  
   if (!ticket) return null;
 
   return (
@@ -172,13 +182,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             const selected = priorityDetails.find(p => p.level === val);
             setPriorityId(selected ? selected.id : '');
           }, priorityOptions)}
-          <InfoIcon content={(
-            <div>
-              {priorityDetails.map(p => (
-                <div key={p.id}>{p.level} - {p.description}</div>
-              ))}
-            </div>
-          )} />
+          <InfoIcon content={priorityInfoContent()} />
         </Box>}
         {severity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
