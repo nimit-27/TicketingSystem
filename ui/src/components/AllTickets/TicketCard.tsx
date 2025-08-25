@@ -7,7 +7,7 @@ import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButt
 import { TicketStatusWorkflow } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
-import { getStatusNameById, getStatusColorById } from '../../utils/Utils';
+import { getStatusNameById, getStatusColorById, truncateWithEllipsis } from '../../utils/Utils';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import { updateTicket } from '../../services/TicketService';
@@ -138,7 +138,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
         >
             <CardContent sx={{ pb: 6 }}>
                 <Typography color="text.secondary" sx={{ fontSize: '8px' }} title={ticket.id}>
-                    {ticket.id}
+                    {truncateWithEllipsis(ticket.id, 12)}
                 </Typography>
                 <Typography sx={{ display: 'flex', alignItems: 'center', fontSize: '16px', fontWeight: 'bold' }}>
                     <span style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ticket.subject}>{ticket.subject}</span>
