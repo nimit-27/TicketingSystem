@@ -22,15 +22,21 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     List<Ticket> findByTicketStatusAndResolvedAtBefore(TicketStatus ticketStatus, LocalDateTime time);
 
+    Page<Ticket> findByPriority(String priority, Pageable pageable);
+
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
             "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
             "AND (:master IS NULL OR t.isMaster = :master) " +
             "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
+            "AND (:priority IS NULL OR t.priority = :priority) " +
             "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
-    Page<Ticket> searchTickets(@Param("query") String query, @Param("statusId") String statusName, @Param("master") Boolean master, @Param("assignedTo") String assignedTo, @Param("levelId") String levelId, Pageable pageable);
+    Page<Ticket> searchTickets(@Param("query") String query, @Param("statusId") String statusName,
+                               @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
+                               @Param("levelId") String levelId, @Param("priority") String priority,
+                               Pageable pageable);
 }

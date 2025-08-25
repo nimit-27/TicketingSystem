@@ -10,6 +10,8 @@ import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
 import com.example.api.repository.StatusMasterRepository;
+import com.example.api.repository.CategoryRepository;
+import com.example.api.repository.SubCategoryRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
@@ -40,6 +42,8 @@ public class TicketService {
     private final NotificationService notificationService;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
+    private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
@@ -48,6 +52,8 @@ public class TicketService {
                          StatusHistoryService statusHistoryService,
                          TicketStatusWorkflowService workflowService,
                          StatusMasterRepository statusMasterRepository,
+                         CategoryRepository categoryRepository,
+                         SubCategoryRepository subCategoryRepository,
                          NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
@@ -57,6 +63,8 @@ public class TicketService {
         this.statusHistoryService = statusHistoryService;
         this.workflowService = workflowService;
         this.statusMasterRepository = statusMasterRepository;
+        this.categoryRepository = categoryRepository;
+        this.subCategoryRepository = subCategoryRepository;
         this.notificationService = notificationService;
     }
 
@@ -67,18 +75,44 @@ public class TicketService {
 
     private TicketDto mapWithStatusId(Ticket ticket) {
         TicketDto dto = DtoMapper.toTicketDto(ticket);
+        // category names
+        if (ticket.getCategory() != null) {
+            dto.setCategoryId(ticket.getCategory());
+            categoryRepository.findById(ticket.getCategory())
+                    .ifPresent(cat -> dto.setCategory(cat.getCategory()));
+        }
+        if (ticket.getSubCategory() != null) {
+            dto.setSubCategoryId(ticket.getSubCategory());
+            subCategoryRepository.findById(ticket.getSubCategory())
+                    .ifPresent(sub -> dto.setSubCategory(sub.getSubCategory()));
+        }
+        // status info
         if (ticket.getStatus() != null) {
             dto.setStatusId(ticket.getStatus().getStatusId());
+            dto.setStatusLabel(ticket.getStatus().getLabel());
+            dto.setStatusName(ticket.getStatus().getStatusName());
         } else if (ticket.getTicketStatus() != null) {
             String sid = workflowService.getStatusIdByCode(ticket.getTicketStatus().name());
             dto.setStatusId(sid);
+            statusMasterRepository.findById(sid).ifPresent(s -> {
+                dto.setStatusLabel(s.getLabel());
+                dto.setStatusName(s.getStatusName());
+            });
+        }
+        // short ticket id
+        if (dto.getId() != null) {
+            dto.setShortId(dto.getId().length() > 8 ? dto.getId().substring(0,8) : dto.getId());
         }
         return dto;
     }
 
-    public Page<TicketDto> getTickets(Pageable pageable) {
-        Page<Ticket> ticketPage = ticketRepository.findAll(pageable);
-
+    public Page<TicketDto> getTickets(String priority, Pageable pageable) {
+        Page<Ticket> ticketPage;
+        if (priority != null && !priority.equalsIgnoreCase("All")) {
+            ticketPage = ticketRepository.findByPriority(priority, pageable);
+        } else {
+            ticketPage = ticketRepository.findAll(pageable);
+        }
         return ticketPage.map(this::mapWithStatusId);
     }
 
@@ -163,8 +197,10 @@ public class TicketService {
         return typesenseClient.searchTickets(query);
     }
 
-    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master, String assignedTo, String levelId, Pageable pageable) {
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, levelId, pageable);
+    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
+                                         String assignedTo, String levelId, String priority,
+                                         Pageable pageable) {
+        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, levelId, priority, pageable);
         return page.map(this::mapWithStatusId);
     }
 
