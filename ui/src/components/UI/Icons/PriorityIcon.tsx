@@ -7,7 +7,7 @@ interface PriorityIconProps {
 }
 
 const getColor = (level: number) => {
-  if (level <= 1) return 'yellow';
+  if (level <= 1) return '#ffd700';
   if (level === 2) return 'orange';
   return 'red';
 };
