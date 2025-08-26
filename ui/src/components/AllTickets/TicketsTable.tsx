@@ -28,6 +28,7 @@ export interface TicketRow {
     requestorEmailId?: string;
     requestorMobileNo?: string;
     statusId?: string;
+    statusLabel?: string;
     assignedTo?: string;
 }
 
@@ -41,6 +42,7 @@ interface TicketsTableProps {
 }
 
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows }) => {
+    console.log(tickets)
     const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
@@ -56,8 +58,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const getAvailableActions = (statusId?: string) =>
         (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
 
-    const allowAssigneeChange = (statusId?: string) =>
-        (statusWorkflows[statusId || ''] || []).some(a => disallowed.includes(a.action));
+    const allowAssigneeChange = (statusId?: string) => {
+        console.log(statusWorkflows);
+        return (statusWorkflows[statusId || ''] || []).some(a => disallowed.includes(a.action));
+    }
 
     const getActionIcon = (action: string) => {
         switch (action) {
@@ -188,9 +192,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     ) : '-';
                 }
             },
-            { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || '-' },
+            { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || v || '-' },
+            // { title: t('Status'), dataIndex: 'status', key: 'status', render: (v: any) => getStatusNameById(v) || '-' },
             {
-                title: t('Action'),
+                title: t('Actions'),
                 key: 'action',
                 render: (_: any, record: TicketRow) => {
                     const recordActions = getAvailableActions(record.statusId);

@@ -51,6 +51,7 @@ export interface Ticket {
     requestorEmailId?: string;
     requestorMobileNo?: string;
     statusId?: string;
+    statusLabel?: string;
     assignedTo?: string;
     assignedBy?: string;
     updatedBy?: string;
