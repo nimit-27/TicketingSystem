@@ -4,7 +4,7 @@ import CustomFormInput from "../UI/Input/CustomFormInput";
 import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
 import { isHelpdesk } from "../../config/config";
-import { checkFieldAccess } from "../../utils/permissions";
+import { checkFieldAccess, getFieldChildren } from "../../utils/permissions";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
@@ -31,9 +31,14 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const helpdesk = true
     const theme = useTheme();
 
+    const modeChildren = getFieldChildren('requestDetails', 'mode') || {};
+    const allowedModes = modeOptions.filter(opt => modeChildren?.[opt.value]?.show);
+
     useEffect(() => {
-        setValue && setValue("mode", "Self");
-    }, [setValue]);
+        if (setValue && allowedModes.length) {
+            setValue("mode", allowedModes[0].value);
+        }
+    }, [setValue, allowedModes.length]);
 
     const { t } = useTranslation();
     return (
@@ -42,7 +47,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                 // <CustomFieldset variant="basic" title={t('Request Mode')} style={{ width: 'fit-content' }} className="d-flex">
                 <div className="d-flex gap-4 align-items-center px-4 py-2 border rounded-2 mb-4" style={{ width: 'fit-content' }}>
                     <span className="text-muted fs-6 ">{t('Request Mode')}</span>
-                    {modeOptions.map(opt => (
+                    {allowedModes.map(opt => (
                         <div
                             key={opt.value}
                             onClick={() => setValue && setValue('mode', opt.value)}
