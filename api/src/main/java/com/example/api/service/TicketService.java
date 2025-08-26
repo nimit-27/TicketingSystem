@@ -208,9 +208,9 @@ public class TicketService {
     }
 
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
-                                         String assignedTo, String levelId, String priority,
+                                         String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          Pageable pageable) {
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, levelId, priority, pageable);
+        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, pageable);
         return page.map(this::mapWithStatusId);
     }
 
