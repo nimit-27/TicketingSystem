@@ -48,10 +48,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
-    const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
+    const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
-    const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
+    const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
     const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
 
@@ -105,7 +105,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     };
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
-        setSelectedAction(wf);
+        setSelectedAction({ action: wf, ticketId });
         setCurrentTicketId(ticketId);
         setExpandedRowKeys([ticketId]);
         handleClose();
@@ -118,24 +118,26 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     };
 
     const expandedRowRender = (record: TicketRow) => {
-        if (record.id !== currentTicketId || !selectedAction) return null;
+        if (!selectedAction || record.id !== selectedAction.ticketId) return null;
         return (
-            <ActionRemarkComponent
-                actionName={selectedAction.action}
-                onCancel={cancelAction}
-                onSubmit={(remark) => {
-                    const reqPayload = {
-                        status: { statusId: String(selectedAction.nextStatus) },
-                        remark,
-                        assignedBy: getCurrentUserDetails()?.username,
-                        updatedBy: getCurrentUserDetails()?.username,
-                    } as any;
-                    updateTicketApiHandler(() => updateTicket(record.id, reqPayload)).then(() => {
-                        searchCurrentTicketsPaginatedApi(record.id);
-                        cancelAction();
-                    });
-                }}
-            />
+            <>
+                <ActionRemarkComponent
+                    actionName={selectedAction.action.action}
+                    onCancel={cancelAction}
+                    onSubmit={(remark) => {
+                        const reqPayload = {
+                            status: { statusId: String(selectedAction.action.nextStatus) },
+                            remark,
+                            assignedBy: getCurrentUserDetails()?.username,
+                            updatedBy: getCurrentUserDetails()?.username,
+                        } as any;
+                        updateTicketApiHandler(() => updateTicket(record.id, reqPayload)).then(() => {
+                            searchCurrentTicketsPaginatedApi(record.id);
+                            cancelAction();
+                        });
+                    }}
+                />
+            </>
         );
     };
 
