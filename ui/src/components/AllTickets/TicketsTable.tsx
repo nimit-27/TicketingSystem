@@ -16,6 +16,7 @@ import PriorityIcon from '../UI/Icons/PriorityIcon';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
+import { Popover } from 'antd';
 
 export interface TicketRow {
     id: string;
@@ -55,8 +56,13 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
 
-    const getAvailableActions = (statusId?: string) =>
-        (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
+    const getAvailableActions = (statusId?: string) => {
+        console.log(statusWorkflows, statusId);
+        return (statusWorkflows[statusId || ''] || []).filter(a => {
+            console.log({ a })
+            return !disallowed.includes(a.action)
+        })
+    };
 
     const allowAssigneeChange = (statusId?: string) => {
         console.log(statusWorkflows);
@@ -194,8 +200,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     ) : '-';
                 }
             },
-            { title: t('Status'), dataIndex: 'statusId', key: 'statusId', render: (v: any) => getStatusNameById(v) || v || '-' },
-            // { title: t('Status'), dataIndex: 'status', key: 'status', render: (v: any) => getStatusNameById(v) || '-' },
+            { title: t('Status'), dataIndex: 'statusLabel', key: 'statusLabel', render: (v: any, record: TicketRow) => <Popover content={record?.statusId && getStatusNameById(record.statusId)} >{v}</Popover> },
             {
                 title: t('Actions'),
                 key: 'action',

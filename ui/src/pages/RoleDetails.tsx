@@ -118,9 +118,6 @@ const RoleDetails: React.FC = () => {
                 )}
             </div>
             {description && <p className="text-muted mb-3">{description}</p>}
-            {devMode && (
-                <Chip label="JSON" size="small" onClick={() => setOpenJson(true)} sx={{ mb: 1 }} />
-            )}
             <Autocomplete
                 multiple
                 disableCloseOnSelect
@@ -136,6 +133,8 @@ const RoleDetails: React.FC = () => {
                 }
                 renderInput={(params) => <TextField {...params} label="Status Actions" />}
             />
+
+            {devMode && <Chip label="JSON" size="small" onClick={() => setOpenJson(true)} sx={{ mb: 1 }} />}
             {perm && (
                 <>
                     <h5>Permissions</h5>
@@ -149,7 +148,7 @@ const RoleDetails: React.FC = () => {
                 <Button variant="outlined" onClick={cancelPermissionChanges} disabled={!isPermissionsModified}>Cancel</Button>
             </div>
             {devMode && (
-                <JsonEditModal open={openJson} data={perm} onCancel={() => setOpenJson(false)} onSubmit={handleJsonEdit} />
+                <JsonEditModal open={openJson} data={isPermissionsModified ? modifiedPermissions : perm} onCancel={() => setOpenJson(false)} onSubmit={handleJsonEdit} />
             )}
         </div>
     );
