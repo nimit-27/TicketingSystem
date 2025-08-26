@@ -56,6 +56,8 @@ const MyTickets: React.FC = () => {
     const levels = getCurrentUserDetails()?.levels || [];
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
+    const [sortBy, setSortBy] = useState<'reportedDate' | 'lastModified'>('reportedDate');
+    const sortDirection: 'asc' | 'desc' = 'desc';
 
     const showSearchBar = checkMyTicketsAccess('searchBar');
     const showStatusFilter = checkMyTicketsAccess('statusFilter');
@@ -101,8 +103,9 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         }
 
+        const username = getCurrentUserDetails()?.username || "";
         return searchTicketsPaginatedApiHandler(() =>
-            searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId)
+            searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection)
         );
     };
 
@@ -121,12 +124,18 @@ const MyTickets: React.FC = () => {
             await searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
             setRefreshingTicketId(null);
         },
-        [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize]
+        [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection]
     );
 
     useEffect(() => {
-        searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize]);
+        searchTicketsPaginatedApi(
+            debouncedSearch,
+            statusFilter === 'All' ? undefined : statusFilter,
+            masterOnly ? true : undefined,
+            page - 1,
+            pageSize
+        );
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection]);
 
     useEffect(() => {
         getStatuses().then(setStatusList);
@@ -205,7 +214,19 @@ const MyTickets: React.FC = () => {
                 {error && <p className="text-danger">{t('Error loading tickets')}</p>}
                 {viewMode === 'table' && showTable && (
                     <div>
-                        <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} />
+                        <TicketsTable
+                            tickets={filtered}
+                            onIdClick={onIdClick}
+                            onRowClick={(id: any) => navigate(`/tickets/${id}`)}
+                            searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                            refreshingTicketId={refreshingTicketId}
+                            statusWorkflows={workflowMap}
+                            sortBy={sortBy}
+                            onSortChange={(value) => {
+                                setSortBy(value as 'reportedDate' | 'lastModified');
+                                setPage(1);
+                            }}
+                        />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                             <div className="d-flex align-items-center">

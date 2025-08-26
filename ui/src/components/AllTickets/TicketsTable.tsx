@@ -17,6 +17,8 @@ import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { Popover } from 'antd';
+import DropdownController from '../UI/Dropdown/DropdownController';
+import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 
 export interface TicketRow {
     id: string;
@@ -40,9 +42,11 @@ interface TicketsTableProps {
     onIdClick: (id: string) => void;
     refreshingTicketId?: string | null;
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
+    sortBy: string;
+    onSortChange: (value: string) => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange }) => {
     console.log(tickets)
     const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -56,18 +60,20 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
 
+    const sortOptions: DropdownOption[] = [
+        { label: 'Created Date', value: 'reportedDate' },
+        { label: 'Latest Updated', value: 'lastModified' },
+    ];
+
     const getAvailableActions = (statusId?: string) => {
-        console.log(statusWorkflows, statusId);
         return (statusWorkflows[statusId || ''] || []).filter(a => {
-            console.log({ a })
-            return !disallowed.includes(a.action)
-        })
+            return !disallowed.includes(a.action);
+        });
     };
 
     const allowAssigneeChange = (statusId?: string) => {
-        console.log(statusWorkflows);
-        return (statusWorkflows[statusId || ''] || []).some(a => disallowed.includes(a.action));
-    }
+        return Boolean(statusWorkflows[statusId || '']);
+    };
 
     const getActionIcon = (action: string) => {
         switch (action) {
@@ -240,6 +246,15 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     return (
         <>
+            <div className="d-flex justify-content-end mb-2">
+                <DropdownController
+                    label="Sort By"
+                    value={sortBy}
+                    onChange={onSortChange}
+                    options={sortOptions}
+                    style={{ width: 200 }}
+                />
+            </div>
             <GenericTable
                 dataSource={tickets}
                 columns={columns as any}

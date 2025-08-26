@@ -56,6 +56,8 @@ export function searchTicketsPaginated(
     levelId?: string,
     assignedBy?: string,
     requestorId?: string
+    sortBy?: string,
+    direction?: string
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -64,5 +66,7 @@ export function searchTicketsPaginated(
     if (levelId) params.append('levelId', levelId);
     if (assignedBy) params.append('assignedBy', assignedBy);
     if (requestorId) params.append('requestorId', requestorId);
+    if (sortBy) params.append('sortBy', sortBy);
+    if (direction) params.append('direction', direction);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
