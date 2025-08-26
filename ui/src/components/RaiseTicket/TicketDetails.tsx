@@ -383,6 +383,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                                     label="Assign to"
                                     options={assignToOptions}
                                     className="form-select"
+                                    disabled={!assignToLevel}
+                                    rules={assignToLevel ? { required: 'Please select Assignee' } : undefined}
                                 />
                             </div>
                         )}
@@ -614,6 +616,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                                     label="Assign to"
                                     options={assignToOptions}
                                     className="form-select"
+                                    disabled={!assignToLevel}
+                                    rules={assignToLevel ? { required: 'Please select Assignee' } : undefined}
                                 />
                             </div>
                         )}
