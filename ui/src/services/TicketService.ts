@@ -55,7 +55,7 @@ export function searchTicketsPaginated(
     assignedTo?: string,
     levelId?: string,
     assignedBy?: string,
-    requestorId?: string
+    requestorId?: string,
     sortBy?: string,
     direction?: string
 ) {

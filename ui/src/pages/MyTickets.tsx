@@ -103,7 +103,6 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         }
 
-        const username = getCurrentUserDetails()?.username || "";
         return searchTicketsPaginatedApiHandler(() =>
             searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection)
         );

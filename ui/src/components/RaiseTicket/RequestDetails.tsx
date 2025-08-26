@@ -32,7 +32,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const theme = useTheme();
 
     const modeChildren = getFieldChildren('requestDetails', 'mode') || {};
-    const allowedModes = modeOptions.filter(opt => modeChildren?.[opt.value]?.show);
+    const allowedModes = modeOptions.filter(opt => modeChildren?.[opt.value.toLowerCase()]?.show);
 
     useEffect(() => {
         if (setValue && allowedModes.length) {
