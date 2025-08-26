@@ -46,11 +46,23 @@ export function deleteComment(commentId: string) {
     return axios.delete(`${BASE_URL}/tickets/comments/${commentId}`);
 }
 
-export function searchTicketsPaginated(query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5, assignedTo?: string, levelId?: string) {
+export function searchTicketsPaginated(
+    query: string,
+    statusName?: string,
+    master?: boolean,
+    page: number = 0,
+    size: number = 5,
+    assignedTo?: string,
+    levelId?: string,
+    assignedBy?: string,
+    requestorId?: string
+) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
     if (master !== undefined) params.append('master', String(master));
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (levelId) params.append('levelId', levelId);
+    if (assignedBy) params.append('assignedBy', assignedBy);
+    if (requestorId) params.append('requestorId', requestorId);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }

@@ -76,8 +76,34 @@ const MyTickets: React.FC = () => {
     const debouncedSearch = useDebounce(search, 300);
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
-        const username = getCurrentUserDetails()?.username || "";
-        return searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, username, levelFilter));
+        const user = getCurrentUserDetails();
+        const username = user?.username || "";
+        const userId = user?.userId || "";
+        const roles = user?.role || [];
+
+        const isTeamLead = roles.includes("TEAM_LEAD");
+        const isRequester = roles.includes("USER");
+        const hasLevels = (user?.levels || []).length > 0;
+
+        let assignedTo: string | undefined = undefined;
+        let assignedBy: string | undefined = undefined;
+        let requestorId: string | undefined = undefined;
+
+        if (isTeamLead) {
+            assignedBy = username;
+            requestorId = userId;
+        } else if (isRequester) {
+            requestorId = userId;
+        }
+
+        if (hasLevels && !isTeamLead) {
+            assignedTo = username;
+            requestorId = userId;
+        }
+
+        return searchTicketsPaginatedApiHandler(() =>
+            searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId)
+        );
     };
 
     const onIdClick = (id: string) => {

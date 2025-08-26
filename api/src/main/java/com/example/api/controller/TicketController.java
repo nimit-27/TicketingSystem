@@ -72,13 +72,15 @@ public class TicketController {
             @RequestParam(required = false, name = "status") String statusId,
             @RequestParam(required = false) Boolean master,
             @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String assignedBy,
+            @RequestParam(required = false) String requestorId,
             @RequestParam(required = false) String levelId,
             @RequestParam(required = false) String priority,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, levelId, priority,
+        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority,
                 PageRequest.of(page, size, org.springframework.data.domain.Sort.by(
                         org.springframework.data.domain.Sort.Direction.fromString(direction), sortBy)));
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
