@@ -57,17 +57,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
 
     const getAvailableActions = (statusId?: string) => {
-        console.log(statusWorkflows, statusId);
         return (statusWorkflows[statusId || ''] || []).filter(a => {
-            console.log({ a })
-            return !disallowed.includes(a.action)
-        })
+            return !disallowed.includes(a.action);
+        });
     };
 
     const allowAssigneeChange = (statusId?: string) => {
-        console.log(statusWorkflows);
-        return (statusWorkflows[statusId || ''] || []).some(a => disallowed.includes(a.action));
-    }
+        return Boolean(statusWorkflows[statusId || '']);
+    };
 
     const getActionIcon = (action: string) => {
         switch (action) {
