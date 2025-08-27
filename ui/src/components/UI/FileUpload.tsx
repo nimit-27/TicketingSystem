@@ -10,12 +10,12 @@ interface FileUploadProps {
 }
 
 interface ThumbnailListProps {
-    attachments: File[];
+    attachments: (File | string)[];
     thumbnailSize?: number;
 }
 
 interface ThumbnailProps {
-    file: File;
+    file: File | string;
     size: number;
     onClick: () => void;
 }
@@ -23,7 +23,9 @@ interface ThumbnailProps {
 const bytesToMB = (bytes: number) => bytes / (1024 * 1024);
 
 const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
-    const url = URL.createObjectURL(file);
+    const isFile = file instanceof File;
+    const url = isFile ? URL.createObjectURL(file) : file;
+    const name = isFile ? file.name : file.split('/').pop() || '';
     return (
         <Box
             onClick={onClick}
@@ -45,11 +47,11 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img
                         src={url}
-                        alt={file.name}
+                        alt={name}
                         style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                     />
                 </Box>
-                <Typography variant="caption" noWrap>{file.name}</Typography>
+                <Typography variant="caption" noWrap>{name}</Typography>
             </Box>
         </Box>
     );
@@ -98,11 +100,19 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
                             <IconButton onClick={showPrev}>
                                 <ArrowBackIosNewIcon />
                             </IconButton>
-                            <img
-                                src={URL.createObjectURL(attachments[index])}
-                                alt={attachments[index].name}
-                                style={{ maxHeight: '80vh', maxWidth: '80vw' }}
-                            />
+                            {(() => {
+                                const current = attachments[index];
+                                const isFile = current instanceof File;
+                                const url = isFile ? URL.createObjectURL(current) : current;
+                                const alt = isFile ? current.name : current.split('/').pop() || '';
+                                return (
+                                    <img
+                                        src={url}
+                                        alt={alt}
+                                        style={{ maxHeight: '80vh', maxWidth: '80vw' }}
+                                    />
+                                );
+                            })()}
                             <IconButton onClick={showNext}>
                                 <ArrowForwardIosIcon />
                             </IconButton>
