@@ -47,8 +47,8 @@ const RaiseTicket: React.FC<any> = () => {
 
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
-            if (key === 'attachment' && value && (value as FileList).length > 0) {
-                formData.append('attachment', (value as FileList)[0]);
+            if (key === 'attachments' && value && (value as FileList).length > 0) {
+                Array.from(value as FileList).forEach(file => formData.append('attachments', file));
             } else if (value !== undefined && value !== null) {
                 if (value instanceof Date) {
                     formData.append(key, value.toISOString().split('T')[0]);
@@ -80,7 +80,7 @@ const RaiseTicket: React.FC<any> = () => {
         resetField('isMaster');
         resetField('subject');
         resetField('description');
-        resetField('attachment');
+        resetField('attachments');
         resetField('statusId');
         // Add/remove fields as per your TicketDetails form
     };

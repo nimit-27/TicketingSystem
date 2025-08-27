@@ -320,17 +320,17 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                 )}
                 {showAttachment && (
                     <div className="col-md-6 d-flex align-items-center mb-3 px-4">
-                        <label htmlFor="attachment" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
+                        <label htmlFor="attachments" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
                             {t('Attachment')}
                         </label>
                         <CustomFormInput
-                            name="attachment"
+                            name="attachments"
                             register={register}
                             errors={errors}
                             type="file"
                             size="medium"
                             className="form-control"
-                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf" }}
+                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf", multiple: true }}
                             disabled={disableAll}
                         />
                     </div>
@@ -553,17 +553,17 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                 )}
                 {showAttachment && (
                     <div className="col-md-6 d-flex align-items-center mb-3 px-4">
-                        <label htmlFor="attachment" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
+                        <label htmlFor="attachments" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
                             {t('Attachment')}
                         </label>
                         <CustomFormInput
-                            name="attachment"
+                            name="attachments"
                             register={register}
                             errors={errors}
                             type="file"
                             size="medium"
                             className="form-control"
-                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf" }}
+                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf", multiple: true }}
                             disabled={disableAll}
                         />
                     </div>

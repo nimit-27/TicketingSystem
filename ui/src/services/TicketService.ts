@@ -10,6 +10,14 @@ export function addTicket(payload: any) {
     return axios.post(`${BASE_URL}/tickets/add`, payload, config);
 }
 
+export function addAttachments(id: string, files: FileList) {
+    const formData = new FormData();
+    Array.from(files).forEach(file => formData.append('attachments', file));
+    return axios.post(`${BASE_URL}/tickets/${id}/attachments`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
+}
+
 export function getTickets(page: number = 0, size: number = 5) {
     return axios.get(`${BASE_URL}/tickets?page=${page}&size=${size}`);
 }
