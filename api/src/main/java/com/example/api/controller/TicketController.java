@@ -17,6 +17,7 @@ import org.typesense.model.SearchResult;
 import com.example.api.enums.TicketStatus;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequestMapping("/tickets")
@@ -72,7 +73,7 @@ public class TicketController {
     @PostMapping(value = "/{id}/attachments", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<TicketDto> addAttachments(@PathVariable String id,
             @RequestParam("attachments") MultipartFile[] attachments) throws IOException {
-        java.util.List<String> paths = new java.util.ArrayList<>();
+        List<String> paths = new ArrayList<>();
         if (attachments != null) {
             for (MultipartFile file : attachments) {
                 if (file != null && !file.isEmpty()) {
