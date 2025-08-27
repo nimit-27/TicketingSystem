@@ -5,15 +5,18 @@ import com.example.api.dto.TicketDto;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.service.TicketService;
+import com.example.api.service.FileStorageService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.web.multipart.MultipartFile;
 import org.typesense.model.SearchResult;
 import com.example.api.enums.TicketStatus;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequestMapping("/tickets")
@@ -22,6 +25,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TicketController {
     private final TicketService ticketService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -45,8 +49,14 @@ public class TicketController {
         return ResponseEntity.ok(dto);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<TicketDto> addTicket(@RequestBody Ticket ticket) {
+    @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<TicketDto> addTicket(
+            @ModelAttribute Ticket ticket,
+            @RequestParam(value = "attachment", required = false) MultipartFile attachment) throws IOException {
+        if (attachment != null && !attachment.isEmpty()) {
+            String path = fileStorageService.save(attachment);
+            ticket.setAttachmentPath(path);
+        }
         TicketDto addedTicket = ticketService.addTicket(ticket);
         return ResponseEntity.ok(addedTicket);
     }
