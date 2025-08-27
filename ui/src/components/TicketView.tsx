@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
-import { getTicket, updateTicket } from '../services/TicketService';
+import { getTicket, updateTicket, addAttachments } from '../services/TicketService';
+import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
 import { getPriorities } from '../services/PriorityService';
 import { getSeverities } from '../services/SeverityService';
@@ -35,6 +36,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [severityOptions, setSeverityOptions] = useState<string[]>([]);
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
+  const [attachments, setAttachments] = useState<string[]>([]);
   const { t } = useTranslation();
 
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
@@ -64,6 +66,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setPriorityId(ticket.priorityId || '');
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
+      if (Array.isArray(ticket.attachmentPaths)) {
+        setAttachments(ticket.attachmentPaths);
+      } else if (ticket.attachmentPath) {
+        setAttachments([ticket.attachmentPath]);
+      } else {
+        setAttachments([]);
+      }
     }
   }, [ticket]);
 
@@ -93,6 +102,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
     }
+  };
+
+  const handleAttachmentUpload = (files: FileList | null) => {
+    if (!files || !ticketId) return;
+    addAttachments(ticketId, files).then(() => {
+      getTicketHandler(() => getTicket(ticketId));
+    });
   };
 
   const renderText = (value: string, onChange: (v: string) => void, multiline?: boolean) => (
@@ -174,6 +190,18 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Typography>
       <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
         {renderText(description, setDescription, true)}
+      </Box>
+      {attachments.length > 0 && (
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          {attachments.map((att, idx) => (
+            <a key={idx} href={`${BASE_URL}/uploads/${att}`} target="_blank" rel="noreferrer">
+              <img src={`${BASE_URL}/uploads/${att}`} alt={`attachment-${idx}`} style={{ width: 100, height: 100, objectFit: 'cover' }} />
+            </a>
+          ))}
+        </Box>
+      )}
+      <Box sx={{ mt: 1 }}>
+        <input type="file" multiple onChange={e => handleAttachmentUpload(e.target.files)} />
       </Box>
       <Box sx={{ mt: 2 }}>
         {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>

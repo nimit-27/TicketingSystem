@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -39,6 +40,7 @@ public class TicketDto {
     private String statusLabel;
     private String statusName;
     private String attachmentPath;
+    private List<String> attachmentPaths;
     private String assignToLevel;
     private String assignTo;
     private String assignedToLevel;

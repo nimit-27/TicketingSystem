@@ -52,13 +52,35 @@ public class TicketController {
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<TicketDto> addTicket(
             @ModelAttribute Ticket ticket,
-            @RequestParam(value = "attachment", required = false) MultipartFile attachment) throws IOException {
-        if (attachment != null && !attachment.isEmpty()) {
-            String path = fileStorageService.save(attachment);
-            ticket.setAttachmentPath(path);
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws IOException {
+        if (attachments != null && attachments.length > 0) {
+            java.util.List<String> paths = new java.util.ArrayList<>();
+            for (MultipartFile file : attachments) {
+                if (file != null && !file.isEmpty()) {
+                    String path = fileStorageService.save(file);
+                    paths.add(path);
+                }
+            }
+            if (!paths.isEmpty()) {
+                ticket.setAttachmentPath(String.join(",", paths));
+            }
         }
         TicketDto addedTicket = ticketService.addTicket(ticket);
         return ResponseEntity.ok(addedTicket);
+    }
+
+    @PostMapping(value = "/{id}/attachments", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<TicketDto> addAttachments(@PathVariable String id,
+            @RequestParam("attachments") MultipartFile[] attachments) throws IOException {
+        java.util.List<String> paths = new java.util.ArrayList<>();
+        if (attachments != null) {
+            for (MultipartFile file : attachments) {
+                if (file != null && !file.isEmpty()) {
+                    paths.add(fileStorageService.save(file));
+                }
+            }
+        }
+        return ResponseEntity.ok(ticketService.addAttachments(id, paths));
     }
 
     @PutMapping("/{id}")

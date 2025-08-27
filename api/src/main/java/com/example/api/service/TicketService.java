@@ -292,6 +292,21 @@ public class TicketService {
         return mapWithStatusId(saved);
     }
 
+    public TicketDto addAttachments(String id, List<String> paths) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+        List<String> all = new java.util.ArrayList<>();
+        if (ticket.getAttachmentPath() != null && !ticket.getAttachmentPath().isEmpty()) {
+            all.addAll(java.util.Arrays.asList(ticket.getAttachmentPath().split(",")));
+        }
+        if (paths != null) {
+            all.addAll(paths);
+        }
+        ticket.setAttachmentPath(String.join(",", all));
+        Ticket saved = ticketRepository.save(ticket);
+        return mapWithStatusId(saved);
+    }
+
     public TicketDto linkToMaster(String id, String masterId) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
