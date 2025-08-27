@@ -45,7 +45,20 @@ const RaiseTicket: React.FC<any> = () => {
             reportedDate: new Date()
         };
 
-        apiHandler(() => addTicket(payload))
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+            if (key === 'attachment' && value && (value as FileList).length > 0) {
+                formData.append('attachment', (value as FileList)[0]);
+            } else if (value !== undefined && value !== null) {
+                if (value instanceof Date) {
+                    formData.append(key, value.toISOString());
+                } else {
+                    formData.append(key, String(value));
+                }
+            }
+        });
+
+        apiHandler(() => addTicket(formData))
             .then((resp: any) => {
                 setCreatedTicketId(resp?.id);
                 setSuccessfulModalOpen(true);

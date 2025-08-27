@@ -5,8 +5,9 @@ export function searchTickets(payload: string) {
     return axios.post(`${BASE_URL}/tickets`, payload);
 }
 
-export function addTicket(payload: string) {
-    return axios.post(`${BASE_URL}/tickets/add`, payload);
+export function addTicket(payload: any) {
+    const config = payload instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined;
+    return axios.post(`${BASE_URL}/tickets/add`, payload, config);
 }
 
 export function getTickets(page: number = 0, size: number = 5) {
