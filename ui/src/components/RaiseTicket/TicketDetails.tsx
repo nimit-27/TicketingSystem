@@ -17,6 +17,7 @@ import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
 import InfoIcon from "../UI/Icons/InfoIcon";
 import { PriorityInfo, SeverityInfo } from "../../types";
+import FileUpload from "../UI/FileUpload";
 
 interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -149,6 +150,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
         if (register && typeof register === 'function') {
             register('assignedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
             register('updatedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
+            register('attachments');
         }
     }, [register]);
 
@@ -319,19 +321,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showAttachment && (
-                    <div className="col-md-6 d-flex align-items-center mb-3 px-4">
-                        <label htmlFor="attachments" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
-                            {t('Attachment')}
-                        </label>
-                        <CustomFormInput
-                            name="attachments"
-                            register={register}
-                            errors={errors}
-                            type="file"
-                            size="medium"
-                            className="form-control"
-                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf", multiple: true }}
-                            disabled={disableAll}
+                    <div className="col-md-12 mb-3 px-4">
+                        <FileUpload
+                            maxSizeMB={5}
+                            thumbnailSize={100}
+                            onFilesChange={(files) => setValue && setValue('attachments', files)}
                         />
                     </div>
                 )}
@@ -552,19 +546,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showAttachment && (
-                    <div className="col-md-6 d-flex align-items-center mb-3 px-4">
-                        <label htmlFor="attachments" className="form-label me-2 mb-0" style={{ whiteSpace: "nowrap" }}>
-                            {t('Attachment')}
-                        </label>
-                        <CustomFormInput
-                            name="attachments"
-                            register={register}
-                            errors={errors}
-                            type="file"
-                            size="medium"
-                            className="form-control"
-                            inputProps={{ accept: ".jpg,.jpeg,.png,.pdf", multiple: true }}
-                            disabled={disableAll}
+                    <div className="col-md-12 mb-3 px-4">
+                        <FileUpload
+                            maxSizeMB={5}
+                            thumbnailSize={100}
+                            onFilesChange={(files) => setValue && setValue('attachments', files)}
                         />
                     </div>
                 )}

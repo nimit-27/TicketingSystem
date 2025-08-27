@@ -47,8 +47,8 @@ const RaiseTicket: React.FC<any> = () => {
 
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
-            if (key === 'attachments' && value && (value as FileList).length > 0) {
-                Array.from(value as FileList).forEach(file => formData.append('attachments', file));
+            if (key === 'attachments' && Array.isArray(value) && value.length > 0) {
+                value.forEach(file => formData.append('attachments', file));
             } else if (value !== undefined && value !== null) {
                 if (value instanceof Date) {
                     formData.append(key, value.toISOString().split('T')[0]);

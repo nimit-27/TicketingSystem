@@ -15,6 +15,7 @@ import Histories from '../pages/Histories';
 import CustomFieldset from './CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import { checkFieldAccess } from '../utils/permissions';
+import FileUpload, { ThumbnailList } from './UI/FileUpload';
 
 interface TicketViewProps {
   ticketId: string;
@@ -37,6 +38,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploadKey, setUploadKey] = useState(0);
   const { t } = useTranslation();
 
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
@@ -67,9 +69,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
       if (Array.isArray(ticket.attachmentPaths)) {
-        setAttachments(ticket.attachmentPaths);
+        setAttachments(ticket.attachmentPaths.map((att: string) => `${BASE_URL}/uploads/${att}`));
       } else if (ticket.attachmentPath) {
-        setAttachments([ticket.attachmentPath]);
+        setAttachments([`${BASE_URL}/uploads/${ticket.attachmentPath}`]);
       } else {
         setAttachments([]);
       }
@@ -104,10 +106,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   };
 
-  const handleAttachmentUpload = (files: FileList | null) => {
-    if (!files || !ticketId) return;
+  const handleAttachmentUpload = (files: File[]) => {
+    if (!files.length || !ticketId) return;
     addAttachments(ticketId, files).then(() => {
       getTicketHandler(() => getTicket(ticketId));
+      setUploadKey(k => k + 1);
     });
   };
 
@@ -192,16 +195,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         {renderText(description, setDescription, true)}
       </Box>
       {attachments.length > 0 && (
-        <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {attachments.map((att, idx) => (
-            <a key={idx} href={`${BASE_URL}/uploads/${att}`} target="_blank" rel="noreferrer">
-              <img src={`${BASE_URL}/uploads/${att}`} alt={`attachment-${idx}`} style={{ width: 100, height: 100, objectFit: 'cover' }} />
-            </a>
-          ))}
+        <Box sx={{ mt: 2 }}>
+          <ThumbnailList attachments={attachments} thumbnailSize={100} />
         </Box>
       )}
       <Box sx={{ mt: 1 }}>
-        <input type="file" multiple onChange={e => handleAttachmentUpload(e.target.files)} />
+        <FileUpload
+          key={uploadKey}
+          maxSizeMB={5}
+          thumbnailSize={100}
+          onFilesChange={handleAttachmentUpload}
+        />
       </Box>
       <Box sx={{ mt: 2 }}>
         {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
