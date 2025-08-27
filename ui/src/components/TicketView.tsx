@@ -148,7 +148,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     )
   );
 
-  
+
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleDateString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
 
@@ -160,7 +160,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     </div>,
     [priorityDetails]
   );
-  
+
+  console.log({ attachments })
+
   if (!ticket) return null;
 
   return (

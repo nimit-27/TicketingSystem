@@ -22,10 +22,28 @@ interface ThumbnailProps {
 
 const bytesToMB = (bytes: number) => bytes / (1024 * 1024);
 
+const getFileIcon = (fileName: string) => {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'pdf':
+      return '/icons/pdf-icon.png';   // your pdf icon path
+    case 'doc':
+    case 'docx':
+      return '/icons/word-icon.png';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+      return null; // these can be displayed directly
+    default:
+      return '/icons/file-icon.png';  // generic file icon
+  }
+};
+
 const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
     const isFile = file instanceof File;
     const url = isFile ? URL.createObjectURL(file) : file;
     const name = isFile ? file.name : file.split('/').pop() || '';
+    {console.log({url, name, isFile})}
     return (
         <Box
             onClick={onClick}
@@ -42,11 +60,16 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
                     boxShadow: 4,
                 },
             }}
-        >
+            >
             <Box sx={{ p: 0.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* <img
+                        src={"/icons/pdf-icon.png"}
+                        alt={name}
+                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                    /> */}
                     <img
-                        src={url}
+                        src={getFileIcon(name) || url}
                         alt={name}
                         style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                     />
