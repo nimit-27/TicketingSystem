@@ -51,7 +51,7 @@ const RaiseTicket: React.FC<any> = () => {
                 formData.append('attachment', (value as FileList)[0]);
             } else if (value !== undefined && value !== null) {
                 if (value instanceof Date) {
-                    formData.append(key, value.toISOString());
+                    formData.append(key, value.toISOString().split('T')[0]);
                 } else {
                     formData.append(key, String(value));
                 }

@@ -43,6 +43,7 @@ const AllTickets: React.FC = () => {
 
     const [search, setSearch] = useState("");
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<'reportedDate' | 'lastModified'>('reportedDate');
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
     const [filtered, setFiltered] = useState<Ticket[]>([]);
@@ -78,7 +79,7 @@ const AllTickets: React.FC = () => {
 
     const onIdClick = (id: string) => {
         if (id) {
-            setSelectedTicketId(id); 
+            setSelectedTicketId(id);
             setSidebarOpen(true);
         }
     }
@@ -169,9 +170,10 @@ const AllTickets: React.FC = () => {
                 {error && <p className="text-danger">{t('Error loading tickets')}</p>}
                 {viewMode === 'table' && showTable && (
                     <div>
-                        <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} sortBy={""} onSortChange={function (value: string): void {
-                            throw new Error("Function not implemented.");
-                        } } />
+                        <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} sortBy={""} onSortChange={(value) => {
+                            setSortBy(value as 'reportedDate' | 'lastModified');
+                            setPage(1);
+                        }} />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                             <div className="d-flex align-items-center">
