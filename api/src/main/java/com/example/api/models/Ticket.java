@@ -20,7 +20,7 @@ public class Ticket {
     @Column(name="ticket_id")
     private String id;
     @Column(name="reported_date")
-    private Date reportedDate;
+    private LocalDateTime reportedDate;
     @Enumerated(EnumType.STRING)
     private Mode mode;
     @Column(name = "user_id", insertable = false, updatable = false)

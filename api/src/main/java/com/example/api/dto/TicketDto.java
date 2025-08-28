@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +15,7 @@ import java.util.List;
 public class TicketDto {
     private String id;
     private String shortId;
-    private Date reportedDate;
+    private LocalDateTime reportedDate;
     private Mode mode;
     private String userId;
     private String requestorName;

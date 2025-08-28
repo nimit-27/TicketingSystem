@@ -103,7 +103,7 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
 
     return (
         <>
-            <Box display="flex" flexWrap="wrap">
+            <Box className="border" display="flex" flexWrap="wrap">
                 {attachments.map((file, i) => (
                     <Thumbnail key={i} file={file} size={thumbnailSize} onClick={() => handleOpen(i)} />
                 ))}

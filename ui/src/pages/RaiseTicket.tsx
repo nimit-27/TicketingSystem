@@ -28,7 +28,7 @@ const RaiseTicket: React.FC<any> = () => {
     const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
     const [attachments, setAttachments] = useState<File[]>([]);
 
-    console.log({attachments})
+    console.log({ attachments })
 
     const onSubmit = (formValues: any) => {
         const {
@@ -56,7 +56,7 @@ const RaiseTicket: React.FC<any> = () => {
                 value.forEach(file => formData.append('attachments', file));
             } else if (value !== undefined && value !== null) {
                 if (value instanceof Date) {
-                    formData.append(key, value.toISOString().split('T')[0]);
+                    formData.append(key, value.toISOString().replace("Z", ""));
                 } else {
                     formData.append(key, String(value));
                 }
@@ -105,10 +105,21 @@ const RaiseTicket: React.FC<any> = () => {
 
     const onClose = () => {
         setSuccessfulModalOpen(false);
+        setAttachments([]);
+        setCreatedTicketId(null);
         clearTicketDetailsFields();
     };
     const onLinkToMasterTicketModalClose = () => setLinkToMasterTicketModalOpen(false);
     const onLinkToMasterTicketModalOpen = () => setLinkToMasterTicketModalOpen(true);
+
+    // Dev mode: Populate dummy data for quick testing
+    const populateDummyTicketDetails = () => {
+        setValue('category', 'Data Management');
+        setValue('subCategory', 'Data Entry Errors');
+        setValue('priority', 'P1 | Urgent (Impacting 100% users)');
+        setValue('subject', 'Sample Issue Subject');
+        setValue('description', 'This is a sample description for testing purposes.');
+    };
 
     return (
         <div className="container pb-5">
@@ -120,6 +131,7 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Requestor Details */}
                 <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} createMode />
                 {/* Ticket Details */}
+                {devMode && <CustomIconButton icon="formatColorFill" onClick={populateDummyTicketDetails} />}
                 <TicketDetails register={register} control={control} errors={errors} createMode attachments={attachments} setAttachments={setAttachments} />
                 {/* Submit Button */}
 

@@ -36,6 +36,7 @@ import CallIcon from '@mui/icons-material/Call';
 import EmailIcon from '@mui/icons-material/Email';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PortraitIcon from '@mui/icons-material/Portrait';
+import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
@@ -80,6 +81,7 @@ const iconMap = {
     email: EmailIcon,
     infoOutlined: InfoOutlinedIcon,
     portrait: PortraitIcon,
+    formatColorFill: FormatColorFillIcon,
 };
 
 // Valid keys for the icon map
