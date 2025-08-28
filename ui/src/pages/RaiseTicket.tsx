@@ -3,12 +3,12 @@ import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetails from "../components/RaiseTicket/TicketDetails";
 import SuccessfulModal from "../components/RaiseTicket/SuccessfulModal";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Title from "../components/Title";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
 import GenericButton from "../components/UI/Button";
 import { useApi } from "../hooks/useApi";
-import { addTicket } from "../services/TicketService";
+import { addAttachments, addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
 import { formatDateWithSuffix } from "../utils/Utils";
@@ -26,22 +26,27 @@ const RaiseTicket: React.FC<any> = () => {
     const [successfullModalOpen, setSuccessfulModalOpen] = useState(false);
     const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
     const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
+    const [attachments, setAttachments] = useState<File[]>([]);
 
-    const onSubmit = (data: any) => {
+    console.log({attachments})
+
+    const onSubmit = (formValues: any) => {
         const {
             name,
             emailId,
             mobileNo,
             stakeholder,
             ...rest
-        } = data;
+        } = formValues;
 
+        // Build JSON payload without attachments
         const payload = {
             ...rest,
             requestorName: name,
             requestorEmailId: emailId,
             requestorMobileNo: mobileNo,
             stakeholder,
+            // include time (ISO-8601) similar to lastModified
             reportedDate: new Date()
         };
 
@@ -58,9 +63,22 @@ const RaiseTicket: React.FC<any> = () => {
             }
         });
 
+        // 1) Create ticket (no files)
         apiHandler(() => addTicket(formData))
             .then((resp: any) => {
-                setCreatedTicketId(resp?.id);
+                const ticketId = resp?.id;
+                setCreatedTicketId(ticketId);
+
+                const files: File[] = Array.isArray(attachments) ? attachments : [];
+                console.log({ files })
+                // 2) If files selected, upload them against created ticket
+                if (ticketId && files.length > 0) {
+                    return apiHandler(() => addAttachments(ticketId, files))
+                        .then(() => {
+                            setSuccessfulModalOpen(true);
+                        });
+                }
+                // No attachments to upload
                 setSuccessfulModalOpen(true);
             })
     };
@@ -102,7 +120,7 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Requestor Details */}
                 <RequestorDetails register={register} control={control} errors={errors} setValue={setValue} createMode />
                 {/* Ticket Details */}
-                <TicketDetails register={register} control={control} errors={errors} createMode />
+                <TicketDetails register={register} control={control} errors={errors} createMode attachments={attachments} setAttachments={setAttachments} />
                 {/* Submit Button */}
 
                 <div className="text-start">

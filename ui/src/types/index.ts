@@ -50,6 +50,7 @@ export interface Ticket {
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
+    reportedDate?: string; // ISO-8601 datetime
     statusId?: string;
     statusLabel?: string;
     assignedTo?: string;

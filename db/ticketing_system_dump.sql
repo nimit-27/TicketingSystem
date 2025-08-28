@@ -779,6 +779,37 @@ INSERT INTO `user_levels` VALUES (207,1,'L1'),(212,1,'L2|L3'),(213,1,'L2');
 UNLOCK TABLES;
 
 --
+-- Table structure for table `uploaded_files`
+--
+
+DROP TABLE IF EXISTS `uploaded_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `uploaded_files` (
+  `uploaded_file_id` varchar(36) NOT NULL,
+  `file_name` varchar(255) NOT NULL,
+  `file_extension` varchar(50) DEFAULT NULL,
+  `relative_path` varchar(512) NOT NULL,
+  `uploaded_by` varchar(100) DEFAULT NULL,
+  `ticket_id` varchar(36) NOT NULL,
+  `uploaded_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_active` enum('Y','N') NOT NULL DEFAULT 'Y',
+  PRIMARY KEY (`uploaded_file_id`),
+  KEY `fk_uploaded_files_ticket` (`ticket_id`),
+  CONSTRAINT `fk_uploaded_files_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `uploaded_files`
+--
+
+LOCK TABLES `uploaded_files` WRITE;
+/*!40000 ALTER TABLE `uploaded_files` DISABLE KEYS */;
+/*!40000 ALTER TABLE `uploaded_files` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `users`
 --
 

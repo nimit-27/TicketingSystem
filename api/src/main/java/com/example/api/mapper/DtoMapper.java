@@ -30,6 +30,20 @@ public class DtoMapper {
         return dto;
     }
 
+    public static UploadedFileDto toUploadedFileDto(UploadedFile uf) {
+        if (uf == null) return null;
+        UploadedFileDto dto = new UploadedFileDto();
+        dto.setId(uf.getId());
+        dto.setFileName(uf.getFileName());
+        dto.setFileExtension(uf.getFileExtension());
+        dto.setRelativePath(uf.getRelativePath());
+        dto.setUploadedBy(uf.getUploadedBy());
+        dto.setTicketId(uf.getTicket() != null ? uf.getTicket().getId() : null);
+        dto.setUploadedOn(uf.getUploadedOn());
+        dto.setIsActive(uf.getIsActive());
+        return dto;
+        }
+
     public static SubCategoryDto toSubCategoryDto(SubCategory subCategory) {
         if (subCategory == null) return null;
         SubCategoryDto dto = new SubCategoryDto();

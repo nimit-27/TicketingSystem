@@ -13,6 +13,7 @@ import com.example.api.repository.StatusMasterRepository;
 import com.example.api.repository.CategoryRepository;
 import com.example.api.repository.SubCategoryRepository;
 import com.example.api.repository.PriorityRepository;
+import com.example.api.repository.UploadedFileRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
@@ -46,6 +47,7 @@ public class TicketService {
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
     private final PriorityRepository priorityRepository;
+    private final UploadedFileRepository uploadedFileRepository;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
@@ -57,6 +59,7 @@ public class TicketService {
                          CategoryRepository categoryRepository,
                          SubCategoryRepository subCategoryRepository,
                          PriorityRepository priorityRepository,
+                         UploadedFileRepository uploadedFileRepository,
                          NotificationService notificationService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
@@ -69,6 +72,7 @@ public class TicketService {
         this.categoryRepository = categoryRepository;
         this.subCategoryRepository = subCategoryRepository;
         this.priorityRepository = priorityRepository;
+        this.uploadedFileRepository = uploadedFileRepository;
         this.notificationService = notificationService;
     }
 
@@ -112,6 +116,12 @@ public class TicketService {
         // short ticket id
         if (dto.getId() != null) {
             dto.setShortId(dto.getId().length() > 8 ? dto.getId().substring(0,8) : dto.getId());
+        }
+        if (ticket.getId() != null) {
+            java.util.List<com.example.api.models.UploadedFile> files = uploadedFileRepository.findByTicket_IdAndIsActive(ticket.getId(), "Y");
+            java.util.List<String> paths = files.stream().map(com.example.api.models.UploadedFile::getRelativePath).toList();
+            dto.setAttachmentPath(String.join(",", paths));
+            dto.setAttachmentPaths(paths);
         }
         return dto;
     }

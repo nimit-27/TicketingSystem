@@ -54,19 +54,19 @@ public class TicketController {
     public ResponseEntity<TicketDto> addTicket(
             @ModelAttribute Ticket ticket,
             @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws IOException {
+        TicketDto addedTicket = ticketService.addTicket(ticket);
         if (attachments != null && attachments.length > 0) {
-            java.util.List<String> paths = new java.util.ArrayList<>();
+            List<String> paths = new ArrayList<>();
             for (MultipartFile file : attachments) {
                 if (file != null && !file.isEmpty()) {
-                    String path = fileStorageService.save(file);
+                    String path = fileStorageService.save(file, addedTicket.getId(), ticket.getUpdatedBy());
                     paths.add(path);
                 }
             }
             if (!paths.isEmpty()) {
-                ticket.setAttachmentPath(String.join(",", paths));
+                addedTicket = ticketService.addAttachments(addedTicket.getId(), paths);
             }
         }
-        TicketDto addedTicket = ticketService.addTicket(ticket);
         return ResponseEntity.ok(addedTicket);
     }
 
@@ -77,7 +77,7 @@ public class TicketController {
         if (attachments != null) {
             for (MultipartFile file : attachments) {
                 if (file != null && !file.isEmpty()) {
-                    paths.add(fileStorageService.save(file));
+                    paths.add(fileStorageService.save(file, id, null));
                 }
             }
         }

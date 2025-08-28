@@ -23,6 +23,8 @@ interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
     subjectDisabled?: boolean;
     actionElement?: React.ReactNode;
+    attachments?: File[];
+    setAttachments?: (files: File[]) => void;
 }
 
 const impactOptions: DropdownOption[] = [
@@ -40,7 +42,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setValue, errors, disableAll = false, subjectDisabled = false, actionElement, createMode }) => {
+const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setValue, errors, disableAll = false, subjectDisabled = false, actionElement, createMode, attachments, setAttachments }) => {
 
     const { t } = useTranslation();
 
@@ -325,7 +327,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <FileUpload
                             maxSizeMB={5}
                             thumbnailSize={100}
-                            onFilesChange={(files) => setValue && setValue('attachments', files)}
+                            onFilesChange={(files) => {
+                                console.log("onFilesChange called", files)
+                                setAttachments && setAttachments(files)
+                                setValue && setValue('attachments', files)
+                            }}
                         />
                     </div>
                 )}
@@ -550,7 +556,12 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <FileUpload
                             maxSizeMB={5}
                             thumbnailSize={100}
-                            onFilesChange={(files) => setValue && setValue('attachments', files)}
+                            onFilesChange={(files) => {
+                                // Store temporarily in parent state for post-create upload
+                                setAttachments?.(files);
+                                // Keep form value if needed elsewhere
+                                setValue && setValue('attachments', files);
+                            }}
                         />
                     </div>
                 )}
