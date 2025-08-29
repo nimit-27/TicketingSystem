@@ -162,6 +162,9 @@ CREATE TABLE `faqs` (
 
 LOCK TABLES `faqs` WRITE;
 /*!40000 ALTER TABLE `faqs` DISABLE KEYS */;
+INSERT INTO `faqs` (`id`,`question_en`,`question_hi`,`answer_en`,`answer_hi`,`keywords`,`created_by`,`created_on`,`updated_by`,`updated_on`) VALUES
+('1','How do I reset my password?','मेरा पासवर्ड कैसे रीसेट करें?','Click on the ''Forgot password'' link on the login page and follow the instructions.','लॉगिन पृष्ठ पर "पासवर्ड भूल गए" लिंक पर क्लिक करें और निर्देशों का पालन करें.','password|reset|account','system','2024-01-01 10:00:00',NULL,NULL),
+('2','How can I create a ticket?','मैं टिकट कैसे बना सकता हूँ?','Navigate to the create ticket page and fill out the required details.','टिकट बनाने वाले पृष्ठ पर जाएँ और आवश्यक विवरण भरें.','ticket|create|help','system','2024-01-01 10:05:00',NULL,NULL);
 /*!40000 ALTER TABLE `faqs` ENABLE KEYS */;
 UNLOCK TABLES;
 
