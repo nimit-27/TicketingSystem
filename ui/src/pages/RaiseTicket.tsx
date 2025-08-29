@@ -36,11 +36,13 @@ const RaiseTicket: React.FC<any> = () => {
             emailId,
             mobileNo,
             stakeholder,
+            assignTo,
+            assignToLevel,
             ...rest
         } = formValues;
 
         // Build JSON payload without attachments
-        const payload = {
+        const payload: any = {
             ...rest,
             requestorName: name,
             requestorEmailId: emailId,
@@ -49,6 +51,10 @@ const RaiseTicket: React.FC<any> = () => {
             // include time (ISO-8601) similar to lastModified
             reportedDate: new Date()
         };
+
+        // Map assignment fields to backend expected keys
+        if (assignTo) payload.assignedTo = assignTo;
+        if (assignToLevel) payload.levelId = assignToLevel;
 
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
