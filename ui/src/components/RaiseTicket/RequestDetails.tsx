@@ -45,8 +45,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
         <>
             {showModeField && (
                 // <CustomFieldset variant="basic" title={t('Request Mode')} style={{ width: 'fit-content' }} className="d-flex">
-                <div className="d-flex gap-4 align-items-center px-4 py-2 border rounded-2 mb-4" style={{ width: 'fit-content' }}>
-                    <span className="text-muted fs-6 ">{t('Request Mode')}</span>
+                <div className="d-flex gap-4 align-items-center px-4 py-1 border rounded-2 mb-4" style={{ width: 'fit-content' }}>
+                    <span className="text-muted fs-6">{t('Request Mode')}</span>
                     {allowedModes.map(opt => (
                         <div
                             key={opt.value}
