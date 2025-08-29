@@ -84,6 +84,11 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.addAttachments(id, paths));
     }
 
+    @DeleteMapping("/{id}/attachments")
+    public ResponseEntity<TicketDto> deleteAttachment(@PathVariable String id, @RequestParam String path) {
+        return ResponseEntity.ok(ticketService.removeAttachment(id, path));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<TicketDto> updateTicket(@PathVariable String id, @RequestBody Ticket ticket) {
         return ResponseEntity.ok(ticketService.updateTicket(id, ticket));

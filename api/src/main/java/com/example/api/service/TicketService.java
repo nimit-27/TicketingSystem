@@ -317,6 +317,24 @@ public class TicketService {
         return mapWithStatusId(saved);
     }
 
+    public TicketDto removeAttachment(String id, String path) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+        if (ticket.getAttachmentPath() != null && !ticket.getAttachmentPath().isEmpty()) {
+            java.util.List<String> list = new java.util.ArrayList<>(
+                    java.util.Arrays.asList(ticket.getAttachmentPath().split(",")));
+            list.removeIf(p -> p.equals(path));
+            ticket.setAttachmentPath(String.join(",", list));
+        }
+        uploadedFileRepository.findByTicket_IdAndRelativePath(id, path)
+                .ifPresent(uf -> {
+                    uf.setIsActive("N");
+                    uploadedFileRepository.save(uf);
+                });
+        Ticket saved = ticketRepository.save(ticket);
+        return mapWithStatusId(saved);
+    }
+
     public TicketDto linkToMaster(String id, String masterId) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
