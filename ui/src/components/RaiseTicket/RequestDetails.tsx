@@ -55,12 +55,12 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
                             className="text-center"
                         >
                             <CustomIconButton
-                                className="p-0 m-0"
+                                className="p-0 m-0 ts-20"
                                 icon={opt.icon}
                                 disabled={disableAll || !helpdesk}
                                 sx={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}
                             />
-                            <p className="p-0 m-0" style={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}>{t(opt.label)}</p>
+                            <p className="p-0 m-0 ts-14" style={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}>{t(opt.label)}</p>
                         </div>
                     ))}
                 </div>
