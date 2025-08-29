@@ -1,11 +1,10 @@
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { createFaq } from '../services/FaqService';
 import SuccessModal from '../components/UI/SuccessModal';
 import FailureModal from '../components/UI/FailureModal';
+import CustomFormInput from '../components/UI/Input/CustomFormInput';
 
 interface FaqFormValues {
   questionEn?: string;
@@ -16,12 +15,16 @@ interface FaqFormValues {
 }
 
 const FaqForm: React.FC = () => {
-  const { register, handleSubmit, reset, setValue, watch } = useForm<FaqFormValues>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FaqFormValues>();
   const navigate = useNavigate();
   const [successOpen, setSuccessOpen] = useState(false);
   const [failureOpen, setFailureOpen] = useState(false);
+  const answerEnRef = useRef<HTMLTextAreaElement | null>(null);
+  const answerHiRef = useRef<HTMLTextAreaElement | null>(null);
 
   const onSubmit = async (data: FaqFormValues) => {
+      data.answerEn = answerEnRef.current?.value;
+      data.answerHi = answerHiRef.current?.value;
       const hasQuestion = data.questionEn || data.questionHi;
       const hasAnswer = data.answerEn || data.answerHi;
       if (!hasQuestion || !hasAnswer) {
@@ -45,25 +48,53 @@ const FaqForm: React.FC = () => {
       }
   };
 
-  const answerEn = watch('answerEn') || '';
-  const answerHi = watch('answerHi') || '';
-
   return (
     <div className="p-3">
       <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-3">
         <div className="d-flex gap-3">
-          <input className="form-control" placeholder="Question (English)" {...register('questionEn')} />
-          <input className="form-control" placeholder="Question (Hindi)" {...register('questionHi')} />
+          <CustomFormInput
+            register={register}
+            errors={errors}
+            name="questionEn"
+            placeholder="Question (English)"
+          />
+          <CustomFormInput
+            register={register}
+            errors={errors}
+            name="questionHi"
+            placeholder="Question (Hindi)"
+          />
         </div>
         <div className="d-flex gap-3">
           <div className="flex-grow-1">
-            <ReactQuill value={answerEn} onChange={(v) => setValue('answerEn', v)} />
+            <CustomFormInput
+              register={register}
+              errors={errors}
+              name="answerEn"
+              placeholder="Answer (English)"
+              multiline
+              minRows={3}
+              inputRef={answerEnRef}
+            />
           </div>
           <div className="flex-grow-1">
-            <ReactQuill value={answerHi} onChange={(v) => setValue('answerHi', v)} />
+            <CustomFormInput
+              register={register}
+              errors={errors}
+              name="answerHi"
+              placeholder="Answer (Hindi)"
+              multiline
+              minRows={3}
+              inputRef={answerHiRef}
+            />
           </div>
         </div>
-        <input className="form-control" placeholder="Keywords (pipe separated)" {...register('keywords')} />
+        <CustomFormInput
+          register={register}
+          errors={errors}
+          name="keywords"
+          placeholder="Keywords (pipe separated)"
+        />
         <button type="submit" className="btn btn-primary align-self-end">Submit</button>
       </form>
 
