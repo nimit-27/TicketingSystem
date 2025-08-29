@@ -7,6 +7,7 @@ import FailureModal from '../components/UI/FailureModal';
 import CustomFormInput from '../components/UI/Input/CustomFormInput';
 import Title from '../components/Title';
 import { getCurrentUserDetails } from '../config/config';
+import GenericButton from '../components/UI/Button';
 
 interface FaqFormValues {
   questionEn?: string;
@@ -102,7 +103,8 @@ const FaqForm: React.FC = () => {
           name="keywords"
           placeholder="Keywords (pipe separated)"
         />
-        <button type="submit" className="btn btn-primary align-self-end">Submit</button>
+        <GenericButton variant="contained" type="submit" className="align-self-end">Submit</GenericButton>
+        <GenericButton variant="contained" className="align-self-end" onClick={() => navigate(-1)}>Cancel</GenericButton>
       </form>
 
       <SuccessModal
@@ -111,12 +113,12 @@ const FaqForm: React.FC = () => {
         onClose={() => { setSuccessOpen(false); reset(); }}
         actions={(
           <>
-            <button className="btn btn-outline-primary" onClick={() => { setSuccessOpen(false); reset(); }}>
+            <GenericButton variant='outlined' onClick={() => { setSuccessOpen(false); reset(); }}>
               Create a new question and answer
-            </button>
-            <button className="btn btn-outline-secondary" onClick={() => navigate('/faq')}>
+            </GenericButton>
+            <GenericButton variant='outlined' onClick={() => navigate('/faq')}>
               Go to FAQ
-            </button>
+            </GenericButton>
           </>
         )}
       />

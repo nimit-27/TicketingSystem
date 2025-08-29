@@ -5,6 +5,7 @@ import Title from "../components/Title";
 import { getFaqs } from "../services/FaqService";
 import { Faq as FaqType } from "../types";
 import { useApi } from "../hooks/useApi";
+import GenericButton from "../components/UI/Button";
 
 const Faq: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -20,9 +21,9 @@ const Faq: React.FC = () => {
             <Title
                 textKey="FAQ"
                 rightContent={
-                    <button className="btn btn-primary" onClick={() => navigate('/faq/new')}>
+                    <GenericButton variant="contained" onClick={() => navigate('/faq/new')}>
                         {t('Add Q & A')}
-                    </button>
+                    </GenericButton>
                 }
             />
             {(faqs ?? []).map((item: FaqType, index: Key | null | undefined) => {
