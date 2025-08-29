@@ -1,38 +1,39 @@
-import { useTheme } from "@mui/material/styles";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import Title from "../components/Title";
+import { getFaqs } from "../services/FaqService";
+import { Faq as FaqType } from "../types";
 
 const Faq: React.FC = () => {
-    const { t } = useTranslation();
-    const theme = useTheme();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
+    const [faqs, setFaqs] = useState<FaqType[]>([]);
 
-    const faqs = [
-        {
-            question: "How do I reset my password?",
-            answer: "Click on the 'Forgot password' link on the login page and follow the instructions.",
-            keywords: "password|reset|account"
-        },
-        {
-            question: "How can I create a ticket?",
-            answer: "Navigate to the create ticket page and fill out the required details.",
-            keywords: "ticket|create|help"
-        }
-    ];
+    useEffect(() => {
+        getFaqs().then(res => setFaqs(res.data));
+    }, []);
 
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-end mb-3">
-                <button className="btn btn-primary" onClick={() => navigate('/faq/new')}>
-                    {t('Add Q & A')}
-                </button>
-            </div>
-            {faqs.map((item, index) => (
-                <div key={index} className="mb-4">
-                    <h5 className="ts-20" data-keywords={item.keywords}>{item.question}</h5>
-                    <p className="ts-16" data-keywords={item.keywords}>{item.answer}</p>
-                </div>
-            ))}
+            <Title
+                textKey="FAQ"
+                rightContent={
+                    <button className="btn btn-primary" onClick={() => navigate('/faq/new')}>
+                        {t('Add Q & A')}
+                    </button>
+                }
+            />
+            {faqs.map((item, index) => {
+                const question = i18n.language === 'hi' ? (item.questionHi || item.questionEn) : (item.questionEn || item.questionHi);
+                const answer = i18n.language === 'hi' ? (item.answerHi || item.answerEn) : (item.answerEn || item.answerHi);
+                return (
+                    <div key={index} className="mb-4">
+                        <h5 className="ts-20" data-keywords={item.keywords}>{question}</h5>
+                        <p className="ts-16" data-keywords={item.keywords}>{answer}</p>
+                    </div>
+                );
+            })}
         </div>
     );
 }

@@ -3,6 +3,8 @@ package com.example.api.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "faqs")
 @Data
@@ -25,5 +27,17 @@ public class Faq {
 
     @Column(name = "keywords")
     private String keywords;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "created_on")
+    private LocalDateTime createdOn;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @Column(name = "updated_on")
+    private LocalDateTime updatedOn;
 }
 

@@ -5,6 +5,8 @@ import { createFaq } from '../services/FaqService';
 import SuccessModal from '../components/UI/SuccessModal';
 import FailureModal from '../components/UI/FailureModal';
 import CustomFormInput from '../components/UI/Input/CustomFormInput';
+import Title from '../components/Title';
+import { getCurrentUserDetails } from '../config/config';
 
 interface FaqFormValues {
   questionEn?: string;
@@ -12,6 +14,8 @@ interface FaqFormValues {
   answerEn?: string;
   answerHi?: string;
   keywords?: string;
+  createdBy?: string;
+  createdOn?: string;
 }
 
 const FaqForm: React.FC = () => {
@@ -25,6 +29,8 @@ const FaqForm: React.FC = () => {
   const onSubmit = async (data: FaqFormValues) => {
       data.answerEn = answerEnRef.current?.value;
       data.answerHi = answerHiRef.current?.value;
+      data.createdBy = getCurrentUserDetails()?.userId;
+      data.createdOn = new Date().toISOString();
       const hasQuestion = data.questionEn || data.questionHi;
       const hasAnswer = data.answerEn || data.answerHi;
       if (!hasQuestion || !hasAnswer) {
@@ -50,6 +56,7 @@ const FaqForm: React.FC = () => {
 
   return (
     <div className="p-3">
+      <Title textKey="Add Q & A" />
       <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-3">
         <div className="d-flex gap-3">
           <CustomFormInput

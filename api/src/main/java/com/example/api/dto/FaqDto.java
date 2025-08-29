@@ -3,6 +3,8 @@ package com.example.api.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class FaqDto {
@@ -12,5 +14,9 @@ public class FaqDto {
     private String answerEn;
     private String answerHi;
     private String keywords;
+    private String createdBy;
+    private LocalDateTime createdOn;
+    private String updatedBy;
+    private LocalDateTime updatedOn;
 }
 

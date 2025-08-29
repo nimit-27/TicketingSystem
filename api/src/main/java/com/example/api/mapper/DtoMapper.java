@@ -180,6 +180,10 @@ public class DtoMapper {
         dto.setAnswerEn(faq.getAnswerEn());
         dto.setAnswerHi(faq.getAnswerHi());
         dto.setKeywords(faq.getKeywords());
+        dto.setCreatedBy(faq.getCreatedBy());
+        dto.setCreatedOn(faq.getCreatedOn());
+        dto.setUpdatedBy(faq.getUpdatedBy());
+        dto.setUpdatedOn(faq.getUpdatedOn());
         return dto;
     }
 }

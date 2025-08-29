@@ -92,6 +92,10 @@ export interface Faq {
     answerEn?: string;
     answerHi?: string;
     keywords?: string;
+    createdBy?: string;
+    createdOn?: string;
+    updatedBy?: string;
+    updatedOn?: string;
 }
 
 export interface PermissionNode {

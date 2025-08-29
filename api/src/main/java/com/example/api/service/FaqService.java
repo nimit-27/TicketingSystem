@@ -30,6 +30,10 @@ public class FaqService {
         faq.setAnswerEn(dto.getAnswerEn());
         faq.setAnswerHi(dto.getAnswerHi());
         faq.setKeywords(dto.getKeywords());
+        faq.setCreatedBy(dto.getCreatedBy());
+        faq.setCreatedOn(dto.getCreatedOn());
+        faq.setUpdatedBy(dto.getUpdatedBy());
+        faq.setUpdatedOn(dto.getUpdatedOn());
         Faq saved = faqRepository.save(faq);
         return DtoMapper.toFaqDto(saved);
     }
