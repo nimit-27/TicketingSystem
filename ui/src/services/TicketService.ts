@@ -18,6 +18,12 @@ export function addAttachments(id: string, files: File[] | FileList) {
     });
 }
 
+export function deleteAttachment(id: string, path: string) {
+    return axios.delete(`${BASE_URL}/tickets/${id}/attachments`, {
+        params: { path }
+    });
+}
+
 export function getTickets(page: number = 0, size: number = 5) {
     return axios.get(`${BASE_URL}/tickets?page=${page}&size=${size}`);
 }

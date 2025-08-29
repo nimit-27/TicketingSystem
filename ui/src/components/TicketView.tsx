@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
-import { getTicket, updateTicket, addAttachments } from '../services/TicketService';
+import { getTicket, updateTicket, addAttachments, deleteAttachment } from '../services/TicketService';
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
 import { getPriorities } from '../services/PriorityService';
@@ -114,6 +114,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     });
   };
 
+  const handleAttachmentRemove = (index: number) => {
+    const att = attachments[index];
+    const path = att.replace(`${BASE_URL}/uploads/`, '');
+    if (window.confirm('Are you sure you want to delete this file?')) {
+      deleteAttachment(ticketId, path).then(() => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+      });
+    }
+  };
+
   const renderText = (value: string, onChange: (v: string) => void, multiline?: boolean) => (
     editing ? (
       <TextField
@@ -198,7 +208,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Box>
       {attachments.length > 0 && (
         <Box sx={{ mt: 2 }}>
-          <ThumbnailList attachments={attachments} thumbnailSize={100} />
+          <ThumbnailList attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
         </Box>
       )}
       <Box sx={{ mt: 1 }}>

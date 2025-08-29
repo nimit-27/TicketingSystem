@@ -181,11 +181,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
     }, [attachments]);
 
     const handleRemove = (index: number) => {
-        setFiles((prev) => {
-            const updated = prev.filter((_, i) => i !== index);
-            onFilesChange?.(updated);
-            return updated;
-        });
+        const updated = files.filter((_, i) => i !== index);
+        setFiles(updated);
+        onFilesChange?.(updated);
     };
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,11 +198,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
             }
         });
         if (valid.length > 0) {
-            setFiles((prev) => {
-                const updated = [...prev, ...valid];
-                onFilesChange?.(updated);
-                return updated;
-            });
+            const updated = [...files, ...valid];
+            setFiles(updated);
+            onFilesChange?.(valid);
             setError('');
         }
         e.target.value = '';
