@@ -1,17 +1,18 @@
-import { useEffect, useState } from "react";
+import { Key, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import { getFaqs } from "../services/FaqService";
 import { Faq as FaqType } from "../types";
+import { useApi } from "../hooks/useApi";
 
 const Faq: React.FC = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const [faqs, setFaqs] = useState<FaqType[]>([]);
+    const { data: faqs, apiHandler } = useApi<any>();
 
     useEffect(() => {
-        getFaqs().then(res => setFaqs(res.data));
+        apiHandler(() => getFaqs());
     }, []);
 
     return (
@@ -24,7 +25,7 @@ const Faq: React.FC = () => {
                     </button>
                 }
             />
-            {faqs.map((item, index) => {
+            {(faqs ?? []).map((item: FaqType, index: Key | null | undefined) => {
                 const question = i18n.language === 'hi' ? (item.questionHi || item.questionEn) : (item.questionEn || item.questionHi);
                 const answer = i18n.language === 'hi' ? (item.answerHi || item.answerEn) : (item.answerEn || item.answerHi);
                 return (
