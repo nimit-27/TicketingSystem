@@ -1,0 +1,33 @@
+.status-modal-success,
+.status-modal-error {
+  width: 65% !important;
+
+  .top-line {
+    height: 4px;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: 16px;
+  }
+
+  .icon {
+    font-size: 48px;
+  }
+}
+
+.status-modal-success {
+  .top-line {
+    background-color: #1b5e20;
+  }
+  .icon {
+    color: #1b5e20;
+  }
+}
+
+.status-modal-error {
+  .top-line {
+    background-color: #e53935;
+  }
+  .icon {
+    color: #e53935;
+  }
+}
+

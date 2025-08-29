@@ -27,6 +27,7 @@
     "react-hook-form": "^7.56.4",
     "react-i18next": "^15.5.3",
     "react-router-dom": "^7.6.1",
+    "react-quill": "^2.0.0",
     "react-scripts": "5.0.1",
     "sass": "^1.89.0",
     "typesense": "^1.2.1",

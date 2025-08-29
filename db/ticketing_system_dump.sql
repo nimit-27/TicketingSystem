@@ -841,6 +841,21 @@ INSERT INTO `users` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456
 UNLOCK TABLES;
 
 --
+-- Table structure for table `faqs`
+--
+
+DROP TABLE IF EXISTS `faqs`;
+CREATE TABLE `faqs` (
+  `id` varchar(36) NOT NULL,
+  `question_en` text,
+  `question_hi` text,
+  `answer_en` text,
+  `answer_hi` text,
+  `keywords` text,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Temporary view structure for view `users_view`
 --
 
