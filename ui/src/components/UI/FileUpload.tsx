@@ -1,23 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, IconButton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface FileUploadProps {
     maxSizeMB: number;
     thumbnailSize?: number;
     onFilesChange?: (files: File[]) => void;
+    attachments?: File[];
 }
 
 interface ThumbnailListProps {
     attachments: (File | string)[];
     thumbnailSize?: number;
+    onRemove?: (index: number) => void;
 }
 
 interface ThumbnailProps {
     file: File | string;
     size: number;
     onClick: () => void;
+    onRemove?: () => void;
 }
 
 const bytesToMB = (bytes: number) => bytes / (1024 * 1024);
@@ -39,15 +43,15 @@ const getFileIcon = (fileName: string) => {
   }
 };
 
-const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
+const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) => {
     const isFile = file instanceof File;
     const url = isFile ? URL.createObjectURL(file) : file;
     const name = isFile ? file.name : file.split('/').pop() || '';
-    {console.log({url, name, isFile})}
     return (
         <Box
             onClick={onClick}
             sx={{
+                position: 'relative',
                 width: size,
                 height: size,
                 boxShadow: 1,
@@ -59,15 +63,30 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
                     transform: 'scale(1.1)',
                     boxShadow: 4,
                 },
+                '&:hover .remove-icon': {
+                    display: 'flex',
+                },
             }}
+        >
+            <IconButton
+                className="remove-icon"
+                size="small"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove?.();
+                }}
+                sx={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    display: 'none',
+                    bgcolor: 'rgba(255,255,255,0.7)',
+                }}
             >
+                <CloseIcon fontSize="small" />
+            </IconButton>
             <Box sx={{ p: 0.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* <img
-                        src={"/icons/pdf-icon.png"}
-                        alt={name}
-                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                    /> */}
                     <img
                         src={getFileIcon(name) || url}
                         alt={name}
@@ -80,7 +99,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick }) => {
     );
 };
 
-const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSize = 100 }) => {
+const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSize = 100, onRemove }) => {
     const [open, setOpen] = useState(false);
     const [index, setIndex] = useState(0);
 
@@ -105,7 +124,13 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
         <>
             <Box className="border" display="flex" flexWrap="wrap">
                 {attachments.map((file, i) => (
-                    <Thumbnail key={i} file={file} size={thumbnailSize} onClick={() => handleOpen(i)} />
+                    <Thumbnail
+                        key={i}
+                        file={file}
+                        size={thumbnailSize}
+                        onClick={() => handleOpen(i)}
+                        onRemove={onRemove ? () => onRemove(i) : undefined}
+                    />
                 ))}
             </Box>
             <Modal open={open} onClose={handleClose}>
@@ -147,9 +172,21 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
     );
 };
 
-const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFilesChange }) => {
-    const [files, setFiles] = useState<File[]>([]);
+const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFilesChange, attachments = [] }) => {
+    const [files, setFiles] = useState<File[]>(attachments);
     const [error, setError] = useState<string>('');
+
+    useEffect(() => {
+        setFiles(attachments);
+    }, [attachments]);
+
+    const handleRemove = (index: number) => {
+        setFiles((prev) => {
+            const updated = prev.filter((_, i) => i !== index);
+            onFilesChange?.(updated);
+            return updated;
+        });
+    };
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = Array.from(e.target.files || []);
@@ -185,7 +222,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
                     {error}
                 </Typography>
             )}
-            <ThumbnailList attachments={files} thumbnailSize={thumbnailSize} />
+            <ThumbnailList attachments={files} thumbnailSize={thumbnailSize} onRemove={handleRemove} />
         </Box>
     );
 };

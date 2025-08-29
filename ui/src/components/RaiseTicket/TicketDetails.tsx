@@ -327,8 +327,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <FileUpload
                             maxSizeMB={5}
                             thumbnailSize={100}
+                            attachments={attachments || []}
                             onFilesChange={(files) => {
-                                console.log("onFilesChange called", files)
                                 setAttachments && setAttachments(files)
                                 setValue && setValue('attachments', files)
                             }}
@@ -556,6 +556,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <FileUpload
                             maxSizeMB={5}
                             thumbnailSize={100}
+                            attachments={attachments || []}
                             onFilesChange={(files) => {
                                 // Store temporarily in parent state for post-create upload
                                 setAttachments?.(files);

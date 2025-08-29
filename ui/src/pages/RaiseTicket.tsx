@@ -101,6 +101,7 @@ const RaiseTicket: React.FC<any> = () => {
         resetField('attachments');
         resetField('statusId');
         // Add/remove fields as per your TicketDetails form
+        setAttachments([]);
     };
 
     const onClose = () => {
