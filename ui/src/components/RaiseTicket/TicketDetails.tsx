@@ -335,7 +335,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         />
                     </div>
                 )}
-                <div className="col-md-6 mb-3"></div>
+                {/* <div className="col-md-6 mb-3"></div> */}
                 {showStatus && (
                     <div className="col-md-12 mb-3 px-4">
                         <GenericDropdownController
@@ -566,7 +566,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         />
                     </div>
                 )}
-                <div className="col-md-6 mb-3"></div>
+                {/* <div className="col-md-6 mb-3"></div> */}
                 {showStatus && (
                     <div className="col-md-12 mb-3 px-4">
                         <GenericDropdownController

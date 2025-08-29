@@ -27,20 +27,20 @@ interface ThumbnailProps {
 const bytesToMB = (bytes: number) => bytes / (1024 * 1024);
 
 const getFileIcon = (fileName: string) => {
-  const ext = fileName.split('.').pop()?.toLowerCase();
-  switch (ext) {
-    case 'pdf':
-      return '/icons/pdf-icon.png';   // your pdf icon path
-    case 'doc':
-    case 'docx':
-      return '/icons/word-icon.png';
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-      return null; // these can be displayed directly
-    default:
-      return '/icons/file-icon.png';  // generic file icon
-  }
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+        case 'pdf':
+            return '/icons/pdf-icon.png';   // your pdf icon path
+        case 'doc':
+        case 'docx':
+            return '/icons/word-icon.png';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+            return null; // these can be displayed directly
+        default:
+            return '/icons/file-icon.png';  // generic file icon
+    }
 };
 
 const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) => {
@@ -122,7 +122,7 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
 
     return (
         <>
-            <Box className="border" display="flex" flexWrap="wrap">
+            <Box display="flex" flexWrap="wrap">
                 {attachments.map((file, i) => (
                     <Thumbnail
                         key={i}
@@ -212,16 +212,14 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
 
     return (
         <Box>
-            <Button variant="contained" component="label">
-                Choose File
-                <input type="file" hidden multiple onChange={onChange} />
-            </Button>
-            <Typography variant="body2">Max upload size: {maxSizeMB} MB</Typography>
-            {error && (
-                <Typography color="error" variant="body2">
-                    {error}
-                </Typography>
-            )}
+            <div className='d-flex align-items-center'>
+                <Button variant="contained" component="label">
+                    Choose File
+                    <input type="file" hidden multiple onChange={onChange} />
+                </Button>
+                <Typography className='text-muted mx-2' variant="body2">Max upload size: {maxSizeMB} MB</Typography>
+            </div>
+            {error && (<Typography color="error" variant="body2">{error}</Typography>)}
             <ThumbnailList attachments={files} thumbnailSize={thumbnailSize} onRemove={handleRemove} />
         </Box>
     );
