@@ -14,6 +14,7 @@ import SidebarLayout from './components/Layout/SidebarLayout';
 import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import Faq from './pages/Faq';
+import FaqForm from './pages/FaqForm';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
@@ -35,6 +36,7 @@ function App() {
         <Route path="tickets" element={<AllTickets />} />
         <Route path="my-tickets" element={<MyTickets />} />
         <Route path="faq" element={<Faq />} />
+        <Route path="faq/new" element={<FaqForm />} />
         <Route path="tickets/:ticketId" element={<TicketDetails />} />
         <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />

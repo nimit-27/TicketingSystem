@@ -170,4 +170,16 @@ public class DtoMapper {
         dto.setIsActive(group.getIsActive());
         return dto;
     }
+
+    public static FaqDto toFaqDto(Faq faq) {
+        if (faq == null) return null;
+        FaqDto dto = new FaqDto();
+        dto.setId(faq.getId());
+        dto.setQuestionEn(faq.getQuestionEn());
+        dto.setQuestionHi(faq.getQuestionHi());
+        dto.setAnswerEn(faq.getAnswerEn());
+        dto.setAnswerHi(faq.getAnswerHi());
+        dto.setKeywords(faq.getKeywords());
+        return dto;
+    }
 }

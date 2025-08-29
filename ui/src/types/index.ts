@@ -85,6 +85,15 @@ export interface ApiResponse<T> {
     timestamp: string;
 }
 
+export interface Faq {
+    id: string;
+    questionEn?: string;
+    questionHi?: string;
+    answerEn?: string;
+    answerHi?: string;
+    keywords?: string;
+}
+
 export interface PermissionNode {
     show?: boolean;
     metadata?: {
