@@ -19,7 +19,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ name, onClick, size = 32, class
     <Avatar
         onClick={onClick}
         className={className}
-        sx={{ width: size, height: size, bgcolor: 'primary.main', cursor: onClick ? 'pointer' : 'default' }}
+        sx={{ width: size, height: size, bgcolor: name ? 'primary.main' : '', cursor: onClick ? 'pointer' : 'default' }}
     >
         {getInitials(name)}
     </Avatar>

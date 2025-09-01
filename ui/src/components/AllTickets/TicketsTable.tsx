@@ -204,7 +204,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         <Tooltip title={record.assignedTo}>
                             <span><UserAvatar name={record.assignedTo} /></span>
                         </Tooltip>
-                    ) : '-';
+                    ) : <Tooltip title={""}>
+                            <span><UserAvatar name={""} /></span>
+                        </Tooltip>;
                 }
             },
             { title: t('Status'), dataIndex: 'statusLabel', key: 'statusLabel', render: (v: any, record: TicketRow) => <Popover content={record?.statusId && getStatusNameById(record.statusId)} >{v}</Popover> },
