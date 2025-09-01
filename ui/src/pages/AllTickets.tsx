@@ -9,7 +9,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import Title from "../components/Title";
 import { useTranslation } from "react-i18next";
-import TicketsTable from "../components/AllTickets/TicketsTable";
+import TicketsTable, { TicketRow } from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
 import ViewTicket from "../components/AllTickets/ViewTicket";
 import { checkMyTicketsAccess } from "../utils/permissions";
@@ -46,7 +46,7 @@ const AllTickets: React.FC = () => {
     const [sortBy, setSortBy] = useState<'reportedDate' | 'lastModified'>('reportedDate');
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "table">("table");
-    const [filtered, setFiltered] = useState<Ticket[]>([]);
+    const [filtered, setFiltered] = useState<TicketRow[]>([]);
     const [page, setPage] = useState(1);
     const [tablePageSize, setTablePageSize] = useState(5);
     const [gridPageSize, setGridPageSize] = useState(5);

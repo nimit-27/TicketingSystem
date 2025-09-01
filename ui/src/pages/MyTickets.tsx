@@ -9,7 +9,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import Title from "../components/Title";
 import { useTranslation } from "react-i18next";
-import TicketsTable from "../components/AllTickets/TicketsTable";
+import TicketsTable, { TicketRow } from "../components/AllTickets/TicketsTable";
 import TicketCard from "../components/AllTickets/TicketCard";
 import ViewTicket from "../components/AllTickets/ViewTicket";
 import { checkMyTicketsAccess } from "../utils/permissions";
@@ -45,7 +45,7 @@ const MyTickets: React.FC = () => {
     const showTable = checkMyTicketsAccess('table');
     const showGrid = checkMyTicketsAccess('grid');
     const [viewMode, setViewMode] = useState<"grid" | "table">(showTable ? 'table' : 'grid');
-    const [filtered, setFiltered] = useState<Ticket[]>([]);
+    const [filtered, setFiltered] = useState<TicketRow[]>([]);
     const [page, setPage] = useState(1);
     const [tablePageSize, setTablePageSize] = useState(5);
     const [gridPageSize, setGridPageSize] = useState(5);
@@ -83,8 +83,8 @@ const MyTickets: React.FC = () => {
         const userId = user?.userId || "";
         const roles = user?.role || [];
 
-        const isTeamLead = roles.includes("TEAM_LEAD");
-        const isRequester = roles.includes("USER");
+        const isRequester = roles.includes("5") && roles.length === 1;
+        const isTeamLead = roles.includes("7");
         const hasLevels = (user?.levels || []).length > 0;
 
         let assignedTo: string | undefined = undefined;

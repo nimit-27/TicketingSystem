@@ -26,6 +26,7 @@ export interface TicketRow {
     category: string;
     subCategory: string;
     priority: string;
+    priorityId: string;
     isMaster: boolean;
     requestorName?: string;
     requestorEmailId?: string;
@@ -58,7 +59,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
-    const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
+    const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
     const sortOptions: DropdownOption[] = [
         { label: 'Created Date', value: 'reportedDate' },
@@ -185,7 +186,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
-            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string) => <PriorityIcon level={priorityMap[v] || 0} /> },
+            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} /> },
             {
                 title: t('Assignee'),
                 key: 'assignee',

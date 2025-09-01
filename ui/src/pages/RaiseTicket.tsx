@@ -12,6 +12,7 @@ import { addAttachments, addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
 import { formatDateWithSuffix } from "../utils/Utils";
+import { checkAccessMaster } from "../utils/permissions";
 
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
@@ -22,6 +23,8 @@ const RaiseTicket: React.FC<any> = () => {
     const { devMode } = useContext(DevModeContext);
 
     const isMaster = useWatch({ control, name: 'isMaster' });
+
+    let showLinkToMasterTicket = checkAccessMaster(["ticketForm", "linkToMasterTicketButton"]);
 
     const [successfullModalOpen, setSuccessfulModalOpen] = useState(false);
     const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
@@ -142,9 +145,9 @@ const RaiseTicket: React.FC<any> = () => {
                 <TicketDetails register={register} control={control} errors={errors} createMode attachments={attachments} setAttachments={setAttachments} />
                 {/* Submit Button */}
 
-                <div className="text-start">
+                {showLinkToMasterTicket && <div className="text-start">
                     <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={isMaster} />
-                </div>
+                </div>}
                 <div className="text-end mt-3">
                     <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
                 </div>

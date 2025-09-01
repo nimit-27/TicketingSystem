@@ -53,3 +53,16 @@ export function checkMyTicketsColumnAccess(column: string): boolean {
     perms?.pages?.children?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? false
   );
 }
+
+export function checkAccessMaster(keys: string[]): boolean {
+  const perms = getUserPermissions() as RolePermission | null;
+  let current = perms?.pages;
+
+  current = keys.reduce((acc, key) => acc?.children?.[key], current);
+
+  if (current?.show !== undefined) {
+    return !!current.show;
+  }
+
+  return true;
+}
