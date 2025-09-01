@@ -168,6 +168,7 @@ const MyTickets: React.FC = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             sx={{ mr: 2, width: 250 }}
+                            placeholder="Search by Ticket Id, Requestor Name, Subject"
                         />
                     )}
                     {showStatusFilter && (

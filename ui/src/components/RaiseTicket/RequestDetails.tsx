@@ -24,15 +24,15 @@ const modeOptions = [
 const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, errors, setValue, disableAll = false, isFieldSetDisabled, createMode }) => {
     const showTicketId = false; // Hide Ticket ID field in create form
     const showReportedDate = checkFieldAccess('requestDetails', 'reportedDate') && !createMode;
-    const showModeField = checkFieldAccess('requestDetails', 'mode');
-
+    
     const ticketId = useWatch({ control, name: 'ticketId' });
     const mode = useWatch({ control, name: 'mode' });
     const helpdesk = true
     const theme = useTheme();
-
+    
     const modeChildren = getFieldChildren('requestDetails', 'mode') || {};
     const allowedModes = modeOptions.filter(opt => modeChildren?.[opt.value.toLowerCase()]?.show);
+    const showModeField = checkFieldAccess('requestDetails', 'mode') || (allowedModes.length === 1 && allowedModes[0].value === 'Self');
 
     useEffect(() => {
         if (setValue && allowedModes.length) {

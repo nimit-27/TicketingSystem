@@ -59,6 +59,11 @@ const AllTickets: React.FC = () => {
     const showLevelFilterToggle = levels.length > 1;
     const { t } = useTranslation();
     const showTable = checkMyTicketsAccess('table');
+    const sortDirection: 'asc' | 'desc' = 'desc';
+
+    let assignedTo: string | undefined = undefined;
+    let assignedBy: string | undefined = undefined;
+    let requestorId: string | undefined = undefined;
 
     const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
         Low: { color: 'success.light', count: 1, label: 'Low' },
@@ -74,7 +79,7 @@ const AllTickets: React.FC = () => {
     const debouncedSearch = useDebounce(search, 300);
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
-        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, undefined, levelFilter));
+        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection));
     }
 
     const onIdClick = (id: string) => {
@@ -132,6 +137,7 @@ const AllTickets: React.FC = () => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         sx={{ mr: 2, width: 250 }}
+                        placeholder="Search by Ticket Id, Requestor Name, Subject"
                     />
                     <DropdownController
                         label="Status"
@@ -170,10 +176,19 @@ const AllTickets: React.FC = () => {
                 {error && <p className="text-danger">{t('Error loading tickets')}</p>}
                 {viewMode === 'table' && showTable && (
                     <div>
-                        <TicketsTable tickets={filtered} onIdClick={onIdClick} onRowClick={(id: any) => navigate(`/tickets/${id}`)} searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi} refreshingTicketId={refreshingTicketId} statusWorkflows={workflowMap} sortBy={""} onSortChange={(value) => {
-                            setSortBy(value as 'reportedDate' | 'lastModified');
-                            setPage(1);
-                        }} />
+                        <TicketsTable
+                            tickets={filtered}
+                            onIdClick={onIdClick}
+                            onRowClick={(id: any) => navigate(`/tickets/${id}`)}
+                            searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                            refreshingTicketId={refreshingTicketId}
+                            statusWorkflows={workflowMap}
+                            sortBy={sortBy}
+                            onSortChange={(value) => {
+                                setSortBy(value as 'reportedDate' | 'lastModified');
+                                setPage(1);
+                            }}
+                        />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
                             <div className="d-flex align-items-center">
