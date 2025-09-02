@@ -15,9 +15,10 @@ interface ThemeProps {
     setUserId: (v: string) => void;
     setPassword: (v: string) => void;
     handleSubmit: (e: React.FormEvent) => void;
+    error?: string;
 }
 
-const ThemeOne: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit }) => (
+const ThemeOne: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error }) => (
     <div style={{ display: "flex", height: "100vh", justifyContent: "center", alignItems: "center", background: "#f5f5f5" }}>
         <div style={{ background: "#fff", padding: "2rem", borderRadius: "8px", boxShadow: "0 0 10px rgba(0,0,0,0.1)", textAlign: "center", width: "300px" }}>
             <h2 style={{ color: "#1b5e20" }}>Login</h2>
@@ -31,12 +32,13 @@ const ThemeOne: React.FC<ThemeProps> = ({ userId, password, setUserId, setPasswo
                     <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
                 <button style={{ background: "#FF671F", border: "none" }} className="btn w-100 text-white" type="submit">Login</button>
+                {error && <div className="text-danger mt-2">{error}</div>}
             </form>
         </div>
     </div>
 );
 
-const ThemeTwo: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit }) => (
+const ThemeTwo: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error }) => (
     <div style={{ display: "flex", height: "100vh", justifyContent: "center", alignItems: "center", background: "linear-gradient(135deg, #1b5e20, #FF671F)" }}>
         <form onSubmit={handleSubmit} style={{ background: "#fff", padding: "2rem", borderRadius: "8px", width: "320px", boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}>
             <h2 style={{ textAlign: "center", color: "#FF671F" }}>Sign In</h2>
@@ -49,11 +51,12 @@ const ThemeTwo: React.FC<ThemeProps> = ({ userId, password, setUserId, setPasswo
                 <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             <button style={{ background: "#1b5e20", border: "none" }} className="btn w-100 text-white" type="submit">Login</button>
+            {error && <div className="text-danger mt-2">{error}</div>}
         </form>
     </div>
 );
 
-const ThemeThree: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit }) => (
+const ThemeThree: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error }) => (
     <div style={{ display: "flex", height: "100vh", justifyContent: "center", alignItems: "center", background: "#fff8e1" }}>
         <div style={{ width: "280px" }}>
             <h2 style={{ textAlign: "center", color: "#1b5e20", marginBottom: "1rem" }}>Welcome Back</h2>
@@ -67,6 +70,7 @@ const ThemeThree: React.FC<ThemeProps> = ({ userId, password, setUserId, setPass
                     <input type="password" style={{ border: "none", outline: "none", flex: 1 }} value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
                 </div>
                 <button style={{ background: "#FF671F", border: "none" }} className="btn w-100 text-white" type="submit">Login</button>
+                {error && <div className="text-danger mt-2">{error}</div>}
             </form>
         </div>
     </div>
@@ -89,7 +93,7 @@ const Login: React.FC = () => {
     const navigate = useNavigate();
     const { devMode } = useContext(DevModeContext);
 
-    const { data: loginData, apiHandler: loginApiHandler } = useApi();
+    const { data: loginData, error: loginError, apiHandler: loginApiHandler } = useApi();
 
     useEffect(() => {
         if (loginData) {
@@ -127,13 +131,13 @@ const Login: React.FC = () => {
     const renderTheme = () => {
         switch (themeIdx) {
             case 0:
-                return <ThemeOne userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} />;
+                return <ThemeOne userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} error={loginError || undefined} />;
             case 1:
-                return <ThemeTwo userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} />;
+                return <ThemeTwo userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} error={loginError || undefined} />;
             case 2:
-                return <ThemeThree userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} />;
+                return <ThemeThree userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} error={loginError || undefined} />;
             default:
-                return <ThemeOne userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} />;
+                return <ThemeOne userId={userId} password={password} setUserId={setUserId} setPassword={setPassword} handleSubmit={handleSubmit} error={loginError || undefined} />;
         }
     };
 

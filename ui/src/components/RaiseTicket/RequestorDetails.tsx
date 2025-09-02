@@ -75,6 +75,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("mobileNo", "");
             setValue("role", "");
             setValue("office", "");
+            setValue("requestorUsername", "");
         }
     }
 
@@ -85,6 +86,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("requestorName", data.name);
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
+            setValue("requestorUsername", data.username);
             if (fciUser) {
                 setValue("role", data.role);
                 setValue("office", data.office);
@@ -200,6 +202,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("role", "");
             setValue("office", "");
             setValue("stakeholder", "");
+            setValue("requestorUsername", "");
         }
         setDisabled(false);
         setVerified(false);
@@ -279,6 +282,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     );
 
     return (
+        <>
+        <input type="hidden" {...register('requestorUsername')} />
         <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
             <div className="row w-100">
                 {(showSearchUserAutocomplete || showStakeholder) && (
@@ -340,6 +345,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             </div>
 
         </CustomFieldset>
+        </>
         // <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
         //     {/* Inputs */}
         //     {!createMode &&

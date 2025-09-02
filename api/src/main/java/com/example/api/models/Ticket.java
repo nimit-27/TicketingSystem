@@ -35,6 +35,8 @@ public class Ticket {
     private String requestorEmailId;
     @Column(name = "requestor_mobile_no")
     private String requestorMobileNo;
+    @Column(name = "requestor_username")
+    private String requestorUsername;
 
     private String stakeholder;
     private String subject;
