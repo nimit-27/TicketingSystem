@@ -42,8 +42,11 @@ public class TicketFeedbackService {
         if (!ticket.getUserId().equals(currentUserId)) {
             throw new RuntimeException("Forbidden");
         }
-        if (ticket.getTicketStatus() != TicketStatus.RESOLVED) {
-            throw new RuntimeException("Ticket not resolved");
+        if (ticket.getTicketStatus() != TicketStatus.CLOSED) {
+            throw new RuntimeException("Ticket not closed");
+        }
+        if (ticket.getFeedbackStatus() != FeedbackStatus.PENDING) {
+            throw new RuntimeException("Feedback not pending");
         }
         if (ticket.getResolvedAt() == null ||
                 ticket.getResolvedAt().plusHours(72).isBefore(LocalDateTime.now())) {
@@ -114,14 +117,10 @@ public class TicketFeedbackService {
     @Scheduled(fixedRate = 1800000)
     public void autoCloseUnreviewed() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(72);
-        for (Ticket t : ticketRepository.findByTicketStatusAndResolvedAtBefore(TicketStatus.RESOLVED, cutoff)) {
-            if (feedbackRepository.findByTicketId(t.getId()).isEmpty()) {
-                t.setTicketStatus(TicketStatus.CLOSED);
+        for (Ticket t : ticketRepository.findByTicketStatusAndResolvedAtBefore(TicketStatus.CLOSED, cutoff)) {
+            if (t.getFeedbackStatus() == FeedbackStatus.PENDING &&
+                    feedbackRepository.findByTicketId(t.getId()).isEmpty()) {
                 t.setFeedbackStatus(FeedbackStatus.NOT_PROVIDED);
-                String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
-                if (closedId != null) {
-                    statusMasterRepository.findById(closedId).ifPresent(t::setStatus);
-                }
                 ticketRepository.save(t);
             }
         }

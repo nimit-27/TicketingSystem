@@ -251,9 +251,13 @@ public class TicketService {
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
         if (updatedStatus != null) existing.setTicketStatus(updatedStatus);
         if (updatedStatusId != null) statusMasterRepository.findById(updatedStatusId).ifPresent(existing::setStatus);
-        if (updatedStatus == TicketStatus.RESOLVED && existing.getResolvedAt() == null) {
-            existing.setResolvedAt(LocalDateTime.now());
-            existing.setFeedbackStatus(FeedbackStatus.PENDING);
+        if (updatedStatus == TicketStatus.CLOSED) {
+            if (existing.getResolvedAt() == null) {
+                existing.setResolvedAt(LocalDateTime.now());
+            }
+            if (existing.getFeedbackStatus() == null) {
+                existing.setFeedbackStatus(FeedbackStatus.PENDING);
+            }
         }
         if (updated.getSubCategory() != null) existing.setSubCategory(updated.getSubCategory());
         if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
