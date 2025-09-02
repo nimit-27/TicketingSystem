@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -7,7 +7,7 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById, truncateWithEllipsis } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
-import { Menu, MenuItem, ListItemIcon, Tooltip } from '@mui/material';
+import { Menu, MenuItem, ListItemIcon, Tooltip, Button } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
@@ -19,6 +19,8 @@ import { getCurrentUserDetails } from '../../config/config';
 import { Popover } from 'antd';
 import DropdownController from '../UI/Dropdown/DropdownController';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
+import { getFeedback } from '../../services/FeedbackService';
+import FeedbackModal from '../Feedback/FeedbackModal';
 
 export interface TicketRow {
     id: string;
@@ -56,6 +58,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const [feedbackTicketId, setFeedbackTicketId] = useState<string | null>(null);
+    const [feedbackMap, setFeedbackMap] = useState<Record<string, boolean>>({});
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
@@ -130,6 +134,16 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setCurrentTicketId('');
     };
 
+    useEffect(() => {
+        tickets.filter(t => t.statusLabel?.toLowerCase() === 'closed').forEach(t => {
+            if (feedbackMap[t.id] === undefined) {
+                getFeedback(t.id)
+                    .then(res => setFeedbackMap(prev => ({ ...prev, [t.id]: Boolean(res.data) })))
+                    .catch(() => setFeedbackMap(prev => ({ ...prev, [t.id]: false })));
+            }
+        });
+    }, [tickets]);
+
     const expandedRowRender = (record: TicketRow) => {
         if (!selectedAction || record.id !== selectedAction.ticketId) return null;
         return (
@@ -147,6 +161,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         updateTicketApiHandler(() => updateTicket(record.id, reqPayload)).then(() => {
                             searchCurrentTicketsPaginatedApi(record.id);
                             cancelAction();
+                            if (selectedAction.action.action === 'Close') {
+                                setFeedbackTicketId(record.id);
+                            }
                         });
                     }}
                 />
@@ -239,6 +256,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             ) : (
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
                             )}
+                            {record.statusLabel?.toLowerCase() === 'closed' && (
+                                <Button size="small" onClick={() => setFeedbackTicketId(record.id)}>
+                                    {feedbackMap[record.id] ? 'View Feedback' : 'Feedback'}
+                                </Button>
+                            )}
                         </>
                     );
                 }
@@ -279,6 +301,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 })}
             </Menu>
+            <FeedbackModal
+                open={Boolean(feedbackTicketId)}
+                ticketId={feedbackTicketId || undefined}
+                onClose={() => setFeedbackTicketId(null)}
+            />
         </>
     );
 };
