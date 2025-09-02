@@ -3,6 +3,7 @@ import { Modal, Box, Button, TextField, Typography } from '@mui/material';
 import StarRating from './StarRating';
 import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../../services/FeedbackService';
 import { useSnackbar } from '../../context/SnackbarContext';
+import CustomerSatisfactionForm from '../../pages/CustomerSatisfactionForm';
 
 interface FeedbackModalProps {
   open: boolean;
@@ -65,7 +66,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', p: 3, maxHeight: '90vh', overflowY: 'auto' }}>
+      <CustomerSatisfactionForm />
+      {/* <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', p: 3, maxHeight: '90vh', overflowY: 'auto' }}>
         <Typography variant="h6" gutterBottom>
           Customer Satisfaction Form
         </Typography>
@@ -95,7 +97,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }
             {viewMode ? 'Close' : 'Cancel'}
           </Button>
         </Box>
-      </Box>
+      </Box> */}
     </Modal>
   );
 };

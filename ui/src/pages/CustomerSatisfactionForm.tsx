@@ -51,7 +51,7 @@ const CustomerSatisfactionForm: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    if (!ticketId) return;
+    if (!ticketId || ticketId === " ") return;
     setLoading(true);
     submitFeedback(ticketId, formData)
       .then(() => {

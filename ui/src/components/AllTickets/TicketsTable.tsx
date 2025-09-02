@@ -21,6 +21,7 @@ import DropdownController from '../UI/Dropdown/DropdownController';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { getFeedback } from '../../services/FeedbackService';
 import FeedbackModal from '../Feedback/FeedbackModal';
+import { useNavigate } from 'react-router-dom';
 
 export interface TicketRow {
     id: string;
@@ -52,6 +53,7 @@ interface TicketsTableProps {
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange }) => {
     console.log(tickets)
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
@@ -257,7 +259,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
                             )}
                             {record.statusLabel?.toLowerCase() === 'closed' && (
-                                <Button size="small" onClick={() => setFeedbackTicketId(record.id)}>
+                                // <Button size="small" onClick={() => setFeedbackTicketId(record.id)}>
+                                <Button size="small" onClick={() => navigate(`/tickets/${feedbackMap[record.id] ? record.id : '%20'}/feedback`)}>
                                     {feedbackMap[record.id] ? 'View Feedback' : 'Feedback'}
                                 </Button>
                             )}
