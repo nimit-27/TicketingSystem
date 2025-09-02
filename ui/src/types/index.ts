@@ -57,6 +57,7 @@ export interface Ticket {
     assignedBy?: string;
     updatedBy?: string;
     lastModified?: string;
+    feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
 }
 
 export interface TicketStatusWorkflow {
