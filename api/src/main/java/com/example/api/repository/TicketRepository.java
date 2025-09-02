@@ -34,6 +34,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
             "OR (:requestorId IS NOT NULL AND t.userId = :requestorId)) " +
             "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(t.requestorUsername) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +

@@ -741,6 +741,7 @@ CREATE TABLE `tickets` (
   `reported_date` datetime DEFAULT NULL,
   `mode` enum('Email','Self','Call') DEFAULT NULL,
   `user_id` varchar(36) DEFAULT NULL,
+  `requestor_username` varchar(100) DEFAULT NULL,
   `requestor_name` varchar(100) DEFAULT NULL,
   `requestor_email_id` varchar(100) DEFAULT NULL,
   `requestor_mobile_no` varchar(15) DEFAULT NULL,

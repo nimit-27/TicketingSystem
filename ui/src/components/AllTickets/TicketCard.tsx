@@ -23,6 +23,7 @@ export interface TicketCardData {
     priority: string;
     isMaster: boolean;
     requestorName?: string;
+    requestorUsername?: string;
     assignedTo?: string;
     statusId?: string;
 }
