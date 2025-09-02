@@ -283,7 +283,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     return (
         <>
-        <input type="hidden" {...register('requestorUsername')} />
         <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
             <div className="row w-100">
                 {(showSearchUserAutocomplete || showStakeholder) && (

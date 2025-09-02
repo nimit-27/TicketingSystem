@@ -152,7 +152,7 @@ public class TicketService {
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             User user = userRepository.findById(ticket.getUserId()).orElseThrow();
             ticket.setUser(user);
-            ticket.setRequestorUsername(user.getUsername());
+            ticket.setRequestorName(user.getName());
         }
 
         if (ticket.getStatus() == null && ticket.getTicketStatus() != null) {
