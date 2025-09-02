@@ -75,7 +75,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("mobileNo", "");
             setValue("role", "");
             setValue("office", "");
-            setValue("requestorUsername", "");
         }
     }
 
@@ -83,10 +82,9 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         console.log("Populating user details:", data);
         setSelectedUser(data)
         if (setValue && data) {
-            setValue("requestorName", data.name);
+            setValue("requestorName", data.username);
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
-            setValue("requestorUsername", data.username);
             if (fciUser) {
                 setValue("role", data.role);
                 setValue("office", data.office);
@@ -202,7 +200,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("role", "");
             setValue("office", "");
             setValue("stakeholder", "");
-            setValue("requestorUsername", "");
         }
         setDisabled(false);
         setVerified(false);

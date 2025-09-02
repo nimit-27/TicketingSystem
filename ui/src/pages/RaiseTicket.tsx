@@ -34,6 +34,7 @@ const RaiseTicket: React.FC<any> = () => {
     console.log({ attachments })
 
     const onSubmit = (formValues: any) => {
+        console.log("On Submit called");
         const {
             name,
             emailId,
@@ -55,10 +56,14 @@ const RaiseTicket: React.FC<any> = () => {
             reportedDate: new Date()
         };
 
+        
         // Map assignment fields to backend expected keys
         if (assignTo) payload.assignedTo = assignTo;
         if (assignToLevel) payload.levelId = assignToLevel;
-
+        
+        console.table("payload")
+        console.table(payload)
+        
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
             if (key === 'attachments' && Array.isArray(value) && value.length > 0) {
@@ -71,6 +76,9 @@ const RaiseTicket: React.FC<any> = () => {
                 }
             }
         });
+        
+        console.table("formData")
+        console.table(formData)
 
         // 1) Create ticket (no files)
         apiHandler(() => addTicket(formData))
@@ -143,11 +151,11 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Ticket Details */}
                 {devMode && <CustomIconButton icon="formatColorFill" onClick={populateDummyTicketDetails} />}
                 <TicketDetails register={register} control={control} errors={errors} createMode attachments={attachments} setAttachments={setAttachments} />
-                {/* Submit Button */}
 
                 {showLinkToMasterTicket && <div className="text-start">
                     <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={isMaster} />
                 </div>}
+                {/* Submit Button */}
                 <div className="text-end mt-3">
                     <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
                 </div>

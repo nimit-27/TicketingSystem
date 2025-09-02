@@ -31,7 +31,6 @@ export interface TicketRow {
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
-    requestorUsername?: string;
     statusId?: string;
     statusLabel?: string;
     assignedTo?: string;
@@ -185,7 +184,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         '-' as any
                     ),
             },
-            { title: t('Requestor Username'), dataIndex: 'requestorUsername', key: 'requestorUsername', render: (v: any) => v || '-' },
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
             { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} /> },

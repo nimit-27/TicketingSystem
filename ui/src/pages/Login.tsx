@@ -15,7 +15,7 @@ interface ThemeProps {
     setUserId: (v: string) => void;
     setPassword: (v: string) => void;
     handleSubmit: (e: React.FormEvent) => void;
-    error?: string;
+    error?: String;
 }
 
 const ThemeOne: React.FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error }) => (

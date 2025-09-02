@@ -149,12 +149,14 @@ public class TicketService {
             ticket.setUpdatedBy(ticket.getAssignedBy());
         }
 
+        // If userId is neither null nor empty
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             User user = userRepository.findById(ticket.getUserId()).orElseThrow();
             ticket.setUser(user);
             ticket.setRequestorName(user.getName());
         }
 
+        // TO DO: Remove TicketStatus during Code Cleaning
         if (ticket.getStatus() == null && ticket.getTicketStatus() != null) {
             String id = workflowService.getStatusIdByCode(ticket.getTicketStatus().name());
             if (id != null) {
@@ -261,7 +263,6 @@ public class TicketService {
         if (updated.getSeverityRecommendedBy() != null) existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
         if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
         if (updated.getAttachmentPath() != null) existing.setAttachmentPath(updated.getAttachmentPath());
-        if (updated.getRequestorUsername() != null) existing.setRequestorUsername(updated.getRequestorUsername());
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
         if (updated.getLevelId() != null) existing.setLevelId(updated.getLevelId());
         if (updated.getAssignedTo() != null) {
