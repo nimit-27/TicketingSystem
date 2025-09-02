@@ -279,6 +279,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     );
 
     return (
+        <>
         <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
             <div className="row w-100">
                 {(showSearchUserAutocomplete || showStakeholder) && (
@@ -340,6 +341,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             </div>
 
         </CustomFieldset>
+        </>
         // <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
         //     {/* Inputs */}
         //     {!createMode &&

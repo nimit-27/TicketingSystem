@@ -50,7 +50,7 @@ export function checkMyTicketsAccess(key: string): boolean {
 export function checkMyTicketsColumnAccess(column: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
   return (
-    perms?.pages?.children?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? false
+    perms?.pages?.children?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? true
   );
 }
 
