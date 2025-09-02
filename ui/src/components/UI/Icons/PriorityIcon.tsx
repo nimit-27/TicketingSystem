@@ -7,14 +7,17 @@ interface PriorityIconProps {
 }
 
 const getColor = (level: number) => {
-  if (level <= 1) return '#ffd700';
+  if (level === 4) return '#ffd700';
+  if (level === 3) return 'orange';
   if (level === 2) return 'orange';
-  return 'red';
+  if (level === 1) return 'red';
+  return 'ffd700';
 };
 
 const PriorityIcon: React.FC<PriorityIconProps> = ({ level }) => {
-  const count = Math.min(Math.max(level, 1), 3);
-  const color = getColor(count);
+  // const count = Math.min(Math.max(level, 1), 4);
+  const count = 5 - level; // Invert the level to match the desired display
+  const color = getColor(level);
   return (
     <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
       {Array.from({ length: count }).map((_, i) => {

@@ -40,8 +40,9 @@ interface TicketCardProps {
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
     searchCurrentTicketsPaginatedApi: (id: string) => void;
 }
+const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
+
 const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick, statusWorkflows, searchCurrentTicketsPaginatedApi }) => {
-    const priorityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3, Critical: 4 };
     const [hover, setHover] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
