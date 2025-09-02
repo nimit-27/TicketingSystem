@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment } from '../services/TicketService';
@@ -16,6 +16,8 @@ import CustomFieldset from './CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import { checkFieldAccess } from '../utils/permissions';
 import FileUpload, { ThumbnailList } from './UI/FileUpload';
+import FeedbackModal from './Feedback/FeedbackModal';
+import { getFeedback } from '../services/FeedbackService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -40,8 +42,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const { t } = useTranslation();
-
+  
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [hasFeedback, setHasFeedback] = useState(false);
 
   useEffect(() => {
     if (ticketId) {
@@ -74,6 +78,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         setAttachments([`${BASE_URL}/uploads/${ticket.attachmentPath}`]);
       } else {
         setAttachments([]);
+      }
+      if (ticket.statusLabel?.toLowerCase() === 'closed') {
+        getFeedback(ticketId)
+          .then(res => setHasFeedback(Boolean(res.data)))
+          .catch(() => setHasFeedback(false));
       }
     }
   }, [ticket]);
@@ -182,16 +191,23 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
           <Typography variant="subtitle1">{ticket.id}</Typography>
         </Box>
-        {allowEdit && <Box>
-          {editing ? (
-            <>
-              <CustomIconButton icon="close" onClick={cancelEditing} />
-              <CustomIconButton icon="check" onClick={handleSave} />
-            </>
-          ) : (
-            <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {allowEdit && (
+            editing ? (
+              <>
+                <CustomIconButton icon="close" onClick={cancelEditing} />
+                <CustomIconButton icon="check" onClick={handleSave} />
+              </>
+            ) : (
+              <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
+            )
           )}
-        </Box>}
+          {ticket.statusLabel?.toLowerCase() === 'closed' && (
+            <Button size="small" onClick={() => setFeedbackOpen(true)}>
+              {hasFeedback ? 'View Feedback' : 'Feedback'}
+            </Button>
+          )}
+        </Box>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         {ticket.category} &gt; {ticket.subCategory}
@@ -253,6 +269,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
+      <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={() => setFeedbackOpen(false)} />
     </Box>
   );
 };
