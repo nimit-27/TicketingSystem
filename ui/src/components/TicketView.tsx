@@ -159,7 +159,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   );
 
 
-  const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
+  const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.requestorUsername || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
 
   const priorityInfoContent = useCallback(() =>
