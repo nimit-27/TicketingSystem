@@ -269,7 +269,10 @@ public class TicketService {
         if (updated.getAttachmentPath() != null) existing.setAttachmentPath(updated.getAttachmentPath());
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
         if (updated.getLevelId() != null) existing.setLevelId(updated.getLevelId());
-        if (updated.getAssignedTo() != null) {
+        boolean assignmentChangeAllowed = updated.getAssignedTo() != null
+                && updatedStatus != TicketStatus.PENDING_WITH_REQUESTER
+                && updatedStatus != TicketStatus.PENDING_WITH_FCI;
+        if (assignmentChangeAllowed) {
             existing.setAssignedTo(updated.getAssignedTo());
             if (!updated.getAssignedTo().equals(previousAssignedTo) && updatedStatus == null && updatedStatusId == null) {
                 existing.setTicketStatus(TicketStatus.ASSIGNED);
@@ -280,7 +283,7 @@ public class TicketService {
         if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
-        if (updated.getAssignedTo() != null && !updated.getAssignedTo().equals(previousAssignedTo)) {
+        if (assignmentChangeAllowed && !updated.getAssignedTo().equals(previousAssignedTo)) {
             assignmentHistoryService.addHistory(id,
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy,
                     updated.getAssignedTo(),
@@ -302,7 +305,8 @@ public class TicketService {
         if (updatedStatusId != null && !updatedStatusId.equals(previousStatusId)) {
             boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
-            if ((updated.getAssignedTo() == null || updated.getAssignedTo().equals(previousAssignedTo)) && remark != null && !remark.isBlank()) {
+            if ((updated.getAssignedTo() == null || !assignmentChangeAllowed || updated.getAssignedTo().equals(previousAssignedTo))
+                    && remark != null && !remark.isBlank()) {
                 assignmentHistoryService.addHistory(id, updatedBy, existing.getAssignedTo(), existing.getLevelId(), remark);
             }
         }
