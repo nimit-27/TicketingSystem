@@ -23,26 +23,26 @@ const CustomerSatisfactionForm: React.FC = () => {
 
   useEffect(() => {
     if (!ticketId) return;
-    getFeedback(ticketId).then(res => {
-      if (res.data) {
-        const f = res.data;
-        setFormData({
-          overallSatisfaction: f.overallSatisfaction,
-          resolutionEffectiveness: f.resolutionEffectiveness,
-          communicationSupport: f.communicationSupport,
-          timeliness: f.timeliness,
-          comments: f.comments
-        });
-        setResolvedAt(f.submittedAt);
-        setViewMode(true);
-      } else {
-        getFeedbackForm(ticketId).then(r => {
-          setResolvedAt(r.data.dateOfResolution);
-        });
-      }
-    }).catch(() => {
-      getFeedbackForm(ticketId!).then(r => setResolvedAt(r.data.dateOfResolution));
-    });
+    // getFeedback(ticketId).then(res => {
+    //   if (res.data) {
+    //     const f = res.data;
+    //     setFormData({
+    //       overallSatisfaction: f.overallSatisfaction,
+    //       resolutionEffectiveness: f.resolutionEffectiveness,
+    //       communicationSupport: f.communicationSupport,
+    //       timeliness: f.timeliness,
+    //       comments: f.comments
+    //     });
+    //     setResolvedAt(f.submittedAt);
+    //     setViewMode(true);
+    //   } else {
+    //     getFeedbackForm(ticketId).then(r => {
+    //       setResolvedAt(r.data.dateOfResolution);
+    //     });
+    //   }
+    // }).catch(() => {
+    //   getFeedbackForm(ticketId!).then(r => setResolvedAt(r.data.dateOfResolution));
+    // });
   }, [ticketId]);
 
   const handleChange = (field: keyof SubmitFeedbackRequest) => (value: number | React.ChangeEvent<HTMLInputElement>) => {

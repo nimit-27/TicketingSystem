@@ -33,7 +33,7 @@ export function getTicket(id: string) {
 }
 
 export function updateTicket(id: string, payload: any) {
-    return axios.put(`${BASE_URL}/tickets/${id}`, payload).then(res => res.data.ticket);
+    return axios.put(`${BASE_URL}/tickets/${id}`, payload)
 }
 
 export function linkTicketToMaster(id: string, masterId: string) {

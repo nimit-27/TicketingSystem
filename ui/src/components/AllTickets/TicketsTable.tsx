@@ -249,7 +249,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
                             )}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
-                                <Button size="small" onClick={() => navigate(`/tickets/${record.id}/feedback`)}>
+                                <Button size="small" onClick={() => navigate(`/tickets/${record.feedbackStatus === 'PENDING' ? '%20' : record.id}/feedback`)}>
                                     {record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Feedback'}
                                 </Button>
                             )}
