@@ -9,8 +9,8 @@ export function getAllUsers() {
     return axios.get(`${BASE_URL}/users`);
 }
 
-export function getRegionalNodalOfficers() {
-    return axios.get(`${BASE_URL}/users/regional-nodal-officers`);
+export function getUsersByRoles(roleIds: string[]) {
+    return axios.post(`${BASE_URL}/users/by-roles`, roleIds);
 }
 
 export function addUser(user: any) {

@@ -22,10 +22,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/regional-nodal-officers")
-    public ResponseEntity<List<UserDto>> getRegionalNodalOfficers() {
-        // role id 4 corresponds to Regional Nodal Officer
-        return ResponseEntity.ok(userService.getUsersByRole("4"));
+    @PostMapping("/by-roles")
+    public ResponseEntity<List<UserDto>> getUsersByRoles(@RequestBody List<String> roleIds) {
+        return ResponseEntity.ok(userService.getUsersByRoles(roleIds));
     }
 
     @GetMapping("/{userId}")

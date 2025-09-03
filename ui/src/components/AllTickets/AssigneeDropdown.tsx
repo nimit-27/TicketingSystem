@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton, Tooltip, Button, Dialog, DialogTitle, DialogContent, Tabs, Tab } from '@mui/material';
 import { getAllLevels, getAllUsersByLevel } from '../../services/LevelService';
-import { getAllUsers, getRegionalNodalOfficers } from '../../services/UserService';
+import { getAllUsers, getUsersByRoles } from '../../services/UserService';
+import { getAllRoles } from '../../services/RoleService';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
@@ -37,7 +38,8 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getUsersByLevelApiHandler } = useApi<any>();
     const { data: allUsersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
-    const { data: rnoData, apiHandler: getRnoApiHandler } = useApi<any>();
+    const { data: rolesData, apiHandler: getRolesApiHandler } = useApi<any>();
+    const { data: rnoData, apiHandler: getRnoUsersApiHandler } = useApi<any>();
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const allowedActions = getCurrentUserDetails()?.allowedStatusActionIds || [];
@@ -46,10 +48,11 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const REQUESTER_STATUS_ID = '3';
     const FCI_STATUS_ID = '5';
 
-    // Fetch levels on mount
+    // Fetch levels, users and roles on mount
     useEffect(() => {
         getLevelsApiHandler(() => getAllLevels());
         getAllUsersApiHandler(() => getAllUsers());
+        getRolesApiHandler(() => getAllRoles());
     }, []);
 
     // Fetch users when selectedLevel changes
@@ -60,10 +63,13 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     }, [selectedLevel]);
 
     useEffect(() => {
-        if (advancedOpen && tab === 'rno') {
-            getRnoApiHandler(() => getRegionalNodalOfficers());
+        if (advancedOpen && tab === 'rno' && rolesData) {
+            const rnoRole = (rolesData as any[]).find(r => r.role === 'RegionalNodalOfficer');
+            if (rnoRole) {
+                getRnoUsersApiHandler(() => getUsersByRoles([String(rnoRole.roleId)]));
+            }
         }
-    }, [advancedOpen, tab]);
+    }, [advancedOpen, tab, rolesData]);
 
 
     const handleSelect = (u: User) => {
