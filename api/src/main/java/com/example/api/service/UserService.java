@@ -6,6 +6,7 @@ import com.example.api.models.User;
 import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -44,8 +45,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<UserDto> getUsersByRole(String roleId) {
-        return userRepository.findByRoleId(roleId).stream()
+    public List<UserDto> getUsersByRoles(List<String> roleIds) {
+        return userRepository.findAll().stream()
+                .filter(user -> {
+                    if (user.getRoles() == null) return false;
+                    String[] roles = user.getRoles().split("\\|");
+                    return Arrays.stream(roles).anyMatch(roleIds::contains);
+                })
                 .map(DtoMapper::toUserDto)
                 .collect(Collectors.toList());
     }
