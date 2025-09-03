@@ -90,8 +90,9 @@ public class TicketController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TicketDto> updateTicket(@PathVariable String id, @RequestBody Ticket ticket) {
-        return ResponseEntity.ok(ticketService.updateTicket(id, ticket));
+    public ResponseEntity<java.util.Map<String, Object>> updateTicket(@PathVariable String id, @RequestBody Ticket ticket) {
+        TicketDto dto = ticketService.updateTicket(id, ticket);
+        return ResponseEntity.ok(java.util.Map.of("ticket", dto));
     }
 
     @PostMapping("/{id}/comments")

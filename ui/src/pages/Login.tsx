@@ -83,6 +83,7 @@ type LoginResponse = {
     roles?: string[];
     levels?: string[];
     name?: string;
+    allowedStatusActionIds?: string[];
     [key: string]: any;
 };
 
@@ -107,7 +108,8 @@ const Login: React.FC = () => {
                     username: res.username,
                     role: res.roles,
                     levels: res.levels,
-                    name: res.name
+                    name: res.name,
+                    allowedStatusActionIds: res.allowedStatusActionIds
                 };
                 setUserDetails(details);
             }

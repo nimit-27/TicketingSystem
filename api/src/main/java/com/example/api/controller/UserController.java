@@ -22,6 +22,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @GetMapping("/regional-nodal-officers")
+    public ResponseEntity<List<UserDto>> getRegionalNodalOfficers() {
+        // role id 4 corresponds to Regional Nodal Officer
+        return ResponseEntity.ok(userService.getUsersByRole("4"));
+    }
+
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserDetails(@PathVariable String userId) {
 //        Optional<User> user = userService.getUserDetails(userId);

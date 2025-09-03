@@ -9,6 +9,7 @@ export interface UserDetails {
   name?: string;
   email?: string;
   phone?: string;
+  allowedStatusActionIds?: string[];
 }
 
 const USER_KEY = 'userDetails';

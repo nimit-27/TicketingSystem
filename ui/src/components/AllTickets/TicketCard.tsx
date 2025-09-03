@@ -22,6 +22,7 @@ export interface TicketCardData {
     subCategory: string;
     priority: string;
     isMaster: boolean;
+    userId?: string;
     requestorName?: string;
     assignedTo?: string;
     statusId?: string;
@@ -165,6 +166,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     ? <AssigneeDropdown
                         ticketId={ticket.id}
                         assigneeName={ticket.assignedTo}
+                        requestorId={ticket.userId}
                         searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                     />
                     : ticket.assignedTo

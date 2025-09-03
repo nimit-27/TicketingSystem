@@ -1,10 +1,10 @@
 package com.example.api.controller;
 
 import com.example.api.dto.LoginRequest;
-import com.example.api.models.User;
 import com.example.api.permissions.RolePermission;
 import com.example.api.service.AuthService;
 import com.example.api.service.PermissionService;
+import com.example.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +25,7 @@ import java.util.Optional;
 public class AuthController {
     private final AuthService authService;
     private final PermissionService permissionService;
+    private final RoleRepository roleRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
@@ -59,13 +60,25 @@ public class AuthController {
                     RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
                     System.out.println("Perm: " + permissions);
 
+                    java.util.Set<String> allowedStatusActionIds = new java.util.HashSet<>();
+                    roleRepository.findAllById(roleIds).forEach(r -> {
+                        if (r.getAllowedStatusActionIds() != null) {
+                            for (String s : r.getAllowedStatusActionIds().split("\\|")) {
+                                if (!s.isBlank()) {
+                                    allowedStatusActionIds.add(s.trim());
+                                }
+                            }
+                        }
+                    });
+
                     return ResponseEntity.ok(Map.of(
                             "userId", emp.getUserId(),
                             "name", emp.getName(),
                             "username", emp.getUsername(),
                             "roles", roles,
                             "permissions", permissions,
-                            "levels", levels
+                            "levels", levels,
+                            "allowedStatusActionIds", allowedStatusActionIds
                     ));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
