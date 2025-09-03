@@ -9,6 +9,7 @@ import './AssigneeDropdown.scss';
 import ActionRemarkComponent from './ActionRemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
+import AdvancedAssignmentOptionsDialog from './AdvancedAssignmentOptionsDialog';
 
 interface AssigneeDropdownProps {
     ticketId: string;
@@ -206,52 +207,20 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                     </Box>
                 </Box>
             </Menu>
-            <Dialog open={advancedOpen} onClose={() => setAdvancedOpen(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Advanced Options</DialogTitle>
-                <DialogContent>
-                    <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 1 }}>
-                        <Tab label="Assign User" value="user" />
-                        {canRequester && <Tab label="Requester" value="requester" />}
-                        {canRno && <Tab label="Regional Nodal Officer" value="rno" />}
-                    </Tabs>
-                    {tab === 'user' && renderAssignForm()}
-                    {tab === 'requester' && (
-                        <Box sx={{ mt: 1 }}>
-                            <ActionRemarkComponent
-                                actionName="Assign to Requester"
-                                onCancel={() => setAdvancedOpen(false)}
-                                onSubmit={handleAssignRequester}
-                            />
-                        </Box>
-                    )}
-                    {tab === 'rno' && (
-                        <Box>
-                            <TextField value={rnoSearch} onChange={e => setRnoSearch(e.target.value)} placeholder="Search" size="small" fullWidth sx={{ mt: 1 }} />
-                            <Box sx={{ maxHeight: 300, overflowY: 'auto', mt: 1 }}>
-                                <List dense>
-                                    {rnoFiltered.map(u => (
-                                        <ListItemButton key={u.userId} onClick={() => handleSelect(u)}>
-                                            <Box sx={{ display: 'flex', width: '100%' }}>
-                                                <Box sx={{ flexGrow: 1 }}>{u.name}</Box>
-                                                <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{u.username}</Box>
-                                            </Box>
-                                        </ListItemButton>
-                                    ))}
-                                </List>
-                            </Box>
-                            {showActionRemark && selectedUser && (
-                                <Box sx={{ mt: 1 }}>
-                                    <ActionRemarkComponent
-                                        actionName="Assign"
-                                        onCancel={handleCancelRemark}
-                                        onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
-                                    />
-                                </Box>
-                            )}
-                        </Box>
-                    )}
-                </DialogContent>
-            </Dialog>
+            <AdvancedAssignmentOptionsDialog
+                open={advancedOpen}
+                onClose={() => setAdvancedOpen(false)}
+                ticketId={ticketId}
+                requestorId={requestorId}
+                canRequester={canRequester}
+                canRno={canRno}
+                levels={levels}
+                users={baseUsers}
+                rnoUsers={rnoUsers}
+                updateTicketApiHandler={updateTicketApiHandler}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                onAssigned={onAssigned}
+            />
         </>
     );
 };
