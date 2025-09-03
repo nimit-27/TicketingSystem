@@ -29,6 +29,7 @@ export interface TicketRow {
     priority: string;
     priorityId: string;
     isMaster: boolean;
+    userId?: string;
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
@@ -203,6 +204,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             <AssigneeDropdown
                                 ticketId={record.id}
                                 assigneeName={record.assignedTo}
+                                requestorId={record.userId}
                                 searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                             />
                         );
