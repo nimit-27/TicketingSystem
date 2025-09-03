@@ -224,6 +224,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 key: 'action',
                 render: (_: any, record: TicketRow) => {
                     const recordActions = getAvailableActions(record.statusId);
+                    const statusName = getStatusNameById(record.statusId || '') || '';
+                    const resumeAction = recordActions.find(a => a.action === 'Resume');
+                    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with Regional Nodal Officer)');
                     return (
                         <>
                             <VisibilityIcon
@@ -231,7 +234,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 fontSize="small"
                                 sx={{ color: 'grey.600', cursor: 'pointer' }}
                             />
-                            {recordActions.length <= 2 ? (
+                            {showSubmit ? (
+                                <Button size="small" onClick={() => handleActionClick(resumeAction!, record.id)}>Submit</Button>
+                            ) : recordActions.length <= 2 ? (
                                 recordActions.map(a => {
                                     const { icon, className } = getActionIcon(a.action);
                                     return (

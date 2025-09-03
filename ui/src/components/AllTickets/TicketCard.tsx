@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Box, Tooltip, Menu, MenuItem, ListItemIcon, Chip, Button } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
@@ -130,6 +130,8 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     const statusName = getStatusNameById(ticket.statusId || '') || '';
     const statusColor = getStatusColorById(ticket.statusId || '') || undefined;
     const truncatedStatus = statusName.length > 12 ? `${statusName.slice(0, 12)}...` : statusName;
+    const resumeAction = recordActions.find(a => a.action === 'Resume');
+    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with Regional Nodal Officer)');
 
     return (
         <Card
@@ -183,7 +185,9 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                         fontSize="small"
                         sx={{ color: 'grey.600', cursor: 'pointer' }}
                     />
-                    {recordActions.length <= 2 ? (
+                    {showSubmit ? (
+                        <Button size="small" onClick={(e) => handleActionClick(resumeAction!, e)}>Submit</Button>
+                    ) : recordActions.length <= 2 ? (
                         recordActions.map(a => {
                             const { icon, className } = getActionIcon(a.action);
                             return (
