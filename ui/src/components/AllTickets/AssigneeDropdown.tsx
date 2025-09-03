@@ -63,8 +63,8 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     }, [selectedLevel]);
 
     useEffect(() => {
-        if (advancedOpen && tab === 'rno' && rolesData) {
-            const rnoRole = (rolesData as any[]).find(r => r.role === 'RegionalNodalOfficer');
+        if (advancedOpen && rolesData) {
+            const rnoRole = (rolesData as any[]).find(r => r.role === 'Regional Nodal Officer');
             if (rnoRole) {
                 getRnoUsersApiHandler(() => getUsersByRoles([String(rnoRole.roleId)]));
             }
