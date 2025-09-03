@@ -96,6 +96,7 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         } else if (isRequester) {
             requestorId = userId;
+            assignedTo = username;
         }
 
         if (hasLevels) {
