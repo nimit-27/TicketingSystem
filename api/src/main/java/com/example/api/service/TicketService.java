@@ -153,7 +153,7 @@ public class TicketService {
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             User user = userRepository.findById(ticket.getUserId()).orElseThrow();
             ticket.setUser(user);
-            ticket.setRequestorName(user.getName());
+            ticket.setRequestorName(user.getUsername());
         }
 
         // TO DO: Remove TicketStatus during Code Cleaning

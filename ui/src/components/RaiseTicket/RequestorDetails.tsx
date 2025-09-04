@@ -62,7 +62,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         ? stakeholderData.map((s: any) => ({ label: s.description, value: s.id }))
         : [];
 
-    let showRequestorDetails = mode.toLowerCase() !== 'self';
+    let showRequestorDetails = true;
+    // let showRequestorDetails = mode.toLowerCase() !== 'self';
 
     const getUserDetailsHandler = (userId: any) => {
         getUserDetailsApiHandler(() => getUserDetails(userId))
