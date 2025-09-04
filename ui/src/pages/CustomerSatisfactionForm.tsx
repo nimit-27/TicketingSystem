@@ -1,6 +1,6 @@
 import { Card, Button, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import StarRating from '../components/Feedback/StarRating';
 import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../services/FeedbackService';
 import { useSnackbar } from '../context/SnackbarContext';
@@ -8,7 +8,10 @@ import { useSnackbar } from '../context/SnackbarContext';
 const CustomerSatisfactionForm: React.FC = () => {
   const { ticketId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showMessage } = useSnackbar();
+  debugger
+  const feedbackStatus = location.state?.feedbackStatus as string || '';
 
   const [formData, setFormData] = useState<SubmitFeedbackRequest>({
     overallSatisfaction: 0,
@@ -22,27 +25,29 @@ const CustomerSatisfactionForm: React.FC = () => {
   const [viewMode, setViewMode] = useState(false);
 
   useEffect(() => {
+    if (feedbackStatus !== "PROVIDED") return;
     if (!ticketId) return;
-    // getFeedback(ticketId).then(res => {
-    //   if (res.data) {
-    //     const f = res.data;
-    //     setFormData({
-    //       overallSatisfaction: f.overallSatisfaction,
-    //       resolutionEffectiveness: f.resolutionEffectiveness,
-    //       communicationSupport: f.communicationSupport,
-    //       timeliness: f.timeliness,
-    //       comments: f.comments
-    //     });
-    //     setResolvedAt(f.submittedAt);
-    //     setViewMode(true);
-    //   } else {
-    //     getFeedbackForm(ticketId).then(r => {
-    //       setResolvedAt(r.data.dateOfResolution);
-    //     });
-    //   }
-    // }).catch(() => {
-    //   getFeedbackForm(ticketId!).then(r => setResolvedAt(r.data.dateOfResolution));
-    // });
+    
+    getFeedback(ticketId).then(res => {
+      if (res.data) {
+        const f = res.data;
+        setFormData({
+          overallSatisfaction: f.overallSatisfaction,
+          resolutionEffectiveness: f.resolutionEffectiveness,
+          communicationSupport: f.communicationSupport,
+          timeliness: f.timeliness,
+          comments: f.comments
+        });
+        setResolvedAt(f.submittedAt);
+        setViewMode(true);
+      } else {
+        getFeedbackForm(ticketId).then(r => {
+          setResolvedAt(r.data.dateOfResolution);
+        });
+      }
+    }).catch(() => {
+      getFeedbackForm(ticketId!).then(r => setResolvedAt(r.data.dateOfResolution));
+    });
   }, [ticketId]);
 
   const handleChange = (field: keyof SubmitFeedbackRequest) => (value: number | React.ChangeEvent<HTMLInputElement>) => {
