@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { BASE_URL } from './api';
+import apiClient from './apiClient';
 
 export type SubmitFeedbackRequest = {
   overallSatisfaction: number;
@@ -10,13 +11,13 @@ export type SubmitFeedbackRequest = {
 };
 
 export function getFeedbackForm(ticketId: string) {
-  return axios.get(`${BASE_URL}/tickets/${ticketId}/feedback/form`);
+  return apiClient.get(`${BASE_URL}/tickets/${ticketId}/feedback/form`);
 }
 
 export function submitFeedback(ticketId: string, body: SubmitFeedbackRequest) {
-  return axios.post(`${BASE_URL}/tickets/${ticketId}/feedback`, body);
+  return apiClient.post(`${BASE_URL}/tickets/${ticketId}/feedback`, body);
 }
 
 export function getFeedback(ticketId: string) {
-  return axios.get(`${BASE_URL}/tickets/${ticketId}/feedback`);
+  return apiClient.get(`${BASE_URL}/tickets/${ticketId}/feedback`);
 }
