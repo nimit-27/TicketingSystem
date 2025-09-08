@@ -3,6 +3,9 @@ package com.example.api.mapper;
 import com.example.api.dto.*;
 import com.example.api.models.*;
 import com.example.api.service.LevelService;
+import com.example.api.permissions.RolePermission;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DtoMapper {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     public static CategoryDto toCategoryDto(Category category) {
         if (category == null) return null;
         CategoryDto dto = new CategoryDto();
@@ -114,6 +118,14 @@ public class DtoMapper {
         dto.setAllowedStatusActionIds(role.getAllowedStatusActionIds());
         dto.setDeleted(role.isDeleted());
         dto.setDescription(role.getDescription());
+        if (role.getPermissions() != null) {
+            try {
+                RolePermission perm = OBJECT_MAPPER.readValue(role.getPermissions(), RolePermission.class);
+                dto.setPermissions(perm);
+            } catch (JsonProcessingException e) {
+                // ignore parsing errors and leave permissions null
+            }
+        }
         return dto;
     }
 
