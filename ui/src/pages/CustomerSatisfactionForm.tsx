@@ -10,7 +10,6 @@ const CustomerSatisfactionForm: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showMessage } = useSnackbar();
-  debugger
   const feedbackStatus = location.state?.feedbackStatus as string || '';
 
   const [formData, setFormData] = useState<SubmitFeedbackRequest>({

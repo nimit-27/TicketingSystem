@@ -224,11 +224,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const showEmailId = checkFieldAccess('requestorDetails', 'emailId');
     const showMobileNo = checkFieldAccess('requestorDetails', 'mobileNo');
     const showStakeholder = checkFieldAccess('requestorDetails', 'stakeholder') && mode !== 'Self'
-    // &&
-    // !onBehalfFciUser &&
-    // !isSelfHelpdesk &&
-    // viewMode === 'nonFci' &&
-    // !fciUser;
+
     const showRole = checkFieldAccess('requestorDetails', 'role') &&
         (viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk);
     const showOffice = checkFieldAccess('requestorDetails', 'office') &&

@@ -16,7 +16,7 @@ const RoleDetails: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>();
     const { data, apiHandler } = useApi<any>();
     const { data: actions, apiHandler: actionsApiHandler } = useApi<any>();
-    const { data: rolesData, apiHandler: rolesApiHandler } = useApi<any>();
+    const { data: rolesData, pending: rolesApiPending, success: rolesApiSucsess, apiHandler: rolesApiHandler } = useApi<any>();
     const [perm, setPerm] = useState<any>(null);
     const [modifiedPermissions, setModifiedPermissions] = useState<any | null>(null);
     const isPermissionsModified = modifiedPermissions !== null;
@@ -26,17 +26,23 @@ const RoleDetails: React.FC = () => {
     const { devMode } = useContext(DevModeContext);
     const [openJson, setOpenJson] = useState(false);
     const [editing, setEditing] = useState(false);
-    const [roleName, setRoleName] = useState(roleId || '');
+    const [roleName, setRoleName] = useState('');
     const navigate = useNavigate();
 
+    
     useEffect(() => {
         if (roleId) {
             apiHandler(() => getRolePermission(roleId));
             rolesApiHandler(() => getAllRoles());
             actionsApiHandler(() => getStatusActions());
-            setRoleName(roleId);
         }
     }, [roleId]);
+    
+    useEffect(() => {
+        if (rolesData && rolesApiSucsess) {
+            setRoleName(rolesData.filter((r: any) => r.roleId === parseInt(roleId ?? ""))[0]?.role || '');
+        }
+    }, [rolesApiSucsess])
 
     useEffect(() => {
         if (rolesData && roleId) {
