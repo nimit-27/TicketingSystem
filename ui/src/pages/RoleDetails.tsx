@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { updateRolePermission, updateRole, loadPermissions, renameRole, getAllRoles } from '../services/RoleService';
 import { getStatusActions } from '../services/StatusService';
@@ -14,19 +14,29 @@ import { DevModeContext } from '../context/DevModeContext';
 
 const RoleDetails: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>();
+
+    const navigate = useNavigate();
+
+    const { devMode } = useContext(DevModeContext);
+
+    const { showMessage } = useSnackbar();
+
+    const location = useLocation();
+
+    let roleData = location?.state as any;
+
     const { data: actions, apiHandler: actionsApiHandler } = useApi<any>();
     const { data: rolesData, pending: rolesApiPending, success: rolesApiSucsess, apiHandler: rolesApiHandler } = useApi<any>();
-    const [perm, setPerm] = useState<any>(null);
+
+    const [perm, setPerm] = useState<any>(roleData?.permissions || null);
     const [modifiedPermissions, setModifiedPermissions] = useState<any | null>(null);
-    const isPermissionsModified = modifiedPermissions !== null;
     const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
     const [description, setDescription] = useState('');
-    const { showMessage } = useSnackbar();
-    const { devMode } = useContext(DevModeContext);
     const [openJson, setOpenJson] = useState(false);
     const [editing, setEditing] = useState(false);
     const [roleName, setRoleName] = useState('');
-    const navigate = useNavigate();
+
+    const isPermissionsModified = modifiedPermissions !== null;
 
     
     useEffect(() => {
@@ -52,9 +62,9 @@ const RoleDetails: React.FC = () => {
                 if (role.description) {
                     setDescription(role.description);
                 }
-                if (role.permissions) {
-                    setPerm(role.permissions);
-                }
+                // if (role.permissions) {
+                //     setPerm(role.permissions);
+                // }
             }
         }
     }, [rolesData, roleId]);

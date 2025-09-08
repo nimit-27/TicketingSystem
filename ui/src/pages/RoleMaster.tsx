@@ -25,6 +25,7 @@ const RoleMaster: React.FC = () => {
     const { data: rolesData, apiHandler: getAllRolesApiHandler } = useApi<any>();
     const { data, apiHandler } = useApi<any>();
     const { data: statusActions, apiHandler: actionsApiHandler } = useApi<any>();
+
     const [view, setView] = useState<'table' | 'grid'>('table');
     const navigate = useNavigate();
     const [creating, setCreating] = useState(false);
@@ -86,7 +87,7 @@ const RoleMaster: React.FC = () => {
             key: 'action',
             render: (_: any, r: any) => (
                 <>
-                    <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600', marginRight: 1 }} onClick={() => navigate(`/role-master/${r.roleId}`)} />
+                    <VisibilityIcon sx={{ cursor: 'pointer', color: 'grey.600', marginRight: 1 }} onClick={() => navigate(`/role-master/${r.roleId}`, { state: r })} />
                     <CustomIconButton icon="delete" onClick={() => handleDelete(r.roleId)} />
                     {/* <span className="text-danger" style={{ cursor: 'pointer' }} onClick={() => handleDelete(r.role)}>Delete</span> */}
                 </>

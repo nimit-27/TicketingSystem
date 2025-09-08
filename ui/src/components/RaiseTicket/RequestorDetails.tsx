@@ -222,13 +222,13 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const showUserId = checkFieldAccess('requestorDetails', 'userId')
     const showRequestorName = checkFieldAccess('requestorDetails', 'requestorName');
     const showEmailId = checkFieldAccess('requestorDetails', 'emailId');
-    const showMobileNo = checkFieldAccess('requestorDetails', 'mobileNo');
+    const showMobileNo = checkFieldAccess('requestorDetails', 'phoneNumber');
     const showStakeholder = checkFieldAccess('requestorDetails', 'stakeholder') && mode !== 'Self'
 
-    const showRole = checkFieldAccess('requestorDetails', 'role') &&
-        (viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk);
-    const showOffice = checkFieldAccess('requestorDetails', 'office') &&
-        (viewMode === FCI_User || fciUser || onBehalfFciUser) && !isSelfHelpdesk;
+    const showRole = checkFieldAccess('requestorDetails', 'role')
+    // && (viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk);
+    const showOffice = checkFieldAccess('requestorDetails', 'office')
+    // && (viewMode === FCI_User || fciUser || onBehalfFciUser) && !isSelfHelpdesk;
 
     const isNonFci =
         viewMode === NON_FCI_User && !fciUser && !onBehalfFciUser && !isSelfHelpdesk;
@@ -334,6 +334,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         </div>
                         <div>
                             {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
+                            {showOffice && office && renderReadOnlyField("Office", office)}
                             {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
                         </div>
                     </CustomFieldset>
