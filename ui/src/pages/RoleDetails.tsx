@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
-import { getRolePermission, updateRolePermission, updateRole, loadPermissions, renameRole, getAllRoles } from '../services/RoleService';
+import { updateRolePermission, updateRole, loadPermissions, renameRole, getAllRoles } from '../services/RoleService';
 import { getStatusActions } from '../services/StatusService';
 import { getCurrentUserDetails } from '../config/config';
 import Title from '../components/Title';
@@ -14,7 +14,6 @@ import { DevModeContext } from '../context/DevModeContext';
 
 const RoleDetails: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>();
-    const { data, apiHandler } = useApi<any>();
     const { data: actions, apiHandler: actionsApiHandler } = useApi<any>();
     const { data: rolesData, pending: rolesApiPending, success: rolesApiSucsess, apiHandler: rolesApiHandler } = useApi<any>();
     const [perm, setPerm] = useState<any>(null);
@@ -32,7 +31,6 @@ const RoleDetails: React.FC = () => {
     
     useEffect(() => {
         if (roleId) {
-            apiHandler(() => getRolePermission(roleId));
             rolesApiHandler(() => getAllRoles());
             actionsApiHandler(() => getStatusActions());
         }
@@ -46,7 +44,7 @@ const RoleDetails: React.FC = () => {
 
     useEffect(() => {
         if (rolesData && roleId) {
-            const role = (rolesData as any[]).find(r => r.role === roleId);
+            const role = (rolesData as any[]).find(r => String(r.roleId) === roleId || r.role === roleId);
             if (role) {
                 if (role.allowedStatusActionIds) {
                     setSelectedActionIds(role.allowedStatusActionIds.split('|'));
@@ -54,13 +52,12 @@ const RoleDetails: React.FC = () => {
                 if (role.description) {
                     setDescription(role.description);
                 }
+                if (role.permissions) {
+                    setPerm(role.permissions);
+                }
             }
         }
     }, [rolesData, roleId]);
-
-    useEffect(() => {
-        if (data) setPerm(data);
-    }, [data]);
 
     const handleSubmit = (submitPerm = isPermissionsModified ? modifiedPermissions : perm) => {
         if (roleId) {
