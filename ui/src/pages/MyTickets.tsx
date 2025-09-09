@@ -83,6 +83,7 @@ const MyTickets: React.FC = () => {
         const userId = user?.userId || "";
         const roles = user?.role || [];
 
+        const isRno = roles.includes("4") && roles.length === 1;
         const isRequester = roles.includes("5") && roles.length === 1;
         const isTeamLead = roles.includes("7");
         const hasLevels = (user?.levels || []).length > 0;
@@ -94,7 +95,7 @@ const MyTickets: React.FC = () => {
         if (isTeamLead) {
             assignedBy = username;
             requestorId = userId;
-        } else if (isRequester) {
+        } else if (isRequester || isRno) {
             requestorId = userId;
             assignedTo = username;
         }
