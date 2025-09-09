@@ -51,15 +51,17 @@ interface TicketsTableProps {
 }
 
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange }) => {
-    console.log(tickets)
     const { t } = useTranslation();
+    
     const navigate = useNavigate();
+    
+    const { apiHandler: updateTicketApiHandler } = useApi<any>();
+
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
-    const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
@@ -228,7 +230,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     const recordActions = getAvailableActions(record.statusId);
                     const statusName = getStatusNameById(record.statusId || '') || '';
                     const resumeAction = recordActions.find(a => a.action === 'Resume');
-                    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with Regional Nodal Officer)');
+                    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with FCI)');
                     return (
                         <>
                             <VisibilityIcon
