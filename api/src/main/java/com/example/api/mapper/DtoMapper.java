@@ -198,4 +198,18 @@ public class DtoMapper {
         dto.setUpdatedOn(faq.getUpdatedOn());
         return dto;
     }
+
+    public static TicketSlaDto toTicketSlaDto(TicketSla ticketSla) {
+        if (ticketSla == null) return null;
+        TicketSlaDto dto = new TicketSlaDto();
+        dto.setId(ticketSla.getId());
+        dto.setTicketId(ticketSla.getTicket() != null ? ticketSla.getTicket().getId() : null);
+        dto.setSlaId(ticketSla.getSlaConfig() != null ? ticketSla.getSlaConfig().getId() : null);
+        dto.setDueAt(ticketSla.getDueAt());
+        dto.setResolutionTimeMinutes(ticketSla.getResolutionTimeMinutes());
+        dto.setElapsedTimeMinutes(ticketSla.getElapsedTimeMinutes());
+        dto.setResponseTimeMinutes(ticketSla.getResponseTimeMinutes());
+        dto.setBreachedByMinutes(ticketSla.getBreachedByMinutes());
+        return dto;
+    }
 }

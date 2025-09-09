@@ -916,6 +916,42 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
+-- Table structure for table `sla_config`
+DROP TABLE IF EXISTS `sla_config`;
+CREATE TABLE `sla_config` (
+  `sla_id` varchar(36) NOT NULL,
+  `severity_level` varchar(10) NOT NULL,
+  `response_minutes` bigint DEFAULT NULL,
+  `resolution_minutes` bigint DEFAULT NULL,
+  PRIMARY KEY (`sla_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table `sla_config`
+INSERT INTO `sla_config` VALUES
+('SLA-S1','S1',30,240),
+('SLA-S2','S2',60,480),
+('SLA-S3','S3',120,720),
+('SLA-S4','S4',180,1440);
+
+-- Table structure for table `ticket_sla`
+DROP TABLE IF EXISTS `ticket_sla`;
+CREATE TABLE `ticket_sla` (
+  `ticket_sla_id` varchar(36) NOT NULL,
+  `ticket_id` varchar(36) NOT NULL,
+  `sla_id` varchar(36) NOT NULL,
+  `due_at` datetime DEFAULT NULL,
+  `resolution_time_minutes` bigint DEFAULT NULL,
+  `elapsed_time_minutes` bigint DEFAULT NULL,
+  `response_time_minutes` bigint DEFAULT NULL,
+  `breached_by_minutes` bigint DEFAULT NULL,
+  PRIMARY KEY (`ticket_sla_id`),
+  KEY `fk_ticket_sla_ticket` (`ticket_id`),
+  KEY `fk_ticket_sla_sla` (`sla_id`),
+  CONSTRAINT `fk_ticket_sla_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`),
+  CONSTRAINT `fk_ticket_sla_sla` FOREIGN KEY (`sla_id`) REFERENCES `sla_config` (`sla_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table `ticket_sla`
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
