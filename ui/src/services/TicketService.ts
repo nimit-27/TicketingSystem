@@ -32,6 +32,10 @@ export function getTicket(id: string) {
     return axios.get(`${BASE_URL}/tickets/${id}`);
 }
 
+export function getTicketSla(id: string) {
+    return axios.get(`${BASE_URL}/tickets/${id}/sla`);
+}
+
 export function updateTicket(id: string, payload: any) {
     return axios.put(`${BASE_URL}/tickets/${id}`, payload)
 }

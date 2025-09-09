@@ -72,4 +72,8 @@ public class TicketSlaService {
         ticketSla.setBreachedByMinutes(breachedBy);
         return ticketSlaRepository.save(ticketSla);
     }
+
+    public TicketSla getByTicketId(String ticketId) {
+        return ticketSlaRepository.findByTicket_Id(ticketId).orElse(null);
+    }
 }
