@@ -28,7 +28,10 @@ public class TicketSlaService {
         if (ticket == null) return null;
         SlaConfig config = slaConfigRepository.findBySeverityLevel(ticket.getSeverity())
                 .orElse(null);
-        long resolutionPolicy = config != null && config.getResolutionMinutes() != null
+        if (config == null) {
+            throw new IllegalStateException("SLA configuration not found for severity: " + ticket.getSeverity());
+        }
+        long resolutionPolicy = config.getResolutionMinutes() != null
                 ? config.getResolutionMinutes() : 0L;
         LocalDateTime dueAt = ticket.getReportedDate().plusMinutes(resolutionPolicy);
 
