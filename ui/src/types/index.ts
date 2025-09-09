@@ -87,6 +87,15 @@ export interface ApiResponse<T> {
     timestamp: string;
 }
 
+export interface TicketSla {
+    id: string;
+    dueAt?: string;
+    resolutionTimeMinutes?: number;
+    elapsedTimeMinutes?: number;
+    responseTimeMinutes?: number;
+    breachedByMinutes?: number;
+}
+
 export interface Faq {
     id: string;
     questionEn?: string;

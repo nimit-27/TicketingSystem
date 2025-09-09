@@ -6,6 +6,7 @@ import com.example.api.mapper.DtoMapper;
 import com.example.api.models.User;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
+import com.example.api.models.StatusHistory;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
@@ -17,6 +18,7 @@ import com.example.api.repository.UploadedFileRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
+import com.example.api.service.TicketSlaService;
 import com.example.api.enums.TicketStatus;
 import com.example.api.enums.FeedbackStatus;
 import com.example.api.typesense.TypesenseClient;
@@ -48,6 +50,7 @@ public class TicketService {
     private final SubCategoryRepository subCategoryRepository;
     private final PriorityRepository priorityRepository;
     private final UploadedFileRepository uploadedFileRepository;
+    private final TicketSlaService ticketSlaService;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
@@ -60,7 +63,8 @@ public class TicketService {
                          SubCategoryRepository subCategoryRepository,
                          PriorityRepository priorityRepository,
                          UploadedFileRepository uploadedFileRepository,
-                         NotificationService notificationService) {
+                         NotificationService notificationService,
+                         TicketSlaService ticketSlaService) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
@@ -74,6 +78,7 @@ public class TicketService {
         this.priorityRepository = priorityRepository;
         this.uploadedFileRepository = uploadedFileRepository;
         this.notificationService = notificationService;
+        this.ticketSlaService = ticketSlaService;
     }
 
     public List<Ticket> getTickets() {
@@ -184,13 +189,15 @@ public class TicketService {
 
         String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
         boolean sla = workflowService.getSlaFlagByStatusId(openId);
-        statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, null);
+        java.util.List<StatusHistory> histories = new java.util.ArrayList<>();
+        histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, null));
         if (isAssigned) {
             assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), saved.getLevelId(), null);
             String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
             boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
-            statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null);
+            histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null));
         }
+        ticketSlaService.calculateAndSave(saved, histories);
 
         // Prepare data model for Freemarker template
         Map<String, Object> data = new HashMap<>();

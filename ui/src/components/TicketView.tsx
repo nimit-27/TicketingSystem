@@ -11,6 +11,7 @@ import InfoIcon from './UI/Icons/InfoIcon';
 import { PriorityInfo, SeverityInfo } from '../types';
 import CustomIconButton from './UI/IconButton/CustomIconButton';
 import CommentsSection from './Comments/CommentsSection';
+import SlaDetails from './SlaDetails';
 import Histories from '../pages/Histories';
 import CustomFieldset from './CustomFieldset';
 import { useTranslation } from 'react-i18next';
@@ -266,6 +267,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <Histories ticketId={ticketId} />
         </CustomFieldset>
       )}
+      <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
+        <SlaDetails ticketId={ticketId} />
+      </CustomFieldset>
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>

@@ -4,8 +4,10 @@ import com.example.api.dto.PaginationResponse;
 import com.example.api.dto.TicketDto;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
+import com.example.api.models.TicketSla;
 import com.example.api.service.TicketService;
 import com.example.api.service.FileStorageService;
+import com.example.api.service.TicketSlaService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import java.util.List;
 public class TicketController {
     private final TicketService ticketService;
     private final FileStorageService fileStorageService;
+    private final TicketSlaService ticketSlaService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -48,6 +51,13 @@ public class TicketController {
         TicketDto dto = ticketService.getTicket(id);
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{id}/sla")
+    public ResponseEntity<TicketSla> getTicketSla(@PathVariable("id") String id) {
+        TicketSla sla = ticketSlaService.getByTicketId(id);
+        if (sla == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(sla);
     }
 
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
