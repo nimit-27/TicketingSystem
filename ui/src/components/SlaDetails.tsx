@@ -9,7 +9,7 @@ interface Props {
 }
 
 const SlaDetails: React.FC<Props> = ({ ticketId }) => {
-  const { data: sla, apiHandler } = useApi<TicketSla>();
+  const { data: sla, apiHandler } = useApi<any>();
 
   useEffect(() => {
     if (ticketId) {
