@@ -179,7 +179,7 @@ public class TicketService {
         if (ticket.getSeverity() == null && ticket.getSubCategory() != null) {
             subCategoryRepository.findById(ticket.getSubCategory())
                     .map(SubCategory::getSeverity)
-                    .map(Severity::getLevel)
+                    .map(Severity::getId)
                     .ifPresent(ticket::setSeverity);
         }
         boolean isAssigned = ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty();
@@ -279,7 +279,7 @@ public class TicketService {
             if (updated.getSeverity() == null) {
                 subCategoryRepository.findById(updated.getSubCategory())
                         .map(SubCategory::getSeverity)
-                        .map(Severity::getLevel)
+                        .map(Severity::getId)
                         .ifPresent(existing::setSeverity);
             }
         }
