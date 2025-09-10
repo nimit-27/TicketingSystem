@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { basicFieldset1Header, cardContainer1Header } from "../constants/bootstrapClasses";
 import { FciTheme } from "../config/config";
 import { useTheme } from "@mui/material";
 import CustomIconButton from "./UI/IconButton/CustomIconButton";
 import Fieldset from "./UI/Fieldset";
+import { ThemeModeContext } from "../context/ThemeContext";
 
 interface CustomFieldsetProps {
     title?: string;
@@ -15,18 +16,42 @@ interface CustomFieldsetProps {
     disabled?: boolean;
 }
 
-const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, variant = "underlined", children, className = "", style, actionElement, disabled }) => {
+const CustomFieldset: React.FC<CustomFieldsetProps> = ({
+    title,
+    variant = "underlined",
+    children,
+    className = "",
+    style,
+    actionElement,
+    disabled
+}) => {
     const theme = useTheme();
+    const { layout } = useContext(ThemeModeContext);
     const [collapsed, setCollapsed] = useState(false);
+
+    // Store variant in state to trigger rerender
+    const [currentVariant, setCurrentVariant] = useState<"bordered" | "basic" | "underlined">(variant);
 
     useEffect(() => {
         document.documentElement.style.setProperty('--sub-heading-text-color', theme.palette.success.main);
         document.documentElement.style.setProperty('--sub-heading-disabled-text-color', theme.palette.success.dark);
     }, [theme.palette.mode]);
 
+    useEffect(() => {
+        // Update variant based on layout
+        if (layout === 1) setCurrentVariant("bordered");
+        else if (layout === 2) setCurrentVariant("underlined");
+        else if (layout === 3) setCurrentVariant("basic");
+    }, [layout]);
+
+    // Also update if the prop changes
+    useEffect(() => {
+        setCurrentVariant(variant);
+    }, [variant]);
+
     const toggleCollapse = () => setCollapsed(!collapsed);
 
-    if (variant === "underlined") return (
+    if (currentVariant === "underlined") return (
         <div className="form-container" style={{ ...style }}>
             <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
                 <h4 className="mb-0">{title}</h4>
@@ -45,7 +70,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, variant = "under
         </div>
     );
 
-    if (variant === "bordered") return (
+    if (currentVariant === "bordered") return (
         <Fieldset
             title={
                 <>
@@ -71,7 +96,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, variant = "under
         </Fieldset>
     );
 
-    if (variant === "basic") return (
+    if (currentVariant === "basic") return (
         <fieldset
             className={`border p-2 px-3 position-relative rounded mb-4 ${className}`}
             style={style}
@@ -89,9 +114,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({ title, variant = "under
         </fieldset>
     );
 
-
+    return null;
 };
-
-
 
 export default CustomFieldset;

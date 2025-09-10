@@ -104,7 +104,7 @@ export const IconComponent: React.FC<{
     const key = icon as IconKey;
     const Icon = iconMap[key];
 
-    return Icon ? <Icon fontSize={fontSize} className={className} style={style} /> : null;
+    return Icon ? <Icon fontSize={fontSize} className={className} style={style} /> : icon;
 };
 
 interface CustomIconButtonProps extends IconButtonProps {

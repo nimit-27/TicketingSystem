@@ -14,7 +14,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
-  const { toggle, mode } = useContext(ThemeModeContext);
+  const { toggle, mode, toggleLayout, layout } = useContext(ThemeModeContext);
   const { toggleLanguage } = useContext(LanguageContext);
   const { toggleDevMode, devMode } = useContext(DevModeContext);
   const theme = useTheme();
@@ -100,6 +100,12 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           icon="code"
           onClick={toggleDevMode}
         />
+        {devMode && <CustomIconButton
+          style={{ color: iconColor, fontSize: 14 }}
+          icon={layout.toString()}
+          // icon="code"
+          onClick={toggleLayout}
+        />}
         <Avatar
           sx={{
             bgcolor: theme.palette.grey[600],

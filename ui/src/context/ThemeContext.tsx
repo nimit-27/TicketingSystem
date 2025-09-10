@@ -6,7 +6,9 @@ import { allThemes, ThemeName } from "../themes";
 export const ThemeModeContext = createContext<{
   mode: ThemeName;
   toggle: () => void;
-}>({ mode: "light", toggle: () => {} });
+  layout: number;
+  toggleLayout: () => void;
+}>({ mode: "light", toggle: () => {}, layout: 1, toggleLayout: () => {} });
 
 const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -14,8 +16,15 @@ const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [mode, setMode] = useState<ThemeName>("light");
   const toggle = () => setMode((prev) => (prev === "light" ? "dark" : "light"));
   const theme = useMemo(() => allThemes[mode], [mode]);
+
+  const [layout, setLayout] = useState<number>(1);
+  const toggleLayout = () => {
+    console.log('Current Layout:', layout);
+    setLayout(layout === 3 ? 1 : layout + 1);
+  }
+
   return (
-    <ThemeModeContext.Provider value={{ mode, toggle }}>
+    <ThemeModeContext.Provider value={{ mode, toggle, layout, toggleLayout }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {children}
