@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -42,6 +42,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
+  const emptyFileList = useMemo<File[]>(() => [], []);
   const { t } = useTranslation();
   
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
@@ -234,6 +235,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           maxSizeMB={5}
           thumbnailSize={100}
           onFilesChange={handleAttachmentUpload}
+          attachments={emptyFileList}
         />
       </Box>
       <Box sx={{ mt: 2 }}>

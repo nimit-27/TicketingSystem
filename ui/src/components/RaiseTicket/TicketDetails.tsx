@@ -6,7 +6,7 @@ import GenericDropdownController from "../UI/Dropdown/GenericDropdownController"
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
 import { getCategories, getSubCategories } from "../../services/CategoryService";
@@ -47,6 +47,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const { t } = useTranslation();
 
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
+
+    const stableAttachments = useMemo(() => attachments ?? [], [attachments]);
 
     // useApi hook initializations
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
@@ -327,7 +329,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <FileUpload
                             maxSizeMB={5}
                             thumbnailSize={100}
-                            attachments={attachments || []}
+                            attachments={stableAttachments}
                             onFilesChange={(files) => {
                                 setAttachments && setAttachments(files)
                                 setValue && setValue('attachments', files)
@@ -556,7 +558,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <FileUpload
                             maxSizeMB={5}
                             thumbnailSize={100}
-                            attachments={attachments || []}
+                            attachments={stableAttachments}
                             onFilesChange={(files) => {
                                 // Store temporarily in parent state for post-create upload
                                 setAttachments?.(files);
