@@ -7,6 +7,8 @@ import com.example.api.models.User;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.models.StatusHistory;
+import com.example.api.models.SubCategory;
+import com.example.api.models.Severity;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
@@ -174,6 +176,12 @@ public class TicketService {
                 ticket.setTicketStatus(TicketStatus.valueOf(code));
             }
         }
+        if (ticket.getSeverity() == null && ticket.getSubCategory() != null) {
+            subCategoryRepository.findById(ticket.getSubCategory())
+                    .map(SubCategory::getSeverity)
+                    .map(Severity::getLevel)
+                    .ifPresent(ticket::setSeverity);
+        }
         boolean isAssigned = ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty();
         if (!isAssigned) {
             ticket.setTicketStatus(TicketStatus.OPEN);
@@ -266,7 +274,15 @@ public class TicketService {
                 existing.setFeedbackStatus(FeedbackStatus.PENDING);
             }
         }
-        if (updated.getSubCategory() != null) existing.setSubCategory(updated.getSubCategory());
+        if (updated.getSubCategory() != null) {
+            existing.setSubCategory(updated.getSubCategory());
+            if (updated.getSeverity() == null) {
+                subCategoryRepository.findById(updated.getSubCategory())
+                        .map(SubCategory::getSeverity)
+                        .map(Severity::getLevel)
+                        .ifPresent(existing::setSeverity);
+            }
+        }
         if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
         if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
         if (updated.getRecommendedSeverity() != null) existing.setRecommendedSeverity(updated.getRecommendedSeverity());
