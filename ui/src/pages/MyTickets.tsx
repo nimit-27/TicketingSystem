@@ -83,9 +83,10 @@ const MyTickets: React.FC = () => {
         const userId = user?.userId || "";
         const roles = user?.role || [];
 
-        const isRno = roles.includes("4") && roles.length === 1;
-        const isRequester = roles.includes("5") && roles.length === 1;
+        const isRno = roles.includes("4");
+        const isRequester = roles.includes("5");
         const isTeamLead = roles.includes("7");
+        const isItManager = roles.includes("9");
         const hasLevels = (user?.levels || []).length > 0;
 
         let assignedTo: string | undefined = undefined;
@@ -95,18 +96,21 @@ const MyTickets: React.FC = () => {
         if (isTeamLead) {
             assignedBy = username;
             requestorId = userId;
-        } else if (isRequester || isRno) {
+        } else if (isRequester) {
             requestorId = userId;
-            assignedTo = username;
+        } else if (isRno) {
+            requestorId = userId;
         }
 
-        if (hasLevels) {
+        if (hasLevels && !isRequester && !isRno) {
             assignedTo = username;
             requestorId = userId;
         }
+
+        const statusParam = isItManager ? "6" : statusName;
 
         return searchTicketsPaginatedApiHandler(() =>
-            searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection)
+            searchTicketsPaginated(query, statusParam, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection)
         );
     };
 
@@ -153,8 +157,16 @@ const MyTickets: React.FC = () => {
     useEffect(() => {
         if (data) {
             const resp = data;
+            let items = resp.items || resp;
+            const roles = getCurrentUserDetails()?.role || [];
+            if (roles.includes("4")) {
+                items = items.filter((t: TicketRow) => t.statusId === '1' || t.statusId === '2');
+            }
+            if (roles.includes("9")) {
+                items = items.filter((t: TicketRow) => t.statusId === '6');
+            }
             setTotalPages(resp.totalPages || 1);
-            setFiltered(resp.items || resp);
+            setFiltered(items);
         }
     }, [data]);
 

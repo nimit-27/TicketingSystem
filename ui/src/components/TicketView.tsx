@@ -54,6 +54,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [hasFeedback, setHasFeedback] = useState(false);
+  const roles = getCurrentUserDetails()?.role || [];
+  const isItManager = roles.includes("9");
+  const isRno = roles.includes("4");
 
   useEffect(() => {
     if (ticketId) {
@@ -111,7 +114,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const handleSave = () => {
     if (!ticketId) return;
-    const payload = {
+    const payload: any = {
       subject,
       description,
       priority: priorityId,
@@ -119,8 +122,30 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       recommendedSeverity,
       updatedBy: getCurrentUserDetails()?.username
     };
+    if (isRno && recommendedSeverity && ticket?.statusId !== '6') {
+      payload.status = { statusId: '6' };
+      payload.severityRecommendedBy = getCurrentUserDetails()?.username;
+    }
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
       setEditing(false);
+      getTicketHandler(() => getTicket(ticketId));
+    });
+  };
+
+  const handleApplyRecommendedSeverity = () => {
+    if (ticket?.recommendedSeverity) {
+      setSeverity(ticket.recommendedSeverity);
+    }
+  };
+
+  const handleEscalate = () => {
+    if (!ticketId) return;
+    const payload = {
+      severity,
+      updatedBy: getCurrentUserDetails()?.username,
+      status: { statusId: '11' }
+    };
+    updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
       getTicketHandler(() => getTicket(ticketId));
     });
   };
@@ -198,6 +223,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (!ticket?.statusId) return false;
     return getAvailableActions(ticket.statusId).some((a: { id: number; }) => a.id === 11);
   }, [ticket?.statusId, getAvailableActions]);
+
+  const canEscalate = isItManager && ticket?.statusId === '6';
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
@@ -277,7 +304,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           }, priorityOptions)}
           <InfoIcon content={priorityInfoContent()} />
         </Box>}
-        {severity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+        {!canEscalate && severity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
           {renderSelect(severity, setSeverity, severityOptions)}
           <InfoIcon content={(
@@ -288,6 +315,29 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </div>
           )} />
         </Box>}
+        {canEscalate && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
+            {recommendedSeverity && (
+              <Button variant="outlined" size="small" onClick={handleApplyRecommendedSeverity}>
+                Apply Recommended Severity
+              </Button>
+            )}
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+              <Typography variant="body2" color="text.secondary">Severity</Typography>
+              <Select
+                value={severity}
+                onChange={(e: SelectChangeEvent) => setSeverity(e.target.value as string)}
+                fullWidth
+                size="small"
+              >
+                {(Array.isArray(severityOptions) && severityOptions.length > 0) ? severityOptions.map(o => (
+                  <MenuItem key={o} value={o}>{o}</MenuItem>
+                )) : <MenuItem key="" value="">None</MenuItem>}
+              </Select>
+            </Box>
+            <Button variant="contained" size="small" onClick={handleEscalate}>Submit</Button>
+          </Box>
+        )}
         {canRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
           {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
