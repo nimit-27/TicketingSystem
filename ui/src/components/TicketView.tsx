@@ -30,7 +30,8 @@ interface TicketViewProps {
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false }) => {
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: updateTicketHandler } = useApi<any>();
-  const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
+  // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
+  const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -45,7 +46,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
-  const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
+  // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
+  const [statusWorkflows, setStatusWorkflows] = useState<any>({});
   const emptyFileList = useMemo<File[]>(() => [], []);
   const { t } = useTranslation();
   
@@ -189,12 +191,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
   const getAvailableActions = useCallback((statusId?: string) => {
-    return (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
+    return (statusWorkflows[statusId || ''] || []).filter((a: any) => !disallowed.includes(a.action));
   }, [statusWorkflows]);
 
   const canRecommendSeverity = useMemo(() => {
     if (!ticket?.statusId) return false;
-    return getAvailableActions(ticket.statusId).some(a => a.id === 11);
+    return getAvailableActions(ticket.statusId).some((a: { id: number; }) => a.id === 11);
   }, [ticket?.statusId, getAvailableActions]);
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
