@@ -40,7 +40,11 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                         }
                     })
                     .catch((err: any) => {
-                        const message = err?.response?.data?.apiError?.message || err?.message || 'Something went wrong';
+                        const message = err?.response?.data?.apiError?.message
+                            || err?.response?.data?.body?.data?.message
+                            || err?.response?.data?.message
+                            || err?.message
+                            || 'Something went wrong';
                         setError(message);
                         showMessage(message, 'error');
                         setData(null);
