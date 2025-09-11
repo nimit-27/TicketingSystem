@@ -92,6 +92,7 @@ const MyTickets: React.FC = () => {
         let assignedTo: string | undefined = undefined;
         let assignedBy: string | undefined = undefined;
         let requestorId: string | undefined = undefined;
+        let statusParam: string | undefined = statusName;
 
         if (isTeamLead) {
             assignedBy = username;
@@ -100,14 +101,15 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         } else if (isRno) {
             requestorId = userId;
+            statusParam = "1,2"
+        } else if (isItManager) {
+            statusParam = "6"
         }
 
         if (hasLevels && !isRequester && !isRno) {
             assignedTo = username;
             requestorId = userId;
         }
-
-        const statusParam = isItManager ? "6" : statusName;
 
         return searchTicketsPaginatedApiHandler(() =>
             searchTicketsPaginated(query, statusParam, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection)
