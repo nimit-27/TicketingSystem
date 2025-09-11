@@ -1,26 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { useApi } from '../hooks/useApi';
-import { getTicketSla } from '../services/TicketService';
 import { TicketSla } from '../types';
 
 interface Props {
-  ticketId: string;
+  sla: TicketSla;
 }
 
-const SlaDetails: React.FC<Props> = ({ ticketId }) => {
-  const { data: sla, apiHandler } = useApi<any>();
-
-  useEffect(() => {
-    if (ticketId) {
-      apiHandler(() => getTicketSla(ticketId));
-    }
-  }, [ticketId, apiHandler]);
-
-  if (!sla) {
-    return <Typography color="text.secondary">No SLA data</Typography>;
-  }
-
+const SlaDetails: React.FC<Props> = ({ sla }) => {
   return (
     <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse' }}>
       <tbody>

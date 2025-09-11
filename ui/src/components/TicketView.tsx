@@ -2,13 +2,13 @@ import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
-import { getTicket, updateTicket, addAttachments, deleteAttachment } from '../services/TicketService';
+import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla } from '../services/TicketService';
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
 import { getPriorities } from '../services/PriorityService';
 import { getSeverities } from '../services/SeverityService';
 import InfoIcon from './UI/Icons/InfoIcon';
-import { PriorityInfo, SeverityInfo } from '../types';
+import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow } from '../types';
 import CustomIconButton from './UI/IconButton/CustomIconButton';
 import CommentsSection from './Comments/CommentsSection';
 import SlaDetails from './SlaDetails';
@@ -19,6 +19,7 @@ import { checkFieldAccess } from '../utils/permissions';
 import FileUpload, { ThumbnailList } from './UI/FileUpload';
 import FeedbackModal from './Feedback/FeedbackModal';
 import { getFeedback } from '../services/FeedbackService';
+import { getStatusWorkflowMappings } from '../services/StatusService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -29,6 +30,7 @@ interface TicketViewProps {
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false }) => {
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: updateTicketHandler } = useApi<any>();
+  const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -42,6 +44,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
+  const [sla, setSla] = useState<TicketSla | null>(null);
+  const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
   const emptyFileList = useMemo<File[]>(() => [], []);
   const { t } = useTranslation();
   
@@ -63,8 +67,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         setSeverityOptions(severityData.map((s: SeverityInfo) => s.level));
         setSeverityDetails(severityData);
       });
+      const roles = getCurrentUserDetails()?.role || [];
+      workflowApiHandler(() => getStatusWorkflowMappings(roles));
+      getTicketSla(ticketId)
+        .then(res => {
+          const body = res.data?.body ?? res.data;
+          setSla(res.status === 200 ? body?.data ?? null : null);
+        })
+        .catch(() => setSla(null));
     }
-  }, [ticketId, getTicketHandler]);
+  }, [ticketId, getTicketHandler, workflowApiHandler]);
 
   useEffect(() => {
     if (ticket) {
@@ -88,6 +100,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       }
     }
   }, [ticket]);
+
+  useEffect(() => {
+    if (workflowData) {
+      setStatusWorkflows(workflowData);
+    }
+  }, [workflowData]);
 
   const handleSave = () => {
     if (!ticketId) return;
@@ -168,7 +186,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <Typography color="text.secondary" sx={{ mt: 1 }}>{value || '-'}</Typography>
     )
   );
+  const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
+  const getAvailableActions = useCallback((statusId?: string) => {
+    return (statusWorkflows[statusId || ''] || []).filter(a => !disallowed.includes(a.action));
+  }, [statusWorkflows]);
+
+  const canRecommendSeverity = useMemo(() => {
+    if (!ticket?.statusId) return false;
+    return getAvailableActions(ticket.statusId).some(a => a.id === 11);
+  }, [ticket?.statusId, getAvailableActions]);
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
@@ -259,7 +286,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </div>
           )} />
         </Box>}
-        {recommendedSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+        {canRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
           {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
         </Box>}
@@ -269,9 +296,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <Histories ticketId={ticketId} />
         </CustomFieldset>
       )}
-      <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
-        <SlaDetails ticketId={ticketId} />
-      </CustomFieldset>
+      {sla && (
+        <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
+          <SlaDetails sla={sla} />
+        </CustomFieldset>
+      )}
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>

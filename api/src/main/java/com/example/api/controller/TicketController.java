@@ -11,6 +11,7 @@ import com.example.api.service.TicketSlaService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -56,7 +57,7 @@ public class TicketController {
     @GetMapping("/{id}/sla")
     public ResponseEntity<TicketSla> getTicketSla(@PathVariable("id") String id) {
         TicketSla sla = ticketSlaService.getByTicketId(id);
-        if (sla == null) return ResponseEntity.notFound().build();
+        if (sla == null) return ResponseEntity.status(HttpStatus.CREATED).build();
         return ResponseEntity.ok(sla);
     }
 
