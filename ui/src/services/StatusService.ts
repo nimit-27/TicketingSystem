@@ -16,3 +16,7 @@ export function getStatusWorkflowMappings(roles: string[]) {
 export function getStatusActions() {
     return axios.get(`${BASE_URL}/status-workflow/actions`);
 }
+
+export function getAllowedStatusListByRoles(roles: string[]) {
+    return axios.post(`${BASE_URL}/status-workflow/allowed-statuses`, roles);
+}

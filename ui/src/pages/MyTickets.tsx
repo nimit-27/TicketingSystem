@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useApi } from "../hooks/useApi";
 import { useDebounce } from "../hooks/useDebounce";
 import { searchTicketsPaginated } from "../services/TicketService";
-import { getStatuses } from "../utils/Utils";
+import { getStatuses, setStatusList as setStatusListInSession } from "../utils/Utils";
 import PaginationControls from "../components/PaginationControls";
 import { IconButton, Chip } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -18,7 +18,7 @@ import GenericInput from "../components/UI/Input/GenericInput";
 import DropdownController from "../components/UI/Dropdown/DropdownController";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { Ticket, TicketStatusWorkflow } from "../types";
-import { getStatusWorkflowMappings } from "../services/StatusService";
+import { getStatusWorkflowMappings, getAllowedStatusListByRoles } from "../services/StatusService";
 import { getCurrentUserDetails } from "../config/config";
 import { useNavigate } from "react-router-dom";
 
@@ -33,8 +33,10 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
 const MyTickets: React.FC = () => {
     const { data, pending, error, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
+    const { data: allowedStatusData, apiHandler: allowedStatusApiHandler } = useApi<any>();
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
+    const [allowedStatuses, setAllowedStatuses] = useState<string[]>([]);
 
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -111,6 +113,10 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         }
 
+        if (!statusParam && allowedStatuses.length > 0) {
+            statusParam = allowedStatuses.join(',');
+        }
+
         return searchTicketsPaginatedApiHandler(() =>
             searchTicketsPaginated(query, statusParam, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection)
         );
@@ -142,13 +148,24 @@ const MyTickets: React.FC = () => {
             page - 1,
             pageSize
         );
-    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection]);
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection, allowedStatuses]);
 
     useEffect(() => {
-        getStatuses().then(setStatusList);
         const roles = getCurrentUserDetails()?.role || [];
         workflowApiHandler(() => getStatusWorkflowMappings(roles));
+        allowedStatusApiHandler(() => getAllowedStatusListByRoles(roles));
     }, []);
+
+    useEffect(() => {
+        if (allowedStatusData) {
+            setAllowedStatuses(allowedStatusData);
+            getStatuses().then(list => {
+                const filtered = list.filter((s: any) => allowedStatusData.includes(s.statusId));
+                setStatusList(filtered);
+                setStatusListInSession(filtered);
+            });
+        }
+    }, [allowedStatusData]);
 
     useEffect(() => {
         if (workflowData) {
