@@ -9,6 +9,7 @@ import com.example.api.service.TicketService;
 import com.example.api.service.FileStorageService;
 import com.example.api.service.TicketSlaService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -40,8 +41,8 @@ public class TicketController {
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
         Page<TicketDto> p = ticketService.getTickets(priority,
-                PageRequest.of(page, size, org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.fromString(direction), sortBy)));
+                PageRequest.of(page, size, Sort.by(
+                        Sort.Direction.fromString(direction), sortBy)));
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(
                 p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         return ResponseEntity.ok(resp);
@@ -131,8 +132,7 @@ public class TicketController {
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
         Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority,
-                PageRequest.of(page, size, org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.fromString(direction), sortBy)));
+                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy)));
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         return ResponseEntity.ok(resp);
     }

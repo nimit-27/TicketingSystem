@@ -25,7 +25,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     Page<Ticket> findByPriority(String priority, Pageable pageable);
 
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
-            "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
+//            "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
+            "WHERE (:statusId IS NULL OR FIND_IN_SET(s.statusId, :statusId) > 0)" +
             "AND (:master IS NULL OR t.isMaster = :master) " +
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
             "AND (:priority IS NULL OR t.priority = :priority) " +

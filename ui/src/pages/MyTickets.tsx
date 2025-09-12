@@ -100,8 +100,8 @@ const MyTickets: React.FC = () => {
         } else if (isRequester) {
             requestorId = userId;
         } else if (isRno) {
-            requestorId = userId;
-            statusParam = "1,2"
+            // requestorId = userId;
+            statusParam = statusName ? statusName : "2,1"
         } else if (isItManager) {
             statusParam = "6"
         }
