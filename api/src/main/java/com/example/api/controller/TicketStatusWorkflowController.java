@@ -36,4 +36,10 @@ public class TicketStatusWorkflowController {
         List<Integer> ids = roles.stream().map(Integer::parseInt).toList();
         return ResponseEntity.ok(service.getMappingsByRoles(ids));
     }
+
+    @PostMapping("/allowed-statuses")
+    public ResponseEntity<List<String>> getAllowedStatusesByRoles(@RequestBody List<String> roles) {
+        List<Integer> ids = roles.stream().map(Integer::parseInt).toList();
+        return ResponseEntity.ok(service.getAllowedStatusIdListByRoles(ids));
+    }
 }

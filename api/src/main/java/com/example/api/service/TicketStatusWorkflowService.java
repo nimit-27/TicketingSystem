@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 public class TicketStatusWorkflowService {
@@ -71,6 +72,33 @@ public class TicketStatusWorkflowService {
         List<TicketStatusWorkflow> workflows = workflowRepository.findAllById(ids);
         return workflows.stream()
                 .collect(Collectors.groupingBy(tsw -> String.valueOf(tsw.getCurrentStatus())));
+    }
+
+    public List<String> getAllowedStatusIdListByRoles(List<Integer> roles) {
+        Set<Integer> actionIds = new HashSet<>();
+        if (roles == null || roles.isEmpty()) {
+            return List.of();
+        }
+        for (Role role : roleRepository.findAllById(roles)) {
+            String allowed = role.getAllowedStatusActionIds();
+            if (allowed != null && !allowed.isBlank()) {
+                for (String s : allowed.split("\\|")) {
+                    if (!s.isBlank()) {
+                        try {
+                            actionIds.add(Integer.parseInt(s.trim()));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        List<TicketStatusWorkflow> workflows = workflowRepository.findAllById(actionIds);
+        return workflows.stream()
+                .map(TicketStatusWorkflow::getCurrentStatus)
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public String getStatusIdByCode(String statusCode) {
