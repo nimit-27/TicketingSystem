@@ -20,6 +20,8 @@ import FileUpload, { ThumbnailList } from './UI/FileUpload';
 import FeedbackModal from './Feedback/FeedbackModal';
 import { getFeedback } from '../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../services/StatusService';
+import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
+import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
 
 interface TicketViewProps {
   ticketId: string;
@@ -28,10 +30,16 @@ interface TicketViewProps {
 }
 
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false }) => {
+  const { t } = useTranslation();
+
+  // USEAPI INITIALIZATIONS
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: updateTicketHandler } = useApi<any>();
+  const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
+
+  // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -40,20 +48,27 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [severity, setSeverity] = useState('');
   const [recommendedSeverity, setRecommendedSeverity] = useState('');
   const [priorityOptions, setPriorityOptions] = useState<string[]>([]);
-  const [severityOptions, setSeverityOptions] = useState<string[]>([]);
+  // const [severityOptions,] = useState<string[]>([]);
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityDetails, setSeverityDetails] = useState<SeverityInfo[]>([]);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
-  // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
-  const [statusWorkflows, setStatusWorkflows] = useState<any>({});
-  const emptyFileList = useMemo<File[]>(() => [], []);
-  const { t } = useTranslation();
-  
-  const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [hasFeedback, setHasFeedback] = useState(false);
+  // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
+  const [statusWorkflows, setStatusWorkflows] = useState<any>({});
+
+  const emptyFileList = useMemo<File[]>(() => [], []);
+
+  // PERMISSION BOOLEANS
+  const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
+  const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket.recommendedSeverity;
+  const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
+
+  // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
+  const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level })) : [];
+
   const roles = getCurrentUserDetails()?.role || [];
   const isItManager = roles.includes("9");
   const isRno = roles.includes("4");
@@ -62,16 +77,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (ticketId) {
       getTicketHandler(() => getTicket(ticketId));
       getPriorities().then(res => {
-        console.log(res?.data?.body?.data)
         const priorityData = Array.isArray(res?.data?.body?.data) ? res.data?.body?.data : [];
         setPriorityOptions(priorityData.map((p: PriorityInfo) => p.level));
         setPriorityDetails(priorityData);
       });
-      getSeverities().then(res => {
-        const severityData = Array.isArray(res?.data) ? res.data : [];
-        setSeverityOptions(severityData.map((s: SeverityInfo) => s.level));
-        setSeverityDetails(severityData);
-      });
+      getSeverityApiHandler(() => getSeverities())
+
+      // getSeverities().then(res => {
+      //   const severityData = Array.isArray(res?.data) ? res.data : [];
+      //   setSeverityOptions(severityData.map((s: SeverityInfo) => s.level));
+      //   setSeverityDetails(severityData);
+      // });
       const roles = getCurrentUserDetails()?.role || [];
       workflowApiHandler(() => getStatusWorkflowMappings(roles));
       getTicketSla(ticketId)
@@ -213,16 +229,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <Typography color="text.secondary" sx={{ mt: 1 }}>{value || '-'}</Typography>
     )
   );
-  const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
+  // const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
 
-  const getAvailableActions = useCallback((statusId?: string) => {
-    return (statusWorkflows[statusId || ''] || []).filter((a: any) => !disallowed.includes(a.action));
-  }, [statusWorkflows]);
+  // const getAvailableActions = useCallback((statusId?: string) => {
+  //   return (statusWorkflows[statusId || ''] || []).filter((a: any) => !disallowed.includes(a.action));
+  // }, [statusWorkflows]);
 
-  const canRecommendSeverity = useMemo(() => {
-    if (!ticket?.statusId) return false;
-    return getAvailableActions(ticket.statusId).some((a: { id: number; }) => a.id === 11);
-  }, [ticket?.statusId, getAvailableActions]);
+  // const canRecommendSeverity = useMemo(() => {
+  //   if (!ticket?.statusId) return false;
+  //   return getAvailableActions(ticket.statusId).some((a: { id: number; }) => a.id === 11);
+  // }, [ticket?.statusId, getAvailableActions]);
 
   const canEscalate = isItManager && ticket?.statusId === '6';
 
@@ -237,8 +253,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     </div>,
     [priorityDetails]
   );
-
-  console.log({ attachments })
 
   if (!ticket) return null;
 
@@ -304,7 +318,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           }, priorityOptions)}
           <InfoIcon content={priorityInfoContent()} />
         </Box>}
-        {!canEscalate && severity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+        {/* {!canEscalate && severity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
           {renderSelect(severity, setSeverity, severityOptions)}
           <InfoIcon content={(
@@ -314,8 +328,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               ))}
             </div>
           )} />
-        </Box>}
-        {canEscalate && (
+        </Box>} */}
+        {/* {canEscalate && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
             {recommendedSeverity && (
               <Button variant="outlined" size="small" onClick={handleApplyRecommendedSeverity}>
@@ -337,11 +351,42 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>
             <Button variant="contained" size="small" onClick={handleEscalate}>Submit</Button>
           </Box>
-        )}
-        {canRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+        )} */}
+        {showRecommendedSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.recommendedSeverity}</Typography>
+        </Box>}
+        {/* {showRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
+          <Select
+            value={recommendedSeverity}
+            onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+            fullWidth
+            size="small"
+          >
+            {(Array.isArray(severityOptions) && severityOptions.length > 0) ? severityOptions.map(o => (
+              <MenuItem key={o} value={o}>{o}</MenuItem>
+            )) : <MenuItem key="" value="">None</MenuItem>}
+          </Select>
+        </Box>} */}
+        {showRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
+          <div className="col-md-4 mb-3 px-4">
+            <GenericDropdown
+              name="recommendedSeverity"
+              value={recommendedSeverity}
+              onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+              // control={control}
+              label="Recommend Severity"
+              options={severityOptions}
+              className="form-select"
+            />
+          </div>
+        </Box>}
+        {/* {canRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
           {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
-        </Box>}
+        </Box>} */}
       </Box>
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>

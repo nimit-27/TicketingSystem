@@ -44,7 +44,7 @@ const MyTickets: React.FC = () => {
     const [search, setSearch] = useState("");
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const showTable = checkMyTicketsAccess('table');
+    const showTable = checkMyTicketsAccess('ticketsTable');
     const showGrid = checkMyTicketsAccess('grid');
     const [viewMode, setViewMode] = useState<"grid" | "table">(showTable ? 'table' : 'grid');
     const [filtered, setFiltered] = useState<TicketRow[]>([]);
@@ -101,9 +101,6 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         } else if (isRequester) {
             requestorId = userId;
-        } else if (isRno) {
-            // requestorId = userId;
-            statusParam = statusName ? statusName : "2,1"
         } else if (isItManager) {
             statusParam = "6"
         }
@@ -134,6 +131,7 @@ const MyTickets: React.FC = () => {
     const searchCurrentTicketsPaginatedApi = useCallback(
         async (id: string) => {
             setRefreshingTicketId(id);
+
             await searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
             setRefreshingTicketId(null);
         },
@@ -148,7 +146,17 @@ const MyTickets: React.FC = () => {
             page - 1,
             pageSize
         );
-    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection, allowedStatuses]);
+    }, [page, sortBy, sortDirection]);
+
+    useEffect(() => {
+        searchTicketsPaginatedApi(
+            debouncedSearch,
+            statusFilter === 'All' ? undefined : statusFilter,
+            masterOnly ? true : undefined,
+            1,
+            pageSize
+        );
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, pageSize, allowedStatuses]);
 
     useEffect(() => {
         const roles = getCurrentUserDetails()?.role || [];

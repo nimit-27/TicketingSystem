@@ -1,5 +1,6 @@
 import { getStatusListFromApi } from "../services/StatusService";
 import i18n from "../i18n";
+import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 
 export interface UserDetails {
   userId: string;
@@ -61,19 +62,19 @@ export function getStatusColorById(statusId: string): string | null {
 }
 
 export async function getStatuses(): Promise<any[]> {
-    if (statusCache) {
-        return statusCache;
-    }
-    const stored = getStatusList();
-    if (stored) {
-        statusCache = stored;
-        return stored;
-    }
-    const res = await getStatusListFromApi();
-    const list = res.data.body.data;
-    statusCache = list;
-    setStatusList(list);
-    return list;
+  if (statusCache) {
+    return statusCache;
+  }
+  const stored = getStatusList();
+  if (stored) {
+    statusCache = stored;
+    return stored;
+  }
+  const res = await getStatusListFromApi();
+  const list = res.data.body.data;
+  statusCache = list;
+  setStatusList(list);
+  return list;
 }
 
 export function truncateWithEllipsis(str: string, maxLength: number): string {
@@ -94,8 +95,8 @@ export function formatDateWithSuffix(date: string | Date): string {
     k = day % 100;
   const suffix = j === 1 && k !== 11 ? 'st'
     : j === 2 && k !== 12 ? 'nd'
-    : j === 3 && k !== 13 ? 'rd'
-    : 'th';
+      : j === 3 && k !== 13 ? 'rd'
+        : 'th';
   const month = d.toLocaleString('en-US', { month: 'long' });
   const year = d.getFullYear();
   return `${day}${suffix} ${month}, ${year}`;
@@ -105,4 +106,13 @@ export function logout() {
   sessionStorage.clear();
   statusCache = null;
   window.location.href = '/login';
+}
+
+export function getDropdownOptions<T>(arr: T[] | any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] {
+  return Array.isArray(arr)
+    ? arr.map(item => ({
+      label: String(item[labelKey]),
+      value: item[valueKey]
+    }))
+    : [];
 }

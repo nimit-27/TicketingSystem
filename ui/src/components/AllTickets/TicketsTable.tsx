@@ -67,7 +67,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
-    let allowAssignment = checkAccessMaster(['myTickets', 'ticketTable', 'columns', 'assignee', 'allowAssignment']);
+    let allowAssignment = checkAccessMaster(['myTickets', 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
 
     const sortOptions: DropdownOption[] = [
         { label: 'Created Date', value: 'reportedDate' },
