@@ -31,10 +31,7 @@ const RaiseTicket: React.FC<any> = () => {
     const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
     const [attachments, setAttachments] = useState<File[]>([]);
 
-    console.log({ attachments })
-
     const onSubmit = (formValues: any) => {
-        console.log("On Submit called");
         const {
             name,
             emailId,
@@ -87,7 +84,6 @@ const RaiseTicket: React.FC<any> = () => {
                 setCreatedTicketId(ticketId);
 
                 const files: File[] = Array.isArray(attachments) ? attachments : [];
-                console.log({ files })
                 // 2) If files selected, upload them against created ticket
                 if (ticketId && files.length > 0) {
                     return apiHandler(() => addAttachments(ticketId, files))

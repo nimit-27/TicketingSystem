@@ -18,6 +18,7 @@ import { getSeverities } from "../../services/SeverityService";
 import InfoIcon from "../UI/Icons/InfoIcon";
 import { PriorityInfo, SeverityInfo } from "../../types";
 import FileUpload from "../UI/FileUpload";
+import { getDropdownOptions } from "../../utils/Utils";
 
 interface TicketDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -34,23 +35,18 @@ const impactOptions: DropdownOption[] = [
 ];
 
 
-const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
-    Array.isArray(arr)
-        ? arr.map(item => ({
-            label: String(item[labelKey]),
-            value: item[valueKey]
-        }))
-        : [];
+// const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
+//     Array.isArray(arr)
+//         ? arr.map(item => ({
+//             label: String(item[labelKey]),
+//             value: item[valueKey]
+//         }))
+//         : [];
 
 const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setValue, errors, disableAll = false, subjectDisabled = false, actionElement, createMode, attachments, setAttachments }) => {
-
     const { t } = useTranslation();
 
-    const [assignFurther, setAssignFurther] = useState<boolean>(false);
-
-    const stableAttachments = useMemo(() => attachments ?? [], [attachments]);
-
-    // useApi hook initializations
+    // USEAPI INITIALIZATIONS
     const { data: allLevels, pending: isLevelsLoading, error: levelsError, apiHandler: getAllLevelApiHandler } = useApi();
     const { data: allUsersByLevel, pending, error, apiHandler: getAllUsersByLevelHandler } = useApi();
     const { data: allCategories, pending: isCategoriesLoading, error: categoriesError, apiHandler: getCategoriesApiHandler } = useApi();
@@ -59,9 +55,12 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const { data: priorityList, apiHandler: getPriorityApiHandler } = useApi<any>();
     const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
 
-    // Field visibility booleans
+    // USESTATE INITIALIZATIONS
+    const [assignFurther, setAssignFurther] = useState<boolean>(false);
 
-    // getDropdownOptions(arr, label, value)
+    const stableAttachments = useMemo(() => attachments ?? [], [attachments]);
+
+    // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
     const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'username');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'categoryId');
@@ -113,8 +112,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const userRoles = getCurrentUserDetails()?.role || [];
     const isTeamLead = userRoles.includes('TEAM_LEAD') || userRoles.includes('TL') || userRoles.includes('TeamLead');
     let showStatus = checkFieldAccess('ticketDetails', 'status') && !createMode && !isTeamLead;
-
-    console.log({ nextStatusListByStatusIdData })
 
     const getNextStatusListByStatusIdApi = (statusId: string) => getNextStatusListByStatusIdApiHandler(() => getNextStatusListByStatusId(statusId))
 
@@ -230,7 +227,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <InfoIcon content={priorityContent} />
                     </div>
                 )}
-                {showSeverityFields && (
+                {true && (
+                    // {showSeverityFields && (
                     <>
                         {showSelectedImpact && (
                             <div className="col-md-4 mb-3 px-4">
@@ -244,7 +242,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                                 />
                             </div>
                         )}
-                        {showRecommendedSeverity && (
+                        {!createMode && showRecommendedSeverity && (
                             <div className="col-md-4 mb-3 px-4">
                                 <GenericDropdownController
                                     name="recommendedSeverity"
@@ -256,7 +254,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                                 />
                             </div>
                         )}
-                        {showSeverity && (
+                        {!createMode && showSeverity && (
                             <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
                                 <GenericDropdownController
                                     name="severity"

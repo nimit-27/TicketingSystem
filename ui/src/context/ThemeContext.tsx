@@ -19,7 +19,6 @@ const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [layout, setLayout] = useState<number>(1);
   const toggleLayout = () => {
-    console.log('Current Layout:', layout);
     setLayout(layout === 3 ? 1 : layout + 1);
   }
 

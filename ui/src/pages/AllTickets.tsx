@@ -37,8 +37,6 @@ const AllTickets: React.FC = () => {
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
 
-    console.log({ workflowData })
-
     const navigate = useNavigate();
 
     const [search, setSearch] = useState("");

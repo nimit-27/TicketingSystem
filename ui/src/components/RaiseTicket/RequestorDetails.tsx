@@ -135,14 +135,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         }
     }, [mode]);
 
-    console.log({ pending, userDetailsData, success });
     useEffect(() => {
-        console.log("Pending:", pending, "Success:", success);
         if (success) {
-            console.log("Pending:", pending);
             setVerified(true);
             if (setValue && userDetailsData) {
-                console.log("Data:", userDetailsData);
                 populateUserDetails(userDetailsData)
                 setDisabled(true)
             }

@@ -21,7 +21,6 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level }) => {
   return (
     <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
       {Array.from({ length: count }).map((_, i) => {
-        console.log({ i })
         return <IconComponent
           icon='arrowup'
           fontSize='small'
