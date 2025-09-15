@@ -193,6 +193,7 @@ public class TicketService {
             statusMasterRepository.findById(assignId).ifPresent(ticket::setStatus);
         }
         System.out.println("TicketService: Saving the ticket to repository now...");
+        ticket.setLastModified(LocalDateTime.now());
         Ticket saved = ticketRepository.save(ticket);
 
         String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
@@ -304,6 +305,7 @@ public class TicketService {
             }
         }
         if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
+        existing.setLastModified(LocalDateTime.now());
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
         if (assignmentChangeAllowed && !updated.getAssignedTo().equals(previousAssignedTo)) {
