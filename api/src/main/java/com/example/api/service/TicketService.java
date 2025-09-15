@@ -238,9 +238,11 @@ public class TicketService {
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          Pageable pageable) {
-        ArrayList<String> statusIds = Arrays.stream(statusId.split(","))
-                .map(String::trim)
-                .collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
+                ? null
+                : Arrays.stream(statusId.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toCollection(ArrayList::new));
         Page<Ticket> page = ticketRepository.searchTickets(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, pageable);
         return page.map(this::mapWithStatusId);
     }
