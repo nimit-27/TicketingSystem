@@ -30,9 +30,8 @@ import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -239,7 +238,10 @@ public class TicketService {
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          Pageable pageable) {
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, pageable);
+        ArrayList<String> statusIds = Arrays.stream(statusId.split(","))
+                .map(String::trim)
+                .collect(Collectors.toCollection(ArrayList::new));
+        Page<Ticket> page = ticketRepository.searchTickets(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, pageable);
         return page.map(this::mapWithStatusId);
     }
 
