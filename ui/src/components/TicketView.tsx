@@ -63,7 +63,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // PERMISSION BOOLEANS
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
-  const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket.recommendedSeverity;
+  const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
