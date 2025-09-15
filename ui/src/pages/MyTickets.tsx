@@ -153,7 +153,7 @@ const MyTickets: React.FC = () => {
             debouncedSearch,
             statusFilter === 'All' ? undefined : statusFilter,
             masterOnly ? true : undefined,
-            1,
+            0,
             pageSize
         );
     }, [debouncedSearch, statusFilter, masterOnly, levelFilter, pageSize, allowedStatuses]);
