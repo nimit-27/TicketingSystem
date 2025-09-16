@@ -24,6 +24,7 @@ import { getStatusWorkflowMappings } from '../services/StatusService';
 import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
 import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
 import ActionRemarkComponent from './AllTickets/ActionRemarkComponent';
+import { getDropdownOptions } from '../utils/Utils';
 
 interface TicketViewProps {
   ticketId: string;
@@ -72,7 +73,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const showSeverityToRecommendSeverity = showSeverity && (severityToRecommendSeverity || showRecommendedSeverity)
 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
-  const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
+  // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
+  const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'level');
+  console.log({ severityOptions })
   const severityLevels: string[] = severityList.map((s: SeverityInfo) => s.level);
 
   const roles = getCurrentUserDetails()?.role || [];
@@ -384,29 +387,30 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                   setShowRecommendRemark(false);
                 }}
               />
-              <Box className="col-md-5 w-50 px-0" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <GenericDropdown
-                  name="recommendedSeverity"
-                  value={recommendedSeverity}
-                  onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
-                  // control={control}
-                  label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
-                  options={severityOptions}
-                  className="form-select"
+              <GenericDropdown
+                name="recommendedSeverity"
+                value={recommendedSeverity}
+                onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+                // control={control}
+                label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
+                options={severityOptions}
+                className="form-select"
+              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <CustomIconButton
+                  icon="close"
+                  onClick={() => {
+                    cancelEditing();
+                    setShowRecommendRemark(false);
+                    setSeverityToRecommendSeverity(false);
+                  }}
                 />
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <CustomIconButton
-                    icon="close"
-                    onClick={() => {
-                      cancelEditing();
-                      setShowRecommendRemark(false);
-                      setSeverityToRecommendSeverity(false);
-                    }}
-                  />
-                  {!showRecommendRemark && (
-                    <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
-                  )}
-                </Box>
+                {!showRecommendRemark && (
+                  <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
+                )}
+              </Box>
+              <InfoIcon content={severityInfoContent} />
+              <Box className="col-md-5 w-50 px-0" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {showRecommendRemark && (
                   <Box sx={{ mt: 1 }}>
                     <ActionRemarkComponent
@@ -418,7 +422,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 )}
               </Box>
             </Box>}
-          <InfoIcon content={severityInfoContent} />
         </Box>}
         {/* {canEscalate && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>

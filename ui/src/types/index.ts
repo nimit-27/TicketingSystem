@@ -36,6 +36,7 @@ export interface SeverityInfo {
     id: string;
     level: string;
     description: string;
+    weightage: number;
 }
 
 export interface Ticket {
@@ -69,9 +70,9 @@ export interface TicketStatusWorkflow {
 }
 
 export interface ToggleOption {
-  icon?: string; // optional
-  value: string;
-  label?: string; // optional
+    icon?: string; // optional
+    value: string;
+    label?: string; // optional
 }
 
 export interface ApiError {
