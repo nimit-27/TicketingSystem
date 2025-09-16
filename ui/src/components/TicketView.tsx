@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo, use } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, use } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -23,6 +23,7 @@ import { getFeedback } from '../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../services/StatusService';
 import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
 import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
+import ActionRemarkComponent from './AllTickets/ActionRemarkComponent';
 
 interface TicketViewProps {
   ticketId: string;
@@ -58,6 +59,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
   const [severityToRecommendSeverity, setSeverityToRecommendSeverity] = useState<boolean>(false);
+  const [showRecommendRemark, setShowRecommendRemark] = useState(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -129,7 +131,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   }, [workflowData]);
 
-  const handleSave = () => {
+  const updateTicketDetails = (remark?: string) => {
     if (!ticketId) return;
     const payload: any = {
       subject,
@@ -139,14 +141,27 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       recommendedSeverity,
       updatedBy: getCurrentUserDetails()?.username
     };
+    if (remark !== undefined) {
+      payload.remark = remark;
+    }
     if (isRno && recommendedSeverity && ticket?.statusId !== '6') {
       payload.status = { statusId: '6' };
       payload.severityRecommendedBy = getCurrentUserDetails()?.username;
     }
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
       setEditing(false);
+      setShowRecommendRemark(false);
+      setSeverityToRecommendSeverity(false);
       getTicketHandler(() => getTicket(ticketId));
     });
+  };
+
+  const handleSave = () => {
+    updateTicketDetails();
+  };
+
+  const handleSubmitRecommendSeverity = (remark: string) => {
+    updateTicketDetails(remark);
   };
 
   const handleApplyRecommendedSeverity = () => {
@@ -169,6 +184,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const cancelEditing = () => {
     setEditing(false);
+    setShowRecommendRemark(false);
+    setSeverityToRecommendSeverity(false);
     if (ticket) {
       setSubject(ticket.subject || '');
       setDescription(ticket.description || '');
@@ -360,8 +377,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               </GenericButton>
             </>
             : <Box className='col-8' sx={{ display: 'flex', gap: 2 }}>
-              <CustomIconButton icon="keyboardDoubleArrowRight" onClick={() => setSeverityToRecommendSeverity(false)} />
-              <div className="col-md-5 w-50 px-0">
+              <CustomIconButton
+                icon="keyboardDoubleArrowRight"
+                onClick={() => {
+                  setSeverityToRecommendSeverity(false);
+                  setShowRecommendRemark(false);
+                }}
+              />
+              <Box className="col-md-5 w-50 px-0" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <GenericDropdown
                   name="recommendedSeverity"
                   value={recommendedSeverity}
@@ -371,11 +394,29 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                   options={severityOptions}
                   className="form-select"
                 />
-                <>
-                  <CustomIconButton icon="close" onClick={cancelEditing} />
-                  <CustomIconButton icon="check" onClick={handleSave} />
-                </>
-              </div>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <CustomIconButton
+                    icon="close"
+                    onClick={() => {
+                      cancelEditing();
+                      setShowRecommendRemark(false);
+                      setSeverityToRecommendSeverity(false);
+                    }}
+                  />
+                  {!showRecommendRemark && (
+                    <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
+                  )}
+                </Box>
+                {showRecommendRemark && (
+                  <Box sx={{ mt: 1 }}>
+                    <ActionRemarkComponent
+                      actionName="Recommend Severity"
+                      onCancel={() => setShowRecommendRemark(false)}
+                      onSubmit={handleSubmitRecommendSeverity}
+                    />
+                  </Box>
+                )}
+              </Box>
             </Box>}
           <InfoIcon content={severityInfoContent} />
         </Box>}
