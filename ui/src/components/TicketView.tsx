@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, use } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -57,13 +57,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [hasFeedback, setHasFeedback] = useState(false);
   // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
+  const [severityToRecommendSevertiy, setSeverityToRecommendSevertiy] = useState<boolean>(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
+
 
   // PERMISSION BOOLEANS
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
+  const showSeverity = checkFieldAccess('ticketDetails', 'severity');
+  const showSeverityToRecommendSevertiy = showSeverity && (severityToRecommendSevertiy || showRecommendedSeverity)
 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
   const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
@@ -263,7 +267,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
 
-  const priorityInfoContent = useCallback(() =>
+  const priorityInfoContent = useMemo(() =>
     <div>
       {priorityDetails.map(p => (
         <div key={p.id}>{p.level} - {p.description}</div>
@@ -271,6 +275,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     </div>,
     [priorityDetails]
   );
+
+  const severityInfoContent = useMemo(() => (
+    <div>
+      {severityList.map(s => <div key={s.id}>{s.level} - {s.description}</div>)}
+    </div>
+  ), [severityList]);
 
   if (!ticket) return null;
 
@@ -334,19 +344,34 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             const selected = priorityDetails.find(p => p.level === val);
             setPriorityId(selected ? selected.id : '');
           }, priorityOptions)}
-          <InfoIcon content={priorityInfoContent()} />
+          <InfoIcon content={priorityInfoContent} />
         </Box>}
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
-          {renderSelect(severity, setSeverity, severityLevels)}
-          <InfoIcon content={(
-            <div>
-              {severityList.map(s => (
-                <div key={s.id}>{s.level} - {s.description}</div>
-              ))}
-            </div>
-          )} />
-        </Box>
+        {showSeverity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+          {!showRecommendedSeverity
+            ? <>
+              <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
+              <GenericButton
+                variant="contained"
+                size="small"
+                onClick={() => setSeverityToRecommendSevertiy(!severityToRecommendSevertiy)}
+                sx={{ mt: 2 }}
+              >
+                Recommend Severity
+              </GenericButton>
+            </>
+            : <>
+              <div className='d-flex flex-column'>
+                <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
+              </div>
+              <div className='d-flex flex-column'>
+                <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
+              </div>
+            </>}
+          <InfoIcon content={severityInfoContent} />
+        </Box>}
         {/* {canEscalate && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
             {recommendedSeverity && (
