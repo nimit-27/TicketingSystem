@@ -57,7 +57,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [hasFeedback, setHasFeedback] = useState(false);
   // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
-  const [severityToRecommendSevertiy, setSeverityToRecommendSevertiy] = useState<boolean>(false);
+  const [severityToRecommendSeverity, setSeverityToRecommendSeverity] = useState<boolean>(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -67,7 +67,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
   const showSeverity = checkFieldAccess('ticketDetails', 'severity');
-  const showSeverityToRecommendSevertiy = showSeverity && (severityToRecommendSevertiy || showRecommendedSeverity)
+  const showSeverityToRecommendSeverity = showSeverity && (severityToRecommendSeverity || showRecommendedSeverity)
 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
   const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
@@ -347,20 +347,20 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <InfoIcon content={priorityInfoContent} />
         </Box>}
         {showSeverity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-          {!showRecommendedSeverity
+          {!showSeverityToRecommendSeverity
             ? <>
               <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
               <GenericButton
                 variant="contained"
                 size="small"
-                onClick={() => setSeverityToRecommendSevertiy(!severityToRecommendSevertiy)}
+                onClick={() => setSeverityToRecommendSeverity(!severityToRecommendSeverity)}
                 sx={{ mt: 2 }}
               >
                 Recommend Severity
               </GenericButton>
             </>
-            : <>
+            : <Box sx={{ display: 'flex', gap: 2 }}>
               <div className='d-flex flex-column'>
                 <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
                 <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
@@ -369,7 +369,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
                 <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
               </div>
-            </>}
+            </Box>}
           <InfoIcon content={severityInfoContent} />
         </Box>}
         {/* {canEscalate && (
