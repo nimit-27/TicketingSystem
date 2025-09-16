@@ -346,28 +346,35 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           }, priorityOptions)}
           <InfoIcon content={priorityInfoContent} />
         </Box>}
-        {showSeverity && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+        {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Typography className="me-2" color="text.secondary">Severity</Typography>
+          <Typography color="text.secondary">{ticket.severity}</Typography>
           {!showSeverityToRecommendSeverity
             ? <>
-              <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
               <GenericButton
                 variant="contained"
                 size="small"
-                onClick={() => setSeverityToRecommendSeverity(!severityToRecommendSeverity)}
-                sx={{ mt: 2 }}
+                onClick={() => setSeverityToRecommendSeverity(true)}
               >
                 Recommend Severity
               </GenericButton>
             </>
-            : <Box sx={{ display: 'flex', gap: 2 }}>
-              <div className='d-flex flex-column'>
-                <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Severity</Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
-              </div>
-              <div className='d-flex flex-column'>
-                <Typography className="me-2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.severity}</Typography>
+            : <Box className='col-8' sx={{ display: 'flex', gap: 2 }}>
+              <CustomIconButton icon="keyboardDoubleArrowRight" onClick={() => setSeverityToRecommendSeverity(false)} />
+              <div className="col-md-5 w-50 px-0">
+                <GenericDropdown
+                  name="recommendedSeverity"
+                  value={recommendedSeverity}
+                  onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+                  // control={control}
+                  label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
+                  options={severityOptions}
+                  className="form-select"
+                />
+                <>
+                  <CustomIconButton icon="close" onClick={cancelEditing} />
+                  <CustomIconButton icon="check" onClick={handleSave} />
+                </>
               </div>
             </Box>}
           <InfoIcon content={severityInfoContent} />

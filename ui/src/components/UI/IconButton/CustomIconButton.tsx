@@ -38,6 +38,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PortraitIcon from '@mui/icons-material/Portrait';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
@@ -69,7 +70,7 @@ const iconMap = {
     northEast: NorthEast,
     moving: Moving,
     personAddAlt: PersonAddAlt,
-    listAlt:ListAltIcon,
+    listAlt: ListAltIcon,
     lock: LockIcon,
     addCircleOutline: AddCircleOutlineIcon,
     libraryBooks: LibraryBooksIcon,
@@ -84,6 +85,7 @@ const iconMap = {
     portrait: PortraitIcon,
     formatColorFill: FormatColorFillIcon,
     feedback: FeedbackIcon,
+    keyboardDoubleArrowRight: KeyboardDoubleArrowRightIcon,
 };
 
 // Valid keys for the icon map
@@ -101,11 +103,11 @@ export const IconComponent: React.FC<{
     className,
     style,
 }) => {
-    const key = icon as IconKey;
-    const Icon = iconMap[key];
+        const key = icon as IconKey;
+        const Icon = iconMap[key];
 
-    return Icon ? <Icon fontSize={fontSize} className={className} style={style} /> : icon;
-};
+        return Icon ? <Icon fontSize={fontSize} className={className} style={style} /> : icon;
+    };
 
 interface CustomIconButtonProps extends IconButtonProps {
     icon: string;
