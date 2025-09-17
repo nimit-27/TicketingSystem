@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, Box } from '@mui/material';
-import ActionRemarkComponent from './ActionRemarkComponent';
+import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { getCurrentUserDetails } from '../../config/config';
 import { updateTicket } from '../../services/TicketService';
 import CustomTabsComponent, { TabItem } from '../UI/CustomTabsComponent';
@@ -123,7 +123,7 @@ const AssignUserTab: React.FC<{
                 </Box>
                 {showActionRemark && selectedUser && (
                     <Box sx={{ mt: 1 }}>
-                        <ActionRemarkComponent
+                        <RemarkComponent
                             actionName="Assign"
                             onCancel={handleCancelRemark}
                             onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
@@ -141,7 +141,7 @@ const RequesterTab: React.FC<{
     onSubmit: (remark: string) => void;
 }> = ({ onCancel, onSubmit }) => (
     <Box sx={{ mt: 1 }}>
-        <ActionRemarkComponent
+        <RemarkComponent
             actionName="Assign to Requester"
             onCancel={onCancel}
             onSubmit={onSubmit}
@@ -202,7 +202,7 @@ const RnoTab: React.FC<{
             </Box>
             {showActionRemark && selectedUser && (
                 <Box sx={{ mt: 1 }}>
-                    <ActionRemarkComponent
+                    <RemarkComponent
                         actionName="Assign"
                         onCancel={handleCancelRemark}
                         onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}

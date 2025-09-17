@@ -9,7 +9,7 @@ import { getStatusNameById, truncateWithEllipsis } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { Menu, MenuItem, ListItemIcon, Tooltip, Button } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
-import ActionRemarkComponent from './ActionRemarkComponent';
+import RemarkComponent from '../UI/Remark/RemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
@@ -143,7 +143,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         if (!selectedAction || record.id !== selectedAction.ticketId) return null;
         return (
             <>
-                <ActionRemarkComponent
+                <RemarkComponent
                     actionName={selectedAction.action.action}
                     onCancel={cancelAction}
                     onSubmit={(remark) => {

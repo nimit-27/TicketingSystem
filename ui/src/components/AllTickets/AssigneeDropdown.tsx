@@ -7,7 +7,7 @@ import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import './AssigneeDropdown.scss';
-import ActionRemarkComponent from './ActionRemarkComponent';
+import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
 import AdvancedAssignmentOptionsDialog from './AdvancedAssignmentOptionsDialog';
@@ -174,7 +174,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
             </Box>
             {showActionRemark && selectedUser && (
                 <Box sx={{ mt: 1 }}>
-                    <ActionRemarkComponent
+                    <RemarkComponent
                         actionName="Assign"
                         onCancel={handleCancelRemark}
                         onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}

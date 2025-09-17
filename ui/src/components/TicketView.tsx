@@ -23,7 +23,7 @@ import { getFeedback } from '../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../services/StatusService';
 import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
 import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
-import ActionRemarkComponent from './AllTickets/ActionRemarkComponent';
+import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions } from '../utils/Utils';
 
 interface TicketViewProps {
@@ -410,17 +410,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 )}
               </Box>
               <InfoIcon content={severityInfoContent} />
-              <Box className="col-md-5 w-50 px-0" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {showRecommendRemark && (
-                  <Box sx={{ mt: 1 }}>
-                    <ActionRemarkComponent
-                      actionName="Recommend Severity"
-                      onCancel={() => setShowRecommendRemark(false)}
-                      onSubmit={handleSubmitRecommendSeverity}
-                    />
-                  </Box>
-                )}
-              </Box>
             </Box>}
         </Box>}
         {/* {canEscalate && (
@@ -506,6 +495,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
       <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={() => setFeedbackOpen(false)} />
+      <RemarkComponent
+        isModal
+        open={showRecommendRemark}
+        actionName="Recommend Severity"
+        title="Recommend Severity Remark"
+        textFieldLabel="Remark"
+        onCancel={() => setShowRecommendRemark(false)}
+        onSubmit={handleSubmitRecommendSeverity}
+      />
     </Box>
   );
 };
