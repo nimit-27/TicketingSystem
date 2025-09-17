@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { getStatusNameById, getStatusColorById, truncateWithEllipsis } from '../../utils/Utils';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
-import ActionRemarkComponent from './ActionRemarkComponent';
+import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -236,7 +236,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
             </Menu>
             {showActionRemark && selectedAction && (
                 <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'grey.300' }} onClick={(e) => e.stopPropagation()}>
-                    <ActionRemarkComponent
+                    <RemarkComponent
                         actionName={selectedAction.action}
                         onCancel={cancelAction}
                         onSubmit={handleSubmitRemark}
