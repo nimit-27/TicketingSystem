@@ -9,6 +9,7 @@ import com.example.api.models.TicketComment;
 import com.example.api.models.StatusHistory;
 import com.example.api.models.SubCategory;
 import com.example.api.models.Severity;
+import com.example.api.models.RecommendedSeverityFlow;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
@@ -17,12 +18,14 @@ import com.example.api.repository.CategoryRepository;
 import com.example.api.repository.SubCategoryRepository;
 import com.example.api.repository.PriorityRepository;
 import com.example.api.repository.UploadedFileRepository;
+import com.example.api.repository.RecommendedSeverityFlowRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
 import com.example.api.service.TicketStatusWorkflowService;
 import com.example.api.service.TicketSlaService;
 import com.example.api.enums.TicketStatus;
 import com.example.api.enums.FeedbackStatus;
+import com.example.api.enums.RecommendedSeverityStatus;
 import com.example.api.typesense.TypesenseClient;
 import com.example.notification.enums.ChannelType;
 import com.example.notification.service.NotificationService;
@@ -52,6 +55,7 @@ public class TicketService {
     private final PriorityRepository priorityRepository;
     private final UploadedFileRepository uploadedFileRepository;
     private final TicketSlaService ticketSlaService;
+    private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
 
 
     public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
@@ -65,7 +69,8 @@ public class TicketService {
                          PriorityRepository priorityRepository,
                          UploadedFileRepository uploadedFileRepository,
                          NotificationService notificationService,
-                         TicketSlaService ticketSlaService) {
+                         TicketSlaService ticketSlaService,
+                         RecommendedSeverityFlowRepository recommendedSeverityFlowRepository) {
         this.typesenseClient = typesenseClient;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
@@ -80,6 +85,7 @@ public class TicketService {
         this.uploadedFileRepository = uploadedFileRepository;
         this.notificationService = notificationService;
         this.ticketSlaService = ticketSlaService;
+        this.recommendedSeverityFlowRepository = recommendedSeverityFlowRepository;
     }
 
     public List<Ticket> getTickets() {
@@ -128,6 +134,16 @@ public class TicketService {
             java.util.List<String> paths = files.stream().map(com.example.api.models.UploadedFile::getRelativePath).toList();
             dto.setAttachmentPath(String.join(",", paths));
             dto.setAttachmentPaths(paths);
+        }
+        if (ticket.getId() != null && ticket.getRecommendedSeverity() != null) {
+            recommendedSeverityFlowRepository
+                    .findTopByTicket_IdAndRecommendedSeverityOrderByIdDesc(ticket.getId(), ticket.getRecommendedSeverity())
+                    .ifPresent(flow -> {
+                        if (flow.getRecommendedSeverityStatus() != null) {
+                            dto.setRecommendedSeverityStatus(flow.getRecommendedSeverityStatus().name());
+                        }
+                        dto.setSeverityApprovedBy(flow.getSeverityApprovedBy());
+                    });
         }
         return dto;
     }
@@ -251,10 +267,22 @@ public class TicketService {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
+        String previousSeverity = existing.getSeverity();
+        String previousRecommendedSeverity = existing.getRecommendedSeverity();
+        String previousRecommendedBy = existing.getSeverityRecommendedBy();
         String previousAssignedTo = existing.getAssignedTo();
         TicketStatus previousStatus = existing.getTicketStatus();
         String previousStatusId = existing.getStatus() != null ? existing.getStatus().getStatusId()
                 : (previousStatus != null ? workflowService.getStatusIdByCode(previousStatus.name()) : null);
+
+        boolean recommendedSeverityChanged = updated.getRecommendedSeverity() != null
+                && !java.util.Objects.equals(updated.getRecommendedSeverity(), previousRecommendedSeverity);
+        boolean recommendedByChanged = updated.getSeverityRecommendedBy() != null
+                && !java.util.Objects.equals(updated.getSeverityRecommendedBy(), previousRecommendedBy);
+        boolean severityApproved = updated.getSeverity() != null
+                && previousRecommendedSeverity != null
+                && updated.getSeverity().equals(previousRecommendedSeverity)
+                && !java.util.Objects.equals(previousSeverity, updated.getSeverity());
 
         TicketStatus updatedStatus = updated.getTicketStatus();
         String updatedStatusId = updated.getStatus() != null ? updated.getStatus().getStatusId() : null;
@@ -338,6 +366,30 @@ public class TicketService {
                     && remark != null && !remark.isBlank()) {
                 assignmentHistoryService.addHistory(id, updatedBy, existing.getAssignedTo(), existing.getLevelId(), remark);
             }
+        }
+
+        if ((recommendedSeverityChanged || recommendedByChanged)
+                && saved.getRecommendedSeverity() != null
+                && updated.getSeverityRecommendedBy() != null) {
+            RecommendedSeverityFlow flow = new RecommendedSeverityFlow();
+            flow.setTicket(saved);
+            flow.setSeverity(saved.getSeverity());
+            flow.setRecommendedSeverity(saved.getRecommendedSeverity());
+            flow.setSeverityRecommendedBy(saved.getSeverityRecommendedBy());
+            flow.setRecommendedSeverityStatus(RecommendedSeverityStatus.PENDING);
+            flow.setSeverityApprovedBy(null);
+            recommendedSeverityFlowRepository.save(flow);
+        }
+
+        if (severityApproved && previousRecommendedSeverity != null) {
+            final String approver = updatedBy;
+            recommendedSeverityFlowRepository
+                    .findTopByTicket_IdAndRecommendedSeverityAndRecommendedSeverityStatusOrderByIdDesc(id, previousRecommendedSeverity, RecommendedSeverityStatus.PENDING)
+                    .ifPresent(flow -> {
+                        flow.setRecommendedSeverityStatus(RecommendedSeverityStatus.APPROVED);
+                        flow.setSeverityApprovedBy(approver);
+                        recommendedSeverityFlowRepository.save(flow);
+                    });
         }
         return mapWithStatusId(saved);
     }

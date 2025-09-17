@@ -34,6 +34,8 @@ public class TicketDto {
     private String recommendedSeverity;
     private String impact;
     private String severityRecommendedBy;
+    private String recommendedSeverityStatus;
+    private String severityApprovedBy;
     private TicketStatus status;
     private String statusId;
     private String statusLabel;
