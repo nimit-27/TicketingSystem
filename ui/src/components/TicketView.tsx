@@ -78,7 +78,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   console.log({ severityOptions })
   const severityLevels: string[] = severityList.map((s: SeverityInfo) => s.level);
 
-  const roles = getCurrentUserDetails()?.role || [];
+  const currentUserDetails = getCurrentUserDetails();
+  const currentUsername = currentUserDetails?.username || '';
+  const roles = currentUserDetails?.role || [];
   const isItManager = roles.includes("9");
   const isRno = roles.includes("4");
 
@@ -134,7 +136,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   }, [workflowData]);
 
-  const updateTicketDetails = (remark?: string) => {
+  const updateTicketDetails = async (remark?: string) => {
     if (!ticketId) return;
     const payload: any = {
       subject,
@@ -142,21 +144,24 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       priority: priorityId,
       severity,
       recommendedSeverity,
-      updatedBy: getCurrentUserDetails()?.username
+      updatedBy: currentUsername
     };
     if (remark !== undefined) {
       payload.remark = remark;
     }
     if (isRno && recommendedSeverity && ticket?.statusId !== '6') {
       payload.status = { statusId: '6' };
-      payload.severityRecommendedBy = getCurrentUserDetails()?.username;
+      payload.severityRecommendedBy = currentUsername;
     }
-    updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
+    try {
+      await updateTicketHandler(() => updateTicket(ticketId, payload));
       setEditing(false);
       setShowRecommendRemark(false);
       setSeverityToRecommendSeverity(false);
-      getTicketHandler(() => getTicket(ticketId));
-    });
+      await getTicketHandler(() => getTicket(ticketId));
+    } catch {
+      // no-op: errors handled within useApi
+    }
   };
 
   const handleSave = () => {
@@ -177,7 +182,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (!ticketId) return;
     const payload = {
       severity,
-      updatedBy: getCurrentUserDetails()?.username,
+      updatedBy: currentUsername,
       status: { statusId: '11' }
     };
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
@@ -276,7 +281,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (!wf) return;
     const payload: any = {
       severity: ticket.recommendedSeverity,
-      updatedBy: getCurrentUserDetails()?.username,
+      updatedBy: currentUsername,
       status: { statusId: String(wf.nextStatus) }
     };
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
@@ -286,6 +291,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
+
+  const recommendedSeverityBy = ticket?.severityRecommendedBy;
+  const recommendedSeverityByText = recommendedSeverityBy
+    ? recommendedSeverityBy === currentUsername
+      ? 'you'
+      : recommendedSeverityBy
+    : '';
 
   const priorityInfoContent = useMemo(() =>
     <div>
@@ -435,10 +447,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             <Button variant="contained" size="small" onClick={handleEscalate}>Submit</Button>
           </Box>
         )} */}
-        {showRecommendedSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>{ticket.recommendedSeverity}</Typography>
-        </Box>}
+        {showRecommendedSeverity && (
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              {ticket.recommendedSeverity}
+              {recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}
+            </Typography>
+          </Box>
+        )}
         {hasApproveSeverityAction && ticket.recommendedSeverity && (
           <GenericButton
             variant="contained"
