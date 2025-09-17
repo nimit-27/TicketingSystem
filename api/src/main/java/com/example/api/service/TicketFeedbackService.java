@@ -3,6 +3,9 @@ package com.example.api.service;
 import com.example.api.dto.FeedbackFormDTO;
 import com.example.api.dto.SubmitFeedbackRequest;
 import com.example.api.dto.TicketFeedbackResponse;
+import com.example.api.exception.ForbiddenOperationException;
+import com.example.api.exception.InvalidRequestException;
+import com.example.api.exception.TicketNotFoundException;
 import com.example.api.enums.FeedbackStatus;
 import com.example.api.enums.TicketStatus;
 import com.example.api.models.Ticket;
@@ -38,33 +41,35 @@ public class TicketFeedbackService {
     }
 
     public FeedbackFormDTO getForm(String ticketId, String currentUserId) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         if (!ticket.getUserId().equals(currentUserId)) {
-            throw new RuntimeException("Forbidden");
+            throw new ForbiddenOperationException("You are not allowed to access feedback for this ticket.");
         }
         if (ticket.getTicketStatus() != TicketStatus.CLOSED) {
-            throw new RuntimeException("Ticket not closed");
+            throw new InvalidRequestException("Feedback can only be provided for closed tickets.");
         }
         if (ticket.getFeedbackStatus() != FeedbackStatus.PENDING) {
-            throw new RuntimeException("Feedback not pending");
+            throw new InvalidRequestException("Feedback is not pending for this ticket.");
         }
         if (ticket.getResolvedAt() == null ||
                 ticket.getResolvedAt().plusHours(72).isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Feedback window closed");
+            throw new InvalidRequestException("Feedback window has expired for this ticket.");
         }
         if (feedbackRepository.findByTicketId(ticketId).isPresent()) {
-            throw new RuntimeException("Feedback already submitted");
+            throw new InvalidRequestException("Feedback has already been submitted for this ticket.");
         }
         return new FeedbackFormDTO(ticketId, ticket.getResolvedAt());
     }
 
     public TicketFeedbackResponse submit(String ticketId, String currentUserId, SubmitFeedbackRequest req) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         if (!ticket.getUserId().equals(currentUserId)) {
-            throw new RuntimeException("Forbidden");
+            throw new ForbiddenOperationException("You are not allowed to submit feedback for this ticket.");
         }
         if (feedbackRepository.findByTicketId(ticketId).isPresent()) {
-            throw new RuntimeException("Feedback already submitted");
+            throw new InvalidRequestException("Feedback has already been submitted for this ticket.");
         }
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicketId(ticketId);
@@ -89,9 +94,10 @@ public class TicketFeedbackService {
     }
 
     public Optional<TicketFeedbackResponse> getFeedback(String ticketId, String currentUserId) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         if (!ticket.getUserId().equals(currentUserId)) {
-            throw new RuntimeException("Forbidden");
+            throw new ForbiddenOperationException("You are not allowed to access feedback for this ticket.");
         }
         return feedbackRepository.findByTicketId(ticketId)
                 .map(f -> new TicketFeedbackResponse(ticketId, f.getOverallSatisfaction(),

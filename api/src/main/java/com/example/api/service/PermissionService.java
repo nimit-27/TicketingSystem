@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.models.Role;
 import com.example.api.permissions.PermissionsConfig;
 import com.example.api.permissions.RolePermission;
@@ -34,7 +35,8 @@ public class PermissionService {
 
     public void updateRolePermissions(Integer roleId, RolePermission permission) throws IOException {
         String json = objectMapper.writeValueAsString(permission);
-        Role existingRole = repository.findById(roleId).orElseThrow();
+        Role existingRole = repository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", roleId));
 //        Role rpc = new Role();
 //        rpc.setRoleId(roleId);
         existingRole.setPermissions(json);

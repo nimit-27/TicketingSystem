@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.exception.TicketNotFoundException;
 import com.example.api.models.Ticket;
 import com.example.api.models.UploadedFile;
 import com.example.api.repository.TicketRepository;
@@ -48,7 +49,8 @@ public class FileStorageService {
         }
         uf.setRelativePath(relativePath);
         uf.setUploadedBy(uploadedBy);
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         uf.setTicket(ticket);
         uploadedFileRepository.save(uf);
 

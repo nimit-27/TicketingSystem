@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.SubCategoryDto;
+import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.models.Category;
 import com.example.api.models.SubCategory;
 import com.example.api.repository.CategoryRepository;
@@ -39,7 +40,7 @@ public class SubCategoryService {
 
     public SubCategory saveSubCategory(String categoryId, SubCategory subCategory) {
         Category category = categoryRepository.findById(categoryId)
-            .orElseThrow(() -> new RuntimeException("Category not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Category", categoryId));
         subCategory.setCategory(category);
         if (subCategory.getSeverity() != null && subCategory.getSeverity().getId() != null) {
             severityRepository.findById(subCategory.getSeverity().getId())
