@@ -338,7 +338,10 @@ public class TicketService {
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
             if ((updated.getAssignedTo() == null || !assignmentChangeAllowed || updated.getAssignedTo().equals(previousAssignedTo))
                     && remark != null && !remark.isBlank()) {
-                assignmentHistoryService.addHistory(id, updatedBy, existing.getAssignedTo(), existing.getLevelId(), remark);
+                String currentAssignee = existing.getAssignedTo();
+                if (currentAssignee != null && !currentAssignee.isBlank()) {
+                    assignmentHistoryService.addHistory(id, updatedBy, currentAssignee, existing.getLevelId(), remark);
+                }
             }
         }
 
