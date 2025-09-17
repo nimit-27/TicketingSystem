@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.exception.TicketNotFoundException;
 import com.example.api.models.AssignmentHistory;
 import com.example.api.models.Ticket;
 import com.example.api.repository.AssignmentHistoryRepository;
@@ -17,7 +18,8 @@ public class AssignmentHistoryService {
     private final TicketRepository ticketRepository;
 
     public AssignmentHistory addHistory(String ticketId, String assignedBy, String assignedTo, String levelId, String remark) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         AssignmentHistory history = new AssignmentHistory();
         history.setTicket(ticket);
         history.setAssignedBy(assignedBy);
@@ -29,7 +31,8 @@ public class AssignmentHistoryService {
     }
 
     public List<AssignmentHistory> getHistoryForTicket(String ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         return historyRepository.findByTicketOrderByTimestampAsc(ticket);
     }
 }

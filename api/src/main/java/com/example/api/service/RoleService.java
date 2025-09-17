@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.RoleDto;
+import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.Role;
 import com.example.api.permissions.RolePermission;
@@ -38,7 +39,8 @@ public class RoleService {
     }
 
     public RoleDto getRoleById(Integer roleId) {
-        Role role = roleRepository.findById(roleId).orElseThrow();
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", roleId));
         return DtoMapper.toRoleDto(role);
     }
 

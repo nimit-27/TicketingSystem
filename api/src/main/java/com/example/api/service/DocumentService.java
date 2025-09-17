@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.models.Document;
 import com.example.api.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,8 @@ public class DocumentService {
     }
 
     public Document updateDocument(String id, Document doc) {
-        Document existing = documentRepository.findById(id).orElseThrow();
+        Document existing = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document", id));
         existing.setTitle(doc.getTitle());
         existing.setDescription(doc.getDescription());
         existing.setType(doc.getType());
@@ -32,7 +34,8 @@ public class DocumentService {
     }
 
     public void softDeleteDocument(String id) {
-        Document existing = documentRepository.findById(id).orElseThrow();
+        Document existing = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document", id));
 //        existing.setIsDeleted(true);
         documentRepository.save(existing);
     }

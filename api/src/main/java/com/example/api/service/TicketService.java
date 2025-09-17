@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.TicketDto;
+import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.User;
@@ -173,7 +174,8 @@ public class TicketService {
 
         // If userId is neither null nor empty
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
-            User user = userRepository.findById(ticket.getUserId()).orElseThrow();
+            User user = userRepository.findById(ticket.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User", ticket.getUserId()));
             ticket.setUser(user);
             ticket.setRequestorName(user.getUsername());
         }
@@ -458,7 +460,8 @@ public class TicketService {
     }
 
     public TicketComment updateComment(String commentId, String comment) {
-        TicketComment existing = commentRepository.findById(commentId).orElseThrow();
+        TicketComment existing = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("TicketComment", commentId));
         existing.setComment(comment);
         return commentRepository.save(existing);
     }

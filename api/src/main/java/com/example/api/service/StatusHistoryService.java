@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.StatusHistoryDto;
+import com.example.api.exception.TicketNotFoundException;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.StatusHistory;
 import com.example.api.models.Ticket;
@@ -23,7 +24,8 @@ public class StatusHistoryService {
     }
 
     public StatusHistory addHistory(String ticketId, String updatedBy, String previousStatus, String currentStatus, Boolean slaFlag, String remark) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         StatusHistory history = new StatusHistory();
         history.setTicket(ticket);
         history.setUpdatedBy(updatedBy);
@@ -36,7 +38,8 @@ public class StatusHistoryService {
     }
 
     public List<StatusHistoryDto> getHistoryForTicket(String ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow();
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         return historyRepository.findByTicketOrderByTimestampAsc(ticket).stream().map(DtoMapper::toStatusHistoryDto).collect(Collectors.toUnmodifiableList());
     }
 }
