@@ -298,6 +298,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       ? 'you'
       : recommendedSeverityBy
     : '';
+  const recommendedSeverityStatus = ticket?.recommendedSeverityStatus;
+  const severityApprovedBy = ticket?.severityApprovedBy;
+  const severityApprovedByText = severityApprovedBy
+    ? severityApprovedBy === currentUsername
+      ? 'you'
+      : severityApprovedBy
+    : '';
+  const recommendedSeverityApprovalText = recommendedSeverityStatus === 'APPROVED' && severityApprovedByText
+    ? `Recommended severity approved by ${severityApprovedByText}`
+    : 'Yet to be approved';
 
   const priorityInfoContent = useMemo(() =>
     <div>
@@ -416,13 +426,18 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>}
         </Box>}
         {showRecommendedSeverity && (
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-            <Typography className='me-2' color="text.secondary">Recommended Severity</Typography>
-            <Typography sx={{ mt: 1 }}>
-              {ticket.recommendedSeverity}
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
-              {recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+              <Typography className='me-2' color="text.secondary">Recommended Severity</Typography>
+              <Typography sx={{ mt: 1 }}>
+                {ticket.recommendedSeverity}
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                {recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}
+              </Typography>
+            </Box>
+            <Typography color="text.secondary">
+              {recommendedSeverityApprovalText}
             </Typography>
           </Box>
         )}

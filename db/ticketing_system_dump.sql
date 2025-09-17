@@ -953,6 +953,27 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `recommended_severity_flow`
+--
+
+DROP TABLE IF EXISTS `recommended_severity_flow`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `recommended_severity_flow` (
+  `recommended_severity_flow_id` bigint NOT NULL AUTO_INCREMENT,
+  `ticket_id` varchar(36) NOT NULL,
+  `severity` varchar(50) DEFAULT NULL,
+  `recommended_severity` varchar(50) DEFAULT NULL,
+  `severity_recommended_by` varchar(100) DEFAULT NULL,
+  `recommended_severity_status` varchar(50) DEFAULT NULL,
+  `severity_approved_by` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`recommended_severity_flow_id`),
+  KEY `fk_ticket_recommended_severity_flow` (`ticket_id`),
+  CONSTRAINT `fk_ticket_recommended_severity_flow` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping events for database 'ticketing_system'
 --
 
