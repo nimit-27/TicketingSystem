@@ -302,7 +302,7 @@ public class TicketService {
                 && updatedStatus != TicketStatus.PENDING_WITH_FCI;
         if (assignmentChangeAllowed) {
             existing.setAssignedTo(updated.getAssignedTo());
-            if (!updated.getAssignedTo().equals(previousAssignedTo) && updatedStatus == null && updatedStatusId == null) {
+            if (!updated.getAssignedTo().equals(previousAssignedTo) && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
                 existing.setTicketStatus(TicketStatus.ASSIGNED);
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
