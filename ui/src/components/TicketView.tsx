@@ -235,7 +235,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         sx={{ mt: 1 }}
       />
     ) : (
-      <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || '-'}</Typography>
+      <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || ' - '}</Typography>
     )
   );
 
@@ -252,7 +252,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         )) : <MenuItem key="" value="">None</MenuItem>}
       </Select>
     ) : (
-      <Typography sx={{ mt: 1 }}>{value || '-'}</Typography>
+      <Typography sx={{ mt: 1 }}>{value || ' - '}</Typography>
     )
   );
   // const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
@@ -289,25 +289,25 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     });
   };
 
-  const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
-  const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
+  const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ' - '} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ' - '}` : ' - ';
+  const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ' - '} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ' - '}` : ' - ';
 
   const recommendedSeverityBy = ticket?.severityRecommendedBy;
   const recommendedSeverityByText = recommendedSeverityBy
     ? recommendedSeverityBy === currentUsername
       ? 'you'
       : recommendedSeverityBy
-    : '';
+    : ' - ';
   const recommendedSeverityStatus = ticket?.recommendedSeverityStatus;
   const severityApprovedBy = ticket?.severityApprovedBy;
   const severityApprovedByText = severityApprovedBy
     ? severityApprovedBy === currentUsername
       ? 'you'
       : severityApprovedBy
-    : '';
+    : ' - ';
   const recommendedSeverityApprovalText = recommendedSeverityStatus === 'APPROVED' && severityApprovedByText
-    ? `Recommended severity approved by ${severityApprovedByText}`
-    : 'Yet to be approved';
+    ? `Approved by ${severityApprovedByText}`
+    : 'Pending Approval';
 
   const priorityInfoContent = useMemo(() =>
     <div>
@@ -408,7 +408,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
                 label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
                 options={severityOptions}
-                className="form-select"
+                className="form-select w-25"
               />
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <CustomIconButton
@@ -429,16 +429,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
               <Typography className='me-2' color="text.secondary">Recommended Severity</Typography>
-              <Typography sx={{ mt: 1 }}>
-                {ticket.recommendedSeverity}
-              </Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>
-                {recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}
-              </Typography>
+              <Typography sx={{ mt: 1 }}>{ticket.recommendedSeverity}</Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>{recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}</Typography>
             </Box>
-            <Typography color="text.secondary">
-              {recommendedSeverityApprovalText}
-            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+              <Typography className='me-2' color="text.secondary">Recommended Severity Status</Typography>
+              <Typography>{recommendedSeverityApprovalText}</Typography>
+            </Box>
           </Box>
         )}
         {hasApproveSeverityAction && ticket.recommendedSeverity && (
