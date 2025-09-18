@@ -30,6 +30,8 @@ import com.example.api.enums.RecommendedSeverityStatus;
 import com.example.api.typesense.TypesenseClient;
 import com.example.notification.enums.ChannelType;
 import com.example.notification.service.NotificationService;
+import jakarta.validation.constraints.AssertTrue;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 
@@ -41,6 +43,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @Service
+@AllArgsConstructor
 public class TicketService {
     private final TypesenseClient typesenseClient;
     private final TicketRepository ticketRepository;
@@ -57,37 +60,6 @@ public class TicketService {
     private final UploadedFileRepository uploadedFileRepository;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
-
-
-    public TicketService(TypesenseClient typesenseClient, TicketRepository ticketRepository,
-                         UserRepository userRepository, TicketCommentRepository commentRepository,
-                         AssignmentHistoryService assignmentHistoryService,
-                         StatusHistoryService statusHistoryService,
-                         TicketStatusWorkflowService workflowService,
-                         StatusMasterRepository statusMasterRepository,
-                         CategoryRepository categoryRepository,
-                         SubCategoryRepository subCategoryRepository,
-                         PriorityRepository priorityRepository,
-                         UploadedFileRepository uploadedFileRepository,
-                         NotificationService notificationService,
-                         TicketSlaService ticketSlaService,
-                         RecommendedSeverityFlowRepository recommendedSeverityFlowRepository) {
-        this.typesenseClient = typesenseClient;
-        this.ticketRepository = ticketRepository;
-        this.userRepository = userRepository;
-        this.commentRepository = commentRepository;
-        this.assignmentHistoryService = assignmentHistoryService;
-        this.statusHistoryService = statusHistoryService;
-        this.workflowService = workflowService;
-        this.statusMasterRepository = statusMasterRepository;
-        this.categoryRepository = categoryRepository;
-        this.subCategoryRepository = subCategoryRepository;
-        this.priorityRepository = priorityRepository;
-        this.uploadedFileRepository = uploadedFileRepository;
-        this.notificationService = notificationService;
-        this.ticketSlaService = ticketSlaService;
-        this.recommendedSeverityFlowRepository = recommendedSeverityFlowRepository;
-    }
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
