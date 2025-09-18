@@ -70,7 +70,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
   const showSeverity = checkFieldAccess('ticketDetails', 'severity');
-  const showSeverityToRecommendSeverity = showSeverity && (severityToRecommendSeverity || showRecommendedSeverity)
+  const showSeverityToRecommendSeverity = showSeverity && severityToRecommendSeverity
 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
