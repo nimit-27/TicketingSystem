@@ -10,7 +10,7 @@ import { getSeverities } from '../services/SeverityService';
 import InfoIcon from './UI/Icons/InfoIcon';
 import GenericButton from './UI/Button';
 import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow } from '../types';
-import CustomIconButton from './UI/IconButton/CustomIconButton';
+import CustomIconButton, { IconComponent } from './UI/IconButton/CustomIconButton';
 import CommentsSection from './Comments/CommentsSection';
 import SlaDetails from './SlaDetails';
 import Histories from '../pages/Histories';
@@ -252,7 +252,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         )) : <MenuItem key="" value="">None</MenuItem>}
       </Select>
     ) : (
-      <Typography color="text.secondary" sx={{ mt: 1 }}>{value || '-'}</Typography>
+      <Typography sx={{ mt: 1 }}>{value || '-'}</Typography>
     )
   );
   // const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
@@ -380,31 +380,22 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </Box>}
         {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Typography className="me-2" color="text.secondary">Severity</Typography>
-          <Typography color="text.secondary">{ticket.severity}</Typography>
+          <Typography>{ticket.severity}</Typography>
           <InfoIcon content={severityInfoContent} />
           {!showSeverityToRecommendSeverity
-            ? <>
-              <GenericButton
-                variant="contained"
-                size="small"
-                onClick={() => setSeverityToRecommendSeverity(true)}
-              >
-                Recommend Severity
-              </GenericButton>
-            </>
-            : <Box className='col-8' sx={{ display: 'flex', gap: 2 }}>
-              <CustomIconButton
-                icon="keyboardDoubleArrowRight"
-                onClick={() => {
-                  setSeverityToRecommendSeverity(false);
-                  setShowRecommendRemark(false);
-                }}
-              />
+            ? <GenericButton
+              variant="contained"
+              size="small"
+              onClick={() => setSeverityToRecommendSeverity(true)}
+            >
+              Recommend Severity
+            </GenericButton>
+            : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
+              <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
               <GenericDropdown
                 name="recommendedSeverity"
                 value={recommendedSeverity}
                 onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
-                // control={control}
                 label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
                 options={severityOptions}
                 className="form-select"
@@ -424,34 +415,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               </Box>
             </Box>}
         </Box>}
-        {/* {canEscalate && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
-            {recommendedSeverity && (
-              <Button variant="outlined" size="small" onClick={handleApplyRecommendedSeverity}>
-                Apply Recommended Severity
-              </Button>
-            )}
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-              <Typography variant="body2" color="text.secondary">Severity</Typography>
-              <Select
-                value={severity}
-                onChange={(e: SelectChangeEvent) => setSeverity(e.target.value as string)}
-                fullWidth
-                size="small"
-              >
-                {(Array.isArray(severityOptions) && severityOptions.length > 0) ? severityOptions.map(o => (
-                  <MenuItem key={o} value={o}>{o}</MenuItem>
-                )) : <MenuItem key="" value="">None</MenuItem>}
-              </Select>
-            </Box>
-            <Button variant="contained" size="small" onClick={handleEscalate}>Submit</Button>
-          </Box>
-        )} */}
         {showRecommendedSeverity && (
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
+            <Typography className='me-2' color="text.secondary">Recommended Severity</Typography>
+            <Typography sx={{ mt: 1 }}>
               {ticket.recommendedSeverity}
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
               {recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}
             </Typography>
           </Box>
@@ -466,37 +436,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             Approve Recommended Severity
           </GenericButton>
         )}
-        {/* {showRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
-          <Select
-            value={recommendedSeverity}
-            onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
-            fullWidth
-            size="small"
-          >
-            {(Array.isArray(severityOptions) && severityOptions.length > 0) ? severityOptions.map(o => (
-              <MenuItem key={o} value={o}>{o}</MenuItem>
-            )) : <MenuItem key="" value="">None</MenuItem>}
-          </Select>
-        </Box>} */}
-        {/* {showRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
-          <div className="col-md-4 mb-3 px-4">
-            <GenericDropdown
-              name="recommendedSeverity"
-              value={recommendedSeverity}
-              onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
-              // control={control}
-              label="Recommend Severity"
-              options={severityOptions}
-              className="form-select"
-            />
-          </div>
-        </Box>} */}
-        {/* {canRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
-          {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
-        </Box>} */}
       </Box>
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
