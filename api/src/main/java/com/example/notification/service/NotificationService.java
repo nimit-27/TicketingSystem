@@ -15,6 +15,11 @@ public class NotificationService {
     private final List<Notifier> notifiers;
     private final NotificationProperties properties;
 
+    public NotificationService(List<Notifier> notifiers, NotificationProperties properties) {
+        this.notifiers = notifiers;
+        this.properties = properties;
+    }
+
     public void sendNotification(ChannelType channel, String templateName, Map<String, Object> dataModel, String recipient) throws Exception {
         if(!properties.isEnabled()) return; //Notification Globally disabled
 
