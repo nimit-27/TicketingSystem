@@ -369,6 +369,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Typography className="me-2" color="text.secondary">Severity</Typography>
           <Typography color="text.secondary">{ticket.severity}</Typography>
+          <InfoIcon content={severityInfoContent} />
           {!showSeverityToRecommendSeverity
             ? <>
               <GenericButton
@@ -409,7 +410,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                   <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
                 )}
               </Box>
-              <InfoIcon content={severityInfoContent} />
             </Box>}
         </Box>}
         {/* {canEscalate && (
@@ -462,7 +462,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             )) : <MenuItem key="" value="">None</MenuItem>}
           </Select>
         </Box>} */}
-        {showRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
+        {/* {showRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommend Severity</Typography>
           <div className="col-md-4 mb-3 px-4">
             <GenericDropdown
@@ -475,7 +475,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               className="form-select"
             />
           </div>
-        </Box>}
+        </Box>} */}
         {/* {canRecommendSeverity && <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Recommended Severity</Typography>
           {renderSelect(recommendedSeverity, setRecommendedSeverity, severityOptions)}
