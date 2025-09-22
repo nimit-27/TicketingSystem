@@ -1,6 +1,5 @@
 package com.example.notification.service;
 
-import com.example.notification.config.NotificationProperties;
 import com.example.notification.config.TwilioProperties;
 import com.example.notification.enums.ChannelType;
 import com.twilio.rest.api.v2010.account.Message;
@@ -15,12 +14,10 @@ import java.util.Map;
 
 @Component
 public class SmsNotifier implements Notifier {
-    private final NotificationProperties properties;
     private final Configuration freemarker;
     private final TwilioProperties twilioProperties;
 
-    public SmsNotifier(NotificationProperties properties, @Qualifier("freemarkerConfiguration") Configuration freemarker, TwilioProperties twilioProperties) {
-        this.properties = properties;
+    public SmsNotifier(@Qualifier("freemarkerConfiguration") Configuration freemarker, TwilioProperties twilioProperties) {
         this.freemarker = freemarker;
         this.twilioProperties = twilioProperties;
     }
@@ -28,11 +25,6 @@ public class SmsNotifier implements Notifier {
     @Override
     public ChannelType getChannel() {
         return ChannelType.SMS;
-    }
-
-    @Override
-    public String getTemplateFolder() {
-        return properties.getTemplates().getSms();
     }
 
     @Override

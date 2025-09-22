@@ -31,11 +31,6 @@ public class EmailNotifier implements Notifier {
     }
 
     @Override
-    public String getTemplateFolder() {
-        return properties.getTemplates().getEmail();
-    }
-
-    @Override
     public void send(String templateName, Map<String, Object> data, String recipient) throws Exception {
         Template template = freemarker.getTemplate(templateName + ".ftl");
         StringWriter out = new StringWriter();

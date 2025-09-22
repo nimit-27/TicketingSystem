@@ -27,11 +27,6 @@ public class InAppNotifier implements Notifier{
     }
 
     @Override
-    public String getTemplateFolder() {
-        return "";
-    }
-
-    @Override
     public void send(String templateName, Map<String, Object> dataModel, String recipient) throws Exception {
         Template template = freemarker.getTemplate(templateName);
         StringWriter out = new StringWriter();
