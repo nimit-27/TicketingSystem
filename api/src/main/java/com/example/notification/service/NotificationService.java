@@ -34,6 +34,6 @@ public class NotificationService {
             model.put("supportEmail", properties.getSupportEmail());
         }
 
-        notifier.send(templateName, dataModel, recipient);
+        notifier.send(templateName, model, recipient);
     }
 }
