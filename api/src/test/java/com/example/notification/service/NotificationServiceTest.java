@@ -2,6 +2,8 @@ package com.example.notification.service;
 
 import com.example.notification.config.NotificationProperties;
 import com.example.notification.enums.ChannelType;
+import com.example.notification.models.NotificationMaster;
+import com.example.notification.repository.NotificationMasterRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -9,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -20,6 +23,7 @@ class NotificationServiceTest {
     private NotificationProperties properties;
     private Notifier notifier;
     private NotificationService notificationService;
+    private NotificationMasterRepository notificationMasterRepository;
 
     @BeforeEach
     void setUp() {
@@ -29,9 +33,16 @@ class NotificationServiceTest {
 
         notifier = mock(Notifier.class);
         when(notifier.getChannel()).thenReturn(ChannelType.EMAIL);
-        when(notifier.getTemplateFolder()).thenReturn(null);
 
-        notificationService = new NotificationService(List.of(notifier), properties);
+        NotificationMaster notificationMaster = new NotificationMaster();
+        notificationMaster.setCode("TICKET_CREATED");
+        notificationMaster.setEmailTemplate("email/TicketCreated");
+
+        notificationMasterRepository = mock(NotificationMasterRepository.class);
+        when(notificationMasterRepository.findByCodeAndIsActiveTrue("TICKET_CREATED"))
+                .thenReturn(Optional.of(notificationMaster));
+
+        notificationService = new NotificationService(List.of(notifier), properties, notificationMasterRepository);
     }
 
     @Test
@@ -39,10 +50,10 @@ class NotificationServiceTest {
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("key", "value");
 
-        notificationService.sendNotification(ChannelType.EMAIL, "template", dataModel, "recipient@example.com");
+        notificationService.sendNotification(ChannelType.EMAIL, "TICKET_CREATED", dataModel, "recipient@example.com");
 
         ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(notifier).send("template", modelCaptor.capture(), "recipient@example.com");
+        verify(notifier).send("email/TicketCreated", modelCaptor.capture(), "recipient@example.com");
 
         Map<String, Object> capturedModel = modelCaptor.getValue();
         assertThat(capturedModel)

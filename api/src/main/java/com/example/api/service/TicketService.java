@@ -45,6 +45,7 @@ import org.springframework.data.domain.Pageable;
 @Service
 @AllArgsConstructor
 public class TicketService {
+    private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
     private final TypesenseClient typesenseClient;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
@@ -210,7 +211,7 @@ public class TicketService {
         try {
             notificationService.sendNotification(
                     ChannelType.EMAIL,
-                    "email/TicketCreated",
+                    TICKET_CREATED_NOTIFICATION_CODE,
                     data,
                     saved.getUser() != null ? saved.getUser().getEmailId() : saved.getRequestorEmailId()
             );
