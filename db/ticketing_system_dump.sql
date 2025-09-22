@@ -306,6 +306,16 @@ CREATE TABLE `notification` (
 
 LOCK TABLES `notification` WRITE;
 /*!40000 ALTER TABLE `notification` DISABLE KEYS */;
+INSERT INTO `notification` (`notification_id`,`type_id`,`title`,`message`,`data`,`ticket_id`,`created_by`,`created_at`) VALUES
+(1,1,'Ticket #INC-1002 Created','Ticket INC-1002 was logged by Team Lead Name 1 for urgent follow-up.',
+'{"ticketId":"016ad004-f2bd-4534-9469-bdf74bcafdef","priority":"P1","action":"CREATED"}',
+'016ad004-f2bd-4534-9469-bdf74bcafdef',216,'2025-09-09 13:23:10.000000'),
+(2,2,'Ticket #INC-1035 Status Updated','Garima Jain moved ticket INC-1035 to In Progress.',
+'{"ticketId":"050f176d-30ad-4144-a6cb-3741c141ab32","oldStatus":"OPEN","newStatus":"IN_PROGRESS"}',
+'050f176d-30ad-4144-a6cb-3741c141ab32',207,'2025-09-10 09:15:42.000000'),
+(3,3,'Reminder: Share feedback for ticket INC-1048','Please provide feedback so we can close ticket INC-1048.',
+'{"ticketId":"050f413c-78d1-4bdf-9943-8940773249f8","reminder":"FEEDBACK_PENDING"}',
+'050f413c-78d1-4bdf-9943-8940773249f8',205,'2025-09-15 18:45:00.000000');
 /*!40000 ALTER TABLE `notification` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -342,6 +352,19 @@ CREATE TABLE `notification_master` (
 
 LOCK TABLES `notification_master` WRITE;
 /*!40000 ALTER TABLE `notification_master` DISABLE KEYS */;
+INSERT INTO `notification_master` (`id`,`code`,`name`,`description`,`default_title_tpl`,`default_message_tpl`,`email_template`,`sms_template`,`inapp_template`,`default_channels`,`is_active`,`created_at`,`updated_at`) VALUES
+(1,'TICKET_CREATED','Ticket Created','Triggered when a new ticket is logged in the system.',
+'Ticket {{ticketNumber}} created',
+'Hello {{recipientName}}, ticket {{ticketNumber}} has been created by {{initiatorName}}.',
+'ticket_created_email.html',NULL,'ticket_created_inapp.html','["EMAIL","IN_APP"]',b'1','2025-01-10 09:00:00.000000','2025-01-10 09:00:00.000000'),
+(2,'TICKET_STATUS_UPDATE','Ticket Status Updated','Alerts requestors when ticket status changes.',
+'Ticket {{ticketNumber}} status updated',
+'Ticket {{ticketNumber}} changed from {{oldStatus}} to {{newStatus}} by {{actorName}}.',
+'ticket_status_update_email.html','TKT_STATUS_UPDATE','ticket_status_update_inapp.html','["EMAIL","SMS","IN_APP"]',b'1','2025-01-10 09:05:00.000000','2025-01-10 09:05:00.000000'),
+(3,'TICKET_FEEDBACK_REMINDER','Ticket Feedback Reminder','Reminder to share feedback after resolution.',
+'Feedback pending for ticket {{ticketNumber}}',
+'Hi {{recipientName}}, please provide feedback for ticket {{ticketNumber}} resolved on {{resolvedDate}}.',
+NULL,NULL,'ticket_feedback_inapp.html','["IN_APP"]',b'1','2025-01-10 09:10:00.000000','2025-01-10 09:10:00.000000');
 /*!40000 ALTER TABLE `notification_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -374,6 +397,12 @@ CREATE TABLE `notification_recipient` (
 
 LOCK TABLES `notification_recipient` WRITE;
 /*!40000 ALTER TABLE `notification_recipient` DISABLE KEYS */;
+INSERT INTO `notification_recipient` (`id`,`notification_id`,`recipient_user_id`,`is_read`,`read_at`,`created_at`,`soft_deleted`) VALUES
+(1,1,207,b'0',NULL,'2025-09-09 13:23:12.000000',b'0'),
+(2,1,211,b'1','2025-09-09 14:00:00.000000','2025-09-09 13:23:20.000000',b'0'),
+(3,2,207,b'1','2025-09-10 09:20:00.000000','2025-09-10 09:15:45.000000',b'0'),
+(4,2,213,b'0',NULL,'2025-09-10 09:15:50.000000',b'0'),
+(5,3,201,b'0',NULL,'2025-09-15 18:45:10.000000',b'1');
 /*!40000 ALTER TABLE `notification_recipient` ENABLE KEYS */;
 UNLOCK TABLES;
 
