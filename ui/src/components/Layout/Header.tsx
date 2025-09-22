@@ -7,6 +7,7 @@ import { useTheme } from "@mui/material/styles";
 import { LanguageContext } from "../../context/LanguageContext";
 import { DevModeContext } from "../../context/DevModeContext";
 import UserMenu from "./UserMenu";
+import NotificationBell from "../Notifications/NotificationBell";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -106,6 +107,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           // icon="code"
           onClick={toggleLayout}
         />}
+        <NotificationBell iconColor={iconColor} />
         <Avatar
           sx={{
             bgcolor: theme.palette.grey[600],

@@ -30,21 +30,32 @@ public class NotificationService {
                 .findByCodeAndIsActiveTrue(notificationCode)
                 .orElseThrow(() -> new IllegalArgumentException("No active notification found for code " + notificationCode));
 
-        String templateName = resolveTemplateName(notificationMaster, channel);
-
         Map<String, Object> model = dataModel == null ? new HashMap<>() : new HashMap<>(dataModel);
         if (!model.containsKey("supportEmail") && properties.getSupportEmail() != null) {
             model.put("supportEmail", properties.getSupportEmail());
         }
 
-        notifier.send(templateName, model, recipient);
+        String templateName = null;
+        if (channel != ChannelType.IN_APP) {
+            templateName = resolveTemplateName(notificationMaster, channel);
+        }
+
+        NotificationRequest request = new NotificationRequest(
+                channel,
+                notificationMaster,
+                recipient,
+                templateName,
+                model
+        );
+
+        notifier.send(request);
     }
 
     private String resolveTemplateName(NotificationMaster notificationMaster, ChannelType channel) {
         String templateName = switch (channel) {
             case EMAIL -> notificationMaster.getEmailTemplate();
             case SMS -> notificationMaster.getSmsTemplate();
-            case INAPP -> notificationMaster.getInappTemplate();
+            case IN_APP -> notificationMaster.getInappTemplate();
         };
 
         if (templateName == null || templateName.isBlank()) {
