@@ -59,7 +59,7 @@ export const useNotifications = () => {
           client.subscribe(`/topic/notifications/${id}`, handleMessage)
         );
       },
-      onStompError: frame => {
+      onStompError: (frame: { headers: { [x: string]: any; }; }) => {
         console.error('STOMP error', frame.headers['message']);
       },
     });
