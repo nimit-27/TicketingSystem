@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
-import java.util.Map;
-
 @Component
 public class SmsNotifier implements Notifier {
     private final Configuration freemarker;
@@ -28,13 +26,13 @@ public class SmsNotifier implements Notifier {
     }
 
     @Override
-    public void send(String templateName, Map<String, Object> dataModel, String recipient) throws Exception {
-        Template template = freemarker.getTemplate(templateName + ".ftl");
+    public void send(NotificationRequest request) throws Exception {
+        Template template = freemarker.getTemplate(request.getTemplateName() + ".ftl");
         StringWriter out = new StringWriter();
-        template.process(dataModel, out);
+        template.process(request.getDataModel(), out);
         String body = out.toString();
         System.out.println("SMS notification sent");
 
-        Message.creator(new PhoneNumber(recipient), new PhoneNumber(twilioProperties.getFromNumber()), body).create();
+        Message.creator(new PhoneNumber(request.getRecipient()), new PhoneNumber(twilioProperties.getFromNumber()), body).create();
     }
 }

@@ -52,10 +52,13 @@ class NotificationServiceTest {
 
         notificationService.sendNotification(ChannelType.EMAIL, "TICKET_CREATED", dataModel, "recipient@example.com");
 
-        ArgumentCaptor<Map<String, Object>> modelCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(notifier).send("email/TicketCreated", modelCaptor.capture(), "recipient@example.com");
+        ArgumentCaptor<NotificationRequest> requestCaptor = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notifier).send(requestCaptor.capture());
 
-        Map<String, Object> capturedModel = modelCaptor.getValue();
+        NotificationRequest capturedRequest = requestCaptor.getValue();
+        assertThat(capturedRequest.getTemplateName()).isEqualTo("email/TicketCreated");
+
+        Map<String, Object> capturedModel = capturedRequest.getDataModel();
         assertThat(capturedModel)
                 .containsEntry("supportEmail", "support@example.com")
                 .containsEntry("key", "value");

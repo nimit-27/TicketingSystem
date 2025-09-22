@@ -11,8 +11,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
-import java.util.Map;
-
 @Component
 public class EmailNotifier implements Notifier {
     private final Configuration freemarker;
@@ -31,16 +29,16 @@ public class EmailNotifier implements Notifier {
     }
 
     @Override
-    public void send(String templateName, Map<String, Object> data, String recipient) throws Exception {
-        Template template = freemarker.getTemplate(templateName + ".ftl");
+    public void send(NotificationRequest request) throws Exception {
+        Template template = freemarker.getTemplate(request.getTemplateName() + ".ftl");
         StringWriter out = new StringWriter();
-        template.process(data, out);
+        template.process(request.getDataModel(), out);
         String body = out.toString();
         System.out.println("Email notification sent");
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(recipient);
+        helper.setTo(request.getRecipient());
         helper.setFrom(properties.getSenderEmail());
         helper.setSubject("Notification");
         helper.setText(body, true);
