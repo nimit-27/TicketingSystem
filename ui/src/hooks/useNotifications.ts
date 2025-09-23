@@ -191,10 +191,9 @@ export const useNotifications = () => {
 
   useEffect(() => {
     nextPageRef.current = 0;
+
     if (!recipientIds.length) {
-      setNotifications([]);
       setHasMore(false);
-      return;
     }
 
     void loadPage(0, false);
