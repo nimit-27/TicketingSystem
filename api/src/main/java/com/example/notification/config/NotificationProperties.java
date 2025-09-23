@@ -12,10 +12,17 @@ public class NotificationProperties {
     private String supportEmail;
     private String senderEmail;
     private Templates templates;
+    private final Sse sse = new Sse();
 
     @Data
     public static class Templates {
         private String email;
         private String sms;
+    }
+
+    @Data
+    public static class Sse {
+        private long defaultTimeoutMillis = 600000L;
+        private int maxEmittersPerRecipient = 5;
     }
 }

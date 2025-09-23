@@ -3,10 +3,12 @@ package com.example.api.controller;
 import com.example.api.dto.ApiResponse;
 import com.example.api.dto.NotificationPageResponse;
 import com.example.notification.service.NotificationQueryService;
+import com.example.notification.service.NotificationStreamService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/notifications")
@@ -23,6 +27,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationController {
     private final NotificationQueryService notificationQueryService;
+    private final NotificationStreamService notificationStreamService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<NotificationPageResponse>> getNotifications(
@@ -45,5 +50,21 @@ public class NotificationController {
         }
         int updated = notificationQueryService.markAllNotificationsAsRead(userId);
         return ApiResponse.success(Map.of("updated", updated));
+    }
+
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamNotifications(
+            @RequestParam(name = "recipientId", required = false) Set<String> recipientIds,
+            HttpSession session
+    ) {
+        Set<String> resolvedRecipients = recipientIds == null ? Set.of() : recipientIds;
+        if (resolvedRecipients.isEmpty()) {
+            String userId = (String) session.getAttribute("userId");
+            if (userId == null || userId.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+            }
+            resolvedRecipients = Set.of(userId);
+        }
+        return notificationStreamService.createStream(resolvedRecipients);
     }
 }

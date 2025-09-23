@@ -2,20 +2,21 @@ package com.example.notification.service;
 
 import com.example.notification.enums.ChannelType;
 import com.example.notification.models.NotificationMaster;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @Component
-public class InAppNotifier implements Notifier{
-    private final SimpMessagingTemplate messagingTemplate;
+public class InAppNotifier implements Notifier {
 
-    public InAppNotifier(SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
+    private final List<InAppNotificationPublisher> publishers;
+
+    public InAppNotifier(List<InAppNotificationPublisher> publishers) {
+        this.publishers = publishers;
     }
 
     @Override
@@ -32,16 +33,17 @@ public class InAppNotifier implements Notifier{
 
         InAppNotificationPayload payload = InAppNotificationPayload.builder()
                 .code(master != null ? master.getCode() : null)
-                .title(resolveTemplate(master != null ? master.getDefaultTitleTpl() : null, master != null ? master.getName() : null, payloadData))
-                .message(resolveTemplate(master != null ? master.getDefaultMessageTpl() : null, master != null ? master.getDescription() : null, payloadData))
+                .title(resolveTemplate(master != null ? master.getDefaultTitleTpl() : null,
+                        master != null ? master.getName() : null,
+                        payloadData))
+                .message(resolveTemplate(master != null ? master.getDefaultMessageTpl() : null,
+                        master != null ? master.getDescription() : null,
+                        payloadData))
                 .data(payloadData)
                 .timestamp(Instant.now().toString())
                 .build();
 
-        System.out.println(request.getRecipient());
-
-        messagingTemplate.convertAndSend("/topic/notifications/" + request.getRecipient(), payload);
-        System.out.println("In-App notification sent");
+        publishers.forEach(publisher -> publisher.publish(request.getRecipient(), payload));
     }
 
     private String resolveTemplate(String template, String fallback, Map<String, Object> data) {
@@ -57,3 +59,4 @@ public class InAppNotifier implements Notifier{
         return resolved;
     }
 }
+
