@@ -54,6 +54,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const emailId = useWatch({ control, name: 'emailId' });
     const requestorName = useWatch({ control, name: 'requestorName' });
     const stakeholder = useWatch({ control, name: 'stakeholder' });
+    const role = useWatch({ control, name: 'role' });
     const debouncedUserId = useDebounce(userId, 500);
 
     const allUsers = usersData || [];
@@ -88,14 +89,26 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("requestorName", data.username);
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
-            if (fciUser) {
-                setValue("role", data.role);
-                setValue("office", data.office);
-            } else {
-                setValue("stakeholder", data.stakeholder)
+
+            const resolvedRole = Array.isArray(data?.role)
+                ? data.role.filter(Boolean).join(', ')
+                : Array.isArray(data?.roles)
+                    ? data.roles.filter(Boolean).join(', ')
+                    : data?.role ?? data?.roles ?? '';
+
+            setValue("role", resolvedRole);
+            setValue("office", data?.office ?? data?.officeName ?? '');
+
+            if (!fciUser) {
+                setValue("stakeholder", data.stakeholder);
             }
         }
     };
+
+    useEffect(() => {
+        register('role');
+        register('office');
+    }, [register]);
 
     useEffect(() => {
         getAllUsersApiHandler(() => getAllUsers());
@@ -328,10 +341,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                                 </div>
                             ) : null}
                         </div>
-                        <div>
-                            {showRole && control._formValues?.role && renderReadOnlyField("Role", control._formValues?.role || "")}
+                        <div className="w-100">
+                            {showRole && role && renderReadOnlyField("Role", role)}
                             {showOffice && office && renderReadOnlyField("Office", office)}
-                            {showOffice && control._formValues?.office && renderReadOnlyField("Office", control._formValues?.office || "")}
+                            {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
                         </div>
                     </CustomFieldset>
                 </div>
