@@ -4,10 +4,16 @@ import SockJS from 'sockjs-client';
 
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
-import { fetchNotifications } from '../services/NotificationService';
-import { InAppNotificationPayload, NotificationApiResponse, NotificationItem } from '../types/notification';
+import { fetchNotifications, markNotificationsAsRead } from '../services/NotificationService';
+import {
+  InAppNotificationPayload,
+  NotificationApiResponse,
+  NotificationItem,
+  NotificationPageApiResponse,
+} from '../types/notification';
 
 const WS_ENDPOINT = `${BASE_URL}/ws`;
+const PAGE_SIZE = 7;
 
 const buildNotification = (payload: InAppNotificationPayload): NotificationItem => {
   const timestamp = payload.timestamp || new Date().toISOString();
@@ -41,9 +47,49 @@ const mapApiNotification = (notification: NotificationApiResponse): Notification
   };
 };
 
+const normalizePagePayload = (
+  payload: unknown,
+  fallbackPage: number
+): NotificationPageApiResponse => {
+  if (payload && typeof payload === 'object' && 'items' in (payload as Record<string, unknown>)) {
+    const typed = payload as NotificationPageApiResponse;
+    return {
+      items: Array.isArray(typed.items) ? typed.items : [],
+      hasMore: Boolean(typed.hasMore),
+      total: typeof typed.total === 'number' ? typed.total : undefined,
+      page: typeof typed.page === 'number' ? typed.page : fallbackPage,
+      size: typeof typed.size === 'number' ? typed.size : undefined,
+    };
+  }
+
+  if (Array.isArray(payload)) {
+    return {
+      items: payload as NotificationApiResponse[],
+      hasMore: (payload as unknown[]).length === PAGE_SIZE,
+      total: (payload as unknown[]).length,
+      page: fallbackPage,
+      size: PAGE_SIZE,
+    };
+  }
+
+  return {
+    items: [],
+    hasMore: false,
+    total: 0,
+    page: fallbackPage,
+    size: PAGE_SIZE,
+  };
+};
+
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const subscriptionsRef = useRef<StompSubscription[]>([]);
+  const isMountedRef = useRef(true);
+  const loadingRef = useRef(false);
+  const markingRef = useRef(false);
+  const nextPageRef = useRef(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const recipientIds = useMemo(() => {
     const user = getCurrentUserDetails();
@@ -65,53 +111,94 @@ export const useNotifications = () => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    const loadNotifications = async () => {
-      if (!recipientIds.length) {
+  const loadPage = useCallback(
+    async (pageToLoad: number, append: boolean) => {
+      if (loadingRef.current) {
         return;
       }
 
+      loadingRef.current = true;
+      if (isMountedRef.current) {
+        setLoading(true);
+      }
+
       try {
-        const response = await fetchNotifications();
+        const response = await fetchNotifications(pageToLoad, PAGE_SIZE);
         const payload =
           response?.data?.data ??
           response?.data?.body?.data ??
           response?.data ??
           [];
 
-        if (!isMounted) {
+        const pagePayload = normalizePagePayload(payload, pageToLoad);
+        const mapped = pagePayload.items.map(mapApiNotification);
+
+        if (!isMountedRef.current) {
           return;
         }
 
-        if (Array.isArray(payload)) {
-          const mapped = payload.map(mapApiNotification);
+        if (append) {
           setNotifications(prev => {
-            const existingIds = new Set(mapped.map(item => item.id));
-            const merged = [...mapped];
-            prev.forEach(item => {
-              if (!existingIds.has(item.id)) {
+            const indexById = new Map(prev.map((item, index) => [item.id, index]));
+            const merged = [...prev];
+            mapped.forEach(item => {
+              const existingIndex = indexById.get(item.id);
+              if (existingIndex !== undefined) {
+                merged[existingIndex] = item;
+              } else {
                 merged.push(item);
               }
             });
             return merged;
           });
         } else {
-          console.error('Unexpected notifications payload', payload);
+          setNotifications(prev => {
+            const newIds = new Set(mapped.map(item => item.id));
+            const merged = [...mapped];
+            prev.forEach(item => {
+              if (!newIds.has(item.id)) {
+                merged.push(item);
+              }
+            });
+            return merged;
+          });
         }
+
+        const currentPage = pagePayload.page ?? pageToLoad;
+        const pageSize = pagePayload.size ?? PAGE_SIZE;
+        const computedHasMore = pagePayload.hasMore ?? (mapped.length === pageSize);
+
+        setHasMore(Boolean(computedHasMore));
+        nextPageRef.current = currentPage + 1;
       } catch (error) {
-        if (isMounted) {
+        if (isMountedRef.current) {
           console.error('Failed to load notifications', error);
         }
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+        loadingRef.current = false;
       }
-    };
+    },
+    []
+  );
 
-    loadNotifications();
+  useEffect(() => {
+    nextPageRef.current = 0;
+    if (!recipientIds.length) {
+      setNotifications([]);
+      setHasMore(false);
+      return;
+    }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [recipientIds]);
+    void loadPage(0, false);
+  }, [recipientIds, loadPage]);
 
   useEffect(() => {
     if (!recipientIds.length) {
@@ -144,8 +231,22 @@ export const useNotifications = () => {
     [notifications]
   );
 
-  const markAllAsRead = useCallback(() => {
+  const markAllAsRead = useCallback(async () => {
+    if (markingRef.current) {
+      return;
+    }
+
+    markingRef.current = true;
     setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
+    try {
+      await markNotificationsAsRead();
+    } catch (error) {
+      if (isMountedRef.current) {
+        console.error('Failed to mark notifications as read', error);
+      }
+    } finally {
+      markingRef.current = false;
+    }
   }, []);
 
   const markAsRead = useCallback((id: string) => {
@@ -156,10 +257,21 @@ export const useNotifications = () => {
     );
   }, []);
 
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingRef.current) {
+      return;
+    }
+
+    await loadPage(nextPageRef.current, true);
+  }, [hasMore, loadPage]);
+
   return {
     notifications,
     unreadCount,
     markAllAsRead,
     markAsRead,
+    hasMore,
+    loadMore,
+    loading,
   };
 };

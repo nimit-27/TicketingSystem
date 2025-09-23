@@ -18,6 +18,14 @@ export interface NotificationApiResponse {
   read?: boolean;
 }
 
+export interface NotificationPageApiResponse {
+  items: NotificationApiResponse[];
+  hasMore: boolean;
+  total?: number;
+  page?: number;
+  size?: number;
+}
+
 export interface NotificationItem {
   id: string;
   code?: string;
