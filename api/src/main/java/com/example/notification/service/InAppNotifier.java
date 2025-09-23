@@ -38,6 +38,8 @@ public class InAppNotifier implements Notifier{
                 .timestamp(Instant.now().toString())
                 .build();
 
+        System.out.println(request.getRecipient());
+
         messagingTemplate.convertAndSend("/topic/notifications/" + request.getRecipient(), payload);
         System.out.println("In-App notification sent");
     }

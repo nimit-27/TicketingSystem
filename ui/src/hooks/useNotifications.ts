@@ -110,11 +110,11 @@ export const useNotifications = () => {
     }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     isMountedRef.current = false;
+  //   };
+  // }, []);
 
   const loadPage = useCallback(
     async (pageToLoad: number, append: boolean) => {
@@ -129,6 +129,8 @@ export const useNotifications = () => {
 
       try {
         const response = await fetchNotifications(pageToLoad, PAGE_SIZE);
+        // console.log(response)
+        console.log(response?.data?.data)
         const payload =
           response?.data?.data ??
           response?.data?.body?.data ??

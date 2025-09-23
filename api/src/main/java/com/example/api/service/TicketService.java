@@ -210,7 +210,7 @@ public class TicketService {
         // Send notification using EMAIL channel and TicketCreated template
         try {
             notificationService.sendNotification(
-                    ChannelType.EMAIL,
+                    ChannelType.IN_APP,
                     TICKET_CREATED_NOTIFICATION_CODE,
                     data,
                     saved.getUser() != null ? saved.getUser().getEmailId() : saved.getRequestorEmailId()
