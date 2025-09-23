@@ -4,7 +4,8 @@ import SockJS from 'sockjs-client';
 
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
-import { InAppNotificationPayload, NotificationItem } from '../types/notification';
+import { fetchNotifications } from '../services/NotificationService';
+import { InAppNotificationPayload, NotificationApiResponse, NotificationItem } from '../types/notification';
 
 const WS_ENDPOINT = `${BASE_URL}/ws`;
 
@@ -17,9 +18,26 @@ const buildNotification = (payload: InAppNotificationPayload): NotificationItem 
     code: payload.code,
     title,
     message,
-    data: payload.data,
+    data: payload.data || undefined,
     timestamp,
     read: false,
+  };
+};
+
+const mapApiNotification = (notification: NotificationApiResponse): NotificationItem => {
+  const timestamp = notification.createdAt || new Date().toISOString();
+  const baseId = notification.id ?? notification.notificationId;
+  return {
+    id:
+      typeof baseId === 'number' || typeof baseId === 'string'
+        ? String(baseId)
+        : `${notification.code || 'notification'}-${timestamp}-${Math.random().toString(36).slice(2, 8)}`,
+    code: notification.code,
+    title: notification.title || notification.code || 'Notification',
+    message: notification.message || '',
+    data: (notification.data ?? undefined) as Record<string, unknown> | undefined,
+    timestamp,
+    read: Boolean(notification.read),
   };
 };
 
@@ -45,6 +63,55 @@ export const useNotifications = () => {
       console.error('Failed to parse notification payload', error);
     }
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadNotifications = async () => {
+      if (!recipientIds.length) {
+        return;
+      }
+
+      try {
+        const response = await fetchNotifications();
+        const payload =
+          response?.data?.data ??
+          response?.data?.body?.data ??
+          response?.data ??
+          [];
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (Array.isArray(payload)) {
+          const mapped = payload.map(mapApiNotification);
+          setNotifications(prev => {
+            const existingIds = new Set(mapped.map(item => item.id));
+            const merged = [...mapped];
+            prev.forEach(item => {
+              if (!existingIds.has(item.id)) {
+                merged.push(item);
+              }
+            });
+            return merged;
+          });
+        } else {
+          console.error('Unexpected notifications payload', payload);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Failed to load notifications', error);
+        }
+      }
+    };
+
+    loadNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [recipientIds]);
 
   useEffect(() => {
     if (!recipientIds.length) {
