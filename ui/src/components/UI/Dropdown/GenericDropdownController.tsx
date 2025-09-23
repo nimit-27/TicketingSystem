@@ -1,4 +1,5 @@
 import { Control, Controller, FieldValues, RegisterOptions } from "react-hook-form"
+import { SelectChangeEvent } from "@mui/material/Select"
 import GenericDropdown, { GenericDropdownProps } from "./GenericDropdown"
 
 interface GenericDropdownControllerProps<T extends FieldValues = any> extends Omit<GenericDropdownProps, "onChange"> {
@@ -12,6 +13,7 @@ const GenericDropdownController: React.FC<GenericDropdownControllerProps> = ({
     name,
     control,
     rules,
+    onChange: externalOnChange,
     ...dropdownProps
 }) => {
     return (
@@ -19,12 +21,22 @@ const GenericDropdownController: React.FC<GenericDropdownControllerProps> = ({
             name={name}
             control={control}
             rules={rules}
-            render={({ field }) => (
-                <GenericDropdown
-                    {...field}
-                    {...dropdownProps}
-                />
-            )}
+            render={({ field, fieldState }) => {
+                const handleChange = (event: SelectChangeEvent) => {
+                    field.onChange(event);
+                    externalOnChange?.(event);
+                };
+
+                return (
+                    <GenericDropdown
+                        {...dropdownProps}
+                        {...field}
+                        onChange={handleChange}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                    />
+                );
+            }}
         />
     )
 }
