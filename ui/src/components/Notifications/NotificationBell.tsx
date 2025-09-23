@@ -3,6 +3,7 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 import {
   Badge,
   Box,
+  Button,
   Divider,
   IconButton,
   List,
@@ -73,7 +74,7 @@ interface NotificationBellProps {
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
   const theme = useTheme();
-  const { notifications, unreadCount, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead, hasMore, loadMore, loading } = useNotifications();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const menuOpen = Boolean(anchorEl);
@@ -96,9 +97,13 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
 
   useEffect(() => {
     if (menuOpen && unreadCount > 0) {
-      markAllAsRead();
+      void markAllAsRead();
     }
   }, [menuOpen, unreadCount, markAllAsRead]);
+
+  const handleShowMore = () => {
+    void loadMore();
+  };
 
   return (
     <>
@@ -143,14 +148,35 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
             </Typography>
           </Box>
         ) : (
-          <List dense disablePadding>
-            {sortedNotifications.map(notification => (
-              <React.Fragment key={notification.id}>
-                {renderNotification(notification, theme)}
-                <Divider component="li" />
-              </React.Fragment>
-            ))}
-          </List>
+          <>
+            <List
+              dense
+              disablePadding
+              sx={{ maxHeight: 56 * 7, overflowY: 'auto' }}
+            >
+              {sortedNotifications.map((notification, index) => (
+                <React.Fragment key={notification.id}>
+                  {renderNotification(notification, theme)}
+                  {index < sortedNotifications.length - 1 && <Divider component="li" />}
+                </React.Fragment>
+              ))}
+            </List>
+            {(hasMore || loading) && (
+              <>
+                <Divider />
+                <Box sx={{ px: 2, py: 1 }}>
+                  <Button
+                    size="small"
+                    onClick={handleShowMore}
+                    disabled={loading}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {loading ? 'Loading…' : 'Show more'}
+                  </Button>
+                </Box>
+              </>
+            )}
+          </>
         )}
       </Menu>
     </>

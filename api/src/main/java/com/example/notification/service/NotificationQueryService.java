@@ -1,5 +1,6 @@
 package com.example.notification.service;
 
+import com.example.api.dto.NotificationPageResponse;
 import com.example.api.dto.UserNotificationDto;
 import com.example.notification.models.Notification;
 import com.example.notification.models.NotificationMaster;
@@ -11,8 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,18 +30,47 @@ public class NotificationQueryService {
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final ObjectMapper objectMapper;
 
-    public List<UserNotificationDto> getNotificationsForUser(String userId) {
+    public NotificationPageResponse getNotificationsForUser(String userId, int page, int size) {
         if (userId == null || userId.isBlank()) {
-            return List.of();
+            return new NotificationPageResponse(List.of(), false, 0, 0, size > 0 ? size : 0);
         }
 
-        Page<NotificationRecipient> recipients = notificationRecipientRepository
-                .findInbox(userId, false, null, Pageable.unpaged());
+        int pageNumber = Math.max(page, 0);
+        int pageSize = size <= 0 ? 7 : Math.min(size, 50);
 
-        return recipients
+        Page<NotificationRecipient> recipients = notificationRecipientRepository
+                .findInbox(userId, false, null, PageRequest.of(pageNumber, pageSize));
+
+        List<UserNotificationDto> items = recipients
                 .stream()
                 .map(this::mapToDto)
                 .toList();
+
+        return new NotificationPageResponse(
+                items,
+                recipients.hasNext(),
+                recipients.getTotalElements(),
+                recipients.getNumber(),
+                recipients.getSize()
+        );
+    }
+
+    @Transactional
+    public int markAllNotificationsAsRead(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return 0;
+        }
+
+        List<NotificationRecipient> unreadRecipients = notificationRecipientRepository
+                .findByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalse(userId);
+
+        if (unreadRecipients.isEmpty()) {
+            return 0;
+        }
+
+        unreadRecipients.forEach(recipient -> recipient.setRead(true));
+        notificationRecipientRepository.saveAll(unreadRecipients);
+        return unreadRecipients.size();
     }
 
     private UserNotificationDto mapToDto(NotificationRecipient recipient) {

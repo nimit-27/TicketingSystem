@@ -1,7 +1,6 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useSnackbar } from "../context/SnackbarContext";
-import { ApiResponse } from "../types";
 
 interface UseApiResponse<R> {
     data: R | null;
@@ -24,15 +23,20 @@ export const useApi = <R,>(): UseApiResponse<R> => {
             startTransition(() => {
                 apiCall()
                     .then((response: any) => {
-                        console.log(response)
-                        const resp: ApiResponse<R> = response?.data?.body ?? response;
+                        const rawPayload = response?.data ?? response;
+                        const resp: any = rawPayload?.body ?? rawPayload;
+                        const successFlag = typeof resp?.success === 'boolean' ? resp.success : true;
 
-                        if (resp.success) {
-                            setData(resp.data ?? null);
+                        if (successFlag) {
+                            const payload = resp && typeof resp === 'object' && 'data' in resp
+                                ? (resp.data ?? null)
+                                : resp ?? null;
+                            setError(null);
+                            setData(payload as R | null);
                             setSuccess(true);
-                            resolve(resp.data as R);
+                            resolve((payload ?? null) as R);
                         } else {
-                            const message = resp.error?.message || 'Something went wrong';
+                            const message = resp?.error?.message || 'Something went wrong';
                             setError(message);
                             showMessage(message, 'error');
                             setData(null);
@@ -54,6 +58,5 @@ export const useApi = <R,>(): UseApiResponse<R> => {
         });
     }, [showMessage])
 
-    return { data, pending, error, success, apiHandler }
-
-}
+    return { data, pending, error, success, apiHandler };
+};
