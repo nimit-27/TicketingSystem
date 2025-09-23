@@ -14,17 +14,17 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
             SELECT nr FROM NotificationRecipient nr
             JOIN FETCH nr.notification n
             JOIN FETCH n.type t
-            WHERE nr.recipient.id = :userId
+            WHERE nr.recipient.userId = :userId
                 AND (:unreadOnly = false OR nr.isRead = false)
                 AND nr.softDeleted = false
                 AND (:typeCodes IS NULL OR t.code IN :typeCodes)
             ORDER BY n.createdAt DESC
            """)
-    Page<NotificationRecipient> findInbox(@Param("userId") Long userId,
+    Page<NotificationRecipient> findInbox(@Param("userId") String userId,
                                           @Param("unreadOnly") boolean unreadOnly,
                                           @Param("typeCodes") List<String> typeCodes,
                                           Pageable pageable);
 
-    long countByRecipient_IdAndIsReadFalseAndSoftDeletedFalse(Long userId);
+    long countByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalse(String userId);
 
 }
