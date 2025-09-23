@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 
 import { useNotifications } from '../../hooks/useNotifications';
 import { NotificationItem } from '../../types/notification';
@@ -24,9 +25,25 @@ const formatTimestamp = (value: string) => {
   return date.toLocaleString();
 };
 
-const renderNotification = (notification: NotificationItem) => {
+const renderNotification = (notification: NotificationItem, theme: Theme) => {
+  const highlightColor =
+    theme.palette.mode === 'dark'
+      ? theme.palette.action.selected
+      : theme.palette.action.hover;
+
   return (
-    <ListItem key={notification.id} alignItems="flex-start" sx={{ py: 1, px: 1.5 }}>
+    <ListItem
+      key={notification.id}
+      alignItems="flex-start"
+      sx={{
+        py: 1,
+        px: 1.5,
+        bgcolor: notification.read ? 'transparent' : highlightColor,
+        borderLeft: notification.read ? '4px solid transparent' : `4px solid ${theme.palette.primary.main}`,
+        borderRadius: 1,
+        transition: 'background-color 0.2s ease',
+      }}
+    >
       <ListItemText
         primary={
           <Typography variant="subtitle2" sx={{ fontWeight: notification.read ? 500 : 600 }}>
@@ -129,7 +146,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
           <List dense disablePadding>
             {sortedNotifications.map(notification => (
               <React.Fragment key={notification.id}>
-                {renderNotification(notification)}
+                {renderNotification(notification, theme)}
                 <Divider component="li" />
               </React.Fragment>
             ))}
