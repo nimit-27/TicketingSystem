@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
@@ -12,7 +10,7 @@ import {
   NotificationPageApiResponse,
 } from '../types/notification';
 
-const WS_ENDPOINT = `${BASE_URL}/ws`;
+const SSE_ENDPOINT = `${BASE_URL}/notifications/stream`;
 const PAGE_SIZE = 7;
 
 const buildNotification = (payload: InAppNotificationPayload): NotificationItem => {
@@ -83,13 +81,17 @@ const normalizePagePayload = (
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const subscriptionsRef = useRef<StompSubscription[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [latestNotification, setLatestNotification] = useState<NotificationItem | null>(null);
+
   const isMountedRef = useRef(true);
   const loadingRef = useRef(false);
   const markingRef = useRef(false);
   const nextPageRef = useRef(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestNotificationRef = useRef<NotificationItem | null>(null);
 
   const recipientIds = useMemo(() => {
     const user = getCurrentUserDetails();
@@ -101,20 +103,18 @@ export const useNotifications = () => {
     return Array.from(ids).filter(Boolean);
   }, []);
 
-  const handleMessage = useCallback((message: IMessage) => {
-    try {
-      const payload: InAppNotificationPayload = JSON.parse(message.body);
-      setNotifications(prev => [buildNotification(payload), ...prev]);
-    } catch (error) {
-      console.error('Failed to parse notification payload', error);
-    }
+  const handleRealtimeNotification = useCallback((payload: InAppNotificationPayload) => {
+    const notification = buildNotification(payload);
+    latestNotificationRef.current = notification;
+    setLatestNotification(notification);
+    setNotifications(prev => [notification, ...prev]);
   }, []);
 
-  // useEffect(() => {
-  //   return () => {
-  //     isMountedRef.current = false;
-  //   };
-  // }, []);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const loadPage = useCallback(
     async (pageToLoad: number, append: boolean) => {
@@ -129,8 +129,6 @@ export const useNotifications = () => {
 
       try {
         const response = await fetchNotifications(pageToLoad, PAGE_SIZE);
-        // console.log(response)
-        console.log(response?.data?.data)
         const payload =
           response?.data?.data ??
           response?.data?.body?.data ??
@@ -206,26 +204,74 @@ export const useNotifications = () => {
       return undefined;
     }
 
-    const client = new Client({
-      reconnectDelay: 5000,
-      webSocketFactory: () => new SockJS(WS_ENDPOINT),
-      onConnect: () => {
-        subscriptionsRef.current = recipientIds.map(id =>
-          client.subscribe(`/topic/notifications/${id}`, handleMessage)
-        );
-      },
-      onStompError: (frame: { headers: { [x: string]: any; }; }) => {
-        console.error('STOMP error', frame.headers['message']);
-      },
-    });
+    let cancelled = false;
 
-    client.activate();
-    return () => {
-      subscriptionsRef.current.forEach(sub => sub.unsubscribe());
-      subscriptionsRef.current = [];
-      client.deactivate();
+    const cleanup = () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
     };
-  }, [handleMessage, recipientIds]);
+
+    const connect = () => {
+      if (cancelled) {
+        return;
+      }
+
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+
+      const params = new URLSearchParams();
+      recipientIds.forEach(id => params.append('recipientId', id));
+
+      const source = new EventSource(`${SSE_ENDPOINT}?${params.toString()}`, {
+        withCredentials: true,
+      });
+
+      const handleEvent = (event: MessageEvent) => {
+        if (!event?.data) {
+          return;
+        }
+        try {
+          const parsed: InAppNotificationPayload = JSON.parse(event.data);
+          handleRealtimeNotification(parsed);
+        } catch (error) {
+          console.error('Failed to parse SSE notification payload', error);
+        }
+      };
+
+      source.addEventListener('notification', handleEvent as EventListener);
+      source.onmessage = handleEvent;
+
+      source.onerror = () => {
+        source.close();
+        if (eventSourceRef.current === source) {
+          eventSourceRef.current = null;
+        }
+        if (!cancelled && !reconnectTimerRef.current) {
+          reconnectTimerRef.current = setTimeout(() => {
+            reconnectTimerRef.current = null;
+            connect();
+          }, 5000);
+        }
+      };
+
+      eventSourceRef.current = source;
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      cleanup();
+    };
+  }, [handleRealtimeNotification, recipientIds]);
 
   const unreadCount = useMemo(
     () => notifications.filter(notification => !notification.read).length,
@@ -266,6 +312,11 @@ export const useNotifications = () => {
     await loadPage(nextPageRef.current, true);
   }, [hasMore, loadPage]);
 
+  const acknowledgeLatestNotification = useCallback(() => {
+    latestNotificationRef.current = null;
+    setLatestNotification(null);
+  }, []);
+
   return {
     notifications,
     unreadCount,
@@ -274,5 +325,8 @@ export const useNotifications = () => {
     hasMore,
     loadMore,
     loading,
+    latestNotification,
+    acknowledgeLatestNotification,
   };
 };
+

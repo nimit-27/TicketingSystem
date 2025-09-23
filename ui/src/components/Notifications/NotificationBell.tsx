@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import {
+  Alert,
   Badge,
   Box,
   Button,
@@ -10,6 +11,7 @@ import {
   ListItem,
   ListItemText,
   Menu,
+  Snackbar,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -74,8 +76,19 @@ interface NotificationBellProps {
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
   const theme = useTheme();
-  const { notifications, unreadCount, markAllAsRead, hasMore, loadMore, loading } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    markAllAsRead,
+    hasMore,
+    loadMore,
+    loading,
+    latestNotification,
+    acknowledgeLatestNotification,
+  } = useNotifications();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarNotification, setSnackbarNotification] = useState<NotificationItem | null>(null);
 
   const menuOpen = Boolean(anchorEl);
 
@@ -100,6 +113,22 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
       void markAllAsRead();
     }
   }, [menuOpen, unreadCount, markAllAsRead]);
+
+  useEffect(() => {
+    if (latestNotification) {
+      setSnackbarNotification(latestNotification);
+      setSnackbarOpen(true);
+      acknowledgeLatestNotification();
+    }
+  }, [acknowledgeLatestNotification, latestNotification]);
+
+  const handleSnackbarClose = (_event?: Event | React.SyntheticEvent, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+    setSnackbarNotification(null);
+  };
 
   const handleShowMore = () => {
     void loadMore();
@@ -179,6 +208,28 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
           </>
         )}
       </Menu>
+      <Snackbar
+        open={snackbarOpen && Boolean(snackbarNotification)}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="info"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {snackbarNotification?.title || 'Notification'}
+          </Typography>
+          {snackbarNotification?.message && (
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {snackbarNotification.message}
+            </Typography>
+          )}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
