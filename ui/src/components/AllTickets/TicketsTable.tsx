@@ -63,7 +63,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
 
-    const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
+    const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
@@ -76,7 +76,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
-            return !disallowed.includes(a.action);
+            return !excludeInActionMenu.includes(a.action);
         });
     };
 
