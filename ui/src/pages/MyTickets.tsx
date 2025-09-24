@@ -110,7 +110,7 @@ const MyTickets: React.FC = () => {
             requestorId = userId;
         }
 
-        if (!statusParam && allowedStatuses.length > 0) {
+        if (!statusParam && allowedStatuses.length > 0 && !isRequester) {
             statusParam = allowedStatuses.join(',');
         }
 

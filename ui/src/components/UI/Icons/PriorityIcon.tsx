@@ -4,6 +4,7 @@ import { IconComponent } from '../IconButton/CustomIconButton';
 
 interface PriorityIconProps {
   level: number;
+  rotateRight?: boolean;
 }
 
 const getColor = (level: number) => {
@@ -14,12 +15,20 @@ const getColor = (level: number) => {
   return 'ffd700';
 };
 
-const PriorityIcon: React.FC<PriorityIconProps> = ({ level }) => {
+const PriorityIcon: React.FC<PriorityIconProps> = ({ level, rotateRight }) => {
   // const count = Math.min(Math.max(level, 1), 4);
   const count = 5 - level; // Invert the level to match the desired display
   const color = getColor(level);
   return (
-    <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0 }}>
+    <Box sx={{
+      position: 'relative',
+      display: 'block',
+      flexDirection: 'column',
+      alignItems: 'center',
+      lineHeight: 0,
+      transform: rotateRight ? 'rotate(90deg)' : 'none',
+      transformOrigin: '25px',
+    }}>
       {Array.from({ length: count }).map((_, i) => {
         return <IconComponent
           icon='arrowup'
