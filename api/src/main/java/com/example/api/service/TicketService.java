@@ -207,13 +207,42 @@ public class TicketService {
         }
         data.put("ticketId", saved.getId());
 
-        // Send notification using EMAIL channel and TicketCreated template
+        // Resolve the best identifier for in-app notifications. SSE subscriptions are keyed by
+        // the authenticated user's identifiers (userId/username/email). When we previously used
+        // only the email address, users such as "teaml1" – whose session details do not include
+        // an email – never matched the SSE registry and therefore never received the event. By
+        // prioritising the persistent userId (and falling back to other known identifiers) we
+        // ensure that at least one of the subscribed keys receives the notification payload.
+        String recipientIdentifier = null;
+        if (saved.getUser() != null) {
+            if (saved.getUser().getUserId() != null && !saved.getUser().getUserId().isBlank()) {
+                recipientIdentifier = saved.getUser().getUserId();
+            } else if (saved.getUser().getUsername() != null && !saved.getUser().getUsername().isBlank()) {
+                recipientIdentifier = saved.getUser().getUsername();
+            } else if (saved.getUser().getEmailId() != null && !saved.getUser().getEmailId().isBlank()) {
+                recipientIdentifier = saved.getUser().getEmailId();
+            }
+        }
+
+        if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorId() != null) {
+            recipientIdentifier = saved.getRequestorId();
+        }
+
+        if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorEmailId() != null) {
+            recipientIdentifier = saved.getRequestorEmailId();
+        }
+
+        if (recipientIdentifier == null || recipientIdentifier.isBlank()) {
+            throw new IllegalStateException("Unable to resolve recipient identifier for in-app notification");
+        }
+
+        // Send notification using IN_APP channel and TicketCreated template
         try {
             notificationService.sendNotification(
                     ChannelType.IN_APP,
                     TICKET_CREATED_NOTIFICATION_CODE,
                     data,
-                    saved.getUser() != null ? saved.getUser().getEmailId() : saved.getRequestorEmailId()
+                    recipientIdentifier
             );
         } catch (Exception e) {
             e.printStackTrace();
