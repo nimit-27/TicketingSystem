@@ -334,7 +334,7 @@ CREATE TABLE `notification_master` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
   KEY `isx_notification_master_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -343,7 +343,7 @@ CREATE TABLE `notification_master` (
 
 LOCK TABLES `notification_master` WRITE;
 /*!40000 ALTER TABLE `notification_master` DISABLE KEYS */;
-INSERT INTO `notification_master` VALUES (1,'TICKET_CREATED','Ticket Created','Triggered when a new ticket is logged in the system.','Ticket {{ticketId}} created','Hello {{recipientName}}, ticket {{ticketId}} has been created by {{initiatorName}}.','ticket_created_email.html',NULL,'ticket_created_inapp.html','[\"EMAIL\", \"IN_APP\"]',_binary '','2025-01-10 09:00:00.000000','2025-09-24 16:49:48.436295'),(2,'TICKET_STATUS_UPDATE','Ticket Status Updated','Alerts requestors when ticket status changes.','Ticket {{ticketId}} status updated','Ticket {{ticketNumber}} changed from {{oldStatus}} to {{newStatus}} by {{actorName}}.','ticket_status_update_email.html','TKT_STATUS_UPDATE','ticket_status_update_inapp.html','[\"EMAIL\", \"SMS\", \"IN_APP\"]',_binary '','2025-01-10 09:05:00.000000','2025-09-24 16:49:48.460370'),(3,'TICKET_FEEDBACK_REMINDER','Ticket Feedback Reminder','Reminder to share feedback after resolution.','Feedback pending for ticket {{ticketId}}','Hi {{recipientName}}, please provide feedback for ticket {{ticketNumber}} resolved on {{resolvedDate}}.',NULL,NULL,'ticket_feedback_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:10:00.000000','2025-09-24 16:50:05.901461');
+INSERT INTO `notification_master` VALUES (1,'TICKET_CREATED','Ticket Created','Triggered when a new ticket is logged in the system.','Ticket {{ticketId}} created','Hello {{recipientName}}, ticket {{ticketId}} has been created by {{initiatorName}}.','ticket_created_email.html',NULL,'ticket_created_inapp.html','[\"EMAIL\", \"IN_APP\"]',_binary '','2025-01-10 09:00:00.000000','2025-09-24 16:49:48.436295'),(2,'TICKET_STATUS_UPDATE','Ticket Status Updated','Alerts requestors when ticket status changes.','Ticket {{ticketId}} status updated','Ticket {{ticketNumber}} changed from {{oldStatus}} to {{newStatus}} by {{actorName}}.','ticket_status_update_email.html','TKT_STATUS_UPDATE','ticket_status_update_inapp.html','[\"EMAIL\", \"SMS\", \"IN_APP\"]',_binary '','2025-01-10 09:05:00.000000','2025-09-24 16:49:48.460370'),(3,'TICKET_FEEDBACK_REMINDER','Ticket Feedback Reminder','Reminder to share feedback after resolution.','Feedback pending for ticket {{ticketId}}','Hi {{recipientName}}, please provide feedback for ticket {{ticketNumber}} resolved on {{resolvedDate}}.',NULL,NULL,'ticket_feedback_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:10:00.000000','2025-09-24 16:50:05.901461'),(4,'TICKET_ASSIGNED','Ticket Assigned','Notifies the assignee when a ticket is assigned to them.','Ticket {{ticketId}} assigned to you','Ticket {{ticketId}} has been assigned to you by {{assignedBy}}.','ticket_assigned_email.html',NULL,'ticket_assigned_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:15:00.000000','2025-09-24 16:50:05.901461');
 /*!40000 ALTER TABLE `notification_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -643,7 +643,7 @@ CREATE TABLE `stakeholder_group` (
   `description` varchar(100) NOT NULL,
   `is_active` char(1) NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`sg_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

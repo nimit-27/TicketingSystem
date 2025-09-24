@@ -2,21 +2,28 @@ package com.example.api.service;
 
 import com.example.api.enums.TicketStatus;
 import com.example.api.models.Status;
+import com.example.api.models.StatusHistory;
 import com.example.api.models.Ticket;
 import com.example.api.models.RecommendedSeverityFlow;
 import com.example.api.repository.*;
 import com.example.api.typesense.TypesenseClient;
+import com.example.api.models.User;
+import com.example.notification.enums.ChannelType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
@@ -95,6 +102,124 @@ class TicketServiceTest {
         ticketService.updateTicket(ticketId, update);
 
         verify(assignmentHistoryService).addHistory(ticketId, update.getUpdatedBy(), "agent1", "L1", update.getRemark());
+    }
+
+    @Test
+    void addTicket_withAssignee_sendsNotificationsToAssignee() throws Exception {
+        Ticket ticket = new Ticket();
+        ticket.setId("T-100");
+        ticket.setUserId("requestor-1");
+        ticket.setAssignedTo("agent-1");
+        ticket.setAssignedBy("supervisor");
+        ticket.setLevelId("L1");
+        ticket.setUpdatedBy("supervisor");
+        ticket.setReportedDate(LocalDateTime.now());
+
+        User requestor = new User();
+        requestor.setUserId("requestor-1");
+        requestor.setUsername("requestorUser");
+        requestor.setName("Requester Name");
+
+        User assignee = new User();
+        assignee.setUserId("agent-1");
+        assignee.setUsername("agentUser");
+        assignee.setName("Agent Jane");
+
+        when(userRepository.findById("requestor-1")).thenReturn(Optional.of(requestor));
+        when(userRepository.findById("agent-1")).thenReturn(Optional.of(assignee));
+
+        Status openStatus = new Status();
+        openStatus.setStatusId("OPEN");
+        openStatus.setStatusCode(TicketStatus.OPEN.name());
+        when(workflowService.getStatusIdByCode(TicketStatus.OPEN.name())).thenReturn("OPEN");
+        when(statusMasterRepository.findById("OPEN")).thenReturn(Optional.of(openStatus));
+        when(workflowService.getSlaFlagByStatusId("OPEN")).thenReturn(true);
+
+        Status assignedStatus = new Status();
+        assignedStatus.setStatusId("ASSIGNED");
+        assignedStatus.setStatusCode(TicketStatus.ASSIGNED.name());
+        when(workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name())).thenReturn("ASSIGNED");
+        when(statusMasterRepository.findById("ASSIGNED")).thenReturn(Optional.of(assignedStatus));
+        when(workflowService.getSlaFlagByStatusId("ASSIGNED")).thenReturn(true);
+
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(statusHistoryService.addHistory(anyString(), anyString(), any(), any(), anyBoolean(), any()))
+                .thenReturn(new StatusHistory());
+        when(assignmentHistoryService.addHistory(anyString(), anyString(), anyString(), anyString(), any()))
+                .thenReturn(null);
+        doNothing().when(ticketSlaService).calculateAndSave(any(Ticket.class), anyList());
+
+        ticketService.addTicket(ticket);
+
+        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(notificationService, times(2)).sendNotification(
+                eq(ChannelType.IN_APP),
+                codeCaptor.capture(),
+                dataCaptor.capture(),
+                recipientCaptor.capture()
+        );
+
+        List<String> codes = codeCaptor.getAllValues();
+        List<Map<String, Object>> payloads = dataCaptor.getAllValues();
+        List<String> recipients = recipientCaptor.getAllValues();
+
+        assertThat(codes).containsExactlyInAnyOrder("TICKET_CREATED", "TICKET_ASSIGNED");
+        int assignedIndex = codes.indexOf("TICKET_ASSIGNED");
+        assertThat(assignedIndex).isGreaterThanOrEqualTo(0);
+        assertThat(recipients.get(assignedIndex)).isEqualTo("agent-1");
+        assertThat(payloads.get(assignedIndex))
+                .containsEntry("ticketId", "T-100")
+                .containsEntry("assigneeName", "Agent Jane")
+                .containsEntry("assignedBy", "supervisor");
+    }
+
+    @Test
+    void updateTicket_assignmentChange_sendsAssignmentNotification() throws Exception {
+        String ticketId = "T-3";
+        Ticket existing = buildExistingTicket(ticketId, "agent-old");
+        existing.setUpdatedBy("existingUser");
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(assignmentHistoryService.addHistory(anyString(), anyString(), anyString(), anyString(), any()))
+                .thenReturn(null);
+        when(statusHistoryService.addHistory(anyString(), anyString(), any(), any(), anyBoolean(), any()))
+                .thenReturn(new StatusHistory());
+
+        when(workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name())).thenReturn("ASSIGNED");
+        Status assignedStatus = new Status();
+        assignedStatus.setStatusId("ASSIGNED");
+        assignedStatus.setStatusCode(TicketStatus.ASSIGNED.name());
+        when(statusMasterRepository.findById("ASSIGNED")).thenReturn(Optional.of(assignedStatus));
+        when(workflowService.getSlaFlagByStatusId("ASSIGNED")).thenReturn(true);
+
+        User newAssignee = new User();
+        newAssignee.setUserId("agent-new");
+        newAssignee.setUsername("agentNew");
+        newAssignee.setName("Agent New");
+        when(userRepository.findById("agent-new")).thenReturn(Optional.of(newAssignee));
+
+        Ticket update = new Ticket();
+        update.setAssignedTo("agent-new");
+        update.setAssignedBy("manager1");
+        update.setUpdatedBy("manager1");
+        update.setLevelId("L2");
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(notificationService).sendNotification(
+                eq(ChannelType.IN_APP),
+                eq("TICKET_ASSIGNED"),
+                argThat(map ->
+                        "T-3".equals(map.get("ticketId"))
+                                && "Agent New".equals(map.get("assigneeName"))
+                                && "manager1".equals(map.get("assignedBy"))
+                ),
+                eq("agent-new")
+        );
     }
 
     private Ticket buildExistingTicket(String ticketId, String assignee) {
