@@ -52,9 +52,9 @@ interface TicketsTableProps {
 
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange }) => {
     const { t } = useTranslation();
-    
+
     const navigate = useNavigate();
-    
+
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -213,11 +213,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             />
                         );
                     }
-                    return record.assignedTo ? (
-                        <Tooltip title={record.assignedTo}>
+                    return record.assignedTo
+                        ? <Tooltip title={record.assignedTo}>
                             <span><UserAvatar name={record.assignedTo} /></span>
                         </Tooltip>
-                    ) : <Tooltip title={""}>
+                        : <Tooltip title={""}>
                             <span><UserAvatar name={""} /></span>
                         </Tooltip>;
                 }

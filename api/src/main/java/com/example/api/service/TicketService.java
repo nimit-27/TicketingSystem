@@ -224,8 +224,8 @@ public class TicketService {
             }
         }
 
-        if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorId() != null) {
-            recipientIdentifier = saved.getRequestorId();
+        if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorName() != null) {
+            recipientIdentifier = saved.getRequestorName();
         }
 
         if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorEmailId() != null) {
@@ -339,6 +339,16 @@ public class TicketService {
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
             }
+//            try {
+//                notificationService.sendNotification(
+//                        ChannelType.IN_APP,
+//                        TICKET_CREATED_NOTIFICATION_CODE,
+//                        data,
+//                        recipientIdentifier
+//                );
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
         }
         if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
         existing.setLastModified(LocalDateTime.now());
