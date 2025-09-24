@@ -46,6 +46,7 @@ import org.springframework.data.domain.Pageable;
 @AllArgsConstructor
 public class TicketService {
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
+    private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
     private final TypesenseClient typesenseClient;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
@@ -207,34 +208,11 @@ public class TicketService {
         }
         data.put("ticketId", saved.getId());
 
-        // Resolve the best identifier for in-app notifications. SSE subscriptions are keyed by
-        // the authenticated user's identifiers (userId/username/email). When we previously used
-        // only the email address, users such as "teaml1" – whose session details do not include
-        // an email – never matched the SSE registry and therefore never received the event. By
-        // prioritising the persistent userId (and falling back to other known identifiers) we
-        // ensure that at least one of the subscribed keys receives the notification payload.
-        String recipientIdentifier = null;
-        if (saved.getUser() != null) {
-            if (saved.getUser().getUserId() != null && !saved.getUser().getUserId().isBlank()) {
-                recipientIdentifier = saved.getUser().getUserId();
-            } else if (saved.getUser().getUsername() != null && !saved.getUser().getUsername().isBlank()) {
-                recipientIdentifier = saved.getUser().getUsername();
-            } else if (saved.getUser().getEmailId() != null && !saved.getUser().getEmailId().isBlank()) {
-                recipientIdentifier = saved.getUser().getEmailId();
-            }
-        }
-
-        if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorName() != null) {
-            recipientIdentifier = saved.getRequestorName();
-        }
-
-        if ((recipientIdentifier == null || recipientIdentifier.isBlank()) && saved.getRequestorEmailId() != null) {
-            recipientIdentifier = saved.getRequestorEmailId();
-        }
-
-        if (recipientIdentifier == null || recipientIdentifier.isBlank()) {
-            throw new IllegalStateException("Unable to resolve recipient identifier for in-app notification");
-        }
+        String recipientIdentifier = resolveRecipientIdentifier(
+                saved.getUser(),
+                saved.getRequestorName(),
+                saved.getRequestorEmailId()
+        );
 
         // Send notification using IN_APP channel and TicketCreated template
         try {
@@ -246,6 +224,10 @@ public class TicketService {
             );
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        if (isAssigned) {
+            sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
         }
 
         return mapWithStatusId(saved);
@@ -368,6 +350,12 @@ public class TicketService {
                 previousStatus = TicketStatus.ASSIGNED;
                 previousStatusId = assignedId;
             }
+
+            sendAssignmentNotification(
+                    saved,
+                    updated.getAssignedTo(),
+                    updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
+            );
         }
         // ensure status history is recorded whenever status changes via actions
         if (updatedStatusId == null && updatedStatus != null) {
@@ -409,6 +397,86 @@ public class TicketService {
                     });
         }
         return mapWithStatusId(saved);
+    }
+
+    private void sendAssignmentNotification(Ticket ticket, String assignedTo, String assignedBy) {
+        if (assignedTo == null || assignedTo.isBlank()) {
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("ticketId", ticket.getId());
+
+        Optional<User> assignee = findUserByIdOrUsername(assignedTo);
+        assignee.ifPresent(user -> {
+            if (user.getName() != null && !user.getName().isBlank()) {
+                data.put("assigneeName", user.getName());
+            } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
+                data.put("assigneeName", user.getUsername());
+            }
+        });
+        if (!data.containsKey("assigneeName")) {
+            data.put("assigneeName", assignedTo);
+        }
+
+        String assignedByValue = assignedBy;
+        if (assignedByValue == null || assignedByValue.isBlank()) {
+            assignedByValue = ticket.getUpdatedBy();
+        }
+        if (assignedByValue != null && !assignedByValue.isBlank()) {
+            data.put("assignedBy", assignedByValue);
+        }
+
+        try {
+            String recipient = resolveRecipientIdentifier(
+                    assignee.orElse(null),
+                    assignedTo
+            );
+            notificationService.sendNotification(
+                    ChannelType.IN_APP,
+                    TICKET_ASSIGNED_NOTIFICATION_CODE,
+                    data,
+                    recipient
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Optional<User> findUserByIdOrUsername(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return Optional.empty();
+        }
+
+        Optional<User> byId = userRepository.findById(identifier);
+        if (byId.isPresent()) {
+            return byId;
+        }
+        return userRepository.findByUsername(identifier);
+    }
+
+    private String resolveRecipientIdentifier(User user, String... fallbackIdentifiers) {
+        if (user != null) {
+            if (user.getUserId() != null && !user.getUserId().isBlank()) {
+                return user.getUserId();
+            }
+            if (user.getUsername() != null && !user.getUsername().isBlank()) {
+                return user.getUsername();
+            }
+            if (user.getEmailId() != null && !user.getEmailId().isBlank()) {
+                return user.getEmailId();
+            }
+        }
+
+        if (fallbackIdentifiers != null) {
+            for (String identifier : fallbackIdentifiers) {
+                if (identifier != null && !identifier.isBlank()) {
+                    return identifier;
+                }
+            }
+        }
+
+        throw new IllegalStateException("Unable to resolve recipient identifier for in-app notification");
     }
 
     public TicketDto addAttachments(String id, List<String> paths) {
