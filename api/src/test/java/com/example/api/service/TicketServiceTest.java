@@ -105,6 +105,57 @@ class TicketServiceTest {
     }
 
     @Test
+    void updateTicket_statusChange_sendsNotificationToRequestor() throws Exception {
+        String ticketId = "T-STATUS";
+        Ticket existing = buildExistingTicket(ticketId, "agent1");
+
+        User requestor = new User();
+        requestor.setUserId("requestor-1");
+        requestor.setUsername("requestorUser");
+        requestor.setName("Requester Name");
+        existing.setUser(requestor);
+        existing.setUserId(requestor.getUserId());
+        existing.setRequestorName("Requester Name");
+        existing.setRequestorEmailId("requestor@example.com");
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Status resolvedStatus = new Status();
+        resolvedStatus.setStatusId("RESOLVED_ID");
+        resolvedStatus.setStatusCode(TicketStatus.RESOLVED.name());
+        resolvedStatus.setStatusName("Resolved");
+
+        when(workflowService.getStatusIdByCode(TicketStatus.RESOLVED.name())).thenReturn("RESOLVED_ID");
+        when(statusMasterRepository.findById("RESOLVED_ID")).thenReturn(Optional.of(resolvedStatus));
+        when(workflowService.getSlaFlagByStatusId("RESOLVED_ID")).thenReturn(true);
+
+        when(statusHistoryService.addHistory(eq(ticketId), anyString(), any(), any(), anyBoolean(), any()))
+                .thenReturn(new StatusHistory());
+
+        Ticket update = new Ticket();
+        update.setTicketStatus(TicketStatus.RESOLVED);
+        update.setUpdatedBy("agent2");
+        update.setRemark("Resolved now");
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(notificationService).sendNotification(
+                eq(ChannelType.IN_APP),
+                eq("TICKET_STATUS_UPDATE"),
+                argThat(map ->
+                        ticketId.equals(map.get("ticketId"))
+                                && ticketId.equals(map.get("ticketNumber"))
+                                && "Resolved".equals(map.get("newStatus"))
+                                && map.containsKey("oldStatus")
+                                && "agent2".equals(map.get("actorName"))
+                                && "Requester Name".equals(map.get("recipientName"))
+                ),
+                eq("requestor-1")
+        );
+    }
+
+    @Test
     void addTicket_withAssignee_sendsNotificationsToAssignee() throws Exception {
         Ticket ticket = new Ticket();
         ticket.setId("T-100");
