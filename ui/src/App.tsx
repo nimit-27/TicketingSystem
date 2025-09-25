@@ -31,7 +31,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<RequireAuth><SidebarLayout /></RequireAuth>}>
-        <Route index element={<Navigate to="/create-ticket" replace />} />
+        <Route index element={<Navigate to="/my-tickets" replace />} />  // Default route
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
         <Route path="my-tickets" element={<MyTickets />} />
