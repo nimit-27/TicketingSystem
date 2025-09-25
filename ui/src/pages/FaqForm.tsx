@@ -8,6 +8,7 @@ import CustomFormInput from '../components/UI/Input/CustomFormInput';
 import Title from '../components/Title';
 import { getCurrentUserDetails } from '../config/config';
 import GenericButton from '../components/UI/Button';
+import { useTranslation } from 'react-i18next';
 
 interface FaqFormValues {
   questionEn?: string;
@@ -20,6 +21,7 @@ interface FaqFormValues {
 }
 
 const FaqForm: React.FC = () => {
+  const { t } = useTranslation();
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FaqFormValues>();
   const navigate = useNavigate();
   const [successOpen, setSuccessOpen] = useState(false);
@@ -117,7 +119,7 @@ const FaqForm: React.FC = () => {
               Create a new question and answer
             </GenericButton>
             <GenericButton variant='outlined' onClick={() => navigate('/faq')}>
-              Go to FAQ
+              {t('Go to FAQ')}
             </GenericButton>
           </>
         )}

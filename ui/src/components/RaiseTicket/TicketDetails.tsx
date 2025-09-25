@@ -72,7 +72,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const priorityContent = Array.isArray(priorityList) ? (
         <div>
             {priorityList.map((p: PriorityInfo) => (
-                <div key={p.id}>{p.level} - {p.description}</div>
+                <div key={p.id}>{t(p.level)} - {t(p.description)}</div>
             ))}
         </div>
     ) : undefined;
@@ -80,7 +80,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const severityContent = Array.isArray(severityList) ? (
         <div>
             {severityList.map((s: SeverityInfo) => (
-                <div key={s.id}>{s.level} - {s.description}</div>
+                <div key={s.id}>{t(s.level)} - {t(s.description)}</div>
             ))}
         </div>
     ) : undefined;

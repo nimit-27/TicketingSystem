@@ -248,11 +248,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         size="small"
       >
         {(Array.isArray(options) && options.length > 0) ? options.map(o => (
-          <MenuItem key={o} value={o}>{o}</MenuItem>
-        )) : <MenuItem key="" value="">None</MenuItem>}
+          <MenuItem key={o} value={o}>{t(o)}</MenuItem>
+        )) : <MenuItem key="" value="">{t('None')}</MenuItem>}
       </Select>
     ) : (
-      <Typography sx={{ mt: 1 }}>{value || ' - '}</Typography>
+      <Typography sx={{ mt: 1 }}>{value ? t(value) : ' - '}</Typography>
     )
   );
   // const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
@@ -292,37 +292,41 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ' - '} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ' - '}` : ' - ';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ' - '} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ' - '}` : ' - ';
 
+  const youText = t('You');
+  const pendingApprovalText = t('Pending Approval');
   const recommendedSeverityBy = ticket?.severityRecommendedBy;
   const recommendedSeverityByText = recommendedSeverityBy
     ? recommendedSeverityBy === currentUsername
-      ? 'you'
+      ? youText
       : recommendedSeverityBy
     : ' - ';
   const recommendedSeverityStatus = ticket?.recommendedSeverityStatus;
   const severityApprovedBy = ticket?.severityApprovedBy;
   const severityApprovedByText = severityApprovedBy
     ? severityApprovedBy === currentUsername
-      ? 'you'
+      ? youText
       : severityApprovedBy
     : ' - ';
   const recommendedSeverityApprovalText = recommendedSeverityStatus === 'APPROVED' && severityApprovedByText
-    ? `Approved by ${severityApprovedByText}`
-    : 'Pending Approval';
+    ? t('Approved by {{name}}', { name: severityApprovedByText })
+    : pendingApprovalText;
+  const recommendedSeverityByDisplay = recommendedSeverityByText && recommendedSeverityByText !== ' - '
+    ? t('by {{name}}', { name: recommendedSeverityByText })
+    : '';
 
-  const priorityInfoContent = useMemo(() =>
+  const priorityInfoContent = useMemo(() => (
     <div>
       {priorityDetails.map(p => (
-        <div key={p.id}>{p.level} - {p.description}</div>
+        <div key={p.id}>{t(p.level)} - {t(p.description)}</div>
       ))}
-    </div>,
-    [priorityDetails]
-  );
+    </div>
+  ), [priorityDetails, t]);
 
   const severityInfoContent = useMemo(() => (
     <div>
-      {severityList.map(s => <div key={s.id}>{s.level} - {s.description}</div>)}
+      {severityList.map(s => <div key={s.id}>{t(s.level)} - {t(s.description)}</div>)}
     </div>
-  ), [severityList]);
+  ), [severityList, t]);
 
   if (!ticket) return null;
 
@@ -380,7 +384,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Box>
       <Box sx={{ mt: 2 }}>
         {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-          <Typography className="me-2" color="text.secondary">Priority</Typography>
+          <Typography className="me-2" color="text.secondary">{t('Priority')}</Typography>
           {renderSelect(priority, (val: string) => {
             setPriority(val);
             const selected = priorityDetails.find(p => p.level === val);
@@ -389,8 +393,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <InfoIcon content={priorityInfoContent} />
         </Box>}
         {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Typography className="me-2" color="text.secondary">Severity</Typography>
-          <Typography>{ticket.severity}</Typography>
+          <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
+          <Typography>{ticket.severity ? t(ticket.severity) : ''}</Typography>
           <InfoIcon content={severityInfoContent} />
           {!showSeverityToRecommendSeverity
             ? <GenericButton
@@ -398,7 +402,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               size="small"
               onClick={() => setSeverityToRecommendSeverity(true)}
             >
-              Recommend Severity
+              {t('Recommend Severity')}
             </GenericButton>
             : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
               <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
@@ -428,12 +432,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         {showRecommendedSeverity && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-              <Typography className='me-2' color="text.secondary">Recommended Severity</Typography>
-              <Typography sx={{ mt: 1 }}>{ticket.recommendedSeverity}</Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>{recommendedSeverityByText ? ` by ${recommendedSeverityByText}` : ''}</Typography>
+              <Typography className='me-2' color="text.secondary">{t('Recommended Severity')}</Typography>
+              <Typography sx={{ mt: 1 }}>{ticket.recommendedSeverity ? t(ticket.recommendedSeverity) : ''}</Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>{recommendedSeverityByDisplay}</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-              <Typography className='me-2' color="text.secondary">Recommended Severity Status</Typography>
+              <Typography className='me-2' color="text.secondary">{t('Recommended Severity Status')}</Typography>
               <Typography>{recommendedSeverityApprovalText}</Typography>
             </Box>
           </Box>
@@ -445,7 +449,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             onClick={handleApproveRecommendedSeverity}
             sx={{ mt: 2 }}
           >
-            Approve Recommended Severity
+            {t('Approve Recommended Severity')}
           </GenericButton>
         )}
       </Box>
@@ -466,9 +470,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <RemarkComponent
         isModal
         open={showRecommendRemark}
-        actionName="Recommend Severity"
-        title="Recommend Severity Remark"
-        textFieldLabel="Remark"
+        actionName={t('Recommend Severity')}
+        title={t('Recommend Severity Remark')}
+        textFieldLabel={t('Remark')}
         onCancel={() => setShowRecommendRemark(false)}
         onSubmit={handleSubmitRecommendSeverity}
       />

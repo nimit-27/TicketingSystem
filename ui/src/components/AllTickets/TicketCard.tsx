@@ -13,6 +13,7 @@ import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
+import { useTranslation } from 'react-i18next';
 
 export interface TicketCardData {
     id: string;
@@ -51,6 +52,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     const [showActionRemark, setShowActionRemark] = useState(false);
     const [selectedAction, setSelectedAction] = useState<TicketStatusWorkflow | null>(null);
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { t } = useTranslation();
 
     const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further'];
 
@@ -128,8 +130,10 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
 
     const recordActions = getAvailableActions(ticket.statusId);
     const statusName = getStatusNameById(ticket.statusId || '') || '';
+    const translatedStatusName = statusName ? t(statusName) : '';
+    const displayStatusName = translatedStatusName || statusName;
     const statusColor = getStatusColorById(ticket.statusId || '') || undefined;
-    const truncatedStatus = statusName.length > 12 ? `${statusName.slice(0, 12)}...` : statusName;
+    const truncatedStatus = displayStatusName.length > 12 ? `${displayStatusName.slice(0, 12)}...` : displayStatusName;
     const resumeAction = recordActions.find(a => a.action === 'Resume');
     const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with Regional Nodal Officer)');
 
@@ -208,7 +212,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
             )}
             <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', alignItems: 'center', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
                 {statusName && (
-                    <Tooltip title={statusName}>
+                    <Tooltip title={displayStatusName}>
                         <Chip
                             label={truncatedStatus}
                             size="small"
