@@ -65,7 +65,8 @@ public class TicketSlaService {
         }
         long breachedBy = Duration.between(dueAt, endTime).toMinutes();
 
-        TicketSla ticketSla = new TicketSla();
+        TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
+                .orElseGet(TicketSla::new);
         ticketSla.setTicket(ticket);
         ticketSla.setSlaConfig(config);
         ticketSla.setDueAt(dueAt);

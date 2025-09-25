@@ -15,6 +15,7 @@ import com.example.api.models.User;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
+import com.example.api.repository.StatusHistoryRepository;
 import com.example.api.repository.StatusMasterRepository;
 import com.example.api.repository.CategoryRepository;
 import com.example.api.repository.SubCategoryRepository;
@@ -56,6 +57,7 @@ public class TicketService {
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
     private final StatusHistoryService statusHistoryService;
+    private final StatusHistoryRepository statusHistoryRepository;
     private final NotificationService notificationService;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
@@ -247,6 +249,11 @@ public class TicketService {
                     saved.getAssignedTo(),
                     saved.getAssignedBy() != null ? saved.getAssignedBy() : saved.getUpdatedBy()
             );
+        }
+
+        if (saved.getReportedDate() != null && saved.getSeverity() != null) {
+            List<StatusHistory> historyEntries = statusHistoryRepository.findByTicketOrderByTimestampAsc(saved);
+            ticketSlaService.calculateAndSave(saved, historyEntries);
         }
 
         return mapWithStatusId(saved);
