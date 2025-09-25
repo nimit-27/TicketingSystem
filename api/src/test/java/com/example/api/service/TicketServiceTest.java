@@ -206,7 +206,7 @@ class TicketServiceTest {
         ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(notificationService, times(2)).sendNotification(
+        verify(notificationService, times(3)).sendNotification(
                 eq(ChannelType.IN_APP),
                 codeCaptor.capture(),
                 dataCaptor.capture(),
@@ -217,7 +217,7 @@ class TicketServiceTest {
         List<Map<String, Object>> payloads = dataCaptor.getAllValues();
         List<String> recipients = recipientCaptor.getAllValues();
 
-        assertThat(codes).containsExactlyInAnyOrder("TICKET_CREATED", "TICKET_ASSIGNED");
+        assertThat(codes).containsExactlyInAnyOrder("TICKET_CREATED", "TICKET_ASSIGNED", "TICKET_UPDATED");
         int assignedIndex = codes.indexOf("TICKET_ASSIGNED");
         assertThat(assignedIndex).isGreaterThanOrEqualTo(0);
         assertThat(recipients.get(assignedIndex)).isEqualTo("agent-1");
@@ -225,6 +225,15 @@ class TicketServiceTest {
                 .containsEntry("ticketId", "T-100")
                 .containsEntry("assigneeName", "Agent Jane")
                 .containsEntry("assignedBy", "supervisor");
+
+        int requestorUpdateIndex = codes.indexOf("TICKET_UPDATED");
+        assertThat(requestorUpdateIndex).isGreaterThanOrEqualTo(0);
+        assertThat(recipients.get(requestorUpdateIndex)).isEqualTo("requestor-1");
+        assertThat(payloads.get(requestorUpdateIndex))
+                .containsEntry("ticketId", "T-100")
+                .containsEntry("ticketNumber", "T-100")
+                .containsEntry("updateType", "ASSIGNMENT_UPDATED")
+                .containsEntry("currentAssignee", "Agent Jane");
     }
 
     @Test
@@ -253,6 +262,16 @@ class TicketServiceTest {
         newAssignee.setName("Agent New");
         when(userRepository.findById("agent-new")).thenReturn(Optional.of(newAssignee));
 
+        User requestor = new User();
+        requestor.setUserId("requestor-1");
+        requestor.setUsername("requestorUser");
+        requestor.setName("Requester Name");
+        existing.setUserId(requestor.getUserId());
+        existing.setUser(requestor);
+        existing.setRequestorName("Requester Name");
+        existing.setRequestorEmailId("requestor@example.com");
+        when(userRepository.findById("requestor-1")).thenReturn(Optional.of(requestor));
+
         Ticket update = new Ticket();
         update.setAssignedTo("agent-new");
         update.setAssignedBy("manager1");
@@ -261,16 +280,37 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
-        verify(notificationService).sendNotification(
+        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(notificationService, times(2)).sendNotification(
                 eq(ChannelType.IN_APP),
-                eq("TICKET_ASSIGNED"),
-                argThat(map ->
-                        "T-3".equals(map.get("ticketId"))
-                                && "Agent New".equals(map.get("assigneeName"))
-                                && "manager1".equals(map.get("assignedBy"))
-                ),
-                eq("agent-new")
+                codeCaptor.capture(),
+                payloadCaptor.capture(),
+                recipientCaptor.capture()
         );
+
+        List<String> codes = codeCaptor.getAllValues();
+        List<Map<String, Object>> payloads = payloadCaptor.getAllValues();
+        List<String> recipients = recipientCaptor.getAllValues();
+
+        int assigneeIndex = codes.indexOf("TICKET_ASSIGNED");
+        assertThat(assigneeIndex).isGreaterThanOrEqualTo(0);
+        assertThat(recipients.get(assigneeIndex)).isEqualTo("agent-new");
+        assertThat(payloads.get(assigneeIndex))
+                .containsEntry("ticketId", "T-3")
+                .containsEntry("assigneeName", "Agent New")
+                .containsEntry("assignedBy", "manager1");
+
+        int requestorIndex = codes.indexOf("TICKET_UPDATED");
+        assertThat(requestorIndex).isGreaterThanOrEqualTo(0);
+        assertThat(recipients.get(requestorIndex)).isEqualTo("requestor-1");
+        assertThat(payloads.get(requestorIndex))
+                .containsEntry("ticketId", "T-3")
+                .containsEntry("updateType", "ASSIGNMENT_UPDATED")
+                .containsEntry("currentAssignee", "Agent New")
+                .containsEntry("actorName", "manager1");
     }
 
     private Ticket buildExistingTicket(String ticketId, String assignee) {

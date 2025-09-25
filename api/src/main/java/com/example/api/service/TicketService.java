@@ -49,6 +49,7 @@ public class TicketService {
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
+    private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
     private final TypesenseClient typesenseClient;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
@@ -230,6 +231,12 @@ public class TicketService {
 
         if (isAssigned) {
             sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
+            sendRequestorAssignmentNotification(
+                    saved,
+                    null,
+                    saved.getAssignedTo(),
+                    saved.getAssignedBy() != null ? saved.getAssignedBy() : saved.getUpdatedBy()
+            );
         }
 
         return mapWithStatusId(saved);
@@ -317,9 +324,10 @@ public class TicketService {
         boolean assignmentChangeAllowed = updated.getAssignedTo() != null
                 && updatedStatus != TicketStatus.PENDING_WITH_REQUESTER
                 && updatedStatus != TicketStatus.PENDING_WITH_FCI;
+        boolean assignmentChanged = assignmentChangeAllowed && !Objects.equals(updated.getAssignedTo(), previousAssignedTo);
         if (assignmentChangeAllowed) {
             existing.setAssignedTo(updated.getAssignedTo());
-            if (!updated.getAssignedTo().equals(previousAssignedTo) && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
+            if (assignmentChanged && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
                 existing.setTicketStatus(TicketStatus.ASSIGNED);
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
@@ -339,7 +347,7 @@ public class TicketService {
         existing.setLastModified(LocalDateTime.now());
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
-        if (assignmentChangeAllowed && !updated.getAssignedTo().equals(previousAssignedTo)) {
+        if (assignmentChanged) {
             assignmentHistoryService.addHistory(id,
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy,
                     updated.getAssignedTo(),
@@ -356,6 +364,13 @@ public class TicketService {
 
             sendAssignmentNotification(
                     saved,
+                    updated.getAssignedTo(),
+                    updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
+            );
+
+            sendRequestorAssignmentNotification(
+                    saved,
+                    previousAssignedTo,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
             );
@@ -456,6 +471,80 @@ public class TicketService {
         }
     }
 
+    private void sendRequestorAssignmentNotification(Ticket ticket,
+                                                     String previousAssignee,
+                                                     String newAssignee,
+                                                     String actor) {
+        if (ticket == null) {
+            return;
+        }
+
+        User requestor = ticket.getUser();
+        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
+            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
+            if (requestor != null) {
+                ticket.setUser(requestor);
+            }
+        }
+
+        String recipientIdentifier;
+        try {
+            recipientIdentifier = resolveRecipientIdentifier(
+                    ticket.getUser(),
+                    ticket.getUserId(),
+                    ticket.getRequestorEmailId(),
+                    ticket.getRequestorName()
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("ticketId", ticket.getId());
+        data.put("ticketNumber", ticket.getId());
+        data.put("updateType", "ASSIGNMENT_UPDATED");
+
+        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        if (recipientName != null && !recipientName.isBlank()) {
+            data.put("recipientName", recipientName);
+        }
+
+        if (actor != null && !actor.isBlank()) {
+            data.put("actorName", resolveUserDisplayName(actor));
+        }
+
+        String previousAssigneeDisplay = previousAssignee != null && !previousAssignee.isBlank()
+                ? resolveUserDisplayName(previousAssignee)
+                : null;
+        String newAssigneeDisplay = newAssignee != null && !newAssignee.isBlank()
+                ? resolveUserDisplayName(newAssignee)
+                : null;
+
+        if (previousAssigneeDisplay != null) {
+            data.put("previousAssignee", previousAssigneeDisplay);
+        }
+        if (newAssigneeDisplay != null) {
+            data.put("currentAssignee", newAssigneeDisplay);
+        }
+
+        String updateMessage = buildAssignmentUpdateMessage(previousAssigneeDisplay, newAssigneeDisplay);
+        if (updateMessage != null) {
+            data.put("updateMessage", updateMessage);
+        }
+
+        try {
+            notificationService.sendNotification(
+                    ChannelType.IN_APP,
+                    TICKET_UPDATED_NOTIFICATION_CODE,
+                    data,
+                    recipientIdentifier
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void sendStatusUpdateNotification(Ticket ticket,
                                               TicketStatus previousStatus,
                                               Status previousStatusEntity,
@@ -513,6 +602,22 @@ public class TicketService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String buildAssignmentUpdateMessage(String previousAssignee, String newAssignee) {
+        if (newAssignee != null && !newAssignee.isBlank()) {
+            if (previousAssignee != null && !previousAssignee.isBlank()) {
+                if (previousAssignee.equals(newAssignee)) {
+                    return null;
+                }
+                return String.format("Ticket reassigned from %s to %s", previousAssignee, newAssignee);
+            }
+            return String.format("Ticket assigned to %s", newAssignee);
+        }
+        if (previousAssignee != null && !previousAssignee.isBlank()) {
+            return String.format("Ticket unassigned from %s", previousAssignee);
+        }
+        return null;
     }
 
     private String resolveStatusDisplay(TicketStatus statusEnum, Status statusEntity, String statusId) {
