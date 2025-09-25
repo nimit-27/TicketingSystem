@@ -280,7 +280,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }
 
     const renderReadOnlyField = (label: string, value: string) => (
-        <div className={`${formFieldValue}`}>
+        <div className={`${formFieldValue} justify-content-center text-center flex-column flex-md-row`}>
             <p className="mb-0 text-muted ts-13">{label}</p>
             <p className="mb-0 ts-13">{value}</p>
         </div>

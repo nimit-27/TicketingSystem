@@ -113,13 +113,37 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
     label: string,
     value: React.ReactNode,
   ) => (
-    <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500, letterSpacing: 0.5 }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 1.25,
+        flexWrap: "wrap",
+        width: "100%",
+      }}
+    >
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontWeight: 500, letterSpacing: 0.5, textTransform: "uppercase", flex: "0 0 auto" }}
+      >
         {label}
       </Typography>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          flex: "1 1 auto",
+          minWidth: 0,
+          justifyContent: "flex-end",
+        }}
+      >
         {icon}
-        <Typography variant="body2">{value}</Typography>
+        <Typography variant="body2" sx={{ wordBreak: "break-word", textAlign: "right" }}>
+          {value}
+        </Typography>
       </Box>
     </Box>
   );
