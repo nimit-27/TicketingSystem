@@ -139,6 +139,7 @@ public class DtoMapper {
         userDto.setMobileNo(user.getMobileNo());
         userDto.setOffice(user.getOffice());
         userDto.setRoles(user.getRoles());
+        userDto.setStakeholder(user.getStakeholder());
         if (user.getUserLevel() != null && user.getUserLevel().getLevelIds() != null) {
             List<String> levels = Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
             userDto.setLevels(levels);

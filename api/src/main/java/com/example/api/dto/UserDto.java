@@ -15,5 +15,6 @@ public class UserDto {
     private String mobileNo;
     private String office;
     private String roles;
+    private String stakeholder;
     private List<String> levels;
 }
