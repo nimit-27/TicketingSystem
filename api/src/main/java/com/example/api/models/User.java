@@ -35,4 +35,7 @@ public class User {
     private UserLevel userLevel;
 
     private String roles;
+
+    @Column(name = "stakeholder")
+    private String stakeholder;
 }
