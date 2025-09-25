@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.RoleDto;
+import com.example.api.dto.RoleSummaryDto;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.Role;
@@ -8,14 +9,12 @@ import com.example.api.permissions.RolePermission;
 import com.example.api.repository.RoleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +35,13 @@ public class RoleService {
     public List<RoleDto> getAllRoles() {
         List<Role> roles = roleRepository.findByIsDeletedFalse();
         return roles.stream().map(DtoMapper::toRoleDto).collect(Collectors.toList());
+    }
+
+    public List<RoleSummaryDto> getRoleSummaries() {
+        return roleRepository.findByIsDeletedFalseOrderByRoleAsc()
+                .stream()
+                .map(role -> new RoleSummaryDto(role.getRoleId(), role.getRole()))
+                .collect(Collectors.toList());
     }
 
     public RoleDto getRoleById(Integer roleId) {

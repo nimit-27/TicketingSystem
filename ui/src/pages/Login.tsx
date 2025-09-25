@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/AuthService";
 import { getCurrentUserDetails } from "../config/config";
 import { RolePermission, setPermissions } from "../utils/permissions";
-import { setUserDetails, UserDetails } from "../utils/Utils";
+import { RoleLookupItem, setRoleLookup, setUserDetails, UserDetails } from "../utils/Utils";
 import { useApi } from "../hooks/useApi";
 import { DevModeContext } from "../context/DevModeContext";
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
+import { getRoleSummaries } from "../services/RoleService";
 
 interface ThemeProps {
     userId: string;
@@ -97,7 +98,7 @@ const Login: React.FC = () => {
     const { data: loginData, error: loginError, apiHandler: loginApiHandler } = useApi();
 
     useEffect(() => {
-        if (loginData) {
+        const persistLoginData = async () => {
             const res: LoginResponse = loginData;
             if (res) {
                 if (res.permissions) {
@@ -113,7 +114,33 @@ const Login: React.FC = () => {
                 };
                 setUserDetails(details);
             }
+
+            try {
+                const response = await getRoleSummaries();
+                const payload = Array.isArray(response.data)
+                    ? response.data
+                    : Array.isArray(response.data?.body?.data)
+                        ? response.data.body.data
+                        : [];
+
+                if (Array.isArray(payload)) {
+                    const normalized: RoleLookupItem[] = payload
+                        .map((item: any) => ({
+                            roleId: item?.roleId ?? item?.role_id ?? item?.id,
+                            role: item?.role ?? item?.roleName ?? item?.name ?? ""
+                        }))
+                        .filter((item) => item.roleId != null && item.role);
+                    setRoleLookup(normalized);
+                }
+            } catch (error) {
+                console.error("Failed to load role summaries", error);
+            }
+
             navigate("/");
+        };
+
+        if (loginData) {
+            void persistLoginData();
         }
     }, [loginData, userId, navigate]);
 

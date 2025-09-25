@@ -9,7 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface RoleRepository extends JpaRepository<Role, Integer> {
+    interface RoleSummaryView {
+        Integer getRoleId();
+        String getRole();
+    }
+
     List<Role> findByIsDeletedFalse();
+
+    List<RoleSummaryView> findByIsDeletedFalseOrderByRoleAsc();
 
     @Modifying
     @Transactional
