@@ -99,7 +99,8 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         const persistLoginData = async () => {
-            const res: LoginResponse = loginData;
+            const res: any = loginData;
+            // const res: LoginResponse = loginData;
             if (res) {
                 if (res.permissions) {
                     setPermissions(res.permissions);

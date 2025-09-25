@@ -222,7 +222,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     </Tooltip>
                 )}
                 <Tooltip title={ticket.priority}>
-                    <PriorityIcon level={priorityMap[ticket.priority] || 0} rotateRight />
+                    <PriorityIcon level={priorityMap[ticket.priority] || 0} priorityText={ticket?.priority} rotateRight />
                 </Tooltip>
             </Box>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} onClick={(e) => e.stopPropagation()}>

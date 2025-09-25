@@ -198,7 +198,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             { title: t('Category'), dataIndex: 'category', key: 'category' },
             { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
-            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} /> },
+            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> },
             {
                 title: t('Assignee'),
                 key: 'assignee',
@@ -289,7 +289,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     return (
         <>
-            <div className="d-flex justify-content-end mb-2">
+            <div className="d-flex mb-2">
                 <DropdownController
                     label="Sort By"
                     value={sortBy}
