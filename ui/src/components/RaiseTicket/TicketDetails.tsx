@@ -358,7 +358,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                                     onChange={e => setAssignFurther?.(e.target.checked)}
                                 />
                             }
-                            label={t('Assign Further')}
+                            label={t('Assign')}
                         />
                     </div>
                 )}

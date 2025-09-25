@@ -330,14 +330,19 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   if (!ticket) return null;
 
+  // DESIGN 1
   return (
     <Box sx={{ width: '100%', position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
-          <Typography variant="subtitle1">{ticket.id}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {/* HEADER */}
+      <Box className="d-flex align-items-end">
+        <Box className="d-flex flex-column col-6" >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
+            <Typography variant="subtitle1">{ticket.id}</Typography>
+          </Box>
+
+          {/* Edit, Cancel, Save buttons */}
+          {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {allowEdit && (
             editing ? (
               <>
@@ -353,106 +358,121 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               {hasFeedback ? 'View Feedback' : 'Feedback'}
             </Button>
           )}
+        </Box> */}
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {ticket.category} &gt; {ticket.subCategory}
+          </Typography>
+        </Box>
+
+        <Box className="d-flex flex-column col-6" >
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+            {createdInfo}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
+            {updatedInfo}
+          </Typography>
         </Box>
       </Box>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        {ticket.category} &gt; {ticket.subCategory}
-      </Typography>
+
+      {/* SUBJECT */}
       {renderText(subject, setSubject)}
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-        {createdInfo}
-      </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
-        {updatedInfo}
-      </Typography>
+      {/* DESCRIPTION */}
       <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
         {renderText(description, setDescription, true)}
       </Box>
-      {attachments.length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <ThumbnailList attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
-        </Box>
-      )}
-      <Box sx={{ mt: 1 }}>
-        <FileUpload
-          key={uploadKey}
-          maxSizeMB={5}
-          thumbnailSize={100}
-          onFilesChange={handleAttachmentUpload}
-          attachments={emptyFileList}
-        />
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-          <Typography className="me-2" color="text.secondary">{t('Priority')}</Typography>
-          {renderSelect(priority, (val: string) => {
-            setPriority(val);
-            const selected = priorityDetails.find(p => p.level === val);
-            setPriorityId(selected ? selected.id : '');
-          }, priorityOptions)}
-          <InfoIcon content={priorityInfoContent} />
-        </Box>}
-        {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
-          <Typography>{ticket.severity ? t(ticket.severity) : ''}</Typography>
-          <InfoIcon content={severityInfoContent} />
-          {!showSeverityToRecommendSeverity
-            ? <GenericButton
+
+      <div className='d-flex flex-wrap'>
+        {/* PRIORITY, SEVERITY */}
+        <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
+          {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+            <Typography className="me-2" color="text.secondary">{t('Priority')}</Typography>
+            {renderSelect(priority, (val: string) => {
+              setPriority(val);
+              const selected = priorityDetails.find(p => p.level === val);
+              setPriorityId(selected ? selected.id : '');
+            }, priorityOptions)}
+            <InfoIcon content={priorityInfoContent} />
+          </Box>}
+          {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
+            <Typography>{ticket.severity ? t(ticket.severity) : ''}</Typography>
+            <InfoIcon content={severityInfoContent} />
+            {!showSeverityToRecommendSeverity
+              ? <GenericButton
+                variant="contained"
+                size="small"
+                onClick={() => setSeverityToRecommendSeverity(true)}
+              >
+                {t('Recommend Severity')}
+              </GenericButton>
+              : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
+                <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
+                <GenericDropdown
+                  name="recommendedSeverity"
+                  value={recommendedSeverity}
+                  onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+                  label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
+                  options={severityOptions}
+                  className="form-select w-25"
+                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <CustomIconButton
+                    icon="close"
+                    onClick={() => {
+                      cancelEditing();
+                      setShowRecommendRemark(false);
+                      setSeverityToRecommendSeverity(false);
+                    }}
+                  />
+                  {!showRecommendRemark && (
+                    <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
+                  )}
+                </Box>
+              </Box>}
+          </Box>}
+          {showRecommendedSeverity && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+                <Typography className='me-2' color="text.secondary">{t('Recommended Severity')}</Typography>
+                <Typography sx={{ mt: 1 }}>{ticket.recommendedSeverity ? t(ticket.recommendedSeverity) : ''}</Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>{recommendedSeverityByDisplay}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+                <Typography className='me-2' color="text.secondary">{t('Recommended Severity Status')}</Typography>
+                <Typography>{recommendedSeverityApprovalText}</Typography>
+              </Box>
+            </Box>
+          )}
+          {hasApproveSeverityAction && ticket.recommendedSeverity && (
+            <GenericButton
               variant="contained"
               size="small"
-              onClick={() => setSeverityToRecommendSeverity(true)}
+              onClick={handleApproveRecommendedSeverity}
+              sx={{ mt: 2 }}
             >
-              {t('Recommend Severity')}
+              {t('Approve Recommended Severity')}
             </GenericButton>
-            : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
-              <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
-              <GenericDropdown
-                name="recommendedSeverity"
-                value={recommendedSeverity}
-                onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
-                label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
-                options={severityOptions}
-                className="form-select w-25"
-              />
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <CustomIconButton
-                  icon="close"
-                  onClick={() => {
-                    cancelEditing();
-                    setShowRecommendRemark(false);
-                    setSeverityToRecommendSeverity(false);
-                  }}
-                />
-                {!showRecommendRemark && (
-                  <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
-                )}
-              </Box>
-            </Box>}
-        </Box>}
-        {showRecommendedSeverity && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-              <Typography className='me-2' color="text.secondary">{t('Recommended Severity')}</Typography>
-              <Typography sx={{ mt: 1 }}>{ticket.recommendedSeverity ? t(ticket.recommendedSeverity) : ''}</Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>{recommendedSeverityByDisplay}</Typography>
+          )}
+        </div>
+        {/* ATTACHMENTS */}
+        <div className="col-5 mt-4" style={{ minWidth: 'max-content' }}>
+          {attachments.length > 0 && (
+            <Box className="d-flex justify-content-center" sx={{ mt: 2 }}>
+              <ThumbnailList attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
             </Box>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-              <Typography className='me-2' color="text.secondary">{t('Recommended Severity Status')}</Typography>
-              <Typography>{recommendedSeverityApprovalText}</Typography>
-            </Box>
+          )}
+          <Box className="d-flex justify-content-center" sx={{ mt: 1 }}>
+            <FileUpload
+              key={uploadKey}
+              maxSizeMB={2}
+              thumbnailSize={100}
+              onFilesChange={handleAttachmentUpload}
+              attachments={emptyFileList}
+            />
           </Box>
-        )}
-        {hasApproveSeverityAction && ticket.recommendedSeverity && (
-          <GenericButton
-            variant="contained"
-            size="small"
-            onClick={handleApproveRecommendedSeverity}
-            sx={{ mt: 2 }}
-          >
-            {t('Approve Recommended Severity')}
-          </GenericButton>
-        )}
-      </Box>
+        </div>
+      </div>
+
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
           <Histories ticketId={ticketId} />
@@ -478,6 +498,156 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       />
     </Box>
   );
+
+  // DESIGN 2
+  // return (
+  //   <Box sx={{ width: '100%', position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  //       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  //         <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
+  //         <Typography variant="subtitle1">{ticket.id}</Typography>
+  //       </Box>
+  //       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  //         {allowEdit && (
+  //           editing ? (
+  //             <>
+  //               <CustomIconButton icon="close" onClick={cancelEditing} />
+  //               <CustomIconButton icon="check" onClick={handleSave} />
+  //             </>
+  //           ) : (
+  //             <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
+  //           )
+  //         )}
+  //         {ticket.statusLabel?.toLowerCase() === 'closed' && (
+  //           <Button size="small" onClick={() => setFeedbackOpen(true)}>
+  //             {hasFeedback ? 'View Feedback' : 'Feedback'}
+  //           </Button>
+  //         )}
+  //       </Box>
+  //     </Box>
+  //     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+  //       {ticket.category} &gt; {ticket.subCategory}
+  //     </Typography>
+  //     {renderText(subject, setSubject)}
+  //     <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+  //       {createdInfo}
+  //     </Typography>
+  //     <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
+  //       {updatedInfo}
+  //     </Typography>
+  //     <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
+  //       {renderText(description, setDescription, true)}
+  //     </Box>
+  //     {attachments.length > 0 && (
+  //       <Box sx={{ mt: 2 }}>
+  //         <ThumbnailList attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
+  //       </Box>
+  //     )}
+  //     <Box sx={{ mt: 1 }}>
+  //       <FileUpload
+  //         key={uploadKey}
+  //         maxSizeMB={5}
+  //         thumbnailSize={100}
+  //         onFilesChange={handleAttachmentUpload}
+  //         attachments={emptyFileList}
+  //       />
+  //     </Box>
+  //     <Box sx={{ mt: 2 }}>
+  //       {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+  //         <Typography className="me-2" color="text.secondary">{t('Priority')}</Typography>
+  //         {renderSelect(priority, (val: string) => {
+  //           setPriority(val);
+  //           const selected = priorityDetails.find(p => p.level === val);
+  //           setPriorityId(selected ? selected.id : '');
+  //         }, priorityOptions)}
+  //         <InfoIcon content={priorityInfoContent} />
+  //       </Box>}
+  //       {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+  //         <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
+  //         <Typography>{ticket.severity ? t(ticket.severity) : ''}</Typography>
+  //         <InfoIcon content={severityInfoContent} />
+  //         {!showSeverityToRecommendSeverity
+  //           ? <GenericButton
+  //             variant="contained"
+  //             size="small"
+  //             onClick={() => setSeverityToRecommendSeverity(true)}
+  //           >
+  //             {t('Recommend Severity')}
+  //           </GenericButton>
+  //           : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
+  //             <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
+  //             <GenericDropdown
+  //               name="recommendedSeverity"
+  //               value={recommendedSeverity}
+  //               onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+  //               label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
+  //               options={severityOptions}
+  //               className="form-select w-25"
+  //             />
+  //             <Box sx={{ display: 'flex', gap: 1 }}>
+  //               <CustomIconButton
+  //                 icon="close"
+  //                 onClick={() => {
+  //                   cancelEditing();
+  //                   setShowRecommendRemark(false);
+  //                   setSeverityToRecommendSeverity(false);
+  //                 }}
+  //               />
+  //               {!showRecommendRemark && (
+  //                 <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
+  //               )}
+  //             </Box>
+  //           </Box>}
+  //       </Box>}
+  //       {showRecommendedSeverity && (
+  //         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+  //           <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+  //             <Typography className='me-2' color="text.secondary">{t('Recommended Severity')}</Typography>
+  //             <Typography sx={{ mt: 1 }}>{ticket.recommendedSeverity ? t(ticket.recommendedSeverity) : ''}</Typography>
+  //             <Typography color="text.secondary" sx={{ mt: 1 }}>{recommendedSeverityByDisplay}</Typography>
+  //           </Box>
+  //           <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+  //             <Typography className='me-2' color="text.secondary">{t('Recommended Severity Status')}</Typography>
+  //             <Typography>{recommendedSeverityApprovalText}</Typography>
+  //           </Box>
+  //         </Box>
+  //       )}
+  //       {hasApproveSeverityAction && ticket.recommendedSeverity && (
+  //         <GenericButton
+  //           variant="contained"
+  //           size="small"
+  //           onClick={handleApproveRecommendedSeverity}
+  //           sx={{ mt: 2 }}
+  //         >
+  //           {t('Approve Recommended Severity')}
+  //         </GenericButton>
+  //       )}
+  //     </Box>
+  //     {showHistory && (
+  //       <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
+  //         <Histories ticketId={ticketId} />
+  //       </CustomFieldset>
+  //     )}
+  //     {sla && (
+  //       <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
+  //         <SlaDetails sla={sla} />
+  //       </CustomFieldset>
+  //     )}
+  //     <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+  //       <CommentsSection ticketId={ticketId} />
+  //     </CustomFieldset>
+  //     <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={() => setFeedbackOpen(false)} />
+  //     <RemarkComponent
+  //       isModal
+  //       open={showRecommendRemark}
+  //       actionName={t('Recommend Severity')}
+  //       title={t('Recommend Severity Remark')}
+  //       textFieldLabel={t('Remark')}
+  //       onCancel={() => setShowRecommendRemark(false)}
+  //       onSubmit={handleSubmitRecommendSeverity}
+  //     />
+  //   </Box>
+  // );
 };
 
 export default TicketView;
