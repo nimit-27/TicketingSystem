@@ -4,13 +4,14 @@ import com.example.api.dto.TicketDto;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
 import com.example.api.mapper.DtoMapper;
-import com.example.api.models.User;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.models.StatusHistory;
+import com.example.api.models.Status;
 import com.example.api.models.SubCategory;
 import com.example.api.models.Severity;
 import com.example.api.models.RecommendedSeverityFlow;
+import com.example.api.models.User;
 import com.example.api.repository.UserRepository;
 import com.example.api.repository.TicketCommentRepository;
 import com.example.api.repository.TicketRepository;
@@ -47,6 +48,7 @@ import org.springframework.data.domain.Pageable;
 public class TicketService {
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
+    private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private final TypesenseClient typesenseClient;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
@@ -258,6 +260,7 @@ public class TicketService {
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
         String previousAssignedTo = existing.getAssignedTo();
         TicketStatus previousStatus = existing.getTicketStatus();
+        Status previousStatusEntity = existing.getStatus();
         String previousStatusId = existing.getStatus() != null ? existing.getStatus().getStatusId()
                 : (previousStatus != null ? workflowService.getStatusIdByCode(previousStatus.name()) : null);
 
@@ -371,6 +374,16 @@ public class TicketService {
                     assignmentHistoryService.addHistory(id, updatedBy, currentAssignee, existing.getLevelId(), remark);
                 }
             }
+
+            sendStatusUpdateNotification(
+                    saved,
+                    previousStatus,
+                    previousStatusEntity,
+                    previousStatusId,
+                    updatedStatus,
+                    updatedStatusId,
+                    updatedBy
+            );
         }
 
         if ((recommendedSeverityChanged || recommendedByChanged)
@@ -441,6 +454,156 @@ public class TicketService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void sendStatusUpdateNotification(Ticket ticket,
+                                              TicketStatus previousStatus,
+                                              Status previousStatusEntity,
+                                              String previousStatusId,
+                                              TicketStatus updatedStatus,
+                                              String updatedStatusId,
+                                              String updatedBy) {
+        if (ticket == null) {
+            return;
+        }
+
+        User requestor = ticket.getUser();
+        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
+            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
+            if (requestor != null) {
+                ticket.setUser(requestor);
+            }
+        }
+
+        String recipientIdentifier;
+        try {
+            recipientIdentifier = resolveRecipientIdentifier(
+                    ticket.getUser(),
+                    ticket.getUserId(),
+                    ticket.getRequestorEmailId(),
+                    ticket.getRequestorName()
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("ticketId", ticket.getId());
+        data.put("ticketNumber", ticket.getId());
+        data.put("oldStatus", resolveStatusDisplay(previousStatus, previousStatusEntity, previousStatusId));
+        data.put("newStatus", resolveStatusDisplay(updatedStatus != null ? updatedStatus : ticket.getTicketStatus(), ticket.getStatus(), updatedStatusId));
+
+        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        if (recipientName != null && !recipientName.isBlank()) {
+            data.put("recipientName", recipientName);
+        }
+
+        if (updatedBy != null && !updatedBy.isBlank()) {
+            data.put("actorName", resolveUserDisplayName(updatedBy));
+        }
+
+        try {
+            notificationService.sendNotification(
+                    ChannelType.IN_APP,
+                    TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
+                    data,
+                    recipientIdentifier
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String resolveStatusDisplay(TicketStatus statusEnum, Status statusEntity, String statusId) {
+        String display = extractStatusDisplayFromEntity(statusEntity);
+        if (display != null) {
+            return display;
+        }
+
+        if (statusEnum != null) {
+            return humanize(statusEnum.name());
+        }
+
+        if (statusId != null && !statusId.isBlank()) {
+            return statusMasterRepository.findById(statusId)
+                    .map(this::extractStatusDisplayFromEntity)
+                    .orElseGet(() -> {
+                        String code = workflowService.getStatusCodeById(statusId);
+                        if (code != null && !code.isBlank()) {
+                            return humanize(code);
+                        }
+                        return statusId;
+                    });
+        }
+
+        return "N/A";
+    }
+
+    private String extractStatusDisplayFromEntity(Status status) {
+        if (status == null) {
+            return null;
+        }
+        if (status.getLabel() != null && !status.getLabel().isBlank()) {
+            return status.getLabel();
+        }
+        if (status.getStatusName() != null && !status.getStatusName().isBlank()) {
+            return status.getStatusName();
+        }
+        if (status.getStatusCode() != null && !status.getStatusCode().isBlank()) {
+            return humanize(status.getStatusCode());
+        }
+        return null;
+    }
+
+    private String humanize(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        String lower = value.replace('_', ' ').toLowerCase(java.util.Locale.ROOT);
+        String[] parts = lower.split(" ");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            if (part.isBlank()) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            builder.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return builder.toString();
+    }
+
+    private String resolveUserName(User user, String... fallbacks) {
+        if (user != null) {
+            String resolved = firstNonBlank(user.getName(), user.getUsername(), user.getUserId());
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        return firstNonBlank(fallbacks);
+    }
+
+    private String resolveUserDisplayName(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return "System";
+        }
+        return findUserByIdOrUsername(identifier)
+                .map(user -> firstNonBlank(user.getName(), user.getUsername(), user.getUserId()))
+                .orElse(identifier);
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private Optional<User> findUserByIdOrUsername(String identifier) {
