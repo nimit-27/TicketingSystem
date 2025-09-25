@@ -46,12 +46,12 @@ public class TicketSlaService {
         for (int i = 1; i < history.size(); i++) {
             StatusHistory sh = history.get(i);
             long diff = Duration.between(prevTime, sh.getTimestamp()).toMinutes();
+            
             elapsed += diff;
-            if (Boolean.TRUE.equals(prevFlag)) {
-                resolution += diff;
-            } else {
-                dueAt = dueAt.plusMinutes(diff);
-            }
+
+            if (Boolean.TRUE.equals(prevFlag)) resolution += diff;
+            else dueAt = dueAt.plusMinutes(diff);
+
             prevTime = sh.getTimestamp();
             prevFlag = sh.getSlaFlag();
         }

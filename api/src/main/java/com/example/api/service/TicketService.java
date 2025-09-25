@@ -144,12 +144,11 @@ public class TicketService {
 
     public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
-        if(ticket.isMaster()) ticket.setMasterId(null);
-        if (ticket.getUpdatedBy() == null) {
-            ticket.setUpdatedBy(ticket.getAssignedBy());
-        }
 
-        // If userId is neither null nor empty
+        if(ticket.isMaster()) ticket.setMasterId(null);
+        if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
+
+        // If userId exists
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             User user = userRepository.findById(ticket.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User", ticket.getUserId()));
@@ -164,18 +163,21 @@ public class TicketService {
                 statusMasterRepository.findById(id).ifPresent(ticket::setStatus);
             }
         }
+
         if (ticket.getTicketStatus() == null && ticket.getStatus() != null) {
             String code = ticket.getStatus().getStatusCode();
             if (code != null) {
                 ticket.setTicketStatus(TicketStatus.valueOf(code));
             }
         }
+
         if (ticket.getSeverity() == null && ticket.getSubCategory() != null) {
             subCategoryRepository.findById(ticket.getSubCategory())
                     .map(SubCategory::getSeverity)
                     .map(Severity::getId)
                     .ifPresent(ticket::setSeverity);
         }
+
         boolean isAssigned = ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty();
         if (!isAssigned) {
             ticket.setTicketStatus(TicketStatus.OPEN);
@@ -186,18 +188,26 @@ public class TicketService {
             String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
             statusMasterRepository.findById(assignId).ifPresent(ticket::setStatus);
         }
+
         System.out.println("TicketService: Saving the ticket to repository now...");
+
         ticket.setLastModified(LocalDateTime.now());
+
         Ticket saved = ticketRepository.save(ticket);
 
         String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
         boolean sla = workflowService.getSlaFlagByStatusId(openId);
+
         java.util.List<StatusHistory> histories = new java.util.ArrayList<>();
+
         histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, null));
+
         if (isAssigned) {
             assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), saved.getLevelId(), null);
+
             String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
             boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
+
             histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null));
         }
         ticketSlaService.calculateAndSave(saved, histories);
