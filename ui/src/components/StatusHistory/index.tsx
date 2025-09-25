@@ -55,7 +55,10 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             title: t('Status'),
             dataIndex: 'currentStatus',
             key: 'currentStatus',
-            render: (v: string) => (statusMap[v]?.replace(/_/g, ' ') || v?.replace(/_/g, ' '))
+            render: (v: string) => {
+                const statusLabel = statusMap[v] || v?.replace(/_/g, ' ');
+                return statusLabel ? t(statusLabel) : '';
+            }
         },
         { title: t('Remark'), dataIndex: 'remark', key: 'remark', render: (v: string) => v || '-' },
     ];
@@ -86,23 +89,26 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                 />
             ) : (
                 <Timeline>
-                    {history.map((h, idx) => (
-                        <TimelineItem key={h.id}>
-                            <TimelineSeparator>
-                                <TimelineDot sx={{ bgcolor: idx === 0 ? 'warning.light' : undefined }} />
-                                {idx < history.length - 1 && <TimelineConnector />}
-                            </TimelineSeparator>
-                            <TimelineContent>
-                                <Paper elevation={2} sx={{ p: 1 }}>
-                                    <strong>{(statusMap[h?.currentStatus]?.replace(/_/g, ' ') || h?.currentStatus?.replace(/_/g, ' '))}</strong>
-                                    <div style={{ fontSize: 12 }}>
-                                        {new Date(h.timestamp).toLocaleString()} - {h.updatedBy}
-                                    </div>
-                                    {h.remark && <div style={{ fontSize: 12 }}>{h.remark}</div>}
-                                </Paper>
-                            </TimelineContent>
-                        </TimelineItem>
-                    ))}
+                    {history.map((h, idx) => {
+                        const timelineStatusLabel = statusMap[h?.currentStatus] || h?.currentStatus?.replace(/_/g, ' ');
+                        return (
+                            <TimelineItem key={h.id}>
+                                <TimelineSeparator>
+                                    <TimelineDot sx={{ bgcolor: idx === 0 ? 'warning.light' : undefined }} />
+                                    {idx < history.length - 1 && <TimelineConnector />}
+                                </TimelineSeparator>
+                                <TimelineContent>
+                                    <Paper elevation={2} sx={{ p: 1 }}>
+                                        <strong>{timelineStatusLabel ? t(timelineStatusLabel) : ''}</strong>
+                                        <div style={{ fontSize: 12 }}>
+                                            {new Date(h.timestamp).toLocaleString()} - {h.updatedBy}
+                                        </div>
+                                        {h.remark && <div style={{ fontSize: 12 }}>{h.remark}</div>}
+                                    </Paper>
+                                </TimelineContent>
+                            </TimelineItem>
+                        );
+                    })}
                 </Timeline>
             )}
         </div>

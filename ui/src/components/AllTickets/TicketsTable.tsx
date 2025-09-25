@@ -222,7 +222,21 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         </Tooltip>;
                 }
             },
-            { title: t('Status'), dataIndex: 'statusLabel', key: 'statusLabel', render: (v: any, record: TicketRow) => <Popover content={record?.statusId && getStatusNameById(record.statusId)} >{v}</Popover> },
+            {
+                title: t('Status'),
+                dataIndex: 'statusLabel',
+                key: 'statusLabel',
+                render: (_: any, record: TicketRow) => {
+                    const statusName = record?.statusId ? getStatusNameById(record.statusId) : '';
+                    const translatedStatusName = statusName ? t(statusName) : '';
+                    const translatedLabel = record.statusLabel ? t(record.statusLabel) : (translatedStatusName || record.statusLabel || '');
+                    return (
+                        <Popover content={translatedStatusName || translatedLabel}>
+                            {translatedLabel}
+                        </Popover>
+                    );
+                }
+            },
             {
                 title: t('Actions'),
                 key: 'action',
