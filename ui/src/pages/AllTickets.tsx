@@ -128,7 +128,8 @@ const AllTickets: React.FC = () => {
         <div className="container" style={{ display: 'flex' }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey="All Tickets" />
-                <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center mb-3">
+                    {/* FILTERS */}
                     <GenericInput
                         label="Search"
                         size="small"
@@ -161,17 +162,21 @@ const AllTickets: React.FC = () => {
                         onClick={() => setMasterOnly(prev => !prev)}
                         sx={{ mr: 1 }}
                     />
-                    <ViewToggle
-                        value={viewMode}
-                        onChange={setViewMode}
-                        options={[
-                            { icon: 'grid', value: 'grid' },
-                            { icon: 'table', value: 'table' }
-                        ]}
-                    />
+
+                    {/* TABLE TOGGLE */}
+                    <div className="d-flex ms-auto">
+                        <ViewToggle
+                            value={viewMode}
+                            onChange={setViewMode}
+                            options={[
+                                { icon: 'grid', value: 'grid' },
+                                { icon: 'table', value: 'table' }
+                            ]}
+                        />
+                    </div>
                 </div>
-                {pending && <p>{t('Loading...')}</p>}
-                {error && <p className="text-danger">{t('Error loading tickets')}</p>}
+                {/* {pending && <p>{t('Loading...')}</p>}
+                {error && <p className="text-danger">{t('Error loading tickets')}</p>} */}
                 {viewMode === 'table' && showTicketsTable && (
                     <div>
                         <TicketsTable

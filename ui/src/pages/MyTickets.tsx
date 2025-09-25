@@ -241,18 +241,20 @@ const MyTickets: React.FC = () => {
                         />
                     )}
                     {showGridTableViewToggle && showTable && showGrid && (
-                        <ViewToggle
-                            value={viewMode}
-                            onChange={setViewMode}
-                            options={[
-                                { icon: 'grid', value: 'grid' },
-                                { icon: 'table', value: 'table' }
-                            ]}
-                        />
+                        <div className="d-flex ms-auto">
+                            <ViewToggle
+                                value={viewMode}
+                                onChange={setViewMode}
+                                options={[
+                                    { icon: 'grid', value: 'grid' },
+                                    { icon: 'table', value: 'table' }
+                                ]}
+                            />
+                        </div>
                     )}
                 </div>
-                {pending && <p>{t('Loading...')}</p>}
-                {error && <p className="text-danger">{t('Error loading tickets')}</p>}
+                {/* {pending && <p>{t('Loading...')}</p>}
+                {error && <p className="text-danger">{t('Error loading tickets')}</p>} */}
                 {viewMode === 'table' && showTable && (
                     <div>
                         <TicketsTable
