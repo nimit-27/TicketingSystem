@@ -5,6 +5,10 @@ export function getAllRoles() {
     return axios.get(`${BASE_URL}/roles`);
 }
 
+export function getRoleSummaries() {
+    return axios.get(`${BASE_URL}/roles/summaries`);
+}
+
 export function addRole(body: any) {
     return axios.post(`${BASE_URL}/roles`, body);
 }

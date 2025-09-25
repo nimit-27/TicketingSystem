@@ -1,7 +1,7 @@
 package com.example.api.controller;
 
 import com.example.api.dto.RoleDto;
-import com.example.api.models.Role;
+import com.example.api.dto.RoleSummaryDto;
 import com.example.api.service.RoleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Collections;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -22,6 +21,11 @@ public class RoleController {
     @GetMapping
     public ResponseEntity<List<RoleDto>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
+    }
+
+    @GetMapping("/summaries")
+    public ResponseEntity<List<RoleSummaryDto>> getRoleSummaries() {
+        return ResponseEntity.ok(roleService.getRoleSummaries());
     }
 
     @GetMapping("/{roleId}")

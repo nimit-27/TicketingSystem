@@ -13,9 +13,15 @@ export interface UserDetails {
   allowedStatusActionIds?: string[];
 }
 
+export interface RoleLookupItem {
+  roleId: number | string;
+  role: string;
+}
+
 const USER_KEY = 'userDetails';
 const PERM_KEY = 'userPermissions';
 const STATUS_LIST_KEY = 'statusList';
+const ROLE_LOOKUP_KEY = 'roleLookup';
 
 let statusCache: any[] | null = null;
 
@@ -40,6 +46,16 @@ export function getUserPermissions(): any {
 export function clearSession() {
   sessionStorage.removeItem(USER_KEY);
   sessionStorage.removeItem(PERM_KEY);
+  sessionStorage.removeItem(ROLE_LOOKUP_KEY);
+}
+
+export function setRoleLookup(list: RoleLookupItem[]) {
+  sessionStorage.setItem(ROLE_LOOKUP_KEY, JSON.stringify(list));
+}
+
+export function getRoleLookup(): RoleLookupItem[] | null {
+  const data = sessionStorage.getItem(ROLE_LOOKUP_KEY);
+  return data ? JSON.parse(data) : null;
 }
 
 export function setStatusList(list: any[]) {
