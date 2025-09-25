@@ -56,7 +56,7 @@ const AllTickets: React.FC = () => {
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
     const { t } = useTranslation();
-    const showTable = checkMyTicketsAccess('table');
+    const showTicketsTable = checkMyTicketsAccess('ticketsTable');
     const sortDirection: 'asc' | 'desc' = 'desc';
 
     let assignedTo: string | undefined = undefined;
@@ -172,7 +172,7 @@ const AllTickets: React.FC = () => {
                 </div>
                 {pending && <p>{t('Loading...')}</p>}
                 {error && <p className="text-danger">{t('Error loading tickets')}</p>}
-                {viewMode === 'table' && showTable && (
+                {viewMode === 'table' && showTicketsTable && (
                     <div>
                         <TicketsTable
                             tickets={filtered}
