@@ -490,14 +490,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </CustomFieldset>
       )}
 
-      {/* SLA PROGRESS BAR */}
-      <Box>
-        <SlaProgressBar sla={sla} />
-      </Box>
 
       {/* SLA */}
       {sla && (
-        <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
+        <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0, justifyContent: 'center' }}>
+          {/* SLA PROGRESS BAR */}
+          <Box sx={{ mt: 4, width: '70%', justifyContent: 'center' }}>
+            <SlaProgressBar sla={sla} />
+          </Box>
           <SlaDetails sla={sla} />
         </CustomFieldset>
       )}

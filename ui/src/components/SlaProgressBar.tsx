@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import MultiValueProgressBar, {
   LabelPosition,
+  MultiValueProgressMarker,
   MultiValueProgressSegment,
 } from './UI/MultiValueProgressBar';
 import { TicketSla } from '../types';
@@ -43,6 +44,7 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         endLabelPosition: TOP_LABEL_POSITION,
         startLabel: `Created At ${createdDate}`,
         startLabelPosition: TOP_LABEL_POSITION,
+        marker: { right: true, left: true, color: '#000000', size: 3 } as MultiValueProgressMarker,
       });
     } else {
       const breachTotal = calculatedTotal;
@@ -52,7 +54,7 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         endLabel: 'Breached',
         endLabelPosition: BOTTOM_LABEL_POSITION,
       });
-      
+
       progressSegments.push({
         value: totalSlaTime,
         color: '#fc429fe0',
@@ -60,6 +62,8 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         endLabelPosition: TOP_LABEL_POSITION,
         startLabel: `Created At ${createdDate}`,
         startLabelPosition: TOP_LABEL_POSITION,
+        marker: { right: true, left: true, color: '#000000', size: 3 } as MultiValueProgressMarker,
+
       });
     }
 
