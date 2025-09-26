@@ -25,6 +25,7 @@ import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
 import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
 import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions } from '../utils/Utils';
+import MultiValueProgressBar, { LabelPosition, MultiValueProgressSegment } from './UI/MultiValueProgressBar';
 
 interface TicketViewProps {
   ticketId: string;
@@ -328,6 +329,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     </div>
   ), [severityList, t]);
 
+  const DUMMY_SLA_SEGMENTS: MultiValueProgressSegment[] = [
+    { value: 10, color: '#ff9800', endLabel: 'Elaspsed Time (min)', endLabelPosition: 'bottom' as LabelPosition },
+    { value: 30, color: '#0008ffff', endLabel: 'xyz Time (min)', endLabelPosition: 'bottom' as LabelPosition },
+    { value: 10, color: '#4caf50', endLabel: 'Resolution Time (min)', endLabelPosition: 'bottom' as LabelPosition },
+    // { value: sla?.resolutionTimeMinutes ?? 10, color: '#48ff00ff', endLabel: 'Resolution Time (mins)', endLabelPosition: 'bottom' as LabelPosition },
+    // { value: sla?.elapsedTimeMinutes ?? 10, color: '#00bbffff', endLabel: 'Elapsed Time (mins)', endLabelPosition: 'bottom' as LabelPosition },
+    { value: 10, color: '#f44336', endLabel: 'Breached Time (min)', endLabelPosition: 'bottom' as LabelPosition },
+  ];
+
   if (!ticket) return null;
 
   // DESIGN 1
@@ -478,6 +488,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <Histories ticketId={ticketId} />
         </CustomFieldset>
       )}
+
+      {/* SLA PROGRESS BAR */}
+      <Box>
+        {/* Total value is the difference of created and due datetime */}
+        <MultiValueProgressBar segments={DUMMY_SLA_SEGMENTS} totalValue={60} />
+      </Box>
+
+      {/* SLA */}
       {sla && (
         <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
           <SlaDetails sla={sla} />

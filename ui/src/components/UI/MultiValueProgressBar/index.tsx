@@ -28,7 +28,7 @@ export interface MultiValueProgressBarProps {
    * Optional custom total value used to calculate segment widths. When not
    * provided, the sum of the segment values is used.
    */
-  totalValue?: number;
+  totalValue: number;
   /** Additional class name applied to the component container. */
   className?: string;
 }
@@ -48,13 +48,14 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
   const segmentsWithPosition = useMemo<SegmentWithPosition[]>(() => {
     if (!segments.length) return [];
 
-    const safeTotal = totalValue ?? segments.reduce((acc, segment) => {
-      const value = Number.isFinite(segment.value) ? Math.max(segment.value, 0) : 0;
-      return acc + value;
-    }, 0);
+    const breachedByMinutes = segments.filter((s) => s.endLabel === 'Breached')[0]?.value || 0;
+
+    const safeTotal = breachedByMinutes > 0 ? totalValue + breachedByMinutes : totalValue;
+
+    const sortedSegments = [...segments].sort((a, b) => b.value - a.value);
 
     if (safeTotal <= 0) {
-      return segments.map((segment) => ({
+      return sortedSegments.map((segment) => ({
         ...segment,
         offset: 0,
         width: 0,
@@ -62,7 +63,7 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
     }
 
     let offset = 0;
-    return segments.map((segment) => {
+    return sortedSegments.map((segment) => {
       const rawValue = Number.isFinite(segment.value) ? Math.max(segment.value, 0) : 0;
       const percentage = (rawValue / safeTotal) * 100;
       const availableSpace = Math.max(0, 100 - offset);
@@ -72,7 +73,6 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
         offset,
         width,
       };
-      offset += width;
       return segmentWithPosition;
     });
   }, [segments, totalValue]);
@@ -94,6 +94,8 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
       </span>
     );
   };
+
+  console.log('Segments with Position:', segmentsWithPosition);
 
   return (
     <div className={containerClassName}>
