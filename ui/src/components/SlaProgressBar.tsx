@@ -77,12 +77,26 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
     const breached = Math.max(rawBreached, 0);
     const dueDate = sla?.dueAt;
     const createdDate = sla?.createdAt;
+    const actualDueDate = sla?.actualDueAt;
+    const escalatedDueDate = sla?.dueAtAfterEscalation;
     const timeTillDueDate = Math.max(sla.timeTillDueDate ?? 0, rawBreached < 0 ? Math.abs(rawBreached) : 0);
+    const idle = Math.max(sla.idleTimeMinutes ?? 0, 0);
+
+    const dueDateHelpers: string[] = [];
+    if (timeTillDueDate > 0) {
+      dueDateHelpers.push(`${formatDuration(timeTillDueDate)} remaining`);
+    }
+    if (actualDueDate) {
+      dueDateHelpers.push(`Original: ${formatDateInWords(actualDueDate)}`);
+    }
+    if (escalatedDueDate && escalatedDueDate !== dueDate) {
+      dueDateHelpers.push(`Escalated: ${formatDateInWords(escalatedDueDate)}`);
+    }
 
     const dueDateLabel = createLabelContent(
-      'Due Date',
+      'Current Due Date',
       formatDateInWords(dueDate),
-      timeTillDueDate > 0 ? `${formatDuration(timeTillDueDate)} remaining` : undefined,
+      dueDateHelpers.length ? dueDateHelpers.join(' • ') : undefined,
     );
     const createdDateLabel = createLabelContent('Created Date', formatDateInWords(createdDate));
 
@@ -136,6 +150,15 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         value: response,
         color: '#1e88e5',
         endLabel: `Response Time (${formatMinutes(response)})`,
+        endLabelPosition: BOTTOM_LABEL_POSITION,
+      });
+    }
+
+    if (idle > 0) {
+      progressSegments.push({
+        value: idle,
+        color: '#9e9e9e',
+        endLabel: `Idle Time (${formatMinutes(idle)})`,
         endLabelPosition: BOTTOM_LABEL_POSITION,
       });
     }
