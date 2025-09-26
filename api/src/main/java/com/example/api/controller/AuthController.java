@@ -99,9 +99,9 @@ public class AuthController {
                     response.put("levels", levels);
                     response.put("allowedStatusActionIds", allowedStatusActionIds);
 
-                    return ResponseEntity.ok()
-                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                            .body(response);
+                    return ResponseEntity.ok(response);
+//                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+//                            .body(response);
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid credentials")));

@@ -15,7 +15,7 @@ import java.util.List;
 public class CorsProperties {
     private List<String> allowedOrigins = new ArrayList<>();
     private List<String> allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
-    private List<String> allowedHeaders = List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin");
+    private List<String> allowedHeaders = List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin", "X-user-ID");
     private List<String> exposedHeaders = List.of("Authorization");
     private long maxAge = 3600;
     private boolean allowCredentials = true;
