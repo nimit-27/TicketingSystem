@@ -18,4 +18,5 @@ public class CorsProperties {
     private List<String> allowedHeaders = List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin");
     private List<String> exposedHeaders = List.of("Authorization");
     private long maxAge = 3600;
+    private boolean allowCredentials = true;
 }

@@ -23,6 +23,7 @@ security:
     exposed-headers:
       - Authorization
     max-age: 3600
+    allow-credentials: true
 
 ---
 spring:
