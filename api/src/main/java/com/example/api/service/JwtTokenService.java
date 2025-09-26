@@ -88,7 +88,7 @@ public class JwtTokenService {
                     .permissions(convertPermissions(claims.get("permissions")))
                     .build();
             return Optional.of(payload);
-        } catch (ExpiredJwtException | JwtException ex) {
+        } catch (JwtException ex) {
             return Optional.empty();
         }
     }

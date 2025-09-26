@@ -75,8 +75,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
-  const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'level');
-  console.log({ severityOptions })
+  const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
   const severityLevels: string[] = severityList.map((s: SeverityInfo) => s.level);
 
   const currentUserDetails = getCurrentUserDetails();

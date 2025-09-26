@@ -95,6 +95,7 @@ export interface TicketSla {
     elapsedTimeMinutes?: number;
     responseTimeMinutes?: number;
     breachedByMinutes?: number;
+    totalSlaMinutes?: number;
 }
 
 export interface Faq {

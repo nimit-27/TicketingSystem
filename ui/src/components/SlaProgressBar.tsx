@@ -24,10 +24,10 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
     const resolution = Math.max(sla.resolutionTimeMinutes ?? 0, 0);
     const response = Math.max(sla.responseTimeMinutes ?? 0, 0);
     const elapsed = Math.max(sla.elapsedTimeMinutes ?? 0, 0);
+    const totalSlaTime = Math.max(sla.totalSlaMinutes ?? 0, 0);
     const breached = Math.max(sla.breachedByMinutes ?? 0, 0);
 
-    const baseTotal = Math.max(resolution, response, elapsed);
-    const calculatedTotal = breached > 0 ? baseTotal + breached : baseTotal;
+    const calculatedTotal = breached > 0 ? totalSlaTime + breached : totalSlaTime;
 
     const progressSegments: MultiValueProgressSegment[] = [];
 

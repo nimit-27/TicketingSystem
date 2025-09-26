@@ -43,7 +43,9 @@ public class TicketSlaService {
         LocalDateTime assignTime = history.isEmpty() ? ticket.getReportedDate() : history.get(0).getTimestamp();
         long responseMinutes = Duration.between(ticket.getReportedDate(), assignTime).toMinutes();
 
-        long elapsed = 0L;
+
+        long elapsed = Duration.between(ticket.getReportedDate(), LocalDateTime.now()).toMinutes();
+
         long resolution = 0L;
         LocalDateTime prevTime = assignTime;
         Boolean prevFlag = history.isEmpty() ? Boolean.TRUE : history.get(0).getSlaFlag();
@@ -94,7 +96,7 @@ public class TicketSlaService {
                     if (ticket == null) {
                         return existing;
                     }
-                    List<StatusHistory> history = statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket);
+                    List<StatusHistory> history = statusHistoryRepository.findByTicketOrderByTimestampDesc(ticket);
                     TicketSla refreshed = calculateAndSave(ticket, history);
                     if (refreshed.getCreatedAt() == null) {
                         refreshed.setCreatedAt(ticket.getReportedDate());

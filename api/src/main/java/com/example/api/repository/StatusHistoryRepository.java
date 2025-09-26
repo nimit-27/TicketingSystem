@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface StatusHistoryRepository extends JpaRepository<StatusHistory, String> {
     List<StatusHistory> findByTicketOrderByTimestampAsc(Ticket ticket);
+
+    List<StatusHistory> findByTicketOrderByTimestampDesc(Ticket ticket);
 }
