@@ -35,6 +35,22 @@ interface TicketViewProps {
   onRecommendSeverityFocusHandled?: () => void;
 }
 
+const normaliseSla = (slaData: TicketSla | null): TicketSla | null => {
+  if (!slaData) {
+    return null;
+  }
+
+  const rawBreached = slaData.breachedByMinutes ?? 0;
+  const breachedByMinutes = rawBreached < 0 ? 0 : rawBreached;
+  const timeTillDueDate = rawBreached < 0 ? Math.abs(rawBreached) : slaData.timeTillDueDate ?? 0;
+
+  return {
+    ...slaData,
+    breachedByMinutes,
+    timeTillDueDate,
+  };
+};
+
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
   const { t } = useTranslation();
 
@@ -104,7 +120,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       getTicketSla(ticketId)
         .then(res => {
           const body = res.data?.body ?? res.data;
-          setSla(res.status === 200 ? body?.data ?? null : null);
+          const slaData = res.status === 200 ? body?.data ?? null : null;
+          const normalised = normaliseSla(slaData && typeof slaData === 'object' ? slaData as TicketSla : null);
+          setSla(normalised);
         })
         .catch(() => setSla(null));
     }

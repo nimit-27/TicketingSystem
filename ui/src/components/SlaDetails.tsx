@@ -15,6 +15,10 @@ const SlaDetails: React.FC<Props> = ({ sla }) => {
           <td><Typography>{sla.dueAt ? new Date(sla.dueAt).toLocaleString() : '-'}</Typography></td>
         </tr>
         <tr>
+          <td><Typography color="text.secondary">Time Till Due Date (mins)</Typography></td>
+          <td><Typography>{typeof sla.timeTillDueDate === 'number' ? sla.timeTillDueDate : '-'}</Typography></td>
+        </tr>
+        <tr>
           <td><Typography color="text.secondary">Resolution Time (mins)</Typography></td>
           <td><Typography>{sla.resolutionTimeMinutes ?? '-'}</Typography></td>
         </tr>
