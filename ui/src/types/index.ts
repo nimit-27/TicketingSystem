@@ -96,6 +96,8 @@ export interface TicketSla {
     responseTimeMinutes?: number;
     breachedByMinutes?: number;
     totalSlaMinutes?: number;
+    dueDate?: string;
+    createdAt?: string;
 }
 
 export interface Faq {

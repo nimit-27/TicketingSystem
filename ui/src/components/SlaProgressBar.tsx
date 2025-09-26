@@ -10,8 +10,8 @@ interface SlaProgressBarProps {
   className?: string;
 }
 
-const START_LABEL_POSITION: LabelPosition = 'top';
-const END_LABEL_POSITION: LabelPosition = 'bottom';
+const TOP_LABEL_POSITION: LabelPosition = 'top';
+const BOTTOM_LABEL_POSITION: LabelPosition = 'bottom';
 
 const formatMinutes = (value: number) => `${value} min${value === 1 ? '' : 's'}`;
 
@@ -26,17 +26,49 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
     const elapsed = Math.max(sla.elapsedTimeMinutes ?? 0, 0);
     const totalSlaTime = Math.max(sla.totalSlaMinutes ?? 0, 0);
     const breached = Math.max(sla.breachedByMinutes ?? 0, 0);
+    const dueDate = sla?.dueAt;
+    const createdDate = sla?.createdAt;
+
+
+    const progressSegments: MultiValueProgressSegment[] = [];
 
     const calculatedTotal = breached > 0 ? totalSlaTime + breached : totalSlaTime;
 
-    const progressSegments: MultiValueProgressSegment[] = [];
+    if (breached <= 0) {
+      console.log({ breached, dueDate, calculatedTotal })
+      progressSegments.push({
+        value: calculatedTotal,
+        color: 'rgb(255 255 255 / 0)',
+        endLabel: `Due Date ${dueDate}`,
+        endLabelPosition: TOP_LABEL_POSITION,
+        startLabel: `Created At ${createdDate}`,
+        startLabelPosition: TOP_LABEL_POSITION,
+      });
+    } else {
+      const breachTotal = calculatedTotal;
+      progressSegments.push({
+        value: breachTotal,
+        color: '#f44336',
+        endLabel: 'Breached',
+        endLabelPosition: BOTTOM_LABEL_POSITION,
+      });
+      
+      progressSegments.push({
+        value: totalSlaTime,
+        color: '#fc429fe0',
+        endLabel: `Due Date ${dueDate}`,
+        endLabelPosition: TOP_LABEL_POSITION,
+        startLabel: `Created At ${createdDate}`,
+        startLabelPosition: TOP_LABEL_POSITION,
+      });
+    }
 
     if (resolution > 0) {
       progressSegments.push({
         value: resolution,
         color: '#4caf50',
         endLabel: `Resolution Time (${formatMinutes(resolution)})`,
-        endLabelPosition: END_LABEL_POSITION,
+        endLabelPosition: BOTTOM_LABEL_POSITION,
       });
     }
 
@@ -45,7 +77,7 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         value: response,
         color: '#1e88e5',
         endLabel: `Response Time (${formatMinutes(response)})`,
-        endLabelPosition: END_LABEL_POSITION,
+        endLabelPosition: BOTTOM_LABEL_POSITION,
       });
     }
 
@@ -54,19 +86,7 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         value: elapsed,
         color: '#ff9800',
         endLabel: `Elapsed Time (${formatMinutes(elapsed)})`,
-        endLabelPosition: END_LABEL_POSITION,
-      });
-    }
-
-    if (breached > 0) {
-      const breachTotal = calculatedTotal;
-      progressSegments.push({
-        value: breachTotal,
-        color: '#f44336',
-        startLabel: `Breached by ${formatMinutes(breached)}`,
-        startLabelPosition: START_LABEL_POSITION,
-        endLabel: 'Breached',
-        endLabelPosition: END_LABEL_POSITION,
+        endLabelPosition: BOTTOM_LABEL_POSITION,
       });
     }
 
