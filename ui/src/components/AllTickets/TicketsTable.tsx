@@ -129,7 +129,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
         if (wf.action === 'Recommend Escalation') {
             onRecommendEscalation?.(ticketId);
-            handleClose();
+            onIdClick(ticketId)
             return;
         }
         setSelectedAction({ action: wf, ticketId });
@@ -182,6 +182,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
                         {truncateWithEllipsis(record.id, 12)}
                         {record.isMaster && <MasterIcon />}
+                        <CustomIconButton icon="runningWithErrors" color='error' />
                     </div>
                 ),
             },

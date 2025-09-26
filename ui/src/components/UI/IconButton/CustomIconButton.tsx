@@ -41,6 +41,7 @@ import PortraitIcon from '@mui/icons-material/Portrait';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
@@ -90,6 +91,7 @@ const iconMap = {
     formatColorFill: FormatColorFillIcon,
     feedback: FeedbackIcon,
     keyboardDoubleArrowRight: KeyboardDoubleArrowRightIcon,
+    runningWithErrors: RunningWithErrorsIcon,
 };
 
 // Valid keys for the icon map
