@@ -5,6 +5,7 @@ import com.example.api.models.StatusHistory;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketSla;
 import com.example.api.repository.SlaConfigRepository;
+import com.example.api.repository.StatusHistoryRepository;
 import com.example.api.repository.TicketSlaRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,14 @@ import java.util.List;
 public class TicketSlaService {
     private final SlaConfigRepository slaConfigRepository;
     private final TicketSlaRepository ticketSlaRepository;
+    private final StatusHistoryRepository statusHistoryRepository;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
-                            TicketSlaRepository ticketSlaRepository) {
+                            TicketSlaRepository ticketSlaRepository,
+                            StatusHistoryRepository statusHistoryRepository) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
+        this.statusHistoryRepository = statusHistoryRepository;
     }
 
     public TicketSla calculateAndSave(Ticket ticket, List<StatusHistory> history) {
@@ -74,10 +78,32 @@ public class TicketSlaService {
         ticketSla.setElapsedTimeMinutes(elapsed);
         ticketSla.setResponseTimeMinutes(responseMinutes);
         ticketSla.setBreachedByMinutes(breachedBy);
+        ticketSla.setCreatedAt(ticket.getReportedDate());
+        if (ticket.getReportedDate() != null && dueAt != null) {
+            ticketSla.setTotalSlaMinutes(Duration.between(ticket.getReportedDate(), dueAt).toMinutes());
+        } else {
+            ticketSla.setTotalSlaMinutes(null);
+        }
         return ticketSlaRepository.save(ticketSla);
     }
 
     public TicketSla getByTicketId(String ticketId) {
-        return ticketSlaRepository.findByTicket_Id(ticketId).orElse(null);
+        return ticketSlaRepository.findByTicket_Id(ticketId)
+                .map(existing -> {
+                    Ticket ticket = existing.getTicket();
+                    if (ticket == null) {
+                        return existing;
+                    }
+                    List<StatusHistory> history = statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket);
+                    TicketSla refreshed = calculateAndSave(ticket, history);
+                    if (refreshed.getCreatedAt() == null) {
+                        refreshed.setCreatedAt(ticket.getReportedDate());
+                    }
+                    if (refreshed.getTotalSlaMinutes() == null && ticket.getReportedDate() != null && refreshed.getDueAt() != null) {
+                        refreshed.setTotalSlaMinutes(Duration.between(ticket.getReportedDate(), refreshed.getDueAt()).toMinutes());
+                    }
+                    return refreshed;
+                })
+                .orElse(null);
     }
 }

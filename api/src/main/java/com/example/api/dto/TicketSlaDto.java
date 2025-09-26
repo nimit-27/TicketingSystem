@@ -17,4 +17,6 @@ public class TicketSlaDto {
     private Long elapsedTimeMinutes;
     private Long responseTimeMinutes;
     private Long breachedByMinutes;
+    private LocalDateTime createdAt;
+    private Long totalSlaMinutes;
 }
