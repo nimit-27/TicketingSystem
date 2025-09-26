@@ -3,6 +3,17 @@ import './MultiValueProgressBar.scss';
 
 export type LabelPosition = 'top' | 'bottom' | 'hover';
 
+export interface MultiValueProgressMarker {
+  /** Displays a marker at the left edge of the segment. */
+  left?: boolean;
+  /** Displays a marker at the right edge of the segment. */
+  right?: boolean;
+  /** Thickness of the marker line in pixels. */
+  size?: number;
+  /** Colour of the marker line. */
+  color?: string;
+}
+
 export interface MultiValueProgressSegment {
   /**
    * Numeric value represented by the segment. The component will normalise
@@ -19,6 +30,8 @@ export interface MultiValueProgressSegment {
   startLabelPosition?: LabelPosition;
   /** Controls the vertical position of the ending label. */
   endLabelPosition?: LabelPosition;
+  /** Optional marker configuration rendered on the segment edges. */
+  marker?: MultiValueProgressMarker;
 }
 
 export interface MultiValueProgressBarProps {
@@ -45,6 +58,9 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
   totalValue,
   className,
 }) => {
+  const defaultMarkerColor = '#000000';
+  const defaultMarkerSize = 2;
+
   const segmentsWithPosition = useMemo<SegmentWithPosition[]>(() => {
     if (!segments.length) return [];
 
@@ -95,7 +111,29 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
     );
   };
 
-  console.log('Segments with Position:', segmentsWithPosition);
+  const renderMarkers = (marker: MultiValueProgressMarker | undefined) => {
+    if (!marker) return null;
+
+    const markerColor = marker.color ?? defaultMarkerColor;
+    const markerSize = marker.size ?? defaultMarkerSize;
+
+    return (
+      <>
+        {marker.left ? (
+          <span
+            className="multi-progress__marker multi-progress__marker--left"
+            style={{ backgroundColor: markerColor, width: markerSize }}
+          />
+        ) : null}
+        {marker.right ? (
+          <span
+            className="multi-progress__marker multi-progress__marker--right"
+            style={{ backgroundColor: markerColor, width: markerSize }}
+          />
+        ) : null}
+      </>
+    );
+  };
 
   return (
     <div className={containerClassName}>
@@ -110,6 +148,7 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
               backgroundColor: segment.color,
             }}
           >
+            {renderMarkers(segment.marker)}
             {renderLabel(segment.startLabel, segment.startLabelPosition, 'start')}
             {renderLabel(segment.endLabel, segment.endLabelPosition, 'end')}
           </div>
