@@ -39,4 +39,10 @@ public class TicketSla {
 
     @Column(name = "breached_by_minutes")
     private Long breachedByMinutes;
+
+    @Transient
+    private LocalDateTime createdAt;
+
+    @Transient
+    private Long totalSlaMinutes;
 }

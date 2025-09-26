@@ -211,6 +211,8 @@ public class DtoMapper {
         dto.setElapsedTimeMinutes(ticketSla.getElapsedTimeMinutes());
         dto.setResponseTimeMinutes(ticketSla.getResponseTimeMinutes());
         dto.setBreachedByMinutes(ticketSla.getBreachedByMinutes());
+        dto.setCreatedAt(ticketSla.getCreatedAt());
+        dto.setTotalSlaMinutes(ticketSla.getTotalSlaMinutes());
         return dto;
     }
 }
