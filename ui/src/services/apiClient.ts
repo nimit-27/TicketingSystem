@@ -1,16 +1,36 @@
 import axios from "axios";
-import { getUserDetails } from "../utils/Utils";
+import { getUserDetails, clearSession } from "../utils/Utils";
+import { BASE_URL } from "./api";
+import { getActiveToken, isJwtBypassEnabled, clearStoredToken } from "../utils/authToken";
 
-const apiClient = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:3000",
-})
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || BASE_URL;
+axios.defaults.withCredentials = true;
 
-apiClient.interceptors.request.use(config => {
-    config.headers = config.headers || {};
+axios.interceptors.request.use((config) => {
+    const headers = config.headers ?? {};
+    const bypass = isJwtBypassEnabled();
+    if (!bypass) {
+        const token = getActiveToken();
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+    }
 
-    (config.headers as any)["X-User-ID"] = getUserDetails()?.userId || '';
-
+    const userId = getUserDetails()?.userId || "";
+    headers["X-User-ID"] = userId;
+    config.headers = headers;
     return config;
-})
+});
 
-export default apiClient;
+axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error?.response?.status === 401) {
+            clearStoredToken();
+            clearSession();
+        }
+        return Promise.reject(error);
+    }
+);
+
+export default axios;
