@@ -20,6 +20,7 @@ security:
       - Accept
       - X-Requested-With
       - Origin
+      - X-user-ID
     exposed-headers:
       - Authorization
     max-age: 3600
