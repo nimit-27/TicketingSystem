@@ -127,7 +127,7 @@ const Login: FC = () => {
             }
 
             const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
-            const permissions: RolePermission | undefined = decoded?.permissions ?? loginData.permissions;
+            const permissions: RolePermission | undefined = loginData.permissions;
             if (permissions) {
                 setPermissions(permissions);
             }

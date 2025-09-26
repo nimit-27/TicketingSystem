@@ -2,11 +2,9 @@ package com.example.api.service;
 
 import com.example.api.config.JwtProperties;
 import com.example.api.dto.LoginPayload;
-import com.example.api.permissions.RolePermission;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -46,13 +44,6 @@ public class JwtTokenService {
         claims.put("roles", payload.getRoles());
         claims.put("levels", payload.getLevels());
         claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
-        RolePermission permissions = payload.getPermissions();
-        if (permissions != null) {
-            Map<String, Object> permissionMap = new HashMap<>();
-            permissionMap.put("sidebar", permissions.getSidebar());
-            permissionMap.put("pages", permissions.getPages());
-            claims.put("permissions", permissionMap);
-        }
 
         Instant now = Instant.now();
         Instant expiry = now.plus(properties.getExpirationMinutes(), ChronoUnit.MINUTES);
@@ -85,7 +76,6 @@ public class JwtTokenService {
                     .roles(convertList(claims.get("roles")))
                     .levels(convertList(claims.get("levels")))
                     .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
-                    .permissions(convertPermissions(claims.get("permissions")))
                     .build();
             return Optional.of(payload);
         } catch (JwtException ex) {
@@ -99,25 +89,6 @@ public class JwtTokenService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    private RolePermission convertPermissions(Object value) {
-        if (value == null) {
-            return null;
-        }
-        Map<String, Object> permissions = objectMapper.convertValue(value, new TypeReference<Map<String, Object>>() {});
-        RolePermission rolePermission = new RolePermission();
-        rolePermission.setSidebar(castToMap(permissions.get("sidebar")));
-        rolePermission.setPages(castToMap(permissions.get("pages")));
-        return rolePermission;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> castToMap(Object value) {
-        if (value instanceof Map<?, ?> map) {
-            return (Map<String, Object>) map;
-        }
-        return value == null ? null : objectMapper.convertValue(value, new TypeReference<Map<String, Object>>() {});
     }
 
     private List<String> convertList(Object value) {

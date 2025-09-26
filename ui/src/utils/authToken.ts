@@ -1,5 +1,5 @@
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { DecodedAuthDetails, RolePermission, UserDetails } from "../types/auth";
+import { DecodedAuthDetails, UserDetails } from "../types/auth";
 
 const TOKEN_KEY = "authToken";
 const BYPASS_KEY = "jwtBypass";
@@ -10,7 +10,6 @@ interface ExtendedJwtPayload extends JwtPayload {
   name?: string;
   roles?: string[];
   levels?: string[];
-  permissions?: RolePermission;
   allowedStatusActionIds?: string[];
 }
 
@@ -70,16 +69,12 @@ export function getDecodedAuthDetails(): DecodedAuthDetails | null {
       allowedStatusActionIds: claims.allowedStatusActionIds ?? undefined,
     };
 
-    decodedCache = { user, permissions: claims.permissions };
+    decodedCache = { user };
     return decodedCache;
   } catch (error) {
     clearStoredToken();
     return null;
   }
-}
-
-export function getPermissionsFromToken(): RolePermission | undefined {
-  return getDecodedAuthDetails()?.permissions ?? undefined;
 }
 
 export function clearDecodedCache() {
