@@ -37,6 +37,7 @@ export interface TicketRow {
     statusLabel?: string;
     assignedTo?: string;
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
+    breachedByMinutes?: number;
 }
 
 interface TicketsTableProps {
@@ -182,7 +183,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
                         {truncateWithEllipsis(record.id, 12)}
                         {record.isMaster && <MasterIcon />}
-                        <CustomIconButton icon="runningWithErrors" color='error' />
+                        {(record.breachedByMinutes ?? 0) > 0 && (
+                            <CustomIconButton icon="runningWithErrors" color='error' />
+                        )}
                     </div>
                 ),
             },
