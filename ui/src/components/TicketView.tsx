@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState, use } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -31,9 +31,11 @@ interface TicketViewProps {
   ticketId: string;
   showHistory?: boolean;
   sidebar?: boolean;
+  focusRecommendSeverity?: boolean;
+  onRecommendSeverityFocusHandled?: () => void;
 }
 
-const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false }) => {
+const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
   const { t } = useTranslation();
 
   // USEAPI INITIALIZATIONS
@@ -62,6 +64,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
   const [severityToRecommendSeverity, setSeverityToRecommendSeverity] = useState<boolean>(false);
   const [showRecommendRemark, setShowRecommendRemark] = useState(false);
+  const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -135,6 +138,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setStatusWorkflows(workflowData);
     }
   }, [workflowData]);
+
+  useEffect(() => {
+    if (focusRecommendSeverity && showSeverity && !showSeverityToRecommendSeverity && recommendSeverityButtonRef.current) {
+      recommendSeverityButtonRef.current.focus();
+      onRecommendSeverityFocusHandled?.();
+    }
+  }, [focusRecommendSeverity, showSeverity, showSeverityToRecommendSeverity, onRecommendSeverityFocusHandled]);
 
   const updateTicketDetails = async (remark?: string) => {
     if (!ticketId) return;
@@ -402,6 +412,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 variant="contained"
                 size="small"
                 onClick={() => setSeverityToRecommendSeverity(true)}
+                ref={recommendSeverityButtonRef}
               >
                 {t('Recommend Severity')}
               </GenericButton>

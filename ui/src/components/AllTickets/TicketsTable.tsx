@@ -48,9 +48,10 @@ interface TicketsTableProps {
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
     sortBy: string;
     onSortChange: (value: string) => void;
+    onRecommendEscalation?: (id: string) => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange, onRecommendEscalation }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -126,6 +127,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     };
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
+        if (wf.action === 'Recommend Escalation') {
+            onRecommendEscalation?.(ticketId);
+            handleClose();
+            return;
+        }
         setSelectedAction({ action: wf, ticketId });
         setCurrentTicketId(ticketId);
         setExpandedRowKeys([ticketId]);
@@ -299,6 +305,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 />
             </div>
             <GenericTable
+                className="tickets-table"
                 dataSource={tickets}
                 columns={columns as any}
                 rowKey="id"
