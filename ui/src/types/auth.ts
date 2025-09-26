@@ -22,5 +22,4 @@ export interface UserDetails {
 
 export interface DecodedAuthDetails {
   user: UserDetails;
-  permissions?: RolePermission;
 }

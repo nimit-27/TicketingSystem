@@ -5,7 +5,6 @@ import { UserDetails } from "../types/auth";
 import {
   clearStoredToken,
   getDecodedAuthDetails,
-  getPermissionsFromToken,
   isJwtBypassEnabled,
 } from "./authToken";
 import { logoutUser } from "../services/AuthService";
@@ -43,13 +42,6 @@ export function setUserPermissions(perm: any) {
 }
 
 export function getUserPermissions(): any {
-  if (!isJwtBypassEnabled()) {
-    const permissions = getPermissionsFromToken();
-    if (permissions) {
-      return permissions;
-    }
-  }
-
   const data = sessionStorage.getItem(PERM_KEY);
   return data ? JSON.parse(data) : null;
 }
