@@ -207,12 +207,16 @@ public class DtoMapper {
         dto.setTicketId(ticketSla.getTicket() != null ? ticketSla.getTicket().getId() : null);
         dto.setSlaId(ticketSla.getSlaConfig() != null ? ticketSla.getSlaConfig().getId() : null);
         dto.setDueAt(ticketSla.getDueAt());
+        dto.setActualDueAt(ticketSla.getActualDueAt());
+        dto.setDueAtAfterEscalation(ticketSla.getDueAtAfterEscalation());
         dto.setResolutionTimeMinutes(ticketSla.getResolutionTimeMinutes());
         dto.setElapsedTimeMinutes(ticketSla.getElapsedTimeMinutes());
         dto.setResponseTimeMinutes(ticketSla.getResponseTimeMinutes());
         dto.setBreachedByMinutes(ticketSla.getBreachedByMinutes());
+        dto.setIdleTimeMinutes(ticketSla.getIdleTimeMinutes());
         dto.setCreatedAt(ticketSla.getCreatedAt());
         dto.setTotalSlaMinutes(ticketSla.getTotalSlaMinutes());
+        dto.setTimeTillDueDate(ticketSla.getTimeTillDueDate());
         return dto;
     }
 }

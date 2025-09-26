@@ -90,11 +90,16 @@ export interface ApiResponse<T> {
 
 export interface TicketSla {
     id: string;
+    ticketId?: string;
+    slaId?: string;
     dueAt?: string;
+    actualDueAt?: string;
+    dueAtAfterEscalation?: string;
     resolutionTimeMinutes?: number;
     elapsedTimeMinutes?: number;
     responseTimeMinutes?: number;
     breachedByMinutes?: number;
+    idleTimeMinutes?: number;
     totalSlaMinutes?: number;
     dueDate?: string;
     createdAt?: string;

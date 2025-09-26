@@ -28,6 +28,12 @@ public class TicketSla {
     @Column(name = "due_at")
     private LocalDateTime dueAt;
 
+    @Column(name = "actual_due_at")
+    private LocalDateTime actualDueAt;
+
+    @Column(name = "due_at_after_escalation")
+    private LocalDateTime dueAtAfterEscalation;
+
     @Column(name = "resolution_time_minutes")
     private Long resolutionTimeMinutes;
 
@@ -40,9 +46,15 @@ public class TicketSla {
     @Column(name = "breached_by_minutes")
     private Long breachedByMinutes;
 
+    @Column(name = "idle_time_minutes")
+    private Long idleTimeMinutes;
+
     @Transient
     private LocalDateTime createdAt;
 
     @Transient
     private Long totalSlaMinutes;
+
+    @Transient
+    private Long timeTillDueDate;
 }

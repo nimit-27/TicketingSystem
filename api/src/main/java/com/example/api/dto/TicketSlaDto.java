@@ -13,10 +13,14 @@ public class TicketSlaDto {
     private String ticketId;
     private String slaId;
     private LocalDateTime dueAt;
+    private LocalDateTime actualDueAt;
+    private LocalDateTime dueAtAfterEscalation;
     private Long resolutionTimeMinutes;
     private Long elapsedTimeMinutes;
     private Long responseTimeMinutes;
     private Long breachedByMinutes;
+    private Long idleTimeMinutes;
     private LocalDateTime createdAt;
     private Long totalSlaMinutes;
+    private Long timeTillDueDate;
 }
