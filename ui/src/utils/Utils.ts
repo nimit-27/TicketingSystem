@@ -1,17 +1,14 @@
 import { getStatusListFromApi } from "../services/StatusService";
 import i18n from "../i18n";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
-
-export interface UserDetails {
-  userId: string;
-  username?: string;
-  role?: string[];
-  levels?: string[];
-  name?: string;
-  email?: string;
-  phone?: string;
-  allowedStatusActionIds?: string[];
-}
+import { UserDetails } from "../types/auth";
+import {
+  clearStoredToken,
+  getDecodedAuthDetails,
+  getPermissionsFromToken,
+  isJwtBypassEnabled,
+} from "./authToken";
+import { logoutUser } from "../services/AuthService";
 
 export interface RoleLookupItem {
   roleId: number | string;
@@ -30,6 +27,13 @@ export function setUserDetails(details: UserDetails) {
 }
 
 export function getUserDetails(): UserDetails | null {
+  if (!isJwtBypassEnabled()) {
+    const decoded = getDecodedAuthDetails();
+    if (decoded?.user) {
+      return decoded.user;
+    }
+  }
+
   const data = sessionStorage.getItem(USER_KEY);
   return data ? JSON.parse(data) : null;
 }
@@ -39,6 +43,13 @@ export function setUserPermissions(perm: any) {
 }
 
 export function getUserPermissions(): any {
+  if (!isJwtBypassEnabled()) {
+    const permissions = getPermissionsFromToken();
+    if (permissions) {
+      return permissions;
+    }
+  }
+
   const data = sessionStorage.getItem(PERM_KEY);
   return data ? JSON.parse(data) : null;
 }
@@ -47,6 +58,8 @@ export function clearSession() {
   sessionStorage.removeItem(USER_KEY);
   sessionStorage.removeItem(PERM_KEY);
   sessionStorage.removeItem(ROLE_LOOKUP_KEY);
+  sessionStorage.removeItem(STATUS_LIST_KEY);
+  statusCache = null;
 }
 
 export function setRoleLookup(list: RoleLookupItem[]) {
@@ -119,8 +132,11 @@ export function formatDateWithSuffix(date: string | Date): string {
 }
 
 export function logout() {
-  sessionStorage.clear();
-  statusCache = null;
+  void logoutUser().catch((error) => {
+    console.warn("Logout request failed", error);
+  });
+  clearStoredToken();
+  clearSession();
   window.location.href = '/login';
 }
 

@@ -1,15 +1,5 @@
 import { getUserPermissions, setUserPermissions } from './Utils';
-
-export interface SidebarItemPermission {
-  show?: boolean;
-  children?: { [key: string]: SidebarItemPermission };
-  [key: string]: any;
-}
-
-export interface RolePermission {
-  sidebar?: { [key: string]: SidebarItemPermission };
-  pages?: { [form: string]: { [key: string]: any } };
-}
+import { RolePermission } from '../types/auth';
 
 export function setPermissions(perm: RolePermission) {
   setUserPermissions(perm);

@@ -28,6 +28,8 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import CategoryIcon from "@mui/icons-material/Category";
 import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
@@ -72,6 +74,8 @@ const iconMap = {
     personAddAlt: PersonAddAlt,
     listAlt: ListAltIcon,
     lock: LockIcon,
+    lockOpen: LockOpenIcon,
+    verifiedUser: VerifiedUserIcon,
     addCircleOutline: AddCircleOutlineIcon,
     libraryBooks: LibraryBooksIcon,
     category: CategoryIcon,

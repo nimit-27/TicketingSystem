@@ -17,7 +17,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggle, mode, toggleLayout, layout } = useContext(ThemeModeContext);
   const { toggleLanguage } = useContext(LanguageContext);
-  const { toggleDevMode, devMode } = useContext(DevModeContext);
+  const { toggleDevMode, devMode, jwtBypass, toggleJwtBypass } = useContext(DevModeContext);
   const theme = useTheme();
   const user = getCurrentUserDetails();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -101,6 +101,18 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           icon="code"
           onClick={toggleDevMode}
         />
+        {devMode && (
+          <CustomIconButton
+            style={{
+              color: jwtBypass
+                ? theme.palette.error.light || theme.palette.error.main
+                : theme.palette.success.light || theme.palette.success.main,
+            }}
+            icon={jwtBypass ? "lockOpen" : "verifiedUser"}
+            onClick={toggleJwtBypass}
+            title={jwtBypass ? "JWT bypass enabled" : "JWT protection active"}
+          />
+        )}
         {devMode && <CustomIconButton
           style={{ color: iconColor, fontSize: 14 }}
           icon={layout.toString()}
