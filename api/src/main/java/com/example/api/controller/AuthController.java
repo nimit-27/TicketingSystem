@@ -1,12 +1,16 @@
 package com.example.api.controller;
 
+import com.example.api.config.JwtProperties;
+import com.example.api.dto.LoginPayload;
 import com.example.api.dto.LoginRequest;
 import com.example.api.permissions.RolePermission;
 import com.example.api.service.AuthService;
+import com.example.api.service.JwtTokenService;
 import com.example.api.service.PermissionService;
 import com.example.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 import java.util.Arrays;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,6 +31,8 @@ public class AuthController {
     private final AuthService authService;
     private final PermissionService permissionService;
     private final RoleRepository roleRepository;
+    private final JwtTokenService jwtTokenService;
+    private final JwtProperties jwtProperties;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
@@ -40,12 +47,6 @@ public class AuthController {
 
         return authService.authenticate(request.getUsername(), request.getPassword())
                 .map(emp -> {
-                    session.setAttribute("userId", emp.getUserId());
-                    session.setAttribute("username", request.getUsername());
-                    session.setAttribute("password", request.getPassword());
-                    session.setAttribute("roles", emp.getRoles());
-                    session.setAttribute("levels", emp.getUserLevel() != null ? emp.getUserLevel().getLevelIds() : null);
-
                     List<String> roles = emp.getRoles() == null ? List.of()
                             : Arrays.asList(emp.getRoles().split("\\|"));
                     List<Integer> roleIds = roles.stream()
@@ -58,9 +59,8 @@ public class AuthController {
                             : Arrays.asList(emp.getUserLevel().getLevelIds().split("\\|"));
 
                     RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
-                    System.out.println("Perm: " + permissions);
 
-                    java.util.Set<String> allowedStatusActionIds = new java.util.HashSet<>();
+                    Set<String> allowedStatusActionIds = new java.util.HashSet<>();
                     roleRepository.findAllById(roleIds).forEach(r -> {
                         if (r.getAllowedStatusActionIds() != null) {
                             for (String s : r.getAllowedStatusActionIds().split("\\|")) {
@@ -71,15 +71,38 @@ public class AuthController {
                         }
                     });
 
-                    return ResponseEntity.ok(Map.of(
-                            "userId", emp.getUserId(),
-                            "name", emp.getName(),
-                            "username", emp.getUsername(),
-                            "roles", roles,
-                            "permissions", permissions,
-                            "levels", levels,
-                            "allowedStatusActionIds", allowedStatusActionIds
-                    ));
+                    if (jwtProperties.isBypassEnabled()) {
+                        session.setAttribute("userId", emp.getUserId());
+                        session.setAttribute("username", request.getUsername());
+                        session.setAttribute("roles", emp.getRoles());
+                        session.setAttribute("levels", emp.getUserLevel() != null ? emp.getUserLevel().getLevelIds() : null);
+                    }
+
+                    LoginPayload payload = LoginPayload.builder()
+                            .userId(emp.getUserId())
+                            .name(emp.getName())
+                            .username(emp.getUsername())
+                            .roles(roles)
+                            .levels(levels)
+                            .permissions(permissions)
+                            .allowedStatusActionIds(allowedStatusActionIds)
+                            .build();
+
+                    String token = jwtTokenService.generateToken(payload);
+
+                    Map<String, Object> response = new LinkedHashMap<>();
+                    response.put("token", token);
+                    response.put("userId", emp.getUserId());
+                    response.put("name", emp.getName());
+                    response.put("username", emp.getUsername());
+                    response.put("roles", roles);
+                    response.put("permissions", permissions);
+                    response.put("levels", levels);
+                    response.put("allowedStatusActionIds", allowedStatusActionIds);
+
+                    return ResponseEntity.ok()
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .body(response);
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid credentials")));
@@ -87,7 +110,9 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpSession session) {
-        session.invalidate();
+        if (jwtProperties.isBypassEnabled()) {
+            session.invalidate();
+        }
         return ResponseEntity.ok().build();
     }
 }
