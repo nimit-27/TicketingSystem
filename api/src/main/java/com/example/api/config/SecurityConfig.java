@@ -11,6 +11,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -51,21 +52,32 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", buildCorsConfiguration());
+        return source;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", buildCorsConfiguration());
+        return new CorsFilter(source);
+    }
+
+    private CorsConfiguration buildCorsConfiguration() {
         CorsConfiguration configuration = new CorsConfiguration();
         List<String> allowedOrigins = corsProperties.getAllowedOrigins();
         if (allowedOrigins == null || allowedOrigins.isEmpty()) {
             configuration.setAllowedOriginPatterns(List.of("*"));
         } else {
             configuration.setAllowedOrigins(allowedOrigins);
+            configuration.setAllowedOriginPatterns(allowedOrigins);
         }
         configuration.setAllowedMethods(corsProperties.getAllowedMethods());
         configuration.setAllowedHeaders(corsProperties.getAllowedHeaders());
         configuration.setExposedHeaders(corsProperties.getExposedHeaders());
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(corsProperties.isAllowCredentials());
         configuration.setMaxAge(corsProperties.getMaxAge());
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+        return configuration;
     }
 }
