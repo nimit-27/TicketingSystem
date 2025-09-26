@@ -22,9 +22,11 @@ interface ViewTicketProps {
   ticketId: string | null;
   open: boolean;
   onClose: () => void;
+  focusRecommendSeverity?: boolean;
+  onRecommendSeverityFocusHandled?: () => void;
 }
 
-const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
+const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: updateTicketHandler } = useApi<any>();
   const [editing, setEditing] = useState(false);
@@ -157,7 +159,14 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose }) => {
       </Box>
       {ticket && (
         <Box sx={{ width: 400, position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {ticketId && <TicketView ticketId={ticketId} showHistory />}
+          {ticketId && (
+            <TicketView
+              ticketId={ticketId}
+              showHistory
+              focusRecommendSeverity={focusRecommendSeverity}
+              onRecommendSeverityFocusHandled={onRecommendSeverityFocusHandled}
+            />
+          )}
           {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />

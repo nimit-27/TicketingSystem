@@ -135,6 +135,17 @@ $font-size: 8;
   border: 1px solid #d9d9d9;
 }
 
+.tickets-table {
+  .ant-table {
+    border-radius: 8px;
+  }
+
+  .ant-table-container {
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+  }
+}
+
 .table-dark-theme {
   .ant-table {
     background-color: #1e1e1e;

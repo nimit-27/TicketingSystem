@@ -84,10 +84,18 @@ const AllTickets: React.FC = () => {
         if (id) {
             setSelectedTicketId(id);
             setSidebarOpen(true);
+            setFocusRecommendSeverityTicketId(null);
         }
     }
 
+    const handleRecommendEscalation = (id: string) => {
+        setSelectedTicketId(id);
+        setSidebarOpen(true);
+        setFocusRecommendSeverityTicketId(id);
+    };
+
     const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
+    const [focusRecommendSeverityTicketId, setFocusRecommendSeverityTicketId] = useState<string | null>(null);
 
     const searchCurrentTicketsPaginatedApi = useCallback(
         async (id: string) => {
@@ -191,6 +199,7 @@ const AllTickets: React.FC = () => {
                                 setSortBy(value as 'reportedDate' | 'lastModified');
                                 setPage(1);
                             }}
+                            onRecommendEscalation={handleRecommendEscalation}
                         />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
@@ -227,7 +236,7 @@ const AllTickets: React.FC = () => {
                                         priorityConfig={priorityConfig}
                                         statusWorkflows={workflowMap}
                                         searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
-                                        onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); }}
+                                        onClick={() => { setSelectedTicketId(t.id); setSidebarOpen(true); setFocusRecommendSeverityTicketId(null); }}
                                     />
                                 </div>
                             ))}
@@ -257,7 +266,17 @@ const AllTickets: React.FC = () => {
                     </div>
                 )}
             </div>
-            <ViewTicket ticketId={selectedTicketId} open={sidebarOpen} onClose={() => { setSidebarOpen(false); setSelectedTicketId(null); }} />
+            <ViewTicket
+                ticketId={selectedTicketId}
+                open={sidebarOpen}
+                onClose={() => {
+                    setSidebarOpen(false);
+                    setSelectedTicketId(null);
+                    setFocusRecommendSeverityTicketId(null);
+                }}
+                focusRecommendSeverity={selectedTicketId !== null && selectedTicketId === focusRecommendSeverityTicketId}
+                onRecommendSeverityFocusHandled={() => setFocusRecommendSeverityTicketId(null)}
+            />
         </div>
     );
 };
