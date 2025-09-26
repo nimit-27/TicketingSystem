@@ -98,6 +98,7 @@ export interface TicketSla {
     totalSlaMinutes?: number;
     dueDate?: string;
     createdAt?: string;
+    timeTillDueDate?: number;
 }
 
 export interface Faq {

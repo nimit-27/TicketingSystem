@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, ReactNode } from 'react';
 import './MultiValueProgressBar.scss';
 
 export type LabelPosition = 'top' | 'bottom' | 'hover';
@@ -23,9 +23,9 @@ export interface MultiValueProgressSegment {
   /** Background colour for the segment. */
   color: string;
   /** Optional label rendered where the segment begins. */
-  startLabel?: string;
+  startLabel?: ReactNode;
   /** Optional label rendered where the segment ends. */
-  endLabel?: string;
+  endLabel?: ReactNode;
   /** Controls the vertical position of the starting label. */
   startLabelPosition?: LabelPosition;
   /** Controls the vertical position of the ending label. */
@@ -96,11 +96,11 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
   const containerClassName = ['multi-progress', className].filter(Boolean).join(' ');
 
   const renderLabel = (
-    label: string | undefined,
+    label: ReactNode | undefined,
     position: LabelPosition | undefined,
     type: 'start' | 'end',
   ) => {
-    if (!label) return null;
+    if (label === undefined || label === null) return null;
     const labelPosition = position ?? defaultLabelPosition;
     return (
       <span
