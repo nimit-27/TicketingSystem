@@ -84,6 +84,8 @@ public class TicketController {
             @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws IOException {
         logger.info("Request to add a new ticket");
         TicketDto addedTicket = ticketService.addTicket(ticket);
+
+//        MANAGING ATTACHMENTS
         if (attachments != null && attachments.length > 0) {
             List<String> paths = new ArrayList<>();
             for (MultipartFile file : attachments) {

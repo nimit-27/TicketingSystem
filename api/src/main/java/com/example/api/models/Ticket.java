@@ -7,6 +7,7 @@ import com.example.api.models.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ public class Ticket {
     @Column(name="ticket_id")
     private String id;
     @Column(name="reported_date")
+    @CreationTimestamp
     private LocalDateTime reportedDate;
     @Enumerated(EnumType.STRING)
     private Mode mode;

@@ -32,6 +32,7 @@ public class TicketSlaService {
 
     public TicketSla calculateAndSave(Ticket ticket, List<StatusHistory> history) {
         if (ticket == null) return null;
+
         SlaConfig config = slaConfigRepository.findBySeverityLevel(ticket.getSeverity())
                 .orElse(null);
         if (config == null) {
@@ -39,6 +40,7 @@ public class TicketSlaService {
         }
 
         LocalDateTime reportedDate = ticket.getReportedDate();
+
         long resolutionPolicy = config.getResolutionMinutes() != null
                 ? config.getResolutionMinutes() : 0L;
         LocalDateTime baseDueAt = reportedDate != null ? reportedDate.plusMinutes(resolutionPolicy) : null;
@@ -49,16 +51,13 @@ public class TicketSlaService {
         orderedHistory.removeIf(h -> h == null || h.getTimestamp() == null);
         orderedHistory.sort(Comparator.comparing(StatusHistory::getTimestamp));
 
+//        START OF RESOLUTION TIME
         LocalDateTime assignTime = orderedHistory.stream()
                 .filter(h -> Boolean.TRUE.equals(h.getSlaFlag()))
                 .map(StatusHistory::getTimestamp)
                 .filter(Objects::nonNull)
                 .findFirst()
-                .orElseGet(() -> orderedHistory.stream()
-                        .map(StatusHistory::getTimestamp)
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                        .orElse(reportedDate));
+                .orElseGet(() -> null);
 
         long responseMinutes = 0L;
         if (reportedDate != null && assignTime != null) {
@@ -103,12 +102,12 @@ public class TicketSlaService {
             idle += finalDiff;
         }
 
-        if (elapsed > 0 && resolution > elapsed) {
-            resolution = elapsed;
-        }
-        if (elapsed > 0) {
-            idle = Math.max(elapsed - resolution, idle);
-        }
+//        if (elapsed > 0 && resolution > elapsed) {
+//            resolution = elapsed;
+//        }
+//        if (elapsed > 0) {
+//            idle = Math.max(elapsed - resolution, idle);
+//        }
 
         TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
                 .orElseGet(TicketSla::new);

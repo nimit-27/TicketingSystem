@@ -2,12 +2,15 @@ package com.example.api.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "status_history")
-@Data
+@Getter
+@Setter
 public class StatusHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

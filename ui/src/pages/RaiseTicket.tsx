@@ -17,6 +17,7 @@ import { checkAccessMaster } from "../utils/permissions";
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
     const reportedDate = formatDateWithSuffix(new Date());
+    const today = new Date();
 
     const { data, pending, error, success, apiHandler } = useApi();
 
@@ -50,7 +51,7 @@ const RaiseTicket: React.FC<any> = () => {
             requestorMobileNo: mobileNo,
             stakeholder,
             // include time (ISO-8601) similar to lastModified
-            reportedDate: new Date()
+            // reportedDate: new Date()
         };
 
         
@@ -67,15 +68,12 @@ const RaiseTicket: React.FC<any> = () => {
                 value.forEach(file => formData.append('attachments', file));
             } else if (value !== undefined && value !== null) {
                 if (value instanceof Date) {
-                    formData.append(key, value.toISOString().replace("Z", ""));
+                    formData.append(key, value.toLocaleString().replace("Z", ""));
                 } else {
                     formData.append(key, String(value));
                 }
             }
         });
-        
-        console.table("formData")
-        console.table(formData)
 
         // 1) Create ticket (no files)
         apiHandler(() => addTicket(formData))
@@ -137,7 +135,7 @@ const RaiseTicket: React.FC<any> = () => {
 
     return (
         <div className="container pb-5">
-            <Title text="Raise Ticket" rightContent={<span>{reportedDate}</span>} />
+            <Title text="Raise Ticket" rightContent={<span>{today.toLocaleString()}</span>} />
             {devMode && <CustomIconButton icon="listAlt" onClick={() => console.table(getValues())} />}
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Request Details */}
