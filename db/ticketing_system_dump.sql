@@ -334,7 +334,7 @@ CREATE TABLE `notification_master` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
   KEY `isx_notification_master_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -343,7 +343,13 @@ CREATE TABLE `notification_master` (
 
 LOCK TABLES `notification_master` WRITE;
 /*!40000 ALTER TABLE `notification_master` DISABLE KEYS */;
-INSERT INTO `notification_master` VALUES (1,'TICKET_CREATED','Ticket Created','Triggered when a new ticket is logged in the system.','Ticket {{ticketId}} created','Hello {{recipientName}}, ticket {{ticketId}} has been created by {{initiatorName}}.','ticket_created_email.html',NULL,'ticket_created_inapp.html','[\"EMAIL\", \"IN_APP\"]',_binary '','2025-01-10 09:00:00.000000','2025-09-24 16:49:48.436295'),(2,'TICKET_STATUS_UPDATE','Ticket Status Updated','Alerts requestors when ticket status changes.','Ticket {{ticketId}} status updated','Ticket {{ticketNumber}} changed from {{oldStatus}} to {{newStatus}} by {{actorName}}.','ticket_status_update_email.html','TKT_STATUS_UPDATE','ticket_status_update_inapp.html','[\"EMAIL\", \"SMS\", \"IN_APP\"]',_binary '','2025-01-10 09:05:00.000000','2025-09-24 16:49:48.460370'),(3,'TICKET_FEEDBACK_REMINDER','Ticket Feedback Reminder','Reminder to share feedback after resolution.','Feedback pending for ticket {{ticketId}}','Hi {{recipientName}}, please provide feedback for ticket {{ticketNumber}} resolved on {{resolvedDate}}.',NULL,NULL,'ticket_feedback_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:10:00.000000','2025-09-24 16:50:05.901461'),(4,'TICKET_ASSIGNED','Ticket Assigned','Notifies the assignee when a ticket is assigned to them.','Ticket {{ticketId}} assigned to you','Ticket {{ticketId}} has been assigned to you by {{assignedBy}}.','ticket_assigned_email.html',NULL,'ticket_assigned_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:15:00.000000','2025-09-24 16:50:05.901461'),(5,'TICKET_UPDATED','Ticket Updated','Alerts requestors when key ticket details are updated, such as assignment changes.','Ticket {{ticketId}} updated','Ticket {{ticketNumber}} has been updated. {{updateMessage}}',NULL,NULL,'ticket_updated_inapp.html','[\"IN_APP\"]',_binary '\0','2025-01-10 09:20:00.000000','2025-09-24 16:50:05.901461');
+INSERT INTO `notification_master` VALUES
+(1,'TICKET_CREATED','Ticket Created','Triggered when a new ticket is logged in the system.','Ticket {{ticketId}} created','Hello {{recipientName}}, ticket {{ticketId}} has been created by {{initiatorName}}.','ticket_created_email.html',NULL,'ticket_created_inapp.html','[\"EMAIL\", \"IN_APP\"]',_binary '','2025-01-10 09:00:00.000000','2025-09-24 16:49:48.436295'),
+(2,'TICKET_STATUS_UPDATE','Ticket Status Updated','Alerts requestors when ticket status changes.','Ticket {{ticketId}} status updated','Ticket {{ticketNumber}} changed from {{oldStatus}} to {{newStatus}} by {{actorName}}.','ticket_status_update_email.html','TKT_STATUS_UPDATE','ticket_status_update_inapp.html','[\"EMAIL\", \"SMS\", \"IN_APP\"]',_binary '','2025-01-10 09:05:00.000000','2025-09-24 16:49:48.460370'),
+(3,'TICKET_FEEDBACK_REMINDER','Ticket Feedback Reminder','Reminder to share feedback after resolution.','Feedback pending for ticket {{ticketId}}','Hi {{recipientName}}, please provide feedback for ticket {{ticketNumber}} resolved on {{resolvedDate}}.',NULL,NULL,'ticket_feedback_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:10:00.000000','2025-09-24 16:50:05.901461'),
+(4,'TICKET_ASSIGNED','Ticket Assigned','Notifies the assignee when a ticket is assigned to them.','Ticket {{ticketId}} assigned to you','Ticket {{ticketId}} has been assigned to you by {{assignedBy}}.','ticket_assigned_email.html',NULL,'ticket_assigned_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:15:00.000000','2025-09-24 16:50:05.901461'),
+(5,'TICKET_UPDATED','Ticket Updated','Alerts requestors when key ticket details are updated, such as assignment changes.','Ticket {{ticketId}} updated','Ticket {{ticketNumber}} has been updated. {{updateMessage}}',NULL,NULL,'ticket_updated_inapp.html','[\"IN_APP\"]',_binary '\0','2025-01-10 09:20:00.000000','2025-09-24 16:50:05.901461'),
+(6,'TICKET_SLA_BREACHED','Ticket SLA Breached','Alerts assignees when an assigned ticket breaches its SLA.','Ticket {{ticketId}} breached SLA','Ticket {{ticketNumber}} has breached its SLA by {{breachedByMinutes}} minutes. Please review and take corrective action.','ticket_sla_breached_email.html',NULL,'ticket_sla_breached_inapp.html','[\"IN_APP\"]',_binary '','2025-01-10 09:25:00.000000','2025-09-24 16:50:05.901461');
 /*!40000 ALTER TABLE `notification_master` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1073,7 +1079,28 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (201,'Arjun Mehta','arjun.mehta@example.com','9123456780','Delhi','arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm','ADMIN','7'),(202,'Bhavya Rao','bhavya.rao@example.com','9123456781','Mumbai','bhavyar','admin123','2','6'),(203,'Chirag Shah','chirag.shah@example.com','9123456782','Bangalore','chirags','admin123','5','6'),(204,'Divya Kapoor','divya.kapoor@example.com','9123456783','Hyderabad','divyak','admin123','2','6'),(205,'Esha Singh','esha.singh@example.com','9123456784','Chennai','eshas','admin123','5','6'),(206,'Farhan Ali','farhan.ali@example.com','9123456785','Pune','farhana','admin123','1','6'),(207,'Garima Jain','garima.jain@example.com','9123456786','Delhi','garimaj','admin123','3','6'),(208,'RNO Harsh Verma','harsh.verma@example.com','9123456787','Bangalore','rnoharshv','admin123','4','6'),(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788','Mumbai','ishaanm','admin123','6','6'),(210,'Jaya Nair','jaya.nair@example.com','9123456789','Kolkata','jayan','admin123','5|7','6|7'),(211,'Guest Account','guest@example.com','6135712345','Delhi','guest','admin123','5','1'),(212,'Kevin Brooks','kevin.brooks@example.com','9123456790','Delhi','kevinb','admin123','8','6'),(213,'Lara Singh','lara.singh@example.com','9123456791','Chandigarh','laras','admin123','5|7|8','6|7'),(214,'Mohan Kumar','mohan.kumar@example.com','9123456792','Jaipur','mohank','admin123','ADMIN','7'),(215,'User Name','user.name@example.com','1111111111','Delhi','usern','admin123','USER','1'),(216,'Team Lead Name 1','team.lead1@example.com','1212121212','Delhi','teaml1','admin123','5|7','6|7'),(217,'ITM John Doe','itm.johndoe@example.com','2222222222','Delhi','itmjd','admin123','9','6');
+INSERT INTO `users` (`user_id`,`name`,`email_id`,`mobile_no`,`office`,`username`,`password`,`roles`,`stakeholder`) VALUES
+(201,'Arjun Mehta','arjun.mehta@example.com','9123456780',NULL,'arjunm','$2y$10$Pnf3.cQpS8Tz6sUs0y94LePHy0cEAnXS.8d/Pyzvvx4gldkosoufm','ADMIN','7'),
+(202,'Bhavya Rao','bhavya.rao@example.com','9123456781',NULL,'bhavyar','admin123','2','6'),
+(203,'Chirag Shah','chirag.shah@example.com','9123456782',NULL,'chirags','admin123','5','6'),
+(204,'Divya Kapoor','divya.kapoor@example.com','9123456783',NULL,'divyak','admin123','2','6'),
+(205,'Esha Singh','esha.singh@example.com','9123456784',NULL,'eshas','admin123','5','6'),
+(206,'Farhan Ali','farhan.ali@example.com','9123456785',NULL,'farhana','admin123','1','6'),
+(207,'Garima Jain','garima.jain@example.com','9123456786',NULL,'garimaj','admin123','3','6'),
+(208,'RNO Harsh Verma','harsh.verma@example.com','9123456787',NULL,'rnoharshv','admin123','4','6'),
+(209,'Ishaan Malhotra','ishaan.m@example.com','9123456788',NULL,'ishaanm','admin123','6','6'),
+(210,'Jaya Nair','jaya.nair@example.com','9123456789',NULL,'jayan','admin123','5|7','6|7'),
+(211,'Guest Account','guest@example.com','6135712345',NULL,'guest','admin123','5','1'),
+(212,'Kevin Brooks','kevin.brooks@example.com','9123456790',NULL,'kevinb','admin123','8','6'),
+(213,'Lara Singh','lara.singh@example.com','9123456791',NULL,'laras','admin123','5|7|8','6|7'),
+(214,'Mohan Kumar','mohan.kumar@example.com','9123456792',NULL,'mohank','admin123','ADMIN','7'),
+(215,'User Name','user.name@example.com','1111111111',NULL,'usern','admin123','USER','1'),
+(216,'Team Lead Name 1','team.lead1@example.com','1212121212',NULL,'teaml1','admin123','5|7','6|7'),
+(217,'ITM John Doe','itm.johndoe@example.com','2222222222',NULL,'itmjd','admin123','9','6'),
+(301,'fci Aditi Sharma','fci.aditi.sharma@example.com','9123000001','New Delhi','fciaditi','admin123','USER','1'),
+(302,'fci Bharat Kumar','fci.bharat.kumar@example.com','9123000002','Lucknow','fcibharat','admin123','USER','1'),
+(303,'fci Charu Patel','fci.charu.patel@example.com','9123000003','Chandigarh','fcicharu','admin123','USER','1'),
+(304,'fci Deepak Verma','fci.deepak.verma@example.com','9123000004','Hyderabad','fcideepak','admin123','USER','1');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 

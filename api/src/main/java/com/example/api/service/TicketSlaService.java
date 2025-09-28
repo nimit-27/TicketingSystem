@@ -4,30 +4,49 @@ import com.example.api.models.SlaConfig;
 import com.example.api.models.StatusHistory;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketSla;
+import com.example.api.models.User;
 import com.example.api.repository.SlaConfigRepository;
 import com.example.api.repository.StatusHistoryRepository;
 import com.example.api.repository.TicketSlaRepository;
+import com.example.api.repository.UserRepository;
+import com.example.notification.enums.ChannelType;
+import com.example.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class TicketSlaService {
+    private static final Logger log = LoggerFactory.getLogger(TicketSlaService.class);
+    private static final String SLA_BREACHED_NOTIFICATION_CODE = "TICKET_SLA_BREACHED";
     private final SlaConfigRepository slaConfigRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final StatusHistoryRepository statusHistoryRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
                             TicketSlaRepository ticketSlaRepository,
-                            StatusHistoryRepository statusHistoryRepository) {
+                            StatusHistoryRepository statusHistoryRepository,
+                            NotificationService notificationService,
+                            UserRepository userRepository) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
         this.statusHistoryRepository = statusHistoryRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
 
     public TicketSla calculateAndSave(Ticket ticket, List<StatusHistory> history) {
@@ -111,6 +130,7 @@ public class TicketSlaService {
 
         TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
                 .orElseGet(TicketSla::new);
+        Long previousBreached = ticketSla.getBreachedByMinutes();
         LocalDateTime existingActualDueAt = ticketSla.getActualDueAt();
         if (existingActualDueAt == null) {
             existingActualDueAt = ticketSla.getDueAt() != null ? ticketSla.getDueAt() : baseDueAt;
@@ -151,7 +171,15 @@ public class TicketSlaService {
             ticketSla.setTotalSlaMinutes(null);
         }
         ticketSla.setTimeTillDueDate(timeTillDueDate > 0 ? timeTillDueDate : 0L);
-        return ticketSlaRepository.save(ticketSla);
+        TicketSla saved = ticketSlaRepository.save(ticketSla);
+
+        boolean hasBreached = breachedBy > 0;
+        boolean breachJustOccurred = hasBreached && (previousBreached == null || previousBreached <= 0);
+        if (breachJustOccurred) {
+            notifyAssigneeOfSlaBreach(ticket, breachedBy, effectiveDueAt);
+        }
+
+        return saved;
     }
 
     public TicketSla getByTicketId(String ticketId) {
@@ -172,5 +200,80 @@ public class TicketSlaService {
                     return refreshed;
                 })
                 .orElse(null);
+    }
+
+    private void notifyAssigneeOfSlaBreach(Ticket ticket, long breachedByMinutes, LocalDateTime dueAt) {
+        if (ticket == null) {
+            return;
+        }
+
+        String assigneeIdentifier = ticket.getAssignedTo();
+        if (assigneeIdentifier == null || assigneeIdentifier.isBlank()) {
+            return;
+        }
+
+        Optional<User> assignee = findUserByIdOrUsername(assigneeIdentifier);
+        Map<String, Object> data = new HashMap<>();
+        data.put("ticketId", ticket.getId());
+        data.put("ticketNumber", ticket.getId());
+        data.put("breachedByMinutes", breachedByMinutes);
+        data.put("breachedAt", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
+        if (dueAt != null) {
+            data.put("dueAt", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(dueAt));
+        }
+
+        assignee.ifPresent(user -> {
+            if (user.getName() != null && !user.getName().isBlank()) {
+                data.put("assigneeName", user.getName());
+            } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
+                data.put("assigneeName", user.getUsername());
+            }
+        });
+        if (!data.containsKey("assigneeName")) {
+            data.put("assigneeName", assigneeIdentifier);
+        }
+
+        String recipient = assignee
+                .map(this::resolveRecipientIdentifier)
+                .orElse(assigneeIdentifier);
+
+        try {
+            notificationService.sendNotification(
+                    ChannelType.IN_APP,
+                    SLA_BREACHED_NOTIFICATION_CODE,
+                    data,
+                    recipient
+            );
+        } catch (Exception ex) {
+            log.warn("Failed to send SLA breach notification for ticket {} to recipient {}", ticket.getId(), recipient, ex);
+        }
+    }
+
+    private Optional<User> findUserByIdOrUsername(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return Optional.empty();
+        }
+
+        Optional<User> byId = userRepository.findById(identifier);
+        if (byId.isPresent()) {
+            return byId;
+        }
+        return userRepository.findByUsername(identifier);
+    }
+
+    private String resolveRecipientIdentifier(User user) {
+        if (user == null) {
+            return null;
+        }
+        if (user.getUserId() != null && !user.getUserId().isBlank()) {
+            return user.getUserId();
+        }
+        if (user.getUsername() != null && !user.getUsername().isBlank()) {
+            return user.getUsername();
+        }
+        if (user.getEmailId() != null && !user.getEmailId().isBlank()) {
+            return user.getEmailId();
+        }
+        return null;
     }
 }
