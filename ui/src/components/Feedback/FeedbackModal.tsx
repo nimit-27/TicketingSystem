@@ -3,13 +3,15 @@ import { Modal, Box, Button, TextField, Typography } from '@mui/material';
 import StarRating from './StarRating';
 import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../../services/FeedbackService';
 import { useSnackbar } from '../../context/SnackbarContext';
+import { useApi } from '../../hooks/useApi';
 interface FeedbackModalProps {
   open: boolean;
   ticketId?: string;
   onClose: () => void;
+  feedbackStatus?: string;
 }
 
-const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }) => {
+const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose, feedbackStatus }) => {
   const { showMessage } = useSnackbar();
   const createInitialFormData = (): SubmitFeedbackRequest => ({
     overallSatisfaction: 0,
@@ -23,40 +25,22 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      setFormData(createInitialFormData());
-      setResolvedAt('');
-      setViewMode(false);
-      return;
-    }
-    if (!ticketId) return;
 
-    getFeedback(ticketId)
-      .then(res => {
-        if (res.data) {
-          const f = res.data;
-          setFormData({
-            overallSatisfaction: f.overallSatisfaction,
-            resolutionEffectiveness: f.resolutionEffectiveness,
-            communicationSupport: f.communicationSupport,
-            timeliness: f.timeliness,
-            comments: f.comments
-          });
-          setResolvedAt(f.submittedAt);
-          setViewMode(true);
-        } else {
-          setViewMode(false);
-          getFeedbackForm(ticketId).then(r => {
-            setResolvedAt(r.data.dateOfResolution);
-          });
-        }
-      })
-      .catch(() => {
-        setViewMode(false);
-        getFeedbackForm(ticketId).then(r => setResolvedAt(r.data.dateOfResolution));
-      });
-  }, [open, ticketId]);
+  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<any>();
+
+  const getFeedbackApi = (ticketId: string) => getFeedbackApiHandler(() => getFeedback(ticketId));
+
+  useEffect(() => {
+    if (!!ticketId && feedbackStatus === 'PROVIDED') {
+      getFeedbackApi(ticketId)
+      setViewMode(true)
+
+    }
+  }, [ticketId]);
+
+  useEffect(() => {
+    getFeedbackSuccess && getFeedbackData && setFormData(getFeedbackData);
+  }, [getFeedbackSuccess, getFeedbackData]);
 
   const handleRatingChange = (field: keyof Omit<SubmitFeedbackRequest, 'comments'>) => (value: number) => {
     setFormData(prev => ({ ...prev, [field]: value }));

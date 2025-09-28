@@ -656,7 +656,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
-      <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} />
+      <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} feedbackStatus={ticket.feedbackStatus} />
       <RemarkComponent
         isModal
         open={showRecommendRemark}

@@ -1,6 +1,6 @@
 import { Card, Button, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import StarRating from '../components/Feedback/StarRating';
 import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../services/FeedbackService';
 import { useSnackbar } from '../context/SnackbarContext';
@@ -9,7 +9,10 @@ import { useApi } from '../hooks/useApi';
 const CustomerSatisfactionForm: React.FC = () => {
   const { ticketId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showMessage } = useSnackbar();
+
+  let feedbackStatus = location.state;
 
   const createInitialFormData = (): SubmitFeedbackRequest => ({
     overallSatisfaction: 0,
@@ -29,7 +32,7 @@ const CustomerSatisfactionForm: React.FC = () => {
   const getFeedbackApi = (ticketId: string) => getFeedbackApiHandler(() => getFeedback(ticketId));
 
   useEffect(() => {
-    !!ticketId && getFeedbackApi(ticketId)
+    !!ticketId && feedbackStatus === 'PROVIDED' && getFeedbackApi(ticketId)
   }, [ticketId]);
 
   useEffect(() => {
@@ -51,7 +54,7 @@ const CustomerSatisfactionForm: React.FC = () => {
     submitFeedback(ticketId, formData)
       .then(() => {
         showMessage('Feedback submitted', 'success');
-        navigate(`/tickets/${ticketId}`);
+        navigate(-1);
       })
       .finally(() => setLoading(false));
   };

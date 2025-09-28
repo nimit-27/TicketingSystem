@@ -378,13 +378,13 @@ public class TicketService {
                 previousStatus = TicketStatus.ASSIGNED;
                 previousStatusId = assignedId;
             }
-
+// NOTIFY ASSIGNEE
             sendAssignmentNotification(
                     saved,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
             );
-
+// NOTIFY REQUESTOR
             sendRequestorAssignmentNotification(
                     saved,
                     previousAssignedTo,
