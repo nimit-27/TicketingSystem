@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import StarRating from '../components/Feedback/StarRating';
 import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../services/FeedbackService';
 import { useSnackbar } from '../context/SnackbarContext';
+import { useApi } from '../hooks/useApi';
 
 const CustomerSatisfactionForm: React.FC = () => {
   const { ticketId } = useParams();
@@ -23,36 +24,17 @@ const CustomerSatisfactionForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
 
-  useEffect(() => {
-    if (!ticketId) return;
+  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<any>();
 
-    getFeedback(ticketId)
-      .then(res => {
-        if (res.data) {
-          const f = res.data;
-          setFormData({
-            overallSatisfaction: f.overallSatisfaction,
-            resolutionEffectiveness: f.resolutionEffectiveness,
-            communicationSupport: f.communicationSupport,
-            timeliness: f.timeliness,
-            comments: f.comments
-          });
-          setResolvedAt(f.submittedAt);
-          setViewMode(true);
-        } else {
-          setFormData(createInitialFormData());
-          setViewMode(false);
-          getFeedbackForm(ticketId).then(r => {
-            setResolvedAt(r.data.dateOfResolution);
-          });
-        }
-      })
-      .catch(() => {
-        setFormData(createInitialFormData());
-        setViewMode(false);
-        getFeedbackForm(ticketId).then(r => setResolvedAt(r.data.dateOfResolution));
-      });
+  const getFeedbackApi = (ticketId: string) => getFeedbackApiHandler(() => getFeedback(ticketId));
+
+  useEffect(() => {
+    !!ticketId && getFeedbackApi(ticketId)
   }, [ticketId]);
+
+  useEffect(() => {
+    getFeedbackSuccess && getFeedbackData && setFormData(getFeedbackData);
+  }, [getFeedbackSuccess, getFeedbackData]);
 
   const handleRatingChange = (field: keyof Omit<SubmitFeedbackRequest, 'comments'>) => (value: number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
