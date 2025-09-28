@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -24,7 +24,7 @@ import { getStatusWorkflowMappings } from '../services/StatusService';
 import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
 import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
 import RemarkComponent from './UI/Remark/RemarkComponent';
-import { getDropdownOptions } from '../utils/Utils';
+import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressBar from './SlaProgressBar';
 
 interface TicketViewProps {
@@ -80,6 +80,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
   const [severityToRecommendSeverity, setSeverityToRecommendSeverity] = useState<boolean>(false);
   const [showRecommendRemark, setShowRecommendRemark] = useState(false);
+  const [showStatusRemark, setShowStatusRemark] = useState(false);
+  const [selectedStatusAction, setSelectedStatusAction] = useState<TicketStatusWorkflow | null>(null);
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
@@ -95,10 +97,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
   const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
-  const severityLevels: string[] = severityList.map((s: SeverityInfo) => s.level);
 
   const currentUserDetails = getCurrentUserDetails();
   const currentUsername = currentUserDetails?.username || '';
+  const currentUserId = currentUserDetails?.userId || '';
   const roles = currentUserDetails?.role || [];
   const isItManager = roles.includes("9");
   const isRno = roles.includes("4");
@@ -320,6 +322,89 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ' - '} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ' - '}` : ' - ';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ' - '} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ' - '}` : ' - ';
 
+  const currentStatusName = useMemo(() => {
+    if (!ticket) return '';
+    const statusName = ticket.statusId ? getStatusNameById(ticket.statusId) : '';
+    return (statusName || ticket.statusLabel || '').trim();
+  }, [ticket]);
+
+  const normalisedStatusName = (currentStatusName || '').toLowerCase();
+  const isAssignedStatus = normalisedStatusName.includes('assigned');
+  const isResolvedStatus = normalisedStatusName === 'resolved';
+  const isClosedStatus = normalisedStatusName === 'closed';
+
+  const availableStatusActions = useMemo(() => {
+    if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
+    return statusWorkflows[ticket.statusId] || [];
+  }, [statusWorkflows, ticket?.statusId]);
+
+  const resolveAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
+    [availableStatusActions]
+  );
+  const closeAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Close') || null,
+    [availableStatusActions]
+  );
+  const reopenAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Reopen') || null,
+    [availableStatusActions]
+  );
+
+  const isAssignedToCurrentUser = useMemo(() => {
+    if (!ticket?.assignedTo || !currentUsername) return false;
+    return ticket.assignedTo.toLowerCase() === currentUsername.toLowerCase();
+  }, [ticket?.assignedTo, currentUsername]);
+
+  const isRequester = useMemo(() => {
+    if (!ticket?.userId || !currentUserId) return false;
+    return ticket.userId.toLowerCase() === currentUserId.toLowerCase();
+  }, [ticket?.userId, currentUserId]);
+
+  const shouldShowResolve = Boolean(resolveAction && isAssignedStatus && isAssignedToCurrentUser);
+  const shouldShowClose = Boolean(closeAction && isResolvedStatus && isRequester);
+  const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
+  const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
+  const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
+
+  const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
+    if (!action) return;
+    setSelectedStatusAction(action);
+    setShowStatusRemark(true);
+  };
+
+  const handleStatusRemarkCancel = () => {
+    setShowStatusRemark(false);
+    setSelectedStatusAction(null);
+  };
+
+  const handleStatusRemarkSubmit = async (remark: string) => {
+    if (!ticketId || !selectedStatusAction) return;
+    const payload: any = {
+      status: { statusId: String(selectedStatusAction.nextStatus) },
+      remark,
+      updatedBy: currentUsername,
+      assignedBy: currentUsername,
+    };
+
+    try {
+      await updateTicketHandler(() => updateTicket(ticketId, payload));
+      setShowStatusRemark(false);
+      setSelectedStatusAction(null);
+      await getTicketHandler(() => getTicket(ticketId));
+    } catch {
+      // no-op handled by useApi
+    }
+  };
+
+  const handleFeedbackClose = () => {
+    setFeedbackOpen(false);
+    if (!ticketId) return;
+    getFeedback(ticketId)
+      .then(res => setHasFeedback(Boolean(res.data)))
+      .catch(() => setHasFeedback(false));
+  };
+
   const youText = t('You');
   const pendingApprovalText = t('Pending Approval');
   const recommendedSeverityBy = ticket?.severityRecommendedBy;
@@ -361,6 +446,55 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // DESIGN 1
   return (
     <Box sx={{ width: '100%', position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box
+        sx={{
+          backgroundColor: '#e8f5e9',
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'success.light',
+          p: 2,
+          mb: 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="subtitle2" color="text.primary">
+            {t('Status')}: {currentStatusName ? t(currentStatusName) : '-'}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {shouldShowResolve && (
+              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resolveAction)}>
+                {t('Resolve Ticket')}
+              </Button>
+            )}
+            {shouldShowClose && (
+              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(closeAction)}>
+                {t('Close Ticket')}
+              </Button>
+            )}
+            {shouldShowReopen && (
+              <Button size="small" variant="outlined" color="success" onClick={() => handleStatusActionClick(reopenAction)}>
+                {t('Reopen Ticket')}
+              </Button>
+            )}
+            {shouldShowFeedbackButton && (
+              <Button size="small" variant="contained" color="success" onClick={() => setFeedbackOpen(true)}>
+                {hasFeedback ? t('View Feedback') : t('Submit Feedback')}
+              </Button>
+            )}
+          </Box>
+        </Box>
+        {showStatusRemark && selectedStatusAction && (
+          <Box sx={{ mt: 2 }}>
+            <RemarkComponent
+              actionName={selectedStatusAction.action}
+              onSubmit={handleStatusRemarkSubmit}
+              onCancel={handleStatusRemarkCancel}
+              textFieldLabel={t('Remark')}
+            />
+          </Box>
+        )}
+      </Box>
+
       {/* HEADER */}
       <Box className="d-flex align-items-end">
         <Box className="d-flex flex-column col-6" >
@@ -522,7 +656,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
-      <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={() => setFeedbackOpen(false)} />
+      <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} />
       <RemarkComponent
         isModal
         open={showRecommendRemark}
