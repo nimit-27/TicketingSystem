@@ -264,7 +264,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                                 size="small"
                                                 onClick={() => handleActionClick(a, record.id)}
                                                 icon={icon}
-                                                className={className}
+                                                className={`${className}`}
                                             />
                                         </Tooltip>
                                     );
