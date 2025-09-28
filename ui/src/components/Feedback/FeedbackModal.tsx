@@ -3,8 +3,6 @@ import { Modal, Box, Button, TextField, Typography } from '@mui/material';
 import StarRating from './StarRating';
 import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../../services/FeedbackService';
 import { useSnackbar } from '../../context/SnackbarContext';
-import CustomerSatisfactionForm from '../../pages/CustomerSatisfactionForm';
-
 interface FeedbackModalProps {
   open: boolean;
   ticketId?: string;
@@ -13,44 +11,60 @@ interface FeedbackModalProps {
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }) => {
   const { showMessage } = useSnackbar();
-  const [formData, setFormData] = useState<SubmitFeedbackRequest>({
+  const createInitialFormData = (): SubmitFeedbackRequest => ({
     overallSatisfaction: 0,
     resolutionEffectiveness: 0,
     communicationSupport: 0,
     timeliness: 0,
     comments: ''
   });
+  const [formData, setFormData] = useState<SubmitFeedbackRequest>(createInitialFormData());
   const [resolvedAt, setResolvedAt] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
 
   useEffect(() => {
-    if (!open || !ticketId) return;
-    getFeedback(ticketId).then(res => {
-      if (res.data) {
-        const f = res.data;
-        setFormData({
-          overallSatisfaction: f.overallSatisfaction,
-          resolutionEffectiveness: f.resolutionEffectiveness,
-          communicationSupport: f.communicationSupport,
-          timeliness: f.timeliness,
-          comments: f.comments
-        });
-        setResolvedAt(f.submittedAt);
-        setViewMode(true);
-      } else {
-        getFeedbackForm(ticketId).then(r => {
-          setResolvedAt(r.data.dateOfResolution);
-        });
-      }
-    }).catch(() => {
-      getFeedbackForm(ticketId).then(r => setResolvedAt(r.data.dateOfResolution));
-    });
+    if (!open) {
+      setFormData(createInitialFormData());
+      setResolvedAt('');
+      setViewMode(false);
+      return;
+    }
+    if (!ticketId) return;
+
+    getFeedback(ticketId)
+      .then(res => {
+        if (res.data) {
+          const f = res.data;
+          setFormData({
+            overallSatisfaction: f.overallSatisfaction,
+            resolutionEffectiveness: f.resolutionEffectiveness,
+            communicationSupport: f.communicationSupport,
+            timeliness: f.timeliness,
+            comments: f.comments
+          });
+          setResolvedAt(f.submittedAt);
+          setViewMode(true);
+        } else {
+          setViewMode(false);
+          getFeedbackForm(ticketId).then(r => {
+            setResolvedAt(r.data.dateOfResolution);
+          });
+        }
+      })
+      .catch(() => {
+        setViewMode(false);
+        getFeedbackForm(ticketId).then(r => setResolvedAt(r.data.dateOfResolution));
+      });
   }, [open, ticketId]);
 
-  const handleChange = (field: keyof SubmitFeedbackRequest) => (value: number | React.ChangeEvent<HTMLInputElement>) => {
-    const val = typeof value === 'number' ? value : parseInt(value.target.value, 10);
-    setFormData(prev => ({ ...prev, [field]: val }));
+  const handleRatingChange = (field: keyof Omit<SubmitFeedbackRequest, 'comments'>) => (value: number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCommentsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setFormData(prev => ({ ...prev, comments: value }));
   };
 
   const handleSubmit = () => {
@@ -66,23 +80,22 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }
 
   return (
     <Modal open={open} onClose={onClose}>
-      <CustomerSatisfactionForm />
-      {/* <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', p: 3, maxHeight: '90vh', overflowY: 'auto' }}>
+      <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, bgcolor: 'background.paper', p: 3, maxHeight: '90vh', overflowY: 'auto' }}>
         <Typography variant="h6" gutterBottom>
           Customer Satisfaction Form
         </Typography>
         <Typography>Ticket ID: {ticketId}</Typography>
         <Typography>Date of Resolution: {resolvedAt ? new Date(resolvedAt).toLocaleString() : ''}</Typography>
-        <StarRating label="Overall Satisfaction" value={formData.overallSatisfaction} onChange={handleChange('overallSatisfaction')} />
-        <StarRating label="Resolution Effectiveness" value={formData.resolutionEffectiveness} onChange={handleChange('resolutionEffectiveness')} />
-        <StarRating label="Communication and Support" value={formData.communicationSupport} onChange={handleChange('communicationSupport')} />
-        <StarRating label="Timeliness" value={formData.timeliness} onChange={handleChange('timeliness')} />
+        <StarRating label="Overall Satisfaction" value={formData.overallSatisfaction} onChange={handleRatingChange('overallSatisfaction')} readOnly={viewMode} />
+        <StarRating label="Resolution Effectiveness" value={formData.resolutionEffectiveness} onChange={handleRatingChange('resolutionEffectiveness')} readOnly={viewMode} />
+        <StarRating label="Communication and Support" value={formData.communicationSupport} onChange={handleRatingChange('communicationSupport')} readOnly={viewMode} />
+        <StarRating label="Timeliness" value={formData.timeliness} onChange={handleRatingChange('timeliness')} readOnly={viewMode} />
         <TextField
           label="Additional Comments/Feedback"
           multiline
           rows={4}
           value={formData.comments}
-          onChange={handleChange('comments') as any}
+          onChange={handleCommentsChange}
           fullWidth
           sx={{ mt: 2 }}
           disabled={viewMode}
@@ -93,11 +106,18 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose }
               Submit
             </Button>
           )}
-          <Button variant="outlined" onClick={onClose}>
-            {viewMode ? 'Close' : 'Cancel'}
-          </Button>
+          {!viewMode && (
+            <Button variant="outlined" onClick={onClose}>
+              Cancel
+            </Button>
+          )}
+          {viewMode && (
+            <Button variant="outlined" onClick={onClose}>
+              Close
+            </Button>
+          )}
         </Box>
-      </Box> */}
+      </Box>
     </Modal>
   );
 };
