@@ -74,6 +74,11 @@ const AllTickets: React.FC = () => {
         [{ label: 'All', value: 'All' }, ...getDropdownOptions(statusList, 'statusName', 'statusId')]
     ), [statusList]);
 
+    const sortOptions: DropdownOption[] = useMemo(() => ([
+        { label: t('Created Date'), value: 'reportedDate' },
+        { label: t('Latest Updated'), value: 'lastModified' },
+    ]), [t]);
+
     const debouncedSearch = useDebounce(search, 300);
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
@@ -110,7 +115,7 @@ const AllTickets: React.FC = () => {
 
     useEffect(() => {
         searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize]);
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection]);
 
     useEffect(() => {
         getStatuses().then(setStatusList);
@@ -185,6 +190,18 @@ const AllTickets: React.FC = () => {
                 </div>
                 {/* {pending && <p>{t('Loading...')}</p>}
                 {error && <p className="text-danger">{t('Error loading tickets')}</p>} */}
+                <div className="d-flex justify-content-end mb-2 w-100">
+                    <DropdownController
+                        label={t('Sort By')}
+                        value={sortBy}
+                        onChange={(value) => {
+                            setSortBy(value as 'reportedDate' | 'lastModified');
+                            setPage(1);
+                        }}
+                        options={sortOptions}
+                        style={{ width: 200 }}
+                    />
+                </div>
                 {viewMode === 'table' && showTicketsTable && (
                     <div>
                         <TicketsTable
@@ -194,11 +211,6 @@ const AllTickets: React.FC = () => {
                             searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                             refreshingTicketId={refreshingTicketId}
                             statusWorkflows={workflowMap}
-                            sortBy={sortBy}
-                            onSortChange={(value) => {
-                                setSortBy(value as 'reportedDate' | 'lastModified');
-                                setPage(1);
-                            }}
                             onRecommendEscalation={handleRecommendEscalation}
                         />
                         <div className="d-flex justify-content-between align-items-center mt-3">

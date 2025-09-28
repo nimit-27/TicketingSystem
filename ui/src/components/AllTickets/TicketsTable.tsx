@@ -17,8 +17,6 @@ import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { Popover } from 'antd';
-import DropdownController from '../UI/Dropdown/DropdownController';
-import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { useNavigate } from 'react-router-dom';
 
 export interface TicketRow {
@@ -47,12 +45,10 @@ interface TicketsTableProps {
     onIdClick: (id: string) => void;
     refreshingTicketId?: string | null;
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
-    sortBy: string;
-    onSortChange: (value: string) => void;
     onRecommendEscalation?: (id: string) => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, sortBy, onSortChange, onRecommendEscalation }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -70,11 +66,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
     let allowAssignment = checkAccessMaster(['myTickets', 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
-
-    const sortOptions: DropdownOption[] = [
-        { label: 'Created Date', value: 'reportedDate' },
-        { label: 'Latest Updated', value: 'lastModified' },
-    ];
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -190,7 +181,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 ),
             },
             {
-                title: t('Requestor Name'),
+                title: t('Requester'),
                 key: 'requestorName',
                 render: (_: any, record: TicketRow) =>
                     record.requestorName ? (
@@ -299,15 +290,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     return (
         <>
-            <div className="d-flex mb-2">
-                <DropdownController
-                    label="Sort By"
-                    value={sortBy}
-                    onChange={onSortChange}
-                    options={sortOptions}
-                    style={{ width: 200 }}
-                />
-            </div>
             <GenericTable
                 className="tickets-table"
                 dataSource={tickets}
