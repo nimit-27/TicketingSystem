@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ticketing-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ticketing_system
+      MYSQL_USER: ticket_user
+      MYSQL_PASSWORD: ticket_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/ticketing_system_dump.sql:/docker-entrypoint-initdb.d/ticketing_system_dump.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  typesense:
+    image: typesense/typesense:0.25.1
+    container_name: typesense
+    restart: unless-stopped
+    command: [
+      "typesense-server",
+      "--data-dir",
+      "/data",
+      "--api-key=${TYPESENSE_API_KEY:-xyz123}",
+      "--enable-cors"
+    ]
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense_data:/data
+
+  api:
+    image: gradle:8.10.2-jdk17
+    container_name: ticketing-api
+    restart: unless-stopped
+    working_dir: /home/gradle/project
+    command: ["./gradlew", "bootRun"]
+    volumes:
+      - ./api:/home/gradle/project
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticketing_system?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ticket_user
+      SPRING_DATASOURCE_PASSWORD: ticket_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz123}
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      typesense:
+        condition: service_started
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: ticketing-ui
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: service_started
+
+  filegator:
+    build:
+      context: ./filegator
+      dockerfile: Dockerfile
+    container_name: filegator
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./files:/var/www/filegator/repository
+      - ./filegator/configuration.php:/var/www/filegator/configuration.php
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  typesense_data:
