@@ -103,7 +103,7 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
 
     const progressSegments: MultiValueProgressSegment[] = [];
 
-    const calculatedTotal = breached > 0 ? totalSlaTime + breached : totalSlaTime;
+    const calculatedTotal = breached > 0 ? elapsed : totalSlaTime;
 
     if (breached <= 0) {
       progressSegments.push({
@@ -114,25 +114,6 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
         startLabel: createdDateLabel,
         startLabelPosition: TOP_LABEL_POSITION,
         marker: { right: true, left: true, color: '#000000', size: 3 } as MultiValueProgressMarker,
-      });
-    } else {
-      const breachTotal = calculatedTotal;
-      progressSegments.push({
-        value: breachTotal,
-        color: '#f44336',
-        endLabel: 'Breached',
-        endLabelPosition: BOTTOM_LABEL_POSITION,
-      });
-
-      progressSegments.push({
-        value: totalSlaTime,
-        color: '#fc429fe0',
-        endLabel: dueDateLabel,
-        endLabelPosition: TOP_LABEL_POSITION,
-        startLabel: createdDateLabel,
-        startLabelPosition: TOP_LABEL_POSITION,
-        marker: { right: true, left: true, color: '#000000', size: 3 } as MultiValueProgressMarker,
-
       });
     }
 
@@ -166,7 +147,7 @@ const SlaProgressBar: React.FC<SlaProgressBarProps> = ({ sla, className }) => {
     if (elapsed > 0) {
       progressSegments.push({
         value: elapsed,
-        color: '#ff9800',
+        color: breached > 0 ? '#f44336' : '#ff9800',
         endLabel: createLabelContent('Elapsed Time', formatDuration(elapsed)),
         endLabelPosition: BOTTOM_LABEL_POSITION,
       });
