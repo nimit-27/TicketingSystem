@@ -121,6 +121,12 @@ $font-size: 8;
   font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
 }
 
+.ant-table-thead > tr > th {
+  background-color: var(--table-header-bg, #1b5e20) !important;
+  color: var(--table-header-color, #ffffff) !important;
+  border-color: var(--table-header-border-color, var(--table-header-bg, #1b5e20)) !important;
+}
+
 .custom-bordered-table {
   border-radius: 4px;
   overflow: hidden;
@@ -156,9 +162,9 @@ $font-size: 8;
     }
 
     &-thead > tr > th {
-      background-color: #333;
-      color: #fff;
-      border-color: #555;
+      background-color: var(--table-header-bg, #1b5e20);
+      color: var(--table-header-color, #ffffff);
+      border-color: var(--table-header-border-color, var(--table-header-bg, #1b5e20));
     }
 
     &-tbody > tr > td {
