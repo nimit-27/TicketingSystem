@@ -273,12 +273,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
                             )}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
-                                <Button
-                                    size="small"
-                                    onClick={() => navigate(`/tickets/${record.id}/feedback`, { state: { feedbackStatus: record.feedbackStatus } })}
-                                >
-                                    {record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Feedback'}
-                                </Button>
+                                <Tooltip title={record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Provide Feedback'} placement="top">
+                                    <CustomIconButton
+                                        size="small"
+                                        icon={record.feedbackStatus === 'PROVIDED' ? 'grading' : 'rateReview'}
+                                        className='p-0'
+                                        onClick={() => navigate(`/tickets/${record.id}/feedback`, { state: { feedbackStatus: record.feedbackStatus } })}
+                                    />
+                                </Tooltip>
                             )}
                         </>
                     );

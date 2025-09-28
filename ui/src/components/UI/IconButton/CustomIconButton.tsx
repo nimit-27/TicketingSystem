@@ -42,6 +42,8 @@ import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors';
+import GradingIcon from '@mui/icons-material/Grading';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
 
 // Define the icon map
@@ -92,6 +94,8 @@ const iconMap = {
     feedback: FeedbackIcon,
     keyboardDoubleArrowRight: KeyboardDoubleArrowRightIcon,
     runningWithErrors: RunningWithErrorsIcon,
+    grading: GradingIcon,
+    rateReview: RateReviewIcon,
 };
 
 // Valid keys for the icon map
