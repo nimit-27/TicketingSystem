@@ -17,8 +17,8 @@ import {
 import { useTheme } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 
-import { useNotifications } from '../../hooks/useNotifications';
-import { NotificationItem } from '../../types/notification';
+import { useNotificationContext } from '../../context/NotificationContext';
+import type { NotificationItem } from '../../types/notification';
 
 const formatTimestamp = (value: string) => {
   const date = new Date(value);
@@ -85,7 +85,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
     loading,
     latestNotification,
     acknowledgeLatestNotification,
-  } = useNotifications();
+  } = useNotificationContext();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarNotification, setSnackbarNotification] = useState<NotificationItem | null>(null);

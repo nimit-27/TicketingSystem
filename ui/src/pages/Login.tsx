@@ -117,6 +117,10 @@ const Login: FC = () => {
     const { data: loginData, error: loginError, apiHandler: loginApiHandler } = useApi<LoginResponse>();
 
     useEffect(() => {
+        document.title = "Login";
+    }, []);
+
+    useEffect(() => {
         const persistLoginData = async () => {
             if (!loginData) {
                 return;
