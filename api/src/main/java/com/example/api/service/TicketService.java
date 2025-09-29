@@ -21,6 +21,7 @@ import com.example.api.repository.CategoryRepository;
 import com.example.api.repository.SubCategoryRepository;
 import com.example.api.repository.PriorityRepository;
 import com.example.api.repository.UploadedFileRepository;
+import com.example.api.repository.StakeholderRepository;
 import com.example.api.repository.RecommendedSeverityFlowRepository;
 import com.example.api.service.AssignmentHistoryService;
 import com.example.api.service.StatusHistoryService;
@@ -65,6 +66,7 @@ public class TicketService {
     private final SubCategoryRepository subCategoryRepository;
     private final PriorityRepository priorityRepository;
     private final UploadedFileRepository uploadedFileRepository;
+    private final StakeholderRepository stakeholderRepository;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
 
@@ -126,12 +128,34 @@ public class TicketService {
                     });
         }
 
+        if (ticket.getStakeholder() != null && !ticket.getStakeholder().isBlank()) {
+            dto.setStakeholderId(ticket.getStakeholder());
+            dto.setStakeholder(resolveStakeholderName(ticket.getStakeholder()));
+        } else {
+            dto.setStakeholderId(null);
+            dto.setStakeholder(null);
+        }
+
         if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().isBlank()) {
             dto.setAssignedToName(resolveUserDisplayName(ticket.getAssignedTo()));
         } else {
             dto.setAssignedToName(null);
         }
         return dto;
+    }
+
+    private String resolveStakeholderName(String stakeholderId) {
+        if (stakeholderId == null || stakeholderId.isBlank()) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(stakeholderId);
+            return stakeholderRepository.findById(id)
+                    .map(com.example.api.models.Stakeholder::getDescription)
+                    .orElse(stakeholderId);
+        } catch (NumberFormatException ex) {
+            return stakeholderId;
+        }
     }
 
     public Page<TicketDto> getTickets(String priority, Pageable pageable) {

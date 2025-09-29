@@ -52,6 +52,8 @@ export interface Ticket {
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
+    stakeholder?: string;
+    stakeholderId?: string;
     reportedDate?: string; // ISO-8601 datetime
     statusId?: string;
     statusLabel?: string;

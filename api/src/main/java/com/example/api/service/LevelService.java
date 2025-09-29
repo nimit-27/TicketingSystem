@@ -7,6 +7,7 @@ import com.example.api.models.UserLevel;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.repository.LevelRepository;
 import com.example.api.repository.UserLevelRepository;
+import com.example.api.repository.StakeholderRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,10 +16,12 @@ import java.util.*;
 public class LevelService {
     private final LevelRepository levelRepository;
     private final UserLevelRepository userLevelRepository;
+    private final StakeholderRepository stakeholderRepository;
 
-    public LevelService(LevelRepository levelRepository, UserLevelRepository userLevelRepository) {
+    public LevelService(LevelRepository levelRepository, UserLevelRepository userLevelRepository, StakeholderRepository stakeholderRepository) {
         this.levelRepository = levelRepository;
         this.userLevelRepository = userLevelRepository;
+        this.stakeholderRepository = stakeholderRepository;
     }
 
     public List<LevelDto> getAllLevels() {
@@ -36,7 +39,10 @@ public class LevelService {
         Set<UserDto> userDtos = new HashSet<>();
         for (UserLevel ul : userLevels) {
             if (ul.getUser() != null) {
-                userDtos.add(DtoMapper.toUserDto(ul.getUser()));
+                UserDto dto = mapUserWithStakeholder(ul.getUser());
+                if (dto != null) {
+                    userDtos.add(dto);
+                }
             }
         }
         return Optional.of(userDtos);
@@ -48,5 +54,29 @@ public class LevelService {
             return Collections.emptyList();
         }
         return Arrays.asList(userLevel.getLevelIds().split("\\|"));
+    }
+
+    private UserDto mapUserWithStakeholder(com.example.api.models.User user) {
+        UserDto dto = DtoMapper.toUserDto(user);
+        if (dto == null) {
+            return null;
+        }
+        dto.setStakeholderId(user.getStakeholder());
+        dto.setStakeholder(resolveStakeholderName(user.getStakeholder()));
+        return dto;
+    }
+
+    private String resolveStakeholderName(String stakeholderId) {
+        if (stakeholderId == null || stakeholderId.isBlank()) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(stakeholderId);
+            return stakeholderRepository.findById(id)
+                    .map(com.example.api.models.Stakeholder::getDescription)
+                    .orElse(stakeholderId);
+        } catch (NumberFormatException ex) {
+            return stakeholderId;
+        }
     }
 }

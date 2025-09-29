@@ -3,43 +3,35 @@ package com.example.api.service;
 import com.example.api.dto.UserDto;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.User;
+import com.example.api.repository.StakeholderRepository;
 import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final StakeholderRepository stakeholderRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, StakeholderRepository stakeholderRepository) {
         this.userRepository = userRepository;
+        this.stakeholderRepository = stakeholderRepository;
     }
 
     public Optional<UserDto> getUserDetails(String userId) {
-        return userRepository.findById(userId).map(DtoMapper::toUserDto);
+        return userRepository.findById(userId).map(this::mapUserWithStakeholder);
     }
 
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(emp -> {
-            UserDto dto = new UserDto();
-            dto.setUserId(emp.getUserId());
-            dto.setUsername(emp.getUsername());
-            dto.setName(emp.getName());
-            dto.setEmailId(emp.getEmailId());
-            dto.setMobileNo(emp.getMobileNo());
-            dto.setOffice(emp.getOffice());
-            dto.setRoles(emp.getRoles());
-            dto.setStakeholder(emp.getStakeholder());
-            if (emp.getUserLevel() != null && emp.getUserLevel().getLevelIds() != null) {
-                dto.setLevels(java.util.Arrays.asList(emp.getUserLevel().getLevelIds().split("\\|")));
-            } else dto.setLevels(Collections.emptyList());
-            return dto;
-        }).toList();
+        return userRepository.findAll().stream()
+                .map(this::mapUserWithStakeholder)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public User saveUser(User user) {
@@ -53,7 +45,8 @@ public class UserService {
                     String[] roles = user.getRoles().split("\\|");
                     return Arrays.stream(roles).anyMatch(roleIds::contains);
                 })
-                .map(DtoMapper::toUserDto)
+                .map(this::mapUserWithStakeholder)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -71,5 +64,29 @@ public class UserService {
 
     public void deleteUser(String id) {
         userRepository.deleteById(id);
+    }
+
+    private UserDto mapUserWithStakeholder(User user) {
+        UserDto dto = DtoMapper.toUserDto(user);
+        if (dto == null) {
+            return null;
+        }
+        dto.setStakeholderId(user.getStakeholder());
+        dto.setStakeholder(resolveStakeholderName(user.getStakeholder()));
+        return dto;
+    }
+
+    private String resolveStakeholderName(String stakeholderId) {
+        if (stakeholderId == null || stakeholderId.isBlank()) {
+            return null;
+        }
+        try {
+            Integer id = Integer.valueOf(stakeholderId);
+            return stakeholderRepository.findById(id)
+                    .map(com.example.api.models.Stakeholder::getDescription)
+                    .orElse(stakeholderId);
+        } catch (NumberFormatException ex) {
+            return stakeholderId;
+        }
     }
 }
