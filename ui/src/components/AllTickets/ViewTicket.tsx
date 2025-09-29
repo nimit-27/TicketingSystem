@@ -169,7 +169,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusR
           )}
           {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
+              <UserAvatar name={ticket.assignedToName || ticket.assignedTo || 'NA'} size={32} />
               <Typography variant="subtitle1">{ticket.id}</Typography>
             </Box>
             <Box>

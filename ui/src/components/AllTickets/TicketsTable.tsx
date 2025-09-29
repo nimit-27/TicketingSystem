@@ -34,6 +34,7 @@ export interface TicketRow {
     statusId?: string;
     statusLabel?: string;
     assignedTo?: string;
+    assignedToName?: string;
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
     breachedByMinutes?: number;
 }
@@ -236,15 +237,16 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         return (
                             <AssigneeDropdown
                                 ticketId={record.id}
-                                assigneeName={record.assignedTo}
+                                assigneeName={record.assignedToName || record.assignedTo}
                                 requestorId={record.userId}
                                 searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                             />
                         );
                     }
-                    return record.assignedTo
-                        ? <Tooltip title={record.assignedTo}>
-                            <span><UserAvatar name={record.assignedTo} /></span>
+                    const displayName = record.assignedToName || record.assignedTo || '';
+                    return displayName
+                        ? <Tooltip title={displayName}>
+                            <span><UserAvatar name={displayName} /></span>
                         </Tooltip>
                         : <Tooltip title={""}>
                             <span><UserAvatar name={""} /></span>

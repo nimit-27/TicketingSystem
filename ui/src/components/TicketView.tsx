@@ -505,7 +505,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <Box className="d-flex align-items-end">
         <Box className="d-flex flex-column col-6" >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <UserAvatar name={ticket.assignedTo || 'NA'} size={32} />
+            <UserAvatar name={ticket.assignedToName || ticket.assignedTo || 'NA'} size={32} />
             <Typography variant="subtitle1">{ticket.id}</Typography>
           </Box>
 
@@ -637,6 +637,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               thumbnailSize={100}
               onFilesChange={handleAttachmentUpload}
               attachments={emptyFileList}
+              hideUploadButton={isClosedStatus || isResolvedStatus}
             />
           </Box>
         </div>
