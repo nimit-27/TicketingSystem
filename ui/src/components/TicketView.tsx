@@ -453,14 +453,19 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           borderRadius: 1,
           border: '1px solid',
           borderColor: 'success.light',
-          p: 2,
+          p: 1,
           mb: 2,
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-          <Typography variant="subtitle2" color="text.primary">
-            {t('Status')}: {currentStatusName ? t(currentStatusName) : '-'}
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+          <div className='d-flex'>
+            <Typography className="me-1" variant="subtitle2" color="text.primary">
+              {t('Ticket')}
+            </Typography>
+            <Typography variant="subtitle2" color="text.primary">
+              {currentStatusName ? t(currentStatusName) : '-'}
+            </Typography>
+          </div>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {shouldShowResolve && (
               <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resolveAction)}>
@@ -528,10 +533,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </Box>
 
         <Box className="d-flex flex-column col-6" >
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 1 }}>
             {createdInfo}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
+          <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 0 }}>
             {updatedInfo}
           </Typography>
         </Box>

@@ -25,7 +25,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
     return (
         <>
             {!open && (
-                <div style={{ position: 'fixed', right: -40, top: '40%', zIndex: 1300, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ position: 'fixed', right: -40, top: '40%', zIndex: 1300, display: 'flex', flexDirection: 'column', gap: 115 }}>
                     <Button
                         variant="contained"
                         size="small"

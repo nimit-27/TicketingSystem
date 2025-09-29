@@ -64,8 +64,6 @@ const MultiValueProgressBar: React.FC<MultiValueProgressBarProps> = ({
   const segmentsWithPosition = useMemo<SegmentWithPosition[]>(() => {
     if (!segments.length) return [];
 
-    const breachedByMinutes = segments.filter((s) => s.endLabel === 'Breached')[0]?.value || 0;
-
     const safeTotal = totalValue;
 
     const sortedSegments = [...segments].sort((a, b) => b.value - a.value);
