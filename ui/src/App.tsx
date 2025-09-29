@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import Faq from './pages/Faq';
 import FaqForm from './pages/FaqForm';
+import RootCauseAnalysis from './pages/RootCauseAnalysis';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
         <Route path="my-tickets" element={<MyTickets />} />
+        <Route path="root-cause-analysis" element={<RootCauseAnalysis />} />
         <Route path="faq" element={<Faq />} />
         <Route path="faq/new" element={<FaqForm />} />
         <Route path="tickets/:ticketId" element={<TicketDetails />} />

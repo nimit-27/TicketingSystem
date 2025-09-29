@@ -32,6 +32,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:master IS NULL OR t.isMaster = :master) " +
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
             "AND (:priority IS NULL OR t.priority = :priority) " +
+            "AND (:severities IS NULL OR t.severity IN (:severities)) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -45,5 +46,6 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
                                @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
                                @Param("levelId") String levelId, @Param("priority") String priority,
+                               @Param("severities") List<String> severities,
                                Pageable pageable);
 }

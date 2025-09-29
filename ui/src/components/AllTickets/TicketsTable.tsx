@@ -37,6 +37,7 @@ export interface TicketRow {
     assignedToName?: string;
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
     breachedByMinutes?: number;
+    severity?: string;
 }
 
 interface TicketsTableProps {

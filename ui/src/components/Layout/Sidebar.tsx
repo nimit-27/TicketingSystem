@@ -24,6 +24,12 @@ const menuItems = [
     icon: "portrait",
   },
   {
+    key: "rca",
+    label: "Root Cause Analysis",
+    to: "/root-cause-analysis",
+    icon: "grading",
+  },
+  {
     key: "raiseTickets",
     label: "Raise Ticket",
     to: "/create-ticket",
