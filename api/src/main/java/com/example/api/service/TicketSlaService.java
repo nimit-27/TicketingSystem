@@ -59,7 +59,8 @@ public class TicketSlaService {
         }
 
         LocalDateTime reportedDate = ticket.getReportedDate();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime resolvedAt = ticket.getResolvedAt();
+        LocalDateTime calculationTime = resolvedAt != null ? resolvedAt : LocalDateTime.now();
 
         long resolutionPolicy = config.getResolutionMinutes() != null
                 ? config.getResolutionMinutes() : 0L;
@@ -84,7 +85,7 @@ public class TicketSlaService {
             responseMinutes = Math.max(Duration.between(reportedDate, assignTime).toMinutes(), 0L);
         }
 
-        LocalDateTime endTime = ticket.getResolvedAt() != null ? ticket.getResolvedAt() : now;
+        LocalDateTime endTime = resolvedAt != null ? resolvedAt : calculationTime;
         long elapsed = 0L;
         if (reportedDate != null) {
             elapsed = Math.max(Duration.between(reportedDate, endTime).toMinutes(), 0L);
@@ -160,7 +161,7 @@ public class TicketSlaService {
         long breachedBy = resolution - allowedMinutes;
         Long timeTillDueDate = null;
         if (currentDueAt != null) {
-            timeTillDueDate = Duration.between(now, currentDueAt).toMinutes();
+            timeTillDueDate = Duration.between(calculationTime, currentDueAt).toMinutes();
         }
 
         ticketSla.setTicket(ticket);

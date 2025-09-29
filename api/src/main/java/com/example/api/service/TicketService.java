@@ -348,6 +348,7 @@ public class TicketService {
             }
         }
         if (isReopenedStatus) {
+            existing.setResolvedAt(null);
             existing.setAssignedTo(null);
             existing.setAssignedToLevel(null);
             existing.setLevelId(null);
