@@ -41,20 +41,23 @@ const SlaProgressChart: React.FC<SlaProgressChartProps> = ({ sla, className }) =
     const resolution = Math.max(sla.resolutionTimeMinutes ?? 0, 0);
     const elapsed = Math.max(sla.elapsedTimeMinutes ?? 0, 0);
     const totalSlaTime = Math.max(sla.totalSlaMinutes ?? 0, elapsed);
-    const rawBreached = sla.breachedByMinutes ?? 0;
-    const breached = Math.max(rawBreached, 0);
 
+    const rawBreached = sla.breachedByMinutes ?? 0;
+    // const breached = Math.max(rawBreached, 0);
+    const timeTillDueDate = Math.max(sla.timeTillDueDate ?? 0)
     const knownElapsed = response + idle + resolution;
     const otherElapsed = Math.max(elapsed - knownElapsed, 0);
 
-    const remaining = rawBreached > 0 ? 0 : Math.max(totalSlaTime - elapsed, 0);
+    const remaining = rawBreached > 0 ? 0 : Math.max(timeTillDueDate + idle - elapsed, 0);
+
+    const breached = timeTillDueDate < 0 ? Math.abs(timeTillDueDate) : 0
 
     const segments = [
-      {
-        name: 'Response Time',
-        value: response,
-        color: '#1e88e5',
-      },
+      // {
+      //   name: 'Response Time',
+      //   value: response,
+      //   color: '#1e88e5',
+      // },
       {
         name: 'Idle Time',
         value: idle,

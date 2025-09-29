@@ -604,30 +604,58 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       {/* HEADER */}
       <Box className="d-flex align-items-end">
         <Box className="d-flex flex-column col-6" >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <UserAvatar name={ticket.assignedToName || ticket.assignedTo || 'NA'} size={32} />
-            <Typography variant="subtitle1">{ticket.id}</Typography>
-          </Box>
+          <div className='d-flex'>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <UserAvatar name={ticket.assignedToName || ticket.assignedTo || 'NA'} size={32} />
+              <Typography variant="subtitle1">{ticket.id}</Typography>
+            </Box>
 
-          {/* Edit, Cancel, Save buttons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {allowEdit && (
-            editing ? (
-              <>
-                <CustomIconButton icon="close" onClick={cancelEditing} />
-                <CustomIconButton icon="check" onClick={handleSave} />
-              </>
-            ) : (
-              <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
-            )
-          )}
-          {ticket.statusLabel?.toLowerCase() === 'closed' && (
-            <Button size="small" onClick={() => setFeedbackOpen(true)}>
-              {hasFeedback ? 'View Feedback' : 'Feedback'}
-            </Button>
-          )}
+            {/* Edit, Cancel, Save buttons */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {allowEdit && (
+                editing ? (
+                  <>
+                    <CustomIconButton icon="close" onClick={cancelEditing} />
+                    <CustomIconButton icon="check" onClick={handleSave} />
+                  </>
+                ) : (
+                  <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
+                )
+              )}
+              {ticket.statusLabel?.toLowerCase() === 'closed' && (
+                <Button size="small" onClick={() => setFeedbackOpen(true)}>
+                  {hasFeedback ? 'View Feedback' : 'Feedback'}
+                </Button>
+              )}
+            </Box>
+          </div>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {ticket.category} &gt; {ticket.subCategory}
+          </Typography>
         </Box>
-          <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+
+
+        <Box className="d-flex flex-column col-6" >
+          <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+            {createdInfo}
+          </Typography>
+          <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 0 }}>
+            {updatedInfo}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* SUBJECT */}
+      {renderText(subject, setSubject)}
+      {/* DESCRIPTION */}
+      <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
+        {renderText(description, setDescription, true)}
+      </Box>
+
+      <div className='d-flex flex-wrap'>
+        {/* CATEGORY, SUB-CATEGORY */}
+        <Box sx={{ mt: 1, display: 'flex', flexWrap: '', gap: 2 }}>
+          {editing && <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography color="text.secondary">{t('Category')}</Typography>
               {renderSelect(
@@ -663,27 +691,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 }
               )}
             </Box>
-          </Box>
+          </>}
         </Box>
-
-        <Box className="d-flex flex-column col-6" >
-          <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-            {createdInfo}
-          </Typography>
-          <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 0 }}>
-            {updatedInfo}
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* SUBJECT */}
-      {renderText(subject, setSubject)}
-      {/* DESCRIPTION */}
-      <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
-        {renderText(description, setDescription, true)}
-      </Box>
-
-      <div className='d-flex flex-wrap'>
         {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
           {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
@@ -791,7 +800,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           {/* <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
             <SlaProgressBar sla={sla} className="w-100" />
           </Box> */}
-            chart
+          chart
           <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
             <SlaProgressChart sla={sla} className="w-100" />
           </Box>
