@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationPropertiesScan(basePackages = "com.example")
 @EnableJpaRepositories(basePackages = {"com.example.notification.repository", "com.example.api.repository"})
 @EntityScan(basePackages = {"com.example.notification.models", "com.example.api.models"})
-//@EnableScheduling
+@EnableScheduling
 public class Main {
 
     public static void main(String[] args) {

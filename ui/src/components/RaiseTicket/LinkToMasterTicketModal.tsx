@@ -43,7 +43,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     useEffect(() => {
         if (debouncedQuery.length >= 2) {
             searchTickets(debouncedQuery).then((response) => {
-                setResults(response.data.hits || []);
+                setResults(response.data.body.data.hits || []);
             });
         } else {
             setResults([]);
@@ -58,7 +58,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
 
     const handleSelect = (id: string) => {
         getTicket(id).then(res => {
-            setSelected(res.data);
+            setSelected(res.data.body.data);
             setQuery('');
             setResults([]);
         });
