@@ -510,7 +510,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           </Box>
 
           {/* Edit, Cancel, Save buttons */}
-          {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {allowEdit && (
             editing ? (
               <>
@@ -526,7 +526,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               {hasFeedback ? 'View Feedback' : 'Feedback'}
             </Button>
           )}
-        </Box> */}
+        </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {ticket.category} &gt; {ticket.subCategory}
           </Typography>
