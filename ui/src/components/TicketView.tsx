@@ -26,6 +26,7 @@ import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
 import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressBar from './SlaProgressBar';
+import SlaProgressChart from './SlaProgressChart';
 
 interface TicketViewProps {
   ticketId: string;
@@ -649,6 +650,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           {/* SLA PROGRESS BAR */}
           <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
             <SlaProgressBar sla={sla} className="w-100" />
+          </Box>
+          <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+            <SlaProgressChart sla={sla} className="w-100" />
           </Box>
           <SlaDetails sla={sla} />
         </CustomFieldset>
