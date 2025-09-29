@@ -336,7 +336,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 }
             },
-        ].filter((col): col is any => !!col && col.key && checkMyTicketsColumnAccess(col.key.toString())),
+        ].filter((col): col is any => {
+            if (!col || !col.key) {
+                return false;
+            }
+            return checkMyTicketsColumnAccess(String(col.key));
+        }),
         [t, statusWorkflows, showSeverityColumn]
     );
 
