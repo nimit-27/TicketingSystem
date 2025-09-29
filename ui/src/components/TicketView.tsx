@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
@@ -27,6 +27,7 @@ import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressBar from './SlaProgressBar';
 import SlaProgressChart from './SlaProgressChart';
+import { getCategories, getSubCategories } from '../services/CategoryService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -72,6 +73,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [priorityOptions, setPriorityOptions] = useState<string[]>([]);
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityList, setSeverityList] = useState<SeverityInfo[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<DropdownOption[]>([]);
+  const [subCategoryOptions, setSubCategoryOptions] = useState<DropdownOption[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
@@ -106,6 +111,25 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isItManager = roles.includes("9");
   const isRno = roles.includes("4");
 
+  const fetchSubCategoriesList = useCallback(async (categoryValue: string) => {
+    if (!categoryValue) {
+      setSubCategoryOptions([]);
+      return [];
+    }
+
+    try {
+      const response = await getSubCategories(categoryValue);
+      const rawPayload = response?.data ?? response;
+      const payload = rawPayload?.body?.data ?? rawPayload;
+      const subCategories = Array.isArray(payload) ? payload : [];
+      setSubCategoryOptions(getDropdownOptions(subCategories, 'subCategory', 'subCategoryId'));
+      return subCategories;
+    } catch {
+      setSubCategoryOptions([]);
+      return [];
+    }
+  }, []);
+
   useEffect(() => {
     if (ticketId) {
       getTicketHandler(() => getTicket(ticketId));
@@ -118,6 +142,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         const severityData = Array.isArray(res?.data) ? res.data : [];
         setSeverityList(severityData);
       });
+      getCategories()
+        .then(res => {
+          const rawPayload = res?.data ?? res;
+          const payload = rawPayload?.body?.data ?? rawPayload;
+          const categories = Array.isArray(payload) ? payload : [];
+          setCategoryOptions(getDropdownOptions(categories, 'category', 'categoryId'));
+        })
+        .catch(() => {
+          setCategoryOptions([]);
+        });
       const roles = getCurrentUserDetails()?.role || [];
       workflowApiHandler(() => getStatusWorkflowMappings(roles));
       getTicketSla(ticketId)
@@ -139,6 +173,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setPriorityId(ticket.priorityId || '');
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
+      setSelectedCategoryId('');
+      setSelectedSubCategoryId('');
+      setSubCategoryOptions([]);
       if (Array.isArray(ticket.attachmentPaths)) {
         setAttachments(ticket.attachmentPaths.map((att: string) => `${BASE_URL}/uploads/${att}`));
       } else if (ticket.attachmentPath) {
@@ -153,6 +190,42 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       }
     }
   }, [ticket]);
+
+  useEffect(() => {
+    if (!editing) {
+      setSelectedCategoryId('');
+      setSelectedSubCategoryId('');
+      setSubCategoryOptions([]);
+      return;
+    }
+
+    if (!ticket || !categoryOptions.length) {
+      return;
+    }
+
+    const matchedCategory = categoryOptions.find(opt => opt.value === ticket.categoryId || opt.label === ticket.category);
+    const categoryValue = matchedCategory?.value ?? '';
+    setSelectedCategoryId(categoryValue);
+
+    if (!categoryValue) {
+      setSelectedSubCategoryId('');
+      setSubCategoryOptions([]);
+      return;
+    }
+
+    let isActive = true;
+    fetchSubCategoriesList(categoryValue).then(subCategories => {
+      if (!isActive) {
+        return;
+      }
+      const matchedSubCategory = subCategories.find((sub: any) => sub.subCategoryId === ticket.subCategoryId || sub.subCategory === ticket.subCategory);
+      setSelectedSubCategoryId(matchedSubCategory?.subCategoryId ?? '');
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [editing, ticket, categoryOptions, fetchSubCategoriesList]);
 
   useEffect(() => {
     if (workflowData) {
@@ -177,6 +250,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       recommendedSeverity,
       updatedBy: currentUsername
     };
+    if (selectedCategoryId) {
+      payload.category = selectedCategoryId;
+    }
+    if (selectedSubCategoryId) {
+      payload.subCategory = selectedSubCategoryId;
+    }
     if (remark !== undefined) {
       payload.remark = remark;
     }
@@ -270,20 +349,41 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     )
   );
 
-  const renderSelect = (value: string, setValue: (v: string) => void, options: string[]) => (
+  const renderSelect = (
+    value: string,
+    setValue: (v: string) => void,
+    options: string[] | DropdownOption[],
+    config: { displayValue?: string; translate?: boolean; disabled?: boolean } = {}
+  ) => (
     editing ? (
       <Select
-        value={value}
+        value={value || ''}
         onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
         fullWidth
         size="small"
+        disabled={config.disabled}
       >
-        {(Array.isArray(options) && options.length > 0) ? options.map(o => (
-          <MenuItem key={o} value={o}>{t(o)}</MenuItem>
-        )) : <MenuItem key="" value="">{t('None')}</MenuItem>}
+        {(Array.isArray(options) && options.length > 0)
+          ? (options as (string | DropdownOption)[]).map(option => {
+            const optionValue = typeof option === 'string' ? option : option.value;
+            const optionLabel = typeof option === 'string' ? option : option.label;
+            const label = config.translate === false ? optionLabel : t(optionLabel);
+            return (
+              <MenuItem key={optionValue || optionLabel} value={optionValue}>
+                {label}
+              </MenuItem>
+            );
+          })
+          : <MenuItem key="" value="">{t('None')}</MenuItem>}
       </Select>
     ) : (
-      <Typography sx={{ mt: 1 }}>{value ? t(value) : ' - '}</Typography>
+      <Typography sx={{ mt: 1 }}>
+        {config.displayValue
+          ? (config.translate === false ? config.displayValue : t(config.displayValue))
+          : value
+            ? (config.translate === false ? value : t(value))
+            : ' - '}
+      </Typography>
     )
   );
   // const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
@@ -527,9 +627,43 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Button>
           )}
         </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {ticket.category} &gt; {ticket.subCategory}
-          </Typography>
+          <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography color="text.secondary">{t('Category')}</Typography>
+              {renderSelect(
+                selectedCategoryId,
+                (val: string) => {
+                  setSelectedCategoryId(val);
+                  setSelectedSubCategoryId('');
+                  if (!val) {
+                    setSubCategoryOptions([]);
+                    return;
+                  }
+                  setSubCategoryOptions([]);
+                  fetchSubCategoriesList(val);
+                },
+                categoryOptions,
+                {
+                  displayValue: ticket.category,
+                  translate: false,
+                  disabled: !categoryOptions.length
+                }
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography color="text.secondary">{t('Sub-Category')}</Typography>
+              {renderSelect(
+                selectedSubCategoryId,
+                (val: string) => setSelectedSubCategoryId(val),
+                subCategoryOptions,
+                {
+                  displayValue: ticket.subCategory,
+                  translate: false,
+                  disabled: !selectedCategoryId
+                }
+              )}
+            </Box>
+          </Box>
         </Box>
 
         <Box className="d-flex flex-column col-6" >
