@@ -5,7 +5,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { useDebounce } from "../../hooks/useDebounce";
-import { searchTickets, getTicket, linkTicketToMaster } from "../../services/TicketService";
+import { searchTickets, getTicket, linkTicketToMaster, makeTicketMaster } from "../../services/TicketService";
 import GenericInput from "../UI/Input/GenericInput";
 
 interface LinkToMasterTicketModalProps {
@@ -26,6 +26,8 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const [results, setResults] = useState<TicketHit[]>([]);
     const [selected, setSelected] = useState<any | null>(null);
     const [linked, setLinked] = useState(false);
+    const [conversionInProgress, setConversionInProgress] = useState(false);
+    const [conversionError, setConversionError] = useState<string | null>(null);
     // TODO: replace with real current ticket details
     const currentTicket = { id: '', subject: 'Current Ticket' };
 
@@ -37,13 +39,17 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
             setResults([]);
             setSelected(null);
             setLinked(false);
+            setConversionError(null);
+            setConversionInProgress(false);
         }
     }, [open]);
 
     useEffect(() => {
         if (debouncedQuery.length >= 2) {
             searchTickets(debouncedQuery).then((response) => {
-                setResults(response.data.body.data.hits || []);
+                const rawPayload = response?.data ?? response;
+                const payload = rawPayload?.body?.data ?? rawPayload;
+                setResults(payload?.hits || []);
             });
         } else {
             setResults([]);
@@ -58,10 +64,36 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
 
     const handleSelect = (id: string) => {
         getTicket(id).then(res => {
-            setSelected(res.data.body.data);
+            const rawPayload = res?.data ?? res;
+            const payload = rawPayload?.body?.data ?? rawPayload;
+            setSelected(payload);
+            setConversionError(null);
+            setConversionInProgress(false);
             setQuery('');
             setResults([]);
         });
+    };
+
+    const handleMasterConversion = async (checked: boolean) => {
+        if (!selected || !checked) {
+            return;
+        }
+        setConversionInProgress(true);
+        setConversionError(null);
+        try {
+            const response = await makeTicketMaster(selected.id);
+            const rawPayload = response?.data ?? response;
+            const payload = rawPayload?.body?.data ?? rawPayload;
+            setSelected(payload);
+        } catch (error: any) {
+            const message = error?.response?.data?.body?.data?.message
+                || error?.response?.data?.message
+                || error?.message
+                || 'Failed to mark ticket as master';
+            setConversionError(message);
+        } finally {
+            setConversionInProgress(false);
+        }
     };
 
     let masterTicketsList = results.map(ticket => ({
@@ -116,6 +148,22 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                         >
                             <p>Subject: {currentTicket.subject}</p>
                         </CustomFieldset>
+                    </div>
+                )}
+                {selected && !selected.isMaster && !selected.masterId && (
+                    <div className="form-check mt-3">
+                        <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="mark-as-master"
+                            disabled={conversionInProgress}
+                            checked={selected.isMaster}
+                            onChange={(event) => handleMasterConversion(event.target.checked)}
+                        />
+                        <label className="form-check-label" htmlFor="mark-as-master">
+                            This ticket is not a master. Do you want to create it as a master ticket?
+                        </label>
+                        {conversionError && <p className="text-danger mt-2">{conversionError}</p>}
                     </div>
                 )}
                 {linked && (

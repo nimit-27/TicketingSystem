@@ -77,7 +77,10 @@ public class TypesenseClient {
     }
 
     private void syncTicketsToTypesense(List<Ticket> tickets) throws Exception {
-        for(Ticket ticket : tickets) {
+        for (Ticket ticket : tickets) {
+            if (ticket.getMasterId() != null && !ticket.getMasterId().isBlank()) {
+                continue;
+            }
             Map<String, Object> doc = Map.of(
                     "id", String.valueOf(ticket.getId()),
                     "subject", ticket.getSubject()

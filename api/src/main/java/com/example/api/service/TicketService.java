@@ -416,13 +416,6 @@ public class TicketService {
         if (updatedStatusId != null && !updatedStatusId.equals(previousStatusId)) {
             boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
-            if ((updated.getAssignedTo() == null || !assignmentChangeAllowed || updated.getAssignedTo().equals(previousAssignedTo))
-                    && remark != null && !remark.isBlank()) {
-                String currentAssignee = existing.getAssignedTo();
-                if (currentAssignee != null && !currentAssignee.isBlank()) {
-                    assignmentHistoryService.addHistory(id, updatedBy, currentAssignee, existing.getLevelId(), remark);
-                }
-            }
 
             sendStatusUpdateNotification(
                     saved,
@@ -819,6 +812,18 @@ public class TicketService {
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
         ticket.setMasterId(masterId);
+        Ticket saved = ticketRepository.save(ticket);
+        return mapWithStatusId(saved);
+    }
+
+    public TicketDto markAsMaster(String id) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+
+        ticket.setMaster(true);
+        ticket.setMasterId(null);
+        ticket.setLastModified(LocalDateTime.now());
+
         Ticket saved = ticketRepository.save(ticket);
         return mapWithStatusId(saved);
     }
