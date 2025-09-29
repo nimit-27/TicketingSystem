@@ -103,7 +103,20 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [editingRca, setEditingRca] = useState(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
-  const normalizedRoles = useMemo(() => roleList.map(role => (role || '').toString().toUpperCase()), [roleList]);
+
+  const currentUserDetails = getCurrentUserDetails();
+  const currentUsername = currentUserDetails?.username || '';
+  const currentUserId = currentUserDetails?.userId || '';
+  const roles = currentUserDetails?.role || [];
+  const roleList = useMemo<string[]>(() => {
+    const raw = Array.isArray(roles) ? roles : [roles];
+    return raw
+      .map(role => (role == null ? '' : role.toString()))
+      .filter(role => role.trim().length > 0);
+  }, [roles]);
+  const normalizedRoles = useMemo(() => roleList.map(role => role.toUpperCase()), [roleList]);
+  const isItManager = roleList.includes('9');
+  const isRno = roleList.includes('4');
   const getSeverityText = useCallback((value?: string | null) => {
     if (!value) {
       return '';
@@ -155,14 +168,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
   const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
 
-  const currentUserDetails = getCurrentUserDetails();
-  const currentUsername = currentUserDetails?.username || '';
-  const currentUserId = currentUserDetails?.userId || '';
-  const roles = currentUserDetails?.role || [];
-  const roleList = useMemo(() => (Array.isArray(roles) ? roles : [roles]), [roles]);
-  const isItManager = roles.includes("9");
-  const isRno = roles.includes("4");
-
   const fetchSubCategoriesList = useCallback(async (categoryValue: string) => {
     if (!categoryValue) {
       setSubCategoryOptions([]);
@@ -204,8 +209,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         .catch(() => {
           setCategoryOptions([]);
         });
-      const roles = getCurrentUserDetails()?.role || [];
-      workflowApiHandler(() => getStatusWorkflowMappings(roles));
+      workflowApiHandler(() => getStatusWorkflowMappings(roleList));
       getTicketSla(ticketId)
         .then(res => {
           const body = res.data?.body ?? res.data;
@@ -215,7 +219,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         })
         .catch(() => setSla(null));
     }
-  }, [ticketId, getTicketHandler, workflowApiHandler]);
+  }, [ticketId, getTicketHandler, workflowApiHandler, roleList]);
 
   useEffect(() => {
     if (ticketId) {

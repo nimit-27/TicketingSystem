@@ -78,7 +78,7 @@ public class RootCauseAnalysisService {
             severityIdToDisplay.putIfAbsent(id, extractDisplay(label, id));
             addSeverityTokens(id, label);
         });
-        severityTokens.addAll(defaults.keySet().stream().map(String::toLowerCase(Locale.ROOT)).collect(Collectors.toSet()));
+        severityTokens.addAll(defaults.keySet().stream().map(id -> id.toLowerCase(Locale.ROOT)).collect(Collectors.toSet()));
         severityTokens.add("critical");
         severityTokens.add("high");
         severityTokens.add("medium");
