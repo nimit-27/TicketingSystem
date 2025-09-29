@@ -16,6 +16,7 @@ import MyTickets from './pages/MyTickets';
 import Faq from './pages/Faq';
 import FaqForm from './pages/FaqForm';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
+import { NotificationProvider } from './context/NotificationContext';
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const user = getUserDetails();
@@ -30,7 +31,16 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<RequireAuth><SidebarLayout /></RequireAuth>}>
+      <Route
+        path="/"
+        element={(
+          <RequireAuth>
+            <NotificationProvider>
+              <SidebarLayout />
+            </NotificationProvider>
+          </RequireAuth>
+        )}
+      >
         <Route index element={<Navigate to="/my-tickets" replace />} />  // Default route
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
