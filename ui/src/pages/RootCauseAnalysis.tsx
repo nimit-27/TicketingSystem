@@ -40,17 +40,17 @@ const RootCauseAnalysis: React.FC = () => {
   const currentUser = getCurrentUserDetails();
   const currentUsername = currentUser?.username || currentUser?.userId || '';
   const currentRoles = useMemo(() => {
-    const roles = currentUser?.role || [];
-    return Array.isArray(roles) ? roles : [roles];
-  }, [currentUser?.role]);
+    const roles = currentUser?.role;
+    const normalized = Array.isArray(roles) ? roles : roles ? [roles] : [];
+    return normalized.filter((role): role is string => typeof role === 'string' && role.trim().length > 0);
+  }, [JSON.stringify(currentUser?.role ?? [])]);
 
   const fetchTickets = useCallback(() => {
     if (!currentUsername) {
       return Promise.resolve();
     }
-    const paramsRoles = currentRoles.filter((role): role is string => typeof role === 'string' && role.trim().length > 0);
     return apiHandler(() =>
-      getRootCauseAnalysisTickets(page - 1, pageSize, currentUsername, paramsRoles),
+      getRootCauseAnalysisTickets(page - 1, pageSize, currentUsername, currentRoles),
     );
   }, [apiHandler, currentRoles, currentUsername, page, pageSize]);
 
