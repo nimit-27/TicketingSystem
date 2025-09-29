@@ -75,7 +75,7 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
-    private TicketDto mapWithStatusId(Ticket ticket) {
+    public TicketDto mapWithStatusId(Ticket ticket) {
         TicketDto dto = DtoMapper.toTicketDto(ticket);
         // category names
         if (ticket.getCategory() != null) {

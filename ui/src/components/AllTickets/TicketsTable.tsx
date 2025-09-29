@@ -38,6 +38,8 @@ export interface TicketRow {
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
     breachedByMinutes?: number;
     severity?: string;
+    severityId?: string;
+    severityLabel?: string;
 }
 
 interface TicketsTableProps {
@@ -48,9 +50,10 @@ interface TicketsTableProps {
     refreshingTicketId?: string | null;
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
     onRecommendEscalation?: (id: string) => void;
+    showSeverityColumn?: boolean;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -229,7 +232,22 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 }
             },
-            { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> },
+            showSeverityColumn
+                ? {
+                    title: t('Severity'),
+                    dataIndex: 'severity',
+                    key: 'severity',
+                    render: (_: any, record: TicketRow) => {
+                        const display = record.severity || record.severityLabel || record.severityId || '-';
+                        const label = record.severityLabel && record.severityLabel !== display ? record.severityLabel : undefined;
+                        return label ? (
+                            <Tooltip title={label} placement="top">
+                                <span>{display}</span>
+                            </Tooltip>
+                        ) : (display || '-');
+                    }
+                }
+                : { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> },
             {
                 title: t('Assignee'),
                 key: 'assignee',
@@ -318,8 +336,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 }
             },
-        ].filter(col => col.key && checkMyTicketsColumnAccess(col.key.toString())),
-        [t, statusWorkflows]
+        ].filter((col): col is any => !!col && col.key && checkMyTicketsColumnAccess(col.key.toString())),
+        [t, statusWorkflows, showSeverityColumn]
     );
 
     return (

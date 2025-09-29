@@ -4,12 +4,28 @@ import Title from '../components/Title';
 import TicketsTable, { TicketRow } from '../components/AllTickets/TicketsTable';
 import PaginationControls from '../components/PaginationControls';
 import { useApi } from '../hooks/useApi';
-import { searchTicketsPaginated } from '../services/TicketService';
 import { TicketStatusWorkflow } from '../types';
 import { getStatusWorkflowMappings } from '../services/StatusService';
 import { getCurrentUserDetails } from '../config/config';
+import { getRootCauseAnalysisTickets } from '../services/RootCauseAnalysisService';
 
-const ALLOWED_SEVERITIES = ['CRITICAL', 'HIGH', 'MEDIUM'];
+const formatSeverityText = (severity?: string, label?: string): string => {
+  const source = (severity || label || '').trim();
+  if (!source) {
+    return '';
+  }
+  const normalized = source.toUpperCase();
+  if (normalized.includes('CRITICAL') || normalized === 'S1') {
+    return 'Critical';
+  }
+  if (normalized.includes('HIGH') || normalized === 'S2') {
+    return 'High';
+  }
+  if (normalized.includes('MEDIUM') || normalized === 'S3') {
+    return 'Medium';
+  }
+  return source;
+};
 
 const RootCauseAnalysis: React.FC = () => {
   const navigate = useNavigate();
@@ -21,27 +37,22 @@ const RootCauseAnalysis: React.FC = () => {
   const [pageSize] = useState(10);
   const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
   const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
-
-  const allowedSeveritySet = useMemo(() => new Set(ALLOWED_SEVERITIES), []);
+  const currentUser = getCurrentUserDetails();
+  const currentUsername = currentUser?.username || currentUser?.userId || '';
+  const currentRoles = useMemo(() => {
+    const roles = currentUser?.role || [];
+    return Array.isArray(roles) ? roles : [roles];
+  }, [currentUser?.role]);
 
   const fetchTickets = useCallback(() => {
+    if (!currentUsername) {
+      return Promise.resolve();
+    }
+    const paramsRoles = currentRoles.filter((role): role is string => typeof role === 'string' && role.trim().length > 0);
     return apiHandler(() =>
-      searchTicketsPaginated(
-        '',
-        'Closed',
-        undefined,
-        page - 1,
-        pageSize,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        'Critical,High,Medium',
-      ),
+      getRootCauseAnalysisTickets(page - 1, pageSize, currentUsername, paramsRoles),
     );
-  }, [apiHandler, page, pageSize]);
+  }, [apiHandler, currentRoles, currentUsername, page, pageSize]);
 
   useEffect(() => {
     fetchTickets();
@@ -59,18 +70,20 @@ const RootCauseAnalysis: React.FC = () => {
       return;
     }
     const resp: any = data;
-    const items = Array.isArray(resp.items) ? resp.items : resp.items ?? resp;
+    const items = Array.isArray(resp?.items) ? resp.items : resp?.items ?? resp;
     const normalized: TicketRow[] = Array.isArray(items) ? items : [];
-    const filtered = normalized.filter((ticket) =>
-      allowedSeveritySet.has((ticket.severity || '').toUpperCase()),
-    );
-    setTickets(filtered);
-    const computedTotal = resp.totalPages ? Math.max(resp.totalPages, 1) : 1;
+    const enhanced = normalized.map((ticket) => ({
+      ...ticket,
+      severity: formatSeverityText(ticket.severity, ticket.severityLabel),
+      severityLabel: ticket.severityLabel || ticket.severity,
+    }));
+    setTickets(enhanced);
+    const computedTotal = resp?.totalPages ? Math.max(resp.totalPages, 1) : 1;
     setTotalPages(computedTotal);
     if (page > computedTotal) {
       setPage(computedTotal);
     }
-  }, [data, allowedSeveritySet, page]);
+  }, [data, page]);
 
   useEffect(() => {
     const roles = getCurrentUserDetails()?.role || [];
@@ -96,6 +109,7 @@ const RootCauseAnalysis: React.FC = () => {
         searchCurrentTicketsPaginatedApi={handleRefresh}
         refreshingTicketId={refreshingTicketId}
         statusWorkflows={statusWorkflows}
+        showSeverityColumn
       />
       <div className="d-flex justify-content-between align-items-center mt-3">
         <PaginationControls

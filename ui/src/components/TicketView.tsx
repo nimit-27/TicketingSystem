@@ -9,7 +9,7 @@ import { getPriorities } from '../services/PriorityService';
 import { getSeverities } from '../services/SeverityService';
 import InfoIcon from './UI/Icons/InfoIcon';
 import GenericButton from './UI/Button';
-import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow } from '../types';
+import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow, RootCauseAnalysis } from '../types';
 import CustomIconButton, { IconComponent } from './UI/IconButton/CustomIconButton';
 import CommentsSection from './Comments/CommentsSection';
 import SlaDetails from './SlaDetails';
@@ -28,6 +28,7 @@ import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressBar from './SlaProgressBar';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
+import { deleteRootCauseAnalysisAttachment, getRootCauseAnalysis, saveRootCauseAnalysis } from '../services/RootCauseAnalysisService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -61,6 +62,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const { apiHandler: updateTicketHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
+  const { data: rootCauseAnalysis, apiHandler: getRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
+  const { apiHandler: saveRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
+  const { apiHandler: deleteRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
 
   // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
@@ -89,8 +93,55 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [showStatusRemark, setShowStatusRemark] = useState(false);
   const [selectedStatusAction, setSelectedStatusAction] = useState<TicketStatusWorkflow | null>(null);
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [rcaDescription, setRcaDescription] = useState('');
+  const [rcaResolution, setRcaResolution] = useState('');
+  const [rcaAttachmentPaths, setRcaAttachmentPaths] = useState<string[]>([]);
+  const [rcaSeverityLabel, setRcaSeverityLabel] = useState('');
+  const [rcaSeverityDisplay, setRcaSeverityDisplay] = useState('');
+  const [rcaUpdatedBy, setRcaUpdatedBy] = useState('');
+  const [rcaUpdatedAt, setRcaUpdatedAt] = useState<string | null>(null);
+  const [editingRca, setEditingRca] = useState(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
+  const normalizedRoles = useMemo(() => roleList.map(role => (role || '').toString().toUpperCase()), [roleList]);
+  const getSeverityText = useCallback((value?: string | null) => {
+    if (!value) {
+      return '';
+    }
+    const normalized = value.toUpperCase();
+    if (normalized.includes('CRITICAL') || normalized === 'S1') {
+      return 'Critical';
+    }
+    if (normalized.includes('HIGH') || normalized === 'S2') {
+      return 'High';
+    }
+    if (normalized.includes('MEDIUM') || normalized === 'S3') {
+      return 'Medium';
+    }
+    return value;
+  }, []);
+
+  const updateRcaState = useCallback((payload?: RootCauseAnalysis | null) => {
+    if (!payload) {
+      setRcaDescription('');
+      setRcaResolution('');
+      setRcaAttachmentPaths([]);
+      setRcaSeverityLabel('');
+      setRcaSeverityDisplay('');
+      setRcaUpdatedBy('');
+      setRcaUpdatedAt(null);
+      return;
+    }
+    setRcaDescription(payload.descriptionOfCause ?? '');
+    setRcaResolution(payload.resolutionDescription ?? '');
+    setRcaAttachmentPaths(Array.isArray(payload.attachments) ? payload.attachments : []);
+    const severitySource = payload.severityDisplay || payload.severityLabel || payload.severityId || '';
+    setRcaSeverityDisplay(getSeverityText(severitySource));
+    setRcaSeverityLabel(payload.severityLabel || severitySource);
+    setRcaUpdatedBy(payload.updatedBy ?? '');
+    setRcaUpdatedAt(payload.updatedAt ?? null);
+  }, [getSeverityText]);
+  const rcaAttachmentUrls = useMemo(() => rcaAttachmentPaths.map(path => `${BASE_URL}/uploads/${path}`), [rcaAttachmentPaths]);
 
 
   // PERMISSION BOOLEANS
@@ -108,6 +159,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const currentUsername = currentUserDetails?.username || '';
   const currentUserId = currentUserDetails?.userId || '';
   const roles = currentUserDetails?.role || [];
+  const roleList = useMemo(() => (Array.isArray(roles) ? roles : [roles]), [roles]);
   const isItManager = roles.includes("9");
   const isRno = roles.includes("4");
 
@@ -164,6 +216,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         .catch(() => setSla(null));
     }
   }, [ticketId, getTicketHandler, workflowApiHandler]);
+
+  useEffect(() => {
+    if (ticketId) {
+      getRootCauseAnalysisHandler(() => getRootCauseAnalysis(ticketId));
+    }
+  }, [ticketId, getRootCauseAnalysisHandler]);
 
   useEffect(() => {
     if (ticket) {
@@ -234,6 +292,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, [workflowData]);
 
   useEffect(() => {
+    updateRcaState(rootCauseAnalysis ?? null);
+    setEditingRca(false);
+  }, [rootCauseAnalysis, updateRcaState]);
+
+  useEffect(() => {
     if (focusRecommendSeverity && showSeverity && !showSeverityToRecommendSeverity && recommendSeverityButtonRef.current) {
       recommendSeverityButtonRef.current.focus();
       onRecommendSeverityFocusHandled?.();
@@ -299,6 +362,60 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       getTicketHandler(() => getTicket(ticketId));
     });
   };
+
+  const submitRca = useCallback(async (files?: File[], exitEditing: boolean = false) => {
+    if (!ticketId || !currentUsername) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('descriptionOfCause', rcaDescription);
+    formData.append('resolutionDescription', rcaResolution);
+    formData.append('updatedBy', currentUsername);
+    if (files) {
+      files.forEach(file => formData.append('attachments', file));
+    }
+    try {
+      const payload = await saveRootCauseAnalysisHandler(() => saveRootCauseAnalysis(ticketId, formData));
+      updateRcaState(payload ?? null);
+      if (exitEditing) {
+        setEditingRca(false);
+      }
+    } catch {
+      // errors handled via useApi hook
+    }
+  }, [ticketId, currentUsername, rcaDescription, rcaResolution, saveRootCauseAnalysisHandler, updateRcaState]);
+
+  const handleRcaSave = useCallback(() => {
+    void submitRca(undefined, true);
+  }, [submitRca]);
+
+  const handleRcaAttachmentUpload = useCallback((files: File[]) => {
+    if (!files || files.length === 0) {
+      return;
+    }
+    void submitRca(files, false);
+  }, [submitRca]);
+
+  const handleRcaCancel = useCallback(() => {
+    updateRcaState(rootCauseAnalysis ?? null);
+    setEditingRca(false);
+  }, [rootCauseAnalysis, updateRcaState]);
+
+  const handleRcaAttachmentRemove = useCallback(async (index: number) => {
+    const path = rcaAttachmentPaths[index];
+    if (!ticketId || !path) {
+      return;
+    }
+    if (!window.confirm('Are you sure you want to delete this file?')) {
+      return;
+    }
+    try {
+      const payload = await deleteRootCauseAnalysisHandler(() => deleteRootCauseAnalysisAttachment(ticketId, path, currentUsername));
+      updateRcaState(payload ?? null);
+    } catch {
+      // errors handled via useApi hook
+    }
+  }, [rcaAttachmentPaths, ticketId, currentUsername, deleteRootCauseAnalysisHandler, updateRcaState]);
 
   const cancelEditing = () => {
     setEditing(false);
@@ -422,6 +539,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ' - '} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ' - '}` : ' - ';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ' - '} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ' - '}` : ' - ';
+  const formattedRcaUpdatedAt = useMemo(() => {
+    if (!rcaUpdatedAt) {
+      return '';
+    }
+    const date = new Date(rcaUpdatedAt);
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+  }, [rcaUpdatedAt]);
+  const fallbackSeverityText = useMemo(() => getSeverityText(ticket?.severity || ''), [getSeverityText, ticket?.severity]);
+  const severityText = rcaSeverityDisplay || fallbackSeverityText;
+  const severityLabelText = rcaSeverityLabel || ticket?.severity || '';
+  const severityLabelDisplay = severityLabelText && severityLabelText !== severityText ? severityLabelText : '';
 
   const currentStatusName = useMemo(() => {
     if (!ticket) return '';
@@ -433,6 +561,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isAssignedStatus = normalisedStatusName.includes('assigned');
   const isResolvedStatus = normalisedStatusName === 'resolved';
   const isClosedStatus = normalisedStatusName === 'closed';
+  const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
+  const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2' || role === 'L3');
+  const canEditRca = isClosedStatus && (isTeamLeadRole || isLevelAgent);
 
   const availableStatusActions = useMemo(() => {
     if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
@@ -785,6 +916,104 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           </Box>
         </div>
       </div>
+
+      <CustomFieldset title={t('RCA')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+        <Box className="d-flex flex-column gap-3">
+          <Box className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <Box>
+              <Typography color="text.secondary">{t('Severity')}</Typography>
+              <Typography sx={{ mt: 1 }}>{severityText || ' - '}</Typography>
+              {severityLabelDisplay && (
+                <Typography variant="body2" color="text.secondary">{severityLabelDisplay}</Typography>
+              )}
+            </Box>
+            {canEditRca && (
+              <Box className="d-flex gap-2">
+                {!editingRca && (
+                  <GenericButton variant="outlined" size="small" onClick={() => setEditingRca(true)}>
+                    {t('Edit')}
+                  </GenericButton>
+                )}
+                {editingRca && (
+                  <>
+                    <GenericButton variant="contained" size="small" onClick={handleRcaSave}>
+                      {t('Save')}
+                    </GenericButton>
+                    <GenericButton variant="outlined" size="small" onClick={handleRcaCancel}>
+                      {t('Cancel')}
+                    </GenericButton>
+                  </>
+                )}
+              </Box>
+            )}
+          </Box>
+          <Box className="row g-3">
+            <Box className="col-12 col-lg-6">
+              <Typography color="text.secondary">{t('Description of cause')}</Typography>
+              {editingRca ? (
+                <TextField
+                  value={rcaDescription}
+                  onChange={(e) => setRcaDescription(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  size="small"
+                  sx={{ mt: 1 }}
+                />
+              ) : (
+                <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>{rcaDescription || ' - '}</Typography>
+              )}
+            </Box>
+            <Box className="col-12 col-lg-6">
+              <Typography color="text.secondary">{t('Resolution Description')}</Typography>
+              {editingRca ? (
+                <TextField
+                  value={rcaResolution}
+                  onChange={(e) => setRcaResolution(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  size="small"
+                  sx={{ mt: 1 }}
+                />
+              ) : (
+                <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>{rcaResolution || ' - '}</Typography>
+              )}
+            </Box>
+          </Box>
+          <Box>
+            <Typography color="text.secondary">{t('Attachments')}</Typography>
+            {rcaAttachmentUrls.length > 0 ? (
+              <ThumbnailList
+                attachments={rcaAttachmentUrls}
+                thumbnailSize={100}
+                onRemove={editingRca && canEditRca ? handleRcaAttachmentRemove : undefined}
+              />
+            ) : (
+              <Typography sx={{ mt: 1 }} color="text.secondary">-</Typography>
+            )}
+            {canEditRca && (
+              <Box sx={{ mt: 1 }}>
+                <FileUpload
+                  maxSizeMB={5}
+                  thumbnailSize={100}
+                  onFilesChange={handleRcaAttachmentUpload}
+                  attachments={emptyFileList}
+                  hideUploadButton={!editingRca}
+                />
+              </Box>
+            )}
+          </Box>
+          {(rcaUpdatedBy || formattedRcaUpdatedAt) && (
+            <Typography variant="caption" color="text.secondary">
+              {`Updated by ${rcaUpdatedBy || '-'}`}
+              {formattedRcaUpdatedAt ? ` on ${formattedRcaUpdatedAt}` : ''}
+            </Typography>
+          )}
+        </Box>
+      </CustomFieldset>
 
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>

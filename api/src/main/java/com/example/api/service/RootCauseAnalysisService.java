@@ -1,0 +1,318 @@
+package com.example.api.service;
+
+import com.example.api.dto.PaginationResponse;
+import com.example.api.dto.RootCauseAnalysisDto;
+import com.example.api.dto.TicketDto;
+import com.example.api.enums.TicketStatus;
+import com.example.api.exception.ResourceNotFoundException;
+import com.example.api.exception.TicketNotFoundException;
+import com.example.api.models.RootCauseAnalysis;
+import com.example.api.models.Severity;
+import com.example.api.models.Ticket;
+import com.example.api.repository.RootCauseAnalysisRepository;
+import com.example.api.repository.SeverityRepository;
+import com.example.api.repository.TicketRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class RootCauseAnalysisService {
+
+    private static final Set<String> RCA_SEVERITY_IDS = Set.of("S1", "S2", "S3");
+    private final RootCauseAnalysisRepository rootCauseAnalysisRepository;
+    private final TicketRepository ticketRepository;
+    private final TicketService ticketService;
+    private final RootCauseAnalysisStorageService storageService;
+    private final Map<String, String> severityIdToLabel;
+    private final Map<String, String> severityIdToDisplay;
+    private final Set<String> severityTokens;
+
+    public RootCauseAnalysisService(RootCauseAnalysisRepository rootCauseAnalysisRepository,
+                                    TicketRepository ticketRepository,
+                                    TicketService ticketService,
+                                    SeverityRepository severityRepository,
+                                    RootCauseAnalysisStorageService storageService) {
+        this.rootCauseAnalysisRepository = rootCauseAnalysisRepository;
+        this.ticketRepository = ticketRepository;
+        this.ticketService = ticketService;
+        this.storageService = storageService;
+        List<Severity> severities = severityRepository.findAll();
+        this.severityIdToLabel = new HashMap<>();
+        this.severityIdToDisplay = new HashMap<>();
+        this.severityTokens = new HashSet<>();
+        if (!CollectionUtils.isEmpty(severities)) {
+            for (Severity severity : severities) {
+                if (severity == null || severity.getId() == null) {
+                    continue;
+                }
+                String id = severity.getId().trim().toUpperCase(Locale.ROOT);
+                String level = Optional.ofNullable(severity.getLevel()).orElse("");
+                if (!RCA_SEVERITY_IDS.contains(id)) {
+                    continue;
+                }
+                severityIdToLabel.put(id, level);
+                severityIdToDisplay.put(id, extractDisplay(level, id));
+                addSeverityTokens(id, level);
+            }
+        }
+        if (severityTokens.isEmpty()) {
+            addFallbackSeverityData();
+        }
+    }
+
+    private void addFallbackSeverityData() {
+        Map<String, String> defaults = Map.of(
+                "S1", "Critical - S1",
+                "S2", "High - S2",
+                "S3", "Medium - S3"
+        );
+        defaults.forEach((id, label) -> {
+            severityIdToLabel.putIfAbsent(id, label);
+            severityIdToDisplay.putIfAbsent(id, extractDisplay(label, id));
+            addSeverityTokens(id, label);
+        });
+        severityTokens.addAll(defaults.keySet().stream().map(String::toLowerCase(Locale.ROOT)).collect(Collectors.toSet()));
+        severityTokens.add("critical");
+        severityTokens.add("high");
+        severityTokens.add("medium");
+    }
+
+    private void addSeverityTokens(String id, String level) {
+        String upperId = id.toUpperCase(Locale.ROOT);
+        String lowerId = upperId.toLowerCase(Locale.ROOT);
+        severityTokens.add(lowerId);
+        if (level != null && !level.isBlank()) {
+            String lowerLevel = level.toLowerCase(Locale.ROOT);
+            severityTokens.add(lowerLevel);
+            String display = extractDisplay(level, id);
+            if (display != null && !display.isBlank()) {
+                severityTokens.add(display.toLowerCase(Locale.ROOT));
+            }
+        }
+    }
+
+    private String extractDisplay(String level, String fallbackId) {
+        if (level == null || level.isBlank()) {
+            return fallbackId;
+        }
+        int idx = level.indexOf(' ');
+        if (idx > 0) {
+            String beforeHyphen = level.split("-", 2)[0].trim();
+            if (!beforeHyphen.isBlank()) {
+                return beforeHyphen;
+            }
+        }
+        return level;
+    }
+
+    public PaginationResponse<TicketDto> getTicketsForRootCauseAnalysis(String username, List<String> roles, Pageable pageable) {
+        boolean isTeamLead = isTeamLead(roles);
+        String updatedBy = isTeamLead ? null : normalize(username);
+        Page<Ticket> tickets = ticketRepository.findClosedTicketsForRootCauseAnalysis(
+                TicketStatus.CLOSED,
+                severityTokens,
+                updatedBy,
+                pageable
+        );
+        Page<TicketDto> dtoPage = tickets.map(ticket -> {
+            TicketDto dto = ticketService.mapWithStatusId(ticket);
+            String severityId = resolveSeverityId(ticket.getSeverity());
+            if (severityId != null) {
+                dto.setSeverityId(severityId);
+                dto.setSeverity(resolveSeverityDisplay(severityId));
+                dto.setSeverityLabel(resolveSeverityLabel(severityId));
+            } else {
+                dto.setSeverityId(ticket.getSeverity());
+                dto.setSeverity(ticket.getSeverity());
+                dto.setSeverityLabel(ticket.getSeverity());
+            }
+            return dto;
+        });
+        return new PaginationResponse<>(
+                dtoPage.getContent(),
+                dtoPage.getNumber(),
+                dtoPage.getSize(),
+                dtoPage.getTotalElements(),
+                dtoPage.getTotalPages()
+        );
+    }
+
+    public RootCauseAnalysisDto getRootCauseAnalysis(String ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
+                .orElseGet(() -> initializeRecord(ticket));
+        return toDto(rca, ticket);
+    }
+
+    public RootCauseAnalysisDto save(String ticketId,
+                                     String descriptionOfCause,
+                                     String resolutionDescription,
+                                     String updatedBy,
+                                     MultipartFile[] attachments) throws IOException {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
+                .orElseGet(() -> initializeRecord(ticket));
+        rca.setDescriptionOfCause(descriptionOfCause);
+        rca.setResolutionDescription(resolutionDescription);
+        String severityId = resolveSeverityId(ticket.getSeverity());
+        rca.setSeverityId(severityId != null ? severityId : ticket.getSeverity());
+        if (updatedBy != null && !updatedBy.isBlank()) {
+            if (rca.getCreatedBy() == null || rca.getCreatedBy().isBlank()) {
+                rca.setCreatedBy(updatedBy);
+            }
+            rca.setUpdatedBy(updatedBy);
+        }
+        List<String> existingAttachments = new ArrayList<>(parseAttachments(rca.getAttachmentPaths()));
+        if (attachments != null) {
+            for (MultipartFile file : attachments) {
+                if (file == null || file.isEmpty()) {
+                    continue;
+                }
+                String path = storageService.save(file, ticketId);
+                existingAttachments.add(path);
+            }
+        }
+        rca.setAttachmentPaths(joinAttachments(existingAttachments));
+        RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
+        return toDto(saved, ticket);
+    }
+
+    public RootCauseAnalysisDto removeAttachment(String ticketId, String relativePath, String updatedBy) throws IOException {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("RootCauseAnalysis", ticketId));
+        List<String> attachments = new ArrayList<>(parseAttachments(rca.getAttachmentPaths()));
+        boolean removed = attachments.removeIf(path -> path.equals(relativePath));
+        if (removed) {
+            storageService.delete(relativePath);
+        }
+        if (updatedBy != null && !updatedBy.isBlank()) {
+            rca.setUpdatedBy(updatedBy);
+        }
+        rca.setAttachmentPaths(joinAttachments(attachments));
+        RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
+        return toDto(saved, ticket);
+    }
+
+    private RootCauseAnalysis initializeRecord(Ticket ticket) {
+        RootCauseAnalysis rca = new RootCauseAnalysis();
+        rca.setTicket(ticket);
+        String severityId = resolveSeverityId(ticket.getSeverity());
+        rca.setSeverityId(severityId != null ? severityId : ticket.getSeverity());
+        return rootCauseAnalysisRepository.save(rca);
+    }
+
+    private RootCauseAnalysisDto toDto(RootCauseAnalysis rca, Ticket ticket) {
+        RootCauseAnalysisDto dto = new RootCauseAnalysisDto();
+        dto.setTicketId(ticket.getId());
+        String severityId = resolveSeverityId(rca.getSeverityId() != null ? rca.getSeverityId() : ticket.getSeverity());
+        if (severityId != null) {
+            dto.setSeverityId(severityId);
+            dto.setSeverityLabel(resolveSeverityLabel(severityId));
+            dto.setSeverityDisplay(resolveSeverityDisplay(severityId));
+        } else {
+            String raw = rca.getSeverityId() != null ? rca.getSeverityId() : ticket.getSeverity();
+            dto.setSeverityId(raw);
+            dto.setSeverityLabel(raw);
+            dto.setSeverityDisplay(raw);
+        }
+        dto.setDescriptionOfCause(rca.getDescriptionOfCause());
+        dto.setResolutionDescription(rca.getResolutionDescription());
+        dto.setAttachments(parseAttachments(rca.getAttachmentPaths()));
+        dto.setUpdatedBy(rca.getUpdatedBy());
+        dto.setUpdatedAt(rca.getUpdatedAt());
+        return dto;
+    }
+
+    private List<String> parseAttachments(String attachments) {
+        if (attachments == null || attachments.isBlank()) {
+            return new ArrayList<>();
+        }
+        return Arrays.stream(attachments.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private String joinAttachments(List<String> attachments) {
+        return attachments == null || attachments.isEmpty()
+                ? null
+                : attachments.stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.joining(","));
+    }
+
+    private String resolveSeverityId(String severityValue) {
+        if (severityValue == null || severityValue.isBlank()) {
+            return null;
+        }
+        String normalized = severityValue.trim().toUpperCase(Locale.ROOT);
+        if (RCA_SEVERITY_IDS.contains(normalized)) {
+            return normalized;
+        }
+        for (String id : RCA_SEVERITY_IDS) {
+            String label = severityIdToLabel.get(id);
+            if (label != null && normalized.equals(label.toUpperCase(Locale.ROOT))) {
+                return id;
+            }
+            String display = severityIdToDisplay.get(id);
+            if (display != null && normalized.equals(display.toUpperCase(Locale.ROOT))) {
+                return id;
+            }
+        }
+        if (normalized.contains("CRITICAL")) {
+            return "S1";
+        }
+        if (normalized.contains("HIGH")) {
+            return "S2";
+        }
+        if (normalized.contains("MEDIUM")) {
+            return "S3";
+        }
+        return null;
+    }
+
+    private String resolveSeverityLabel(String severityId) {
+        if (severityId == null) {
+            return null;
+        }
+        return severityIdToLabel.getOrDefault(severityId.toUpperCase(Locale.ROOT), severityId);
+    }
+
+    private String resolveSeverityDisplay(String severityId) {
+        if (severityId == null) {
+            return null;
+        }
+        return severityIdToDisplay.getOrDefault(severityId.toUpperCase(Locale.ROOT), severityId);
+    }
+
+    private boolean isTeamLead(List<String> roles) {
+        if (roles == null) {
+            return false;
+        }
+        return roles.stream()
+                .filter(Objects::nonNull)
+                .map(role -> role.trim().toUpperCase(Locale.ROOT))
+                .anyMatch(role -> role.equals("TEAM_LEAD") || role.equals("TL") || role.equals("TEAMLEAD"));
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+}
