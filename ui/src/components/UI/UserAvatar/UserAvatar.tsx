@@ -2,7 +2,7 @@ import React from 'react';
 import Avatar from '@mui/material/Avatar';
 
 interface UserAvatarProps {
-    name: string;
+    name?: string;
     onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
     size?: number;
     className?: string;
@@ -21,7 +21,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ name, onClick, size = 32, class
         className={className}
         sx={{ width: size, height: size, bgcolor: name ? 'primary.main' : '', cursor: onClick ? 'pointer' : 'default' }}
     >
-        {getInitials(name)}
+        {name && getInitials(name)}
     </Avatar>
 );
 

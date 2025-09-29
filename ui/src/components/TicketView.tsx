@@ -654,9 +654,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       {sla && (
         <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
           {/* SLA PROGRESS BAR */}
-          <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+          {/* <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
             <SlaProgressBar sla={sla} className="w-100" />
-          </Box>
+          </Box> */}
+            chart
           <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
             <SlaProgressChart sla={sla} className="w-100" />
           </Box>

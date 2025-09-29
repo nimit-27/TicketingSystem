@@ -26,6 +26,7 @@ export interface TicketCardData {
     userId?: string;
     requestorName?: string;
     assignedTo?: string;
+    assignedToName?: string;
     statusId?: string;
 }
 

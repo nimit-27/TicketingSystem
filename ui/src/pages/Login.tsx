@@ -102,7 +102,7 @@ interface LoginResponse {
 }
 
 const portalLabels: Record<PortalType, string> = {
-    requestor: "Requestor Login",
+    requestor: "Anna Darpan SSO Login",
     helpdesk: "Helpdesk Login",
 };
 

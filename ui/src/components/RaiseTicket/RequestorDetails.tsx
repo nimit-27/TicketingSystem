@@ -342,7 +342,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             ) : null}
                         </div>
                         <div className="w-100">
-                            {showRole && role && renderReadOnlyField("Role", role)}
+                            {/* {showRole && role && renderReadOnlyField("Role", role)} */}
                             {showOffice && office && renderReadOnlyField("Office", office)}
                             {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
                         </div>
