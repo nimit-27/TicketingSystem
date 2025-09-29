@@ -197,8 +197,36 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         '-' as any
                     ),
             },
-            { title: t('Category'), dataIndex: 'category', key: 'category' },
-            { title: t('Sub-Category'), dataIndex: 'subCategory', key: 'subCategory' },
+            {
+                title: t('Category'),
+                dataIndex: 'category',
+                key: 'category',
+                width: 180,
+                render: (value: string) => {
+                    const category = value || '';
+                    const truncated = truncateWithEllipsis(category, 20);
+                    return (
+                        <Tooltip title={category} placement="top">
+                            <span>{truncated}</span>
+                        </Tooltip>
+                    );
+                }
+            },
+            {
+                title: t('Sub-Category'),
+                dataIndex: 'subCategory',
+                key: 'subCategory',
+                width: 160,
+                render: (value: string) => {
+                    const subCategory = value || '';
+                    const truncated = truncateWithEllipsis(subCategory, 18);
+                    return (
+                        <Tooltip title={subCategory} placement="top">
+                            <span>{truncated}</span>
+                        </Tooltip>
+                    );
+                }
+            },
             { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> },
             {
                 title: t('Assignee'),
@@ -241,6 +269,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             {
                 title: t('Actions'),
                 key: 'action',
+                width: 200,
                 render: (_: any, record: TicketRow) => {
                     const recordActions = getAvailableActions(record.statusId);
                     const statusName = getStatusNameById(record.statusId || '') || '';
