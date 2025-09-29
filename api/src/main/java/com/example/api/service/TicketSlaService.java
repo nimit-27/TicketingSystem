@@ -59,6 +59,7 @@ public class TicketSlaService {
         }
 
         LocalDateTime reportedDate = ticket.getReportedDate();
+        LocalDateTime now = LocalDateTime.now();
 
         long resolutionPolicy = config.getResolutionMinutes() != null
                 ? config.getResolutionMinutes() : 0L;
@@ -83,7 +84,7 @@ public class TicketSlaService {
             responseMinutes = Math.max(Duration.between(reportedDate, assignTime).toMinutes(), 0L);
         }
 
-        LocalDateTime endTime = ticket.getResolvedAt() != null ? ticket.getResolvedAt() : LocalDateTime.now();
+        LocalDateTime endTime = ticket.getResolvedAt() != null ? ticket.getResolvedAt() : now;
         long elapsed = 0L;
         if (reportedDate != null) {
             elapsed = Math.max(Duration.between(reportedDate, endTime).toMinutes(), 0L);
@@ -130,34 +131,42 @@ public class TicketSlaService {
 
         TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
                 .orElseGet(TicketSla::new);
-        Long previousBreached = ticketSla.getBreachedByMinutes();
-        LocalDateTime existingActualDueAt = ticketSla.getActualDueAt();
-        if (existingActualDueAt == null) {
-            existingActualDueAt = ticketSla.getDueAt() != null ? ticketSla.getDueAt() : baseDueAt;
-        }
-
         boolean severityChanged = ticketSla.getSlaConfig() != null
                 && config != null
                 && !Objects.equals(ticketSla.getSlaConfig().getId(), config.getId());
+
+        Long previousBreached = ticketSla.getBreachedByMinutes();
+        LocalDateTime originalDueAt = ticketSla.getActualDueAt();
+        if (originalDueAt == null) {
+            originalDueAt = baseDueAt;
+        }
 
         LocalDateTime escalatedDueAt = ticketSla.getDueAtAfterEscalation();
         if (severityChanged) {
             escalatedDueAt = baseDueAt;
         }
 
-        LocalDateTime effectiveDueAt = escalatedDueAt != null ? escalatedDueAt : baseDueAt;
+        LocalDateTime currentDueAt = originalDueAt;
+        if (currentDueAt != null) {
+            currentDueAt = currentDueAt.plusMinutes(idle);
+        }
+
+        LocalDateTime slaTargetDueAt = escalatedDueAt != null ? escalatedDueAt : originalDueAt;
 
         long allowedMinutes = 0L;
-        if (reportedDate != null && effectiveDueAt != null) {
-            allowedMinutes = Math.max(Duration.between(reportedDate, effectiveDueAt).toMinutes(), 0L);
+        if (reportedDate != null && slaTargetDueAt != null) {
+            allowedMinutes = Math.max(Duration.between(reportedDate, slaTargetDueAt).toMinutes(), 0L);
         }
         long breachedBy = resolution - allowedMinutes;
-        long timeTillDueDate = allowedMinutes - resolution;
+        Long timeTillDueDate = null;
+        if (currentDueAt != null) {
+            timeTillDueDate = Duration.between(now, currentDueAt).toMinutes();
+        }
 
         ticketSla.setTicket(ticket);
         ticketSla.setSlaConfig(config);
-        ticketSla.setDueAt(effectiveDueAt);
-        ticketSla.setActualDueAt(existingActualDueAt);
+        ticketSla.setDueAt(currentDueAt);
+        ticketSla.setActualDueAt(originalDueAt);
         ticketSla.setDueAtAfterEscalation(escalatedDueAt);
         ticketSla.setResolutionTimeMinutes(resolution);
         ticketSla.setElapsedTimeMinutes(elapsed);
@@ -165,18 +174,18 @@ public class TicketSlaService {
         ticketSla.setBreachedByMinutes(breachedBy);
         ticketSla.setIdleTimeMinutes(idle);
         ticketSla.setCreatedAt(ticket.getReportedDate());
-        if (reportedDate != null && effectiveDueAt != null) {
-            ticketSla.setTotalSlaMinutes(Duration.between(reportedDate, effectiveDueAt).toMinutes());
+        if (reportedDate != null && slaTargetDueAt != null) {
+            ticketSla.setTotalSlaMinutes(Duration.between(reportedDate, slaTargetDueAt).toMinutes());
         } else {
             ticketSla.setTotalSlaMinutes(null);
         }
-        ticketSla.setTimeTillDueDate(timeTillDueDate > 0 ? timeTillDueDate : 0L);
+        ticketSla.setTimeTillDueDate(timeTillDueDate);
         TicketSla saved = ticketSlaRepository.save(ticketSla);
 
         boolean hasBreached = breachedBy > 0;
         boolean breachJustOccurred = hasBreached && (previousBreached == null || previousBreached <= 0);
         if (breachJustOccurred) {
-            notifyAssigneeOfSlaBreach(ticket, breachedBy, effectiveDueAt);
+            notifyAssigneeOfSlaBreach(ticket, breachedBy, slaTargetDueAt);
         }
 
         return saved;
