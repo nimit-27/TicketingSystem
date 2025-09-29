@@ -205,4 +205,12 @@ public class TicketController {
         logger.info("Ticket {} linked to master {}, returning {}", id, masterId, HttpStatus.OK);
         return ResponseEntity.ok(dto);
     }
+
+    @PutMapping("/{id}/master")
+    public ResponseEntity<TicketDto> markAsMaster(@PathVariable String id) {
+        logger.info("Request to mark ticket {} as master", id);
+        TicketDto dto = ticketService.markAsMaster(id);
+        logger.info("Ticket {} marked as master, returning {}", id, HttpStatus.OK);
+        return ResponseEntity.ok(dto);
+    }
 }

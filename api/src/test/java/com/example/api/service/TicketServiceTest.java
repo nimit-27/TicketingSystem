@@ -1,5 +1,6 @@
 package com.example.api.service;
 
+import com.example.api.dto.TicketDto;
 import com.example.api.enums.TicketStatus;
 import com.example.api.models.Status;
 import com.example.api.models.StatusHistory;
@@ -84,7 +85,7 @@ class TicketServiceTest {
     }
 
     @Test
-    void updateTicket_statusChangeWithRemarkOnAssignedTicket_addsAssignmentHistory() {
+    void updateTicket_statusChangeWithRemarkOnAssignedTicket_doesNotAddAssignmentHistory() {
         String ticketId = "T-2";
         Ticket existing = buildExistingTicket(ticketId, "agent1");
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
@@ -101,7 +102,7 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
-        verify(assignmentHistoryService).addHistory(ticketId, update.getUpdatedBy(), "agent1", "L1", update.getRemark());
+        verify(assignmentHistoryService, never()).addHistory(anyString(), anyString(), any(), any(), any());
     }
 
     @Test
@@ -311,6 +312,23 @@ class TicketServiceTest {
                 .containsEntry("updateType", "ASSIGNMENT_UPDATED")
                 .containsEntry("currentAssignee", "Agent New")
                 .containsEntry("actorName", "manager1");
+    }
+
+    @Test
+    void markAsMaster_setsMasterFlagsAndClearsMasterId() {
+        String ticketId = "T-5";
+        Ticket existing = buildExistingTicket(ticketId, null);
+        existing.setMaster(false);
+        existing.setMasterId("OLD-MASTER");
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TicketDto result = ticketService.markAsMaster(ticketId);
+
+        assertThat(result.isMaster()).isTrue();
+        assertThat(result.getMasterId()).isNull();
+        verify(ticketRepository).save(existing);
     }
 
     private Ticket buildExistingTicket(String ticketId, String assignee) {

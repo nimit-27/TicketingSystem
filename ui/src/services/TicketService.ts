@@ -44,6 +44,10 @@ export function linkTicketToMaster(id: string, masterId: string) {
     return axios.put(`${BASE_URL}/tickets/${id}/link/${masterId}`);
 }
 
+export function makeTicketMaster(id: string) {
+    return axios.put(`${BASE_URL}/tickets/${id}/master`);
+}
+
 export function addComment(id: string, comment: string) {
     return axios.post(`${BASE_URL}/tickets/${id}/comments`, comment, {
         headers: { 'Content-Type': 'text/plain' }
