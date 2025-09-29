@@ -161,13 +161,14 @@ public class TicketController {
             @RequestParam(required = false) String requestorId,
             @RequestParam(required = false) String levelId,
             @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String severity,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, page, size, sortBy, direction);
-        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority,
+        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} page={} size={} sortBy={} direction={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, page, size, sortBy, direction);
+        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy)));
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         logger.info("Search returned {} tickets with status {}", p.getNumberOfElements(), HttpStatus.OK);

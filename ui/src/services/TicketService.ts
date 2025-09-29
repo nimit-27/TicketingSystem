@@ -80,7 +80,8 @@ export function searchTicketsPaginated(
     assignedBy?: string,
     requestorId?: string,
     sortBy?: string,
-    direction?: string
+    direction?: string,
+    severity?: string
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -91,5 +92,6 @@ export function searchTicketsPaginated(
     if (requestorId) params.append('requestorId', requestorId);
     if (sortBy) params.append('sortBy', sortBy);
     if (direction) params.append('direction', direction);
+    if (severity) params.append('severity', severity);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
