@@ -299,7 +299,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 rowKey="id"
                 pagination={false}
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
-                expandable={{ expandedRowRender, expandedRowKeys, expandIcon: () => null }}
+                expandable={{ expandedRowRender, expandedRowKeys, expandIcon: () => null, showExpandColumn: false }}
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 {actions.map(a => {
