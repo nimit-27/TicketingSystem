@@ -125,6 +125,12 @@ public class TicketService {
                         dto.setSeverityApprovedBy(flow.getSeverityApprovedBy());
                     });
         }
+
+        if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().isBlank()) {
+            dto.setAssignedToName(resolveUserDisplayName(ticket.getAssignedTo()));
+        } else {
+            dto.setAssignedToName(null);
+        }
         return dto;
     }
 
@@ -213,33 +219,6 @@ public class TicketService {
             histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null));
         }
         ticketSlaService.calculateAndSave(saved, histories);
-
-        // Prepare data model for Freemarker template
-        Map<String, Object> data = new HashMap<>();
-        if (saved.getUser() != null) {
-            data.put("username", saved.getUser().getName());
-        } else {
-            data.put("username", saved.getRequestorName());
-        }
-        data.put("ticketId", saved.getId());
-
-        String recipientIdentifier = resolveRecipientIdentifier(
-                saved.getUser(),
-                saved.getRequestorName(),
-                saved.getRequestorEmailId()
-        );
-
-        // Send notification using IN_APP channel and TicketCreated template
-        try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
-                    TICKET_CREATED_NOTIFICATION_CODE,
-                    data,
-                    recipientIdentifier
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         if (isAssigned) {
             sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
@@ -359,6 +338,19 @@ public class TicketService {
 //            } catch (Exception e) {
 //                e.printStackTrace();
 //            }
+        }
+
+        boolean isReopenedStatus = updatedStatus == TicketStatus.REOPENED;
+        if (!isReopenedStatus && updatedStatusId != null) {
+            String updatedStatusCode = workflowService.getStatusCodeById(updatedStatusId);
+            if (updatedStatusCode != null) {
+                isReopenedStatus = TicketStatus.REOPENED.name().equalsIgnoreCase(updatedStatusCode);
+            }
+        }
+        if (isReopenedStatus) {
+            existing.setAssignedTo(null);
+            existing.setAssignedToLevel(null);
+            existing.setLevelId(null);
         }
         if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
         existing.setLastModified(LocalDateTime.now());

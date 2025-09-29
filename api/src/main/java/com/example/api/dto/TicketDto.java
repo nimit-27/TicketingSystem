@@ -46,6 +46,7 @@ public class TicketDto {
     private String assignTo;
     private String assignedToLevel;
     private String assignedTo;
+    private String assignedToName;
     private String assignedBy;
     private String levelId;
     private String updatedBy;

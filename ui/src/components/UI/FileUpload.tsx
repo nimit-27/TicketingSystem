@@ -9,6 +9,7 @@ interface FileUploadProps {
     thumbnailSize?: number;
     onFilesChange?: (files: File[]) => void;
     attachments?: File[];
+    hideUploadButton?: boolean;
 }
 
 interface ThumbnailListProps {
@@ -172,7 +173,7 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
     );
 };
 
-const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFilesChange, attachments = [] }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFilesChange, attachments = [], hideUploadButton = false }) => {
     const [files, setFiles] = useState<File[]>(attachments);
     const [error, setError] = useState<string>('');
 
@@ -210,13 +211,15 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
 
     return (
         <Box>
-            <div className='d-flex align-items-center'>
-                <Button variant="contained" component="label">
-                    Choose File
-                    <input type="file" hidden multiple onChange={onChange} />
-                </Button>
-                <Typography className='text-muted mx-2' variant="body2">Max upload size: {maxSizeMB} MB</Typography>
-            </div>
+            {!hideUploadButton && (
+                <div className='d-flex align-items-center'>
+                    <Button variant="contained" component="label">
+                        Choose File
+                        <input type="file" hidden multiple onChange={onChange} />
+                    </Button>
+                    <Typography className='text-muted mx-2' variant="body2">Max upload size: {maxSizeMB} MB</Typography>
+                </div>
+            )}
             {error && (<Typography color="error" variant="body2">{error}</Typography>)}
             <ThumbnailList attachments={files} thumbnailSize={thumbnailSize} onRemove={handleRemove} />
         </Box>

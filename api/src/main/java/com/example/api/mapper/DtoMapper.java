@@ -94,6 +94,7 @@ public class DtoMapper {
         }
         dto.setAssignedToLevel(ticket.getAssignedToLevel());
         dto.setAssignedTo(ticket.getAssignedTo());
+        dto.setAssignedToName(ticket.getAssignedTo());
         dto.setAssignedBy(ticket.getAssignedBy());
         dto.setLevelId(ticket.getLevelId());
         dto.setUpdatedBy(ticket.getUpdatedBy());

@@ -171,13 +171,13 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 {allowAssigneeChange(ticket.statusId)
                     ? <AssigneeDropdown
                         ticketId={ticket.id}
-                        assigneeName={ticket.assignedTo}
+                        assigneeName={ticket.assignedToName || ticket.assignedTo}
                         requestorId={ticket.userId}
                         searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                     />
-                    : ticket.assignedTo
-                        ? <Tooltip title={ticket.assignedTo}>
-                            <span><UserAvatar name={ticket.assignedTo} /></span>
+                    : (ticket.assignedToName || ticket.assignedTo)
+                        ? <Tooltip title={ticket.assignedToName || ticket.assignedTo}>
+                            <span><UserAvatar name={ticket.assignedToName || ticket.assignedTo} /></span>
                         </Tooltip>
                         : null
                 }

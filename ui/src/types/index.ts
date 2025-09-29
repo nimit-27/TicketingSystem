@@ -56,6 +56,7 @@ export interface Ticket {
     statusId?: string;
     statusLabel?: string;
     assignedTo?: string;
+    assignedToName?: string;
     assignedBy?: string;
     updatedBy?: string;
     lastModified?: string;
