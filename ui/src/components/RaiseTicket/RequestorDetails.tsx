@@ -58,9 +58,9 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const debouncedUserId = useDebounce(userId, 500);
 
     const allUsers = usersData || [];
-    const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholder === stakeholder);
+    const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholderId === stakeholder);
     const stakeholderOptions: DropdownOption[] = Array.isArray(stakeholderData)
-        ? stakeholderData.map((s: any) => ({ label: s.description, value: s.id }))
+        ? stakeholderData.map((s: any) => ({ label: s.description, value: String(s.id) }))
         : [];
 
     let showRequestorDetails = true;
@@ -100,7 +100,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("office", data?.office ?? data?.officeName ?? '');
 
             if (!fciUser) {
-                setValue("stakeholder", data.stakeholder);
+                setValue("stakeholder", data.stakeholderId ?? data.stakeholder);
             }
         }
     };

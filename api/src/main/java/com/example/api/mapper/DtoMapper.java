@@ -74,6 +74,7 @@ public class DtoMapper {
         dto.setRequestorEmailId(ticket.getRequestorEmailId());
         dto.setRequestorMobileNo(ticket.getRequestorMobileNo());
         dto.setStakeholder(ticket.getStakeholder());
+        dto.setStakeholderId(ticket.getStakeholder());
         dto.setSubject(ticket.getSubject());
         dto.setDescription(ticket.getDescription());
         dto.setCategory(ticket.getCategory());
@@ -140,6 +141,7 @@ public class DtoMapper {
         userDto.setOffice(user.getOffice());
         userDto.setRoles(user.getRoles());
         userDto.setStakeholder(user.getStakeholder());
+        userDto.setStakeholderId(user.getStakeholder());
         if (user.getUserLevel() != null && user.getUserLevel().getLevelIds() != null) {
             List<String> levels = Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
             userDto.setLevels(levels);

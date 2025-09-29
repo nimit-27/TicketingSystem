@@ -132,6 +132,7 @@ const SlaProgressChart: React.FC<SlaProgressChartProps> = ({ sla, className }) =
         name: segment.name,
         type: 'bar',
         stack: 'total',
+        barWidth: 20,
         emphasis: { focus: 'series' },
         itemStyle: { color: segment.color },
         data: [segment.value],
