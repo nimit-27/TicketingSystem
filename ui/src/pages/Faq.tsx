@@ -6,11 +6,13 @@ import { getFaqs } from "../services/FaqService";
 import { Faq as FaqType } from "../types";
 import { useApi } from "../hooks/useApi";
 import GenericButton from "../components/UI/Button";
+import { checkAccessMaster } from "../utils/permissions";
 
 const Faq: React.FC = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { data: faqs, apiHandler } = useApi<any>();
+    const canAddQnA = checkAccessMaster(["faq", "addQnAButton"]);
 
     useEffect(() => {
         apiHandler(() => getFaqs());
@@ -21,9 +23,11 @@ const Faq: React.FC = () => {
             <Title
                 textKey="FAQ"
                 rightContent={
-                    <GenericButton variant="contained" onClick={() => navigate('/faq/new')}>
-                        {t('Add Q & A')}
-                    </GenericButton>
+                    canAddQnA ? (
+                        <GenericButton variant="contained" onClick={() => navigate('/faq/new')}>
+                            {t('Add Q & A')}
+                        </GenericButton>
+                    ) : null
                 }
             />
             {(faqs ?? []).map((item: FaqType, index: Key | null | undefined) => {
