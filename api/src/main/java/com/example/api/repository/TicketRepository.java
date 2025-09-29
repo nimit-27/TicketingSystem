@@ -25,6 +25,16 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     Page<Ticket> findByPriority(String priority, Pageable pageable);
 
+    @Query("SELECT t FROM Ticket t " +
+            "WHERE t.ticketStatus = :status " +
+            "AND t.severity IS NOT NULL " +
+            "AND LOWER(t.severity) IN (:severityTokens) " +
+            "AND (:updatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:updatedBy))")
+    Page<Ticket> findClosedTicketsForRootCauseAnalysis(@Param("status") TicketStatus status,
+                                                       @Param("severityTokens") java.util.Collection<String> severityTokens,
+                                                       @Param("updatedBy") String updatedBy,
+                                                       Pageable pageable);
+
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
 //            "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
 //            "WHERE (:statusId IS NULL OR function(FIND_IN_SET, s.statusId, :statusId) > 0)" +

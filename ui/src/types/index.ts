@@ -72,6 +72,18 @@ export interface TicketStatusWorkflow {
     nextStatus: number;
 }
 
+export interface RootCauseAnalysis {
+    ticketId: string;
+    severityId?: string;
+    severityLabel?: string;
+    severityDisplay?: string;
+    descriptionOfCause?: string;
+    resolutionDescription?: string;
+    attachments?: string[];
+    updatedBy?: string;
+    updatedAt?: string;
+}
+
 export interface ToggleOption {
     icon?: string; // optional
     value: string;

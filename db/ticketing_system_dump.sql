@@ -868,6 +868,30 @@ INSERT INTO `ticket_feedback` VALUES (1,'050f176d-30ad-4144-a6cb-3741c141ab32','
 UNLOCK TABLES;
 
 --
+-- Table structure for table `root_cause_analysis`
+--
+
+DROP TABLE IF EXISTS `root_cause_analysis`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `root_cause_analysis` (
+  `rca_id` varchar(36) NOT NULL,
+  `ticket_id` varchar(36) NOT NULL,
+  `severity_id` varchar(10) DEFAULT NULL,
+  `description_of_cause` text,
+  `resolution_description` text,
+  `attachment_paths` text,
+  `created_by` varchar(100) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_by` varchar(100) DEFAULT NULL,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`rca_id`),
+  UNIQUE KEY `uk_root_cause_ticket` (`ticket_id`),
+  CONSTRAINT `fk_root_cause_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `ticket_sla`
 --
 
