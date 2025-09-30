@@ -107,13 +107,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const currentUserDetails = getCurrentUserDetails();
   const currentUsername = currentUserDetails?.username || '';
   const currentUserId = currentUserDetails?.userId || '';
-  const roles = currentUserDetails?.role || [];
+  const rawRoles = currentUserDetails?.role;
   const roleList = useMemo<string[]>(() => {
-    const raw = Array.isArray(roles) ? roles : [roles];
+    const raw = Array.isArray(rawRoles)
+      ? rawRoles
+      : rawRoles
+        ? [rawRoles]
+        : [];
     return raw
       .map(role => (role == null ? '' : role.toString()))
       .filter(role => role.trim().length > 0);
-  }, [roles]);
+  }, [rawRoles]);
   const normalizedRoles = useMemo(() => roleList.map(role => role.toUpperCase()), [roleList]);
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
