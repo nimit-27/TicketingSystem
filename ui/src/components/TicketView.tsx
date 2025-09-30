@@ -104,20 +104,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
-  const currentUserDetails = getCurrentUserDetails();
+  const currentUserDetails = useMemo(() => getCurrentUserDetails(), []);
   const currentUsername = currentUserDetails?.username || '';
   const currentUserId = currentUserDetails?.userId || '';
-  const rawRoles = currentUserDetails?.role;
-  const roleList = useMemo<string[]>(() => {
-    const raw = Array.isArray(rawRoles)
-      ? rawRoles
-      : rawRoles
-        ? [rawRoles]
-        : [];
-    return raw
-      .map(role => (role == null ? '' : role.toString()))
-      .filter(role => role.trim().length > 0);
-  }, [rawRoles]);
+  const roleList = useMemo<string[]>(() => currentUserDetails?.role ?? [], [currentUserDetails]);
+
   const normalizedRoles = useMemo(() => roleList.map(role => role.toUpperCase()), [roleList]);
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
@@ -191,6 +182,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   }, []);
 
+  console.log(roleList)
   useEffect(() => {
     if (ticketId) {
       getTicketHandler(() => getTicket(ticketId));
@@ -213,7 +205,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         .catch(() => {
           setCategoryOptions([]);
         });
-      workflowApiHandler(() => getStatusWorkflowMappings(roleList));
+
       getTicketSla(ticketId)
         .then(res => {
           const body = res.data?.body ?? res.data;
@@ -223,13 +215,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         })
         .catch(() => setSla(null));
     }
-  }, [ticketId, getTicketHandler, workflowApiHandler, roleList]);
+  }, [ticketId, getTicketHandler, workflowApiHandler]);
+
+  useEffect(() => {
+    workflowApiHandler(() => getStatusWorkflowMappings(roleList));
+  }, [roleList])
 
   useEffect(() => {
     if (ticketId) {
       getRootCauseAnalysisHandler(() => getRootCauseAnalysis(ticketId));
     }
-  }, [ticketId, getRootCauseAnalysisHandler]);
+  }, [ticketId]);
 
   useEffect(() => {
     if (ticket) {

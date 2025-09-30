@@ -1,5 +1,18 @@
 #!/bin/bash
 
+'''
+1. To create alias, run below command in cmd/bash
+code ~/.bashrc 
+'''
+
+# 2. Paste the following line in the .bashrc file opened up and save
+# alias mpf='bash "C:\Users\jainn\Desktop\14 9 13 9 20\Projects\Ticketing System"'
+
+'''
+3. Now run below command in cmd/bash
+source ~/.bashrc
+'''
+
 #Resolve the script's directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "${BASH_SOURCE[0]}"
@@ -9,7 +22,7 @@ echo "$SCRIPT_DIR"
 # Define paths
 REACT_DIR="$SCRIPT_DIR/ui"
 JAVA_DIR="$SCRIPT_DIR/api"
-IDEA="/c/Program Files/JetBrains/IntelliJ IDEA Community Edition 2025.2.1/bin/idea64.exe"
+IDEA="/c/Program Files/JetBrains/IntelliJ IDEA Community Edition 2025.2.2/bin/idea64.exe"
 
 # Initial flags
 open=false
@@ -61,4 +74,3 @@ $run_java && (
     echo "🛠️ Starting Java backend server"
     wt -w 0 nt --title "React Server" bash -c "cd '$REACT_DIR' && npm start"
 )
-
