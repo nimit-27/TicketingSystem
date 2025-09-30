@@ -96,11 +96,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [rcaDescription, setRcaDescription] = useState('');
   const [rcaResolution, setRcaResolution] = useState('');
   const [rcaAttachmentPaths, setRcaAttachmentPaths] = useState<string[]>([]);
+  const [rcaUploadKey, setRcaUploadKey] = useState(0);
   const [rcaSeverityLabel, setRcaSeverityLabel] = useState('');
   const [rcaSeverityDisplay, setRcaSeverityDisplay] = useState('');
   const [rcaUpdatedBy, setRcaUpdatedBy] = useState('');
   const [rcaUpdatedAt, setRcaUpdatedAt] = useState<string | null>(null);
-  const [editingRca, setEditingRca] = useState(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -367,7 +367,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     });
   };
 
-  const submitRca = useCallback(async (files?: File[], exitEditing: boolean = false) => {
+  const submitRca = useCallback(async (files?: File[]) => {
     if (!ticketId || !currentUsername) {
       return;
     }
@@ -381,8 +381,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     try {
       const payload = await saveRootCauseAnalysisHandler(() => saveRootCauseAnalysis(ticketId, formData));
       updateRcaState(payload ?? null);
-      if (exitEditing) {
-        setEditingRca(false);
+      if (files && files.length > 0) {
+        setRcaUploadKey(prev => prev + 1);
       }
     } catch {
       // errors handled via useApi hook
@@ -390,19 +390,19 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, [ticketId, currentUsername, rcaDescription, rcaResolution, saveRootCauseAnalysisHandler, updateRcaState]);
 
   const handleRcaSave = useCallback(() => {
-    void submitRca(undefined, true);
+    void submitRca();
   }, [submitRca]);
 
   const handleRcaAttachmentUpload = useCallback((files: File[]) => {
     if (!files || files.length === 0) {
       return;
     }
-    void submitRca(files, false);
+    void submitRca(files);
   }, [submitRca]);
 
   const handleRcaCancel = useCallback(() => {
     updateRcaState(rootCauseAnalysis ?? null);
-    setEditingRca(false);
+    setRcaUploadKey(prev => prev + 1);
   }, [rootCauseAnalysis, updateRcaState]);
 
   const handleRcaAttachmentRemove = useCallback(async (index: number) => {
@@ -568,6 +568,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
   const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2' || role === 'L3');
   const canEditRca = isClosedStatus && (isTeamLeadRole || isLevelAgent);
+  const shouldShowRcaSection = isClosedStatus;
 
   const availableStatusActions = useMemo(() => {
     if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
@@ -921,57 +922,33 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </div>
       </div>
 
-      <CustomFieldset title={t('RCA')} className="mt-4" style={{ margin: 0, padding: 0 }}>
-        <Box className="d-flex flex-column gap-3">
-          <Box className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <Box>
-              <Typography color="text.secondary">{t('Severity')}</Typography>
-              <Typography sx={{ mt: 1 }}>{severityText || ' - '}</Typography>
-              {severityLabelDisplay && (
-                <Typography variant="body2" color="text.secondary">{severityLabelDisplay}</Typography>
-              )}
-            </Box>
-            {canEditRca && (
-              <Box className="d-flex gap-2">
-                {!editingRca && (
-                  <GenericButton variant="outlined" size="small" onClick={() => setEditingRca(true)}>
-                    {t('Edit')}
-                  </GenericButton>
-                )}
-                {editingRca && (
-                  <>
-                    <GenericButton variant="contained" size="small" onClick={handleRcaSave}>
-                      {t('Save')}
-                    </GenericButton>
-                    <GenericButton variant="outlined" size="small" onClick={handleRcaCancel}>
-                      {t('Cancel')}
-                    </GenericButton>
-                  </>
+      {shouldShowRcaSection && (
+        <CustomFieldset title={t('RCA')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+          <Box className="d-flex flex-column gap-3">
+            <Box className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <Box>
+                <Typography color="text.secondary">{t('Severity')}</Typography>
+                <Typography sx={{ mt: 1 }}>{severityText || ' - '}</Typography>
+                {severityLabelDisplay && (
+                  <Typography variant="body2" color="text.secondary">{severityLabelDisplay}</Typography>
                 )}
               </Box>
-            )}
-          </Box>
-          <Box className="row g-3">
-            <Box className="col-12 col-lg-6">
-              <Typography color="text.secondary">{t('Description of cause')}</Typography>
-              {editingRca ? (
+            </Box>
+            <Box className="row g-3">
+              <Box className="col-12 col-lg-6">
+                <Typography color="text.secondary">{t('Description of cause')}</Typography>
                 <TextField
                   value={rcaDescription}
                   onChange={(e) => setRcaDescription(e.target.value)}
                   variant="outlined"
                   fullWidth
-                  multiline
-                  minRows={3}
                   size="small"
                   sx={{ mt: 1 }}
+                  disabled={!canEditRca}
                 />
-              ) : (
-                <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>{rcaDescription || ' - '}</Typography>
-              )}
-            </Box>
-            <Box className="col-12 col-lg-6">
-              <Typography color="text.secondary">{t('Resolution Description')}</Typography>
-              {editingRca ? (
+              </Box>
+              <Box className="col-12 col-lg-6">
+                <Typography color="text.secondary">{t('Resolution Description')}</Typography>
                 <TextField
                   value={rcaResolution}
                   onChange={(e) => setRcaResolution(e.target.value)}
@@ -981,43 +958,53 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                   minRows={3}
                   size="small"
                   sx={{ mt: 1 }}
+                  disabled={!canEditRca}
+                />
+              </Box>
+            </Box>
+            <Box>
+              <Typography color="text.secondary">{t('Attachments')}</Typography>
+              {rcaAttachmentUrls.length > 0 ? (
+                <ThumbnailList
+                  attachments={rcaAttachmentUrls}
+                  thumbnailSize={100}
+                  onRemove={canEditRca ? handleRcaAttachmentRemove : undefined}
                 />
               ) : (
-                <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>{rcaResolution || ' - '}</Typography>
+                <Typography sx={{ mt: 1 }} color="text.secondary">-</Typography>
+              )}
+              {canEditRca && (
+                <Box sx={{ mt: 1 }}>
+                  <FileUpload
+                    key={rcaUploadKey}
+                    maxSizeMB={5}
+                    thumbnailSize={100}
+                    onFilesChange={handleRcaAttachmentUpload}
+                    attachments={emptyFileList}
+                    hideUploadButton={!canEditRca}
+                  />
+                </Box>
               )}
             </Box>
-          </Box>
-          <Box>
-            <Typography color="text.secondary">{t('Attachments')}</Typography>
-            {rcaAttachmentUrls.length > 0 ? (
-              <ThumbnailList
-                attachments={rcaAttachmentUrls}
-                thumbnailSize={100}
-                onRemove={editingRca && canEditRca ? handleRcaAttachmentRemove : undefined}
-              />
-            ) : (
-              <Typography sx={{ mt: 1 }} color="text.secondary">-</Typography>
+            {(rcaUpdatedBy || formattedRcaUpdatedAt) && (
+              <Typography variant="caption" color="text.secondary">
+                {`Updated by ${rcaUpdatedBy || '-'}`}
+                {formattedRcaUpdatedAt ? ` on ${formattedRcaUpdatedAt}` : ''}
+              </Typography>
             )}
             {canEditRca && (
-              <Box sx={{ mt: 1 }}>
-                <FileUpload
-                  maxSizeMB={5}
-                  thumbnailSize={100}
-                  onFilesChange={handleRcaAttachmentUpload}
-                  attachments={emptyFileList}
-                  hideUploadButton={!editingRca}
-                />
+              <Box className="d-flex gap-2 justify-content-end">
+                <GenericButton variant="contained" size="small" onClick={handleRcaSave}>
+                  {t('Submit')}
+                </GenericButton>
+                <GenericButton variant="outlined" size="small" onClick={handleRcaCancel}>
+                  {t('Cancel')}
+                </GenericButton>
               </Box>
             )}
           </Box>
-          {(rcaUpdatedBy || formattedRcaUpdatedAt) && (
-            <Typography variant="caption" color="text.secondary">
-              {`Updated by ${rcaUpdatedBy || '-'}`}
-              {formattedRcaUpdatedAt ? ` on ${formattedRcaUpdatedAt}` : ''}
-            </Typography>
-          )}
-        </Box>
-      </CustomFieldset>
+        </CustomFieldset>
+      )}
 
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
