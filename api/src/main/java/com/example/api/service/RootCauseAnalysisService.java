@@ -8,14 +8,17 @@ import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
 import com.example.api.models.RootCauseAnalysis;
 import com.example.api.models.Severity;
+import com.example.api.models.UploadedFile;
 import com.example.api.models.Ticket;
 import com.example.api.repository.RootCauseAnalysisRepository;
 import com.example.api.repository.SeverityRepository;
 import com.example.api.repository.TicketRepository;
+import com.example.api.repository.UploadedFileRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -29,6 +32,7 @@ public class RootCauseAnalysisService {
     private final RootCauseAnalysisRepository rootCauseAnalysisRepository;
     private final TicketRepository ticketRepository;
     private final TicketService ticketService;
+    private final UploadedFileRepository uploadedFileRepository;
     private final RootCauseAnalysisStorageService storageService;
     private final Map<String, String> severityIdToLabel;
     private final Map<String, String> severityIdToDisplay;
@@ -38,10 +42,12 @@ public class RootCauseAnalysisService {
                                     TicketRepository ticketRepository,
                                     TicketService ticketService,
                                     SeverityRepository severityRepository,
+                                    UploadedFileRepository uploadedFileRepository,
                                     RootCauseAnalysisStorageService storageService) {
         this.rootCauseAnalysisRepository = rootCauseAnalysisRepository;
         this.ticketRepository = ticketRepository;
         this.ticketService = ticketService;
+        this.uploadedFileRepository = uploadedFileRepository;
         this.storageService = storageService;
         List<Severity> severities = severityRepository.findAll();
         this.severityIdToLabel = new HashMap<>();
@@ -179,6 +185,7 @@ public class RootCauseAnalysisService {
                 }
                 String path = storageService.save(file, ticketId);
                 existingAttachments.add(path);
+                persistUploadedFile(ticket, file, path, updatedBy);
             }
         }
         rca.setAttachmentPaths(joinAttachments(existingAttachments));
@@ -195,6 +202,14 @@ public class RootCauseAnalysisService {
         boolean removed = attachments.removeIf(path -> path.equals(relativePath));
         if (removed) {
             storageService.delete(relativePath);
+            uploadedFileRepository.findByTicket_IdAndRelativePath(ticketId, relativePath)
+                    .ifPresent(uploadedFile -> {
+                        uploadedFile.setIsActive("N");
+                        if (updatedBy != null && !updatedBy.isBlank()) {
+                            uploadedFile.setUploadedBy(updatedBy);
+                        }
+                        uploadedFileRepository.save(uploadedFile);
+                    });
         }
         if (updatedBy != null && !updatedBy.isBlank()) {
             rca.setUpdatedBy(updatedBy);
@@ -202,6 +217,33 @@ public class RootCauseAnalysisService {
         rca.setAttachmentPaths(joinAttachments(attachments));
         RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
         return toDto(saved, ticket);
+    }
+
+    private void persistUploadedFile(Ticket ticket, MultipartFile file, String relativePath, String uploadedBy) {
+        if (relativePath == null || relativePath.isBlank()) {
+            return;
+        }
+        uploadedFileRepository.findByTicket_IdAndRelativePath(ticket.getId(), relativePath)
+                .ifPresentOrElse(existing -> {
+                    existing.setIsActive("Y");
+                    if (uploadedBy != null && !uploadedBy.isBlank()) {
+                        existing.setUploadedBy(uploadedBy);
+                    }
+                    uploadedFileRepository.save(existing);
+                }, () -> {
+                    UploadedFile uploadedFile = new UploadedFile();
+                    String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse(relativePath);
+                    uploadedFile.setFileName(originalName);
+                    String extension = StringUtils.getFilenameExtension(originalName);
+                    if (extension != null && !extension.isBlank()) {
+                        uploadedFile.setFileExtension(extension);
+                    }
+                    uploadedFile.setRelativePath(relativePath);
+                    uploadedFile.setUploadedBy(uploadedBy);
+                    uploadedFile.setTicket(ticket);
+                    uploadedFile.setIsActive("Y");
+                    uploadedFileRepository.save(uploadedFile);
+                });
     }
 
     private RootCauseAnalysis initializeRecord(Ticket ticket) {
