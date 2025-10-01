@@ -114,8 +114,9 @@ public class TicketService {
         if (ticket.getId() != null) {
             java.util.List<com.example.api.models.UploadedFile> files = uploadedFileRepository.findByTicket_IdAndIsActive(ticket.getId(), "Y");
             java.util.List<String> paths = files.stream().map(com.example.api.models.UploadedFile::getRelativePath).toList();
-            dto.setAttachmentPath(String.join(",", paths));
             dto.setAttachmentPaths(paths);
+        } else {
+            dto.setAttachmentPaths(java.util.Collections.emptyList());
         }
         if (ticket.getId() != null && ticket.getRecommendedSeverity() != null) {
             recommendedSeverityFlowRepository
@@ -344,7 +345,6 @@ public class TicketService {
         if (updated.getImpact() != null) existing.setImpact(updated.getImpact());
         if (updated.getSeverityRecommendedBy() != null) existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
         if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
-        if (updated.getAttachmentPath() != null) existing.setAttachmentPath(updated.getAttachmentPath());
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
         if (updated.getLevelId() != null) existing.setLevelId(updated.getLevelId());
         boolean assignmentChangeAllowed = updated.getAssignedTo() != null
@@ -783,34 +783,39 @@ public class TicketService {
     public TicketDto addAttachments(String id, List<String> paths) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        List<String> all = new java.util.ArrayList<>();
-        if (ticket.getAttachmentPath() != null && !ticket.getAttachmentPath().isEmpty()) {
-            all.addAll(java.util.Arrays.asList(ticket.getAttachmentPath().split(",")));
+        if (paths != null && !paths.isEmpty()) {
+            for (String relativePath : paths) {
+                uploadedFileRepository.findByTicket_IdAndRelativePath(id, relativePath)
+                        .ifPresent(uf -> {
+                            if (!"Y".equalsIgnoreCase(uf.getIsActive())) {
+                                uf.setIsActive("Y");
+                                uploadedFileRepository.save(uf);
+                            }
+                        });
+            }
+            ticket.setLastModified(LocalDateTime.now());
+            ticket = ticketRepository.save(ticket);
         }
-        if (paths != null) {
-            all.addAll(paths);
-        }
-        ticket.setAttachmentPath(String.join(",", all));
-        Ticket saved = ticketRepository.save(ticket);
-        return mapWithStatusId(saved);
+        return mapWithStatusId(ticket);
     }
 
     public TicketDto removeAttachment(String id, String path) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        if (ticket.getAttachmentPath() != null && !ticket.getAttachmentPath().isEmpty()) {
-            java.util.List<String> list = new java.util.ArrayList<>(
-                    java.util.Arrays.asList(ticket.getAttachmentPath().split(",")));
-            list.removeIf(p -> p.equals(path));
-            ticket.setAttachmentPath(String.join(",", list));
+        boolean attachmentUpdated = uploadedFileRepository.findByTicket_IdAndRelativePath(id, path)
+                .map(uf -> {
+                    if (!"N".equalsIgnoreCase(uf.getIsActive())) {
+                        uf.setIsActive("N");
+                        uploadedFileRepository.save(uf);
+                    }
+                    return true;
+                })
+                .orElse(false);
+        if (attachmentUpdated) {
+            ticket.setLastModified(LocalDateTime.now());
+            ticket = ticketRepository.save(ticket);
         }
-        uploadedFileRepository.findByTicket_IdAndRelativePath(id, path)
-                .ifPresent(uf -> {
-                    uf.setIsActive("N");
-                    uploadedFileRepository.save(uf);
-                });
-        Ticket saved = ticketRepository.save(ticket);
-        return mapWithStatusId(saved);
+        return mapWithStatusId(ticket);
     }
 
     public TicketDto linkToMaster(String id, String masterId) {
