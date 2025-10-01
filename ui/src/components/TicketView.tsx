@@ -28,6 +28,7 @@ import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
 import { deleteRootCauseAnalysisAttachment, getRootCauseAnalysis, saveRootCauseAnalysis } from '../services/RootCauseAnalysisService';
 import { useLocation } from 'react-router-dom';
+import RootCauseAnalysisModal from './RootCauseAnalysisModal';
 
 interface TicketViewProps {
   ticketId: string;
@@ -1033,124 +1034,21 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
+
+      {/* MODAL - FEEDBACK */}
       <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} feedbackStatus={ticket.feedbackStatus} />
-      <Modal open={isRcaModalOpen} onClose={handleRcaModalClose}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 640,
-            maxWidth: '95vw',
-            bgcolor: 'background.paper',
-            p: 3,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">{rcaModalTitle}</Typography>
-            {!isSubmitMode && !rcaEditing && (
-              <CustomIconButton icon="edit" onClick={() => setRcaEditing(true)} />
-            )}
-          </Box>
-          <Divider />
-          <Typography variant="body2">
-            {t('Ticket ID')}: {ticketId}
-          </Typography>
-          <Typography variant="body2">
-            {t('Severity')}: {displayedSeverityText || '-'}
-          </Typography>
-          <Typography variant="body2">
-            {t('Updated By')}: {rcaUpdatedBy || '-'}
-          </Typography>
-          <Typography variant="body2">
-            {t('Updated At')}: {formattedRcaUpdatedAt || '-'}
-          </Typography>
-          {isRcaLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={32} />
-            </Box>
-          ) : (
-            <>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {t('Description of cause')}
-                </Typography>
-                {renderText(
-                  rcaFormValues.descriptionOfCause,
-                  value => handleRcaFieldChange('descriptionOfCause', value),
-                  true,
-                  { editing: rcaEditing },
-                )}
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {t('Resolution Description')}
-                </Typography>
-                {renderText(
-                  rcaFormValues.resolutionDescription,
-                  value => handleRcaFieldChange('resolutionDescription', value),
-                  true,
-                  { editing: rcaEditing },
-                )}
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {t('Attachments')}
-                </Typography>
-                {rcaAttachmentUrls.length > 0 ? (
-                  <Box sx={{ mt: 1 }}>
-                    <ThumbnailList
-                      attachments={rcaAttachmentUrls}
-                      thumbnailSize={100}
-                      onRemove={rcaEditing ? handleRcaExistingAttachmentRemove : undefined}
-                    />
-                  </Box>
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {t('No attachments available')}
-                  </Typography>
-                )}
-                {rcaEditing && (
-                  <Box sx={{ mt: 2 }}>
-                    <FileUpload
-                      maxSizeMB={5}
-                      thumbnailSize={100}
-                      attachments={rcaNewAttachments}
-                      onFilesChange={handleRcaNewFilesChange}
-                    />
-                  </Box>
-                )}
-              </Box>
-            </>
-          )}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {rcaEditing ? (
-              <>
-                <Button variant="outlined" onClick={handleRcaCancelEdit} disabled={saveRcaPending}>
-                  {t('Cancel')}
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleRcaSubmit}
-                  disabled={!isRcaFormValid || saveRcaPending}
-                >
-                  {t('Submit')}
-                </Button>
-              </>
-            ) : (
-              <Button variant="outlined" onClick={handleRcaModalClose}>
-                {t('Close')}
-              </Button>
-            )}
-          </Box>
-        </Box>
-      </Modal>
+
+      {/* MODAL - ROOT CAUSE ANALYSIS */}
+      <RootCauseAnalysisModal
+        open={isRcaModalOpen}
+        onClose={handleRcaModalClose}
+        ticketId={ticketId}
+        updatedBy={rcaUpdatedBy}
+        initialData={rootCauseAnalysis}
+        onSubmitted={function (payload: RootCauseAnalysis | null): void {
+          throw new Error('Function not implemented.');
+        }} />
+
       <RemarkComponent
         isModal
         open={showRecommendRemark}

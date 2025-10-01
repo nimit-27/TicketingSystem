@@ -13,7 +13,6 @@ interface RootCauseAnalysisModalProps {
   open: boolean;
   onClose: () => void;
   ticketId: string;
-  severity: string;
   updatedBy: string;
   initialData: RootCauseAnalysis | null;
   onSubmitted: (payload: RootCauseAnalysis | null) => void;
@@ -30,7 +29,6 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
   open,
   onClose,
   ticketId,
-  severity,
   updatedBy,
   initialData,
   onSubmitted,
@@ -150,7 +148,7 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
           {t('Ticket ID')}: {ticketId}
         </Typography>
         <Typography variant="body2">
-          {t('Severity')}: {severity || '-'}
+          {t('Severity')}: {initialData?.severityLabel || '-'}
         </Typography>
 
         <TextField
