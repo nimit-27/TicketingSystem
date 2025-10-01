@@ -11,6 +11,8 @@ import GenericInput from "../UI/Input/GenericInput";
 interface LinkToMasterTicketModalProps {
     open: boolean;
     onClose: () => void;
+    setMasterId: any;
+
 }
 
 interface TicketHit {

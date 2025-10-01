@@ -24,6 +24,7 @@ const RaiseTicket: React.FC<any> = () => {
     const { devMode } = useContext(DevModeContext);
 
     const isMaster = useWatch({ control, name: 'isMaster' });
+    const masterId = useWatch({ control, name: 'masterId' });
 
     let showLinkToMasterTicket = checkAccessMaster(["ticketForm", "linkToMasterTicketButton"]);
 
@@ -133,6 +134,10 @@ const RaiseTicket: React.FC<any> = () => {
         setValue('description', 'This is a sample description for testing purposes.');
     };
 
+    const setMasterId = (id: string) => {
+        setValue('masterId', id)
+    }
+
     return (
         <div className="container pb-5">
             <Title text="Raise Ticket" rightContent={<span>{today.toLocaleString()}</span>} />
@@ -156,7 +161,7 @@ const RaiseTicket: React.FC<any> = () => {
             </form>
 
             {/* Link to Master Ticket Modal */}
-            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} />
+            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} />
             {/* Successful Modal */}
             <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
         </div>

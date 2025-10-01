@@ -16,7 +16,7 @@ import SlaDetails from './SlaDetails';
 import Histories from '../pages/Histories';
 import CustomFieldset from './CustomFieldset';
 import { useTranslation } from 'react-i18next';
-import { checkFieldAccess } from '../utils/permissions';
+import { checkAccessMaster, checkFieldAccess } from '../utils/permissions';
 import FileUpload, { ThumbnailList } from './UI/FileUpload';
 import FeedbackModal from './Feedback/FeedbackModal';
 import { getFeedback } from '../services/FeedbackService';
@@ -122,18 +122,46 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return value;
   }, []);
 
+  // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
+  // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
+  const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
 
+  // ACTIONS ACCORDING TO STATUS WORKFLOW
+  const availableStatusActions = useMemo(() => {
+    if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
+    return statusWorkflows[ticket.statusId] || [];
+  }, [statusWorkflows, ticket?.statusId]);
+
+  console.log({ statusWorkflows, availableStatusActions })
+
+  const resolveAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
+    [availableStatusActions]
+  );
+  const closeAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Close') || null,
+    [availableStatusActions]
+  );
+  const reopenAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Reopen') || null,
+    [availableStatusActions]
+  );
+
+  const recommendSeverityAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Recommend Severity') || null,
+    [availableStatusActions]
+  );
 
   // PERMISSION BOOLEANS
+  const ticketViewPermissions = checkAccessMaster(['ticketView']);
+  const showSubmitRCAButton = checkAccessMaster(['ticketView', 'submitRCAButton'])
+  const showViewRCAButton = checkAccessMaster(['ticketView', 'viewRCAButton'])
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
   const showSeverity = checkFieldAccess('ticketDetails', 'severity');
   const showSeverityToRecommendSeverity = showSeverity && severityToRecommendSeverity
 
-  // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
-  // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
-  const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
 
   const fetchSubCategoriesList = useCallback(async (categoryValue: string) => {
     if (!categoryValue) {
@@ -502,26 +530,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isClosedStatus = normalisedStatusName === 'closed';
   const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
   const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2');
-  const canSubmitRca = isClosedStatus && (isTeamLeadRole || isLevelAgent);
+  // const showRCAButton = isClosedStatus && (isTeamLeadRole || isLevelAgent);
   const shouldShowRcaSection = isClosedStatus;
-
-  const availableStatusActions = useMemo(() => {
-    if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
-    return statusWorkflows[ticket.statusId] || [];
-  }, [statusWorkflows, ticket?.statusId]);
-
-  const resolveAction = useMemo(
-    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
-    [availableStatusActions]
-  );
-  const closeAction = useMemo(
-    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Close') || null,
-    [availableStatusActions]
-  );
-  const reopenAction = useMemo(
-    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Reopen') || null,
-    [availableStatusActions]
-  );
 
   const isAssignedToCurrentUser = useMemo(() => {
     if (!ticket?.assignedTo || !currentUsername) return false;
@@ -658,9 +668,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {hasFeedback ? t('View Feedback') : t('Submit Feedback')}
               </Button>
             )}
-            {canSubmitRca && (
+            {showSubmitRCAButton && (
               <Button size="small" variant="contained" color="success" onClick={() => setIsRcaModalOpen(true)}>
                 {t('Submit RCA')}
+              </Button>
+            )}
+            {showViewRCAButton && (
+              <Button size="small" variant="contained" color="success" onClick={() => setIsRcaModalOpen(true)}>
+                {t('View RCA')}
               </Button>
             )}
           </Box>
@@ -784,39 +799,41 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
             <Typography>{ticket.severity ? t(ticket.severity) : ''}</Typography>
             <InfoIcon content={severityInfoContent} />
-            {!showSeverityToRecommendSeverity
-              ? <GenericButton
-                variant="contained"
-                size="small"
-                onClick={() => setSeverityToRecommendSeverity(true)}
-                ref={recommendSeverityButtonRef}
-              >
-                {t('Recommend Severity')}
-              </GenericButton>
-              : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
-                <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
-                <GenericDropdown
-                  name="recommendedSeverity"
-                  value={recommendedSeverity}
-                  onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
-                  label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
-                  options={severityOptions}
-                  className="form-select w-25"
-                />
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <CustomIconButton
-                    icon="close"
-                    onClick={() => {
-                      cancelEditing();
-                      setShowRecommendRemark(false);
-                      setSeverityToRecommendSeverity(false);
-                    }}
+            {recommendSeverityAction
+              ? !showSeverityToRecommendSeverity
+                ? <GenericButton
+                  variant="contained"
+                  size="small"
+                  onClick={() => setSeverityToRecommendSeverity(true)}
+                  ref={recommendSeverityButtonRef}
+                >
+                  {t('Recommend Severity')}
+                </GenericButton>
+                : <Box className='col-8 align-items-center' sx={{ display: 'flex', gap: 2 }}>
+                  <IconComponent icon="keyboardDoubleArrowRight" className='text-muted' />
+                  <GenericDropdown
+                    name="recommendedSeverity"
+                    value={recommendedSeverity}
+                    onChange={(e: SelectChangeEvent) => setRecommendedSeverity(e.target.value as string)}
+                    label={ticket?.recommendedSeverity ? "Recommended Severity" : "Recommend Severity"}
+                    options={severityOptions}
+                    className="form-select w-25"
                   />
-                  {!showRecommendRemark && (
-                    <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
-                  )}
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <CustomIconButton
+                      icon="close"
+                      onClick={() => {
+                        cancelEditing();
+                        setShowRecommendRemark(false);
+                        setSeverityToRecommendSeverity(false);
+                      }}
+                    />
+                    {!showRecommendRemark && (
+                      <CustomIconButton icon="check" onClick={() => setShowRecommendRemark(true)} />
+                    )}
+                  </Box>
                 </Box>
-              </Box>}
+              : null}
           </Box>}
           {showRecommendedSeverity && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -861,53 +878,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           </Box>
         </div>
       </div>
-
-      {shouldShowRcaSection && (
-        <CustomFieldset title={t('RCA')} className="mt-4" style={{ margin: 0, padding: 0 }}>
-          <Box className="d-flex flex-column gap-3">
-            <Box className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-              <Box>
-                <Typography color="text.secondary">{t('Severity')}</Typography>
-                <Typography sx={{ mt: 1 }}>{displayedSeverityText || ' - '}</Typography>
-                {severityLabelDisplay && (
-                  <Typography variant="body2" color="text.secondary">{severityLabelDisplay}</Typography>
-                )}
-              </Box>
-            </Box>
-            <Box className="row g-3">
-              <Box className="col-12 col-lg-6">
-                <Typography color="text.secondary">{t('Description of cause')}</Typography>
-                <Typography sx={{ mt: 1, whiteSpace: 'pre-line' }}>
-                  {rcaData?.descriptionOfCause ? rcaData.descriptionOfCause : ' - '}
-                </Typography>
-              </Box>
-              <Box className="col-12 col-lg-6">
-                <Typography color="text.secondary">{t('Resolution Description')}</Typography>
-                <Typography sx={{ mt: 1, whiteSpace: 'pre-line' }}>
-                  {rcaData?.resolutionDescription ? rcaData.resolutionDescription : ' - '}
-                </Typography>
-              </Box>
-            </Box>
-            <Box>
-              <Typography color="text.secondary">{t('Attachments')}</Typography>
-              {rcaAttachmentUrls.length > 0 ? (
-                <ThumbnailList
-                  attachments={rcaAttachmentUrls}
-                  thumbnailSize={100}
-                />
-              ) : (
-                <Typography sx={{ mt: 1 }} color="text.secondary">-</Typography>
-              )}
-            </Box>
-            {(rcaUpdatedBy || formattedRcaUpdatedAt) && (
-              <Typography variant="caption" color="text.secondary">
-                {`Updated by ${rcaUpdatedBy || '-'}`}
-                {formattedRcaUpdatedAt ? ` on ${formattedRcaUpdatedAt}` : ''}
-              </Typography>
-            )}
-          </Box>
-        </CustomFieldset>
-      )}
 
       {showHistory && (
         <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
