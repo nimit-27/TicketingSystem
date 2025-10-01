@@ -43,7 +43,7 @@ public class TicketFeedbackService {
     public FeedbackFormDTO getForm(String ticketId, String currentUserId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        if (!ticket.getUserId().equals(currentUserId)) {
+        if (!isTicketOwner(ticket.getUserId(), currentUserId)) {
             throw new ForbiddenOperationException("You are not allowed to access feedback for this ticket.");
         }
         if (ticket.getTicketStatus() != TicketStatus.CLOSED) {
@@ -65,7 +65,7 @@ public class TicketFeedbackService {
     public TicketFeedbackResponse submit(String ticketId, String currentUserId, SubmitFeedbackRequest req) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        if (!ticket.getUserId().equals(currentUserId)) {
+        if (!isTicketOwner(ticket.getUserId(), currentUserId)) {
             throw new ForbiddenOperationException("You are not allowed to submit feedback for this ticket.");
         }
         if (feedbackRepository.findByTicketId(ticketId).isPresent()) {
@@ -96,13 +96,20 @@ public class TicketFeedbackService {
     public Optional<TicketFeedbackResponse> getFeedback(String ticketId, String currentUserId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        if (!ticket.getUserId().equals(currentUserId)) {
+        if (!isTicketOwner(ticket.getUserId(), currentUserId)) {
             throw new ForbiddenOperationException("You are not allowed to access feedback for this ticket.");
         }
         return feedbackRepository.findByTicketId(ticketId)
                 .map(f -> new TicketFeedbackResponse(ticketId, f.getOverallSatisfaction(),
                         f.getResolutionEffectiveness(), f.getCommunicationSupport(),
                         f.getTimeliness(), f.getComments(), f.getSubmittedAt(), f.getSubmittedBy()));
+    }
+
+    private boolean isTicketOwner(String ticketUserId, String currentUserId) {
+        if (ticketUserId == null || currentUserId == null) {
+            return false;
+        }
+        return ticketUserId.trim().equalsIgnoreCase(currentUserId.trim());
     }
 
     public Page<TicketFeedback> search(Optional<String> ticketId, Optional<FeedbackStatus> status,
