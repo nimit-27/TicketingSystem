@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 public class RootCauseAnalysisService {
 
     private static final Set<String> RCA_SEVERITY_IDS = Set.of("S1", "S2", "S3");
+    private static final String RCA_STATUS_NOT_APPLICABLE = "NOT_APPLICABLE";
+    private static final String RCA_STATUS_PENDING = "PENDING";
+    private static final String RCA_STATUS_SUBMITTED = "SUBMITTED";
     private final RootCauseAnalysisRepository rootCauseAnalysisRepository;
     private final TicketRepository ticketRepository;
     private final TicketService ticketService;
@@ -127,6 +130,20 @@ public class RootCauseAnalysisService {
                 updatedBy,
                 pageable
         );
+        Set<String> submittedTicketIds = Collections.emptySet();
+        List<Ticket> content = tickets.getContent();
+        if (!content.isEmpty()) {
+            Set<String> ticketIds = content.stream()
+                    .map(Ticket::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            if (!ticketIds.isEmpty()) {
+                List<String> rcaTicketIds = rootCauseAnalysisRepository.findTicketIdsWithRca(ticketIds);
+                if (rcaTicketIds != null && !rcaTicketIds.isEmpty()) {
+                    submittedTicketIds = new HashSet<>(rcaTicketIds);
+                }
+            }
+        }
         Page<TicketDto> dtoPage = tickets.map(ticket -> {
             TicketDto dto = ticketService.mapWithStatusId(ticket);
             String severityId = resolveSeverityId(ticket.getSeverity());
@@ -139,6 +156,7 @@ public class RootCauseAnalysisService {
                 dto.setSeverity(ticket.getSeverity());
                 dto.setSeverityLabel(ticket.getSeverity());
             }
+            dto.setRcaStatus(resolveRcaStatus(ticket, submittedTicketIds));
             return dto;
         });
         return new PaginationResponse<>(
@@ -284,6 +302,20 @@ public class RootCauseAnalysisService {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
+    }
+
+    private String resolveRcaStatus(Ticket ticket, Set<String> submittedTicketIds) {
+        if (ticket == null || ticket.getId() == null) {
+            return RCA_STATUS_NOT_APPLICABLE;
+        }
+        if (ticket.getTicketStatus() != TicketStatus.CLOSED) {
+            return RCA_STATUS_NOT_APPLICABLE;
+        }
+        String severityId = resolveSeverityId(ticket.getSeverity());
+        if (severityId == null || !RCA_SEVERITY_IDS.contains(severityId)) {
+            return RCA_STATUS_NOT_APPLICABLE;
+        }
+        return submittedTicketIds.contains(ticket.getId()) ? RCA_STATUS_SUBMITTED : RCA_STATUS_PENDING;
     }
 
     private String joinAttachments(List<String> attachments) {

@@ -63,6 +63,7 @@ export interface Ticket {
     updatedBy?: string;
     lastModified?: string;
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
+    rcaStatus?: 'NOT_APPLICABLE' | 'PENDING' | 'SUBMITTED';
 }
 
 export interface TicketStatusWorkflow {
