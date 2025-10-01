@@ -59,4 +59,5 @@ public class TicketDto {
     private LocalDateTime lastModified;
     private LocalDateTime resolvedAt;
     private FeedbackStatus feedbackStatus;
+    private String rcaStatus;
 }
