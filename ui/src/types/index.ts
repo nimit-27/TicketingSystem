@@ -62,6 +62,7 @@ export interface Ticket {
     assignedBy?: string;
     updatedBy?: string;
     lastModified?: string;
+    attachmentPaths?: string[];
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
     rcaStatus?: 'NOT_APPLICABLE' | 'PENDING' | 'SUBMITTED';
 }

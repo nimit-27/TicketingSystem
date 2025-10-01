@@ -89,12 +89,7 @@ public class DtoMapper {
         dto.setSeverityRecommendedBy(ticket.getSeverityRecommendedBy());
         dto.setStatus(ticket.getTicketStatus());
         dto.setStatusId(ticket.getStatus() != null ? ticket.getStatus().getStatusId() : null);
-        dto.setAttachmentPath(ticket.getAttachmentPath());
-        if (ticket.getAttachmentPath() != null && !ticket.getAttachmentPath().isEmpty()) {
-            dto.setAttachmentPaths(Arrays.asList(ticket.getAttachmentPath().split(",")));
-        } else {
-            dto.setAttachmentPaths(Collections.emptyList());
-        }
+        dto.setAttachmentPaths(Collections.emptyList());
         dto.setAssignedToLevel(ticket.getAssignedToLevel());
         dto.setAssignedTo(ticket.getAssignedTo());
         dto.setAssignedToName(ticket.getAssignedTo());

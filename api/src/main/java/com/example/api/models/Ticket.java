@@ -54,9 +54,6 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private TicketStatus ticketStatus;
-    @Column(name="attachment_path")
-    private String attachmentPath;
-
     @Column(name = "assigned_to_level")
     private String assignedToLevel;
 

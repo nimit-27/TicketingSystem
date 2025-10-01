@@ -229,10 +229,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSelectedCategoryId('');
       setSelectedSubCategoryId('');
       setSubCategoryOptions([]);
-      if (Array.isArray(ticket.attachmentPaths)) {
+      if (Array.isArray(ticket.attachmentPaths) && ticket.attachmentPaths.length > 0) {
         setAttachments(ticket.attachmentPaths.map((att: string) => `${BASE_URL}/uploads/${att}`));
-      } else if (ticket.attachmentPath) {
-        setAttachments([`${BASE_URL}/uploads/${ticket.attachmentPath}`]);
       } else {
         setAttachments([]);
       }

@@ -43,7 +43,6 @@ public class TicketDto {
     private String statusId;
     private String statusLabel;
     private String statusName;
-    private String attachmentPath;
     private List<String> attachmentPaths;
     private String assignToLevel;
     private String assignTo;
