@@ -3,6 +3,7 @@ import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla } from '../services/TicketService';
+import { getRootCauseAnalysisTicketById } from '../services/RootCauseAnalysisService';
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
 import { getPriorities } from '../services/PriorityService';
@@ -56,9 +57,11 @@ const normaliseSla = (slaData: TicketSla | null): TicketSla | null => {
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
   const { t } = useTranslation();
 
-  // Getting rcaStatus from RootCauseAnalysis.tsx
-  const { state, pathname } = useLocation();
-  const rcaStatus = state?.rcaStatus ?? '';
+  // Determine page context and track RCA status
+  const location = useLocation();
+  const { pathname } = location;
+  // const rcaStatusFromLocation = (location.state as any)?.rcaStatus ?? '';
+  const [rcaStatus, setRcaStatus] = useState('');
 
   const pageType = pathname.includes('root-cause-analysis') ? 'RCA' : 'Ticket';
 
@@ -184,7 +187,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   useEffect(() => {
     if (ticketId) {
       
-      getTicketHandler(() => getTicket(ticketId));
+      const ticketFetcher = pageType === 'RCA'
+        ? () => getRootCauseAnalysisTicketById(ticketId)
+        : () => getTicket(ticketId);
+
+      getTicketHandler(ticketFetcher);
       getPriorities().then(res => {
         const priorityData = Array.isArray(res?.data?.body?.data) ? res.data?.body?.data : [];
         setPriorityOptions(priorityData.map((p: PriorityInfo) => p.level));
@@ -214,7 +221,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         })
         .catch(() => setSla(null));
     }
-  }, [ticketId, getTicketHandler, workflowApiHandler]);
+  }, [ticketId, pageType, getTicketHandler, workflowApiHandler]);
 
   useEffect(() => {
     workflowApiHandler(() => getStatusWorkflowMappings(roleList));
@@ -242,6 +249,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           .then(res => setHasFeedback(Boolean(res.data)))
           .catch(() => setHasFeedback(false));
       }
+      setRcaStatus(ticket.rcaStatus || '');
+    } else {
+      setRcaStatus('');
     }
   }, [ticket]);
 
@@ -515,7 +525,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
-    const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
+  const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
     setSelectedStatusAction(action);

@@ -6,7 +6,6 @@ import com.example.api.dto.TicketDto;
 import com.example.api.enums.TicketStatus;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
-import com.example.api.mapper.DtoMapper;
 import com.example.api.models.RootCauseAnalysis;
 import com.example.api.models.Severity;
 import com.example.api.models.UploadedFile;
@@ -178,14 +177,21 @@ public class RootCauseAnalysisService {
     public TicketDto getTicketForRootCauseAnalysisById(String ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        if (!isEligibleForRootCauseAnalysis(ticket)) {
+            throw new ResourceNotFoundException("Ticket", ticketId);
+        }
+
         Optional<RootCauseAnalysis> rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId);
 
-        TicketDto ticketDto = DtoMapper.toTicketDto(ticket);
-        if(rca.isEmpty()) {
-            ticketDto.setRcaStatus("PENDING");
-        }else {
-            ticketDto.setRcaStatus("SUBMITTED");
+        TicketDto ticketDto = ticketService.mapWithStatusId(ticket);
+        String severityId = resolveSeverityId(ticket.getSeverity());
+        if (severityId != null) {
+            ticketDto.setSeverityId(severityId);
+            ticketDto.setSeverity(resolveSeverityDisplay(severityId));
+            ticketDto.setSeverityLabel(resolveSeverityLabel(severityId));
         }
+        ticketDto.setRcaStatus(rca.isPresent() ? RCA_STATUS_SUBMITTED : RCA_STATUS_PENDING);
         return ticketDto;
     }
 
@@ -391,6 +397,17 @@ public class RootCauseAnalysisService {
             return null;
         }
         return severityIdToDisplay.getOrDefault(severityId.toUpperCase(Locale.ROOT), severityId);
+    }
+
+    private boolean isEligibleForRootCauseAnalysis(Ticket ticket) {
+        if (ticket == null) {
+            return false;
+        }
+        if (ticket.getTicketStatus() != TicketStatus.CLOSED) {
+            return false;
+        }
+        String severityId = resolveSeverityId(ticket.getSeverity());
+        return severityId != null && RCA_SEVERITY_IDS.contains(severityId);
     }
 
     private boolean isTeamLead(List<String> roles) {
