@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
+import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Modal, Divider, CircularProgress } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla } from '../services/TicketService';
@@ -28,8 +28,7 @@ import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressBar from './SlaProgressBar';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
-import { getRootCauseAnalysis } from '../services/RootCauseAnalysisService';
-import RootCauseAnalysisModal from './RootCauseAnalysisModal';
+import { deleteRootCauseAnalysisAttachment, getRootCauseAnalysis, saveRootCauseAnalysis } from '../services/RootCauseAnalysisService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -63,7 +62,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const { apiHandler: updateTicketHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
-  const { data: rootCauseAnalysis, apiHandler: getRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
+  const { data: rootCauseAnalysis, apiHandler: getRootCauseAnalysisHandler, pending: rcaLoading } = useApi<RootCauseAnalysis | null>();
+  const { apiHandler: saveRcaHandler, pending: saveRcaPending } = useApi<RootCauseAnalysis | null>();
+  const { apiHandler: deleteRcaAttachmentHandler } = useApi<RootCauseAnalysis | null>();
 
   // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
@@ -94,6 +95,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
+  const [rcaModalMode, setRcaModalMode] = useState<'view' | 'submit'>('view');
+  const [rcaEditing, setRcaEditing] = useState(false);
+  const [rcaFormValues, setRcaFormValues] = useState({ descriptionOfCause: '', resolutionDescription: '' });
+  const [rcaExistingAttachments, setRcaExistingAttachments] = useState<string[]>([]);
+  const [rcaNewAttachments, setRcaNewAttachments] = useState<File[]>([]);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -397,8 +403,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   };
 
-  const renderText = (value: string, onChange: (v: string) => void, multiline?: boolean) => (
-    editing ? (
+  const renderText = (
+    value: string,
+    onChange: (v: string) => void,
+    multiline?: boolean,
+    options?: { editing?: boolean },
+  ) => {
+    const isEditing = options?.editing ?? editing;
+    return isEditing ? (
       <TextField
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -411,8 +423,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       />
     ) : (
       <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || ' - '}</Typography>
-    )
-  );
+    );
+  };
 
   const renderSelect = (
     value: string,
@@ -503,20 +515,137 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return label && label !== severityText ? label : '';
   }, [rcaData?.severityLabel, rcaData?.severityId, ticket?.severity, severityText]);
   const displayedSeverityText = severityText || fallbackSeverityText;
-  const rcaAttachmentUrls = useMemo(() => (
-    Array.isArray(rcaData?.attachments)
-      ? rcaData.attachments.map(path => `${BASE_URL}/uploads/${path}`)
-      : []
-  ), [rcaData?.attachments]);
+  const rcaAttachmentUrls = useMemo(
+    () => rcaExistingAttachments.map(path => `${BASE_URL}/uploads/${path}`),
+    [rcaExistingAttachments],
+  );
 
-  const handleRcaDataChange = useCallback((payload: RootCauseAnalysis | null) => {
-    setRcaData(payload ?? null);
+  const resetRcaForm = useCallback((data: RootCauseAnalysis | null) => {
+    setRcaFormValues({
+      descriptionOfCause: data?.descriptionOfCause ?? '',
+      resolutionDescription: data?.resolutionDescription ?? '',
+    });
+    const attachments = Array.isArray(data?.attachments) ? data.attachments : [];
+    setRcaExistingAttachments(attachments);
+    setRcaNewAttachments([]);
   }, []);
 
-  const handleRcaModalSubmit = useCallback((payload: RootCauseAnalysis | null) => {
-    setRcaData(payload ?? null);
+  useEffect(() => {
+    setRcaData(rootCauseAnalysis ?? null);
+  }, [rootCauseAnalysis]);
+
+  useEffect(() => {
+    if (rcaModalMode === 'view' && !rcaEditing) {
+      resetRcaForm(rcaData ?? null);
+    }
+  }, [rcaData, rcaModalMode, rcaEditing, resetRcaForm]);
+
+  const handleOpenSubmitRca = useCallback(() => {
+    setRcaModalMode('submit');
+    setRcaEditing(true);
+    resetRcaForm(null);
+    setIsRcaModalOpen(true);
+  }, [resetRcaForm]);
+
+  const handleOpenViewRca = useCallback(() => {
+    if (!ticketId) {
+      return;
+    }
+    setRcaModalMode('view');
+    setRcaEditing(false);
+    resetRcaForm(null);
+    setIsRcaModalOpen(true);
+    getRootCauseAnalysisHandler(() => getRootCauseAnalysis(ticketId));
+  }, [getRootCauseAnalysisHandler, resetRcaForm, ticketId]);
+
+  const handleRcaFieldChange = useCallback((field: 'descriptionOfCause' | 'resolutionDescription', value: string) => {
+    setRcaFormValues(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleRcaNewFilesChange = useCallback((files: File[]) => {
+    setRcaNewAttachments(files);
+  }, []);
+
+  const handleRcaExistingAttachmentRemove = useCallback(async (index: number) => {
+    if (!ticketId) {
+      return;
+    }
+    const path = rcaExistingAttachments[index];
+    if (!path) {
+      return;
+    }
+    try {
+      const payload = await deleteRcaAttachmentHandler(() =>
+        deleteRootCauseAnalysisAttachment(ticketId, path, currentUsername),
+      );
+      const normalized = payload ?? null;
+      setRcaData(normalized);
+      resetRcaForm(normalized);
+    } catch {
+      // handled in useApi
+    }
+  }, [currentUsername, deleteRcaAttachmentHandler, resetRcaForm, rcaExistingAttachments, ticketId]);
+
+  const handleRcaModalClose = useCallback(() => {
     setIsRcaModalOpen(false);
-  }, []);
+    setRcaEditing(false);
+    if (rcaModalMode === 'view') {
+      resetRcaForm(rcaData ?? null);
+    } else {
+      resetRcaForm(null);
+    }
+  }, [rcaData, rcaModalMode, resetRcaForm]);
+
+  const handleRcaCancelEdit = useCallback(() => {
+    if (rcaModalMode === 'submit') {
+      handleRcaModalClose();
+      return;
+    }
+    setRcaEditing(false);
+    resetRcaForm(rcaData ?? null);
+  }, [handleRcaModalClose, rcaData, rcaModalMode, resetRcaForm]);
+
+  const handleRcaSubmit = useCallback(async () => {
+    if (!ticketId) {
+      return;
+    }
+    const description = rcaFormValues.descriptionOfCause.trim();
+    const resolution = rcaFormValues.resolutionDescription.trim();
+    if (!description || !resolution) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('descriptionOfCause', description);
+    formData.append('resolutionDescription', resolution);
+    if (currentUsername) {
+      formData.append('updatedBy', currentUsername);
+    }
+    rcaNewAttachments.forEach(file => formData.append('attachments', file));
+    try {
+      const payload = await saveRcaHandler(() => saveRootCauseAnalysis(ticketId, formData));
+      const normalized = payload ?? null;
+      setRcaData(normalized);
+      resetRcaForm(normalized);
+      setRcaEditing(false);
+      if (rcaModalMode === 'submit') {
+        setIsRcaModalOpen(false);
+        setRcaModalMode('view');
+      }
+      await getTicketHandler(() => getTicket(ticketId));
+    } catch {
+      // handled in useApi
+    }
+  }, [currentUsername, getTicketHandler, rcaFormValues.descriptionOfCause, rcaFormValues.resolutionDescription, rcaModalMode, rcaNewAttachments, resetRcaForm, saveRcaHandler, ticketId]);
+
+  const isSubmitMode = rcaModalMode === 'submit';
+  const rcaModalTitle = isSubmitMode
+    ? t('Submit RCA')
+    : rcaEditing
+      ? t('Edit RCA')
+      : t('View RCA');
+  const isRcaFormValid = rcaFormValues.descriptionOfCause.trim().length > 0
+    && rcaFormValues.resolutionDescription.trim().length > 0;
+  const isRcaLoading = rcaLoading && !isSubmitMode;
 
   const currentStatusName = useMemo(() => {
     if (!ticket) return '';
@@ -548,6 +677,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
   const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
+  const rcaStatus = ticket?.rcaStatus;
+  const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
+  const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
 
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
@@ -668,13 +800,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {hasFeedback ? t('View Feedback') : t('Submit Feedback')}
               </Button>
             )}
-            {showSubmitRCAButton && (
-              <Button size="small" variant="contained" color="success" onClick={() => setIsRcaModalOpen(true)}>
+            {shouldShowSubmitRcaButton && (
+              <Button size="small" variant="contained" color="success" onClick={handleOpenSubmitRca}>
                 {t('Submit RCA')}
               </Button>
             )}
-            {showViewRCAButton && (
-              <Button size="small" variant="contained" color="success" onClick={() => setIsRcaModalOpen(true)}>
+            {shouldShowViewRcaButton && (
+              <Button size="small" variant="contained" color="success" onClick={handleOpenViewRca}>
                 {t('View RCA')}
               </Button>
             )}
@@ -903,16 +1035,123 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
       <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} feedbackStatus={ticket.feedbackStatus} />
-      <RootCauseAnalysisModal
-        open={isRcaModalOpen}
-        onClose={() => setIsRcaModalOpen(false)}
-        ticketId={ticketId}
-        severity={displayedSeverityText || ''}
-        updatedBy={currentUsername}
-        initialData={rcaData}
-        onSubmitted={handleRcaModalSubmit}
-        onDataChange={handleRcaDataChange}
-      />
+      <Modal open={isRcaModalOpen} onClose={handleRcaModalClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 640,
+            maxWidth: '95vw',
+            bgcolor: 'background.paper',
+            p: 3,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">{rcaModalTitle}</Typography>
+            {!isSubmitMode && !rcaEditing && (
+              <CustomIconButton icon="edit" onClick={() => setRcaEditing(true)} />
+            )}
+          </Box>
+          <Divider />
+          <Typography variant="body2">
+            {t('Ticket ID')}: {ticketId}
+          </Typography>
+          <Typography variant="body2">
+            {t('Severity')}: {displayedSeverityText || '-'}
+          </Typography>
+          <Typography variant="body2">
+            {t('Updated By')}: {rcaUpdatedBy || '-'}
+          </Typography>
+          <Typography variant="body2">
+            {t('Updated At')}: {formattedRcaUpdatedAt || '-'}
+          </Typography>
+          {isRcaLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : (
+            <>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  {t('Description of cause')}
+                </Typography>
+                {renderText(
+                  rcaFormValues.descriptionOfCause,
+                  value => handleRcaFieldChange('descriptionOfCause', value),
+                  true,
+                  { editing: rcaEditing },
+                )}
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  {t('Resolution Description')}
+                </Typography>
+                {renderText(
+                  rcaFormValues.resolutionDescription,
+                  value => handleRcaFieldChange('resolutionDescription', value),
+                  true,
+                  { editing: rcaEditing },
+                )}
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  {t('Attachments')}
+                </Typography>
+                {rcaAttachmentUrls.length > 0 ? (
+                  <Box sx={{ mt: 1 }}>
+                    <ThumbnailList
+                      attachments={rcaAttachmentUrls}
+                      thumbnailSize={100}
+                      onRemove={rcaEditing ? handleRcaExistingAttachmentRemove : undefined}
+                    />
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {t('No attachments available')}
+                  </Typography>
+                )}
+                {rcaEditing && (
+                  <Box sx={{ mt: 2 }}>
+                    <FileUpload
+                      maxSizeMB={5}
+                      thumbnailSize={100}
+                      attachments={rcaNewAttachments}
+                      onFilesChange={handleRcaNewFilesChange}
+                    />
+                  </Box>
+                )}
+              </Box>
+            </>
+          )}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            {rcaEditing ? (
+              <>
+                <Button variant="outlined" onClick={handleRcaCancelEdit} disabled={saveRcaPending}>
+                  {t('Cancel')}
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleRcaSubmit}
+                  disabled={!isRcaFormValid || saveRcaPending}
+                >
+                  {t('Submit')}
+                </Button>
+              </>
+            ) : (
+              <Button variant="outlined" onClick={handleRcaModalClose}>
+                {t('Close')}
+              </Button>
+            )}
+          </Box>
+        </Box>
+      </Modal>
       <RemarkComponent
         isModal
         open={showRecommendRemark}
