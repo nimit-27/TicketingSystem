@@ -217,11 +217,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     workflowApiHandler(() => getStatusWorkflowMappings(roleList));
   }, [roleList])
 
-  useEffect(() => {
-    if (ticketId) {
-      getRootCauseAnalysisHandler(() => getRootCauseAnalysis(ticketId));
-    }
-  }, [ticketId]);
 
   useEffect(() => {
     if (ticket) {

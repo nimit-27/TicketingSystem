@@ -53,7 +53,7 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     setValue,
     control,
     formState: { errors },
-  } = useForm<RootCauseAnalysisFormValues>({
+  } = useForm<any>({
     defaultValues: {
       descriptionOfCause: initialData?.descriptionOfCause ?? '',
       resolutionDescription: initialData?.resolutionDescription ?? '',
