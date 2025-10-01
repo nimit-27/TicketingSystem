@@ -130,7 +130,7 @@ public class RootCauseAnalysisService {
                 updatedBy,
                 pageable
         );
-        Set<String> submittedTicketIds = Collections.emptySet();
+        Set<String> submittedTicketIds;
         List<Ticket> content = tickets.getContent();
         if (!content.isEmpty()) {
             Set<String> ticketIds = content.stream()
@@ -141,8 +141,14 @@ public class RootCauseAnalysisService {
                 List<String> rcaTicketIds = rootCauseAnalysisRepository.findTicketIdsWithRca(ticketIds);
                 if (rcaTicketIds != null && !rcaTicketIds.isEmpty()) {
                     submittedTicketIds = new HashSet<>(rcaTicketIds);
+                } else {
+                    submittedTicketIds = Collections.emptySet();
                 }
+            } else {
+                submittedTicketIds = Collections.emptySet();
             }
+        } else {
+            submittedTicketIds = Collections.emptySet();
         }
         Page<TicketDto> dtoPage = tickets.map(ticket -> {
             TicketDto dto = ticketService.mapWithStatusId(ticket);
