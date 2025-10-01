@@ -104,8 +104,8 @@ const RootCauseAnalysis: React.FC = () => {
       <Title textKey="Root Cause Analysis" />
       <TicketsTable
         tickets={tickets}
-        onIdClick={(id) => navigate(`/tickets/${id}`)}
-        onRowClick={(id) => navigate(`/tickets/${id}`)}
+        onIdClick={(id) => navigate(`/root-cause-analysis/${id}`)}
+        onRowClick={(id) => navigate(`/root-cause-analysis/${id}`)}
         searchCurrentTicketsPaginatedApi={handleRefresh}
         refreshingTicketId={refreshingTicketId}
         statusWorkflows={statusWorkflows}

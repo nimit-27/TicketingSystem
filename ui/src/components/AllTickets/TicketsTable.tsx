@@ -112,7 +112,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         }
     };
 
-    const onIdClickRca = (id: string, state: any) => navigate(`/tickets/${id}`, { state });
+    const onIdClickRca = (id: string, state: any) => navigate(`/root-cause-analysis/${id}`, { state });
 
     const openMenu = (event: React.MouseEvent, record: any) => {
         const list = getAvailableActions(record.statusId);

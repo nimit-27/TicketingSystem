@@ -50,6 +50,7 @@ function App() {
         <Route path="faq" element={<Faq />} />
         <Route path="faq/new" element={<FaqForm />} />
         <Route path="tickets/:ticketId" element={<TicketDetails />} />
+        <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
         <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />
         <Route path="categories-master" element={<CategoriesMaster />} />

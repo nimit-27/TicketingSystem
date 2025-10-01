@@ -57,8 +57,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const { t } = useTranslation();
 
   // Getting rcaStatus from RootCauseAnalysis.tsx
-  const { state } = useLocation();
+  const { state, pathname } = useLocation();
   const rcaStatus = state?.rcaStatus ?? '';
+
+  const pageType = pathname.includes('root-cause-analysis') ? 'RCA' : 'Ticket';
 
   // USEAPI INITIALIZATIONS
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
@@ -181,6 +183,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   useEffect(() => {
     if (ticketId) {
+      
       getTicketHandler(() => getTicket(ticketId));
       getPriorities().then(res => {
         const priorityData = Array.isArray(res?.data?.body?.data) ? res.data?.body?.data : [];
@@ -443,16 +446,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Typography>
     )
   );
-  // const disallowed = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further'];
-
-  // const getAvailableActions = useCallback((statusId?: string) => {
-  //   return (statusWorkflows[statusId || ''] || []).filter((a: any) => !disallowed.includes(a.action));
-  // }, [statusWorkflows]);
-
-  // const canRecommendSeverity = useMemo(() => {
-  //   if (!ticket?.statusId) return false;
-  //   return getAvailableActions(ticket.statusId).some((a: { id: number; }) => a.id === 11);
-  // }, [ticket?.statusId, getAvailableActions]);
 
   const canEscalate = isItManager && ticket?.statusId === '6';
 
@@ -491,17 +484,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const handleRcaModalClose = useCallback(() => {
     setIsRcaModalOpen(false);
   }, []);
-
-  const handleRcaDataChange = useCallback((payload: RootCauseAnalysis | null) => {
-    setRcaData(payload ?? null);
-  }, []);
-
-  const handleRcaSubmitted = useCallback((payload: RootCauseAnalysis | null) => {
-    setRcaData(payload ?? null);
-    if (ticketId) {
-      getTicketHandler(() => getTicket(ticketId));
-    }
-  }, [getTicketHandler, ticketId]);
 
   const currentStatusName = useMemo(() => {
     if (!ticket) return '';
@@ -898,9 +880,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         rcaStatus={rcaStatus}
         ticketId={ticketId}
         updatedBy={currentUsername}
-        initialData={rcaData}
-        onSubmitted={handleRcaSubmitted}
-        onDataChange={handleRcaDataChange}
       />
 
       <RemarkComponent

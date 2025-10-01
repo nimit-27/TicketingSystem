@@ -6,6 +6,7 @@ import com.example.api.dto.TicketDto;
 import com.example.api.enums.TicketStatus;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
+import com.example.api.mapper.DtoMapper;
 import com.example.api.models.RootCauseAnalysis;
 import com.example.api.models.Severity;
 import com.example.api.models.UploadedFile;
@@ -172,6 +173,20 @@ public class RootCauseAnalysisService {
                 dtoPage.getTotalElements(),
                 dtoPage.getTotalPages()
         );
+    }
+
+    public TicketDto getTicketForRootCauseAnalysisById(String ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        Optional<RootCauseAnalysis> rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId);
+
+        TicketDto ticketDto = DtoMapper.toTicketDto(ticket);
+        if(rca.isEmpty()) {
+            ticketDto.setRcaStatus("PENDING");
+        }else {
+            ticketDto.setRcaStatus("SUBMITTED");
+        }
+        return ticketDto;
     }
 
     public RootCauseAnalysisDto getRootCauseAnalysis(String ticketId) {

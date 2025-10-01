@@ -11,6 +11,7 @@ import { useSnackbar } from '../context/SnackbarContext';
 import GenericButton from './UI/Button';
 import CustomFormInput from './UI/Input/CustomFormInput';
 import CustomIconButton from './UI/IconButton/CustomIconButton';
+import { getTicket } from '../services/TicketService';
 
 interface RootCauseAnalysisModalProps {
   open: boolean;
@@ -18,9 +19,6 @@ interface RootCauseAnalysisModalProps {
   rcaStatus: string;
   ticketId: string;
   updatedBy: string;
-  initialData: RootCauseAnalysis | null;
-  onSubmitted: (payload: RootCauseAnalysis | null) => void;
-  onDataChange?: (payload: RootCauseAnalysis | null) => void;
 }
 
 interface RootCauseAnalysisFormValues {
@@ -36,12 +34,13 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
   rcaStatus,
   ticketId,
   updatedBy,
-  initialData,
-  onSubmitted,
-  onDataChange,
 }) => {
   const { t } = useTranslation();
+
+  const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
+
   const { showMessage } = useSnackbar();
+  const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: fetchHandler } = useApi<RootCauseAnalysis | null>();
   const { apiHandler: saveHandler, pending: savePending } = useApi<RootCauseAnalysis | null>();
   const { apiHandler: deleteHandler } = useApi<RootCauseAnalysis | null>();
@@ -55,8 +54,8 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     formState: { errors },
   } = useForm<any>({
     defaultValues: {
-      descriptionOfCause: initialData?.descriptionOfCause ?? '',
-      resolutionDescription: initialData?.resolutionDescription ?? '',
+      descriptionOfCause: rcaData?.descriptionOfCause ?? '',
+      resolutionDescription: rcaData?.resolutionDescription ?? '',
       attachments: [],
     },
   });
@@ -64,10 +63,11 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
   const descriptionOfCauseValue = useWatch({ control, name: 'descriptionOfCause' });
   const resolutionDescriptionValue = useWatch({ control, name: 'resolutionDescription' });
 
-  const [currentData, setCurrentData] = useState<RootCauseAnalysis | null>(initialData ?? null);
+  const [currentData, setCurrentData] = useState<RootCauseAnalysis | null>(rcaData ?? null);
   const [newAttachments, setNewAttachments] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<string[]>([]);
   const [isEditMode, setEditMode] = useState<boolean>(rcaStatus !== 'SUBMITTED');
+  const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
 
   const isRcaSubmitted = rcaStatus === 'SUBMITTED';
   const isViewMode = isRcaSubmitted && !isEditMode;
@@ -76,6 +76,21 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     () => existingAttachments.map((path) => `${BASE_URL}/uploads/${path}`),
     [existingAttachments],
   );
+
+  const handleRcaDataChange = useCallback((payload: RootCauseAnalysis | null) => {
+    setRcaData(payload ?? null);
+  }, []);
+
+  const handleRcaSubmitted = useCallback((payload: RootCauseAnalysis | null) => {
+    setRcaData(payload ?? null);
+    if (ticketId) {
+      getTicketHandler(() => getTicket(ticketId));
+    }
+  }, [getTicketHandler, ticketId]);
+
+  const handleRcaModalClose = useCallback(() => {
+    setIsRcaModalOpen(false);
+  }, []);
 
   const resetForm = useCallback(
     (data: RootCauseAnalysis | null) => {
@@ -95,10 +110,10 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     if (!open) {
       return;
     }
-    setCurrentData(initialData ?? null);
-    resetForm(initialData ?? null);
+    setCurrentData(rcaData ?? null);
+    resetForm(rcaData ?? null);
     setEditMode(rcaStatus !== 'SUBMITTED');
-  }, [initialData, open, resetForm, rcaStatus]);
+  }, [rcaData, open, resetForm, rcaStatus]);
 
   useEffect(() => {
     if (!open || !ticketId) {
@@ -109,12 +124,12 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
         const normalized = payload ?? null;
         setCurrentData(normalized);
         resetForm(normalized);
-        onDataChange?.(normalized);
+        handleRcaDataChange?.(normalized);
       })
       .catch(() => {
         // Errors handled by useApi
       });
-  }, [fetchHandler, onDataChange, open, resetForm, ticketId]);
+  }, [fetchHandler, handleRcaDataChange, open, resetForm, ticketId]);
 
   const handleFilesChange = (files: File[]) => {
     setNewAttachments((prev) => {
@@ -135,7 +150,7 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
       const normalized = payload ?? null;
       setCurrentData(normalized);
       resetForm(normalized);
-      onDataChange?.(normalized);
+      handleRcaDataChange?.(normalized);
       showMessage(t('Attachment removed successfully'), 'success');
     } catch {
       // errors handled by useApi
@@ -159,8 +174,8 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
       const normalized = payload ?? null;
       setCurrentData(normalized);
       resetForm(normalized);
-      onSubmitted(normalized);
-      onDataChange?.(normalized);
+      handleRcaSubmitted(normalized);
+      handleRcaDataChange?.(normalized);
       showMessage(t('Root cause analysis submitted successfully'), 'success');
       if (isRcaSubmitted) {
         setEditMode(false);

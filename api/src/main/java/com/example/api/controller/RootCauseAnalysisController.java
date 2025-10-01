@@ -3,7 +3,9 @@ package com.example.api.controller;
 import com.example.api.dto.PaginationResponse;
 import com.example.api.dto.RootCauseAnalysisDto;
 import com.example.api.dto.TicketDto;
+import com.example.api.models.Ticket;
 import com.example.api.service.RootCauseAnalysisService;
+import com.twilio.http.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,11 @@ public class RootCauseAnalysisController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "lastModified"));
         PaginationResponse<TicketDto> response = rootCauseAnalysisService.getTicketsForRootCauseAnalysis(username, roles, pageable);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/tickets/{ticketId}")
+    public ResponseEntity<TicketDto> getRCATicketById(@PathVariable String ticketId) {
+        TicketDto ticketDto = rootCauseAnalysisService.getTicketForRootCauseAnalysisById(ticketId);
     }
 
     @GetMapping("/{ticketId}")
