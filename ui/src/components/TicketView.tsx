@@ -22,13 +22,12 @@ import FeedbackModal from './Feedback/FeedbackModal';
 import { getFeedback } from '../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../services/StatusService';
 import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
-import GenericDropdownController from './UI/Dropdown/GenericDropdownController';
 import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
-import SlaProgressBar from './SlaProgressBar';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
 import { deleteRootCauseAnalysisAttachment, getRootCauseAnalysis, saveRootCauseAnalysis } from '../services/RootCauseAnalysisService';
+import { useLocation } from 'react-router-dom';
 
 interface TicketViewProps {
   ticketId: string;
@@ -56,6 +55,10 @@ const normaliseSla = (slaData: TicketSla | null): TicketSla | null => {
 
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
   const { t } = useTranslation();
+
+  // Getting rcaStatus from RootCauseAnalysis.tsx
+  const { state } = useLocation();
+  const rcaStatus = state?.rcaStatus
 
   // USEAPI INITIALIZATIONS
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
@@ -100,7 +103,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [rcaFormValues, setRcaFormValues] = useState({ descriptionOfCause: '', resolutionDescription: '' });
   const [rcaExistingAttachments, setRcaExistingAttachments] = useState<string[]>([]);
   const [rcaNewAttachments, setRcaNewAttachments] = useState<File[]>([]);
-
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const currentUserDetails = useMemo(() => getCurrentUserDetails(), []);
@@ -138,8 +140,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return statusWorkflows[ticket.statusId] || [];
   }, [statusWorkflows, ticket?.statusId]);
 
-  console.log({ statusWorkflows, availableStatusActions })
-
   const resolveAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
     [availableStatusActions]
@@ -167,7 +167,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
   const showSeverity = checkFieldAccess('ticketDetails', 'severity');
   const showSeverityToRecommendSeverity = showSeverity && severityToRecommendSeverity
-
 
   const fetchSubCategoriesList = useCallback(async (categoryValue: string) => {
     if (!categoryValue) {
@@ -677,10 +676,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
   const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
-  const rcaStatus = ticket?.rcaStatus;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
   const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
 
+  console.log({ rcaStatus: ticket?.rcaStatus, shouldShowSubmitRcaButton, shouldShowViewRcaButton })
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
     setSelectedStatusAction(action);
