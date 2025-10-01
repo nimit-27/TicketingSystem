@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -31,7 +32,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND LOWER(t.severity) IN (:severityTokens) " +
             "AND (:updatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:updatedBy))")
     Page<Ticket> findClosedTicketsForRootCauseAnalysis(@Param("status") TicketStatus status,
-                                                       @Param("severityTokens") java.util.Collection<String> severityTokens,
+                                                       @Param("severityTokens") Collection<String> severityTokens,
                                                        @Param("updatedBy") String updatedBy,
                                                        Pageable pageable);
 
