@@ -1,17 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Box, Typography, TextField, Button, Divider } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import FileUpload, { ThumbnailList } from './UI/FileUpload';
 import { RootCauseAnalysis } from '../types';
 import { BASE_URL } from '../services/api';
 import { saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment } from '../services/RootCauseAnalysisService';
 import { useApi } from '../hooks/useApi';
 import { useSnackbar } from '../context/SnackbarContext';
+import GenericButton from './UI/Button';
+import CustomFormInput from './UI/Input/CustomFormInput';
+import CustomIconButton from './UI/IconButton/CustomIconButton';
 
 interface RootCauseAnalysisModalProps {
   open: boolean;
-  onClose: () => void;
+  // onClose: () => void;
+  setIsRcaModalOpen: (bool: boolean) => void;
+  rcaStatus: string;
   ticketId: string;
   updatedBy: string;
   initialData: RootCauseAnalysis | null;
@@ -25,9 +30,12 @@ interface RootCauseAnalysisFormValues {
   attachments: File[];
 }
 
+
 const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
   open,
-  onClose,
+  // onClose,
+  setIsRcaModalOpen,
+  rcaStatus,
   ticketId,
   updatedBy,
   initialData,
@@ -44,17 +52,33 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors },
-  } = useForm<RootCauseAnalysisFormValues>({
-    defaultValues: {
-      descriptionOfCause: initialData?.descriptionOfCause ?? '',
-      resolutionDescription: initialData?.resolutionDescription ?? '',
-      attachments: [],
-    },
-  });
+  } = useForm();
+
+  const descriptionOfCauseValue = useWatch({ control, name: 'descriptionofCause' });
+  const resolutionDescription = useWatch({ control, name: 'resolutionDescription' });
 
   const [newAttachments, setNewAttachments] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<string[]>([]);
+  const [isEditMode, setEditMode] = useState<Boolean>(false)
+
+  const isRcaSubmitted = rcaStatus === 'SUBMITTED'
+
+  const existingAttachmentUrls = useMemo(
+    () => existingAttachments.map((path) => `${BASE_URL}/uploads/${path}`),
+    [existingAttachments],
+  );
+
+  const showAttachments = true;
+  const showThumbnailList = existingAttachmentUrls.length > 0;
+  const showFileUpload = !isRcaSubmitted;
+  const showCancelButton = isEditMode;
+  const showCloseButton = true;
+  const showSubmitButton = !isRcaSubmitted || isEditMode;
+  const showEditIcon = !isEditMode;
+
+  const isViewMode = isRcaSubmitted && isEditMode;
 
   useEffect(() => {
     if (!open) {
@@ -69,11 +93,6 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
       attachments: [],
     });
   }, [initialData, open, reset]);
-
-  const existingAttachmentUrls = useMemo(
-    () => existingAttachments.map((path) => `${BASE_URL}/uploads/${path}`),
-    [existingAttachments],
-  );
 
   const handleFilesChange = (files: File[]) => {
     setNewAttachments((prev) => {
@@ -121,11 +140,22 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     }
   };
 
+  const onCancel = () => {
+    setEditMode(false)
+  }
+
+  const onClose = () => {
+    // setEditMode(false)
+    setIsRcaModalOpen(false)
+  }
+
+  const modalTitle = `${isRcaSubmitted ? 'View' : 'Submit'} Root Cause Analysis`
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} >
       <Box
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(() => onSubmit)}
         sx={{
           position: 'absolute',
           top: '50%',
@@ -142,40 +172,57 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
           gap: 2,
         }}
       >
-        <Typography variant="h6">{t('Submit RCA')}</Typography>
-        <Divider />
-        <Typography variant="body2">
-          {t('Ticket ID')}: {ticketId}
-        </Typography>
-        <Typography variant="body2">
-          {t('Severity')}: {initialData?.severityLabel || '-'}
-        </Typography>
-
-        <TextField
-          label={t('Description of cause')}
-          multiline
-          minRows={3}
-          fullWidth
-          {...register('descriptionOfCause', { required: t('Description of cause is required') })}
-          error={Boolean(errors.descriptionOfCause)}
-          helperText={errors.descriptionOfCause?.message}
-        />
-
-        <TextField
-          label={t('Resolution Description')}
-          multiline
-          minRows={3}
-          fullWidth
-          {...register('resolutionDescription', { required: t('Resolution description is required') })}
-          error={Boolean(errors.resolutionDescription)}
-          helperText={errors.resolutionDescription?.message}
-        />
-
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary">
-            {t('Attachments')}
+        <div className='d-flex'>
+          <Typography variant="h6">{t(modalTitle)}</Typography>
+          {showEditIcon && <CustomIconButton icon='edit' onClick={() => setEditMode(true)} />}
+        </div>
+        <div className='d-flex justify-content-between'>
+          {/* <Typography variant="body2">
+            {t('Ticket ID')}: {ticketId}
+          </Typography> */}
+          <Typography variant="body2">
+            {t('Severity')}: {initialData?.severityLabel || '-'}
           </Typography>
-          {existingAttachmentUrls.length > 0 && (
+        </div>
+
+        {isViewMode
+          ? <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{descriptionOfCauseValue || ' - '}</Typography>
+          : <div className="col-md-6 mb-3 px-4">
+            <CustomFormInput
+              name="Description of cause"
+              label={t('Description of cause')}
+              multiline
+              minRows={3}
+              slotProps={{
+                inputLabel: { shrink: descriptionOfCauseValue }
+              }}
+              register={register}
+              errors={errors}
+              disabled
+            />
+          </div>}
+        {isViewMode
+          ? <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{resolutionDescription || ' - '}</Typography>
+          : <div className="col-md-6 mb-3 px-4">
+            <CustomFormInput
+              name="Resolution Description"
+              label={t('Resolution Description')}
+              multiline
+              minRows={3}
+              slotProps={{
+                inputLabel: { shrink: resolutionDescription }
+              }}
+              register={register}
+              errors={errors}
+              disabled
+            />
+          </div>}
+
+        {showAttachments && <Box>
+          <Typography variant="subtitle2" color="text.secondary">
+            {t(`${existingAttachmentUrls.length > 0 ? '' : 'No'} Attachments`)}
+          </Typography>
+          {showThumbnailList && (
             <Box sx={{ mt: 1 }}>
               <ThumbnailList
                 attachments={existingAttachmentUrls}
@@ -184,23 +231,26 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
               />
             </Box>
           )}
-          <Box sx={{ mt: 1 }}>
+          {showFileUpload && <Box sx={{ mt: 1 }}>
             <FileUpload
               maxSizeMB={5}
               thumbnailSize={100}
               attachments={newAttachments}
               onFilesChange={handleFilesChange}
             />
-          </Box>
-        </Box>
+          </Box>}
+        </Box>}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Button variant="outlined" onClick={onClose} disabled={savePending}>
+          {showCloseButton && <GenericButton variant="outlined" onClick={onClose} disabled={savePending}>
+            {t('Close')}
+          </GenericButton>}
+          {showCancelButton && <GenericButton variant="outlined" onClick={onCancel} disabled={savePending}>
             {t('Cancel')}
-          </Button>
-          <Button type="submit" variant="contained" disabled={savePending}>
+          </GenericButton>}
+          {showSubmitButton && <GenericButton type="submit" variant="contained" disabled={savePending}>
             {t('Submit')}
-          </Button>
+          </GenericButton>}
         </Box>
       </Box>
     </Modal>

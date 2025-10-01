@@ -637,15 +637,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   }, [currentUsername, getTicketHandler, rcaFormValues.descriptionOfCause, rcaFormValues.resolutionDescription, rcaModalMode, rcaNewAttachments, resetRcaForm, saveRcaHandler, ticketId]);
 
-  const isSubmitMode = rcaModalMode === 'submit';
-  const rcaModalTitle = isSubmitMode
-    ? t('Submit RCA')
-    : rcaEditing
-      ? t('Edit RCA')
-      : t('View RCA');
-  const isRcaFormValid = rcaFormValues.descriptionOfCause.trim().length > 0
-    && rcaFormValues.resolutionDescription.trim().length > 0;
-  const isRcaLoading = rcaLoading && !isSubmitMode;
+  // const isSubmitMode = rcaModalMode === 'submit';
+  // const rcaModalTitle = isSubmitMode
+  //   ? t('Submit RCA')
+  //   : rcaEditing
+  //     ? t('Edit RCA')
+  //     : t('View RCA');
+  // const isRcaFormValid = rcaFormValues.descriptionOfCause.trim().length > 0
+  //   && rcaFormValues.resolutionDescription.trim().length > 0;
+  // const isRcaLoading = rcaLoading && !isSubmitMode;
 
   const currentStatusName = useMemo(() => {
     if (!ticket) return '';
@@ -1041,7 +1041,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       {/* MODAL - ROOT CAUSE ANALYSIS */}
       <RootCauseAnalysisModal
         open={isRcaModalOpen}
-        onClose={handleRcaModalClose}
+        setIsRcaModalOpen={() => setIsRcaModalOpen}
+        // onClose={handleRcaModalClose}
+        rcaStatus={rcaStatus}
         ticketId={ticketId}
         updatedBy={rcaUpdatedBy}
         initialData={rootCauseAnalysis}
