@@ -41,6 +41,7 @@ public class RootCauseAnalysisController {
     @GetMapping("/tickets/{ticketId}")
     public ResponseEntity<TicketDto> getRCATicketById(@PathVariable String ticketId) {
         TicketDto ticketDto = rootCauseAnalysisService.getTicketForRootCauseAnalysisById(ticketId);
+        return ResponseEntity.ok(ticketDto);
     }
 
     @GetMapping("/{ticketId}")

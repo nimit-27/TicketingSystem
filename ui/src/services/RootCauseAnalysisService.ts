@@ -17,6 +17,10 @@ export function getRootCauseAnalysisTickets(page: number, size: number, username
   return axios.get(`${BASE_URL}/root-cause-analysis/tickets?${params.toString()}`);
 }
 
+export function getRootCauseAnalysisTicketById(ticketId: string) {
+  return axios.get(`${BASE_URL}/root-cause-analysis/tickets/${ticketId}`);
+}
+
 export async function getRootCauseAnalysis(ticketId: string): Promise<RootCauseAnalysis | null> {
   const response = await axios.get(`${BASE_URL}/root-cause-analysis/${ticketId}`);
   return extractPayload(response);
