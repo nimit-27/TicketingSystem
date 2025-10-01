@@ -28,7 +28,8 @@ import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressBar from './SlaProgressBar';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
-import { deleteRootCauseAnalysisAttachment, getRootCauseAnalysis, saveRootCauseAnalysis } from '../services/RootCauseAnalysisService';
+import { getRootCauseAnalysis } from '../services/RootCauseAnalysisService';
+import RootCauseAnalysisModal from './RootCauseAnalysisModal';
 
 interface TicketViewProps {
   ticketId: string;
@@ -63,8 +64,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
   const { data: rootCauseAnalysis, apiHandler: getRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
-  const { apiHandler: saveRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
-  const { apiHandler: deleteRootCauseAnalysisHandler } = useApi<RootCauseAnalysis | null>();
 
   // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
@@ -93,14 +92,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [showStatusRemark, setShowStatusRemark] = useState(false);
   const [selectedStatusAction, setSelectedStatusAction] = useState<TicketStatusWorkflow | null>(null);
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
-  const [rcaDescription, setRcaDescription] = useState('');
-  const [rcaResolution, setRcaResolution] = useState('');
-  const [rcaAttachmentPaths, setRcaAttachmentPaths] = useState<string[]>([]);
-  const [rcaUploadKey, setRcaUploadKey] = useState(0);
-  const [rcaSeverityLabel, setRcaSeverityLabel] = useState('');
-  const [rcaSeverityDisplay, setRcaSeverityDisplay] = useState('');
-  const [rcaUpdatedBy, setRcaUpdatedBy] = useState('');
-  const [rcaUpdatedAt, setRcaUpdatedAt] = useState<string | null>(null);
+  const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
+  const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
 
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -129,27 +122,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return value;
   }, []);
 
-  const updateRcaState = useCallback((payload?: RootCauseAnalysis | null) => {
-    if (!payload) {
-      setRcaDescription('');
-      setRcaResolution('');
-      setRcaAttachmentPaths([]);
-      setRcaSeverityLabel('');
-      setRcaSeverityDisplay('');
-      setRcaUpdatedBy('');
-      setRcaUpdatedAt(null);
-      return;
-    }
-    setRcaDescription(payload.descriptionOfCause ?? '');
-    setRcaResolution(payload.resolutionDescription ?? '');
-    setRcaAttachmentPaths(Array.isArray(payload.attachments) ? payload.attachments : []);
-    const severitySource = payload.severityDisplay || payload.severityLabel || payload.severityId || '';
-    setRcaSeverityDisplay(getSeverityText(severitySource));
-    setRcaSeverityLabel(payload.severityLabel || severitySource);
-    setRcaUpdatedBy(payload.updatedBy ?? '');
-    setRcaUpdatedAt(payload.updatedAt ?? null);
-  }, [getSeverityText]);
-  const rcaAttachmentUrls = useMemo(() => rcaAttachmentPaths.map(path => `${BASE_URL}/uploads/${path}`), [rcaAttachmentPaths]);
 
 
   // PERMISSION BOOLEANS
@@ -182,7 +154,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   }, []);
 
-  console.log(roleList)
   useEffect(() => {
     if (ticketId) {
       getTicketHandler(() => getTicket(ticketId));
@@ -296,9 +267,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, [workflowData]);
 
   useEffect(() => {
-    updateRcaState(rootCauseAnalysis ?? null);
-    setEditingRca(false);
-  }, [rootCauseAnalysis, updateRcaState]);
+    setRcaData(rootCauseAnalysis ?? null);
+  }, [rootCauseAnalysis]);
 
   useEffect(() => {
     if (focusRecommendSeverity && showSeverity && !showSeverityToRecommendSeverity && recommendSeverityButtonRef.current) {
@@ -366,60 +336,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       getTicketHandler(() => getTicket(ticketId));
     });
   };
-
-  const submitRca = useCallback(async (files?: File[]) => {
-    if (!ticketId || !currentUsername) {
-      return;
-    }
-    const formData = new FormData();
-    formData.append('descriptionOfCause', rcaDescription);
-    formData.append('resolutionDescription', rcaResolution);
-    formData.append('updatedBy', currentUsername);
-    if (files) {
-      files.forEach(file => formData.append('attachments', file));
-    }
-    try {
-      const payload = await saveRootCauseAnalysisHandler(() => saveRootCauseAnalysis(ticketId, formData));
-      updateRcaState(payload ?? null);
-      if (files && files.length > 0) {
-        setRcaUploadKey(prev => prev + 1);
-      }
-    } catch {
-      // errors handled via useApi hook
-    }
-  }, [ticketId, currentUsername, rcaDescription, rcaResolution, saveRootCauseAnalysisHandler, updateRcaState]);
-
-  const handleRcaSave = useCallback(() => {
-    void submitRca();
-  }, [submitRca]);
-
-  const handleRcaAttachmentUpload = useCallback((files: File[]) => {
-    if (!files || files.length === 0) {
-      return;
-    }
-    void submitRca(files);
-  }, [submitRca]);
-
-  const handleRcaCancel = useCallback(() => {
-    updateRcaState(rootCauseAnalysis ?? null);
-    setRcaUploadKey(prev => prev + 1);
-  }, [rootCauseAnalysis, updateRcaState]);
-
-  const handleRcaAttachmentRemove = useCallback(async (index: number) => {
-    const path = rcaAttachmentPaths[index];
-    if (!ticketId || !path) {
-      return;
-    }
-    if (!window.confirm('Are you sure you want to delete this file?')) {
-      return;
-    }
-    try {
-      const payload = await deleteRootCauseAnalysisHandler(() => deleteRootCauseAnalysisAttachment(ticketId, path, currentUsername));
-      updateRcaState(payload ?? null);
-    } catch {
-      // errors handled via useApi hook
-    }
-  }, [rcaAttachmentPaths, ticketId, currentUsername, deleteRootCauseAnalysisHandler, updateRcaState]);
 
   const cancelEditing = () => {
     setEditing(false);
@@ -543,17 +459,36 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ' - '} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ' - '}` : ' - ';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ' - '} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ' - '}` : ' - ';
+  const rcaUpdatedBy = rcaData?.updatedBy ?? '';
   const formattedRcaUpdatedAt = useMemo(() => {
-    if (!rcaUpdatedAt) {
+    if (!rcaData?.updatedAt) {
       return '';
     }
-    const date = new Date(rcaUpdatedAt);
+    const date = new Date(rcaData.updatedAt);
     return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
-  }, [rcaUpdatedAt]);
+  }, [rcaData?.updatedAt]);
   const fallbackSeverityText = useMemo(() => getSeverityText(ticket?.severity || ''), [getSeverityText, ticket?.severity]);
-  const severityText = rcaSeverityDisplay || fallbackSeverityText;
-  const severityLabelText = rcaSeverityLabel || ticket?.severity || '';
-  const severityLabelDisplay = severityLabelText && severityLabelText !== severityText ? severityLabelText : '';
+  const severitySource = rcaData?.severityDisplay || rcaData?.severityLabel || rcaData?.severityId || ticket?.severity || '';
+  const severityText = useMemo(() => getSeverityText(severitySource), [getSeverityText, severitySource]);
+  const severityLabelDisplay = useMemo(() => {
+    const label = rcaData?.severityLabel || rcaData?.severityId || ticket?.severity || '';
+    return label && label !== severityText ? label : '';
+  }, [rcaData?.severityLabel, rcaData?.severityId, ticket?.severity, severityText]);
+  const displayedSeverityText = severityText || fallbackSeverityText;
+  const rcaAttachmentUrls = useMemo(() => (
+    Array.isArray(rcaData?.attachments)
+      ? rcaData.attachments.map(path => `${BASE_URL}/uploads/${path}`)
+      : []
+  ), [rcaData?.attachments]);
+
+  const handleRcaDataChange = useCallback((payload: RootCauseAnalysis | null) => {
+    setRcaData(payload ?? null);
+  }, []);
+
+  const handleRcaModalSubmit = useCallback((payload: RootCauseAnalysis | null) => {
+    setRcaData(payload ?? null);
+    setIsRcaModalOpen(false);
+  }, []);
 
   const currentStatusName = useMemo(() => {
     if (!ticket) return '';
@@ -566,8 +501,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isResolvedStatus = normalisedStatusName === 'resolved';
   const isClosedStatus = normalisedStatusName === 'closed';
   const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
-  const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2' || role === 'L3');
-  const canEditRca = isClosedStatus && (isTeamLeadRole || isLevelAgent);
+  const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2');
+  const canSubmitRca = isClosedStatus && (isTeamLeadRole || isLevelAgent);
   const shouldShowRcaSection = isClosedStatus;
 
   const availableStatusActions = useMemo(() => {
@@ -723,6 +658,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {hasFeedback ? t('View Feedback') : t('Submit Feedback')}
               </Button>
             )}
+            {canSubmitRca && (
+              <Button size="small" variant="contained" color="success" onClick={() => setIsRcaModalOpen(true)}>
+                {t('Submit RCA')}
+              </Button>
+            )}
           </Box>
         </Box>
         {showStatusRemark && selectedStatusAction && (
@@ -758,7 +698,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                   <CustomIconButton icon="edit" onClick={() => setEditing(true)} />
                 )
               )}
-              {ticket.statusLabel?.toLowerCase() === 'closed' && (
+              {ticket.statusLabel?.toLowerCase() === 'closed' && isRequester && (
                 <Button size="small" onClick={() => setFeedbackOpen(true)}>
                   {hasFeedback ? 'View Feedback' : 'Feedback'}
                 </Button>
@@ -928,7 +868,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             <Box className="d-flex flex-wrap justify-content-between align-items-center gap-2">
               <Box>
                 <Typography color="text.secondary">{t('Severity')}</Typography>
-                <Typography sx={{ mt: 1 }}>{severityText || ' - '}</Typography>
+                <Typography sx={{ mt: 1 }}>{displayedSeverityText || ' - '}</Typography>
                 {severityLabelDisplay && (
                   <Typography variant="body2" color="text.secondary">{severityLabelDisplay}</Typography>
                 )}
@@ -937,29 +877,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             <Box className="row g-3">
               <Box className="col-12 col-lg-6">
                 <Typography color="text.secondary">{t('Description of cause')}</Typography>
-                <TextField
-                  value={rcaDescription}
-                  onChange={(e) => setRcaDescription(e.target.value)}
-                  variant="outlined"
-                  fullWidth
-                  size="small"
-                  sx={{ mt: 1 }}
-                  disabled={!canEditRca}
-                />
+                <Typography sx={{ mt: 1, whiteSpace: 'pre-line' }}>
+                  {rcaData?.descriptionOfCause ? rcaData.descriptionOfCause : ' - '}
+                </Typography>
               </Box>
               <Box className="col-12 col-lg-6">
                 <Typography color="text.secondary">{t('Resolution Description')}</Typography>
-                <TextField
-                  value={rcaResolution}
-                  onChange={(e) => setRcaResolution(e.target.value)}
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  size="small"
-                  sx={{ mt: 1 }}
-                  disabled={!canEditRca}
-                />
+                <Typography sx={{ mt: 1, whiteSpace: 'pre-line' }}>
+                  {rcaData?.resolutionDescription ? rcaData.resolutionDescription : ' - '}
+                </Typography>
               </Box>
             </Box>
             <Box>
@@ -968,22 +894,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 <ThumbnailList
                   attachments={rcaAttachmentUrls}
                   thumbnailSize={100}
-                  onRemove={canEditRca ? handleRcaAttachmentRemove : undefined}
                 />
               ) : (
                 <Typography sx={{ mt: 1 }} color="text.secondary">-</Typography>
-              )}
-              {canEditRca && (
-                <Box sx={{ mt: 1 }}>
-                  <FileUpload
-                    key={rcaUploadKey}
-                    maxSizeMB={5}
-                    thumbnailSize={100}
-                    onFilesChange={handleRcaAttachmentUpload}
-                    attachments={emptyFileList}
-                    hideUploadButton={!canEditRca}
-                  />
-                </Box>
               )}
             </Box>
             {(rcaUpdatedBy || formattedRcaUpdatedAt) && (
@@ -991,16 +904,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {`Updated by ${rcaUpdatedBy || '-'}`}
                 {formattedRcaUpdatedAt ? ` on ${formattedRcaUpdatedAt}` : ''}
               </Typography>
-            )}
-            {canEditRca && (
-              <Box className="d-flex gap-2 justify-content-end">
-                <GenericButton variant="contained" size="small" onClick={handleRcaSave}>
-                  {t('Submit')}
-                </GenericButton>
-                <GenericButton variant="outlined" size="small" onClick={handleRcaCancel}>
-                  {t('Cancel')}
-                </GenericButton>
-              </Box>
             )}
           </Box>
         </CustomFieldset>
@@ -1030,6 +933,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
       <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} feedbackStatus={ticket.feedbackStatus} />
+      <RootCauseAnalysisModal
+        open={isRcaModalOpen}
+        onClose={() => setIsRcaModalOpen(false)}
+        ticketId={ticketId}
+        severity={displayedSeverityText || ''}
+        updatedBy={currentUsername}
+        initialData={rcaData}
+        onSubmitted={handleRcaModalSubmit}
+        onDataChange={handleRcaDataChange}
+      />
       <RemarkComponent
         isModal
         open={showRecommendRemark}
