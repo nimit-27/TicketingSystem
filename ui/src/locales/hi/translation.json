@@ -145,5 +145,10 @@
   "Partial functionality affected, minimal business impact": "आंशिक कार्यक्षमता प्रभावित, न्यूनतम व्यावसायिक प्रभाव",
   "Low - S4": "निम्न - S4",
   "Minor issue, cosmetic or informational": "छोटा मुद्दा, सजावटी या सूचनात्मक",
-  "by {{name}}": "{{name}} द्वारा"
+  "by {{name}}": "{{name}} द्वारा",
+  "Submit RCA": "आरसीए सबमिट करें",
+  "Attachment removed successfully": "संलग्नक सफलतापूर्वक हटाया गया",
+  "Root cause analysis submitted successfully": "रूट कॉज विश्लेषण सफलतापूर्वक सबमिट हुआ",
+  "Description of cause is required": "कारण का विवरण आवश्यक है",
+  "Resolution description is required": "समाधान विवरण आवश्यक है"
 }

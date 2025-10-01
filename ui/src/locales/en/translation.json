@@ -145,5 +145,10 @@
   "Partial functionality affected, minimal business impact": "Partial functionality affected, minimal business impact",
   "Low - S4": "Low - S4",
   "Minor issue, cosmetic or informational": "Minor issue, cosmetic or informational",
-  "by {{name}}": "by {{name}}"
+  "by {{name}}": "by {{name}}",
+  "Submit RCA": "Submit RCA",
+  "Attachment removed successfully": "Attachment removed successfully",
+  "Root cause analysis submitted successfully": "Root cause analysis submitted successfully",
+  "Description of cause is required": "Description of cause is required",
+  "Resolution description is required": "Resolution description is required"
 }
