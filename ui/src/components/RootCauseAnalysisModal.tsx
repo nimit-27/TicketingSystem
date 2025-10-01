@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, Box, Typography, TextField, Button, Divider } from '@mui/material';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Modal, Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useForm, useWatch } from 'react-hook-form';
 import FileUpload, { ThumbnailList } from './UI/FileUpload';
 import { RootCauseAnalysis } from '../types';
 import { BASE_URL } from '../services/api';
-import { saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment } from '../services/RootCauseAnalysisService';
+import { saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment, getRootCauseAnalysis } from '../services/RootCauseAnalysisService';
 import { useApi } from '../hooks/useApi';
 import { useSnackbar } from '../context/SnackbarContext';
 import GenericButton from './UI/Button';
@@ -14,8 +14,7 @@ import CustomIconButton from './UI/IconButton/CustomIconButton';
 
 interface RootCauseAnalysisModalProps {
   open: boolean;
-  // onClose: () => void;
-  setIsRcaModalOpen: (bool: boolean) => void;
+  onClose: () => void;
   rcaStatus: string;
   ticketId: string;
   updatedBy: string;
@@ -33,8 +32,7 @@ interface RootCauseAnalysisFormValues {
 
 const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
   open,
-  // onClose,
-  setIsRcaModalOpen,
+  onClose,
   rcaStatus,
   ticketId,
   updatedBy,
@@ -44,6 +42,7 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { showMessage } = useSnackbar();
+  const { apiHandler: fetchHandler } = useApi<RootCauseAnalysis | null>();
   const { apiHandler: saveHandler, pending: savePending } = useApi<RootCauseAnalysis | null>();
   const { apiHandler: deleteHandler } = useApi<RootCauseAnalysis | null>();
 
@@ -54,45 +53,68 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     setValue,
     control,
     formState: { errors },
-  } = useForm();
+  } = useForm<RootCauseAnalysisFormValues>({
+    defaultValues: {
+      descriptionOfCause: initialData?.descriptionOfCause ?? '',
+      resolutionDescription: initialData?.resolutionDescription ?? '',
+      attachments: [],
+    },
+  });
 
-  const descriptionOfCauseValue = useWatch({ control, name: 'descriptionofCause' });
-  const resolutionDescription = useWatch({ control, name: 'resolutionDescription' });
+  const descriptionOfCauseValue = useWatch({ control, name: 'descriptionOfCause' });
+  const resolutionDescriptionValue = useWatch({ control, name: 'resolutionDescription' });
 
+  const [currentData, setCurrentData] = useState<RootCauseAnalysis | null>(initialData ?? null);
   const [newAttachments, setNewAttachments] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<string[]>([]);
-  const [isEditMode, setEditMode] = useState<Boolean>(false)
+  const [isEditMode, setEditMode] = useState<boolean>(rcaStatus !== 'SUBMITTED');
 
-  const isRcaSubmitted = rcaStatus === 'SUBMITTED'
+  const isRcaSubmitted = rcaStatus === 'SUBMITTED';
+  const isViewMode = isRcaSubmitted && !isEditMode;
 
   const existingAttachmentUrls = useMemo(
     () => existingAttachments.map((path) => `${BASE_URL}/uploads/${path}`),
     [existingAttachments],
   );
 
-  const showAttachments = true;
-  const showThumbnailList = existingAttachmentUrls.length > 0;
-  const showFileUpload = !isRcaSubmitted;
-  const showCancelButton = isEditMode;
-  const showCloseButton = true;
-  const showSubmitButton = !isRcaSubmitted || isEditMode;
-  const showEditIcon = !isEditMode;
-
-  const isViewMode = isRcaSubmitted && isEditMode;
+  const resetForm = useCallback(
+    (data: RootCauseAnalysis | null) => {
+      const attachments = Array.isArray(data?.attachments) ? data.attachments : [];
+      setExistingAttachments(attachments);
+      setNewAttachments([]);
+      reset({
+        descriptionOfCause: data?.descriptionOfCause ?? '',
+        resolutionDescription: data?.resolutionDescription ?? '',
+        attachments: [],
+      });
+    },
+    [reset],
+  );
 
   useEffect(() => {
     if (!open) {
       return;
     }
-    const attachments = Array.isArray(initialData?.attachments) ? initialData.attachments : [];
-    setExistingAttachments(attachments);
-    setNewAttachments([]);
-    reset({
-      descriptionOfCause: initialData?.descriptionOfCause ?? '',
-      resolutionDescription: initialData?.resolutionDescription ?? '',
-      attachments: [],
-    });
-  }, [initialData, open, reset]);
+    setCurrentData(initialData ?? null);
+    resetForm(initialData ?? null);
+    setEditMode(rcaStatus !== 'SUBMITTED');
+  }, [initialData, open, resetForm, rcaStatus]);
+
+  useEffect(() => {
+    if (!open || !ticketId) {
+      return;
+    }
+    fetchHandler(() => getRootCauseAnalysis(ticketId))
+      .then((payload) => {
+        const normalized = payload ?? null;
+        setCurrentData(normalized);
+        resetForm(normalized);
+        onDataChange?.(normalized);
+      })
+      .catch(() => {
+        // Errors handled by useApi
+      });
+  }, [fetchHandler, onDataChange, open, resetForm, ticketId]);
 
   const handleFilesChange = (files: File[]) => {
     setNewAttachments((prev) => {
@@ -105,14 +127,15 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
 
   const handleExistingAttachmentRemove = async (index: number) => {
     const path = existingAttachments[index];
-    if (!ticketId || !path) {
+    if (!ticketId || !path || isViewMode) {
       return;
     }
     try {
       const payload = await deleteHandler(() => deleteRootCauseAnalysisAttachment(ticketId, path, updatedBy));
-      const attachments = Array.isArray(payload?.attachments) ? payload.attachments : [];
-      setExistingAttachments(attachments);
-      onDataChange?.(payload ?? null);
+      const normalized = payload ?? null;
+      setCurrentData(normalized);
+      resetForm(normalized);
+      onDataChange?.(normalized);
       showMessage(t('Attachment removed successfully'), 'success');
     } catch {
       // errors handled by useApi
@@ -133,29 +156,51 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
 
     try {
       const payload = await saveHandler(() => saveRootCauseAnalysis(ticketId, formData));
+      const normalized = payload ?? null;
+      setCurrentData(normalized);
+      resetForm(normalized);
+      onSubmitted(normalized);
+      onDataChange?.(normalized);
       showMessage(t('Root cause analysis submitted successfully'), 'success');
-      onSubmitted(payload ?? null);
+      if (isRcaSubmitted) {
+        setEditMode(false);
+      } else {
+        onClose();
+      }
     } catch {
       // errors handled by useApi
     }
   };
 
   const onCancel = () => {
-    setEditMode(false)
-  }
+    setEditMode(false);
+    resetForm(currentData);
+  };
 
-  const onClose = () => {
-    // setEditMode(false)
-    setIsRcaModalOpen(false)
-  }
+  const handleClose = () => {
+    if (savePending) {
+      return;
+    }
+    resetForm(currentData);
+    setEditMode(rcaStatus !== 'SUBMITTED');
+    onClose();
+  };
 
-  const modalTitle = `${isRcaSubmitted ? 'View' : 'Submit'} Root Cause Analysis`
+  const modalTitle = `${isRcaSubmitted ? 'View' : 'Submit'} Root Cause Analysis`;
+  const showAttachments = true;
+  const showThumbnailList = existingAttachmentUrls.length > 0;
+  const showFileUpload = !isViewMode;
+  const showCancelButton = isRcaSubmitted && isEditMode;
+  const showCloseButton = true;
+  const showSubmitButton = !isViewMode;
+  const showEditIcon = isRcaSubmitted && !isEditMode;
+  const submitLabel = isRcaSubmitted ? t('Save') : t('Submit');
 
   return (
-    <Modal open={open} onClose={onClose} >
+    <Modal open={open} onClose={handleClose}>
       <Box
         component="form"
-        onSubmit={handleSubmit(() => onSubmit)}
+        onSubmit={handleSubmit(onSubmit)}
         sx={{
           position: 'absolute',
           top: '50%',
@@ -172,51 +217,52 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
           gap: 2,
         }}
       >
-        <div className='d-flex'>
+        <div className='d-flex align-items-center justify-content-between'>
           <Typography variant="h6">{t(modalTitle)}</Typography>
           {showEditIcon && <CustomIconButton icon='edit' onClick={() => setEditMode(true)} />}
         </div>
         <div className='d-flex justify-content-between'>
-          {/* <Typography variant="body2">
-            {t('Ticket ID')}: {ticketId}
-          </Typography> */}
           <Typography variant="body2">
-            {t('Severity')}: {initialData?.severityLabel || '-'}
+            {t('Severity')}: {currentData?.severityLabel || '-'}
           </Typography>
         </div>
 
-        {isViewMode
-          ? <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{descriptionOfCauseValue || ' - '}</Typography>
-          : <div className="col-md-6 mb-3 px-4">
+        {isViewMode ? (
+          <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{currentData?.descriptionOfCause || ' - '}</Typography>
+        ) : (
+          <div className="col-md-12 mb-3 px-1">
             <CustomFormInput
-              name="Description of cause"
+              name="descriptionOfCause"
               label={t('Description of cause')}
               multiline
               minRows={3}
               slotProps={{
-                inputLabel: { shrink: descriptionOfCauseValue }
+                inputLabel: { shrink: Boolean(descriptionOfCauseValue) }
               }}
               register={register}
               errors={errors}
-              disabled
+              required
             />
-          </div>}
-        {isViewMode
-          ? <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{resolutionDescription || ' - '}</Typography>
-          : <div className="col-md-6 mb-3 px-4">
+          </div>
+        )}
+        {isViewMode ? (
+          <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{currentData?.resolutionDescription || ' - '}</Typography>
+        ) : (
+          <div className="col-md-12 mb-3 px-1">
             <CustomFormInput
-              name="Resolution Description"
+              name="resolutionDescription"
               label={t('Resolution Description')}
               multiline
               minRows={3}
               slotProps={{
-                inputLabel: { shrink: resolutionDescription }
+                inputLabel: { shrink: Boolean(resolutionDescriptionValue) }
               }}
               register={register}
               errors={errors}
-              disabled
+              required
             />
-          </div>}
+          </div>
+        )}
 
         {showAttachments && <Box>
           <Typography variant="subtitle2" color="text.secondary">
@@ -227,7 +273,7 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
               <ThumbnailList
                 attachments={existingAttachmentUrls}
                 thumbnailSize={100}
-                onRemove={handleExistingAttachmentRemove}
+                onRemove={showFileUpload ? handleExistingAttachmentRemove : undefined}
               />
             </Box>
           )}
@@ -242,14 +288,14 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
         </Box>}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          {showCloseButton && <GenericButton variant="outlined" onClick={onClose} disabled={savePending}>
+          {showCloseButton && <GenericButton variant="outlined" onClick={handleClose} disabled={savePending}>
             {t('Close')}
           </GenericButton>}
           {showCancelButton && <GenericButton variant="outlined" onClick={onCancel} disabled={savePending}>
             {t('Cancel')}
           </GenericButton>}
           {showSubmitButton && <GenericButton type="submit" variant="contained" disabled={savePending}>
-            {t('Submit')}
+            {submitLabel}
           </GenericButton>}
         </Box>
       </Box>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Modal, Divider, CircularProgress } from '@mui/material';
+import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla } from '../services/TicketService';
@@ -26,7 +26,6 @@ import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
-import { deleteRootCauseAnalysisAttachment, getRootCauseAnalysis, saveRootCauseAnalysis } from '../services/RootCauseAnalysisService';
 import { useLocation } from 'react-router-dom';
 import RootCauseAnalysisModal from './RootCauseAnalysisModal';
 
@@ -59,16 +58,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // Getting rcaStatus from RootCauseAnalysis.tsx
   const { state } = useLocation();
-  const rcaStatus = state?.rcaStatus
+  const rcaStatus = state?.rcaStatus ?? '';
 
   // USEAPI INITIALIZATIONS
   const { data: ticket, apiHandler: getTicketHandler } = useApi<any>();
   const { apiHandler: updateTicketHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
-  const { data: rootCauseAnalysis, apiHandler: getRootCauseAnalysisHandler, pending: rcaLoading } = useApi<RootCauseAnalysis | null>();
-  const { apiHandler: saveRcaHandler, pending: saveRcaPending } = useApi<RootCauseAnalysis | null>();
-  const { apiHandler: deleteRcaAttachmentHandler } = useApi<RootCauseAnalysis | null>();
 
   // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
@@ -99,11 +95,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
-  const [rcaModalMode, setRcaModalMode] = useState<'view' | 'submit'>('view');
-  const [rcaEditing, setRcaEditing] = useState(false);
-  const [rcaFormValues, setRcaFormValues] = useState({ descriptionOfCause: '', resolutionDescription: '' });
-  const [rcaExistingAttachments, setRcaExistingAttachments] = useState<string[]>([]);
-  const [rcaNewAttachments, setRcaNewAttachments] = useState<File[]>([]);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const currentUserDetails = useMemo(() => getCurrentUserDetails(), []);
@@ -301,10 +292,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, [workflowData]);
 
   useEffect(() => {
-    setRcaData(rootCauseAnalysis ?? null);
-  }, [rootCauseAnalysis]);
-
-  useEffect(() => {
     if (focusRecommendSeverity && showSeverity && !showSeverityToRecommendSeverity && recommendSeverityButtonRef.current) {
       recommendSeverityButtonRef.current.focus();
       onRecommendSeverityFocusHandled?.();
@@ -499,153 +486,29 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ' - '} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ' - '}` : ' - ';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ' - '} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ' - '}` : ' - ';
-  const rcaUpdatedBy = rcaData?.updatedBy ?? '';
-  const formattedRcaUpdatedAt = useMemo(() => {
-    if (!rcaData?.updatedAt) {
-      return '';
-    }
-    const date = new Date(rcaData.updatedAt);
-    return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
-  }, [rcaData?.updatedAt]);
-  const fallbackSeverityText = useMemo(() => getSeverityText(ticket?.severity || ''), [getSeverityText, ticket?.severity]);
-  const severitySource = rcaData?.severityDisplay || rcaData?.severityLabel || rcaData?.severityId || ticket?.severity || '';
-  const severityText = useMemo(() => getSeverityText(severitySource), [getSeverityText, severitySource]);
-  const severityLabelDisplay = useMemo(() => {
-    const label = rcaData?.severityLabel || rcaData?.severityId || ticket?.severity || '';
-    return label && label !== severityText ? label : '';
-  }, [rcaData?.severityLabel, rcaData?.severityId, ticket?.severity, severityText]);
-  const displayedSeverityText = severityText || fallbackSeverityText;
-  const rcaAttachmentUrls = useMemo(
-    () => rcaExistingAttachments.map(path => `${BASE_URL}/uploads/${path}`),
-    [rcaExistingAttachments],
-  );
-
-  const resetRcaForm = useCallback((data: RootCauseAnalysis | null) => {
-    setRcaFormValues({
-      descriptionOfCause: data?.descriptionOfCause ?? '',
-      resolutionDescription: data?.resolutionDescription ?? '',
-    });
-    const attachments = Array.isArray(data?.attachments) ? data.attachments : [];
-    setRcaExistingAttachments(attachments);
-    setRcaNewAttachments([]);
-  }, []);
-
-  useEffect(() => {
-    setRcaData(rootCauseAnalysis ?? null);
-  }, [rootCauseAnalysis]);
-
-  useEffect(() => {
-    if (rcaModalMode === 'view' && !rcaEditing) {
-      resetRcaForm(rcaData ?? null);
-    }
-  }, [rcaData, rcaModalMode, rcaEditing, resetRcaForm]);
 
   const handleOpenSubmitRca = useCallback(() => {
-    setRcaModalMode('submit');
-    setRcaEditing(true);
-    resetRcaForm(null);
     setIsRcaModalOpen(true);
-  }, [resetRcaForm]);
+  }, []);
 
   const handleOpenViewRca = useCallback(() => {
-    if (!ticketId) {
-      return;
-    }
-    setRcaModalMode('view');
-    setRcaEditing(false);
-    resetRcaForm(null);
     setIsRcaModalOpen(true);
-    getRootCauseAnalysisHandler(() => getRootCauseAnalysis(ticketId));
-  }, [getRootCauseAnalysisHandler, resetRcaForm, ticketId]);
-
-  const handleRcaFieldChange = useCallback((field: 'descriptionOfCause' | 'resolutionDescription', value: string) => {
-    setRcaFormValues(prev => ({ ...prev, [field]: value }));
   }, []);
-
-  const handleRcaNewFilesChange = useCallback((files: File[]) => {
-    setRcaNewAttachments(files);
-  }, []);
-
-  const handleRcaExistingAttachmentRemove = useCallback(async (index: number) => {
-    if (!ticketId) {
-      return;
-    }
-    const path = rcaExistingAttachments[index];
-    if (!path) {
-      return;
-    }
-    try {
-      const payload = await deleteRcaAttachmentHandler(() =>
-        deleteRootCauseAnalysisAttachment(ticketId, path, currentUsername),
-      );
-      const normalized = payload ?? null;
-      setRcaData(normalized);
-      resetRcaForm(normalized);
-    } catch {
-      // handled in useApi
-    }
-  }, [currentUsername, deleteRcaAttachmentHandler, resetRcaForm, rcaExistingAttachments, ticketId]);
 
   const handleRcaModalClose = useCallback(() => {
     setIsRcaModalOpen(false);
-    setRcaEditing(false);
-    if (rcaModalMode === 'view') {
-      resetRcaForm(rcaData ?? null);
-    } else {
-      resetRcaForm(null);
-    }
-  }, [rcaData, rcaModalMode, resetRcaForm]);
+  }, []);
 
-  const handleRcaCancelEdit = useCallback(() => {
-    if (rcaModalMode === 'submit') {
-      handleRcaModalClose();
-      return;
-    }
-    setRcaEditing(false);
-    resetRcaForm(rcaData ?? null);
-  }, [handleRcaModalClose, rcaData, rcaModalMode, resetRcaForm]);
+  const handleRcaDataChange = useCallback((payload: RootCauseAnalysis | null) => {
+    setRcaData(payload ?? null);
+  }, []);
 
-  const handleRcaSubmit = useCallback(async () => {
-    if (!ticketId) {
-      return;
+  const handleRcaSubmitted = useCallback((payload: RootCauseAnalysis | null) => {
+    setRcaData(payload ?? null);
+    if (ticketId) {
+      getTicketHandler(() => getTicket(ticketId));
     }
-    const description = rcaFormValues.descriptionOfCause.trim();
-    const resolution = rcaFormValues.resolutionDescription.trim();
-    if (!description || !resolution) {
-      return;
-    }
-    const formData = new FormData();
-    formData.append('descriptionOfCause', description);
-    formData.append('resolutionDescription', resolution);
-    if (currentUsername) {
-      formData.append('updatedBy', currentUsername);
-    }
-    rcaNewAttachments.forEach(file => formData.append('attachments', file));
-    try {
-      const payload = await saveRcaHandler(() => saveRootCauseAnalysis(ticketId, formData));
-      const normalized = payload ?? null;
-      setRcaData(normalized);
-      resetRcaForm(normalized);
-      setRcaEditing(false);
-      if (rcaModalMode === 'submit') {
-        setIsRcaModalOpen(false);
-        setRcaModalMode('view');
-      }
-      await getTicketHandler(() => getTicket(ticketId));
-    } catch {
-      // handled in useApi
-    }
-  }, [currentUsername, getTicketHandler, rcaFormValues.descriptionOfCause, rcaFormValues.resolutionDescription, rcaModalMode, rcaNewAttachments, resetRcaForm, saveRcaHandler, ticketId]);
-
-  // const isSubmitMode = rcaModalMode === 'submit';
-  // const rcaModalTitle = isSubmitMode
-  //   ? t('Submit RCA')
-  //   : rcaEditing
-  //     ? t('Edit RCA')
-  //     : t('View RCA');
-  // const isRcaFormValid = rcaFormValues.descriptionOfCause.trim().length > 0
-  //   && rcaFormValues.resolutionDescription.trim().length > 0;
-  // const isRcaLoading = rcaLoading && !isSubmitMode;
+  }, [getTicketHandler, ticketId]);
 
   const currentStatusName = useMemo(() => {
     if (!ticket) return '';
@@ -660,7 +523,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
   const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2');
   // const showRCAButton = isClosedStatus && (isTeamLeadRole || isLevelAgent);
-  const shouldShowRcaSection = isClosedStatus;
 
   const isAssignedToCurrentUser = useMemo(() => {
     if (!ticket?.assignedTo || !currentUsername) return false;
@@ -678,9 +540,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
-  const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
-
-  console.log({ rcaStatus: ticket?.rcaStatus, shouldShowSubmitRcaButton, shouldShowViewRcaButton })
+    const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
     setSelectedStatusAction(action);
@@ -1041,15 +901,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       {/* MODAL - ROOT CAUSE ANALYSIS */}
       <RootCauseAnalysisModal
         open={isRcaModalOpen}
-        setIsRcaModalOpen={() => setIsRcaModalOpen}
-        // onClose={handleRcaModalClose}
+        onClose={handleRcaModalClose}
         rcaStatus={rcaStatus}
         ticketId={ticketId}
-        updatedBy={rcaUpdatedBy}
-        initialData={rootCauseAnalysis}
-        onSubmitted={function (payload: RootCauseAnalysis | null): void {
-          throw new Error('Function not implemented.');
-        }} />
+        updatedBy={currentUsername}
+        initialData={rcaData}
+        onSubmitted={handleRcaSubmitted}
+        onDataChange={handleRcaDataChange}
+      />
 
       <RemarkComponent
         isModal
