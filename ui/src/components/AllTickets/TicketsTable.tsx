@@ -40,6 +40,7 @@ export interface TicketRow {
     severity?: string;
     severityId?: string;
     severityLabel?: string;
+    rcaStatus?: 'NOT_APPLICABLE' | 'PENDING' | 'SUBMITTED';
 }
 
 interface TicketsTableProps {
@@ -292,6 +293,15 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 key: 'action',
                 width: 200,
                 render: (_: any, record: TicketRow) => {
+                    if (record.rcaStatus) {
+                        const isSubmitted = record.rcaStatus === 'SUBMITTED';
+                        const label = isSubmitted ? t('View RCA') : t('Submit RCA');
+                        return (
+                            <Button size="small" onClick={() => onRowClick(record.id)}>
+                                {label}
+                            </Button>
+                        );
+                    }
                     const recordActions = getAvailableActions(record.statusId);
                     const statusName = getStatusNameById(record.statusId || '') || '';
                     const resumeAction = recordActions.find(a => a.action === 'Resume');
