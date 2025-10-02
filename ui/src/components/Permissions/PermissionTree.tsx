@@ -10,7 +10,22 @@ interface TreeProps {
     data: PermissionNode;
     path?: string[];
     onChange: (data: PermissionNode) => void;
+    allowStructureEdit?: boolean;
+    defaultShowForNewNodes?: boolean;
 }
+
+const toCamelCase = (value: string) => {
+    const parts = value
+        .trim()
+        .split(/[^a-zA-Z0-9]+/)
+        .filter(Boolean)
+        .map(part => part.toLowerCase());
+    if (!parts.length) {
+        return '';
+    }
+    const [first, ...rest] = parts;
+    return first + rest.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+};
 
 const setValue = (obj: any, path: string[], value: any): PermissionNode => {
     if (path.length === 1) {
@@ -35,8 +50,9 @@ const deleteValue = (obj: any, path: string[]): PermissionNode => {
     }
 }
 
-const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (path: string[], value: any, remove?: boolean) => void }> = ({ label, value, path, onChange }) => {
+const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (path: string[], value: any, remove?: boolean) => void; allowStructureEdit: boolean; defaultShow: boolean; }> = ({ label, value, path, onChange, allowStructureEdit, defaultShow }) => {
     const { devMode } = useContext(DevModeContext);
+    const canEdit = devMode && allowStructureEdit;
     const defaultOpen = path.length === 1 && (label === 'pages' || label === 'sidebar');
     const [open, setOpen] = useState(defaultOpen);
     const [adding, setAdding] = useState(false);
@@ -44,7 +60,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     const [addedChildren, setAddedChildren] = useState(false);
 
     useEffect(() => {
-        if (!devMode && adding) {
+        if (!canEdit && adding) {
             if (addedChildren) {
                 onChange([...path, 'children'], undefined, true);
                 setAddedChildren(false);
@@ -52,7 +68,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
             setAdding(false);
             setNewChild('');
         }
-    }, [devMode]);
+    }, [canEdit]);
 
     if (label === "show" || label === "metadata") return null;
 
@@ -61,6 +77,9 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     const show = Boolean(value?.show);
 
     const startAdd = () => {
+        if (!canEdit) {
+            return;
+        }
         if (!hasChildren) {
             onChange([...path, 'children'], {});
             setAddedChildren(true);
@@ -80,15 +99,17 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
 
     const confirmAdd = () => {
         if (!newChild) return;
-        const child: PermissionNode = { show: false, metadata: { name: newChild }, children: null };
-        onChange([...path, 'children', newChild], child);
+        const key = toCamelCase(newChild);
+        if (!key) return;
+        if (value?.children && Object.prototype.hasOwnProperty.call(value.children, key)) {
+            return;
+        }
+        const child: PermissionNode = { show: defaultShow, metadata: { name: newChild }, children: null };
+        onChange([...path, 'children', key], child);
         setAdding(false);
         setNewChild('');
         setAddedChildren(false);
     };
-
-
-    console.log({ value });
 
     if (hasChildren || addedChildren) {
         const entries = Object.entries(value.children || {});
@@ -104,7 +125,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                         onChange={e => onChange([...path, 'show'], e.target.checked)}
                     />
                     <span style={{ flexGrow: 1 }}>{nodeLabel}</span>
-                    {devMode && !adding && (
+                    {canEdit && !adding && (
                         <CustomIconButton icon='add' onClick={startAdd} />
                     )}
                 </div>
@@ -117,7 +138,15 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                 )}
                 <Collapse in={open} timeout="auto" unmountOnExit>
                     {entries.map(([k, v]) => (
-                        <Node key={k} label={k} value={v} path={[...path, 'children', k]} onChange={onChange} />
+                        <Node
+                            key={k}
+                            label={k}
+                            value={v}
+                            path={[...path, 'children', k]}
+                            onChange={onChange}
+                            allowStructureEdit={allowStructureEdit}
+                            defaultShow={defaultShow}
+                        />
                     ))}
                 </Collapse>
             </div>
@@ -132,7 +161,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                 onChange={e => onChange([...path, 'show'], e.target.checked)}
             />
             <span style={{ flexGrow: 1 }}>{nodeLabel}</span>
-            {devMode && !adding && (
+            {canEdit && !adding && (
                 <CustomIconButton onClick={startAdd} icon='add' />
             )}
             {adding && (
@@ -146,7 +175,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     );
 };
 
-const PermissionTree: React.FC<TreeProps> = ({ data, path = [], onChange }) => {
+const PermissionTree: React.FC<TreeProps> = ({ data, path = [], onChange, allowStructureEdit = false, defaultShowForNewNodes = false }) => {
     const handleChange = (p: string[], value: any, remove?: boolean) => {
         const updated = remove ? deleteValue(data, p.slice(path.length)) : setValue(data, p.slice(path.length), value);
         onChange(updated);
@@ -155,7 +184,15 @@ const PermissionTree: React.FC<TreeProps> = ({ data, path = [], onChange }) => {
     return (
         <div>
             {Object.entries(data).map(([k, v]) => (
-                <Node key={k} label={k} value={v} path={[...path, k]} onChange={handleChange} />
+                <Node
+                    key={k}
+                    label={k}
+                    value={v}
+                    path={[...path, k]}
+                    onChange={handleChange}
+                    allowStructureEdit={allowStructureEdit}
+                    defaultShow={defaultShowForNewNodes}
+                />
             ))}
         </div>
     );
