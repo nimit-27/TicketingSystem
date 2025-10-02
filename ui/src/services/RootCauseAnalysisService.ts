@@ -21,8 +21,9 @@ export function getRootCauseAnalysisTicketById(ticketId: string) {
   return axios.get(`${BASE_URL}/root-cause-analysis/tickets/${ticketId}`);
 }
 
-export async function getRootCauseAnalysis(ticketId: string): Promise<RootCauseAnalysis | null> {
+export async function getRootCauseAnalysis(ticketId: string): Promise<any | null> {
   const response = await axios.get(`${BASE_URL}/root-cause-analysis/${ticketId}`);
+  return response;
   return extractPayload(response);
 }
 
