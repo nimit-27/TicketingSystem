@@ -8,6 +8,7 @@ import { TicketStatusWorkflow } from '../types';
 import { getStatusWorkflowMappings } from '../services/StatusService';
 import { getCurrentUserDetails } from '../config/config';
 import { getRootCauseAnalysisTickets } from '../services/RootCauseAnalysisService';
+import RootCauseAnalysisModal from '../components/RootCauseAnalysisModal';
 
 const formatSeverityText = (severity?: string, label?: string): string => {
   const source = (severity || label || '').trim();
@@ -37,6 +38,9 @@ const RootCauseAnalysis: React.FC = () => {
   const [pageSize] = useState(10);
   const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
   const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
+  const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [selectedRcaStatus, setSelectedRcaStatus] = useState<string>('PENDING');
   const currentUser = getCurrentUserDetails();
   const currentUsername = currentUser?.username || currentUser?.userId || '';
   const currentRoles = useMemo(() => {
@@ -99,6 +103,18 @@ const RootCauseAnalysis: React.FC = () => {
     [fetchTickets],
   );
 
+  const handleOpenRcaModal = useCallback((ticketId: string, status?: TicketRow['rcaStatus']) => {
+    setSelectedTicketId(ticketId);
+    setSelectedRcaStatus(status ?? 'PENDING');
+    setIsRcaModalOpen(true);
+  }, []);
+
+  const handleRcaModalClose = useCallback(() => {
+    setIsRcaModalOpen(false);
+    setSelectedTicketId(null);
+    fetchTickets();
+  }, [fetchTickets]);
+
   return (
     <div className="container">
       <Title textKey="Root Cause Analysis" />
@@ -110,6 +126,7 @@ const RootCauseAnalysis: React.FC = () => {
         refreshingTicketId={refreshingTicketId}
         statusWorkflows={statusWorkflows}
         showSeverityColumn
+        onRcaClick={handleOpenRcaModal}
       />
       <div className="d-flex justify-content-between align-items-center mt-3">
         <PaginationControls
@@ -118,6 +135,15 @@ const RootCauseAnalysis: React.FC = () => {
           onChange={(_, value) => setPage(value)}
         />
       </div>
+      {selectedTicketId && (
+        <RootCauseAnalysisModal
+          open={isRcaModalOpen}
+          onClose={handleRcaModalClose}
+          rcaStatus={selectedRcaStatus}
+          ticketId={selectedTicketId}
+          updatedBy={currentUsername}
+        />
+      )}
     </div>
   );
 };
