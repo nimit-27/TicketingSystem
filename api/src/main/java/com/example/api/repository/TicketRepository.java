@@ -30,10 +30,14 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "WHERE t.ticketStatus = :status " +
             "AND t.severity IS NOT NULL " +
             "AND LOWER(t.severity) IN (:severityTokens) " +
-            "AND (:updatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:updatedBy))")
+            "AND (:updatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:updatedBy)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     Page<Ticket> findClosedTicketsForRootCauseAnalysis(@Param("status") TicketStatus status,
                                                        @Param("severityTokens") Collection<String> severityTokens,
                                                        @Param("updatedBy") String updatedBy,
+                                                       @Param("fromDate") LocalDateTime fromDate,
+                                                       @Param("toDate") LocalDateTime toDate,
                                                        Pageable pageable);
 
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
@@ -44,10 +48,13 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
             "AND (:priority IS NULL OR t.priority = :priority) " +
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
-            "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL) " +
+            "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
-            "OR (:requestorId IS NOT NULL AND t.userId = :requestorId)) " +
+            "OR (:requestorId IS NOT NULL AND t.userId = :requestorId) " +
+            "OR (:createdBy IS NOT NULL AND LOWER(t.updatedBy) = LOWER(:createdBy))) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
@@ -58,5 +65,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
                                @Param("levelId") String levelId, @Param("priority") String priority,
                                @Param("severities") List<String> severities,
+                               @Param("createdBy") String createdBy,
+                               @Param("fromDate") LocalDateTime fromDate,
+                               @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
 }

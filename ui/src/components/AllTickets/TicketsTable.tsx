@@ -53,9 +53,10 @@ interface TicketsTableProps {
     onRecommendEscalation?: (id: string) => void;
     showSeverityColumn?: boolean;
     onRcaClick?: (id: string, status?: TicketRow['rcaStatus']) => void;
+    permissionPathPrefix?: string;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets' }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -72,7 +73,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
-    let allowAssignment = checkAccessMaster(['myTickets', 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
+    let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -360,7 +361,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             if (!col || !col.key) {
                 return false;
             }
-            return checkMyTicketsColumnAccess(String(col.key));
+            return checkMyTicketsColumnAccess(String(col.key), permissionPathPrefix);
         }),
         [t, statusWorkflows, showSeverityColumn]
     );

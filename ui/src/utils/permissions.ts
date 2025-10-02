@@ -31,15 +31,15 @@ export function getFieldChildren(section: string, field: string) {
   return perms?.pages?.children?.ticketForm?.children?.[section]?.children?.[field]?.children;
 }
 
-export function checkMyTicketsAccess(key: string): boolean {
+export function checkMyTicketsAccess(key: string, pageKey: string = 'myTickets'): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  return perms?.pages?.children?.myTickets?.children?.[key]?.show ?? false;
+  return perms?.pages?.children?.[pageKey]?.children?.[key]?.show ?? false;
 }
 
-export function checkMyTicketsColumnAccess(column: string): boolean {
+export function checkMyTicketsColumnAccess(column: string, pageKey: string = 'myTickets'): boolean {
   const perms = getUserPermissions() as RolePermission | null;
   return (
-    perms?.pages?.children?.myTickets?.children?.table?.children?.columns?.children?.[column]?.show ?? true
+    perms?.pages?.children?.[pageKey]?.children?.table?.children?.columns?.children?.[column]?.show ?? true
   );
 }
 

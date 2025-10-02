@@ -21,6 +21,8 @@ import { Ticket, TicketStatusWorkflow } from "../types";
 import { getStatusWorkflowMappings } from "../services/StatusService";
 import { getCurrentUserDetails } from "../config/config";
 import { useNavigate } from "react-router-dom";
+import DateRangeFilter, { getDateRangeApiParams } from "../components/Filters/DateRangeFilter";
+import { DateRangeState } from "../utils/dateUtils";
 
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
@@ -56,8 +58,10 @@ const AllTickets: React.FC = () => {
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
     const { t } = useTranslation();
-    const showTicketsTable = checkMyTicketsAccess('ticketsTable');
+    const showTicketsTable = checkMyTicketsAccess('ticketsTable', 'allTickets');
     const sortDirection: 'asc' | 'desc' = 'desc';
+    const [dateRange, setDateRange] = useState<DateRangeState>({ preset: "ALL" });
+    const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
 
     let assignedTo: string | undefined = undefined;
     let assignedBy: string | undefined = undefined;
@@ -82,8 +86,8 @@ const AllTickets: React.FC = () => {
     const debouncedSearch = useDebounce(search, 300);
 
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
-        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection));
-    }
+        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection, undefined, undefined, dateRangeParams.fromDate, dateRangeParams.toDate));
+    };
 
     const onIdClick = (id: string) => {
         if (id) {
@@ -106,16 +110,16 @@ const AllTickets: React.FC = () => {
         async (id: string) => {
             setRefreshingTicketId(id);
             await searchTicketsPaginatedApiHandler(() =>
-                searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize, undefined, levelFilter)
+                searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize, undefined, levelFilter, undefined, undefined, sortBy, sortDirection, undefined, undefined, dateRangeParams.fromDate, dateRangeParams.toDate)
             );
             setRefreshingTicketId(null);
         },
-        [debouncedSearch, statusFilter, masterOnly, page, pageSize]
+        [debouncedSearch, statusFilter, masterOnly, page, pageSize, levelFilter, sortBy, sortDirection, dateRangeParams.fromDate, dateRangeParams.toDate]
     );
 
     useEffect(() => {
         searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection]);
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection, dateRangeParams.fromDate, dateRangeParams.toDate]);
 
     useEffect(() => {
         getStatuses().then(setStatusList);
@@ -141,7 +145,7 @@ const AllTickets: React.FC = () => {
         <div className="container" style={{ display: 'flex' }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey="All Tickets" />
-                <div className="d-flex align-items-center mb-3">
+                <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
                     {/* FILTERS */}
                     <GenericInput
                         label="Search"
@@ -158,6 +162,7 @@ const AllTickets: React.FC = () => {
                         options={statusFilterOptions}
                         style={{ width: 180, marginRight: 8 }}
                     />
+                    <DateRangeFilter value={dateRange} onChange={setDateRange} />
                     {showLevelFilterToggle && levels.map(l => (
                         <Chip
                             key={l}
@@ -212,6 +217,7 @@ const AllTickets: React.FC = () => {
                             refreshingTicketId={refreshingTicketId}
                             statusWorkflows={workflowMap}
                             onRecommendEscalation={handleRecommendEscalation}
+                            permissionPathPrefix="allTickets"
                         />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
