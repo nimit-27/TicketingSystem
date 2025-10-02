@@ -188,12 +188,14 @@ const MyWorkload: React.FC = () => {
         if (data) {
             const resp = data;
             let items = resp.items || resp;
-            const roles = getCurrentUserDetails()?.role || [];
-            if (roles.includes("4")) {
-                items = items.filter((t: TicketRow) => t.statusId === '1' || t.statusId === '2');
+            const roles = (getCurrentUserDetails()?.role || []).map(String);
+            if (roles.some(role => role === "4" || role === "TEAM_LEAD")) {
+                const teamLeadStatuses = new Set(["1", "2", "OPEN", "ASSIGNED"]);
+                items = items.filter((t: TicketRow) => teamLeadStatuses.has(String(t.statusId ?? "")));
             }
             if (roles.includes("9")) {
-                items = items.filter((t: TicketRow) => t.statusId === '6');
+                const escalatedStatuses = new Set(["6", "ESCALATED"]);
+                items = items.filter((t: TicketRow) => escalatedStatuses.has(String(t.statusId ?? "")));
             }
             setTotalPages(resp.totalPages || 1);
             setFiltered(items);
