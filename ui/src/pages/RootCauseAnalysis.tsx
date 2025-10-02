@@ -9,6 +9,8 @@ import { getStatusWorkflowMappings } from '../services/StatusService';
 import { getCurrentUserDetails } from '../config/config';
 import { getRootCauseAnalysisTickets } from '../services/RootCauseAnalysisService';
 import RootCauseAnalysisModal from '../components/RootCauseAnalysisModal';
+import DateRangeFilter, { getDateRangeApiParams } from '../components/Filters/DateRangeFilter';
+import { DateRangeState } from '../utils/dateUtils';
 
 const formatSeverityText = (severity?: string, label?: string): string => {
   const source = (severity || label || '').trim();
@@ -48,15 +50,17 @@ const RootCauseAnalysis: React.FC = () => {
     const normalized = Array.isArray(roles) ? roles : roles ? [roles] : [];
     return normalized.filter((role): role is string => typeof role === 'string' && role.trim().length > 0);
   }, [JSON.stringify(currentUser?.role ?? [])]);
+  const [dateRange, setDateRange] = useState<DateRangeState>({ preset: 'ALL' });
+  const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
 
   const fetchTickets = useCallback(() => {
     if (!currentUsername) {
       return Promise.resolve();
     }
     return apiHandler(() =>
-      getRootCauseAnalysisTickets(page - 1, pageSize, currentUsername, currentRoles),
+      getRootCauseAnalysisTickets(page - 1, pageSize, currentUsername, currentRoles, dateRangeParams.fromDate, dateRangeParams.toDate),
     );
-  }, [apiHandler, currentRoles, currentUsername, page, pageSize]);
+  }, [apiHandler, currentRoles, currentUsername, page, pageSize, dateRangeParams.fromDate, dateRangeParams.toDate]);
 
   useEffect(() => {
     fetchTickets();
@@ -118,6 +122,9 @@ const RootCauseAnalysis: React.FC = () => {
   return (
     <div className="container">
       <Title textKey="Root Cause Analysis" />
+      <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      </div>
       <TicketsTable
         tickets={tickets}
         onIdClick={(id) => navigate(`/root-cause-analysis/${id}`)}
@@ -127,6 +134,7 @@ const RootCauseAnalysis: React.FC = () => {
         statusWorkflows={statusWorkflows}
         showSeverityColumn
         onRcaClick={handleOpenRcaModal}
+        permissionPathPrefix="rootCauseAnalysis"
       />
       <div className="d-flex justify-content-between align-items-center mt-3">
         <PaginationControls

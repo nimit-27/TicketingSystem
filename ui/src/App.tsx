@@ -13,6 +13,7 @@ import RoleDetails from './pages/RoleDetails';
 import SidebarLayout from './components/Layout/SidebarLayout';
 import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
+import MyWorkload from './pages/MyWorkload';
 import Faq from './pages/Faq';
 import FaqForm from './pages/FaqForm';
 import RootCauseAnalysis from './pages/RootCauseAnalysis';
@@ -42,10 +43,11 @@ function App() {
           </RequireAuth>
         )}
       >
-        <Route index element={<Navigate to="/my-tickets" replace />} />  // Default route
+        <Route index element={<Navigate to="/my-tickets" replace />} /> {/* Default route */}
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
         <Route path="my-tickets" element={<MyTickets />} />
+        <Route path="my-workload" element={<MyWorkload />} />
         <Route path="root-cause-analysis" element={<RootCauseAnalysis />} />
         <Route path="faq" element={<Faq />} />
         <Route path="faq/new" element={<FaqForm />} />

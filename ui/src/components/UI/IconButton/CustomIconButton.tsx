@@ -45,6 +45,7 @@ import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors';
 import GradingIcon from '@mui/icons-material/Grading';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 // Define the icon map
 const iconMap = {
@@ -96,6 +97,7 @@ const iconMap = {
     runningWithErrors: RunningWithErrorsIcon,
     grading: GradingIcon,
     rateReview: RateReviewIcon,
+    workOutline: WorkOutlineIcon,
 };
 
 // Valid keys for the icon map

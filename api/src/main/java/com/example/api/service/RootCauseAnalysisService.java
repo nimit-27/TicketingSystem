@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -122,13 +123,16 @@ public class RootCauseAnalysisService {
         return level;
     }
 
-    public PaginationResponse<TicketDto> getTicketsForRootCauseAnalysis(String username, List<String> roles, Pageable pageable) {
+    public PaginationResponse<TicketDto> getTicketsForRootCauseAnalysis(String username, List<String> roles, Pageable pageable,
+                                                                       LocalDateTime fromDate, LocalDateTime toDate) {
         boolean isTeamLead = isTeamLead(roles);
         String updatedBy = isTeamLead ? null : normalize(username);
         Page<Ticket> tickets = ticketRepository.findClosedTicketsForRootCauseAnalysis(
                 TicketStatus.CLOSED,
                 severityTokens,
                 updatedBy,
+                fromDate,
+                toDate,
                 pageable
         );
         Set<String> submittedTicketIds;

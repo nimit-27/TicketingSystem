@@ -24,6 +24,12 @@ const menuItems = [
     icon: "portrait",
   },
   {
+    key: "myWorkload",
+    label: "My Workload",
+    to: "/my-workload",
+    icon: "workOutline",
+  },
+  {
     key: "rca",
     label: "Root Cause Analysis",
     to: "/root-cause-analysis",

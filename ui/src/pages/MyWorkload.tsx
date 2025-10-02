@@ -32,7 +32,7 @@ const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T):
         }))
         : [];
 
-const MyTickets: React.FC = () => {
+const MyWorkload: React.FC = () => {
     const { data, pending, error, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
     const { data: allowedStatusData, apiHandler: allowedStatusApiHandler } = useApi<any>();
@@ -46,8 +46,8 @@ const MyTickets: React.FC = () => {
     const [search, setSearch] = useState("");
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const showTable = checkMyTicketsAccess('ticketsTable');
-    const showGrid = checkMyTicketsAccess('grid');
+    const showTable = checkMyTicketsAccess('ticketsTable', 'myWorkload');
+    const showGrid = checkMyTicketsAccess('grid', 'myWorkload');
     const [viewMode, setViewMode] = useState<"grid" | "table">(showTable ? 'table' : 'grid');
     const [filtered, setFiltered] = useState<TicketRow[]>([]);
     const [page, setPage] = useState(1);
@@ -65,10 +65,10 @@ const MyTickets: React.FC = () => {
     const [dateRange, setDateRange] = useState<DateRangeState>({ preset: "ALL" });
     const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
 
-    const showSearchBar = checkMyTicketsAccess('searchBar');
-    const showStatusFilter = checkMyTicketsAccess('statusFilter');
-    const showMasterFilterToggle = checkMyTicketsAccess('masterFilterToggle');
-    const showGridTableViewToggle = checkMyTicketsAccess('gridTableViewToggle');
+    const showSearchBar = checkMyTicketsAccess('searchBar', 'myWorkload');
+    const showStatusFilter = checkMyTicketsAccess('statusFilter', 'myWorkload');
+    const showMasterFilterToggle = checkMyTicketsAccess('masterFilterToggle', 'myWorkload');
+    const showGridTableViewToggle = checkMyTicketsAccess('gridTableViewToggle', 'myWorkload');
 
     const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
         Low: { color: 'success.light', count: 1, label: 'Low' },
@@ -91,7 +91,6 @@ const MyTickets: React.FC = () => {
     const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
         const user = getCurrentUserDetails();
         const username = user?.username || user?.userId || "";
-        const userId = user?.userId || "";
 
         let statusParam: string | undefined = statusName;
 
@@ -99,8 +98,7 @@ const MyTickets: React.FC = () => {
             statusParam = allowedStatuses.join(',');
         }
 
-        const requestorId = userId ? userId : undefined;
-        const createdBy = username ? username : undefined;
+        const assignedTo = username ? username : undefined;
 
         return searchTicketsPaginatedApiHandler(() =>
             searchTicketsPaginated(
@@ -109,14 +107,14 @@ const MyTickets: React.FC = () => {
                 master,
                 page,
                 size,
-                undefined,
+                assignedTo,
                 levelFilter,
                 undefined,
-                requestorId,
+                undefined,
                 sortBy,
                 sortDirection,
                 undefined,
-                createdBy,
+                undefined,
                 dateRangeParams.fromDate,
                 dateRangeParams.toDate
             )
@@ -205,7 +203,7 @@ const MyTickets: React.FC = () => {
     return (
         <div className="container" style={{ display: 'flex' }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
-                <Title textKey="My Tickets" />
+                <Title textKey="My Workload" />
                 <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
                     {showSearchBar && (
                         <GenericInput
@@ -284,6 +282,7 @@ const MyTickets: React.FC = () => {
                             searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                             refreshingTicketId={refreshingTicketId}
                             statusWorkflows={workflowMap}
+                            permissionPathPrefix="myWorkload"
                         />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                             <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
@@ -355,5 +354,5 @@ const MyTickets: React.FC = () => {
     );
 };
 
-export default MyTickets;
+export default MyWorkload;
 

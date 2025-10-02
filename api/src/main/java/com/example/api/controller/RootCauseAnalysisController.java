@@ -5,6 +5,7 @@ import com.example.api.dto.RootCauseAnalysisDto;
 import com.example.api.dto.TicketDto;
 import com.example.api.models.Ticket;
 import com.example.api.service.RootCauseAnalysisService;
+import com.example.api.util.DateTimeUtils;
 import com.twilio.http.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -31,9 +32,17 @@ public class RootCauseAnalysisController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam String username,
-            @RequestParam(required = false) List<String> roles) {
+            @RequestParam(required = false) List<String> roles,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "lastModified"));
-        PaginationResponse<TicketDto> response = rootCauseAnalysisService.getTicketsForRootCauseAnalysis(username, roles, pageable);
+        PaginationResponse<TicketDto> response = rootCauseAnalysisService.getTicketsForRootCauseAnalysis(
+                username,
+                roles,
+                pageable,
+                DateTimeUtils.parseToLocalDateTime(fromDate),
+                DateTimeUtils.parseToLocalDateTime(toDate)
+        );
         return ResponseEntity.ok(response);
     }
 

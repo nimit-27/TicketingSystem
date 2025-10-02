@@ -33,6 +33,7 @@ import com.example.api.enums.RecommendedSeverityStatus;
 import com.example.api.typesense.TypesenseClient;
 import com.example.notification.enums.ChannelType;
 import com.example.notification.service.NotificationService;
+import com.example.api.util.DateTimeUtils;
 import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -269,7 +270,7 @@ public class TicketService {
 
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
-                                         String severity, Pageable pageable) {
+                                         String severity, String createdBy, String fromDate, String toDate, Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -281,7 +282,9 @@ public class TicketService {
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .toList();
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, pageable);
+        LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
+        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
+        Page<Ticket> page = ticketRepository.searchTickets(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, createdBy, from, to, pageable);
         return page.map(this::mapWithStatusId);
     }
 
