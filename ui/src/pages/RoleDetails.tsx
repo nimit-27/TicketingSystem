@@ -36,6 +36,10 @@ const RoleDetails: React.FC = () => {
     const [editing, setEditing] = useState(false);
     const [roleName, setRoleName] = useState('');
 
+    const resolvedRoleName = (roleName || roleData?.role || '').toString();
+    const isMasterRole = resolvedRoleName.toLowerCase() === 'master';
+    const canEditStructure = devMode && isMasterRole;
+
     const isPermissionsModified = modifiedPermissions !== null;
 
     
@@ -147,12 +151,17 @@ const RoleDetails: React.FC = () => {
                 renderInput={(params) => <TextField {...params} label="Status Actions" />}
             />
 
-            {devMode && <Chip label="JSON" size="small" onClick={() => setOpenJson(true)} sx={{ mb: 1 }} />}
+            {canEditStructure && <Chip label="JSON" size="small" onClick={() => setOpenJson(true)} sx={{ mb: 1 }} />}
             {perm && (
                 <>
                     <h5>Permissions</h5>
                     <div style={{ maxHeight: 400, overflowY: 'auto', border: '1px solid #ddd', padding: 8 }}>
-                        <PermissionTree data={isPermissionsModified ? modifiedPermissions : perm} onChange={handlePermissionChange} />
+                        <PermissionTree
+                            data={isPermissionsModified ? modifiedPermissions : perm}
+                            onChange={handlePermissionChange}
+                            allowStructureEdit={canEditStructure}
+                            defaultShowForNewNodes={isMasterRole}
+                        />
                     </div>
                 </>
             )}
@@ -160,7 +169,7 @@ const RoleDetails: React.FC = () => {
                 <Button variant="contained" onClick={() => handleSubmit()} className="me-2">Save</Button>
                 <Button variant="outlined" onClick={cancelPermissionChanges} disabled={!isPermissionsModified}>Cancel</Button>
             </div>
-            {devMode && (
+            {canEditStructure && (
                 <JsonEditModal open={openJson} data={isPermissionsModified ? modifiedPermissions : perm} onCancel={() => setOpenJson(false)} onSubmit={handleJsonEdit} />
             )}
         </div>
