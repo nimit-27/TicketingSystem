@@ -94,7 +94,8 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
 
   const resetForm = useCallback(
     (data: RootCauseAnalysis | null) => {
-      const attachments = Array.isArray(data?.attachments) ? data.attachments : [];
+      const attachmentList = data?.attachments;
+      const attachments = Array.isArray(attachmentList) ? attachmentList : [];
       setExistingAttachments(attachments);
       setNewAttachments([]);
       reset({

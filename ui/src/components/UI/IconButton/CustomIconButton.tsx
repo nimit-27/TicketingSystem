@@ -118,7 +118,15 @@ export const IconComponent: React.FC<{
         const key = icon as IconKey;
         const Icon = iconMap[key];
 
-        return Icon ? <Icon fontSize={fontSize} className={className} style={style} /> : icon;
+        if (Icon) {
+            return <Icon fontSize={fontSize} className={className} style={style} />;
+        }
+
+        return (
+            <span className={className} style={style}>
+                {icon}
+            </span>
+        );
     };
 
 interface CustomIconButtonProps extends IconButtonProps {
