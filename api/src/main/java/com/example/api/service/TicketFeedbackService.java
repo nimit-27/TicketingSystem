@@ -3,6 +3,8 @@ package com.example.api.service;
 import com.example.api.dto.FeedbackFormDTO;
 import com.example.api.dto.SubmitFeedbackRequest;
 import com.example.api.dto.TicketFeedbackResponse;
+import com.example.api.exception.FeedbackNotFoundException;
+import com.example.api.exception.FeedbackSubmissionException;
 import com.example.api.exception.ForbiddenOperationException;
 import com.example.api.exception.InvalidRequestException;
 import com.example.api.exception.TicketNotFoundException;
@@ -79,30 +81,37 @@ public class TicketFeedbackService {
         feedback.setCommunicationSupport(req.communicationSupport());
         feedback.setTimeliness(req.timeliness());
         feedback.setComments(req.comments());
-        TicketFeedback saved = feedbackRepository.save(feedback);
+        try {
+            TicketFeedback saved = feedbackRepository.save(feedback);
 
-        ticket.setTicketStatus(TicketStatus.CLOSED);
-        ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
-        String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
-        if (closedId != null) {
-            statusMasterRepository.findById(closedId).ifPresent(ticket::setStatus);
+            ticket.setTicketStatus(TicketStatus.CLOSED);
+            ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
+            String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
+            if (closedId != null) {
+                statusMasterRepository.findById(closedId).ifPresent(ticket::setStatus);
+            }
+            ticketRepository.save(ticket);
+            return toResponse(ticketId, saved);
+        } catch (Exception ex) {
+            throw new FeedbackSubmissionException(ticketId, ex);
         }
-        ticketRepository.save(ticket);
-        return new TicketFeedbackResponse(ticketId, saved.getOverallSatisfaction(),
-                saved.getResolutionEffectiveness(), saved.getCommunicationSupport(),
-                saved.getTimeliness(), saved.getComments(), saved.getSubmittedAt(), saved.getSubmittedBy());
     }
 
-    public Optional<TicketFeedbackResponse> getFeedback(String ticketId, String currentUserId) {
+    public TicketFeedbackResponse getFeedback(String ticketId, String currentUserId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         if (!isTicketOwner(ticket.getUserId(), currentUserId)) {
             throw new ForbiddenOperationException("You are not allowed to access feedback for this ticket.");
         }
-        return feedbackRepository.findByTicketId(ticketId)
-                .map(f -> new TicketFeedbackResponse(ticketId, f.getOverallSatisfaction(),
-                        f.getResolutionEffectiveness(), f.getCommunicationSupport(),
-                        f.getTimeliness(), f.getComments(), f.getSubmittedAt(), f.getSubmittedBy()));
+        TicketFeedback feedback = feedbackRepository.findByTicketId(ticketId)
+                .orElseThrow(() -> new FeedbackNotFoundException(ticketId));
+        return toResponse(ticketId, feedback);
+    }
+
+    private TicketFeedbackResponse toResponse(String ticketId, TicketFeedback feedback) {
+        return new TicketFeedbackResponse(ticketId, feedback.getOverallSatisfaction(),
+                feedback.getResolutionEffectiveness(), feedback.getCommunicationSupport(),
+                feedback.getTimeliness(), feedback.getComments(), feedback.getSubmittedAt(), feedback.getSubmittedBy());
     }
 
     private boolean isTicketOwner(String ticketUserId, String currentUserId) {
