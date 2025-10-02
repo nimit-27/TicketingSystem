@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -56,7 +55,7 @@ public class RootCauseAnalysisController {
             @RequestParam(required = false) String descriptionOfCause,
             @RequestParam(required = false) String resolutionDescription,
             @RequestParam(required = false) String updatedBy,
-            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws IOException {
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) {
         RootCauseAnalysisDto dto = rootCauseAnalysisService.save(ticketId, descriptionOfCause, resolutionDescription, updatedBy, attachments);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
@@ -65,7 +64,7 @@ public class RootCauseAnalysisController {
     public ResponseEntity<RootCauseAnalysisDto> deleteAttachment(
             @PathVariable String ticketId,
             @RequestParam String path,
-            @RequestParam(required = false) String updatedBy) throws IOException {
+            @RequestParam(required = false) String updatedBy) {
         RootCauseAnalysisDto dto = rootCauseAnalysisService.removeAttachment(ticketId, path, updatedBy);
         return ResponseEntity.ok(dto);
     }

@@ -12,6 +12,17 @@ import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(FeedbackNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFeedbackNotFound(FeedbackNotFoundException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(RootCauseAnalysisNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRootCauseNotFound(RootCauseAnalysisNotFoundException ex,
+                                                                     HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
@@ -25,6 +36,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(FeedbackSubmissionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFeedbackSubmission(FeedbackSubmissionException ex,
+                                                                      HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(RootCauseAnalysisProcessingException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRootCauseProcessing(RootCauseAnalysisProcessingException ex,
+                                                                       HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)

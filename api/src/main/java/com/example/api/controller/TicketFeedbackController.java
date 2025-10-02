@@ -40,9 +40,7 @@ public class TicketFeedbackController {
     @GetMapping("/tickets/{ticketId}/feedback")
     public ResponseEntity<TicketFeedbackResponse> getFeedback(@PathVariable String ticketId,
                                                               @RequestHeader("X-USER-ID") String userId) {
-        return feedbackService.getFeedback(ticketId, userId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(feedbackService.getFeedback(ticketId, userId));
     }
 
     @GetMapping("/feedback")
