@@ -4,7 +4,8 @@ import com.example.api.dto.PaginationResponse;
 import com.example.api.dto.RootCauseAnalysisDto;
 import com.example.api.dto.TicketDto;
 import com.example.api.enums.TicketStatus;
-import com.example.api.exception.ResourceNotFoundException;
+import com.example.api.exception.RootCauseAnalysisNotFoundException;
+import com.example.api.exception.RootCauseAnalysisProcessingException;
 import com.example.api.exception.TicketNotFoundException;
 import com.example.api.models.RootCauseAnalysis;
 import com.example.api.models.Severity;
@@ -179,7 +180,7 @@ public class RootCauseAnalysisService {
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
 
         if (!isEligibleForRootCauseAnalysis(ticket)) {
-            throw new ResourceNotFoundException("Ticket", ticketId);
+            throw new RootCauseAnalysisNotFoundException(ticketId);
         }
 
         Optional<RootCauseAnalysis> rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId);
@@ -199,7 +200,7 @@ public class RootCauseAnalysisService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
-                .orElseGet(() -> initializeRecord(ticket));
+                .orElseThrow(() -> new RootCauseAnalysisNotFoundException(ticketId));
         return toDto(rca, ticket);
     }
 
@@ -207,61 +208,69 @@ public class RootCauseAnalysisService {
                                      String descriptionOfCause,
                                      String resolutionDescription,
                                      String updatedBy,
-                                     MultipartFile[] attachments) throws IOException {
+                                     MultipartFile[] attachments) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
-                .orElseGet(() -> initializeRecord(ticket));
-        rca.setDescriptionOfCause(descriptionOfCause);
-        rca.setResolutionDescription(resolutionDescription);
-        String severityId = resolveSeverityId(ticket.getSeverity());
-        rca.setSeverityId(severityId != null ? severityId : ticket.getSeverity());
-        if (updatedBy != null && !updatedBy.isBlank()) {
-            if (rca.getCreatedBy() == null || rca.getCreatedBy().isBlank()) {
-                rca.setCreatedBy(updatedBy);
-            }
-            rca.setUpdatedBy(updatedBy);
-        }
-        List<String> existingAttachments = new ArrayList<>(parseAttachments(rca.getAttachmentPaths()));
-        if (attachments != null) {
-            for (MultipartFile file : attachments) {
-                if (file == null || file.isEmpty()) {
-                    continue;
+        try {
+            RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
+                    .orElseGet(() -> initializeRecord(ticket));
+            rca.setDescriptionOfCause(descriptionOfCause);
+            rca.setResolutionDescription(resolutionDescription);
+            String severityId = resolveSeverityId(ticket.getSeverity());
+            rca.setSeverityId(severityId != null ? severityId : ticket.getSeverity());
+            if (updatedBy != null && !updatedBy.isBlank()) {
+                if (rca.getCreatedBy() == null || rca.getCreatedBy().isBlank()) {
+                    rca.setCreatedBy(updatedBy);
                 }
-                String path = storageService.save(file, ticketId);
-                existingAttachments.add(path);
-                persistUploadedFile(ticket, file, path, updatedBy);
+                rca.setUpdatedBy(updatedBy);
             }
+            List<String> existingAttachments = new ArrayList<>(parseAttachments(rca.getAttachmentPaths()));
+            if (attachments != null) {
+                for (MultipartFile file : attachments) {
+                    if (file == null || file.isEmpty()) {
+                        continue;
+                    }
+                    String path = storageService.save(file, ticketId);
+                    existingAttachments.add(path);
+                    persistUploadedFile(ticket, file, path, updatedBy);
+                }
+            }
+            rca.setAttachmentPaths(joinAttachments(existingAttachments));
+            RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
+            return toDto(saved, ticket);
+        } catch (IOException | RuntimeException ex) {
+            throw new RootCauseAnalysisProcessingException(ticketId, ex);
         }
-        rca.setAttachmentPaths(joinAttachments(existingAttachments));
-        RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
-        return toDto(saved, ticket);
     }
 
-    public RootCauseAnalysisDto removeAttachment(String ticketId, String relativePath, String updatedBy) throws IOException {
+    public RootCauseAnalysisDto removeAttachment(String ticketId, String relativePath, String updatedBy) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         RootCauseAnalysis rca = rootCauseAnalysisRepository.findByTicket_Id(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException("RootCauseAnalysis", ticketId));
-        List<String> attachments = new ArrayList<>(parseAttachments(rca.getAttachmentPaths()));
-        boolean removed = attachments.removeIf(path -> path.equals(relativePath));
-        if (removed) {
-            storageService.delete(relativePath);
-            uploadedFileRepository.findByTicket_IdAndRelativePath(ticketId, relativePath)
-                    .ifPresent(uploadedFile -> {
-                        uploadedFile.setIsActive("N");
-                        if (updatedBy != null && !updatedBy.isBlank()) {
-                            uploadedFile.setUploadedBy(updatedBy);
-                        }
-                        uploadedFileRepository.save(uploadedFile);
-                    });
+                .orElseThrow(() -> new RootCauseAnalysisNotFoundException(ticketId));
+        try {
+            List<String> attachments = new ArrayList<>(parseAttachments(rca.getAttachmentPaths()));
+            boolean removed = attachments.removeIf(path -> path.equals(relativePath));
+            if (removed) {
+                storageService.delete(relativePath);
+                uploadedFileRepository.findByTicket_IdAndRelativePath(ticketId, relativePath)
+                        .ifPresent(uploadedFile -> {
+                            uploadedFile.setIsActive("N");
+                            if (updatedBy != null && !updatedBy.isBlank()) {
+                                uploadedFile.setUploadedBy(updatedBy);
+                            }
+                            uploadedFileRepository.save(uploadedFile);
+                        });
+            }
+            if (updatedBy != null && !updatedBy.isBlank()) {
+                rca.setUpdatedBy(updatedBy);
+            }
+            rca.setAttachmentPaths(joinAttachments(attachments));
+            RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
+            return toDto(saved, ticket);
+        } catch (IOException | RuntimeException ex) {
+            throw new RootCauseAnalysisProcessingException(ticketId, ex);
         }
-        if (updatedBy != null && !updatedBy.isBlank()) {
-            rca.setUpdatedBy(updatedBy);
-        }
-        rca.setAttachmentPaths(joinAttachments(attachments));
-        RootCauseAnalysis saved = rootCauseAnalysisRepository.save(rca);
-        return toDto(saved, ticket);
     }
 
     private void persistUploadedFile(Ticket ticket, MultipartFile file, String relativePath, String uploadedBy) {
