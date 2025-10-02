@@ -52,9 +52,10 @@ interface TicketsTableProps {
     statusWorkflows: Record<string, TicketStatusWorkflow[]>;
     onRecommendEscalation?: (id: string) => void;
     showSeverityColumn?: boolean;
+    onRcaClick?: (id: string, status?: TicketRow['rcaStatus']) => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -298,8 +299,15 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     if (record.rcaStatus) {
                         const isSubmitted = record.rcaStatus === 'SUBMITTED';
                         const label = isSubmitted ? t('View RCA') : t('Submit RCA');
+                        const handleClick = () => {
+                            if (onRcaClick) {
+                                onRcaClick(record.id, record.rcaStatus);
+                                return;
+                            }
+                            onRowClick(record.id);
+                        };
                         return (
-                            <Button size="small" onClick={() => onRowClick(record.id)}>
+                            <Button size="small" onClick={handleClick}>
                                 {label}
                             </Button>
                         );
