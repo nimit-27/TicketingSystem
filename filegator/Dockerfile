@@ -6,7 +6,24 @@ FROM php:8.3-apache-bullseye AS builder
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 
 RUN apt-get update > /dev/null
-RUN apt-get install -y git libzip-dev nodejs python2 libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+RUN apt-get install -y --no-install-recommends \
+    git \
+    libzip-dev \
+    nodejs \
+    python2 \
+    libgtk2.0-0 \
+    libgtk-3-0 \
+    libgbm-dev \
+    libnotify-dev \
+    libgconf-2-4 \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    libxtst6 \
+    xauth \
+    xvfb \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
@@ -19,6 +36,8 @@ RUN cp configuration_sample.php configuration.php
 RUN composer install
 RUN composer require league/flysystem-sftp:^1.0 -W
 RUN composer require league/flysystem-aws-s3-v3:^1.0 -W
+ENV CYPRESS_INSTALL_BINARY=0
+
 RUN npm install
 RUN npm run build
 RUN vendor/bin/phpunit
