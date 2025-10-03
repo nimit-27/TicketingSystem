@@ -84,7 +84,9 @@ export function searchTicketsPaginated(
     severity?: string,
     createdBy?: string,
     fromDate?: string,
-    toDate?: string
+    toDate?: string,
+    categoryId?: string,
+    subCategoryId?: string,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -99,5 +101,7 @@ export function searchTicketsPaginated(
     if (createdBy) params.append('createdBy', createdBy);
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
+    if (categoryId) params.append('categoryId', categoryId);
+    if (subCategoryId) params.append('subCategoryId', subCategoryId);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }

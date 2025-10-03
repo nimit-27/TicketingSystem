@@ -11,7 +11,16 @@ const extractPayload = (response: any): RootCauseAnalysis | null => {
   return (body ?? null) as RootCauseAnalysis | null;
 };
 
-export function getRootCauseAnalysisTickets(page: number, size: number, username: string, roles: string[], fromDate?: string, toDate?: string) {
+export function getRootCauseAnalysisTickets(
+  page: number,
+  size: number,
+  username: string,
+  roles: string[],
+  fromDate?: string,
+  toDate?: string,
+  categoryId?: string,
+  subCategoryId?: string,
+) {
   const params = new URLSearchParams({ page: String(page), size: String(size), username });
   roles.forEach((role) => params.append('roles', role));
   if (fromDate) {
@@ -19,6 +28,12 @@ export function getRootCauseAnalysisTickets(page: number, size: number, username
   }
   if (toDate) {
     params.append('toDate', toDate);
+  }
+  if (categoryId) {
+    params.append('categoryId', categoryId);
+  }
+  if (subCategoryId) {
+    params.append('subCategoryId', subCategoryId);
   }
   return axios.get(`${BASE_URL}/root-cause-analysis/tickets?${params.toString()}`);
 }

@@ -11,6 +11,15 @@ interface ExtendedJwtPayload extends JwtPayload {
   roles?: string[];
   levels?: string[];
   allowedStatusActionIds?: string[];
+  email?: string;
+  emailId?: string;
+  emailID?: string;
+  mail?: string;
+  contactNumber?: string;
+  contact?: string;
+  phone?: string;
+  mobile?: string;
+  mobileNo?: string;
 }
 
 let decodedCache: DecodedAuthDetails | null = null;
@@ -66,6 +75,8 @@ export function getDecodedAuthDetails(): DecodedAuthDetails | null {
       role: claims.roles ?? undefined,
       levels: claims.levels ?? undefined,
       name: claims.name ?? undefined,
+      email: claims.email ?? claims.emailId ?? claims.emailID ?? claims.mail ?? undefined,
+      phone: claims.phone ?? claims.contactNumber ?? claims.contact ?? claims.mobile ?? claims.mobileNo ?? undefined,
       allowedStatusActionIds: claims.allowedStatusActionIds ?? undefined,
     };
 
