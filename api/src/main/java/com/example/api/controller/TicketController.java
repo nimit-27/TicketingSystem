@@ -164,14 +164,15 @@ public class TicketController {
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String createdBy,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subCategory,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, fromDate, toDate, page, size, sortBy, direction);
+        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, fromDate, toDate, page, size, sortBy, direction);
         Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
@@ -184,6 +185,7 @@ public class TicketController {
                 severity,
                 createdBy,
                 category,
+                subCategory,
                 fromDate,
                 toDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
