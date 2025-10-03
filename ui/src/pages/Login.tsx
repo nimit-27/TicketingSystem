@@ -98,6 +98,18 @@ interface LoginResponse {
     levels?: string[];
     name?: string;
     allowedStatusActionIds?: string[];
+    email?: string;
+    emailId?: string;
+    emailID?: string;
+    mail?: string;
+    contactNumber?: string;
+    contact?: string;
+    phone?: string;
+    mobile?: string;
+    mobileNo?: string;
+    userEmail?: string;
+    userMail?: string;
+    userPhone?: string;
     [key: string]: any;
 }
 
@@ -137,13 +149,34 @@ const Login: FC = () => {
             }
 
             const submittedUserId = userId.trim();
+            const decodedUser = decoded?.user;
+            const emailFromResponse = decodedUser?.email
+                ?? loginData.email
+                ?? loginData.emailId
+                ?? loginData.emailID
+                ?? loginData.mail
+                ?? loginData.userEmail
+                ?? loginData.userMail
+                ?? loginData.user?.email
+                ?? undefined;
+            const phoneFromResponse = decodedUser?.phone
+                ?? loginData.phone
+                ?? loginData.contactNumber
+                ?? loginData.contact
+                ?? loginData.mobile
+                ?? loginData.mobileNo
+                ?? loginData.userPhone
+                ?? loginData.user?.phone
+                ?? undefined;
             const details: UserDetails = {
-                userId: decoded?.user.userId || loginData.userId || submittedUserId,
-                username: decoded?.user.username || loginData.username || submittedUserId,
-                role: decoded?.user.role ?? loginData.roles ?? [],
-                levels: decoded?.user.levels ?? loginData.levels ?? [],
-                name: decoded?.user.name || loginData.name,
-                allowedStatusActionIds: decoded?.user.allowedStatusActionIds ?? loginData.allowedStatusActionIds ?? [],
+                userId: decodedUser?.userId || loginData.userId || submittedUserId,
+                username: decodedUser?.username || loginData.username || submittedUserId,
+                role: decodedUser?.role ?? loginData.roles ?? [],
+                levels: decodedUser?.levels ?? loginData.levels ?? [],
+                name: decodedUser?.name || loginData.name,
+                email: emailFromResponse,
+                phone: phoneFromResponse,
+                allowedStatusActionIds: decodedUser?.allowedStatusActionIds ?? loginData.allowedStatusActionIds ?? [],
             };
             setUserDetails(details);
 

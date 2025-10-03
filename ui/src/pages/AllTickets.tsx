@@ -23,6 +23,7 @@ import { getCurrentUserDetails } from "../config/config";
 import { useNavigate } from "react-router-dom";
 import DateRangeFilter, { getDateRangeApiParams } from "../components/Filters/DateRangeFilter";
 import { DateRangeState } from "../utils/dateUtils";
+import { useCategoryFilters } from "../hooks/useCategoryFilters";
 
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
@@ -62,6 +63,9 @@ const AllTickets: React.FC = () => {
     const sortDirection: 'asc' | 'desc' = 'desc';
     const [dateRange, setDateRange] = useState<DateRangeState>({ preset: "ALL" });
     const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
+    const { categoryOptions, subCategoryOptions, loadSubCategories } = useCategoryFilters();
+    const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [selectedSubCategory, setSelectedSubCategory] = useState<string>('All');
 
     let assignedTo: string | undefined = undefined;
     let assignedBy: string | undefined = undefined;
@@ -85,10 +89,6 @@ const AllTickets: React.FC = () => {
 
     const debouncedSearch = useDebounce(search, 300);
 
-    const searchTicketsPaginatedApi = (query: string, statusName?: string, master?: boolean, page: number = 0, size: number = 5) => {
-        searchTicketsPaginatedApiHandler(() => searchTicketsPaginated(query, statusName, master, page, size, assignedTo, levelFilter, assignedBy, requestorId, sortBy, sortDirection, undefined, undefined, dateRangeParams.fromDate, dateRangeParams.toDate));
-    };
-
     const onIdClick = (id: string) => {
         if (id) {
             setSelectedTicketId(id);
@@ -106,20 +106,90 @@ const AllTickets: React.FC = () => {
     const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
     const [focusRecommendSeverityTicketId, setFocusRecommendSeverityTicketId] = useState<string | null>(null);
 
+    const normalizedCategory = selectedCategory !== 'All' ? selectedCategory : undefined;
+    const normalizedSubCategory = selectedSubCategory !== 'All' ? selectedSubCategory : undefined;
+
+    const searchTicketsPaginatedApi = (
+        query: string,
+        statusName?: string,
+        master?: boolean,
+        page: number = 0,
+        size: number = 5,
+    ) => {
+        return searchTicketsPaginatedApiHandler(() =>
+            searchTicketsPaginated(
+                query,
+                statusName,
+                master,
+                page,
+                size,
+                assignedTo,
+                levelFilter,
+                assignedBy,
+                requestorId,
+                sortBy,
+                sortDirection,
+                undefined,
+                undefined,
+                dateRangeParams.fromDate,
+                dateRangeParams.toDate,
+                normalizedCategory,
+                normalizedSubCategory,
+            ),
+        );
+    };
+
     const searchCurrentTicketsPaginatedApi = useCallback(
         async (id: string) => {
             setRefreshingTicketId(id);
             await searchTicketsPaginatedApiHandler(() =>
-                searchTicketsPaginated(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize, undefined, levelFilter, undefined, undefined, sortBy, sortDirection, undefined, undefined, dateRangeParams.fromDate, dateRangeParams.toDate)
+                searchTicketsPaginated(
+                    debouncedSearch,
+                    statusFilter === 'All' ? undefined : statusFilter,
+                    masterOnly ? true : undefined,
+                    page - 1,
+                    pageSize,
+                    undefined,
+                    levelFilter,
+                    undefined,
+                    undefined,
+                    sortBy,
+                    sortDirection,
+                    undefined,
+                    undefined,
+                    dateRangeParams.fromDate,
+                    dateRangeParams.toDate,
+                    normalizedCategory,
+                    normalizedSubCategory,
+                ),
             );
             setRefreshingTicketId(null);
         },
-        [debouncedSearch, statusFilter, masterOnly, page, pageSize, levelFilter, sortBy, sortDirection, dateRangeParams.fromDate, dateRangeParams.toDate]
+        [debouncedSearch, statusFilter, masterOnly, page, pageSize, levelFilter, sortBy, sortDirection, dateRangeParams.fromDate, dateRangeParams.toDate, normalizedCategory, normalizedSubCategory]
     );
 
+    const handleCategoryChange = (value: string) => {
+        setSelectedCategory(value);
+        setSelectedSubCategory('All');
+        const categoryId = value === 'All' ? undefined : value;
+        loadSubCategories(categoryId);
+        setPage(1);
+    };
+
+    const handleSubCategoryChange = (value: string) => {
+        setSelectedSubCategory(value);
+        setPage(1);
+    };
+
     useEffect(() => {
-        searchTicketsPaginatedApi(debouncedSearch, statusFilter === 'All' ? undefined : statusFilter, masterOnly ? true : undefined, page - 1, pageSize);
-    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection, dateRangeParams.fromDate, dateRangeParams.toDate]);
+        searchTicketsPaginatedApi(
+            debouncedSearch,
+            statusFilter === 'All' ? undefined : statusFilter,
+            masterOnly ? true : undefined,
+            page - 1,
+            pageSize,
+        );
+    }, [debouncedSearch, statusFilter, masterOnly, levelFilter, page, pageSize, sortBy, sortDirection, dateRangeParams.fromDate, dateRangeParams.toDate, selectedCategory, selectedSubCategory]);
 
     useEffect(() => {
         getStatuses().then(setStatusList);
@@ -162,6 +232,22 @@ const AllTickets: React.FC = () => {
                         options={statusFilterOptions}
                         style={{ width: 180, marginRight: 8 }}
                     />
+                    <DropdownController
+                        label="Category"
+                        value={selectedCategory}
+                        onChange={handleCategoryChange}
+                        options={categoryOptions}
+                        style={{ width: 200 }}
+                    />
+                    {selectedCategory !== 'All' && (
+                        <DropdownController
+                            label="Sub Category"
+                            value={selectedSubCategory}
+                            onChange={handleSubCategoryChange}
+                            options={subCategoryOptions}
+                            style={{ width: 220 }}
+                        />
+                    )}
                     <DateRangeFilter value={dateRange} onChange={setDateRange} />
                     {showLevelFilterToggle && levels.map(l => (
                         <Chip

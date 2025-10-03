@@ -11,6 +11,8 @@ import { getRootCauseAnalysisTickets } from '../services/RootCauseAnalysisServic
 import RootCauseAnalysisModal from '../components/RootCauseAnalysisModal';
 import DateRangeFilter, { getDateRangeApiParams } from '../components/Filters/DateRangeFilter';
 import { DateRangeState } from '../utils/dateUtils';
+import DropdownController from '../components/UI/Dropdown/DropdownController';
+import { useCategoryFilters } from '../hooks/useCategoryFilters';
 
 const formatSeverityText = (severity?: string, label?: string): string => {
   const source = (severity || label || '').trim();
@@ -52,15 +54,29 @@ const RootCauseAnalysis: React.FC = () => {
   }, [JSON.stringify(currentUser?.role ?? [])]);
   const [dateRange, setDateRange] = useState<DateRangeState>({ preset: 'ALL' });
   const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
+  const { categoryOptions, subCategoryOptions, loadSubCategories } = useCategoryFilters();
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('All');
 
   const fetchTickets = useCallback(() => {
     if (!currentUsername) {
       return Promise.resolve();
     }
+    const categoryId = selectedCategory !== 'All' ? selectedCategory : undefined;
+    const subCategoryId = selectedSubCategory !== 'All' ? selectedSubCategory : undefined;
     return apiHandler(() =>
-      getRootCauseAnalysisTickets(page - 1, pageSize, currentUsername, currentRoles, dateRangeParams.fromDate, dateRangeParams.toDate),
+      getRootCauseAnalysisTickets(
+        page - 1,
+        pageSize,
+        currentUsername,
+        currentRoles,
+        dateRangeParams.fromDate,
+        dateRangeParams.toDate,
+        categoryId,
+        subCategoryId,
+      ),
     );
-  }, [apiHandler, currentRoles, currentUsername, page, pageSize, dateRangeParams.fromDate, dateRangeParams.toDate]);
+  }, [apiHandler, currentRoles, currentUsername, page, pageSize, dateRangeParams.fromDate, dateRangeParams.toDate, selectedCategory, selectedSubCategory]);
 
   useEffect(() => {
     fetchTickets();
@@ -107,6 +123,25 @@ const RootCauseAnalysis: React.FC = () => {
     [fetchTickets],
   );
 
+  const handleCategoryChange = useCallback((value: string) => {
+    setSelectedCategory(value);
+    setSelectedSubCategory('All');
+    const categoryId = value === 'All' ? undefined : value;
+    loadSubCategories(categoryId);
+    setPage(1);
+  }, [loadSubCategories]);
+
+  const handleSubCategoryChange = useCallback((value: string) => {
+    setSelectedSubCategory(value);
+    setPage(1);
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory === 'All') {
+      loadSubCategories(undefined);
+    }
+  }, [selectedCategory, loadSubCategories]);
+
   const handleOpenRcaModal = useCallback((ticketId: string, status?: TicketRow['rcaStatus']) => {
     setSelectedTicketId(ticketId);
     setSelectedRcaStatus(status ?? 'PENDING');
@@ -124,6 +159,22 @@ const RootCauseAnalysis: React.FC = () => {
       <Title textKey="Root Cause Analysis" />
       <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <DropdownController
+          label="Category"
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          options={categoryOptions}
+          style={{ width: 200 }}
+        />
+        {selectedCategory !== 'All' && (
+          <DropdownController
+            label="Sub Category"
+            value={selectedSubCategory}
+            onChange={handleSubCategoryChange}
+            options={subCategoryOptions}
+            style={{ width: 220 }}
+          />
+        )}
       </div>
       <TicketsTable
         tickets={tickets}
