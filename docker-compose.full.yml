@@ -73,9 +73,11 @@ services:
         condition: service_started
 
   filegator:
+    extends: 
+      file: ./filegator/docker-compose-dev.yml
+      service: filegator
     build:
       context: ./filegator
-      dockerfile: Dockerfile
     container_name: filegator
     restart: unless-stopped
     ports:
