@@ -326,13 +326,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 fontSize="small"
                                 sx={{ color: 'grey.600', cursor: 'pointer' }}
                             />
-                            {showSubmit ? (
-                                <Button size="small" onClick={() => handleActionClick(resumeAction!, record.id)}>Submit</Button>
-                            ) : recordActions.length <= 2 ? (
-                                recordActions.map(a => {
-                                    const { icon, className } = getActionIcon(a.action);
-                                    return (
-                                        <Tooltip key={a.id} title={a.action} placement="top">
+                            {showSubmit
+                                ? <Button size="small" onClick={() => handleActionClick(resumeAction!, record.id)}>Submit</Button>
+                                : recordActions.length <= 2
+                                    ? recordActions.map(a => {
+                                        const { icon, className } = getActionIcon(a.action);
+                                        return <Tooltip key={a.id} title={a.action} placement="top">
                                             <CustomIconButton
                                                 size="small"
                                                 onClick={() => handleActionClick(a, record.id)}
@@ -340,11 +339,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                                 className={`${className}`}
                                             />
                                         </Tooltip>
-                                    );
-                                })
-                            ) : (
-                                <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />
-                            )}
+                                    })
+                                    : <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
                                 <Tooltip title={record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Provide Feedback'} placement="top">
                                     <CustomIconButton
