@@ -288,16 +288,16 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     const translatedStatusName = statusName ? t(statusName) : '';
                     const translatedLabel = record.statusLabel ? t(record.statusLabel) : (translatedStatusName || record.statusLabel || '');
                     return (
-                        <Popover content={translatedStatusName || translatedLabel}>
-                            {translatedLabel}
-                        </Popover>
+                        <Tooltip title={translatedStatusName || translatedLabel}>
+                            <>{translatedLabel}</>
+                        </Tooltip>
                     );
                 }
             },
             {
                 title: t('Actions'),
                 key: 'action',
-                width: 200,
+                width: 'auto',
                 render: (_: any, record: TicketRow) => {
                     if (record.rcaStatus) {
                         const isSubmitted = record.rcaStatus === 'SUBMITTED';

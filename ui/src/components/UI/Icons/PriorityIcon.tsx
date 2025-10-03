@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import { IconComponent } from '../IconButton/CustomIconButton';
 import { Popover } from 'antd';
 
@@ -22,7 +22,7 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level, rotateRight, priorit
   const count = 5 - level; // Invert the level to match the desired display
   const color = getColor(level);
   return (
-    <Popover content={priorityText} placement="top">
+    <Tooltip title={priorityText} placement="top">
       <Box sx={{
         position: 'relative',
         display: 'block',
@@ -42,7 +42,7 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level, rotateRight, priorit
           />
         })}
       </Box>
-    </Popover>
+    </Tooltip>
   );
 };
 
