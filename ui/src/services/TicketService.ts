@@ -101,7 +101,7 @@ export function searchTicketsPaginated(
     if (createdBy) params.append('createdBy', createdBy);
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
-    if (categoryId) params.append('categoryId', categoryId);
-    if (subCategoryId) params.append('subCategoryId', subCategoryId);
+    if (categoryId) params.append('category', categoryId);
+    if (subCategoryId) params.append('subCategory', subCategoryId);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }

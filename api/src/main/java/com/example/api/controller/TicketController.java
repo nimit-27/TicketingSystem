@@ -163,16 +163,31 @@ public class TicketController {
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, fromDate, toDate, page, size, sortBy, direction);
-        Page<TicketDto> p = ticketService.searchTickets(query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, fromDate, toDate,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy)));
+        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, fromDate, toDate, page, size, sortBy, direction);
+        Page<TicketDto> p = ticketService.searchTickets(
+                query,
+                statusId,
+                master,
+                assignedTo,
+                assignedBy,
+                requestorId,
+                levelId,
+                priority,
+                severity,
+                createdBy,
+                category,
+                fromDate,
+                toDate,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
+        );
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
         logger.info("Search returned {} tickets with status {}", p.getNumberOfElements(), HttpStatus.OK);
         return ResponseEntity.ok(resp);
