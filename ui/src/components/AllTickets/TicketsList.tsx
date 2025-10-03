@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Chip, IconButton } from "@mui/material";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import { Chip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -15,7 +13,6 @@ import TicketsTable, { TicketRow } from "./TicketsTable";
 import TicketCard from "./TicketCard";
 import ViewTicket from "./ViewTicket";
 import ViewToggle from "../UI/ViewToggle";
-import GenericInput from "../UI/Input/GenericInput";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import PaginationControls from "../PaginationControls";
@@ -487,30 +484,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             onRcaClick={tableOptions?.onRcaClick}
                             permissionPathPrefix={tableOptions?.permissionPathPrefix ?? permissionPathPrefix}
                         />
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                            <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
-                            <div className="d-flex align-items-center">
-                                <IconButton size="small" onClick={() => setTablePageSize(ps => ps > 1 ? ps - 1 : 1)}>
-                                    <ArrowDropDownIcon />
-                                </IconButton>
-                                <GenericInput
-                                    type="number"
-                                    value={tablePageSize}
-                                    onChange={(e) => {
-                                        const value = parseInt(e.target.value, 10);
-                                        if (!isNaN(value) && value > 0) {
-                                            setTablePageSize(value);
-                                        }
-                                    }}
-                                    size="small"
-                                    sx={{ width: 60, mx: 1 }}
-                                />
-                                <span>/ page</span>
-                                <IconButton size="small" onClick={() => setTablePageSize(ps => ps + 1)}>
-                                    <ArrowDropUpIcon />
-                                </IconButton>
-                            </div>
-                        </div>
+                        <PaginationControls
+                            className="justify-content-between align-items-center mt-3 w-100"
+                            page={page}
+                            totalPages={totalPages}
+                            onChange={(_, val) => setPage(val)}
+                            pageSize={tablePageSize}
+                            onPageSizeChange={(value) => setTablePageSize(value)}
+                        />
                     </div>
                 )}
                 {viewMode === "grid" && showGridPermission && (
@@ -529,30 +510,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                 </div>
                             ))}
                         </div>
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                            <PaginationControls page={page} totalPages={totalPages} onChange={(_, val) => setPage(val)} />
-                            <div className="d-flex align-items-center">
-                                <IconButton size="small" onClick={() => setGridPageSize(ps => ps > 1 ? ps - 1 : 1)}>
-                                    <ArrowDropDownIcon />
-                                </IconButton>
-                                <GenericInput
-                                    type="number"
-                                    value={gridPageSize}
-                                    onChange={(e) => {
-                                        const value = parseInt(e.target.value, 10);
-                                        if (!isNaN(value) && value > 0) {
-                                            setGridPageSize(value);
-                                        }
-                                    }}
-                                    size="small"
-                                    sx={{ width: 60, mx: 1 }}
-                                />
-                                <span>/ page</span>
-                                <IconButton size="small" onClick={() => setGridPageSize(ps => ps + 1)}>
-                                    <ArrowDropUpIcon />
-                                </IconButton>
-                            </div>
-                        </div>
+                        <PaginationControls
+                            className="justify-content-between align-items-center mt-3 w-100"
+                            page={page}
+                            totalPages={totalPages}
+                            onChange={(_, val) => setPage(val)}
+                            pageSize={gridPageSize}
+                            onPageSizeChange={(value) => setGridPageSize(value)}
+                        />
                     </div>
                 )}
             </div>
