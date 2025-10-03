@@ -180,19 +180,23 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 title: t('Ticket Id'),
                 dataIndex: 'id',
                 key: 'ticketId',
+                ellipsis: true,
                 render: (_: any, record: TicketRow) => (
-                    <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}>
-                        {truncateWithEllipsis(record.id, 12)}
-                        {record.isMaster && <MasterIcon />}
-                        {(record.breachedByMinutes ?? 0) > 0 && (
-                            <CustomIconButton icon="runningWithErrors" color='error' />
-                        )}
-                    </div>
+                    <Tooltip title={record.id} placement="top" >
+                        <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}>
+                            {truncateWithEllipsis(record.id, 10)}
+                            {record.isMaster && <MasterIcon />}
+                            {(record.breachedByMinutes ?? 0) > 0 && (
+                                <CustomIconButton icon="runningWithErrors" color='error' />
+                            )}
+                        </div>
+                    </Tooltip>
                 ),
             },
             {
                 title: t('Requester'),
                 key: 'requestorName',
+                ellipsis: true,
                 render: (_: any, record: TicketRow) =>
                     record.requestorName ? (
                         <Tooltip
@@ -203,21 +207,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         >
                             <span>{record.requestorName}</span>
                         </Tooltip>
-                    ) : (
-                        '-' as any
-                    ),
+                    ) : '-' as any,
             },
             {
                 title: t('Category'),
                 dataIndex: 'category',
                 key: 'category',
-                width: 180,
+                width: '13%',
+                ellipsis: true,
                 render: (value: string) => {
                     const category = value || '';
-                    const truncated = truncateWithEllipsis(category, 20);
                     return (
                         <Tooltip title={category} placement="top">
-                            <span>{truncated}</span>
+                            <span>{category}</span>
                         </Tooltip>
                     );
                 }
@@ -226,13 +228,13 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 title: t('Sub-Category'),
                 dataIndex: 'subCategory',
                 key: 'subCategory',
-                width: 160,
+                width: '15%',
+                ellipsis: true,
                 render: (value: string) => {
                     const subCategory = value || '';
-                    const truncated = truncateWithEllipsis(subCategory, 18);
                     return (
                         <Tooltip title={subCategory} placement="top">
-                            <span>{truncated}</span>
+                            <span>{subCategory}</span>
                         </Tooltip>
                     );
                 }

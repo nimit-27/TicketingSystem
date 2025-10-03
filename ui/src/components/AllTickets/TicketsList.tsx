@@ -23,6 +23,7 @@ import { getCurrentUserDetails } from "../../config/config";
 import DateRangeFilter, { getDateRangeApiParams } from "../Filters/DateRangeFilter";
 import { DateRangeState } from "../../utils/dateUtils";
 import { useCategoryFilters } from "../../hooks/useCategoryFilters";
+import GenericInput from "../UI/Input/GenericInput";
 
 export interface TicketsListFilterState {
     search: string;
@@ -381,42 +382,46 @@ const TicketsList: React.FC<TicketsListProps> = ({
         <div className="container" style={{ display: "flex" }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey={titleKey} />
-                <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
+                <div className="d-flex flex-wrap align-items-center mb-3">
                     {showSearchBar && (
                         <GenericInput
                             label="Search"
                             size="small"
+                            className="col-3 pe-1"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            sx={{ mr: 2, width: 250 }}
                             placeholder="Search by Ticket Id, Requestor Name, Subject"
                         />
                     )}
                     {showStatusFilter && (
                         <DropdownController
                             label="Status"
+                            className="col-3 px-1"
                             value={statusFilter}
                             onChange={(value) => { setStatusFilter(value); setPage(1); }}
                             options={statusFilterOptions}
-                            style={{ width: 180, marginRight: 8 }}
+                        // style={{ width: 180, marginRight: 8 }}
                         />
                     )}
                     <DropdownController
                         label="Category"
                         value={selectedCategory}
+                        className="col-3 px-1"
                         onChange={handleCategoryChange}
                         options={categoryOptions}
-                        style={{ width: 200 }}
+                    // style={{ width: 200 }}
                     />
-                    {selectedCategory !== "All" && (
+                    {selectedCategory !== "All" ? (
                         <DropdownController
                             label="Sub Category"
                             value={selectedSubCategory}
+                            className="col-3 ps-1"
                             onChange={handleSubCategoryChange}
                             options={subCategoryOptions}
-                            style={{ width: 220 }}
+                        // style={{ width: 220 }}
                         />
-                    )}
+                    )
+                        : <div className="d-flex col-3"></div>}
                     <DateRangeFilter value={dateRange} onChange={setDateRange} />
                     {showLevelFilterToggle && levels.map(level => (
                         <Chip
@@ -444,7 +449,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         <div className="d-flex ms-auto">
                             <ViewToggle
                                 value={viewMode}
-                                onChange={(value) => setViewMode(value)}
+                                onChange={(value: any) => setViewMode(value)}
                                 options={[
                                     { icon: "grid", value: "grid" },
                                     { icon: "table", value: "table" },

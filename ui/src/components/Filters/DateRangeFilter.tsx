@@ -77,7 +77,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChange, styl
     return (
         <Box
             display="flex"
-            flexDirection={isCustomPresetSelected ? "column" : "row"}
+            flexDirection={"row"}
             alignItems={isCustomPresetSelected ? "flex-start" : "center"}
             className={className}
             style={style}
@@ -85,6 +85,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChange, styl
             <DropdownController
                 label={t("Date Range")}
                 value={value.preset}
+                className="mt-2"
                 onChange={handlePresetChange}
                 options={DATE_RANGE_OPTIONS.map(option => ({
                     ...option,
