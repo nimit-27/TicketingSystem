@@ -1,7 +1,13 @@
 FROM php:8.3
 
 RUN apt-get update > /dev/null
-RUN apt-get install -y --no-install-recommends nodejs npm libldap2-dev libzip-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get install -y --no-install-recommends curl libldap2-dev libzip-dev ca-certificates \
+    && curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# RUN apt-get install -y --no-install-recommends nodejs npm libldap2-dev libzip-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
 RUN docker-php-ext-install zip ldap

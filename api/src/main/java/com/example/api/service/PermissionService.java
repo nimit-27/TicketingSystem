@@ -148,10 +148,12 @@ public class PermissionService {
         if (templateValue instanceof Map<?, ?> templateMap) {
             Map<String, Object> orderedTemplate = new LinkedHashMap<>();
             templateMap.forEach((k, v) -> orderedTemplate.put(String.valueOf(k), v));
-            Map<String, Object> existingMap = null;
+            Map<String, Object> existingMap;
             if (existingValue instanceof Map<?, ?> existingMapRaw) {
                 existingMap = new LinkedHashMap<>();
                 existingMapRaw.forEach((k, v) -> existingMap.put(String.valueOf(k), v));
+            } else {
+                existingMap = null;
             }
             Map<String, Object> result = new LinkedHashMap<>();
             orderedTemplate.forEach((k, v) -> {
