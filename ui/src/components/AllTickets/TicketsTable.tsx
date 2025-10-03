@@ -240,10 +240,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 }
             },
             showSeverityColumn
-                ? {
+                && {
                     title: t('Severity'),
                     dataIndex: 'severity',
                     key: 'severity',
+                    width: '10%',
                     render: (_: any, record: TicketRow) => {
                         const display = record.severity || record.severityLabel || record.severityId || '-';
                         const label = record.severityLabel && record.severityLabel !== display ? record.severityLabel : undefined;
@@ -253,11 +254,18 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             </Tooltip>
                         ) : (display || '-');
                     }
-                }
-                : { title: t('Priority'), dataIndex: 'priority', key: 'priority', render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> },
+                },
+                { 
+                    title: t('Priority'), 
+                    dataIndex: 'priority', 
+                    key: 'priority', 
+                    width: '9%',
+                    render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> 
+                },
             {
                 title: t('Assignee'),
                 key: 'assignee',
+                width: '10%',
                 render: (_: any, record: TicketRow) => {
                     if (allowAssigneeChange(record.statusId)) {
                         return (
@@ -283,6 +291,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 title: t('Status'),
                 dataIndex: 'statusLabel',
                 key: 'statusLabel',
+                width: '11%',
                 render: (_: any, record: TicketRow) => {
                     const statusName = record?.statusId ? getStatusNameById(record.statusId) : '';
                     const translatedStatusName = statusName ? t(statusName) : '';
