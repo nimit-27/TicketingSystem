@@ -1,4 +1,4 @@
-import React, { JSX } from 'react';
+import React, { JSX, useContext } from 'react';
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import RaiseTicket from './pages/RaiseTicket';
@@ -12,6 +12,7 @@ import RoleMaster from './pages/RoleMaster';
 import RoleDetails from './pages/RoleDetails';
 import SidebarLayout from './components/Layout/SidebarLayout';
 import Login from './pages/Login';
+import DevLogin from './pages/DevLogin';
 import MyTickets from './pages/MyTickets';
 import MyWorkload from './pages/MyWorkload';
 import Faq from './pages/Faq';
@@ -19,6 +20,7 @@ import FaqForm from './pages/FaqForm';
 import RootCauseAnalysis from './pages/RootCauseAnalysis';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
+import { DevModeContext } from './context/DevModeContext';
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const user = getUserDetails();
@@ -29,10 +31,15 @@ const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   return children;
 };
 
+const LoginRoute: React.FC = () => {
+  const { devMode } = useContext(DevModeContext);
+  return devMode ? <DevLogin /> : <Login />;
+};
+
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginRoute />} />
       <Route
         path="/"
         element={(
