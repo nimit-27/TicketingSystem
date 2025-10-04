@@ -183,7 +183,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 ellipsis: true,
                 render: (_: any, record: TicketRow) => (
                     <Tooltip title={record.id} placement="top" >
-                        <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}>
+                        <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
+                        {/* <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}> */}
                             {truncateWithEllipsis(record.id, 10)}
                             {record.isMaster && <MasterIcon />}
                             {(record.breachedByMinutes ?? 0) > 0 && (
