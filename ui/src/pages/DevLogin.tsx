@@ -6,8 +6,10 @@ import { DevModeContext } from "../context/DevModeContext";
 import { useSnackbar } from "../context/SnackbarContext";
 import { getAllUsers } from "../services/UserService";
 import { getRoleSummaries, getRolePermission } from "../services/RoleService";
+import { loginUser } from "../services/AuthService";
 import { setPermissions } from "../utils/permissions";
 import { RoleLookupItem, setRoleLookup, setUserDetails } from "../utils/Utils";
+import { storeToken, getDecodedAuthDetails } from "../utils/authToken";
 import { RolePermission, UserDetails } from "../types/auth";
 
 interface ApiUser {
@@ -16,6 +18,38 @@ interface ApiUser {
     name?: string;
     role?: string | string[];
     roles?: string[];
+    [key: string]: any;
+}
+
+interface LoginResponse {
+    token?: string;
+    permissions?: RolePermission;
+    userId?: string;
+    username?: string;
+    roles?: string[];
+    levels?: string[];
+    name?: string;
+    allowedStatusActionIds?: string[];
+    email?: string;
+    emailId?: string;
+    emailID?: string;
+    mail?: string;
+    contactNumber?: string;
+    contact?: string;
+    phone?: string;
+    mobile?: string;
+    mobileNo?: string;
+    user?: {
+        userId?: string;
+        username?: string;
+        name?: string;
+        role?: string[];
+        roles?: string[];
+        levels?: string[];
+        allowedStatusActionIds?: string[];
+        email?: string;
+        phone?: string;
+    };
     [key: string]: any;
 }
 
@@ -129,31 +163,107 @@ const DevLogin: FC = () => {
 
         setLoadingPermission(true);
         try {
+            const username = String(userId);
+            let permissionsFromLogin: RolePermission | null = null;
+            let loginDetails: Partial<UserDetails> | null = null;
+
+            try {
+                const loginResponse = await loginUser({ username, password: "admin123", portal: "helpdesk" });
+                const loginData = normalizeResponse<LoginResponse | null>(loginResponse, null);
+
+                if (loginData) {
+                    if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
+                        storeToken(loginData.token);
+                    }
+
+                    const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+                    const responseUser = loginData.user ?? {};
+                    const resolvedUserId = responseUser.userId ?? loginData.userId ?? username;
+                    const resolvedUsername = responseUser.username ?? loginData.username ?? username;
+                    const responseRoles = responseUser.role ?? responseUser.roles ?? loginData.roles;
+                    const responseLevels = responseUser.levels ?? loginData.levels;
+                    const responseAllowed = responseUser.allowedStatusActionIds ?? loginData.allowedStatusActionIds;
+
+                    const emailFromResponse = decoded?.user?.email
+                        ?? responseUser.email
+                        ?? loginData.email
+                        ?? loginData.emailId
+                        ?? loginData.emailID
+                        ?? loginData.mail
+                        ?? undefined;
+
+                    const phoneFromResponse = decoded?.user?.phone
+                        ?? responseUser.phone
+                        ?? loginData.phone
+                        ?? loginData.contactNumber
+                        ?? loginData.contact
+                        ?? loginData.mobile
+                        ?? loginData.mobileNo
+                        ?? undefined;
+
+                    loginDetails = {
+                        userId: decoded?.user?.userId || resolvedUserId,
+                        username: decoded?.user?.username || resolvedUsername,
+                        role: decoded?.user?.role
+                            ?? (Array.isArray(responseRoles) ? responseRoles.map(String) : []),
+                        levels: decoded?.user?.levels
+                            ?? (Array.isArray(responseLevels) ? responseLevels.map(String) : []),
+                        name: decoded?.user?.name ?? responseUser.name ?? loginData.name ?? undefined,
+                        email: emailFromResponse,
+                        phone: phoneFromResponse,
+                        allowedStatusActionIds: decoded?.user?.allowedStatusActionIds
+                            ?? (Array.isArray(responseAllowed) ? responseAllowed.map(String) : []),
+                    };
+
+                    if (loginData.permissions) {
+                        permissionsFromLogin = loginData.permissions;
+                    }
+                }
+            } catch (error: any) {
+                console.error("Failed to login user via API", error);
+                const message = error?.response?.data?.message
+                    || error?.message
+                    || "Unable to login user";
+                showMessage(message, "error");
+                return;
+            }
+
+            const fallbackRoles = Array.isArray(user.role)
+                ? user.role.map(String)
+                : Array.isArray(user.roles)
+                    ? user.roles.map(String)
+                    : user.role
+                        ? [String(user.role)]
+                        : [];
+
+            const fallbackLevels = Array.isArray(user.levels) ? user.levels.map(String) : [];
+            const fallbackAllowed = Array.isArray(user.allowedStatusActionIds)
+                ? user.allowedStatusActionIds.map(String)
+                : [];
+
             const details: UserDetails = {
-                userId: String(userId),
-                username: user.username ?? user.name ?? String(userId),
-                role: Array.isArray(user.role)
-                    ? user.role.map(String)
-                    : Array.isArray(user.roles)
-                        ? user.roles.map(String)
-                        : user.role
-                            ? [String(user.role)]
-                            : [],
-                levels: Array.isArray(user.levels) ? user.levels.map(String) : [],
-                name: user.name ?? user.username ?? undefined,
-                email: user.email ?? undefined,
-                phone: user.phone ?? user.contactNumber ?? undefined,
-                allowedStatusActionIds: Array.isArray(user.allowedStatusActionIds)
-                    ? user.allowedStatusActionIds.map(String)
-                    : [],
+                userId: loginDetails?.userId ?? username,
+                username: loginDetails?.username ?? (user.username ?? user.name ?? username),
+                role: loginDetails?.role && loginDetails.role.length ? loginDetails.role : fallbackRoles,
+                levels: loginDetails?.levels && loginDetails.levels.length ? loginDetails.levels : fallbackLevels,
+                name: loginDetails?.name ?? user.name ?? user.username ?? undefined,
+                email: loginDetails?.email ?? user.email ?? undefined,
+                phone: loginDetails?.phone ?? user.phone ?? user.contactNumber ?? undefined,
+                allowedStatusActionIds: loginDetails?.allowedStatusActionIds && loginDetails.allowedStatusActionIds.length
+                    ? loginDetails.allowedStatusActionIds
+                    : fallbackAllowed,
             };
 
             setUserDetails(details);
 
-            const role = primaryRole(user);
-            if (role) {
+            const roleFromDetails = Array.isArray(details.role) && details.role.length > 0 ? details.role[0] : undefined;
+            const resolvedRole = roleFromDetails ?? primaryRole(user);
+
+            if (permissionsFromLogin) {
+                setPermissions(permissionsFromLogin);
+            } else if (resolvedRole) {
                 try {
-                    const response = await getRolePermission(role);
+                    const response = await getRolePermission(resolvedRole);
                     const payload = normalizeResponse<RolePermission | null>(response, null);
                     if (payload) {
                         setPermissions(payload);
@@ -161,7 +271,7 @@ const DevLogin: FC = () => {
                         setPermissions({} as RolePermission);
                     }
                 } catch (error) {
-                    console.error("Failed to load permissions for role", role, error);
+                    console.error("Failed to load permissions for role", resolvedRole, error);
                     setPermissions({} as RolePermission);
                 }
             } else {
@@ -172,7 +282,7 @@ const DevLogin: FC = () => {
         } finally {
             setLoadingPermission(false);
         }
-    }, [navigate, primaryRole, showMessage]);
+    }, [jwtBypass, navigate, primaryRole, showMessage]);
 
     if (!devMode) {
         return null;
