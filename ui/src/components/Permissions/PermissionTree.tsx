@@ -1,10 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Checkbox, Collapse, IconButton, TextField } from '@mui/material';
+import { Checkbox, Chip, Collapse, IconButton, TextField } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { PermissionNode } from '../../types';
 import { DevModeContext } from '../../context/DevModeContext';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
+import JsonEditModal from './JsonEditModal';
 
 interface TreeProps {
     data: PermissionNode;
@@ -47,10 +48,18 @@ const deleteValue = (obj: any, path: string[]): PermissionNode => {
     return {
         ...obj,
         [first]: deleteValue(obj[first] ?? {}, restPath)
-    }
-}
+    };
+};
 
-const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (path: string[], value: any, remove?: boolean) => void; allowStructureEdit: boolean; defaultShow: boolean; }> = ({ label, value, path, onChange, allowStructureEdit, defaultShow }) => {
+const Node: React.FC<{
+    label: string;
+    value: any;
+    path: string[];
+    onChange: (path: string[], value: any, remove?: boolean) => void;
+    allowStructureEdit: boolean;
+    defaultShow: boolean;
+    onOpenJson: (path: string[], value: any) => void;
+}> = ({ label, value, path, onChange, allowStructureEdit, defaultShow, onOpenJson }) => {
     const { devMode } = useContext(DevModeContext);
     const canEdit = devMode && allowStructureEdit;
     const defaultOpen = path.length === 1 && (label === 'pages' || label === 'sidebar');
@@ -58,6 +67,8 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
     const [adding, setAdding] = useState(false);
     const [newChild, setNewChild] = useState('');
     const [addedChildren, setAddedChildren] = useState(false);
+    const [editingName, setEditingName] = useState(false);
+    const [nameValue, setNameValue] = useState<string>(value?.metadata?.name || label);
 
     useEffect(() => {
         if (!canEdit && adding) {
@@ -70,11 +81,18 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
         }
     }, [canEdit]);
 
-    if (label === "show" || label === "metadata") return null;
+    useEffect(() => {
+        if (!editingName) {
+            setNameValue(value?.metadata?.name || label);
+        }
+    }, [label, value?.metadata?.name, editingName]);
+
+    if (label === 'show' || label === 'metadata') return null;
 
     const hasChildren = value && typeof value === 'object' && value.children;
     const nodeLabel = value?.metadata?.name || label;
     const show = Boolean(value?.show);
+    const childCount = value?.children ? Object.keys(value.children).length : 0;
 
     const startAdd = () => {
         if (!canEdit) {
@@ -111,6 +129,73 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
         setAddedChildren(false);
     };
 
+    const startEditName = () => {
+        if (!canEdit) return;
+        setEditingName(true);
+        setNameValue(value?.metadata?.name || label);
+    };
+
+    const cancelEditName = () => {
+        setEditingName(false);
+        setNameValue(value?.metadata?.name || label);
+    };
+
+    const confirmEditName = () => {
+        const trimmed = nameValue.trim();
+        if (!trimmed) {
+            return;
+        }
+        const updatedMetadata = { ...(value?.metadata || {}), name: trimmed };
+        onChange([...path, 'metadata'], updatedMetadata);
+        setEditingName(false);
+    };
+
+    const handleDelete = () => {
+        if (!canEdit) return;
+        if (childCount > 0) {
+            const confirmed = window.confirm('This attribute has children. Do you want to delete it along with all its children?');
+            if (!confirmed) {
+                return;
+            }
+        }
+        onChange(path, undefined, true);
+    };
+
+    const openJsonEditor = () => {
+        if (!canEdit) return;
+        onOpenJson(path, value);
+    };
+
+    const renderNameEditor = () => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexGrow: 1 }}>
+            {editingName ? (
+                <>
+                    <TextField size="small" value={nameValue} onChange={e => setNameValue(e.target.value)} />
+                    <CustomIconButton icon='check' onClick={confirmEditName} />
+                    <CustomIconButton icon='close' onClick={cancelEditName} />
+                </>
+            ) : (
+                <span style={{ flexGrow: 1 }}>{nodeLabel}</span>
+            )}
+        </div>
+    );
+
+    const renderActions = (includeAdd: boolean) => {
+        if (!canEdit) return null;
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Chip label="JSON" size="small" onClick={openJsonEditor} />
+                {!editingName && (
+                    <>
+                        <CustomIconButton icon='edit' onClick={startEditName} />
+                        <CustomIconButton icon='delete' onClick={handleDelete} />
+                        {includeAdd && !adding && <CustomIconButton icon='add' onClick={startAdd} />}
+                    </>
+                )}
+            </div>
+        );
+    };
+
     if (hasChildren || addedChildren) {
         const entries = Object.entries(value.children || {});
         return (
@@ -124,10 +209,8 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                         checked={show}
                         onChange={e => onChange([...path, 'show'], e.target.checked)}
                     />
-                    <span style={{ flexGrow: 1 }}>{nodeLabel}</span>
-                    {canEdit && !adding && (
-                        <CustomIconButton icon='add' onClick={startAdd} />
-                    )}
+                    {renderNameEditor()}
+                    {renderActions(true)}
                 </div>
                 {adding && (
                     <div style={{ display: 'flex', alignItems: 'center', marginLeft: 32, marginTop: 4 }}>
@@ -146,6 +229,7 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                             onChange={onChange}
                             allowStructureEdit={allowStructureEdit}
                             defaultShow={defaultShow}
+                            onOpenJson={onOpenJson}
                         />
                     ))}
                 </Collapse>
@@ -160,10 +244,8 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
                 checked={show}
                 onChange={e => onChange([...path, 'show'], e.target.checked)}
             />
-            <span style={{ flexGrow: 1 }}>{nodeLabel}</span>
-            {canEdit && !adding && (
-                <CustomIconButton onClick={startAdd} icon='add' />
-            )}
+            {renderNameEditor()}
+            {renderActions(true)}
             {adding && (
                 <>
                     <TextField size="small" value={newChild} onChange={e => setNewChild(e.target.value)} />
@@ -176,9 +258,29 @@ const Node: React.FC<{ label: string; value: any; path: string[]; onChange: (pat
 };
 
 const PermissionTree: React.FC<TreeProps> = ({ data, path = [], onChange, allowStructureEdit = false, defaultShowForNewNodes = false }) => {
+    const [jsonModalPath, setJsonModalPath] = useState<string[] | null>(null);
+    const [jsonModalData, setJsonModalData] = useState<any>(null);
+
     const handleChange = (p: string[], value: any, remove?: boolean) => {
         const updated = remove ? deleteValue(data, p.slice(path.length)) : setValue(data, p.slice(path.length), value);
         onChange(updated);
+    };
+
+    const handleOpenJson = (nodePath: string[], nodeValue: any) => {
+        setJsonModalPath(nodePath);
+        setJsonModalData(nodeValue);
+    };
+
+    const handleCloseJson = () => {
+        setJsonModalPath(null);
+        setJsonModalData(null);
+    };
+
+    const handleSubmitJson = (value: any) => {
+        if (jsonModalPath) {
+            handleChange(jsonModalPath, value);
+        }
+        handleCloseJson();
     };
 
     return (
@@ -192,8 +294,17 @@ const PermissionTree: React.FC<TreeProps> = ({ data, path = [], onChange, allowS
                     onChange={handleChange}
                     allowStructureEdit={allowStructureEdit}
                     defaultShow={defaultShowForNewNodes}
+                    onOpenJson={handleOpenJson}
                 />
             ))}
+            {allowStructureEdit && jsonModalPath !== null && (
+                <JsonEditModal
+                    open={jsonModalPath !== null}
+                    data={jsonModalData}
+                    onCancel={handleCloseJson}
+                    onSubmit={handleSubmitJson}
+                />
+            )}
         </div>
     );
 };
