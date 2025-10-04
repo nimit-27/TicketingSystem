@@ -3,24 +3,30 @@ package com.example.api.service;
 import com.example.api.dto.UserDto;
 import com.example.api.mapper.DtoMapper;
 import com.example.api.models.User;
+import com.example.api.repository.RoleRepository;
 import com.example.api.repository.StakeholderRepository;
 import com.example.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final StakeholderRepository stakeholderRepository;
+    private final RoleRepository roleRepository;
 
-    public UserService(UserRepository userRepository, StakeholderRepository stakeholderRepository) {
+    public UserService(UserRepository userRepository, StakeholderRepository stakeholderRepository,
+                       RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.stakeholderRepository = stakeholderRepository;
+        this.roleRepository = roleRepository;
     }
 
     public Optional<UserDto> getUserDetails(String userId) {
@@ -73,6 +79,7 @@ public class UserService {
         }
         dto.setStakeholderId(user.getStakeholder());
         dto.setStakeholder(resolveStakeholderName(user.getStakeholder()));
+        dto.setRoleNames(resolveRoleNames(user.getRoles()));
         return dto;
     }
 
@@ -88,5 +95,40 @@ public class UserService {
         } catch (NumberFormatException ex) {
             return stakeholderId;
         }
+    }
+
+    private List<String> resolveRoleNames(String roleIds) {
+        if (roleIds == null || roleIds.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> ids = Arrays.stream(roleIds.split("\\|"))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .map(id -> {
+                    try {
+                        return Integer.valueOf(id);
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Integer, String> roleNameById = roleRepository.findAllById(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        com.example.api.models.Role::getRoleId,
+                        com.example.api.models.Role::getRole,
+                        (existing, replacement) -> existing));
+
+        return ids.stream()
+                .map(roleNameById::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }
