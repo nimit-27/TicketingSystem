@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Checkbox, Chip, Collapse, IconButton, TextField } from '@mui/material';
+import { Checkbox, Collapse, IconButton, TextField, Tooltip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { PermissionNode } from '../../types';
@@ -184,12 +184,30 @@ const Node: React.FC<{
         if (!canEdit) return null;
         return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Chip label="JSON" size="small" onClick={openJsonEditor} />
+                <Tooltip title="Edit JSON" arrow>
+                    <span>
+                        <CustomIconButton icon='code' size='small' onClick={openJsonEditor} aria-label='Edit JSON' />
+                    </span>
+                </Tooltip>
                 {!editingName && (
                     <>
-                        <CustomIconButton icon='edit' onClick={startEditName} />
-                        <CustomIconButton icon='delete' onClick={handleDelete} />
-                        {includeAdd && !adding && <CustomIconButton icon='add' onClick={startAdd} />}
+                        <Tooltip title="Rename" arrow>
+                            <span>
+                                <CustomIconButton icon='edit' size='small' onClick={startEditName} aria-label='Rename attribute' />
+                            </span>
+                        </Tooltip>
+                        <Tooltip title="Delete" arrow>
+                            <span>
+                                <CustomIconButton icon='delete' size='small' onClick={handleDelete} aria-label='Delete attribute' />
+                            </span>
+                        </Tooltip>
+                        {includeAdd && !adding && (
+                            <Tooltip title="Add child" arrow>
+                                <span>
+                                    <CustomIconButton icon='add' size='small' onClick={startAdd} aria-label='Add child attribute' />
+                                </span>
+                            </Tooltip>
+                        )}
                     </>
                 )}
             </div>
