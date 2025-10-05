@@ -25,6 +25,7 @@ const RaiseTicket: React.FC<any> = () => {
 
     const isMaster = useWatch({ control, name: 'isMaster' });
     const masterId = useWatch({ control, name: 'masterId' });
+    const subject = useWatch({ control, name: 'subject' });
 
     let showLinkToMasterTicket = checkAccessMaster(["ticketForm", "linkToMasterTicketButton"]);
 
@@ -161,7 +162,7 @@ const RaiseTicket: React.FC<any> = () => {
             </form>
 
             {/* Link to Master Ticket Modal */}
-            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} />
+            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} subject={subject} />
             {/* Successful Modal */}
             <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
         </div>

@@ -9,8 +9,9 @@ import GenericInput from "../UI/Input/GenericInput";
 interface LinkToMasterTicketModalProps {
     open: boolean;
     onClose: () => void;
-    setMasterId: any;
-
+    setMasterId: (id: string) => void;
+    subject: string;
+    currentTicketId?: string; // Optional prop to pass current ticket ID
 }
 
 interface TicketHit {
@@ -25,9 +26,9 @@ interface MasterTicket {
     subject?: string;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
-const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose }) => {
+const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose, subject, setMasterId, currentTicketId }) => {
     const [query, setQuery] = useState('');
     const [searchResults, setSearchResults] = useState<MasterTicket[]>([]);
     const [paginatedTickets, setPaginatedTickets] = useState<MasterTicket[]>([]);
@@ -40,7 +41,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const [conversionInProgress, setConversionInProgress] = useState(false);
     const [conversionError, setConversionError] = useState<string | null>(null);
     // TODO: replace with real current ticket details
-    const currentTicket = { id: '', subject: 'Current Ticket' };
+    const currentTicket = { id: '', subject: subject };
 
     let debouncedQuery = useDebounce(query, 500);
 
@@ -216,17 +217,17 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                                     icon="Link"
                                     color={linked ? 'success' : 'primary'}
                                     onClick={() => {
-                                        linkTicketToMaster(currentTicket.id, selected.id).then(() => setLinked(true));
+                                        currentTicketId ? linkTicketToMaster(currentTicketId, selected.id).then(() => setLinked(true)) : setMasterId(selected.id);
                                     }}
                                 />
                             </Tooltip>
                         </div>
                         <CustomFieldset
-                            title={`Current Ticket ${currentTicket.id}`}
+                            title={`Current Ticket ${currentTicketId}`}
                             className='flex-grow-1 ms-2'
                             style={{ width: linked ? '48%' : '45%' }}
                         >
-                            <p>Subject: {currentTicket.subject}</p>
+                            <p>Subject: {subject}</p>
                         </CustomFieldset>
                     </div>
                 )}
