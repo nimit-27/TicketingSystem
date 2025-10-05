@@ -27,6 +27,13 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     Page<Ticket> findByPriority(String priority, Pageable pageable);
 
     @Query("SELECT t FROM Ticket t " +
+            "WHERE t.isMaster = true " +
+            "AND (t.masterId IS NULL OR t.masterId = '') " +
+            "AND (LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')))")
+    List<Ticket> searchMasterTicketsBySubjectOrId(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT t FROM Ticket t " +
             "WHERE t.ticketStatus = :status " +
             "AND t.severity IS NOT NULL " +
             "AND LOWER(t.severity) IN (:severityTokens) " +

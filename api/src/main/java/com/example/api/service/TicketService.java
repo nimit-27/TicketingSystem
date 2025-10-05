@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.TicketDto;
+import com.example.api.dto.TicketSearchResultDto;
 import com.example.api.dto.TypesenseTicketDto;
 import com.example.api.dto.TypesenseTicketPageResponse;
 import com.example.api.exception.ResourceNotFoundException;
@@ -33,6 +34,7 @@ import com.example.notification.enums.ChannelType;
 import com.example.notification.service.NotificationService;
 import com.example.api.util.DateTimeUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
@@ -43,6 +45,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @Service
@@ -53,6 +56,8 @@ public class TicketService {
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
     private final TypesenseClient typesenseClient;
+    @Value("${app.search.engine:default}")
+    private String searchEngine;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketCommentRepository commentRepository;
@@ -263,8 +268,29 @@ public class TicketService {
         return mapWithStatusId(saved);
     }
 
-    public SearchResult search(String query) throws Exception {
-        return typesenseClient.searchTickets(query);
+    public List<TicketSearchResultDto> search(String query) throws Exception {
+        if (query == null || query.isBlank()) {
+            return java.util.Collections.emptyList();
+        }
+
+        if ("typesense".equalsIgnoreCase(searchEngine)) {
+            SearchResult result = typesenseClient.searchTickets(query);
+            List<SearchResultHit> hits = result.getHits() != null ? result.getHits() : java.util.Collections.emptyList();
+            return hits.stream()
+                    .map(SearchResultHit::getDocument)
+                    .map(this::mapDocumentToTypesenseTicket)
+                    .filter(java.util.Objects::nonNull)
+                    .map(dto -> new TicketSearchResultDto(dto.getId(), dto.getSubject()))
+                    .toList();
+        }
+
+        List<Ticket> tickets = ticketRepository.searchMasterTicketsBySubjectOrId(
+                query,
+                PageRequest.of(0, 10)
+        );
+        return tickets.stream()
+                .map(ticket -> new TicketSearchResultDto(ticket.getId(), ticket.getSubject()))
+                .toList();
     }
 
     public List<TypesenseTicketDto> getAllMasterTicketsFromTypesense() {
