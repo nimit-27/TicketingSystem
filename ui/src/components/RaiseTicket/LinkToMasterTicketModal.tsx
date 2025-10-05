@@ -41,7 +41,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const [conversionInProgress, setConversionInProgress] = useState(false);
     const [conversionError, setConversionError] = useState<string | null>(null);
     // TODO: replace with real current ticket details
-    const currentTicket = { id: '', subject: subject };
+    const currentTicket = { id: currentTicketId ?? '', subject: subject };
 
     let debouncedQuery = useDebounce(query, 500);
 
@@ -162,76 +162,78 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
         <Modal open={open} onClose={onClose} >
             <Box className="modal-box w-75 p-3" sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
                 <h4 className="text-center mb-3">Link to Master Ticket</h4>
-                <GenericInput
-                    className="w-100 mb-2"
-                    type="text"
-                    placeholder="Search tickets by id or subject"
-                    value={query}
-                    onChange={handleSearch}
-                />
-                <div className='mt-2' style={{ maxHeight: '45vh', overflowY: 'auto' }}>
-                    {isSearching && query.length >= 2 && ticketsToDisplay.length === 0 && (
-                        <p className='text-muted mb-2'>No tickets found for "{query}".</p>
-                    )}
-                    {!isSearching && isPaginatedLoading && (
-                        <p className='text-muted mb-2'>Loading master tickets...</p>
-                    )}
-                    {!isSearching && paginatedError && (
-                        <p className='text-danger mb-2'>{paginatedError}</p>
-                    )}
-                    {!isSearching && !isPaginatedLoading && !paginatedError && ticketsToDisplay.length === 0 && (
-                        <p className='text-muted mb-2'>No master tickets available.</p>
-                    )}
-                    {ticketsToDisplay.map((ticket) => (
-                        <div key={ticket.id}
-                            className='d-flex border rounded-2 px-2 py-1 my-1'
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleSelect(ticket.id)}
-                        >
-                            <strong className='mx-1'>{ticket.id}</strong> | {ticket.subject || 'No subject'}
-                        </div>
-                    ))}
-                </div>
-                {!isSearching && totalPages > 1 && (
-                    <Box className='d-flex justify-content-center mt-2'>
-                        <Pagination
-                            count={totalPages}
-                            page={page + 1}
-                            onChange={handlePageChange}
-                            color="primary"
-                            shape="rounded"
+                <div className='d-flex flex-column flex-lg-row gap-3'>
+                    <div className='flex-grow-1'>
+                        <GenericInput
+                            className="w-100 mb-2"
+                            type="text"
+                            placeholder="Search tickets by id or subject"
+                            value={query}
+                            onChange={handleSearch}
                         />
-                    </Box>
-                )}
-                {selected && (
-                    <div className='position-relative mt-3 d-flex justify-content-between'>
-                        <CustomFieldset
-                            title={`Master Ticket ${selected.id}`}
-                            className='flex-grow-1 me-2'
-                            style={{ width: linked ? '48%' : '45%' }}
-                        >
-                            <p>Subject: {selected.subject}</p>
-                        </CustomFieldset>
-                        <div className='d-flex align-items-center justify-content-center position-absolute w-100' style={{ top: '35%' }}>
-                            <Tooltip title={`Link ${currentTicket.id} to Master ${selected.id}`} placement="top">
-                                <CustomIconButton
-                                    icon="Link"
-                                    color={linked ? 'success' : 'primary'}
-                                    onClick={() => {
-                                        currentTicketId ? linkTicketToMaster(currentTicketId, selected.id).then(() => setLinked(true)) : setMasterId(selected.id);
-                                    }}
-                                />
-                            </Tooltip>
+                        <div className='mt-2' style={{ maxHeight: '45vh', overflowY: 'auto' }}>
+                            {isSearching && query.length >= 2 && ticketsToDisplay.length === 0 && (
+                                <p className='text-muted mb-2'>No tickets found for "{query}".</p>
+                            )}
+                            {!isSearching && isPaginatedLoading && (
+                                <p className='text-muted mb-2'>Loading master tickets...</p>
+                            )}
+                            {!isSearching && paginatedError && (
+                                <p className='text-danger mb-2'>{paginatedError}</p>
+                            )}
+                            {!isSearching && !isPaginatedLoading && !paginatedError && ticketsToDisplay.length === 0 && (
+                                <p className='text-muted mb-2'>No master tickets available.</p>
+                            )}
+                            {ticketsToDisplay.map((ticket) => (
+                                <div key={ticket.id}
+                                    className='d-flex border rounded-2 px-2 py-1 my-1'
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => handleSelect(ticket.id)}
+                                >
+                                    <strong className='mx-1'>{ticket.id}</strong> | {ticket.subject || 'No subject'}
+                                </div>
+                            ))}
                         </div>
-                        <CustomFieldset
-                            title={`Current Ticket ${currentTicketId}`}
-                            className='flex-grow-1 ms-2'
-                            style={{ width: linked ? '48%' : '45%' }}
-                        >
-                            <p>Subject: {subject}</p>
-                        </CustomFieldset>
+                        {!isSearching && totalPages > 1 && (
+                            <Box className='d-flex justify-content-center mt-2'>
+                                <Pagination
+                                    count={totalPages}
+                                    page={page + 1}
+                                    onChange={handlePageChange}
+                                    color="primary"
+                                    shape="rounded"
+                                />
+                            </Box>
+                        )}
                     </div>
-                )}
+                    {selected && (
+                        <div className='d-flex flex-column align-items-stretch flex-lg-0 flex-grow-1 gap-3 mt-3 mt-lg-0'>
+                            <CustomFieldset
+                                title={`Master Ticket ${selected.id}`}
+                                className='w-100'
+                            >
+                                <p>Subject: {selected.subject}</p>
+                            </CustomFieldset>
+                            <div className='d-flex justify-content-center'>
+                                <Tooltip title={`Link ${currentTicket.id} to Master ${selected.id}`} placement="top">
+                                    <CustomIconButton
+                                        icon="Link"
+                                        color={linked ? 'success' : 'primary'}
+                                        onClick={() => {
+                                            currentTicketId ? linkTicketToMaster(currentTicketId, selected.id).then(() => setLinked(true)) : setMasterId(selected.id);
+                                        }}
+                                    />
+                                </Tooltip>
+                            </div>
+                            <CustomFieldset
+                                title={`Current Ticket ${currentTicket.id || currentTicketId || ''}`}
+                                className='w-100'
+                            >
+                                <p>Subject: {subject}</p>
+                            </CustomFieldset>
+                        </div>
+                    )}
+                </div>
                 {selected && !selected.isMaster && !selected.masterId && (
                     <div className="form-check mt-3">
                         <input
