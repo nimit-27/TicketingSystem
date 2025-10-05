@@ -59,6 +59,8 @@ class TicketServiceTest {
     private TicketSlaService ticketSlaService;
     @Mock
     private RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
+    @Mock
+    private TicketIdGenerator ticketIdGenerator;
 
     @InjectMocks
     private TicketService ticketService;

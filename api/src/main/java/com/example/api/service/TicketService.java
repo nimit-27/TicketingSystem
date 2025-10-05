@@ -74,6 +74,7 @@ public class TicketService {
     private final StakeholderRepository stakeholderRepository;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
+    private final TicketIdGenerator ticketIdGenerator;
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
@@ -185,6 +186,10 @@ public class TicketService {
 
         if(ticket.isMaster()) ticket.setMasterId(null);
         if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
+
+        if (ticket.getId() == null || ticket.getId().isBlank()) {
+            ticket.setId(ticketIdGenerator.generateTicketId(ticket.getMode()));
+        }
 
         // If userId exists
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
