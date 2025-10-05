@@ -8,6 +8,7 @@ import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.models.TicketSla;
 import com.example.api.service.TicketService;
+import com.example.api.dto.TicketSearchResultDto;
 import com.example.api.service.FileStorageService;
 import com.example.api.service.TicketSlaService;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
-import org.typesense.model.SearchResult;
 import com.example.api.enums.TicketStatus;
 
 import java.io.IOException;
@@ -214,11 +214,11 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<SearchResult> findTicketsBySearchQuery(@RequestBody String query) throws Exception {
+    public ResponseEntity<List<TicketSearchResultDto>> findTicketsBySearchQuery(@RequestBody String query) throws Exception {
         logger.info("Search tickets by query: {}", query);
-        SearchResult result = ticketService.search(query);
-        logger.info("Search result returned, status {}", HttpStatus.OK);
-        return ResponseEntity.ok(result);
+        List<TicketSearchResultDto> results = ticketService.search(query);
+        logger.info("Search result returned with {} entries, status {}", results.size(), HttpStatus.OK);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/master/typesense")
