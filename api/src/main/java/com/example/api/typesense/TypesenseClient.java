@@ -1,11 +1,10 @@
 package com.example.api.typesense;
 
 import com.example.api.models.Ticket;
-import com.example.api.repository.SyncMetadataRepository;
 import com.example.api.repository.TicketRepository;
 import com.example.api.service.SyncMetadataService;
-import com.example.api.service.TicketService;
-import org.springframework.cglib.core.Local;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.typesense.api.Client;
@@ -13,14 +12,18 @@ import org.typesense.model.SearchParameters;
 import org.typesense.model.SearchResult;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class TypesenseClient {
+    private static final String TICKETS_COLLECTION = "tickets";
+
     private final Client client;
     private final TicketRepository ticketRepository;
     private final SyncMetadataService syncMetadataService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public TypesenseClient(Client client, TicketRepository ticketRepository, SyncMetadataService syncMetadataService) {
         this.client = client;
@@ -29,28 +32,60 @@ public class TypesenseClient {
     }
 
     public SearchResult searchTickets(String query) throws Exception {
+        return searchTickets(query, null, null);
+    }
+
+    public SearchResult searchTickets(String query, Integer page, Integer perPage) throws Exception {
         createTicketsCollectionsIfNotExists();
 
         SearchParameters searchParameters = new SearchParameters()
                 .q(query)
                 .queryBy("subject");
 
-        return client.collections("tickets").documents().search((SearchParameters) searchParameters);
+        if (page != null) {
+            searchParameters.page(page);
+        }
+        if (perPage != null) {
+            searchParameters.perPage(perPage);
+        }
+
+        return client.collections(TICKETS_COLLECTION).documents().search(searchParameters);
+    }
+
+    public SearchResult listTickets(int page, int perPage) throws Exception {
+        return searchTickets("*", page, perPage);
+    }
+
+    public List<Map<String, Object>> exportTicketDocuments() throws Exception {
+        createTicketsCollectionsIfNotExists();
+        String exported = client.collections(TICKETS_COLLECTION).documents().export();
+        if (exported == null || exported.isBlank()) {
+            return List.of();
+        }
+        String[] lines = exported.split("\\r?\\n");
+        List<Map<String, Object>> documents = new ArrayList<>();
+        for (String line : lines) {
+            if (line == null || line.isBlank()) {
+                continue;
+            }
+            Map<String, Object> document = objectMapper.readValue(line, new TypeReference<Map<String, Object>>() {
+            });
+            documents.add(document);
+        }
+        return documents;
     }
 
     public void createTicketsCollectionsIfNotExists() throws Exception {
         try {
-            client.collections("tickets").retrieve();
+            client.collections(TICKETS_COLLECTION).retrieve();
         } catch (Exception e) {
-            // Create collection
             var schema = new org.typesense.model.CollectionSchema();
-            schema.setName("tickets");
+            schema.setName(TICKETS_COLLECTION);
             schema.setFields(List.of(
                     new org.typesense.model.Field().name("id").type("string"),
                     new org.typesense.model.Field().name("subject").type("string")
             ));
 
-//            schema.setDefaultSortingField("id");
             client.collections().create(schema);
         }
     }
@@ -85,7 +120,7 @@ public class TypesenseClient {
                     "id", String.valueOf(ticket.getId()),
                     "subject", ticket.getSubject()
             );
-            client.collections("tickets").documents().upsert(doc);
+            client.collections(TICKETS_COLLECTION).documents().upsert(doc);
 
             syncMetadataService.updateLastSyncedTime(LocalDateTime.now());
         }
