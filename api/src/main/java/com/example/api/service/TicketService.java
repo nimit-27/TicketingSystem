@@ -1,6 +1,8 @@
 package com.example.api.service;
 
 import com.example.api.dto.TicketDto;
+import com.example.api.dto.TypesenseTicketDto;
+import com.example.api.dto.TypesenseTicketPageResponse;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
 import com.example.api.mapper.DtoMapper;
@@ -33,6 +35,8 @@ import com.example.api.util.DateTimeUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
+import org.typesense.model.SearchResultHit;
+import org.typesense.model.SearchResultRequestParams;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -261,6 +265,64 @@ public class TicketService {
 
     public SearchResult search(String query) throws Exception {
         return typesenseClient.searchTickets(query);
+    }
+
+    public List<TypesenseTicketDto> getAllMasterTicketsFromTypesense() {
+        try {
+            List<Map<String, Object>> documents = typesenseClient.exportTicketDocuments();
+            return documents.stream()
+                    .map(this::mapDocumentToTypesenseTicket)
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch tickets from Typesense", e);
+        }
+    }
+
+    public TypesenseTicketPageResponse getMasterTicketsPageFromTypesense(int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = size > 0 ? size : 10;
+        try {
+            SearchResult result = typesenseClient.listTickets(safePage + 1, safeSize);
+            List<SearchResultHit> hits = result.getHits() != null ? result.getHits() : java.util.Collections.emptyList();
+            List<TypesenseTicketDto> tickets = hits.stream()
+                    .map(SearchResultHit::getDocument)
+                    .map(this::mapDocumentToTypesenseTicket)
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+
+            SearchResultRequestParams params = result.getRequestParams();
+            int resolvedSize = params != null && params.getPerPage() != null && params.getPerPage() > 0
+                    ? params.getPerPage()
+                    : safeSize;
+
+            long totalFound = result.getFound() != null ? result.getFound() : 0;
+            int totalPages = resolvedSize > 0 ? (int) Math.ceil((double) totalFound / resolvedSize) : 0;
+
+            return new TypesenseTicketPageResponse(
+                    tickets,
+                    safePage,
+                    resolvedSize,
+                    totalFound,
+                    totalPages
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch paginated tickets from Typesense", e);
+        }
+    }
+
+    private TypesenseTicketDto mapDocumentToTypesenseTicket(Map<String, Object> document) {
+        if (document == null || document.isEmpty()) {
+            return null;
+        }
+        Object idObj = document.get("id");
+        Object subjectObj = document.get("subject");
+        if (idObj == null) {
+            return null;
+        }
+        String id = String.valueOf(idObj);
+        String subject = subjectObj != null ? String.valueOf(subjectObj) : null;
+        return new TypesenseTicketDto(id, subject);
     }
 
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,

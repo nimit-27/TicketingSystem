@@ -2,6 +2,8 @@ package com.example.api.controller;
 
 import com.example.api.dto.PaginationResponse;
 import com.example.api.dto.TicketDto;
+import com.example.api.dto.TypesenseTicketDto;
+import com.example.api.dto.TypesenseTicketPageResponse;
 import com.example.api.models.Ticket;
 import com.example.api.models.TicketComment;
 import com.example.api.models.TicketSla;
@@ -217,6 +219,25 @@ public class TicketController {
         SearchResult result = ticketService.search(query);
         logger.info("Search result returned, status {}", HttpStatus.OK);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/master/typesense")
+    public ResponseEntity<List<TypesenseTicketDto>> getTypesenseMasterTickets() {
+        logger.info("Request to fetch all master tickets from Typesense");
+        List<TypesenseTicketDto> tickets = ticketService.getAllMasterTicketsFromTypesense();
+        logger.info("Returning {} master tickets from Typesense", tickets.size());
+        return ResponseEntity.ok(tickets);
+    }
+
+    @GetMapping("/master/typesense/page")
+    public ResponseEntity<TypesenseTicketPageResponse> getTypesenseMasterTicketsPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        logger.info("Request to fetch master tickets from Typesense page={} size={}", page, size);
+        TypesenseTicketPageResponse response = ticketService.getMasterTicketsPageFromTypesense(page, size);
+        logger.info("Returning {} master tickets from Typesense with totalFound={} totalPages={}",
+                response.getTickets().size(), response.getTotalFound(), response.getTotalPages());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/link/{masterId}")
