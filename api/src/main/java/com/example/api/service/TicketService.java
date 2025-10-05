@@ -33,7 +33,7 @@ import com.example.api.typesense.TypesenseClient;
 import com.example.notification.enums.ChannelType;
 import com.example.notification.service.NotificationService;
 import com.example.api.util.DateTimeUtils;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
@@ -49,7 +49,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TicketService {
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
