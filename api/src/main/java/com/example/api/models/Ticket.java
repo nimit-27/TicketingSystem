@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Data
 public class Ticket {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name="ticket_id")
     private String id;
     @Column(name="reported_date")
