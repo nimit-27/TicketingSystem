@@ -155,7 +155,7 @@ const DevLogin: FC = () => {
     }, [users, primaryRole]);
 
     const handleUserSelection = useCallback(async (user: ApiUser) => {
-        const userId = user.userId || user.username || user.name;
+        const userId = user.username;
         if (!userId) {
             showMessage("Unable to determine user id", "error");
             return;
@@ -331,7 +331,7 @@ const DevLogin: FC = () => {
                     }}
                 >
                     {sortedUsers.map((user) => {
-                        const role = primaryRole(user) ?? "Unknown";
+                        const role = user.roleNames.join(" | ") || primaryRole(user) || "Unknown";
                         const username = user.username ?? user.name ?? user.userId ?? "";
                         return (
                             <button
