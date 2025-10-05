@@ -55,8 +55,8 @@ const deleteValue = (obj: any, path: string[]): PermissionNode => {
 const cloneNode = (node: PermissionNode): PermissionNode => {
     const clonedChildren = node.children
         ? Object.fromEntries(
-              Object.entries(node.children).map(([key, child]) => [key, cloneNode(child)])
-          )
+            Object.entries(node.children).map(([key, child]) => [key, cloneNode(child)])
+        )
         : node.children;
 
     return {
@@ -69,8 +69,8 @@ const cloneNode = (node: PermissionNode): PermissionNode => {
 const setShowRecursively = (node: PermissionNode, show: boolean): PermissionNode => {
     const updatedChildren = node.children
         ? Object.fromEntries(
-              Object.entries(node.children).map(([key, child]) => [key, setShowRecursively(child, show)])
-          )
+            Object.entries(node.children).map(([key, child]) => [key, setShowRecursively(child, show)])
+        )
         : node.children;
 
     return {
@@ -149,6 +149,30 @@ const Node: React.FC<{
             setNameValue(value?.metadata?.name || label);
         }
     }, [label, value?.metadata?.name, editingName]);
+
+
+    useEffect(() => {
+        if (!value) {
+            setAllChildrenState('neutral');
+            setCachedValue(null);
+            return;
+        }
+
+        if (allChildrenState === 'all' && !isUniformShowState(value, true)) {
+            setAllChildrenState('neutral');
+            setCachedValue(null);
+        } else if (allChildrenState === 'none' && !isUniformShowState(value, false)) {
+            setAllChildrenState('neutral');
+            setCachedValue(null);
+        }
+    }, [value, allChildrenState]);
+
+    useEffect(() => {
+        setAllChildrenState(prev => (prev === computedChildrenState ? prev : computedChildrenState));
+        if (computedChildrenState === 'neutral') {
+            setCachedValue(null);
+        }
+    }, [computedChildrenState]);
 
     if (label === 'show' || label === 'metadata') return null;
 
@@ -242,13 +266,6 @@ const Node: React.FC<{
             )}
         </div>
     );
-
-    useEffect(() => {
-        setAllChildrenState(prev => (prev === computedChildrenState ? prev : computedChildrenState));
-        if (computedChildrenState === 'neutral') {
-            setCachedValue(null);
-        }
-    }, [computedChildrenState]);
 
     const handleToggleAllChildren = () => {
         if (!value || typeof value !== 'object') {
