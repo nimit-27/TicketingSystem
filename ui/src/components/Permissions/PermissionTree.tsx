@@ -1,11 +1,12 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { Checkbox, Chip, Collapse, IconButton, TextField, Tooltip } from '@mui/material';
+import React, { useContext, useState, useEffect, useMemo } from 'react';
+import { Checkbox, Collapse, IconButton, TextField, Tooltip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { PermissionNode } from '../../types';
 import { DevModeContext } from '../../context/DevModeContext';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import JsonEditModal from './JsonEditModal';
+import AllChildrenChip, { AllChildrenState } from './components/AllChildrenChip';
 
 interface TreeProps {
     data: PermissionNode;
@@ -93,6 +94,22 @@ const isUniformShowState = (node: PermissionNode | undefined, expected: boolean)
     return Object.values(node.children).every(child => isUniformShowState(child, expected));
 };
 
+const computeAllChildrenState = (node: PermissionNode | null | undefined): AllChildrenState => {
+    if (!node || !node.children || Object.keys(node.children).length === 0) {
+        return 'neutral';
+    }
+
+    if (isUniformShowState(node, true)) {
+        return 'all';
+    }
+
+    if (isUniformShowState(node, false)) {
+        return 'none';
+    }
+
+    return 'neutral';
+};
+
 const Node: React.FC<{
     label: string;
     value: any;
@@ -111,8 +128,10 @@ const Node: React.FC<{
     const [addedChildren, setAddedChildren] = useState(false);
     const [editingName, setEditingName] = useState(false);
     const [nameValue, setNameValue] = useState<string>(value?.metadata?.name || label);
-    const [allChildrenState, setAllChildrenState] = useState<'neutral' | 'all' | 'none'>('neutral');
+    const [allChildrenState, setAllChildrenState] = useState<AllChildrenState>('neutral');
     const [cachedValue, setCachedValue] = useState<PermissionNode | null>(null);
+
+    const computedChildrenState = useMemo(() => computeAllChildrenState(value), [value]);
 
     useEffect(() => {
         if (!canEdit && adding) {
@@ -211,7 +230,7 @@ const Node: React.FC<{
     };
 
     const renderNameEditor = () => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexGrow: 1 }}>
+        <div className="d-flex align-items-center gap-2 flex-grow-1">
             {editingName ? (
                 <>
                     <TextField size="small" value={nameValue} onChange={e => setNameValue(e.target.value)} />
@@ -219,26 +238,17 @@ const Node: React.FC<{
                     <CustomIconButton icon='close' onClick={cancelEditName} />
                 </>
             ) : (
-                <span style={{ flexGrow: 1 }}>{nodeLabel}</span>
+                <span className="flex-grow-1">{nodeLabel}</span>
             )}
         </div>
     );
 
     useEffect(() => {
-        if (!value) {
-            setAllChildrenState('neutral');
-            setCachedValue(null);
-            return;
-        }
-
-        if (allChildrenState === 'all' && !isUniformShowState(value, true)) {
-            setAllChildrenState('neutral');
-            setCachedValue(null);
-        } else if (allChildrenState === 'none' && !isUniformShowState(value, false)) {
-            setAllChildrenState('neutral');
+        setAllChildrenState(prev => (prev === computedChildrenState ? prev : computedChildrenState));
+        if (computedChildrenState === 'neutral') {
             setCachedValue(null);
         }
-    }, [value, allChildrenState]);
+    }, [computedChildrenState]);
 
     const handleToggleAllChildren = () => {
         if (!value || typeof value !== 'object') {
@@ -266,32 +276,13 @@ const Node: React.FC<{
             return null;
         }
 
-        let color: 'default' | 'success' | 'error' = 'default';
-        let variant: 'outlined' | 'filled' = 'outlined';
-
-        if (allChildrenState === 'all') {
-            color = 'success';
-            variant = 'filled';
-        } else if (allChildrenState === 'none') {
-            color = 'error';
-            variant = 'filled';
-        }
-
-        return (
-            <Chip
-                size="small"
-                label="All children"
-                color={color}
-                variant={variant}
-                onClick={handleToggleAllChildren}
-            />
-        );
+        return <AllChildrenChip state={allChildrenState} onClick={handleToggleAllChildren} />;
     };
 
     const renderActions = (includeAdd: boolean) => {
         if (!canEdit) return null;
         return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className="d-flex align-items-center gap-2">
                 <Tooltip title="Edit JSON" arrow>
                     <span>
                         <CustomIconButton icon='code' size='small' onClick={openJsonEditor} aria-label='Edit JSON' />
@@ -325,8 +316,8 @@ const Node: React.FC<{
     if (hasChildren || addedChildren) {
         const entries = Object.entries(value.children || {});
         return (
-            <div style={{ marginLeft: 16 }}>
-                <div className='border-bottom' style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="ms-3">
+                <div className='border-bottom d-flex align-items-center gap-2'>
                     <IconButton size="small" onClick={() => setOpen(o => !o)}>
                         {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
@@ -340,7 +331,7 @@ const Node: React.FC<{
                     {renderActions(true)}
                 </div>
                 {adding && (
-                    <div style={{ display: 'flex', alignItems: 'center', marginLeft: 32, marginTop: 4 }}>
+                    <div className="d-flex align-items-center ms-4 mt-1 gap-2">
                         <TextField size="small" value={newChild} onChange={e => setNewChild(e.target.value)} />
                         <CustomIconButton icon='close' onClick={cancelAdd} />
                         <CustomIconButton icon='check' onClick={confirmAdd} />
@@ -365,7 +356,7 @@ const Node: React.FC<{
     }
 
     return (
-        <div className='border-bottom' style={{ display: 'flex', alignItems: 'center', marginLeft: 16, gap: 8 }}>
+        <div className='border-bottom d-flex align-items-center ms-3 gap-2'>
             <Checkbox
                 size="small"
                 checked={show}
