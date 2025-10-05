@@ -32,16 +32,6 @@ export function getTicket(id: string) {
     return axios.get(`${BASE_URL}/tickets/${id}`);
 }
 
-export function getTypesenseMasterTickets() {
-    return axios.get(`${BASE_URL}/tickets/master/typesense`);
-}
-
-export function getTypesenseMasterTicketsPaginated(page: number = 0, size: number = 10) {
-    return axios.get(`${BASE_URL}/tickets/master/typesense/page`, {
-        params: { page, size }
-    });
-}
-
 export function getTicketSla(id: string) {
     return axios.get(`${BASE_URL}/tickets/${id}/sla`);
 }

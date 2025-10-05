@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { useDebounce } from "../../hooks/useDebounce";
-import { searchTickets, getTicket, linkTicketToMaster, makeTicketMaster, getTypesenseMasterTicketsPaginated } from "../../services/TicketService";
+import { searchTickets, getTicket, linkTicketToMaster, makeTicketMaster, searchTicketsPaginated } from "../../services/TicketService";
 import GenericInput from "../UI/Input/GenericInput";
 
 interface LinkToMasterTicketModalProps {
@@ -48,11 +48,12 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const fetchPaginatedTickets = useCallback((pageIndex: number) => {
         setIsPaginatedLoading(true);
         setPaginatedError(null);
-        getTypesenseMasterTicketsPaginated(pageIndex, PAGE_SIZE)
+        searchTicketsPaginated('', undefined, true, pageIndex, PAGE_SIZE)
             .then((response) => {
                 const rawPayload = response?.data ?? response;
                 const payload = rawPayload?.body?.data ?? rawPayload;
-                const tickets: MasterTicket[] = (payload?.tickets ?? []).map((ticket: any) => ({
+                const items = payload?.items ?? [];
+                const tickets: MasterTicket[] = items.map((ticket: any) => ({
                     id: ticket.id,
                     subject: ticket.subject,
                 }));
