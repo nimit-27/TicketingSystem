@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Checkbox, Collapse, IconButton, TextField, Tooltip } from '@mui/material';
+import { Checkbox, Chip, Collapse, IconButton, TextField, Tooltip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { PermissionNode } from '../../types';
@@ -51,6 +51,48 @@ const deleteValue = (obj: any, path: string[]): PermissionNode => {
     };
 };
 
+const cloneNode = (node: PermissionNode): PermissionNode => {
+    const clonedChildren = node.children
+        ? Object.fromEntries(
+              Object.entries(node.children).map(([key, child]) => [key, cloneNode(child)])
+          )
+        : node.children;
+
+    return {
+        ...node,
+        metadata: node.metadata ? { ...node.metadata } : node.metadata,
+        children: clonedChildren
+    };
+};
+
+const setShowRecursively = (node: PermissionNode, show: boolean): PermissionNode => {
+    const updatedChildren = node.children
+        ? Object.fromEntries(
+              Object.entries(node.children).map(([key, child]) => [key, setShowRecursively(child, show)])
+          )
+        : node.children;
+
+    return {
+        ...node,
+        show,
+        children: updatedChildren
+    };
+};
+
+const isUniformShowState = (node: PermissionNode | undefined, expected: boolean): boolean => {
+    if (!node) return false;
+    const currentMatches = Boolean(node.show) === expected;
+    if (!currentMatches) {
+        return false;
+    }
+
+    if (!node.children) {
+        return true;
+    }
+
+    return Object.values(node.children).every(child => isUniformShowState(child, expected));
+};
+
 const Node: React.FC<{
     label: string;
     value: any;
@@ -69,6 +111,8 @@ const Node: React.FC<{
     const [addedChildren, setAddedChildren] = useState(false);
     const [editingName, setEditingName] = useState(false);
     const [nameValue, setNameValue] = useState<string>(value?.metadata?.name || label);
+    const [allChildrenState, setAllChildrenState] = useState<'neutral' | 'all' | 'none'>('neutral');
+    const [cachedValue, setCachedValue] = useState<PermissionNode | null>(null);
 
     useEffect(() => {
         if (!canEdit && adding) {
@@ -180,6 +224,70 @@ const Node: React.FC<{
         </div>
     );
 
+    useEffect(() => {
+        if (!value) {
+            setAllChildrenState('neutral');
+            setCachedValue(null);
+            return;
+        }
+
+        if (allChildrenState === 'all' && !isUniformShowState(value, true)) {
+            setAllChildrenState('neutral');
+            setCachedValue(null);
+        } else if (allChildrenState === 'none' && !isUniformShowState(value, false)) {
+            setAllChildrenState('neutral');
+            setCachedValue(null);
+        }
+    }, [value, allChildrenState]);
+
+    const handleToggleAllChildren = () => {
+        if (!value || typeof value !== 'object') {
+            return;
+        }
+
+        if (allChildrenState === 'neutral') {
+            setCachedValue(cloneNode(value));
+            onChange(path, setShowRecursively(value, true));
+            setAllChildrenState('all');
+        } else if (allChildrenState === 'all') {
+            onChange(path, setShowRecursively(value, false));
+            setAllChildrenState('none');
+        } else {
+            if (cachedValue) {
+                onChange(path, cachedValue);
+            }
+            setCachedValue(null);
+            setAllChildrenState('neutral');
+        }
+    };
+
+    const renderAllChildrenChip = () => {
+        if (!value || childCount === 0) {
+            return null;
+        }
+
+        let color: 'default' | 'success' | 'error' = 'default';
+        let variant: 'outlined' | 'filled' = 'outlined';
+
+        if (allChildrenState === 'all') {
+            color = 'success';
+            variant = 'filled';
+        } else if (allChildrenState === 'none') {
+            color = 'error';
+            variant = 'filled';
+        }
+
+        return (
+            <Chip
+                size="small"
+                label="All children"
+                color={color}
+                variant={variant}
+                onClick={handleToggleAllChildren}
+            />
+        );
+    };
+
     const renderActions = (includeAdd: boolean) => {
         if (!canEdit) return null;
         return (
@@ -218,7 +326,7 @@ const Node: React.FC<{
         const entries = Object.entries(value.children || {});
         return (
             <div style={{ marginLeft: 16 }}>
-                <div className='border-bottom' style={{ display: 'flex', alignItems: 'center' }}>
+                <div className='border-bottom' style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <IconButton size="small" onClick={() => setOpen(o => !o)}>
                         {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
@@ -228,6 +336,7 @@ const Node: React.FC<{
                         onChange={e => onChange([...path, 'show'], e.target.checked)}
                     />
                     {renderNameEditor()}
+                    {renderAllChildrenChip()}
                     {renderActions(true)}
                 </div>
                 {adding && (
@@ -256,13 +365,14 @@ const Node: React.FC<{
     }
 
     return (
-        <div className='border-bottom' style={{ display: 'flex', alignItems: 'center', marginLeft: 16 }}>
+        <div className='border-bottom' style={{ display: 'flex', alignItems: 'center', marginLeft: 16, gap: 8 }}>
             <Checkbox
                 size="small"
                 checked={show}
                 onChange={e => onChange([...path, 'show'], e.target.checked)}
             />
             {renderNameEditor()}
+            {renderAllChildrenChip()}
             {renderActions(true)}
             {adding && (
                 <>
