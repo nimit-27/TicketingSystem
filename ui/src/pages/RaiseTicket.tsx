@@ -152,9 +152,16 @@ const RaiseTicket: React.FC<any> = () => {
                 {devMode && <CustomIconButton icon="formatColorFill" onClick={populateDummyTicketDetails} />}
                 <TicketDetails register={register} control={control} errors={errors} createMode attachments={attachments} setAttachments={setAttachments} />
 
-                {showLinkToMasterTicket && <div className="text-start">
-                    <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={isMaster} />
-                </div>}
+                {showLinkToMasterTicket && (
+                    <div className="text-start d-flex align-items-center gap-2 flex-wrap">
+                        <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={isMaster} />
+                        {masterId && (
+                            <span className="text-success">
+                                This ticket is linked to master ticket ID {masterId}
+                            </span>
+                        )}
+                    </div>
+                )}
                 {/* Submit Button */}
                 <div className="text-end mt-3">
                     <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
@@ -162,7 +169,7 @@ const RaiseTicket: React.FC<any> = () => {
             </form>
 
             {/* Link to Master Ticket Modal */}
-            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} subject={subject} />
+            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} subject={subject} masterId={masterId} />
             {/* Successful Modal */}
             <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
         </div>

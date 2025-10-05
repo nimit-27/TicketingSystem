@@ -89,6 +89,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
+  const [masterSla, setMasterSla] = useState<TicketSla | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [hasFeedback, setHasFeedback] = useState(false);
   // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -222,6 +223,23 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         .catch(() => setSla(null));
     }
   }, [ticketId, pageType, getTicketHandler, workflowApiHandler]);
+
+  useEffect(() => {
+    const masterTicketId = ticket?.masterId;
+    if (!masterTicketId || masterTicketId === ticketId) {
+      setMasterSla(null);
+      return;
+    }
+
+    getTicketSla(masterTicketId)
+      .then(res => {
+        const body = res.data?.body ?? res.data;
+        const slaData = res.status === 200 ? body?.data ?? null : null;
+        const normalised = normaliseSla(slaData && typeof slaData === 'object' ? slaData as TicketSla : null);
+        setMasterSla(normalised);
+      })
+      .catch(() => setMasterSla(null));
+  }, [ticket?.masterId, ticketId]);
 
   useEffect(() => {
     workflowApiHandler(() => getStatusWorkflowMappings(roleList));
@@ -861,19 +879,28 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <Histories ticketId={ticketId} />
         </CustomFieldset>
       )}
-
-
       {/* SLA */}
-      {sla && (
+      {(sla || masterSla) && (
         <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
-          {/* SLA PROGRESS BAR */}
-          {/* <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
-            <SlaProgressBar sla={sla} className="w-100" />
-          </Box> */}
-          <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
-            <SlaProgressChart sla={sla} className="w-100" />
-          </Box>
-          <SlaDetails sla={sla} />
+          {sla && (
+            <>
+              <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+                <SlaProgressChart sla={sla} className="w-100" />
+              </Box>
+              <SlaDetails sla={sla} />
+            </>
+          )}
+          {masterSla && (
+            <Box sx={{ mt: sla ? 6 : 4 }}>
+              <Typography variant="h6" align="center" sx={{ mb: 2 }}>
+                SLA for master ticket ID {ticket?.masterId}
+              </Typography>
+              <Box sx={{ width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+                <SlaProgressChart sla={masterSla} className="w-100" />
+              </Box>
+              <SlaDetails sla={masterSla} />
+            </Box>
+          )}
         </CustomFieldset>
       )}
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>

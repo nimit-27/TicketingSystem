@@ -1,6 +1,6 @@
-import { Box, Modal, Tooltip, Pagination } from "@mui/material";
+import { Box, Modal, Tooltip, Pagination, Button } from "@mui/material";
+import ToggleButton from "@mui/material/ToggleButton";
 import React, { useCallback, useEffect, useState } from "react";
-import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { useDebounce } from "../../hooks/useDebounce";
 import { searchTickets, getTicket, linkTicketToMaster, makeTicketMaster, searchTicketsPaginated } from "../../services/TicketService";
@@ -12,6 +12,7 @@ interface LinkToMasterTicketModalProps {
     setMasterId: (id: string) => void;
     subject: string;
     currentTicketId?: string; // Optional prop to pass current ticket ID
+    masterId?: string;
 }
 
 interface TicketHit {
@@ -28,7 +29,7 @@ interface MasterTicket {
 
 const PAGE_SIZE = 20;
 
-const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose, subject, setMasterId, currentTicketId }) => {
+const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose, subject, setMasterId, currentTicketId, masterId }) => {
     const [query, setQuery] = useState('');
     const [searchResults, setSearchResults] = useState<MasterTicket[]>([]);
     const [paginatedTickets, setPaginatedTickets] = useState<MasterTicket[]>([]);
@@ -71,6 +72,21 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
             });
     }, []);
 
+    const handleSelect = useCallback((id: string) => {
+        getTicket(id).then(res => {
+            const rawPayload = res?.data ?? res;
+            const payload = rawPayload?.body?.data ?? rawPayload;
+            setSelected(payload);
+            setConversionError(null);
+            setConversionInProgress(false);
+            setQuery('');
+            setSearchResults([]);
+        }).catch(() => {
+            setSelected(null);
+            setLinked(false);
+        });
+    }, []);
+
     useEffect(() => {
         if (open) {
             setQuery('');
@@ -84,8 +100,12 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
             setTotalPages(0);
             setPage(0);
             fetchPaginatedTickets(0);
+            if (masterId) {
+                handleSelect(masterId);
+                setLinked(true);
+            }
         }
-    }, [open, fetchPaginatedTickets]);
+    }, [open, fetchPaginatedTickets, masterId, handleSelect]);
 
     useEffect(() => {
         if (!open) {
@@ -115,16 +135,27 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
         setQuery(value);
     };
 
-    const handleSelect = (id: string) => {
-        getTicket(id).then(res => {
-            const rawPayload = res?.data ?? res;
-            const payload = rawPayload?.body?.data ?? rawPayload;
-            setSelected(payload);
-            setConversionError(null);
-            setConversionInProgress(false);
-            setQuery('');
-            setSearchResults([]);
-        });
+    const handleToggleLink = async (_event: React.MouseEvent<HTMLElement>, shouldLink: boolean) => {
+        if (!selected) {
+            return;
+        }
+
+        if (shouldLink) {
+            if (currentTicketId) {
+                try {
+                    await linkTicketToMaster(currentTicketId, selected.id);
+                    setLinked(true);
+                } catch {
+                    setLinked(false);
+                }
+            } else {
+                setMasterId(selected.id);
+                setLinked(true);
+            }
+        } else if (!currentTicketId) {
+            setMasterId('');
+            setLinked(false);
+        }
     };
 
     const handleMasterConversion = async (checked: boolean) => {
@@ -215,14 +246,16 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                                 <p>Subject: {selected.subject}</p>
                             </CustomFieldset>
                             <div className='d-flex justify-content-center'>
-                                <Tooltip title={`Link ${currentTicket.id} to Master ${selected.id}`} placement="top">
-                                    <CustomIconButton
-                                        icon="Link"
-                                        color={linked ? 'success' : 'primary'}
-                                        onClick={() => {
-                                            currentTicketId ? linkTicketToMaster(currentTicketId, selected.id).then(() => setLinked(true)) : setMasterId(selected.id);
-                                        }}
-                                    />
+                                <Tooltip title={`Link ${currentTicket.id || 'this ticket'} to Master ${selected.id}`} placement="top">
+                                    <ToggleButton
+                                        value="link"
+                                        selected={linked}
+                                        onChange={handleToggleLink}
+                                        disabled={!selected}
+                                        color="primary"
+                                    >
+                                        {linked ? 'Linked' : 'Link'}
+                                    </ToggleButton>
                                 </Tooltip>
                             </div>
                             <CustomFieldset
@@ -250,9 +283,38 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                         {conversionError && <p className="text-danger mt-2">{conversionError}</p>}
                     </div>
                 )}
-                {linked && (
-                    <p className='text-success mt-2 text-center'>Ticket {currentTicket.id} has been linked to Master ticket {selected.id}</p>
+                {linked && selected && (
+                    <p className='text-success mt-2 text-center'>
+                        {currentTicket.id
+                            ? `Ticket ${currentTicket.id} has been linked to Master ticket ${selected.id}`
+                            : `This ticket will be linked to Master ticket ${selected.id}`}
+                    </p>
                 )}
+                <Box className='d-flex justify-content-end gap-2 mt-3'>
+                    <Button
+                        variant="outlined"
+                        onClick={() => {
+                            setMasterId('');
+                            setLinked(false);
+                            setSelected(null);
+                            onClose();
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            if (selected && linked && !currentTicketId) {
+                                setMasterId(selected.id);
+                            }
+                            onClose();
+                        }}
+                        disabled={!linked || !selected}
+                    >
+                        Ok
+                    </Button>
+                </Box>
             </Box>
         </Modal>
     )
