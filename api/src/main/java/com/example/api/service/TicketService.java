@@ -270,7 +270,7 @@ public class TicketService {
 
     public List<TicketSearchResultDto> search(String query) throws Exception {
         if (query == null || query.isBlank()) {
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         }
 
         if ("typesense".equalsIgnoreCase(searchEngine)) {
