@@ -40,7 +40,7 @@ public class TypesenseClient {
 
         SearchParameters searchParameters = new SearchParameters()
                 .q(query)
-                .queryBy("subject");
+                .queryBy("id,subject");
 
         if (page != null) {
             searchParameters.page(page);
