@@ -95,7 +95,13 @@ public class TypesenseClient {
         System.out.println("Syncing only updated or new Master Tickets....");
 
         LocalDateTime lastSyncedTime = syncMetadataService.getLastSyncedTime();
-        List<Ticket> updatedOrNewMasterTickets = ticketRepository.findByLastModifiedAfter(lastSyncedTime);
+        List<Ticket> updatedOrNewMasterTickets;
+
+        if (lastSyncedTime == null) {
+            updatedOrNewMasterTickets = ticketRepository.findAll();
+        } else {
+            updatedOrNewMasterTickets = ticketRepository.findByLastModifiedAfter(lastSyncedTime);
+        }
         syncTicketsToTypesense(updatedOrNewMasterTickets);
 
         System.out.println("✅ Updated or New Master tickets synced to Typesense.");
