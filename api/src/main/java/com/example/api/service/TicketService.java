@@ -4,6 +4,7 @@ import com.example.api.dto.TicketDto;
 import com.example.api.dto.TicketSearchResultDto;
 import com.example.api.dto.TypesenseTicketDto;
 import com.example.api.dto.TypesenseTicketPageResponse;
+import com.example.api.exception.InvalidRequestException;
 import com.example.api.exception.ResourceNotFoundException;
 import com.example.api.exception.TicketNotFoundException;
 import com.example.api.mapper.DtoMapper;
@@ -909,12 +910,58 @@ public class TicketService {
         return mapWithStatusId(ticket);
     }
 
-    public TicketDto linkToMaster(String id, String masterId) {
+    public TicketDto linkToMaster(String id, String masterId, String updatedBy) {
+        if (masterId == null || masterId.isBlank()) {
+            throw new InvalidRequestException("Master ticket id is required.");
+        }
+        if (Objects.equals(id, masterId)) {
+            throw new InvalidRequestException("Ticket cannot be linked to itself as master.");
+        }
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+        if (ticket.isMaster()) {
+            throw new InvalidRequestException("Master ticket cannot be linked to another master ticket.");
+        }
+
+        Ticket masterTicket = ticketRepository.findById(masterId)
+                .orElseThrow(() -> new TicketNotFoundException(masterId));
+        if (!masterTicket.isMaster()) {
+            throw new InvalidRequestException(String.format("Ticket %s is not marked as a master ticket.", masterId));
+        }
+
+        if (Objects.equals(ticket.getMasterId(), masterId)) {
+            return mapWithStatusId(ticket);
+        }
+
+        ticket.setMasterId(masterId);
+        if (updatedBy != null && !updatedBy.isBlank()) {
+            ticket.setUpdatedBy(updatedBy);
+        }
+        ticket.setLastModified(LocalDateTime.now());
+
+        Ticket saved = ticketRepository.save(ticket);
+        addLinkingHistory(saved, updatedBy, String.format("Linked to master ticket %s", masterId));
+        return mapWithStatusId(saved);
+    }
+
+    public TicketDto unlinkFromMaster(String id, String updatedBy) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
-        ticket.setMasterId(masterId);
+        String existingMasterId = ticket.getMasterId();
+        if (existingMasterId == null || existingMasterId.isBlank()) {
+            throw new InvalidRequestException("Ticket is not linked to any master ticket.");
+        }
+
+        ticket.setMasterId("");
+        if (updatedBy != null && !updatedBy.isBlank()) {
+            ticket.setUpdatedBy(updatedBy);
+        }
+        ticket.setLastModified(LocalDateTime.now());
+
         Ticket saved = ticketRepository.save(ticket);
+        addLinkingHistory(saved, updatedBy, String.format("Unlinked from master ticket %s", existingMasterId));
         return mapWithStatusId(saved);
     }
 
@@ -963,6 +1010,55 @@ public class TicketService {
     }
 
 
+
+    public List<TicketDto> getChildTickets(String masterId) {
+        Ticket masterTicket = ticketRepository.findById(masterId)
+                .orElseThrow(() -> new TicketNotFoundException(masterId));
+        if (!masterTicket.isMaster()) {
+            throw new InvalidRequestException(String.format("Ticket %s is not marked as a master ticket.", masterId));
+        }
+
+        return ticketRepository.findByMasterId(masterId)
+                .stream()
+                .map(this::mapWithStatusId)
+                .collect(Collectors.toList());
+    }
+
+    private void addLinkingHistory(Ticket ticket, String updatedBy, String remark) {
+        String actor = updatedBy != null && !updatedBy.isBlank()
+                ? updatedBy
+                : ticket.getUpdatedBy();
+
+        assignmentHistoryService.addHistory(
+                ticket.getId(),
+                actor,
+                ticket.getAssignedTo(),
+                ticket.getLevelId(),
+                remark
+        );
+
+        String statusId = resolveCurrentStatusId(ticket);
+        Boolean slaFlag = statusId != null ? workflowService.getSlaFlagByStatusId(statusId) : null;
+
+        statusHistoryService.addHistory(
+                ticket.getId(),
+                actor,
+                statusId,
+                statusId,
+                slaFlag,
+                remark
+        );
+    }
+
+    private String resolveCurrentStatusId(Ticket ticket) {
+        if (ticket.getStatus() != null) {
+            return ticket.getStatus().getStatusId();
+        }
+        if (ticket.getTicketStatus() != null) {
+            return workflowService.getStatusIdByCode(ticket.getTicketStatus().name());
+        }
+        return null;
+    }
 
     public List<Ticket> getMasterTickets() {
         return ticketRepository.findByIsMasterTrue();

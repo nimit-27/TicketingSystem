@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import CustomFieldset from "../CustomFieldset";
 import { useDebounce } from "../../hooks/useDebounce";
 import { searchTickets, getTicket, linkTicketToMaster, makeTicketMaster, searchTicketsPaginated } from "../../services/TicketService";
+import { getCurrentUserDetails } from "../../config/config";
 import GenericInput from "../UI/Input/GenericInput";
 
 interface LinkToMasterTicketModalProps {
@@ -41,6 +42,9 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const [linked, setLinked] = useState(false);
     const [conversionInProgress, setConversionInProgress] = useState(false);
     const [conversionError, setConversionError] = useState<string | null>(null);
+    const currentUser = getCurrentUserDetails();
+    const currentUsername = currentUser?.username || '';
+
     // TODO: replace with real current ticket details
     const currentTicket = { id: currentTicketId ?? '', subject: subject };
 
@@ -143,7 +147,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
         if (shouldLink) {
             if (currentTicketId) {
                 try {
-                    await linkTicketToMaster(currentTicketId, selected.id);
+                    await linkTicketToMaster(currentTicketId, selected.id, currentUsername || undefined);
                     setLinked(true);
                 } catch {
                     setLinked(false);

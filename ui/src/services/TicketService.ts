@@ -40,12 +40,28 @@ export function updateTicket(id: string, payload: any) {
     return axios.put(`${BASE_URL}/tickets/${id}`, payload)
 }
 
-export function linkTicketToMaster(id: string, masterId: string) {
-    return axios.put(`${BASE_URL}/tickets/${id}/link/${masterId}`);
+export function linkTicketToMaster(id: string, masterId: string, updatedBy?: string) {
+    return axios.put(
+        `${BASE_URL}/tickets/${id}/link/${masterId}`,
+        null,
+        updatedBy ? { params: { updatedBy } } : undefined
+    );
 }
 
 export function makeTicketMaster(id: string) {
     return axios.put(`${BASE_URL}/tickets/${id}/master`);
+}
+
+export function unlinkTicketFromMaster(id: string, updatedBy?: string) {
+    return axios.put(
+        `${BASE_URL}/tickets/${id}/unlink`,
+        null,
+        updatedBy ? { params: { updatedBy } } : undefined
+    );
+}
+
+export function getChildTickets(masterId: string) {
+    return axios.get(`${BASE_URL}/tickets/${masterId}/children`);
 }
 
 export function addComment(id: string, comment: string) {

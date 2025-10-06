@@ -221,11 +221,30 @@ public class TicketController {
 
 
     @PutMapping("/{id}/link/{masterId}")
-    public ResponseEntity<TicketDto> linkToMaster(@PathVariable String id, @PathVariable String masterId) {
-        logger.info("Request to link ticket {} to master {}", id, masterId);
-        TicketDto dto = ticketService.linkToMaster(id, masterId);
-        logger.info("Ticket {} linked to master {}, returning {}", id, masterId, HttpStatus.OK);
+    public ResponseEntity<TicketDto> linkToMaster(@PathVariable String id,
+                                                  @PathVariable String masterId,
+                                                  @RequestParam(required = false) String updatedBy) {
+        logger.info("Request to link ticket {} to master {} by {}", id, masterId, updatedBy);
+        TicketDto dto = ticketService.linkToMaster(id, masterId, updatedBy);
+        logger.info("Ticket {} linked to master {} by {}, returning {}", id, masterId, updatedBy, HttpStatus.OK);
         return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/{id}/unlink")
+    public ResponseEntity<TicketDto> unlinkFromMaster(@PathVariable String id,
+                                                      @RequestParam(required = false) String updatedBy) {
+        logger.info("Request to unlink ticket {} from its master by {}", id, updatedBy);
+        TicketDto dto = ticketService.unlinkFromMaster(id, updatedBy);
+        logger.info("Ticket {} unlinked from master by {}, returning {}", id, updatedBy, HttpStatus.OK);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{id}/children")
+    public ResponseEntity<List<TicketDto>> getChildTickets(@PathVariable String id) {
+        logger.info("Request to fetch child tickets for master {}", id);
+        List<TicketDto> children = ticketService.getChildTickets(id);
+        logger.info("Returning {} child tickets for master {} with status {}", children.size(), id, HttpStatus.OK);
+        return ResponseEntity.ok(children);
     }
 
     @PutMapping("/{id}/master")
