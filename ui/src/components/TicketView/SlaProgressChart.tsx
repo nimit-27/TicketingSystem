@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { TicketSla } from '../types';
+import { TicketSla } from '../../types';
 
 interface SlaProgressChartProps {
   sla?: TicketSla | null;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import TicketView from '../components/TicketView';
-import HistorySidebar from '../components/HistorySidebar';
+import TicketView from '../components/TicketView/TicketView';
+import HistorySidebar from '../components/TicketView/HistorySidebar';
 
 const TicketDetails: React.FC = () => {
   const { ticketId } = useParams();

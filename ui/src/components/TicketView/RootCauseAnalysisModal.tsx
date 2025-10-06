@@ -2,16 +2,16 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useForm, useWatch } from 'react-hook-form';
-import FileUpload, { ThumbnailList } from './UI/FileUpload';
-import { RootCauseAnalysis } from '../types';
-import { BASE_URL } from '../services/api';
-import { saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment, getRootCauseAnalysis } from '../services/RootCauseAnalysisService';
-import { useApi } from '../hooks/useApi';
-import { useSnackbar } from '../context/SnackbarContext';
-import GenericButton from './UI/Button';
-import CustomFormInput from './UI/Input/CustomFormInput';
-import CustomIconButton from './UI/IconButton/CustomIconButton';
-import { getTicket } from '../services/TicketService';
+import FileUpload, { ThumbnailList } from '../UI/FileUpload';
+import { RootCauseAnalysis } from '../../types';
+import { BASE_URL } from '../../services/api';
+import { saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment, getRootCauseAnalysis } from '../../services/RootCauseAnalysisService';
+import { useApi } from '../../hooks/useApi';
+import { useSnackbar } from '../../context/SnackbarContext';
+import GenericButton from '../UI/Button';
+import CustomFormInput from '../UI/Input/CustomFormInput';
+import CustomIconButton from '../UI/IconButton/CustomIconButton';
+import { getTicket } from '../../services/TicketService';
 
 interface RootCauseAnalysisModalProps {
   open: boolean;

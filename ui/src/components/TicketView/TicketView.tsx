@@ -1,37 +1,38 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
-import UserAvatar from './UI/UserAvatar/UserAvatar';
-import { useApi } from '../hooks/useApi';
-import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../services/TicketService';
-import { getRootCauseAnalysisTicketById } from '../services/RootCauseAnalysisService';
-import { BASE_URL } from '../services/api';
-import { getCurrentUserDetails } from '../config/config';
-import { getPriorities } from '../services/PriorityService';
-import { getSeverities } from '../services/SeverityService';
-import InfoIcon from './UI/Icons/InfoIcon';
-import GenericButton from './UI/Button';
-import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow, RootCauseAnalysis } from '../types';
-import CustomIconButton, { IconComponent } from './UI/IconButton/CustomIconButton';
-import CommentsSection from './Comments/CommentsSection';
+import UserAvatar from '../UI/UserAvatar/UserAvatar';
+import { useApi } from '../../hooks/useApi';
+import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../../services/TicketService';
+import { getRootCauseAnalysisTicketById } from '../../services/RootCauseAnalysisService';
+import { BASE_URL } from '../../services/api';
+import { getCurrentUserDetails } from '../../config/config';
+import { getPriorities } from '../../services/PriorityService';
+import { getSeverities } from '../../services/SeverityService';
+import InfoIcon from '../UI/Icons/InfoIcon';
+import GenericButton from '../UI/Button';
+import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow, RootCauseAnalysis } from '../../types';
+import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
+import CommentsSection from '../Comments/CommentsSection';
 import SlaDetails from './SlaDetails';
-import Histories from '../pages/Histories';
-import CustomFieldset from './CustomFieldset';
+import Histories from '../../pages/Histories';
+import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
-import { checkAccessMaster, checkFieldAccess } from '../utils/permissions';
-import FileUpload, { ThumbnailList } from './UI/FileUpload';
-import FeedbackModal from './Feedback/FeedbackModal';
-import { getFeedback } from '../services/FeedbackService';
-import { getStatusWorkflowMappings } from '../services/StatusService';
-import GenericDropdown, { DropdownOption } from './UI/Dropdown/GenericDropdown';
-import RemarkComponent from './UI/Remark/RemarkComponent';
-import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
+import { checkAccessMaster, checkFieldAccess } from '../../utils/permissions';
+import FileUpload, { ThumbnailList } from '../UI/FileUpload';
+import FeedbackModal from '../Feedback/FeedbackModal';
+import { getFeedback } from '../../services/FeedbackService';
+import { getStatusWorkflowMappings } from '../../services/StatusService';
+import GenericDropdown, { DropdownOption } from '../UI/Dropdown/GenericDropdown';
+import RemarkComponent from '../UI/Remark/RemarkComponent';
+import { getDropdownOptions, getStatusNameById } from '../../utils/Utils';
 import SlaProgressChart from './SlaProgressChart';
-import { getCategories, getSubCategories } from '../services/CategoryService';
+import { getCategories, getSubCategories } from '../../services/CategoryService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import RootCauseAnalysisModal from './RootCauseAnalysisModal';
-import ChildTicketsTable from './Ticket/ChildTicketsTable';
-import type { TicketRow } from './AllTickets/TicketsTable';
-import { useSnackbar } from '../context/SnackbarContext';
+import ChildTicketsTable from '../Ticket/ChildTicketsTable';
+import type { TicketRow } from '../AllTickets/TicketsTable';
+import { useSnackbar } from '../../context/SnackbarContext';
+import ChildTicketsList from './ChildTicketsList';
 
 interface TicketViewProps {
   ticketId: string;
@@ -105,9 +106,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
-  const [childTickets, setChildTickets] = useState<TicketRow[]>([]);
-  const [childTicketsLoading, setChildTicketsLoading] = useState(false);
-  const [unlinkingChildId, setUnlinkingChildId] = useState<string | null>(null);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const { showMessage } = useSnackbar();
@@ -120,72 +118,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
 
-  const refreshChildTickets = useCallback(async () => {
-    if (!ticket?.isMaster || !ticket.id) {
-      setChildTickets([]);
-      setChildTicketsLoading(false);
-      return;
-    }
-
-    setChildTicketsLoading(true);
-    try {
-      const response = await getChildTickets(ticket.id);
-      const rawPayload = response?.data ?? response;
-      const payload = rawPayload?.body?.data ?? rawPayload;
-      const items = Array.isArray(payload) ? payload : [];
-      const mapped: TicketRow[] = items.map((item: any) => ({
-        id: item.id,
-        subject: item.subject,
-        category: item.category,
-        subCategory: item.subCategory,
-        priority: item.priority,
-        priorityId: item.priorityId,
-        isMaster: Boolean(item.isMaster),
-        userId: item.userId,
-        requestorName: item.requestorName,
-        requestorEmailId: item.requestorEmailId,
-        requestorMobileNo: item.requestorMobileNo,
-        statusId: item.statusId,
-        statusLabel: item.statusLabel,
-        assignedTo: item.assignedTo,
-        assignedToName: item.assignedToName,
-        feedbackStatus: item.feedbackStatus,
-        severity: item.severity,
-        rcaStatus: item.rcaStatus,
-      }));
-      setChildTickets(mapped);
-    } catch (error) {
-      setChildTickets([]);
-      showMessage('Failed to load child tickets.', 'error');
-    } finally {
-      setChildTicketsLoading(false);
-    }
-  }, [showMessage, ticket]);
-
-  useEffect(() => {
-    void refreshChildTickets();
-  }, [refreshChildTickets]);
-
-  const handleViewChildTicket = useCallback((id: string) => {
-    navigate(`/tickets/${id}`);
-  }, [navigate]);
-
-  const handleUnlinkChildTicket = useCallback(async (id: string) => {
-    if (!window.confirm('Are you sure you want to unlink this ticket from the master ticket?')) {
-      return;
-    }
-    const actor = currentUsername || undefined;
-    setUnlinkingChildId(id);
-    try {
-      await unlinkTicketFromMaster(id, actor);
-      showMessage('Ticket unlinked from master successfully.', 'success');
-      await refreshChildTickets();
-    } catch (error) {
-      showMessage('Failed to unlink ticket from master.', 'error');
-    } finally {
-      setUnlinkingChildId(null);
-    }
-  }, [currentUsername, refreshChildTickets, showMessage]);
   const getSeverityText = useCallback((value?: string | null) => {
     if (!value) {
       return '';
@@ -262,7 +194,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   useEffect(() => {
     if (ticketId) {
-      
+
       const ticketFetcher = pageType === 'RCA'
         ? () => getRootCauseAnalysisTicketById(ticketId)
         : () => getTicket(ticketId);
@@ -988,17 +920,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           )}
         </CustomFieldset>
       )}
+
+      {/* CHILD TICKETS LIST */}
       {ticket.isMaster && (
         <CustomFieldset title={t('Child Tickets')} className="mt-4" style={{ margin: 0, padding: 0 }}>
-          <ChildTicketsTable
-            tickets={childTickets}
-            loading={childTicketsLoading}
-            unlinkingId={unlinkingChildId}
-            onView={handleViewChildTicket}
-            onUnlink={handleUnlinkChildTicket}
-          />
+          <ChildTicketsList parentId={ticket.id} />
         </CustomFieldset>
       )}
+
+      {/* COMMENTS */}
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>

@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import Histories from '../../pages/Histories';
 import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
-import TicketView from '../TicketView';
+import TicketView from '../TicketView/TicketView';
 
 interface ViewTicketProps {
   ticketId: string | null;

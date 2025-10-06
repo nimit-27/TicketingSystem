@@ -8,7 +8,7 @@ import { TicketStatusWorkflow } from '../types';
 import { getStatusWorkflowMappings } from '../services/StatusService';
 import { getCurrentUserDetails } from '../config/config';
 import { getRootCauseAnalysisTickets } from '../services/RootCauseAnalysisService';
-import RootCauseAnalysisModal from '../components/RootCauseAnalysisModal';
+import RootCauseAnalysisModal from '../components/TicketView/RootCauseAnalysisModal';
 import DateRangeFilter, { getDateRangeApiParams } from '../components/Filters/DateRangeFilter';
 import { DateRangeState } from '../utils/dateUtils';
 import DropdownController from '../components/UI/Dropdown/DropdownController';

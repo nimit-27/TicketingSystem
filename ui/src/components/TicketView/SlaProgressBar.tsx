@@ -3,8 +3,8 @@ import MultiValueProgressBar, {
   LabelPosition,
   MultiValueProgressMarker,
   MultiValueProgressSegment,
-} from './UI/MultiValueProgressBar';
-import { TicketSla } from '../types';
+} from '../UI/MultiValueProgressBar';
+import { TicketSla } from '../../types';
 
 interface SlaProgressBarProps {
   sla?: TicketSla | null;

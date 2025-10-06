@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { TicketSla } from '../types';
+import { TicketSla } from '../../types';
 
 interface Props {
   sla: TicketSla;
