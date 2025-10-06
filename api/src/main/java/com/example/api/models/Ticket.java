@@ -24,6 +24,9 @@ public class Ticket {
     private LocalDateTime reportedDate;
     @Enumerated(EnumType.STRING)
     private Mode mode;
+
+    @Column(name = "mode_id")
+    private String modeId;
     @Column(name = "user_id", insertable = false, updatable = false)
     private String userId;
     @ManyToOne
@@ -87,4 +90,17 @@ public class Ticket {
 
     @Transient
     private String remark;
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+        this.modeId = mode != null ? mode.getId() : null;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void syncModeId() {
+        if (mode != null) {
+            this.modeId = mode.getId();
+        }
+    }
 }

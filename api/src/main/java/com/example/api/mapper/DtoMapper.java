@@ -69,6 +69,7 @@ public class DtoMapper {
         TicketDto dto = new TicketDto();
         dto.setId(ticket.getId());
         dto.setMode(ticket.getMode());
+        dto.setModeId(ticket.getModeId());
         dto.setUserId(ticket.getUserId() != null ? String.valueOf(ticket.getUserId()) : null);
         dto.setRequestorName(ticket.getRequestorName());
         dto.setRequestorEmailId(ticket.getRequestorEmailId());

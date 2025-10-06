@@ -17,6 +17,7 @@ public class TicketDto {
     private String shortId;
     private LocalDateTime reportedDate;
     private Mode mode;
+    private String modeId;
     private String userId;
     private String requestorName;
     private String requestorEmailId;
