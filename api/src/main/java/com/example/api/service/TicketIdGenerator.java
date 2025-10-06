@@ -46,6 +46,6 @@ public class TicketIdGenerator {
         if (mode == null) {
             return UNKNOWN_MODE;
         }
-        return mode.name().toUpperCase();
+        return mode.getId();
     }
 }

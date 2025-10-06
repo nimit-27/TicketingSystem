@@ -27,6 +27,7 @@ import com.example.api.repository.PriorityRepository;
 import com.example.api.repository.UploadedFileRepository;
 import com.example.api.repository.StakeholderRepository;
 import com.example.api.repository.RecommendedSeverityFlowRepository;
+import com.example.api.enums.Mode;
 import com.example.api.enums.TicketStatus;
 import com.example.api.enums.FeedbackStatus;
 import com.example.api.enums.RecommendedSeverityStatus;
@@ -187,6 +188,10 @@ public class TicketService {
 
         if(ticket.isMaster()) ticket.setMasterId(null);
         if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
+
+        if (ticket.getMode() == null && ticket.getModeId() != null) {
+            ticket.setMode(Mode.fromId(ticket.getModeId()));
+        }
 
         if (ticket.getId() == null || ticket.getId().isBlank()) {
             ticket.setId(ticketIdGenerator.generateTicketId(ticket.getMode()));
