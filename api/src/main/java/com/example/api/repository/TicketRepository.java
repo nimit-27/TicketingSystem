@@ -18,6 +18,8 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Ticket, String> {
     public List<Ticket> findByIsMasterTrue();
 
+    List<Ticket> findByMasterId(String masterId);
+
     public List<Ticket> findByLastModifiedAfter(LocalDateTime lastSyncedTime);
 
     List<Ticket> findByTicketStatusAndLastModifiedBefore(TicketStatus ticketStatus, LocalDateTime time);

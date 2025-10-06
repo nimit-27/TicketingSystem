@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
 import UserAvatar from './UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
-import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla } from '../services/TicketService';
+import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../services/TicketService';
 import { getRootCauseAnalysisTicketById } from '../services/RootCauseAnalysisService';
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
@@ -27,8 +27,11 @@ import RemarkComponent from './UI/Remark/RemarkComponent';
 import { getDropdownOptions, getStatusNameById } from '../utils/Utils';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getSubCategories } from '../services/CategoryService';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import RootCauseAnalysisModal from './RootCauseAnalysisModal';
+import ChildTicketsTable from './Ticket/ChildTicketsTable';
+import type { TicketRow } from './AllTickets/TicketsTable';
+import { useSnackbar } from '../context/SnackbarContext';
 
 interface TicketViewProps {
   ticketId: string;
@@ -59,6 +62,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // Determine page context and track RCA status
   const location = useLocation();
+  const navigate = useNavigate();
   const { pathname } = location;
   // const rcaStatusFromLocation = (location.state as any)?.rcaStatus ?? '';
   const [rcaStatus, setRcaStatus] = useState('');
@@ -101,8 +105,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
+  const [childTickets, setChildTickets] = useState<TicketRow[]>([]);
+  const [childTicketsLoading, setChildTicketsLoading] = useState(false);
+  const [unlinkingChildId, setUnlinkingChildId] = useState<string | null>(null);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
+  const { showMessage } = useSnackbar();
   const currentUserDetails = useMemo(() => getCurrentUserDetails(), []);
   const currentUsername = currentUserDetails?.username || '';
   const currentUserId = currentUserDetails?.userId || '';
@@ -111,6 +119,73 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const normalizedRoles = useMemo(() => roleList.map(role => role.toUpperCase()), [roleList]);
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
+
+  const refreshChildTickets = useCallback(async () => {
+    if (!ticket?.isMaster || !ticket.id) {
+      setChildTickets([]);
+      setChildTicketsLoading(false);
+      return;
+    }
+
+    setChildTicketsLoading(true);
+    try {
+      const response = await getChildTickets(ticket.id);
+      const rawPayload = response?.data ?? response;
+      const payload = rawPayload?.body?.data ?? rawPayload;
+      const items = Array.isArray(payload) ? payload : [];
+      const mapped: TicketRow[] = items.map((item: any) => ({
+        id: item.id,
+        subject: item.subject,
+        category: item.category,
+        subCategory: item.subCategory,
+        priority: item.priority,
+        priorityId: item.priorityId,
+        isMaster: Boolean(item.isMaster),
+        userId: item.userId,
+        requestorName: item.requestorName,
+        requestorEmailId: item.requestorEmailId,
+        requestorMobileNo: item.requestorMobileNo,
+        statusId: item.statusId,
+        statusLabel: item.statusLabel,
+        assignedTo: item.assignedTo,
+        assignedToName: item.assignedToName,
+        feedbackStatus: item.feedbackStatus,
+        severity: item.severity,
+        rcaStatus: item.rcaStatus,
+      }));
+      setChildTickets(mapped);
+    } catch (error) {
+      setChildTickets([]);
+      showMessage('Failed to load child tickets.', 'error');
+    } finally {
+      setChildTicketsLoading(false);
+    }
+  }, [showMessage, ticket]);
+
+  useEffect(() => {
+    void refreshChildTickets();
+  }, [refreshChildTickets]);
+
+  const handleViewChildTicket = useCallback((id: string) => {
+    navigate(`/tickets/${id}`);
+  }, [navigate]);
+
+  const handleUnlinkChildTicket = useCallback(async (id: string) => {
+    if (!window.confirm('Are you sure you want to unlink this ticket from the master ticket?')) {
+      return;
+    }
+    const actor = currentUsername || undefined;
+    setUnlinkingChildId(id);
+    try {
+      await unlinkTicketFromMaster(id, actor);
+      showMessage('Ticket unlinked from master successfully.', 'success');
+      await refreshChildTickets();
+    } catch (error) {
+      showMessage('Failed to unlink ticket from master.', 'error');
+    } finally {
+      setUnlinkingChildId(null);
+    }
+  }, [currentUsername, refreshChildTickets, showMessage]);
   const getSeverityText = useCallback((value?: string | null) => {
     if (!value) {
       return '';
@@ -687,6 +762,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         )}
       </Box>
 
+      {!ticket.isMaster && ticket.masterId && ticket.masterId.trim() !== '' && ticket.masterId !== ticket.id && (
+        <Alert
+          severity="info"
+          sx={{ mb: 2, cursor: 'pointer' }}
+          onClick={() => navigate(`/tickets/${ticket.masterId}`)}
+        >
+          Linked to master ticket ID {ticket.masterId}. Click to view master ticket.
+        </Alert>
+      )}
+
       {/* HEADER */}
       <Box className="d-flex align-items-end">
         <Box className="d-flex flex-column col-6" >
@@ -901,6 +986,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               <SlaDetails sla={masterSla} />
             </Box>
           )}
+        </CustomFieldset>
+      )}
+      {ticket.isMaster && (
+        <CustomFieldset title={t('Child Tickets')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+          <ChildTicketsTable
+            tickets={childTickets}
+            loading={childTicketsLoading}
+            unlinkingId={unlinkingChildId}
+            onView={handleViewChildTicket}
+            onUnlink={handleUnlinkChildTicket}
+          />
         </CustomFieldset>
       )}
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
