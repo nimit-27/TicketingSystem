@@ -948,9 +948,6 @@ INSERT INTO `ticket_sla` VALUES ('00fdb5cf-869d-486b-b718-623361d26c53','3b02582
 /*!40000 ALTER TABLE `ticket_sla` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `ticket_status_workflow`
---
 
 DROP TABLE IF EXISTS `ticket_status_workflow`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -973,6 +970,24 @@ LOCK TABLES `ticket_status_workflow` WRITE;
 INSERT INTO `ticket_status_workflow` VALUES (1,'Assign',1,2),(2,'Cancel/ Reject',1,9),(3,'Assign Further',2,2),(4,'On Hold (Pending with Requester)',2,3),(5,'Resolve',2,7),(6,'Close',7,8),(7,'Reopen',7,10),(8,'Assign',10,2),(9,'Assign / Assign Further',3,2),(10,'Assign / Assign Further',4,2),(11,'Recommend Escalation',2,6),(12,'Approve Escalation',6,11),(15,'On Hold (Pending with Service Provider)',2,4),(16,'On Hold (Pending with FCI)',2,5),(17,'Assign',11,2),(18,'Assign / Assign Further',7,2),(19,'Resume',3,2),(20,'Resume',4,2),(21,'Resume',5,2),(22,'Recommend Escalation',1,6);
 /*!40000 ALTER TABLE `ticket_status_workflow` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `ticket_sequences`
+--
+
+DROP TABLE IF EXISTS `ticket_sequences`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ticket_sequences` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `mode_id` varchar(50) NOT NULL,
+  `sequence_date` date NOT NULL,
+  `last_value` bigint NOT NULL DEFAULT '0',
+  `version` bigint NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ticket_sequences_mode_date` (`mode_id`,`sequence_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `tickets`
