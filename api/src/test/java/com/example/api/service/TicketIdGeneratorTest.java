@@ -37,7 +37,7 @@ class TicketIdGeneratorTest {
 
     @Test
     void generateTicketId_createsSequenceWhenMissing() {
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("CALL"), any()))
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("2"), any()))
                 .thenReturn(Optional.empty());
 
         String id = ticketIdGenerator.generateTicketId(Mode.Call);
@@ -47,18 +47,18 @@ class TicketIdGeneratorTest {
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
         String expectedDate = savedSequence.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThat(savedSequence.getModeId()).isEqualTo("CALL");
+        assertThat(savedSequence.getModeId()).isEqualTo("2");
         assertThat(savedSequence.getLastValue()).isEqualTo(1);
-        assertThat(id).isEqualTo("TKT-CALL-" + expectedDate + "-1");
+        assertThat(id).isEqualTo("TKT-2-" + expectedDate + "-1");
     }
 
     @Test
     void generateTicketId_incrementsExistingSequence() {
         TicketSequence existing = new TicketSequence();
-        existing.setModeId("EMAIL");
+        existing.setModeId("3");
         existing.setSequenceDate(java.time.LocalDate.now());
         existing.setLastValue(5);
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("EMAIL"), any()))
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("3"), any()))
                 .thenReturn(Optional.of(existing));
 
         String id = ticketIdGenerator.generateTicketId(Mode.Email);
@@ -68,9 +68,9 @@ class TicketIdGeneratorTest {
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
         String expectedDate = savedSequence.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThat(savedSequence.getModeId()).isEqualTo("EMAIL");
+        assertThat(savedSequence.getModeId()).isEqualTo("3");
         assertThat(savedSequence.getLastValue()).isEqualTo(6);
-        assertThat(id).isEqualTo("TKT-EMAIL-" + expectedDate + "-6");
+        assertThat(id).isEqualTo("TKT-3-" + expectedDate + "-6");
     }
 
     @Test
