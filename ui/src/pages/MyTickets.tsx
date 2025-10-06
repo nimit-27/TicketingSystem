@@ -9,11 +9,13 @@ const MyTickets: React.FC = () => {
 
     const buildSearchOverrides = useCallback((_: TicketsListFilterState): TicketsListSearchOverrides => {
         const user = getCurrentUserDetails();
+        const roles = (user?.role || []).map(String);
         const username = user?.username || user?.userId || "";
         const userId = user?.userId || "";
+        const isRequestor = roles.includes("5");
 
         return {
-            requestorId: userId || undefined,
+            ...(isRequestor ? { requestorId: userId || undefined } : {}),
             createdBy: username || undefined,
         };
     }, []);
