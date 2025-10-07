@@ -20,6 +20,7 @@ import com.ticketingSystem.api.repository.PriorityRepository;
 import com.ticketingSystem.api.repository.UploadedFileRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.RecommendedSeverityFlowRepository;
+import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.enums.Mode;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.enums.FeedbackStatus;
@@ -50,6 +51,7 @@ public class TicketService {
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
+    private static final String IT_MANAGER_ROLE_NAME = "IT Manager";
     private final TypesenseClient typesenseClient;
     @Value("${app.search.engine:default}")
     private String searchEngine;
@@ -67,6 +69,7 @@ public class TicketService {
     private final PriorityRepository priorityRepository;
     private final UploadedFileRepository uploadedFileRepository;
     private final StakeholderRepository stakeholderRepository;
+    private final RoleRepository roleRepository;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
@@ -710,6 +713,7 @@ public class TicketService {
         String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
+            data.put("requestorName", recipientName);
         }
 
         if (updatedBy != null && !updatedBy.isBlank()) {
@@ -726,6 +730,77 @@ public class TicketService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        TicketStatus effectiveStatus = updatedStatus != null ? updatedStatus : ticket.getTicketStatus();
+        sendRoleStatusUpdateNotifications(ticket, effectiveStatus, data);
+    }
+
+    private void sendRoleStatusUpdateNotifications(Ticket ticket,
+                                                   TicketStatus status,
+                                                   Map<String, Object> existingData) {
+        if (ticket == null || status != TicketStatus.AWAITING_ESCALATION_APPROVAL) {
+            return;
+        }
+
+        roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse(IT_MANAGER_ROLE_NAME)
+                .map(Role::getRoleId)
+                .map(String::valueOf)
+                .ifPresent(roleId -> notifyRoleMembersOfStatusUpdate(ticket, roleId, existingData));
+    }
+
+    private void notifyRoleMembersOfStatusUpdate(Ticket ticket,
+                                                 String roleId,
+                                                 Map<String, Object> existingData) {
+        if (roleId == null || roleId.isBlank()) {
+            return;
+        }
+
+        List<User> roleMembers = userRepository.findAll()
+                .stream()
+                .filter(user -> userHasRole(user, roleId))
+                .toList();
+
+        if (roleMembers.isEmpty()) {
+            return;
+        }
+
+        Map<String, Object> baseData = new HashMap<>(existingData != null ? existingData : Map.of());
+        baseData.remove("recipientName");
+
+        for (User member : roleMembers) {
+            try {
+                String recipientIdentifier = resolveRecipientIdentifier(member);
+                Map<String, Object> notificationData = new HashMap<>(baseData);
+                String memberName = resolveUserName(member);
+                if (memberName != null && !memberName.isBlank()) {
+                    notificationData.put("recipientName", memberName);
+                }
+                notificationService.sendNotification(
+                        ChannelType.IN_APP,
+                        TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
+                        notificationData,
+                        recipientIdentifier
+                );
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private boolean userHasRole(User user, String roleId) {
+        if (user == null || roleId == null || roleId.isBlank()) {
+            return false;
+        }
+
+        String roles = user.getRoles();
+        if (roles == null || roles.isBlank()) {
+            return false;
+        }
+
+        String trimmedRoleId = roleId.trim();
+        return Arrays.stream(roles.split("\\|"))
+                .map(String::trim)
+                .anyMatch(trimmedRoleId::equals);
     }
 
     private String buildAssignmentUpdateMessage(String previousAssignee, String newAssignee) {
