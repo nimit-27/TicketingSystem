@@ -109,16 +109,36 @@ jest.mock('../../context/DevModeContext', () => {
 });
 
 jest.mock('react-router-dom', () => {
-  const navigate = jest.fn();
+  let mockRoleId = '1';
+  let mockLocationState: any = { permissions: { dashboard: true }, role: 'Admin' };
+
+  const navigate = jest.fn((path?: string, options?: any) => {
+    if (typeof path === 'string') {
+      const match = path.match(/\/role-master\/(.+)$/);
+      if (match) {
+        mockRoleId = match[1];
+      }
+    }
+    if (options?.state) {
+      mockLocationState = options.state;
+    }
+  });
+
   return {
-    useParams: () => ({ roleId: '1' }),
+    useParams: () => ({ roleId: mockRoleId }),
     useNavigate: () => navigate,
-    useLocation: () => ({ state: { permissions: { dashboard: true }, role: 'Admin' } }),
+    useLocation: () => ({ state: mockLocationState }),
     __navigateMock: navigate,
+    __resetRouter: () => {
+      mockRoleId = '1';
+      mockLocationState = { permissions: { dashboard: true }, role: 'Admin' };
+    },
   };
 });
 
-const navigateMock = jest.requireMock('react-router-dom').__navigateMock as jest.Mock;
+const routerDomMock = jest.requireMock('react-router-dom');
+const navigateMock = routerDomMock.__navigateMock as jest.Mock;
+const resetRouterMock = routerDomMock.__resetRouter as () => void;
 
 import RoleDetails from '../RoleDetails';
 
@@ -130,6 +150,7 @@ describe('RoleDetails', () => {
     mockLoadPermissions.mockClear();
     mockShowMessage.mockClear();
     navigateMock.mockClear();
+    resetRouterMock();
     mockAutocompleteCounter = 0;
     mockUseApi.mockReset();
     mockUpdateRolePermission.mockResolvedValue(undefined);
@@ -184,5 +205,24 @@ describe('RoleDetails', () => {
     fireEvent.click(targetMenuItem);
 
     expect(navigateMock).toHaveBeenCalledWith('/role-master/2', { state: expect.objectContaining({ role: 'Agent' }) });
+  });
+
+  it('updates the displayed role data when a new role is selected', async () => {
+    render(<RoleDetails />);
+
+    fireEvent.click(screen.getByText('Role: Admin'));
+
+    const targetMenuItem = await waitFor(() => screen.getByRole('menuitem', { name: 'Agent' }));
+
+    fireEvent.click(targetMenuItem);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Role: Agent' })).toBeInTheDocument();
+    });
+
+    const autocomplete = screen.getByRole('listbox') as HTMLSelectElement;
+    expect(Array.from(autocomplete.selectedOptions).map(option => option.value)).toEqual(['1']);
+
+    expect(screen.getByText('Agent', { selector: 'p' })).toBeInTheDocument();
   });
 });

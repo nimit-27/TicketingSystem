@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useState, useContext, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { updateRolePermission, updateRole, loadPermissions, renameRole, getAllRoles } from '../services/RoleService';
@@ -24,21 +24,26 @@ const RoleDetails: React.FC = () => {
 
     const location = useLocation();
 
-    let roleData = location?.state as any;
+    const locationRole = location?.state as any;
 
     const { data: actions, apiHandler: actionsApiHandler } = useApi<any>();
-    const { data: rolesData, pending: rolesApiPending, success: rolesApiSucsess, apiHandler: rolesApiHandler } = useApi<any>();
+    const { data: rolesData, pending: rolesApiPending, apiHandler: rolesApiHandler } = useApi<any>();
 
-    const [perm, setPerm] = useState<any>(roleData?.permissions || null);
+    const [perm, setPerm] = useState<any>(locationRole?.permissions || null);
     const [modifiedPermissions, setModifiedPermissions] = useState<any | null>(null);
-    const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
-    const [description, setDescription] = useState('');
+    const [selectedActionIds, setSelectedActionIds] = useState<string[]>(
+        locationRole?.allowedStatusActionIds
+            ? locationRole.allowedStatusActionIds.split('|').filter(Boolean).map((id: string) => String(id))
+            : []
+    );
+    const [description, setDescription] = useState(locationRole?.description || '');
     const [openJson, setOpenJson] = useState(false);
     const [editing, setEditing] = useState(false);
-    const [roleName, setRoleName] = useState('');
+    const [roleName, setRoleName] = useState(locationRole?.role || roleId || '');
     const [roleMenuAnchorEl, setRoleMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const lastAppliedRoleRef = useRef<string | null>(null);
 
-    const resolvedRoleName = (roleName || roleData?.role || '').toString();
+    const resolvedRoleName = (roleName || locationRole?.role || '').toString();
     const isMasterRole = resolvedRoleName.toLowerCase() === 'master';
     const canEditStructure = devMode && isMasterRole;
 
@@ -52,28 +57,43 @@ const RoleDetails: React.FC = () => {
         }
     }, [roleId]);
     
+    const applyRoleDetails = useCallback((role: any) => {
+        if (!role) return;
+
+        setPerm(role.permissions || null);
+        setModifiedPermissions(null);
+
+        const actionIds = role.allowedStatusActionIds
+            ? String(role.allowedStatusActionIds)
+                .split('|')
+                .filter(Boolean)
+                .map((id: string) => String(id))
+            : [];
+
+        setSelectedActionIds(actionIds);
+        setDescription(role.description || '');
+        setRoleName(role.role || roleId || '');
+        setEditing(false);
+    }, [roleId]);
+
     useEffect(() => {
-        if (rolesData && rolesApiSucsess) {
-            setRoleName(rolesData.filter((r: any) => r.roleId === parseInt(roleId ?? ""))[0]?.role || '');
-        }
-    }, [rolesApiSucsess])
+        if (!locationRole) return;
+        const target = locationRole.roleId ?? locationRole.role;
+        if (target === undefined || target === null) return;
+        const key = String(target);
+        if (lastAppliedRoleRef.current === key) return;
+        lastAppliedRoleRef.current = key;
+        applyRoleDetails(locationRole);
+    }, [locationRole, applyRoleDetails]);
 
     useEffect(() => {
         if (rolesData && roleId) {
             const role = (rolesData as any[]).find(r => String(r.roleId) === roleId || r.role === roleId);
             if (role) {
-                if (role.allowedStatusActionIds) {
-                    setSelectedActionIds(role.allowedStatusActionIds.split('|'));
-                }
-                if (role.description) {
-                    setDescription(role.description);
-                }
-                // if (role.permissions) {
-                //     setPerm(role.permissions);
-                // }
+                applyRoleDetails(role);
             }
         }
-    }, [rolesData, roleId]);
+    }, [rolesData, roleId, applyRoleDetails]);
 
     const handleSubmit = (submitPerm = isPermissionsModified ? modifiedPermissions : perm) => {
         if (roleId) {
@@ -134,6 +154,9 @@ const RoleDetails: React.FC = () => {
         if (!role) return;
         const target = role.roleId ?? role.role;
         if (!target) return;
+        const key = String(target);
+        lastAppliedRoleRef.current = key;
+        applyRoleDetails(role);
         navigate(`/role-master/${target}`, { state: role });
     };
 
