@@ -7,31 +7,67 @@ import { TicketRow } from "../components/AllTickets/TicketsTable";
 const MyWorkload: React.FC = () => {
     const navigate = useNavigate();
 
-    const buildSearchOverrides = useCallback((_: TicketsListFilterState): TicketsListSearchOverrides => {
-        const user = getCurrentUserDetails();
-        const username = user?.username || user?.userId || "";
+    const getRoleFlags = useCallback(() => {
+        const userDetails = getCurrentUserDetails();
+        const roles = (userDetails?.role || []).map(role => String(role).toUpperCase());
 
-        return {
-            assignedTo: username || undefined,
-        };
+        const isTeamLeadRole = roles.some(role =>
+            ["4", "TEAM_LEAD", "TL", "TEAMLEAD"].includes(role)
+        );
+
+        const isItManagerRole = roles.some(role =>
+            ["9", "IT_MANAGER", "ITMANAGER"].includes(role)
+        );
+
+        return { isTeamLeadRole, isItManagerRole };
     }, []);
 
-    const transformTickets = useCallback((items: TicketRow[]): TicketRow[] => {
-        const roles = (getCurrentUserDetails()?.role || []).map(String);
-        let filtered = items;
+    const buildSearchOverrides = useCallback(
+        (_: TicketsListFilterState): TicketsListSearchOverrides => {
+            const { isTeamLeadRole, isItManagerRole } = getRoleFlags();
 
-        if (roles.some(role => role === "4" || role === "TEAM_LEAD")) {
-            const teamLeadStatuses = new Set(["1", "2", "OPEN", "ASSIGNED"]);
-            filtered = filtered.filter(ticket => teamLeadStatuses.has(String(ticket.statusId ?? "")));
-        }
+            if (isItManagerRole) {
+                return { statusName: "AWAITING_ESCALATION_APPROVAL" };
+            }
 
-        if (roles.includes("9")) {
-            const escalatedStatuses = new Set(["6", "ESCALATED"]);
-            filtered = filtered.filter(ticket => escalatedStatuses.has(String(ticket.statusId ?? "")));
-        }
+            if (isTeamLeadRole) {
+                return { statusName: "OPEN" };
+            }
 
-        return filtered;
-    }, []);
+            return {};
+        },
+        [getRoleFlags]
+    );
+
+    const transformTickets = useCallback(
+        (items: TicketRow[]): TicketRow[] => {
+            const { isTeamLeadRole, isItManagerRole } = getRoleFlags();
+
+            if (isItManagerRole) {
+                const awaitingEscalationStatuses = new Set(["6", "AWAITING_ESCALATION_APPROVAL"]);
+                return items.filter(ticket => {
+                    const statusId = String(ticket.statusId ?? "");
+                    const normalizedStatusId = statusId.toUpperCase();
+                    return (
+                        awaitingEscalationStatuses.has(statusId) ||
+                        awaitingEscalationStatuses.has(normalizedStatusId)
+                    );
+                });
+            }
+
+            if (isTeamLeadRole) {
+                const openStatuses = new Set(["1", "OPEN"]);
+                return items.filter(ticket => {
+                    const statusId = String(ticket.statusId ?? "");
+                    const normalizedStatusId = statusId.toUpperCase();
+                    return openStatuses.has(statusId) || openStatuses.has(normalizedStatusId);
+                });
+            }
+
+            return items;
+        },
+        [getRoleFlags]
+    );
 
     return (
         <TicketsList
