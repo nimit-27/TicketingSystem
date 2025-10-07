@@ -35,6 +35,10 @@ jest.mock('./pages/FaqForm', () => () => <div>FaqForm</div>);
 jest.mock('./pages/RootCauseAnalysis', () => () => <div>RootCauseAnalysis</div>);
 jest.mock('./components/Layout/SidebarLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 
+jest.mock('jwt-decode', () => ({
+  jwtDecode: () => ({}),
+}), { virtual: true });
+
 
 describe('App routing', () => {
   it('renders the login route for unauthenticated users', () => {
