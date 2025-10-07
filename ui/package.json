@@ -65,6 +65,7 @@
   "devDependencies": {
     "@types/react-router-dom": "^5.3.3",
     "@types/sockjs-client": "^1.5.4",
+    "msw": "^2.11.3",
     "typescript": "^5.8.3"
   }
 }
