@@ -15,7 +15,7 @@ import { formatDateWithSuffix } from "../utils/Utils";
 import { checkAccessMaster } from "../utils/permissions";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
+    const { register, handleSubmit, control, setValue, getValues, formState: { errors }, reset } = useForm();
     const reportedDate = formatDateWithSuffix(new Date());
     const today = new Date();
 
@@ -97,24 +97,12 @@ const RaiseTicket: React.FC<any> = () => {
     };
 
     const clearTicketDetailsFields = () => {
-        resetField('assignedToLevel');
-        resetField('assignedTo');
-        resetField('assignFurther');
-        resetField('assignToLevel');
-        resetField('assignTo');
-        resetField('category');
-        resetField('subCategory');
-        resetField('priority');
-        resetField('severity');
-        resetField('impact');
-        resetField('recommendedSeverity');
-        resetField('isMaster');
-        resetField('subject');
-        resetField('description');
-        resetField('attachments');
-        resetField('statusId');
-        // Add/remove fields as per your TicketDetails form
+        reset();
         setAttachments([]);
+    };
+
+    const handleClearForm = () => {
+        clearTicketDetailsFields();
     };
 
     const onClose = () => {
@@ -163,7 +151,8 @@ const RaiseTicket: React.FC<any> = () => {
                     </div>
                 )}
                 {/* Submit Button */}
-                <div className="text-end mt-3">
+                <div className="text-end mt-3 d-flex justify-content-end gap-2">
+                    <GenericButton textKey="Clear Form" variant="outlined" type="button" onClick={handleClearForm} />
                     <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
                 </div>
             </form>

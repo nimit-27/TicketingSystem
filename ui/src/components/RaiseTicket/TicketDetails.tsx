@@ -325,7 +325,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                 {showAttachment && (
                     <div className="col-md-12 mb-3 px-4">
                         <FileUpload
-                            maxSizeMB={5}
+                            maxSizeMB={2}
                             thumbnailSize={100}
                             attachments={stableAttachments}
                             onFilesChange={(files) => {
@@ -554,7 +554,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                 {showAttachment && (
                     <div className="col-md-12 mb-3 px-4">
                         <FileUpload
-                            maxSizeMB={5}
+                            maxSizeMB={2}
                             thumbnailSize={100}
                             attachments={stableAttachments}
                             onFilesChange={(files) => {
