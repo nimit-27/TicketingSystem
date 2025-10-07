@@ -7,7 +7,8 @@ import { getCurrentUserDetails } from '../config/config';
 import Title from '../components/Title';
 import PermissionTree from '../components/Permissions/PermissionTree';
 import JsonEditModal from '../components/Permissions/JsonEditModal';
-import { Button, Chip, TextField, Autocomplete } from '@mui/material';
+import { Button, Chip, TextField, Autocomplete, Menu, MenuItem, CircularProgress } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import { useSnackbar } from '../context/SnackbarContext';
 import { DevModeContext } from '../context/DevModeContext';
@@ -35,6 +36,7 @@ const RoleDetails: React.FC = () => {
     const [openJson, setOpenJson] = useState(false);
     const [editing, setEditing] = useState(false);
     const [roleName, setRoleName] = useState('');
+    const [roleMenuAnchorEl, setRoleMenuAnchorEl] = useState<null | HTMLElement>(null);
 
     const resolvedRoleName = (roleName || roleData?.role || '').toString();
     const isMasterRole = resolvedRoleName.toLowerCase() === 'master';
@@ -116,6 +118,25 @@ const RoleDetails: React.FC = () => {
         setEditing(false);
     };
 
+    const availableRoles = Array.isArray(rolesData) ? rolesData : [];
+    const isRoleMenuOpen = Boolean(roleMenuAnchorEl);
+
+    const handleTitleClick = (event: React.MouseEvent<HTMLHeadingElement>) => {
+        setRoleMenuAnchorEl(event.currentTarget);
+    };
+
+    const handleRoleMenuClose = () => {
+        setRoleMenuAnchorEl(null);
+    };
+
+    const handleRoleSelection = (role: any) => {
+        handleRoleMenuClose();
+        if (!role) return;
+        const target = role.roleId ?? role.role;
+        if (!target) return;
+        navigate(`/role-master/${target}`, { state: role });
+    };
+
     if (!roleId) return null;
 
     return (
@@ -128,12 +149,39 @@ const RoleDetails: React.FC = () => {
                         <CustomIconButton icon="close" onClick={cancelRename} style={{ minWidth: 0, padding: 2 }} />
                     </>
                 ) : (
-                    <>
-                        <Title textKey={`Role: ${roleName}`} />
+                    <> 
+                        <Title
+                            textKey={`Role: ${roleName}`}
+                            onClick={handleTitleClick}
+                            rightContent={rolesApiPending ? <CircularProgress size={20} /> : <KeyboardArrowDownIcon />}
+                        />
                         <CustomIconButton icon="edit" onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }} />
                     </>
                 )}
             </div>
+            <Menu
+                anchorEl={roleMenuAnchorEl}
+                open={isRoleMenuOpen}
+                onClose={handleRoleMenuClose}
+            >
+                {rolesApiPending && (
+                    <MenuItem disabled>
+                        <CircularProgress size={20} sx={{ mr: 1 }} /> Loading roles...
+                    </MenuItem>
+                )}
+                {!rolesApiPending && availableRoles.map((role: any) => (
+                    <MenuItem
+                        key={role.roleId ?? role.role}
+                        selected={String(role.roleId ?? role.role) === roleId}
+                        onClick={() => handleRoleSelection(role)}
+                    >
+                        {role.role}
+                    </MenuItem>
+                ))}
+                {!rolesApiPending && !availableRoles.length && (
+                    <MenuItem disabled>No roles available</MenuItem>
+                )}
+            </Menu>
             {description && <p className="text-muted mb-3">{description}</p>}
             <Autocomplete
                 multiple

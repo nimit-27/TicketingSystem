@@ -1,14 +1,23 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor, screen } from '@testing-library/react';
 
 const mockUpdateRolePermission = jest.fn(() => Promise.resolve());
 const mockUpdateRole = jest.fn(() => Promise.resolve());
 const mockRenameRole = jest.fn(() => Promise.resolve());
 const mockLoadPermissions = jest.fn(() => Promise.resolve());
-const mockGetAllRoles = jest.fn(() => Promise.resolve([{ roleId: 1, role: 'Admin', allowedStatusActionIds: '1|2', description: 'Administrator' }]));
+const mockGetAllRoles = jest.fn(() => Promise.resolve([
+  { roleId: 1, role: 'Admin', allowedStatusActionIds: '1|2', description: 'Administrator' },
+  { roleId: 2, role: 'Agent', allowedStatusActionIds: '1', description: 'Agent' },
+]));
 const mockGetStatusActions = jest.fn(() => Promise.resolve([{ id: 1, action: 'Approve' }]));
 const mockShowMessage = jest.fn();
 const mockUseApi = jest.fn();
+
+const actionsData = [{ id: 1, action: 'Approve' }];
+const rolesApiResponse = [
+  { roleId: 1, role: 'Admin', allowedStatusActionIds: '1|2', description: 'Administrator', permissions: { dashboard: true } },
+  { roleId: 2, role: 'Agent', allowedStatusActionIds: '1', description: 'Agent', permissions: { dashboard: false } },
+];
 
 let mockAutocompleteCounter = 0;
 
@@ -128,21 +137,21 @@ describe('RoleDetails', () => {
     mockRenameRole.mockResolvedValue(undefined);
     mockLoadPermissions.mockResolvedValue(undefined);
 
-    mockUseApi
-      .mockImplementationOnce(() => ({
-        data: [{ id: 1, action: 'Approve' }],
-        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
-      }))
-      .mockImplementationOnce(() => ({
-        data: [{ roleId: 1, role: 'Admin', allowedStatusActionIds: '1|2', description: 'Administrator', permissions: { dashboard: true } }],
+    mockUseApi.mockImplementation(() => {
+      const callIndex = mockUseApi.mock.calls.length;
+      if (callIndex % 2 === 1) {
+        return {
+          data: actionsData,
+          apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
+        };
+      }
+      return {
+        data: rolesApiResponse,
         pending: false,
         success: true,
         apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
-      }))
-      .mockImplementation(() => ({
-        data: null,
-        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
-      }));
+      };
+    });
   });
 
   it('saves permissions and status actions', async () => {
@@ -163,5 +172,17 @@ describe('RoleDetails', () => {
     fireEvent.change(getByDisplayValue('Admin'), { target: { value: 'Admin Updated' } });
     fireEvent.click(getByTestId('icon-check'));
     expect(mockRenameRole).toHaveBeenCalledWith('1', 'Admin Updated', 'user.one');
+  });
+
+  it('allows selecting other roles from the title menu', async () => {
+    render(<RoleDetails />);
+
+    fireEvent.click(screen.getByText('Role: Admin'));
+
+    const targetMenuItem = await waitFor(() => screen.getByRole('menuitem', { name: 'Agent' }));
+
+    fireEvent.click(targetMenuItem);
+
+    expect(navigateMock).toHaveBeenCalledWith('/role-master/2', { state: expect.objectContaining({ role: 'Agent' }) });
   });
 });
