@@ -26,6 +26,10 @@ interface ThumbnailProps {
 }
 
 const bytesToMB = (bytes: number) => bytes / (1024 * 1024);
+const SUPPORTED_EXTENSIONS: string[] = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+const SUPPORTED_EXTENSIONS_TEXT = SUPPORTED_EXTENSIONS.map(ext => ext.toUpperCase()).join(', ');
+
+const getFileExtension = (fileName: string) => fileName.split('.').pop()?.toLowerCase() || '';
 
 const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
@@ -192,20 +196,37 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = Array.from(e.target.files || []);
         const valid: File[] = [];
+        const errors: string[] = [];
+
         selected.forEach((file) => {
-            const diff = bytesToMB(file.size) - maxSizeMB;
-            if (diff > 0) {
-                setError(`Max upload size exceeded by ${diff.toFixed(2)} MB`);
-            } else {
-                valid.push(file);
+            const extension = getFileExtension(file.name);
+            if (!SUPPORTED_EXTENSIONS.includes(extension)) {
+                if (!errors.includes('File not supported')) {
+                    errors.push('File not supported');
+                }
+                return;
             }
+
+            if (bytesToMB(file.size) > maxSizeMB) {
+                errors.push(`Max upload size exceeded. Limit is ${maxSizeMB} MB`);
+                return;
+            }
+
+            valid.push(file);
         });
+
         if (valid.length > 0) {
             const updated = [...files, ...valid];
             setFiles(updated);
-            onFilesChange?.(valid);
+            onFilesChange?.(updated);
+        }
+
+        if (errors.length > 0) {
+            setError(errors[0]);
+        } else {
             setError('');
         }
+
         e.target.value = '';
     };
 
@@ -215,9 +236,16 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
                 <div className='d-flex align-items-center'>
                     <Button variant="contained" component="label">
                         Choose File
-                        <input type="file" hidden multiple onChange={onChange} />
+                        <input
+                            type="file"
+                            hidden
+                            multiple
+                            onChange={onChange}
+                            accept={SUPPORTED_EXTENSIONS.map(ext => `.${ext}`).join(',')}
+                        />
                     </Button>
                     <Typography className='text-muted mx-2' variant="body2">Max upload size: {maxSizeMB} MB</Typography>
+                    <Typography className='text-muted mx-2' variant="body2">Supported file types: {SUPPORTED_EXTENSIONS_TEXT}</Typography>
                 </div>
             )}
             {error && (<Typography color="error" variant="body2">{error}</Typography>)}

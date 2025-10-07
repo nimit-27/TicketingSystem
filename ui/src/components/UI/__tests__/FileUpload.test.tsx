@@ -66,6 +66,22 @@ describe('FileUpload', () => {
     expect(screen.getByText(/Max upload size exceeded/)).toBeInTheDocument();
   });
 
+  it('shows an error when the file type is not supported', async () => {
+    const unsupportedFile = new File(['payload'], 'script.exe', { type: 'application/octet-stream' });
+
+    const { container } = renderWithTheme(
+      <FileUpload maxSizeMB={2} attachments={[]} />,
+    );
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+    await act(async () => {
+      await userEvent.upload(input, unsupportedFile);
+    });
+
+    expect(screen.getByText(/File not supported/)).toBeInTheDocument();
+  });
+
   it('allows removing previously selected files', async () => {
     const onFilesChange = jest.fn();
     const file = new File(['bye'], 'bye.png', { type: 'image/png' });
