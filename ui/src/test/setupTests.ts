@@ -33,7 +33,7 @@ jest.mock('msw', () => ({
   HttpResponse: {
     json: (body: unknown) => body,
   },
-}));
+}), { virtual: true });
 
 jest.mock('msw/node', () => {
   const listeners = {
@@ -44,7 +44,7 @@ jest.mock('msw/node', () => {
   return {
     setupServer: () => listeners,
   };
-});
+}, { virtual: true });
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { setupServer } = require('msw/node');

@@ -6,7 +6,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
-}));
+}), { virtual: true });
 
 jest.mock('../i18n', () => ({}));
 
