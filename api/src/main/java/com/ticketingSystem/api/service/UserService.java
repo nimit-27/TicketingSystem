@@ -9,8 +9,10 @@ import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,14 +90,47 @@ public class UserService {
         if (stakeholderId == null || stakeholderId.isBlank()) {
             return null;
         }
-        try {
-            Integer id = Integer.valueOf(stakeholderId);
-            return stakeholderRepository.findById(id)
-                    .map(Stakeholder::getDescription)
-                    .orElse(stakeholderId);
-        } catch (NumberFormatException ex) {
+
+        List<String> stakeholderParts = Arrays.stream(stakeholderId.split("\\|"))
+                .map(String::trim)
+                .filter(part -> !part.isEmpty())
+                .collect(Collectors.toList());
+
+        if (stakeholderParts.isEmpty()) {
             return stakeholderId;
         }
+
+        List<Integer> numericIds = stakeholderParts.stream()
+                .map(part -> {
+                    try {
+                        return Integer.valueOf(part);
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<Integer, String> stakeholderNameById = stakeholderRepository.findAllById(new HashSet<>(numericIds))
+                .stream()
+                .collect(Collectors.toMap(
+                        Stakeholder::getId,
+                        Stakeholder::getDescription,
+                        (existing, replacement) -> existing));
+
+        List<String> resolvedStakeholders = new ArrayList<>();
+        for (String part : stakeholderParts) {
+            String resolved = part;
+            try {
+                Integer id = Integer.valueOf(part);
+                resolved = stakeholderNameById.getOrDefault(id, part);
+            } catch (NumberFormatException ignored) {
+                // Non-numeric stakeholder identifiers are returned as-is
+            }
+            resolvedStakeholders.add(resolved);
+        }
+
+        return String.join("|", resolvedStakeholders);
     }
 
     private List<String> resolveRoleNames(String roleIds) {
