@@ -1,4 +1,4 @@
-export interface TicketSummaryReport {
+export interface TicketSummaryReportProps {
     totalTickets: number;
     openTickets: number;
     closedTickets: number;
@@ -6,13 +6,13 @@ export interface TicketSummaryReport {
     modeCounts: Record<string, number>;
 }
 
-export interface TicketResolutionTimeReport {
+export interface TicketResolutionTimeReportProps {
     averageResolutionHours: number;
     resolvedTicketCount: number;
     averageResolutionHoursByStatus: Record<string, number>;
 }
 
-export interface CustomerSatisfactionReport {
+export interface CustomerSatisfactionReportProps {
     totalResponses: number;
     overallSatisfactionAverage: number;
     resolutionEffectivenessAverage: number;
@@ -26,6 +26,6 @@ export interface ProblemCategoryStat {
     ticketCount: number;
 }
 
-export interface ProblemManagementReport {
+export interface ProblemManagementReportProps {
     categoryStats: ProblemCategoryStat[];
 }

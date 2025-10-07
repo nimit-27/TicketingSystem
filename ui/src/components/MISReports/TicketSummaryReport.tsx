@@ -4,10 +4,11 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketSummaryReport } from "../../services/ReportService";
-import { TicketSummaryReport } from "../../types/reports";
+// import { TicketSummaryReport } from "../../types/reports";
 
 const TicketSummaryReport: React.FC = () => {
-    const { data, pending, apiHandler } = useApi<TicketSummaryReport>();
+    // const { data, pending, apiHandler } = useApi<TicketSummaryReport>();
+    const { data, pending, apiHandler } = useApi<any>();
 
     useEffect(() => {
         apiHandler(() => fetchTicketSummaryReport());

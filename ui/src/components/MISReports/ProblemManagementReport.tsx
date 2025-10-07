@@ -4,10 +4,11 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchProblemManagementReport } from "../../services/ReportService";
-import { ProblemManagementReport } from "../../types/reports";
+import { ProblemManagementReportProps } from "../../types/reports";
 
 const ProblemManagementReport: React.FC = () => {
-    const { data, pending, apiHandler } = useApi<ProblemManagementReport>();
+    const { data, pending, apiHandler } = useApi<any>();
+    // const { data, pending, apiHandler } = useApi<ProblemManagementReportProps>();
 
     useEffect(() => {
         apiHandler(() => fetchProblemManagementReport());
@@ -30,7 +31,7 @@ const ProblemManagementReport: React.FC = () => {
             },
             yAxis: {
                 type: "category",
-                data: stats.map(stat => stat.category),
+                data: stats.map((stat: { category: any; }) => stat.category),
                 axisLabel: {
                     formatter: (value: string) => value?.length > 18 ? `${value.slice(0, 18)}…` : value,
                 },
@@ -38,7 +39,7 @@ const ProblemManagementReport: React.FC = () => {
             series: [
                 {
                     type: "bar",
-                    data: stats.map(stat => stat.ticketCount),
+                    data: stats.map((stat: { ticketCount: any; }) => stat.ticketCount),
                     itemStyle: {
                         color: "#0288d1",
                     },
@@ -52,7 +53,7 @@ const ProblemManagementReport: React.FC = () => {
             return null;
         }
 
-        return data.categoryStats.reduce((prev, current) =>
+        return data.categoryStats.reduce((prev: { ticketCount: number; }, current: { ticketCount: number; }) =>
             current.ticketCount > prev.ticketCount ? current : prev
         );
     }, [data]);

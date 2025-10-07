@@ -4,10 +4,11 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchCustomerSatisfactionReport } from "../../services/ReportService";
-import { CustomerSatisfactionReport } from "../../types/reports";
+import { CustomerSatisfactionReportProps } from "../../types/reports";
 
 const CustomerSatisfactionReport: React.FC = () => {
-    const { data, pending, apiHandler } = useApi<CustomerSatisfactionReport>();
+    // const { data, pending, apiHandler } = useApi<CustomerSatisfactionReport>();
+    const { data, pending, apiHandler } = useApi<any>();
 
     useEffect(() => {
         apiHandler(() => fetchCustomerSatisfactionReport());

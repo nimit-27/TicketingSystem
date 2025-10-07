@@ -4,10 +4,11 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketResolutionTimeReport } from "../../services/ReportService";
-import { TicketResolutionTimeReport } from "../../types/reports";
+import { TicketResolutionTimeReportProps } from "../../types/reports";
 
 const TicketResolutionTimeReport: React.FC = () => {
-    const { data, pending, apiHandler } = useApi<TicketResolutionTimeReport>();
+    // const { data, pending, apiHandler } = useApi<TicketResolutionTimeReportProps>();
+    const { data, pending, apiHandler } = useApi<any>();
 
     useEffect(() => {
         apiHandler(() => fetchTicketResolutionTimeReport());
