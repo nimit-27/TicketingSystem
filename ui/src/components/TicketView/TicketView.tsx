@@ -178,7 +178,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   );
 
   const recommendSeverityAction = useMemo(
-    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Recommend Severity') || null,
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Recommend Escalation') || null,
     [availableStatusActions]
   );
 
