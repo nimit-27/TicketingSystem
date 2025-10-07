@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.repository;
 
+import com.ticketingSystem.api.enums.Mode;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.enums.TicketStatus;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,20 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     List<Ticket> findByMasterId(String masterId);
 
     public List<Ticket> findByLastModifiedAfter(LocalDateTime lastSyncedTime);
+
+    long countByTicketStatus(TicketStatus ticketStatus);
+
+    @Query("SELECT t.ticketStatus AS status, COUNT(t) AS count FROM Ticket t GROUP BY t.ticketStatus")
+    List<StatusCountProjection> countTicketsByStatus();
+
+    @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
+    List<ModeCountProjection> countTicketsByMode();
+
+    @Query("SELECT t.category AS category, COUNT(t) AS count FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category")
+    List<CategoryCountProjection> countTicketsByCategory();
+
+    @Query("SELECT t FROM Ticket t WHERE t.reportedDate IS NOT NULL AND t.resolvedAt IS NOT NULL")
+    List<Ticket> findResolvedTickets();
 
     List<Ticket> findByTicketStatusAndLastModifiedBefore(TicketStatus ticketStatus, LocalDateTime time);
 
@@ -82,4 +97,22 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("fromDate") LocalDateTime fromDate,
                                @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
+
+    interface StatusCountProjection {
+        TicketStatus getStatus();
+
+        Long getCount();
+    }
+
+    interface ModeCountProjection {
+        Mode getMode();
+
+        Long getCount();
+    }
+
+    interface CategoryCountProjection {
+        String getCategory();
+
+        Long getCount();
+    }
 }

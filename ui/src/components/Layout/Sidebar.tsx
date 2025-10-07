@@ -54,6 +54,12 @@ const menuItems = [
     icon: "libraryBooks",
   },
   {
+    key: "misReports",
+    label: "MIS Reports",
+    to: "/mis-reports",
+    icon: "timeline",
+  },
+  {
     key: "categoriesMaster",
     label: "Categories Master",
     to: "/categories-master",

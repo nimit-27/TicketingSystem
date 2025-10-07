@@ -18,6 +18,7 @@ import MyWorkload from './pages/MyWorkload';
 import Faq from './pages/Faq';
 import FaqForm from './pages/FaqForm';
 import RootCauseAnalysis from './pages/RootCauseAnalysis';
+import MISReports from './pages/MISReports';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
@@ -62,6 +63,7 @@ function App() {
         <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
         <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />
+        <Route path="mis-reports" element={<MISReports />} />
         <Route path="categories-master" element={<CategoriesMaster />} />
         <Route path="escalation-master" element={<EscalationMaster />} />
         <Route path="role-master" element={<RoleMaster />} />
