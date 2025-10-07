@@ -97,8 +97,16 @@ const RaiseTicket: React.FC<any> = () => {
     };
 
     const clearTicketDetailsFields = () => {
-        reset();
+        reset(undefined, {
+            keepErrors: false,
+            keepDirty: false,
+            keepTouched: false,
+            keepIsSubmitted: false,
+            keepSubmitCount: false,
+            keepValues: false,
+        });
         setAttachments([]);
+        setValue('attachments', []);
     };
 
     const handleClearForm = () => {

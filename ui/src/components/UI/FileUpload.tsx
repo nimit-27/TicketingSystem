@@ -182,10 +182,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
     const [error, setError] = useState<string>('');
 
     useEffect(() => {
-        if (files !== attachments) {
-            setFiles(attachments);
+        setFiles(attachments);
+        if (!attachments || attachments.length === 0) {
+            setError('');
         }
-    }, [attachments, files]);
+    }, [attachments]);
 
     const handleRemove = (index: number) => {
         const updated = files.filter((_, i) => i !== index);
