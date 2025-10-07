@@ -33,6 +33,7 @@ jest.mock('./pages/MyWorkload', () => () => <div>MyWorkload</div>);
 jest.mock('./pages/Faq', () => () => <div>Faq</div>);
 jest.mock('./pages/FaqForm', () => () => <div>FaqForm</div>);
 jest.mock('./pages/RootCauseAnalysis', () => () => <div>RootCauseAnalysis</div>);
+jest.mock('./pages/MISReports', () => () => <div>MISReports</div>);
 jest.mock('./components/Layout/SidebarLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 
 jest.mock('jwt-decode', () => ({
