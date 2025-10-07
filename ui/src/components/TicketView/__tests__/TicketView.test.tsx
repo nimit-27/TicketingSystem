@@ -170,6 +170,10 @@ jest.mock('../../Feedback/FeedbackModal', () => ({ open }: any) => (
   open ? <div data-testid="feedback-modal" /> : null
 ));
 
+jest.mock('../../RaiseTicket/LinkToMasterTicketModal', () => ({ open }: any) => (
+  open ? <div data-testid="link-master-modal" /> : null
+));
+
 const mockSlaProgressChart = jest.fn(() => <div data-testid="sla-chart" />);
 jest.mock('../SlaProgressChart', () => ({
   __esModule: true,

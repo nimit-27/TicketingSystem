@@ -14,6 +14,7 @@ interface LinkToMasterTicketModalProps {
     subject: string;
     currentTicketId?: string; // Optional prop to pass current ticket ID
     masterId?: string;
+    onLinkSuccess?: (masterId: string) => void;
 }
 
 interface TicketHit {
@@ -30,7 +31,7 @@ interface MasterTicket {
 
 const PAGE_SIZE = 20;
 
-const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose, subject, setMasterId, currentTicketId, masterId }) => {
+const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose, subject, setMasterId, currentTicketId, masterId, onLinkSuccess }) => {
     const [query, setQuery] = useState('');
     const [searchResults, setSearchResults] = useState<MasterTicket[]>([]);
     const [paginatedTickets, setPaginatedTickets] = useState<MasterTicket[]>([]);
@@ -149,6 +150,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                 try {
                     await linkTicketToMaster(currentTicketId, selected.id, currentUsername || undefined);
                     setLinked(true);
+                    onLinkSuccess?.(selected.id);
                 } catch {
                     setLinked(false);
                 }

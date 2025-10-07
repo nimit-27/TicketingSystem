@@ -33,6 +33,7 @@ import ChildTicketsTable from '../Ticket/ChildTicketsTable';
 import type { TicketRow } from '../AllTickets/TicketsTable';
 import { useSnackbar } from '../../context/SnackbarContext';
 import ChildTicketsList from './ChildTicketsList';
+import LinkToMasterTicketModal from '../RaiseTicket/LinkToMasterTicketModal';
 
 interface TicketViewProps {
   ticketId: string;
@@ -106,6 +107,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
+  const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const { showMessage } = useSnackbar();
@@ -117,6 +119,23 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const normalizedRoles = useMemo(() => roleList.map(role => role.toUpperCase()), [roleList]);
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
+
+  const handleLinkToMasterTicketModalClose = useCallback(() => {
+    setLinkToMasterTicketModalOpen(false);
+  }, []);
+
+  const handleLinkToMasterTicketModalOpen = useCallback(() => {
+    setLinkToMasterTicketModalOpen(true);
+  }, []);
+
+  const handleMasterLinkSuccess = useCallback(async (masterTicketId: string) => {
+    await getTicketHandler(() => getTicket(ticketId));
+    showMessage(`Ticket ${ticketId} has been linked to master ticket ${masterTicketId}`, 'success');
+  }, [getTicketHandler, ticketId, showMessage]);
+
+  const noopSetMasterId = useCallback((_id: string) => {
+    // Intentionally left blank for existing tickets
+  }, []);
 
   const getSeverityText = useCallback((value?: string | null) => {
     if (!value) {
@@ -167,6 +186,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const ticketViewPermissions = checkAccessMaster(['ticketView']);
   const showSubmitRCAButton = checkAccessMaster(['ticketView', 'submitRCAButton'])
   const showViewRCAButton = checkAccessMaster(['ticketView', 'viewRCAButton'])
+  const showLinkToMasterTicketButton = checkAccessMaster(['ticketView', 'linkToMasterTicketButton']);
   const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
@@ -680,6 +700,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {t('View RCA')}
               </Button>
             )}
+            {ticket && !ticket.isMaster && showLinkToMasterTicketButton && (
+              <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
+                {t('Link to a Master Ticket')}
+              </Button>
+            )}
           </Box>
         </Box>
         {showStatusRemark && selectedStatusAction && (
@@ -932,6 +957,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
       </CustomFieldset>
+
+      <LinkToMasterTicketModal
+        open={linkToMasterTicketModalOpen}
+        onClose={handleLinkToMasterTicketModalClose}
+        setMasterId={noopSetMasterId}
+        subject={ticket.subject || ''}
+        currentTicketId={ticket.id}
+        masterId={ticket.masterId}
+        onLinkSuccess={handleMasterLinkSuccess}
+      />
 
       {/* MODAL - FEEDBACK */}
       <FeedbackModal open={feedbackOpen} ticketId={ticketId} onClose={handleFeedbackClose} feedbackStatus={ticket.feedbackStatus} />
