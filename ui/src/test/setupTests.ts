@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import React from 'react';
 import { TextDecoder, TextEncoder } from 'util';
 
 if (typeof global.TextEncoder === 'undefined') {
@@ -52,6 +53,15 @@ const { setupServer } = require('msw/node');
 const { handlers } = require('./msw/handlers');
 
 export const server = setupServer(...handlers);
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+  Trans: ({ children }: { children: React.ReactNode }) => children,
+}), { virtual: true });
+
+jest.mock('../i18n', () => ({}));
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
