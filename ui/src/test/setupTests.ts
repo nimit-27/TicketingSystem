@@ -47,6 +47,10 @@ jest.mock('msw/node', () => {
   };
 }, { virtual: true });
 
+jest.mock('jwt-decode', () => ({
+  jwtDecode: jest.fn(),
+}), { virtual: true });
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { setupServer } = require('msw/node');
 // eslint-disable-next-line @typescript-eslint/no-var-requires

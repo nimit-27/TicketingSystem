@@ -9,6 +9,13 @@ export const createTestTheme = (options?: ThemeOptions): Theme =>
       primary: { main: '#1976d2' },
       success: { main: '#2e7d32', dark: '#1b5e20' },
     },
+    components: {
+      MuiButtonBase: {
+        defaultProps: {
+          disableRipple: true,
+        },
+      },
+    },
     ...options,
   });
 
