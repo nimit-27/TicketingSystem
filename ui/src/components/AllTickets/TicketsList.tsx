@@ -229,6 +229,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             };
 
             const queryParam = mergedOverrides.query !== undefined ? mergedOverrides.query : debouncedSearch;
+            const statusParamU = mergedOverrides.statusName === "All" ? undefined: statusParam;
             const pageParam = mergedOverrides.page ?? effectivePage - 1;
             const sizeParam = mergedOverrides.size ?? effectiveSize;
             const levelParam = mergedOverrides.levelId ?? levelFilter;
@@ -242,7 +243,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             return searchTicketsPaginatedApiHandler(() =>
                 searchTicketsPaginated(
                     queryParam,
-                    statusParam,
+                    statusParamU,
                     masterParam,
                     pageParam,
                     sizeParam,

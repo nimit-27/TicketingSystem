@@ -16,6 +16,7 @@ const MyTickets: React.FC = () => {
 
         return {
             ...(isRequestor ? { requestorId: userId || undefined } : {}),
+            ...(isRequestor ? { statusName: "All" } : {}),
             createdBy: username || undefined,
         };
     }, []);
