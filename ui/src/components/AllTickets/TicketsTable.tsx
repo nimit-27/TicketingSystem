@@ -13,6 +13,7 @@ import RemarkComponent from '../UI/Remark/RemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
+import InfoIcon from '../UI/Icons/InfoIcon';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -174,6 +175,22 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         );
     };
 
+    const priorityInfoContent = useMemo(
+        () => (
+            <div>
+                {[
+                    'P1 | Urgent (Impacting 100% users)',
+                    'P2 | High (Impacting more than 50% users)',
+                    'P3 | Medium (Impacting 25% to 50% users)',
+                    'P4 | Low (Impacting single user)',
+                ].map(priority => (
+                    <div key={priority}>{t(priority)}</div>
+                ))}
+            </div>
+        ),
+        [t]
+    );
+
     const columns = useMemo(
         () => [
             {
@@ -256,12 +273,17 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         ) : (display || '-');
                     }
                 },
-                { 
-                    title: t('Priority'), 
-                    dataIndex: 'priority', 
-                    key: 'priority', 
+                {
+                    title: (
+                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            {t('Priority')}
+                            <InfoIcon content={priorityInfoContent} />
+                        </span>
+                    ),
+                    dataIndex: 'priority',
+                    key: 'priority',
                     width: '9%',
-                    render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} /> 
+                    render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} />
                 },
             {
                 title: t('Assignee'),
@@ -371,7 +393,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             }
             return checkMyTicketsColumnAccess(String(col.key), permissionPathPrefix);
         }),
-        [t, statusWorkflows, showSeverityColumn]
+        [t, statusWorkflows, showSeverityColumn, priorityInfoContent]
     );
 
     return (
