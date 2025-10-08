@@ -48,9 +48,14 @@ describe('MyTickets', () => {
     const transformed = latestProps.transformTickets([
       { id: '1', statusId: '1' },
       { id: '2', statusId: '6' },
-      { id: '3', statusId: '3' },
+      { id: '3', statusId: '3', createdBy: 'tester' },
+      { id: '4', statusId: '4', requestorId: 'user-1' },
+      { id: '5', statusId: '5', createdBy: 'another-user' },
     ]);
-    expect(transformed).toEqual([]);
+    expect(transformed).toEqual([
+      { id: '3', statusId: '3', createdBy: 'tester' },
+      { id: '4', statusId: '4', requestorId: 'user-1' },
+    ]);
     latestProps.onRowClick('T-1');
     expect(navigateMock).toHaveBeenCalledWith('/tickets/T-1');
   });
