@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton, Tooltip, Button, Dialog, DialogTitle, DialogContent, Tabs, Tab } from '@mui/material';
+import { Menu, Box, TextField, Chip, List, ListItemButton, IconButton, Tooltip, Button } from '@mui/material';
 import { getAllLevels, getAllUsersByLevel } from '../../services/LevelService';
-import { getAllUsers, getUsersByRoles } from '../../services/UserService';
-import { getAllRoles } from '../../services/RoleService';
+import { getAllUsers } from '../../services/UserService';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
@@ -31,28 +30,22 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const [showActionRemark, setShowActionRemark] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [advancedOpen, setAdvancedOpen] = useState(false);
-    const [tab, setTab] = useState<'user' | 'requester' | 'rno'>('user');
-    const [rnoSearch, setRnoSearch] = useState('');
 
     // Use useApi for all API calls
     const { data: levelsData, apiHandler: getLevelsApiHandler } = useApi<any>();
     const { data: usersData, apiHandler: getUsersByLevelApiHandler } = useApi<any>();
     const { data: allUsersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
-    const { data: rolesData, apiHandler: getRolesApiHandler } = useApi<any>();
-    const { data: rnoData, apiHandler: getRnoUsersApiHandler } = useApi<any>();
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const allowedActions = getCurrentUserDetails()?.allowedStatusActionIds || [];
     const canRequester = allowedActions.includes('4');
-    const canRno = allowedActions.includes('16');
+    const canAssignToFci = allowedActions.includes('16');
     const REQUESTER_STATUS_ID = '3';
-    const FCI_STATUS_ID = '5';
 
     // Fetch levels, users and roles on mount
     useEffect(() => {
         getLevelsApiHandler(() => getAllLevels());
         getAllUsersApiHandler(() => getAllUsers());
-        getRolesApiHandler(() => getAllRoles());
     }, []);
 
     // Fetch users when selectedLevel changes
@@ -61,15 +54,6 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
             getUsersByLevelApiHandler(() => getAllUsersByLevel(selectedLevel));
         }
     }, [selectedLevel]);
-
-    useEffect(() => {
-        if (advancedOpen && rolesData) {
-            const rnoRole = (rolesData as any[]).find(r => r.role === 'Regional Nodal Officer');
-            if (rnoRole) {
-                getRnoUsersApiHandler(() => getUsersByRoles([String(rnoRole.roleId)]));
-            }
-        }
-    }, [advancedOpen, tab, rolesData]);
 
 
     const handleSelect = (u: User) => {
@@ -83,19 +67,14 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     };
 
     const handleSubmitRemark = (remark: string, selectedUser: User) => {
-        let payload: any = {
+        const payload: any = {
             assignedTo: selectedUser.username,
             remark,
             assignedBy: getCurrentUserDetails()?.username,
             updatedBy: getCurrentUserDetails()?.username
         };
-        if (tab === 'user') {
-            payload.assignedToLevel = selectedUser.levelId;
-            payload.levelId = selectedUser.levelId;
-        }
-        if (tab === 'rno') {
-            payload.status = { statusId: FCI_STATUS_ID };
-        }
+        payload.assignedToLevel = selectedUser.levelId;
+        payload.levelId = selectedUser.levelId;
         updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
             handleSuccess(selectedUser.name);
         });
@@ -136,12 +115,6 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const filtered = allowedUsers.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
         u.username.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const rnoUsers: User[] = rnoData || [];
-    const rnoFiltered = rnoUsers.filter(u =>
-        u.name.toLowerCase().includes(rnoSearch.toLowerCase()) ||
-        u.username.toLowerCase().includes(rnoSearch.toLowerCase())
     );
 
     const renderAssignForm = () => (
@@ -209,7 +182,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                 <Box sx={{ p: 1, width: 350 }}>
                     {renderAssignForm()}
                     <Box sx={{ mt: 1, textAlign: 'right' }}>
-                        <Button size="small" onClick={() => { setAdvancedOpen(true); setTab('user'); setAnchorEl(null); }}>Advanced Options</Button>
+                        <Button size="small" onClick={() => { setAdvancedOpen(true); setAnchorEl(null); }}>Advanced Options</Button>
                     </Box>
                 </Box>
             </Menu>
@@ -219,10 +192,9 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                 ticketId={ticketId}
                 requestorId={requestorId}
                 canRequester={canRequester}
-                canRno={canRno}
+                canAssignToFci={canAssignToFci}
                 levels={levels}
                 users={baseUsers}
-                rnoUsers={rnoUsers}
                 updateTicketApiHandler={updateTicketApiHandler}
                 searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                 onAssigned={onAssigned}

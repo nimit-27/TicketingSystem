@@ -45,6 +45,7 @@ import RunningWithErrorsIcon from '@mui/icons-material/RunningWithErrors';
 import GradingIcon from '@mui/icons-material/Grading';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import { PauseCircleOutline, NorthEast, Moving, PersonAddAlt } from '@mui/icons-material';
+import UndoIcon from '@mui/icons-material/Undo';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
@@ -102,6 +103,7 @@ const iconMap = {
     workOutline: WorkOutlineIcon,
     visibility: VisibilityIcon,
     linkOff: LinkOffIcon,
+    undo: UndoIcon,
 };
 
 // Valid keys for the icon map

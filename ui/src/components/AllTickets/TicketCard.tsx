@@ -136,7 +136,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
     const statusColor = getStatusColorById(ticket.statusId || '') || undefined;
     const truncatedStatus = displayStatusName.length > 12 ? `${displayStatusName.slice(0, 12)}...` : displayStatusName;
     const resumeAction = recordActions.find(a => a.action === 'Resume');
-    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with Regional Nodal Officer)');
+    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with FCI)');
 
     return (
         <Card

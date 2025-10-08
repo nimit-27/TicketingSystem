@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AssigneeDropdown from '../AssigneeDropdown';
 
 jest.mock('react-i18next', () => ({
@@ -14,8 +14,6 @@ jest.mock('../../../hooks/useApi', () => ({
 const mockGetAllLevels = jest.fn();
 const mockGetAllUsers = jest.fn();
 const mockGetAllUsersByLevel = jest.fn();
-const mockGetAllRoles = jest.fn();
-const mockGetUsersByRoles = jest.fn();
 const mockUpdateTicket = jest.fn();
 
 jest.mock('../../../services/LevelService', () => ({
@@ -25,11 +23,6 @@ jest.mock('../../../services/LevelService', () => ({
 
 jest.mock('../../../services/UserService', () => ({
     getAllUsers: (...args: any[]) => mockGetAllUsers(...args),
-    getUsersByRoles: (...args: any[]) => mockGetUsersByRoles(...args),
-}));
-
-jest.mock('../../../services/RoleService', () => ({
-    getAllRoles: (...args: any[]) => mockGetAllRoles(...args),
 }));
 
 jest.mock('../../../services/TicketService', () => ({
@@ -108,14 +101,6 @@ describe('AssigneeDropdown', () => {
         { userId: '2', username: 'agent.two', name: 'Agent Two', roles: '9', levels: ['L1'] },
     ];
 
-    const mockRoles = [
-        { roleId: '16', role: 'Regional Nodal Officer' },
-    ];
-
-    const mockRnoUsers = [
-        { userId: 'r1', username: 'rno.user', name: 'RNO User', roles: '16', levels: ['L1'] },
-    ];
-
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseApi.mockReset();
@@ -123,16 +108,12 @@ describe('AssigneeDropdown', () => {
         const levelsHandler = jest.fn(async (fn) => fn());
         const usersByLevelHandler = jest.fn(async (fn) => fn());
         const allUsersHandler = jest.fn(async (fn) => fn());
-        const rolesHandler = jest.fn(async (fn) => fn());
-        const rnoHandler = jest.fn(async (fn) => fn());
         const updateHandler = jest.fn(async (fn) => fn());
 
         const responses = [
             { data: mockLevels, apiHandler: levelsHandler },
             { data: [], apiHandler: usersByLevelHandler },
             { data: mockUsers, apiHandler: allUsersHandler },
-            { data: mockRoles, apiHandler: rolesHandler },
-            { data: mockRnoUsers, apiHandler: rnoHandler },
             { apiHandler: updateHandler },
         ];
         let callCount = 0;
@@ -145,8 +126,6 @@ describe('AssigneeDropdown', () => {
         mockGetAllLevels.mockResolvedValue(mockLevels);
         mockGetAllUsers.mockResolvedValue(mockUsers);
         mockGetAllUsersByLevel.mockResolvedValue(mockUsers);
-        mockGetAllRoles.mockResolvedValue(mockRoles);
-        mockGetUsersByRoles.mockResolvedValue(mockRnoUsers);
         mockUpdateTicket.mockResolvedValue({});
 
         mockGetCurrentUserDetails.mockReturnValue({
@@ -160,7 +139,6 @@ describe('AssigneeDropdown', () => {
 
         await waitFor(() => expect(mockGetAllLevels).toHaveBeenCalled());
         expect(mockGetAllUsers).toHaveBeenCalled();
-        expect(mockGetAllRoles).toHaveBeenCalled();
 
         const triggerButtons = screen.getAllByTestId('assignee-trigger');
         fireEvent.click(triggerButtons[0]);
@@ -204,7 +182,7 @@ describe('AssigneeDropdown', () => {
         expect(onAssigned).toHaveBeenCalledWith('Agent One');
     });
 
-    it('opens advanced options dialog and fetches RNO users', async () => {
+    it('opens advanced options dialog with assign to FCI permission', async () => {
         render(<AssigneeDropdown ticketId="INC-200" />);
 
         const triggerButtons = screen.getAllByTestId('assignee-trigger');
@@ -212,7 +190,6 @@ describe('AssigneeDropdown', () => {
 
         fireEvent.click(screen.getByText('Advanced Options'));
 
-        await waitFor(() => expect(mockAdvancedDialog).toHaveBeenLastCalledWith(expect.objectContaining({ open: true })));
-        expect(mockGetUsersByRoles).toHaveBeenCalledWith(['16']);
+        await waitFor(() => expect(mockAdvancedDialog).toHaveBeenLastCalledWith(expect.objectContaining({ open: true, canAssignToFci: true })));
     });
 });
