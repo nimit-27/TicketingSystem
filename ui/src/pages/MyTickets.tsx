@@ -21,7 +21,11 @@ const MyTickets: React.FC = () => {
     }, []);
 
     const transformTickets = useCallback((items: TicketRow[]): TicketRow[] => {
-        const roles = (getCurrentUserDetails()?.role || []).map(String);
+        const user = getCurrentUserDetails();
+        const roles = (user?.role || []).map(String);
+        const username = user?.username || user?.userId || "";
+        const userId = user?.userId || "";
+        const isRequestor = roles.includes("5");
         let filtered = items;
 
         if (roles.includes("4")) {
@@ -30,6 +34,28 @@ const MyTickets: React.FC = () => {
 
         if (roles.includes("9")) {
             filtered = filtered.filter((ticket) => ticket.statusId === "6");
+        }
+
+        if (isRequestor) {
+            const relatedTickets = items.filter((ticket) => {
+                const ticketRequestorId = (ticket as TicketRow & { requestorId?: string }).requestorId;
+                const ticketCreatedBy = (ticket as TicketRow & { createdBy?: string }).createdBy;
+
+                const isCreatedByUser = Boolean(username && ticketCreatedBy && ticketCreatedBy === username);
+                const isRequestedByUser = Boolean(userId && ticketRequestorId && ticketRequestorId === userId);
+
+                return isCreatedByUser || isRequestedByUser;
+            });
+
+            if (relatedTickets.length > 0) {
+                const filteredIds = new Set(filtered.map((ticket) => ticket.id));
+                relatedTickets.forEach((ticket) => {
+                    if (ticket.id && !filteredIds.has(ticket.id)) {
+                        filtered = [...filtered, ticket];
+                        filteredIds.add(ticket.id);
+                    }
+                });
+            }
         }
 
         return filtered;
