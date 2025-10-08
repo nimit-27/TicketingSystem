@@ -70,6 +70,9 @@ public class TicketSlaService {
                 ? new ArrayList<>(history)
                 : new ArrayList<>();
         orderedHistory.removeIf(h -> h == null || h.getTimestamp() == null);
+        if (resolvedAt != null) {
+            orderedHistory.removeIf(h -> h.getTimestamp().isAfter(resolvedAt));
+        }
         orderedHistory.sort(Comparator.comparing(StatusHistory::getTimestamp));
 
 //        START OF RESOLUTION TIME
