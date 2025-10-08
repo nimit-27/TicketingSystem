@@ -77,6 +77,7 @@ public class DtoMapper {
         dto.setStakeholderId(ticket.getStakeholder());
         dto.setSubject(ticket.getSubject());
         dto.setDescription(ticket.getDescription());
+        dto.setReportedDate(ticket.getReportedDate());
         dto.setCategory(ticket.getCategory());
         dto.setSubCategory(ticket.getSubCategory());
         dto.setPriority(ticket.getPriority());
