@@ -92,7 +92,10 @@ export async function getStatuses(): Promise<any[]> {
     return stored;
   }
   const res = await getStatusListFromApi();
-  const list = res.data.body.data;
+  const rawPayload = res?.data ?? res;
+  const body = rawPayload?.body ?? rawPayload;
+  const payload = body && typeof body === "object" && "data" in body ? body.data : body;
+  const list = Array.isArray(payload) ? payload : [];
   statusCache = list;
   setStatusList(list);
   return list;
