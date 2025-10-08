@@ -23,10 +23,9 @@ interface AdvancedAssignmentOptionsDialogProps {
     ticketId: string;
     requestorId?: string;
     canRequester: boolean;
-    canRno: boolean;
+    canAssignToFci: boolean;
     levels: Level[];
     users: User[];
-    rnoUsers: User[];
     updateTicketApiHandler: any;
     searchCurrentTicketsPaginatedApi?: (id: string) => void;
     onAssigned?: (name: string) => void;
@@ -149,69 +148,19 @@ const RequesterTab: React.FC<{
     </Box>
 );
 
-// --- RnoTab Component ---
-const RnoTab: React.FC<{
-    rnoUsers: User[];
-    rnoSearch: string;
-    setRnoSearch: (val: string) => void;
-    showActionRemark: boolean;
-    selectedUser: User | null;
-    handleSelect: (u: User) => void;
-    handleCancelRemark: () => void;
-    handleSubmitRemark: (remark: string, selectedUser: User) => void;
-}> = ({
-    rnoUsers,
-    rnoSearch,
-    setRnoSearch,
-    showActionRemark,
-    selectedUser,
-    handleSelect,
-    handleCancelRemark,
-    handleSubmitRemark,
-}) => {
-    const rnoFiltered = rnoUsers.filter(u =>
-        u.name.toLowerCase().includes(rnoSearch.toLowerCase()) ||
-        u.username.toLowerCase().includes(rnoSearch.toLowerCase())
-    );
-
-    return (
-        <Box>
-            <input
-                type="text"
-                value={rnoSearch}
-                onChange={e => setRnoSearch(e.target.value)}
-                placeholder="Search"
-                className="form-control mb-2"
-            />
-            <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
-                <ul className="list-group">
-                    {rnoFiltered.map(u => (
-                        <li
-                            key={u.userId}
-                            className="list-group-item list-group-item-action"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleSelect(u)}
-                        >
-                            <div className="d-flex">
-                                <div className="flex-grow-1">{u.name}</div>
-                                <div style={{ width: 80, fontStyle: 'italic', color: '#888' }}>{u.username}</div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </Box>
-            {showActionRemark && selectedUser && (
-                <Box sx={{ mt: 1 }}>
-                    <RemarkComponent
-                        actionName="Assign"
-                        onCancel={handleCancelRemark}
-                        onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
-                    />
-                </Box>
-            )}
-        </Box>
-    );
-};
+// --- AssignToFciTab Component ---
+const AssignToFciTab: React.FC<{
+    onCancel: () => void;
+    onSubmit: (remark: string) => void;
+}> = ({ onCancel, onSubmit }) => (
+    <Box sx={{ mt: 1 }}>
+        <RemarkComponent
+            actionName="Assign to FCI"
+            onCancel={onCancel}
+            onSubmit={onSubmit}
+        />
+    </Box>
+);
 
 const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogProps> = ({
     open,
@@ -219,18 +168,16 @@ const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogP
     ticketId,
     requestorId,
     canRequester,
-    canRno,
+    canAssignToFci,
     levels,
     users,
-    rnoUsers,
     updateTicketApiHandler,
     searchCurrentTicketsPaginatedApi,
     onAssigned,
 }) => {
-    const [tab, setTab] = useState<'user' | 'requester' | 'rno'>('user');
+    const [tab, setTab] = useState<'user' | 'requester' | 'fci'>('user');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
     const [search, setSearch] = useState('');
-    const [rnoSearch, setRnoSearch] = useState('');
     const [showActionRemark, setShowActionRemark] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -255,9 +202,6 @@ const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogP
             payload.assignedToLevel = selectedUser.levelId;
             payload.levelId = selectedUser.levelId;
         }
-        if (tab === 'rno') {
-            payload.status = { statusId: FCI_STATUS_ID };
-        }
         updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
             handleSuccess(selectedUser.name);
         });
@@ -271,6 +215,19 @@ const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogP
             assignedBy: getCurrentUserDetails()?.username,
             updatedBy: getCurrentUserDetails()?.username
         };
+        updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
+            handleSuccess();
+        });
+    };
+
+    const handleAssignToFci = (remark: string) => {
+        const payload = {
+            status: { statusId: FCI_STATUS_ID },
+            remark,
+            assignedBy: getCurrentUserDetails()?.username,
+            updatedBy: getCurrentUserDetails()?.username,
+        };
+
         updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
             handleSuccess();
         });
@@ -318,21 +275,15 @@ const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogP
                   },
               ]
             : []),
-        ...(canRno
+        ...(canAssignToFci
             ? [
                   {
-                      key: 'rno',
-                      tabTitle: 'Regional Nodal Officer',
+                      key: 'fci',
+                      tabTitle: 'Assign to FCI',
                       tabComponent: (
-                          <RnoTab
-                              rnoUsers={rnoUsers}
-                              rnoSearch={rnoSearch}
-                              setRnoSearch={setRnoSearch}
-                              showActionRemark={showActionRemark}
-                              selectedUser={selectedUser}
-                              handleSelect={handleSelect}
-                              handleCancelRemark={handleCancelRemark}
-                              handleSubmitRemark={handleSubmitRemark}
+                          <AssignToFciTab
+                              onCancel={onClose}
+                              onSubmit={handleAssignToFci}
                           />
                       ),
                   },

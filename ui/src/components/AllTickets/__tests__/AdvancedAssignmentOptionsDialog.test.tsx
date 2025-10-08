@@ -64,7 +64,7 @@ describe('AdvancedAssignmentOptionsDialog', () => {
         ticketId: 'INC-1',
         requestorId: 'user-1',
         canRequester: false,
-        canRno: false,
+        canAssignToFci: false,
         levels: [
             { levelId: 'L1', levelName: 'Level 1' },
             { levelId: 'L2', levelName: 'Level 2' },
@@ -72,9 +72,6 @@ describe('AdvancedAssignmentOptionsDialog', () => {
         users: [
             { userId: '1', username: 'john', name: 'John Doe', roles: '3', levels: ['L1'] },
             { userId: '2', username: 'mary', name: 'Mary Jane', roles: '9', levels: ['L2'] },
-        ],
-        rnoUsers: [
-            { userId: 'r1', username: 'rno', name: 'Rno User', roles: '16', levels: [] },
         ],
         updateTicketApiHandler: jest.fn(() => Promise.resolve()),
         searchCurrentTicketsPaginatedApi: jest.fn(),
@@ -96,13 +93,13 @@ describe('AdvancedAssignmentOptionsDialog', () => {
             <AdvancedAssignmentOptionsDialog
                 {...defaultProps}
                 canRequester
-                canRno
+                canAssignToFci
             />
         );
 
         expect(screen.getByText('Assign User')).toBeInTheDocument();
         expect(screen.getByText('Requester')).toBeInTheDocument();
-        expect(screen.getByText('Regional Nodal Officer')).toBeInTheDocument();
+        expect(screen.getByText('Assign to FCI')).toBeInTheDocument();
     });
 
     it('assigns selected user and refreshes tickets', async () => {
@@ -161,30 +158,28 @@ describe('AdvancedAssignmentOptionsDialog', () => {
         expect(defaultProps.onClose).toHaveBeenCalled();
     });
 
-    it('assigns to regional nodal officer when RNO tab used', async () => {
+    it('assigns to FCI when dedicated tab used', async () => {
         render(
             <AdvancedAssignmentOptionsDialog
                 {...defaultProps}
-                canRno
+                canAssignToFci
             />
         );
 
-        fireEvent.click(screen.getByText('Regional Nodal Officer'));
-        fireEvent.click(screen.getByText('Rno User'));
+        fireEvent.click(screen.getByText('Assign to FCI'));
         await waitFor(() => {
-            expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Assign' }));
+            expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Assign to FCI' }));
         });
-        const rnoCall = mockRemarkComponent.mock.calls.filter(([props]) => props.actionName === 'Assign').pop();
-        expect(rnoCall).toBeDefined();
-        const rnoProps = rnoCall![0];
-        rnoProps.onSubmit('test remark');
+        const fciCall = mockRemarkComponent.mock.calls.find(([props]) => props.actionName === 'Assign to FCI');
+        expect(fciCall).toBeDefined();
+        const fciProps = fciCall![0];
+        fciProps.onSubmit('test remark');
 
         await waitFor(() => {
             expect(defaultProps.updateTicketApiHandler).toHaveBeenCalled();
         });
 
         expect(mockUpdateTicket).toHaveBeenCalledWith('INC-1', expect.objectContaining({
-            assignedTo: 'rno',
             status: { statusId: '5' },
         }));
         expect(defaultProps.searchCurrentTicketsPaginatedApi).toHaveBeenCalledWith('INC-1');

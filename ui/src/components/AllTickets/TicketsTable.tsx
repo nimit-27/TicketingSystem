@@ -35,6 +35,7 @@ export interface TicketRow {
     statusLabel?: string;
     assignedTo?: string;
     assignedToName?: string;
+    assignedBy?: string;
     feedbackStatus?: 'PENDING' | 'PROVIDED' | 'NOT_PROVIDED';
     breachedByMinutes?: number;
     severity?: string;
@@ -70,6 +71,13 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
+
+    const currentUser = getCurrentUserDetails();
+    const currentUsername = currentUser?.username?.toLowerCase();
+    const userLevels = (currentUser?.levels || []).map(level => level.toLowerCase());
+    const assignBackLevelKeywords = ['team lead', 'level 1', 'level 2', 'level 3', 'l1', 'l2', 'l3'];
+    const canAssignBackByLevel = userLevels.some(level => assignBackLevelKeywords.includes(level));
+    const FCI_STATUS_NAME = 'On Hold (Pending with FCI)';
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
@@ -116,9 +124,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const onIdClickRca = (id: string, state: any) => navigate(`/root-cause-analysis/${id}`, { state });
 
-    const openMenu = (event: React.MouseEvent, record: any) => {
+    const openMenu = (event: React.MouseEvent, record: TicketRow) => {
+        const statusName = getStatusNameById(record.statusId || '') || '';
         const list = getAvailableActions(record.statusId);
-        setActions(list);
+        const resumeAction = list.find(a => a.action === 'Resume');
+        const isFciOnHold = statusName === FCI_STATUS_NAME;
+        const allowAssignBack = Boolean(isFciOnHold && resumeAction && (canAssignBackByLevel || record.assignedBy?.toLowerCase() === currentUsername));
+        const filteredActions = allowAssignBack ? list.filter(a => a.action !== 'Resume') : list;
+        setActions(filteredActions);
         setCurrentTicketId(record.id);
         setAnchorEl(event.currentTarget as HTMLElement);
     };
@@ -328,7 +341,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     const recordActions = getAvailableActions(record.statusId);
                     const statusName = getStatusNameById(record.statusId || '') || '';
                     const resumeAction = recordActions.find(a => a.action === 'Resume');
-                    const showSubmit = resumeAction && (statusName === 'On Hold (Pending with Requester)' || statusName === 'On Hold (Pending with FCI)');
+                    const isFciOnHold = statusName === FCI_STATUS_NAME;
+                    const showSubmit = Boolean(resumeAction && statusName === 'On Hold (Pending with Requester)');
+                    const canAssignBack = Boolean(isFciOnHold && resumeAction && (canAssignBackByLevel || record.assignedBy?.toLowerCase() === currentUsername));
+                    const nonResumeActions = recordActions.filter(a => a.action !== 'Resume');
+                    const showInlineActions = !showSubmit && nonResumeActions.length > 0 && nonResumeActions.length <= 2;
+                    const showActionsMenu = !showSubmit && nonResumeActions.length > 2;
                     return (
                         <>
                             <VisibilityIcon
@@ -336,21 +354,34 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 fontSize="small"
                                 sx={{ color: 'grey.600', cursor: 'pointer' }}
                             />
-                            {showSubmit
-                                ? <Button size="small" onClick={() => handleActionClick(resumeAction!, record.id)}>Submit</Button>
-                                : recordActions.length <= 2
-                                    ? recordActions.map(a => {
-                                        const { icon, className } = getActionIcon(a.action);
-                                        return <Tooltip key={a.id} title={a.action} placement="top">
-                                            <CustomIconButton
-                                                size="small"
-                                                onClick={() => handleActionClick(a, record.id)}
-                                                icon={icon}
-                                                className={`${className}`}
-                                            />
-                                        </Tooltip>
-                                    })
-                                    : <CustomIconButton onClick={(event) => openMenu(event, record)} icon='moreVert' />}
+                            {showSubmit && resumeAction && (
+                                <Button size="small" onClick={() => handleActionClick(resumeAction, record.id)}>Submit</Button>
+                            )}
+                            {canAssignBack && resumeAction && (
+                                <Tooltip title="Assign Back" placement="top">
+                                    <CustomIconButton
+                                        size="small"
+                                        onClick={() => handleActionClick(resumeAction, record.id)}
+                                        icon="undo"
+                                    />
+                                </Tooltip>
+                            )}
+                            {showInlineActions && nonResumeActions.map(a => {
+                                const { icon, className } = getActionIcon(a.action);
+                                return (
+                                    <Tooltip key={a.id} title={a.action} placement="top">
+                                        <CustomIconButton
+                                            size="small"
+                                            onClick={() => handleActionClick(a, record.id)}
+                                            icon={icon}
+                                            className={`${className}`}
+                                        />
+                                    </Tooltip>
+                                );
+                            })}
+                            {showActionsMenu && (
+                                <CustomIconButton onClick={(event) => openMenu(event, record)} icon="moreVert" />
+                            )}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
                                 <Tooltip title={record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Provide Feedback'} placement="top">
                                     <CustomIconButton
