@@ -106,6 +106,12 @@ export function truncateWithEllipsis(str: string, maxLength: number): string {
   return str.length > maxLength ? `${str.slice(0, maxLength)}...` : str;
 }
 
+export function truncateWithLeadingEllipsis(str: string, maxLength: number): string {
+  if (!str) return str;
+  const safeLength = Math.max(0, maxLength);
+  return str.length > safeLength ? `...${str.slice(-safeLength)}` : str;
+}
+
 export function formatDateWithSuffix(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   if (i18n.language === 'hi') {

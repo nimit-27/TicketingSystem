@@ -25,9 +25,11 @@ jest.mock('../../../utils/permissions', () => ({
 
 const mockGetStatusNameById = jest.fn(() => 'Open');
 const mockTruncateWithEllipsis = jest.fn((value: string) => value);
+const mockTruncateWithLeadingEllipsis = jest.fn((value: string) => value);
 jest.mock('../../../utils/Utils', () => ({
     getStatusNameById: (...args: any[]) => mockGetStatusNameById(...args),
     truncateWithEllipsis: (...args: any[]) => mockTruncateWithEllipsis(...args),
+    truncateWithLeadingEllipsis: (...args: any[]) => mockTruncateWithLeadingEllipsis(...args),
 }));
 
 const mockAssigneeDropdown = jest.fn(() => <div data-testid="assignee-dropdown" />);
