@@ -700,7 +700,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {t('View RCA')}
               </Button>
             )}
-            {ticket && !ticket.isMaster && showLinkToMasterTicketButton && (
+            {showLinkToMasterTicketButton && (
               <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
                 {t('Link to a Master Ticket')}
               </Button>

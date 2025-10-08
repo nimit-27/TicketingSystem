@@ -15,7 +15,7 @@ import { formatDateWithSuffix } from "../utils/Utils";
 import { checkAccessMaster } from "../utils/permissions";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, getValues, formState: { errors }, reset } = useForm();
+    const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
     const reportedDate = formatDateWithSuffix(new Date());
     const today = new Date();
 
@@ -97,14 +97,22 @@ const RaiseTicket: React.FC<any> = () => {
     };
 
     const clearTicketDetailsFields = () => {
-        reset(undefined, {
-            keepErrors: false,
-            keepDirty: false,
-            keepTouched: false,
-            keepIsSubmitted: false,
-            keepSubmitCount: false,
-            keepValues: false,
-        });
+        resetField('assignedToLevel');
+        resetField('assignedTo');
+        resetField('assignFurther');
+        resetField('assignToLevel');
+        resetField('assignTo');
+        resetField('category');
+        resetField('subCategory');
+        resetField('priority');
+        resetField('severity');
+        resetField('impact');
+        resetField('recommendedSeverity');
+        resetField('isMaster');
+        resetField('subject');
+        resetField('description');
+        resetField('attachments');
+        resetField('statusId');
         setAttachments([]);
         setValue('attachments', []);
     };
