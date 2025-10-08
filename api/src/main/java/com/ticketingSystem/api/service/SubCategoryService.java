@@ -58,7 +58,22 @@ public class SubCategoryService {
     public Optional<SubCategory> updateSubCategory(String id, SubCategory updated) {
         return subCategoryRepository.findById(id)
             .map(existing -> {
-                existing.setSubCategory(updated.getSubCategory());
+                if (updated.getSubCategory() != null && !updated.getSubCategory().isBlank()) {
+                    existing.setSubCategory(updated.getSubCategory());
+                }
+                if (updated.getSeverity() != null) {
+                    String severityId = updated.getSeverity().getId();
+                    if (severityId == null || severityId.isBlank()) {
+                        existing.setSeverity(null);
+                    } else {
+                        severityRepository.findById(severityId)
+                                .ifPresentOrElse(existing::setSeverity, () -> existing.setSeverity(null));
+                    }
+                }
+                existing.setLastUpdated(java.time.LocalDateTime.now());
+                if (updated.getUpdatedBy() != null && !updated.getUpdatedBy().isBlank()) {
+                    existing.setUpdatedBy(updated.getUpdatedBy());
+                }
                 return subCategoryRepository.save(existing);
             });
     }
