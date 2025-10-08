@@ -29,14 +29,19 @@ jest.mock('../../context/SnackbarContext', () => ({
   useSnackbar: () => ({ showMessage: mockShowMessage }),
 }));
 
+const mockGetFeedbackForm = jest.fn();
+const mockGetFeedback = jest.fn();
+
 jest.mock('../../services/FeedbackService', () => ({
   submitFeedback: (...args: unknown[]) => mockSubmitFeedback(...args),
-  getFeedbackForm: jest.fn(),
-  getFeedback: jest.fn(),
+  getFeedbackForm: (...args: unknown[]) => mockGetFeedbackForm(...args),
+  getFeedback: (...args: unknown[]) => mockGetFeedback(...args),
 }));
 
+const mockUseApi = jest.fn();
+
 jest.mock('../../hooks/useApi', () => ({
-  useApi: () => ({ data: null, apiHandler: jest.fn(), success: false }),
+  useApi: () => mockUseApi(),
 }));
 
 import CustomerSatisfactionForm from '../CustomerSatisfactionForm';
@@ -47,10 +52,28 @@ describe('CustomerSatisfactionForm', () => {
     mockShowMessage.mockClear();
     navigateMock.mockClear();
     mockSubmitFeedback.mockResolvedValue(undefined);
+    mockUseApi.mockReset();
+    mockGetFeedbackForm.mockReset();
+    mockGetFeedback.mockReset();
   });
 
   it('allows rating updates and submits feedback', async () => {
+    const feedbackApiState = { data: null, apiHandler: jest.fn(), success: false };
+    const formApiState = {
+      data: { ticketId: 'T-1', dateOfResolution: '2024-01-01T00:00:00Z' },
+      apiHandler: jest.fn((fn: () => Promise<unknown>) => fn()),
+      success: true,
+    };
+    const responses = [feedbackApiState, formApiState];
+    mockUseApi.mockImplementation(() => {
+      const next = responses.shift();
+      return next ?? formApiState;
+    });
+    mockGetFeedbackForm.mockResolvedValue({ data: { ticketId: 'T-1', dateOfResolution: '2024-01-01T00:00:00Z' } });
+
     const { getByTestId, getByLabelText, getByText } = render(<CustomerSatisfactionForm />);
+
+    expect(getByText(/^Date of Resolution:/).textContent).toContain('2024');
 
     fireEvent.click(getByTestId('rating-Overall Satisfaction'));
     fireEvent.click(getByTestId('rating-Resolution Effectiveness'));
@@ -67,6 +90,9 @@ describe('CustomerSatisfactionForm', () => {
   });
 
   it('handles cancel action', () => {
+    const defaultState = { data: null, apiHandler: jest.fn(), success: false };
+    mockUseApi.mockImplementation(() => defaultState);
+
     const { getByText } = render(<CustomerSatisfactionForm />);
     fireEvent.click(getByText('Cancel'));
     expect(navigateMock).toHaveBeenCalled();

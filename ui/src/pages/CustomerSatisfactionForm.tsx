@@ -2,7 +2,7 @@ import { Card, Button, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import StarRating from '../components/Feedback/StarRating';
-import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../services/FeedbackService';
+import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback, TicketFeedbackResponse, FeedbackFormResponse } from '../services/FeedbackService';
 import { useSnackbar } from '../context/SnackbarContext';
 import { useApi } from '../hooks/useApi';
 
@@ -12,7 +12,7 @@ const CustomerSatisfactionForm: React.FC = () => {
   const location = useLocation();
   const { showMessage } = useSnackbar();
 
-  let feedbackStatus = location.state;
+  const feedbackStatus = (location.state as string | undefined) ?? 'PENDING';
 
   const createInitialFormData = (): SubmitFeedbackRequest => ({
     overallSatisfaction: 0,
@@ -27,17 +27,45 @@ const CustomerSatisfactionForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
 
-  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<any>();
+  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<TicketFeedbackResponse>();
+  const { data: getFeedbackFormData, apiHandler: getFeedbackFormApiHandler, success: getFeedbackFormSuccess } = useApi<FeedbackFormResponse>();
 
-  const getFeedbackApi = (ticketId: string) => getFeedbackApiHandler(() => getFeedback(ticketId));
-
-  useEffect(() => {
-    !!ticketId && feedbackStatus === 'PROVIDED' && getFeedbackApi(ticketId)
-  }, [ticketId]);
+  const getFeedbackApi = (id: string) => getFeedbackApiHandler(() => getFeedback(id));
+  const getFeedbackFormApi = (id: string) => getFeedbackFormApiHandler(() => getFeedbackForm(id));
 
   useEffect(() => {
-    getFeedbackSuccess && getFeedbackData && setFormData(getFeedbackData);
+    if (!ticketId) {
+      return;
+    }
+
+    if (feedbackStatus === 'PROVIDED') {
+      setViewMode(true);
+      getFeedbackApi(ticketId);
+    } else {
+      setViewMode(false);
+      setFormData(createInitialFormData());
+      getFeedbackFormApi(ticketId);
+    }
+  }, [ticketId, feedbackStatus]);
+
+  useEffect(() => {
+    if (getFeedbackSuccess && getFeedbackData) {
+      setFormData({
+        overallSatisfaction: getFeedbackData.overallSatisfaction ?? 0,
+        resolutionEffectiveness: getFeedbackData.resolutionEffectiveness ?? 0,
+        communicationSupport: getFeedbackData.communicationSupport ?? 0,
+        timeliness: getFeedbackData.timeliness ?? 0,
+        comments: getFeedbackData.comments ?? '',
+      });
+      setResolvedAt(getFeedbackData.dateOfResolution ?? '');
+    }
   }, [getFeedbackSuccess, getFeedbackData]);
+
+  useEffect(() => {
+    if (getFeedbackFormSuccess && getFeedbackFormData) {
+      setResolvedAt(getFeedbackFormData.dateOfResolution ?? '');
+    }
+  }, [getFeedbackFormSuccess, getFeedbackFormData]);
 
   const handleRatingChange = (field: keyof Omit<SubmitFeedbackRequest, 'comments'>) => (value: number) => {
     setFormData(prev => ({ ...prev, [field]: value }));

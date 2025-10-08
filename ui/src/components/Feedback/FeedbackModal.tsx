@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Box, Button, TextField, Typography } from '@mui/material';
 import StarRating from './StarRating';
-import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback } from '../../services/FeedbackService';
+import { SubmitFeedbackRequest, submitFeedback, getFeedbackForm, getFeedback, FeedbackFormResponse, TicketFeedbackResponse } from '../../services/FeedbackService';
 import { useSnackbar } from '../../context/SnackbarContext';
 import { useApi } from '../../hooks/useApi';
 interface FeedbackModalProps {
@@ -25,22 +25,52 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose, 
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
 
+  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<TicketFeedbackResponse>();
+  const { data: getFeedbackFormData, apiHandler: getFeedbackFormApiHandler, success: getFeedbackFormSuccess } = useApi<FeedbackFormResponse>();
 
-  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<any>();
-
-  const getFeedbackApi = (ticketId: string) => getFeedbackApiHandler(() => getFeedback(ticketId));
+  const getFeedbackApi = (id: string) => getFeedbackApiHandler(() => getFeedback(id));
+  const getFeedbackFormApi = (id: string) => getFeedbackFormApiHandler(() => getFeedbackForm(id));
 
   useEffect(() => {
-    if (!!ticketId && feedbackStatus === 'PROVIDED') {
-      getFeedbackApi(ticketId)
-      setViewMode(true)
-
+    if (!open) {
+      setFormData(createInitialFormData());
+      setResolvedAt('');
+      setViewMode(false);
+      return;
     }
-  }, [ticketId]);
+
+    if (!ticketId) {
+      return;
+    }
+
+    if (feedbackStatus === 'PROVIDED') {
+      setViewMode(true);
+      getFeedbackApi(ticketId);
+    } else {
+      setViewMode(false);
+      setFormData(createInitialFormData());
+      getFeedbackFormApi(ticketId);
+    }
+  }, [open, ticketId, feedbackStatus]);
 
   useEffect(() => {
-    getFeedbackSuccess && getFeedbackData && setFormData(getFeedbackData);
+    if (getFeedbackSuccess && getFeedbackData) {
+      setFormData({
+        overallSatisfaction: getFeedbackData.overallSatisfaction ?? 0,
+        resolutionEffectiveness: getFeedbackData.resolutionEffectiveness ?? 0,
+        communicationSupport: getFeedbackData.communicationSupport ?? 0,
+        timeliness: getFeedbackData.timeliness ?? 0,
+        comments: getFeedbackData.comments ?? '',
+      });
+      setResolvedAt(getFeedbackData.dateOfResolution ?? '');
+    }
   }, [getFeedbackSuccess, getFeedbackData]);
+
+  useEffect(() => {
+    if (getFeedbackFormSuccess && getFeedbackFormData) {
+      setResolvedAt(getFeedbackFormData.dateOfResolution ?? '');
+    }
+  }, [getFeedbackFormSuccess, getFeedbackFormData]);
 
   const handleRatingChange = (field: keyof Omit<SubmitFeedbackRequest, 'comments'>) => (value: number) => {
     setFormData(prev => ({ ...prev, [field]: value }));

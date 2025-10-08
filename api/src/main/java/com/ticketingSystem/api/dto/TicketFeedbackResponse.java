@@ -10,5 +10,6 @@ public record TicketFeedbackResponse(
         Integer timeliness,
         String comments,
         LocalDateTime submittedAt,
-        String submittedBy
+        String submittedBy,
+        LocalDateTime dateOfResolution
 ) {}
