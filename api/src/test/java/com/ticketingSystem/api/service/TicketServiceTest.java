@@ -1,11 +1,13 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.TicketDto;
+import com.ticketingSystem.api.enums.RecommendedSeverityStatus;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.RecommendedSeverityFlow;
+import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.repository.*;
 import com.ticketingSystem.api.typesense.TypesenseClient;
 import com.ticketingSystem.api.models.User;
@@ -59,6 +61,10 @@ class TicketServiceTest {
     private TicketSlaService ticketSlaService;
     @Mock
     private RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
+    @Mock
+    private RoleRepository roleRepository;
+    @Mock
+    private StakeholderRepository stakeholderRepository;
     @Mock
     private TicketIdGenerator ticketIdGenerator;
 
@@ -314,6 +320,144 @@ class TicketServiceTest {
                 .containsEntry("updateType", "ASSIGNMENT_UPDATED")
                 .containsEntry("currentAssignee", "Agent New")
                 .containsEntry("actorName", "manager1");
+    }
+
+    @Test
+    void updateTicket_recommendedSeverityApprovedByItManager_notifiesTeamLeads() throws Exception {
+        String ticketId = "T-SEV";
+        Ticket existing = buildExistingTicket(ticketId, null);
+        existing.setSeverity("LOW");
+        existing.setRecommendedSeverity("HIGH");
+        existing.setSeverityRecommendedBy("teamLead1");
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Ticket update = new Ticket();
+        update.setSeverity("HIGH");
+        update.setUpdatedBy("itmanager1");
+
+        RecommendedSeverityFlow flow = new RecommendedSeverityFlow();
+        flow.setRecommendedSeverityStatus(RecommendedSeverityStatus.PENDING);
+        when(recommendedSeverityFlowRepository
+                .findTopByTicket_IdAndRecommendedSeverityAndRecommendedSeverityStatusOrderByIdDesc(
+                        ticketId,
+                        "HIGH",
+                        RecommendedSeverityStatus.PENDING))
+                .thenReturn(Optional.of(flow));
+        when(recommendedSeverityFlowRepository.save(any(RecommendedSeverityFlow.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Role itManagerRole = new Role();
+        itManagerRole.setRoleId(9);
+        itManagerRole.setRole("IT Manager");
+        when(roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse("IT Manager"))
+                .thenReturn(Optional.of(itManagerRole));
+
+        Role teamLeadRole = new Role();
+        teamLeadRole.setRoleId(7);
+        teamLeadRole.setRole("Team Lead");
+        when(roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse("Team Lead"))
+                .thenReturn(Optional.of(teamLeadRole));
+
+        when(userRepository.findById("itmanager1")).thenReturn(Optional.empty());
+        User approver = new User();
+        approver.setUserId("IM-1");
+        approver.setUsername("itmanager1");
+        approver.setName("IT Manager Jane");
+        approver.setRoles("9");
+        when(userRepository.findByUsername("itmanager1")).thenReturn(Optional.of(approver));
+
+        User teamLead = new User();
+        teamLead.setUserId("TL-1");
+        teamLead.setUsername("teamLeadUser");
+        teamLead.setName("Team Lead Tom");
+        teamLead.setRoles("7");
+        when(userRepository.findAll()).thenReturn(List.of(teamLead));
+
+        ticketService.updateTicket(ticketId, update);
+
+        ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(notificationService).sendNotification(
+                eq(ChannelType.IN_APP),
+                eq("TICKET_UPDATED"),
+                dataCaptor.capture(),
+                recipientCaptor.capture()
+        );
+
+        Map<String, Object> payload = dataCaptor.getValue();
+        assertThat(recipientCaptor.getValue()).isEqualTo("TL-1");
+        assertThat(payload)
+                .containsEntry("ticketId", ticketId)
+                .containsEntry("ticketNumber", ticketId)
+                .containsEntry("updateType", "RECOMMENDED_SEVERITY_APPROVED")
+                .containsEntry("recommendedSeverity", "HIGH")
+                .containsEntry("actorName", "IT Manager Jane")
+                .containsEntry("recipientName", "Team Lead Tom");
+        assertThat(payload.get("updateMessage").toString())
+                .contains("Recommended severity")
+                .contains("HIGH")
+                .contains("IT Manager Jane");
+    }
+
+    @Test
+    void updateTicket_recommendedSeverityApprovedByNonItManager_doesNotNotifyTeamLeads() {
+        String ticketId = "T-SEV-NEG";
+        Ticket existing = buildExistingTicket(ticketId, null);
+        existing.setSeverity("LOW");
+        existing.setRecommendedSeverity("HIGH");
+        existing.setSeverityRecommendedBy("teamLead1");
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Ticket update = new Ticket();
+        update.setSeverity("HIGH");
+        update.setUpdatedBy("teamleadUser");
+
+        RecommendedSeverityFlow flow = new RecommendedSeverityFlow();
+        flow.setRecommendedSeverityStatus(RecommendedSeverityStatus.PENDING);
+        when(recommendedSeverityFlowRepository
+                .findTopByTicket_IdAndRecommendedSeverityAndRecommendedSeverityStatusOrderByIdDesc(
+                        ticketId,
+                        "HIGH",
+                        RecommendedSeverityStatus.PENDING))
+                .thenReturn(Optional.of(flow));
+        when(recommendedSeverityFlowRepository.save(any(RecommendedSeverityFlow.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Role itManagerRole = new Role();
+        itManagerRole.setRoleId(9);
+        itManagerRole.setRole("IT Manager");
+        when(roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse("IT Manager"))
+                .thenReturn(Optional.of(itManagerRole));
+
+        Role teamLeadRole = new Role();
+        teamLeadRole.setRoleId(7);
+        teamLeadRole.setRole("Team Lead");
+        when(roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse("Team Lead"))
+                .thenReturn(Optional.of(teamLeadRole));
+
+        when(userRepository.findById("teamleadUser")).thenReturn(Optional.empty());
+        User approver = new User();
+        approver.setUserId("TL-APPROVER");
+        approver.setUsername("teamleadUser");
+        approver.setName("Team Lead Lisa");
+        approver.setRoles("7");
+        when(userRepository.findByUsername("teamleadUser")).thenReturn(Optional.of(approver));
+
+        when(userRepository.findAll()).thenReturn(List.of(approver));
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(notificationService, never()).sendNotification(
+                eq(ChannelType.IN_APP),
+                eq("TICKET_UPDATED"),
+                any(Map.class),
+                anyString()
+        );
     }
 
     @Test
