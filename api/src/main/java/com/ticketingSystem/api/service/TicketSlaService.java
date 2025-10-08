@@ -19,10 +19,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,7 @@ import org.slf4j.LoggerFactory;
 public class TicketSlaService {
     private static final Logger log = LoggerFactory.getLogger(TicketSlaService.class);
     private static final String SLA_BREACHED_NOTIFICATION_CODE = "TICKET_SLA_BREACHED";
+    private static final Set<String> REQUESTOR_ROLE_IDENTIFIERS = Set.of("5", "requestor", "role_requestor", "user");
     private final SlaConfigRepository slaConfigRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final StatusHistoryRepository statusHistoryRepository;
@@ -235,30 +239,65 @@ public class TicketSlaService {
             data.put("dueAt", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(dueAt));
         }
 
-        assignee.ifPresent(user -> {
-            if (user.getName() != null && !user.getName().isBlank()) {
-                data.put("assigneeName", user.getName());
-            } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
-                data.put("assigneeName", user.getUsername());
-            }
-        });
-        if (!data.containsKey("assigneeName")) {
+        String assigneeDisplayName = assignee.map(this::resolveUserDisplayName).orElse(null);
+        if (assigneeDisplayName != null && !assigneeDisplayName.isBlank()) {
+            data.put("assigneeName", assigneeDisplayName);
+        } else if (assigneeIdentifier != null && !assigneeIdentifier.isBlank()) {
             data.put("assigneeName", assigneeIdentifier);
         }
 
-        String recipient = assignee
+        Map<String, String> recipients = new LinkedHashMap<>();
+        String primaryRecipient = assignee
                 .map(this::resolveRecipientIdentifier)
                 .orElse(assigneeIdentifier);
+        if (primaryRecipient != null && !primaryRecipient.isBlank()) {
+            recipients.put(primaryRecipient, assigneeDisplayName);
+        }
 
-        try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
-                    SLA_BREACHED_NOTIFICATION_CODE,
-                    data,
-                    recipient
-            );
-        } catch (Exception ex) {
-            log.warn("Failed to send SLA breach notification for ticket {} to recipient {}", ticket.getId(), recipient, ex);
+        List<User> escalationUsers = userRepository.findAll();
+        for (User escalationUser : escalationUsers) {
+            if (escalationUser == null || isRequestorOnly(escalationUser)) {
+                continue;
+            }
+            String escalationRecipient = resolveRecipientIdentifier(escalationUser);
+            if (escalationRecipient == null || escalationRecipient.isBlank()) {
+                continue;
+            }
+
+            String displayName = resolveUserDisplayName(escalationUser);
+            if (!recipients.containsKey(escalationRecipient)) {
+                recipients.put(escalationRecipient, displayName);
+            } else {
+                String existingName = recipients.get(escalationRecipient);
+                if ((existingName == null || existingName.isBlank())
+                        && displayName != null && !displayName.isBlank()) {
+                    recipients.put(escalationRecipient, displayName);
+                }
+            }
+        }
+
+        for (Map.Entry<String, String> entry : recipients.entrySet()) {
+            String recipient = entry.getKey();
+            if (recipient == null || recipient.isBlank()) {
+                continue;
+            }
+
+            Map<String, Object> recipientData = new HashMap<>(data);
+            String recipientName = entry.getValue();
+            if (recipientName != null && !recipientName.isBlank()) {
+                recipientData.put("recipientName", recipientName);
+            }
+
+            try {
+                notificationService.sendNotification(
+                        ChannelType.IN_APP,
+                        SLA_BREACHED_NOTIFICATION_CODE,
+                        recipientData,
+                        recipient
+                );
+            } catch (Exception ex) {
+                log.warn("Failed to send SLA breach notification for ticket {} to recipient {}", ticket.getId(), recipient, ex);
+            }
         }
     }
 
@@ -288,5 +327,52 @@ public class TicketSlaService {
             return user.getEmailId();
         }
         return null;
+    }
+
+    private String resolveUserDisplayName(User user) {
+        if (user == null) {
+            return null;
+        }
+        if (user.getName() != null && !user.getName().isBlank()) {
+            return user.getName();
+        }
+        if (user.getUsername() != null && !user.getUsername().isBlank()) {
+            return user.getUsername();
+        }
+        if (user.getEmailId() != null && !user.getEmailId().isBlank()) {
+            return user.getEmailId();
+        }
+        return null;
+    }
+
+    private boolean isRequestorOnly(User user) {
+        if (user == null) {
+            return false;
+        }
+
+        String roles = user.getRoles();
+        if (roles == null || roles.isBlank()) {
+            return false;
+        }
+
+        String[] parts = roles.split("\\|");
+        List<String> normalized = new ArrayList<>();
+        for (String part : parts) {
+            if (part == null) {
+                continue;
+            }
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                normalized.add(trimmed);
+            }
+        }
+
+        if (normalized.size() != 1) {
+            return false;
+        }
+
+        String role = normalized.get(0);
+        String normalizedRole = role.toLowerCase(Locale.ROOT);
+        return REQUESTOR_ROLE_IDENTIFIERS.contains(normalizedRole);
     }
 }
