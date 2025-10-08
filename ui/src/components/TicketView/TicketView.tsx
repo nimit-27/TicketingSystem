@@ -571,6 +571,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
   const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
+  const shouldShowLinkToMasterTicketButton = showLinkToMasterTicketButton && !isResolvedStatus && !isClosedStatus;
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
     setSelectedStatusAction(action);
@@ -700,7 +701,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {t('View RCA')}
               </Button>
             )}
-            {showLinkToMasterTicketButton && (
+            {shouldShowLinkToMasterTicketButton && (
               <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
                 {t('Link to a Master Ticket')}
               </Button>

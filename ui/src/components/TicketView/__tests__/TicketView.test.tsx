@@ -10,6 +10,7 @@ import { getFeedback } from '../../../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../../../services/StatusService';
 import Histories from '../../../pages/Histories';
 import ChildTicketsList from '../ChildTicketsList';
+import { getStatusNameById } from '../../../utils/Utils';
 
 const mockTicket = {
   id: 'T-1',
@@ -198,6 +199,7 @@ jest.mock('../ChildTicketsList', () => ({
 jest.mock('../RootCauseAnalysisModal', () => () => <div data-testid="rca-modal" />);
 
 const useApiMock = useApi as jest.MockedFunction<typeof useApi>;
+const getStatusNameByIdMock = getStatusNameById as jest.MockedFunction<typeof getStatusNameById>;
 const getPrioritiesMock = getPriorities as jest.Mock;
 const getSeveritiesMock = getSeverities as jest.Mock;
 const getCategoriesMock = getCategories as jest.Mock;
@@ -210,6 +212,9 @@ describe('TicketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useApiMock.mockReset();
+    getStatusNameByIdMock.mockReturnValue('Open');
+    mockTicket.statusLabel = 'Open';
+    mockTicket.statusId = '1';
 
     getPrioritiesMock.mockResolvedValue({ data: { body: { data: [] } } });
     getSeveritiesMock.mockResolvedValue({ data: [] });
@@ -263,5 +268,25 @@ describe('TicketView', () => {
     await waitFor(() => expect(mockChildTicketsList).toHaveBeenCalled());
     const childProps = mockChildTicketsList.mock.calls[0][0];
     expect(childProps.parentId).toBe('T-1');
+  });
+
+  it('hides link to master ticket button when ticket is resolved', async () => {
+    getStatusNameByIdMock.mockReturnValue('Resolved');
+    mockTicket.statusLabel = 'Resolved';
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Link to a Master Ticket' })).not.toBeInTheDocument()
+    );
+  });
+
+  it('hides link to master ticket button when ticket is closed', async () => {
+    getStatusNameByIdMock.mockReturnValue('Closed');
+    mockTicket.statusLabel = 'Closed';
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Link to a Master Ticket' })).not.toBeInTheDocument()
+    );
   });
 });
