@@ -1,25 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { Autocomplete, Button, List, ListItem, TextField, Box } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Button, List, ListItem, TextField, Box, MenuItem } from '@mui/material';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import Title from '../components/Title';
 import { useTranslation } from 'react-i18next';
 import { getCategories, addCategory, updateCategory, deleteCategory, getAllSubCategories, addSubCategory, updateSubCategory, deleteSubCategory } from '../services/CategoryService';
 import { useApi } from '../hooks/useApi';
-import { Category, SubCategory } from '../types';
+import { Category, SubCategory, SeverityInfo } from '../types';
 import { getCurrentUserDetails } from '../config/config';
 import GenericInput from '../components/UI/Input/GenericInput';
+import { getSeverities } from '../services/SeverityService';
 
 const CategoriesMaster: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
     const [categoryInput, setCategoryInput] = useState('');
     const [subCategoryInput, setSubCategoryInput] = useState('');
+    const [selectedSeverity, setSelectedSeverity] = useState<string>('');
 
     const { data: getCategoriesData, apiHandler: getCategoriesApiHandler } = useApi<any>();
     const { data: getSubCategoriesData, apiHandler: getSubCategoriesApiHandler } = useApi<any>();
-    const { data: addSubCategoryData, apiHandler: addSubCategoryApiHandler } = useApi<any>();
+    const { apiHandler: addSubCategoryApiHandler } = useApi<any>();
+    const { apiHandler: updateSubCategoryApiHandler } = useApi<any>();
+    const { data: severityData, apiHandler: getSeverityApiHandler } = useApi<any>();
     const { t } = useTranslation();
 
     const filteredSubCategories = subCategories?.filter(
@@ -42,9 +46,22 @@ const CategoriesMaster: React.FC = () => {
     };
 
     useEffect(() => {
+        getSeverityApiHandler(() => getSeverities());
+    }, [getSeverityApiHandler]);
+
+    useEffect(() => {
         if (Array.isArray(getCategoriesData)) setCategories(getCategoriesData);
         else if (getCategoriesData) setCategories([]);
     }, [getCategoriesData]);
+
+    useEffect(() => {
+        if (selectedCategory) {
+            const updatedCategory = categories.find(cat => cat.categoryId === selectedCategory.categoryId);
+            if (updatedCategory && updatedCategory !== selectedCategory) {
+                setSelectedCategory(updatedCategory);
+            }
+        }
+    }, [categories, selectedCategory]);
 
     useEffect(() => {
         if (getSubCategoriesData) {
@@ -55,6 +72,18 @@ const CategoriesMaster: React.FC = () => {
             setSubCategories(cleaned);
         }
     }, [getSubCategoriesData]);
+
+    useEffect(() => {
+        if (selectedSubCategory) {
+            const updated = subCategories.find(sc => sc.subCategoryId === selectedSubCategory.subCategoryId);
+            if (updated) {
+                setSelectedSubCategory(updated);
+                setSelectedSeverity(updated.severityId ?? '');
+            }
+        } else {
+            setSelectedSeverity('');
+        }
+    }, [subCategories, selectedSubCategory?.subCategoryId]);
 
     useEffect(() => {
         fetchCategories();
@@ -81,7 +110,10 @@ const CategoriesMaster: React.FC = () => {
         if (window.confirm('Delete this category?')) {
             deleteCategory(id).then(() => {
                 if (selectedCategory?.categoryId === id) setSelectedCategory(null);
+                setSelectedSubCategory(null);
+                setSelectedSeverity('');
                 fetchCategories();
+                fetchSubCategories();
             });
         }
     };
@@ -92,7 +124,10 @@ const CategoriesMaster: React.FC = () => {
         if (!selectedCategory.subCategories.find(sc => sc.subCategory.toLowerCase() === name.toLowerCase())) {
             const newSub = { subCategory: name, categoryId: selectedCategory.categoryId, createdBy: getCurrentUserDetails()?.userId };
 
-            addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => fetchSubCategories());
+            addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => {
+                fetchSubCategories();
+                fetchCategories();
+            });
         }
         setSubCategoryInput('');
     };
@@ -100,14 +135,77 @@ const CategoriesMaster: React.FC = () => {
     const handleEditSubCategory = (sc: SubCategory) => {
         const newName = prompt('Edit Sub-Category', sc.subCategory);
         if (newName && newName.trim() && newName !== sc.subCategory) {
-            updateSubCategory(sc.subCategoryId, { subCategory: newName.trim() }).then(() => fetchSubCategories());
+            updateSubCategory(sc.subCategoryId, { subCategory: newName.trim() }).then(() => {
+                fetchSubCategories();
+                fetchCategories();
+            });
         }
     };
 
     const handleDeleteSubCategory = (id: string) => {
         if (window.confirm('Delete this sub-category?')) {
-            deleteSubCategory(id).then(() => fetchSubCategories());
+            deleteSubCategory(id).then(() => {
+                if (selectedSubCategory?.subCategoryId === id) {
+                    setSelectedSubCategory(null);
+                    setSelectedSeverity('');
+                }
+                fetchSubCategories();
+                fetchCategories();
+            });
         }
+    };
+
+    const severityOptions: SeverityInfo[] = useMemo(() => (Array.isArray(severityData) ? severityData : []), [severityData]);
+
+    const handleSeverityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        if (!selectedSubCategory) return;
+        setSelectedSeverity(value);
+        const payload: any = {};
+        if (selectedSubCategory.subCategory) {
+            payload.subCategory = selectedSubCategory.subCategory;
+        }
+        if (value) {
+            payload.severity = { id: value };
+        } else {
+            payload.severity = { id: '' };
+        }
+        updateSubCategoryApiHandler(() => updateSubCategory(selectedSubCategory.subCategoryId, payload)).then(() => {
+            fetchSubCategories();
+            fetchCategories();
+        });
+    };
+
+    const getCategoryBackground = (cat: Category, isHovered: boolean, isSelected: boolean) => {
+        const hasMissingSeverity = Array.isArray(cat.subCategories) && cat.subCategories.some(sc => !sc.severityId);
+        const baseGreen = '#dcedc8';
+        const hoverGreen = '#c5e1a5';
+        const selectedGreen = '#a5d6a7';
+        const baseOrange = '#ffe0b2';
+        const hoverOrange = '#ffcc80';
+        const selectedOrange = '#ffb74d';
+        if (hasMissingSeverity) {
+            if (isSelected) return selectedOrange;
+            return isHovered ? hoverOrange : baseOrange;
+        }
+        if (isSelected) return selectedGreen;
+        return isHovered ? hoverGreen : baseGreen;
+    };
+
+    const getSubCategoryBackground = (sc: SubCategory, isHovered: boolean, isSelected: boolean) => {
+        const hasSeverity = Boolean(sc.severityId);
+        const baseGreen = '#dcedc8';
+        const hoverGreen = '#c5e1a5';
+        const selectedGreen = '#a5d6a7';
+        const baseOrange = '#ffe0b2';
+        const hoverOrange = '#ffcc80';
+        const selectedOrange = '#ffb74d';
+        if (hasSeverity) {
+            if (isSelected) return selectedGreen;
+            return isHovered ? hoverGreen : baseGreen;
+        }
+        if (isSelected) return selectedOrange;
+        return isHovered ? hoverOrange : baseOrange;
     };
 
 
@@ -123,8 +221,14 @@ const CategoriesMaster: React.FC = () => {
                         onChange={e => {
                             setCategoryInput(e.target.value);
                             setSelectedCategory(null);
+                            setSelectedSubCategory(null);
+                            setSelectedSeverity('');
                         }}
-                        onFocus={() => setSelectedCategory(null)}
+                        onFocus={() => {
+                            setSelectedCategory(null);
+                            setSelectedSubCategory(null);
+                            setSelectedSeverity('');
+                        }}
                     />
                     {categoryInput && !categories.find(c => c.category.toLowerCase() === categoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>{t('Add Category')}</Button>
@@ -137,19 +241,19 @@ const CategoriesMaster: React.FC = () => {
                                     key={cat.categoryId}
                                     sx={{
                                         '&:hover': {
-                                            background: selectedCategory?.categoryId === cat.categoryId
-                                                ? '#e0e0e0'
-                                                : '#e7e5e5',
+                                            background: getCategoryBackground(cat, true, selectedCategory?.categoryId === cat.categoryId),
                                         },
                                         '&:hover .actions': { visibility: 'visible' },
                                         cursor: 'pointer',
-                                        background: selectedCategory?.categoryId === cat.categoryId ? '#f0f0f0' : '#e1dddd',
+                                        background: getCategoryBackground(cat, false, selectedCategory?.categoryId === cat.categoryId),
                                         borderRadius: 1,
                                         mb: 0.5
                                     }}
                                     onClick={() => {
                                         setSelectedCategory(cat);
                                         setCategoryInput(cat.category);
+                                        setSelectedSubCategory(null);
+                                        setSelectedSeverity('');
                                     }}
                                 >
                                     <span style={{ flexGrow: 1 }}>{cat.category}</span>
@@ -170,19 +274,19 @@ const CategoriesMaster: React.FC = () => {
                                     key={cat.categoryId}
                                     sx={{
                                         '&:hover': {
-                                            background: selectedCategory?.categoryId === cat.categoryId
-                                                ? '#e0e0e0'
-                                                : '#e7e5e5',
+                                            background: getCategoryBackground(cat, true, selectedCategory?.categoryId === cat.categoryId),
                                         },
                                         '&:hover .actions': { visibility: 'visible' },
                                         cursor: 'pointer',
-                                        background: selectedCategory?.categoryId === cat.categoryId ? '#f0f0f0' : '#e1dddd',
+                                        background: getCategoryBackground(cat, false, selectedCategory?.categoryId === cat.categoryId),
                                         borderRadius: 1,
                                         mb: 0.5
                                     }}
                                     onClick={() => {
                                         setSelectedCategory(cat);
                                         setCategoryInput(cat.category);
+                                        setSelectedSubCategory(null);
+                                        setSelectedSeverity('');
                                     }}
                                 >
                                     <span style={{ flexGrow: 1 }}>{cat.category}</span>
@@ -207,21 +311,43 @@ const CategoriesMaster: React.FC = () => {
                             {t('Add Sub-Category')}
                         </Button>
                     )}
+                    <TextField
+                        select
+                        label={t('Severity')}
+                        fullWidth
+                        className="mt-3"
+                        value={selectedSeverity}
+                        disabled={!selectedCategory || !selectedSubCategory}
+                        onChange={handleSeverityChange}
+                    >
+                        <MenuItem value="">
+                            <em>{t('None')}</em>
+                        </MenuItem>
+                        {severityOptions.map(option => (
+                            <MenuItem key={option.id} value={option.id}>
+                                {option.level}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                     <List className="mt-2">
                         {displaySubCategories?.map(sc => (
                             <ListItem
                                     key={sc.subCategoryId}
                                     sx={{
                                         '&:hover': {
-                                            background: '#e7e5e5',
+                                            background: getSubCategoryBackground(sc, true, selectedSubCategory?.subCategoryId === sc.subCategoryId),
                                         },
                                         '&:hover .actions': { visibility: 'visible' },
                                         cursor: 'pointer',
-                                        background: '#e1dddd',
+                                        background: getSubCategoryBackground(sc, false, selectedSubCategory?.subCategoryId === sc.subCategoryId),
                                         borderRadius: 1,
                                         mb: 0.5,
                                         display: 'flex',
                                         alignItems: 'center'
+                                    }}
+                                    onClick={() => {
+                                        setSelectedSubCategory(sc);
+                                        setSelectedSeverity(sc.severityId ?? '');
                                     }}
                                 >
                                     <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
@@ -247,15 +373,19 @@ const CategoriesMaster: React.FC = () => {
                                     key={sc.subCategoryId}
                                     sx={{
                                         '&:hover': {
-                                            background: '#e7e5e5',
+                                            background: getSubCategoryBackground(sc, true, selectedSubCategory?.subCategoryId === sc.subCategoryId),
                                         },
                                         '&:hover .actions': { visibility: 'visible' },
                                         cursor: 'pointer',
-                                        background: '#e1dddd',
+                                        background: getSubCategoryBackground(sc, false, selectedSubCategory?.subCategoryId === sc.subCategoryId),
                                         borderRadius: 1,
                                         mb: 0.5,
                                         display: 'flex',
                                         alignItems: 'center'
+                                    }}
+                                    onClick={() => {
+                                        setSelectedSubCategory(sc);
+                                        setSelectedSeverity(sc.severityId ?? '');
                                     }}
                                 >
                                     <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>

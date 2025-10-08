@@ -15,6 +15,7 @@ export interface SubCategory {
     timestamp?: string;
     categoryId?: string; // Optional, used when adding sub-categories directly
     lastUpdated?: string;
+    severityId?: string | null;
 }
 
 export interface Category {

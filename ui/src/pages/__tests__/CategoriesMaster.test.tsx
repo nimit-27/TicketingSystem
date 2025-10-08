@@ -28,6 +28,10 @@ jest.mock('../../services/CategoryService', () => ({
   deleteSubCategory: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../../services/SeverityService', () => ({
+  getSeverities: jest.fn(() => Promise.resolve({ data: [] })),
+}));
+
 jest.mock('../../config/config', () => ({
   getCurrentUserDetails: () => ({ userId: 'user-1' }),
 }));
@@ -53,19 +57,32 @@ describe('CategoriesMaster', () => {
       { subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1' },
     ]);
 
-    mockUseApi
-      .mockImplementationOnce(() => ({
-        data: [{ categoryId: '1', category: 'Existing', subCategories: [] }],
-        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
-      }))
-      .mockImplementationOnce(() => ({
-        data: [{ subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1' }],
-        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
-      }))
-      .mockImplementation(() => ({
+    let call = 0;
+    mockUseApi.mockImplementation(() => {
+      call += 1;
+      if (call === 1) {
+        return {
+          data: [{ categoryId: '1', category: 'Existing', subCategories: [] }],
+          apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
+        };
+      }
+      if (call === 2) {
+        return {
+          data: [{ subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1' }],
+          apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
+        };
+      }
+      if (call === 3) {
+        return {
+          data: [{ id: 'S1', level: 'High', description: 'High severity' }],
+          apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
+        };
+      }
+      return {
         data: null,
         apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
-      }));
+      };
+    });
   });
 
   it('allows adding a new category when unique name is entered', async () => {
