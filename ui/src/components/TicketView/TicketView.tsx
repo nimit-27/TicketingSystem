@@ -610,21 +610,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       .catch(() => setHasFeedback(false));
   };
 
-  const youText = t('You');
   const pendingApprovalText = t('Pending Approval');
   const recommendedSeverityBy = ticket?.severityRecommendedBy;
-  const recommendedSeverityByText = recommendedSeverityBy
-    ? recommendedSeverityBy === currentUsername
-      ? youText
-      : recommendedSeverityBy
-    : ' - ';
+  const recommendedSeverityByText = recommendedSeverityBy || ' - ';
   const recommendedSeverityStatus = ticket?.recommendedSeverityStatus;
   const severityApprovedBy = ticket?.severityApprovedBy;
-  const severityApprovedByText = severityApprovedBy
-    ? severityApprovedBy === currentUsername
-      ? youText
-      : severityApprovedBy
-    : ' - ';
+  const severityApprovedByText = severityApprovedBy || ' - ';
   const recommendedSeverityApprovalText = recommendedSeverityStatus === 'APPROVED' && severityApprovedByText
     ? t('Approved by {{name}}', { name: severityApprovedByText })
     : pendingApprovalText;
