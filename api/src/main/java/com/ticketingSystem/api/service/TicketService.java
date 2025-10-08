@@ -1026,6 +1026,86 @@ public class TicketService {
         throw new IllegalStateException("Unable to resolve recipient identifier for in-app notification");
     }
 
+    private void sendRequestorMasterLinkNotification(Ticket ticket,
+                                                     Ticket masterTicket,
+                                                     String updatedBy) {
+        if (ticket == null) {
+            return;
+        }
+
+        User requestor = ticket.getUser();
+        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
+            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
+            if (requestor != null) {
+                ticket.setUser(requestor);
+            }
+        }
+
+        String recipientIdentifier;
+        try {
+            recipientIdentifier = resolveRecipientIdentifier(
+                    ticket.getUser(),
+                    ticket.getUserId(),
+                    ticket.getRequestorEmailId(),
+                    ticket.getRequestorName()
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("ticketId", ticket.getId());
+        data.put("ticketNumber", ticket.getId());
+        data.put("updateType", "MASTER_LINKED");
+
+        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        if (recipientName != null && !recipientName.isBlank()) {
+            data.put("recipientName", recipientName);
+        }
+
+        if (masterTicket != null) {
+            data.put("masterTicketId", masterTicket.getId());
+            if (masterTicket.getSubject() != null && !masterTicket.getSubject().isBlank()) {
+                data.put("masterTicketSubject", masterTicket.getSubject());
+            }
+        }
+
+        if (updatedBy != null && !updatedBy.isBlank()) {
+            data.put("actorName", resolveUserDisplayName(updatedBy));
+        }
+
+        String masterDisplay = masterTicket != null
+                ? firstNonBlank(masterTicket.getSubject(), masterTicket.getId())
+                : null;
+        String actorDisplay = updatedBy != null && !updatedBy.isBlank()
+                ? resolveUserDisplayName(updatedBy)
+                : null;
+
+        String updateMessage;
+        if (masterDisplay != null && actorDisplay != null) {
+            updateMessage = String.format("Ticket linked to master %s by %s", masterDisplay, actorDisplay);
+        } else if (masterDisplay != null) {
+            updateMessage = String.format("Ticket linked to master %s", masterDisplay);
+        } else if (actorDisplay != null) {
+            updateMessage = String.format("Ticket linked to a master ticket by %s", actorDisplay);
+        } else {
+            updateMessage = "Ticket linked to a master ticket";
+        }
+        data.put("updateMessage", updateMessage);
+
+        try {
+            notificationService.sendNotification(
+                    ChannelType.IN_APP,
+                    TICKET_UPDATED_NOTIFICATION_CODE,
+                    data,
+                    recipientIdentifier
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public TicketDto addAttachments(String id, List<String> paths) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
@@ -1096,6 +1176,7 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
         addLinkingHistory(saved, updatedBy, String.format("Linked to master ticket %s", masterId));
+        sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy);
         return mapWithStatusId(saved);
     }
 
