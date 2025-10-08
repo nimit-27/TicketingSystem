@@ -19,12 +19,17 @@ const MyWorkload: React.FC = () => {
             ["9", "IT_MANAGER", "ITMANAGER"].includes(role)
         );
 
-        return { isTeamLeadRole, isItManagerRole };
+        const isHelpdeskAgent = roles.some(role =>
+            ["3"].includes(role)
+        );
+        return { isTeamLeadRole, isItManagerRole, isHelpdeskAgent };
     }, []);
 
     const buildSearchOverrides = useCallback(
         (_: TicketsListFilterState): TicketsListSearchOverrides => {
-            const { isTeamLeadRole, isItManagerRole } = getRoleFlags();
+            const user = getCurrentUserDetails();
+            const username = user?.username || user?.userId || "";
+            const { isTeamLeadRole, isItManagerRole, isHelpdeskAgent } = getRoleFlags();
 
             if (isItManagerRole) {
                 return { statusName: "AWAITING_ESCALATION_APPROVAL" };
@@ -32,6 +37,10 @@ const MyWorkload: React.FC = () => {
 
             if (isTeamLeadRole) {
                 return { statusName: "OPEN" };
+            }
+
+            if (isHelpdeskAgent) {
+                return { assignedTo: username };
             }
 
             return {};
