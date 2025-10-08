@@ -10,6 +10,23 @@ export type SubmitFeedbackRequest = {
   comments?: string;
 };
 
+export type FeedbackFormResponse = {
+  ticketId: string;
+  dateOfResolution: string | null;
+};
+
+export type TicketFeedbackResponse = {
+  ticketId: string;
+  overallSatisfaction: number;
+  resolutionEffectiveness: number;
+  communicationSupport: number;
+  timeliness: number;
+  comments?: string | null;
+  submittedAt: string;
+  submittedBy: string;
+  dateOfResolution: string | null;
+};
+
 export function getFeedbackForm(ticketId: string) {
   return apiClient.get(`${BASE_URL}/tickets/${ticketId}/feedback/form`);
 }

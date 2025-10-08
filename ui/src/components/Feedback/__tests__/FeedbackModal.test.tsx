@@ -27,11 +27,12 @@ jest.mock('../../../context/SnackbarContext', () => ({
 
 const mockSubmitFeedback = jest.fn();
 const mockGetFeedback = jest.fn();
+const mockGetFeedbackForm = jest.fn();
 
 jest.mock('../../../services/FeedbackService', () => ({
   submitFeedback: (...args: unknown[]) => mockSubmitFeedback(...args),
   getFeedback: (...args: unknown[]) => mockGetFeedback(...args),
-  getFeedbackForm: jest.fn(),
+  getFeedbackForm: (...args: unknown[]) => mockGetFeedbackForm(...args),
 }));
 
 jest.mock('../StarRating', () => ({
@@ -57,14 +58,32 @@ describe('FeedbackModal', () => {
   });
 
   it('submits feedback with updated values', async () => {
-    const apiHandlerMock = jest.fn((fn: () => Promise<unknown>) => fn());
-    mockUseApi.mockReturnValue({
-      data: null,
-      success: false,
-      pending: false,
-      error: null,
-      apiHandler: apiHandlerMock,
-    });
+    const feedbackApiHandlerMock = jest.fn();
+    const formApiHandlerMock = jest.fn((fn: () => Promise<unknown>) => fn());
+    mockUseApi
+      .mockReturnValueOnce({
+        data: null,
+        success: false,
+        pending: false,
+        error: null,
+        apiHandler: feedbackApiHandlerMock,
+      })
+      .mockReturnValueOnce({
+        data: { ticketId, dateOfResolution: '2024-01-01T00:00:00Z' },
+        success: true,
+        pending: false,
+        error: null,
+        apiHandler: formApiHandlerMock,
+      })
+      .mockReturnValue({
+        data: { ticketId, dateOfResolution: '2024-01-01T00:00:00Z' },
+        success: true,
+        pending: false,
+        error: null,
+        apiHandler: formApiHandlerMock,
+      });
+
+    mockGetFeedbackForm.mockResolvedValue({ data: { ticketId, dateOfResolution: '2024-01-01T00:00:00Z' } });
 
     mockSubmitFeedback.mockResolvedValue({});
 
@@ -94,6 +113,8 @@ describe('FeedbackModal', () => {
 
     await waitFor(() => expect(mockShowMessage).toHaveBeenCalledWith('Feedback submitted', 'success'));
     expect(onClose).toHaveBeenCalled();
+    expect(formApiHandlerMock).toHaveBeenCalledTimes(1);
+    expect(mockGetFeedbackForm).toHaveBeenCalledWith(ticketId);
   });
 
   it('shows provided feedback in view mode', async () => {
@@ -105,16 +126,32 @@ describe('FeedbackModal', () => {
       comments: 'Resolved quickly',
     };
 
-    const apiHandlerMock = jest.fn((fn: () => Promise<unknown>) => fn());
-    mockUseApi.mockReturnValue({
-      data: existingFeedback,
-      success: true,
-      pending: false,
-      error: null,
-      apiHandler: apiHandlerMock,
-    });
+    const feedbackApiHandlerMock = jest.fn((fn: () => Promise<unknown>) => fn());
+    mockUseApi
+      .mockReturnValueOnce({
+        data: existingFeedback,
+        success: true,
+        pending: false,
+        error: null,
+        apiHandler: feedbackApiHandlerMock,
+      })
+      .mockReturnValueOnce({
+        data: null,
+        success: false,
+        pending: false,
+        error: null,
+        apiHandler: jest.fn(),
+      })
+      .mockReturnValue({
+        data: existingFeedback,
+        success: true,
+        pending: false,
+        error: null,
+        apiHandler: feedbackApiHandlerMock,
+      });
 
     mockGetFeedback.mockResolvedValue(existingFeedback);
+    mockGetFeedbackForm.mockResolvedValue({});
 
     const onClose = jest.fn();
 
@@ -122,8 +159,8 @@ describe('FeedbackModal', () => {
       <FeedbackModal open ticketId={ticketId} onClose={onClose} feedbackStatus="PROVIDED" />,
     );
 
-    await waitFor(() => expect(apiHandlerMock).toHaveBeenCalled());
-    const handler = apiHandlerMock.mock.calls[0][0];
+    await waitFor(() => expect(feedbackApiHandlerMock).toHaveBeenCalled());
+    const handler = feedbackApiHandlerMock.mock.calls[0][0];
     await handler();
     expect(mockGetFeedback).toHaveBeenCalledWith(ticketId);
 

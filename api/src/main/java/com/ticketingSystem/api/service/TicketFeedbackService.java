@@ -90,7 +90,7 @@ public class TicketFeedbackService {
                 statusMasterRepository.findById(closedId).ifPresent(ticket::setStatus);
             }
             ticketRepository.save(ticket);
-            return toResponse(ticketId, saved);
+            return toResponse(ticket, saved);
         } catch (Exception ex) {
             throw new FeedbackSubmissionException(ticketId, ex);
         }
@@ -104,13 +104,14 @@ public class TicketFeedbackService {
         }
         TicketFeedback feedback = feedbackRepository.findByTicketId(ticketId)
                 .orElseThrow(() -> new FeedbackNotFoundException(ticketId));
-        return toResponse(ticketId, feedback);
+        return toResponse(ticket, feedback);
     }
 
-    private TicketFeedbackResponse toResponse(String ticketId, TicketFeedback feedback) {
-        return new TicketFeedbackResponse(ticketId, feedback.getOverallSatisfaction(),
+    private TicketFeedbackResponse toResponse(Ticket ticket, TicketFeedback feedback) {
+        return new TicketFeedbackResponse(ticket.getId(), feedback.getOverallSatisfaction(),
                 feedback.getResolutionEffectiveness(), feedback.getCommunicationSupport(),
-                feedback.getTimeliness(), feedback.getComments(), feedback.getSubmittedAt(), feedback.getSubmittedBy());
+                feedback.getTimeliness(), feedback.getComments(), feedback.getSubmittedAt(),
+                feedback.getSubmittedBy(), ticket.getResolvedAt());
     }
 
     private boolean isTicketOwner(String ticketUserId, String currentUserId) {
