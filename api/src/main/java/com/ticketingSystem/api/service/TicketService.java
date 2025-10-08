@@ -52,6 +52,8 @@ public class TicketService {
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
     private static final String IT_MANAGER_ROLE_NAME = "IT Manager";
+    private static final String TEAM_LEAD_ROLE_NAME = "Team Lead";
+    private static final String RECOMMENDED_SEVERITY_APPROVED_UPDATE_TYPE = "RECOMMENDED_SEVERITY_APPROVED";
     private final TypesenseClient typesenseClient;
     @Value("${app.search.engine:default}")
     private String searchEngine;
@@ -543,12 +545,29 @@ public class TicketService {
 
         if (severityApproved && previousRecommendedSeverity != null) {
             final String approver = updatedBy;
+            final Optional<User> approverUserOptional = approver != null
+                    ? findUserByIdOrUsername(approver)
+                    : Optional.empty();
+            final Optional<String> itManagerRoleIdOptional = findRoleIdByName(IT_MANAGER_ROLE_NAME);
+            final Optional<String> teamLeadRoleIdOptional = findRoleIdByName(TEAM_LEAD_ROLE_NAME);
             recommendedSeverityFlowRepository
                     .findTopByTicket_IdAndRecommendedSeverityAndRecommendedSeverityStatusOrderByIdDesc(id, previousRecommendedSeverity, RecommendedSeverityStatus.PENDING)
                     .ifPresent(flow -> {
                         flow.setRecommendedSeverityStatus(RecommendedSeverityStatus.APPROVED);
                         flow.setSeverityApprovedBy(approver);
                         recommendedSeverityFlowRepository.save(flow);
+
+                        if (approverUserOptional.isPresent()
+                                && itManagerRoleIdOptional.isPresent()
+                                && userHasRole(approverUserOptional.get(), itManagerRoleIdOptional.get())
+                                && teamLeadRoleIdOptional.isPresent()) {
+                            notifyRoleMembersOfRecommendedSeverityApproval(
+                                    saved,
+                                    previousRecommendedSeverity,
+                                    approver,
+                                    teamLeadRoleIdOptional.get()
+                            );
+                        }
                     });
         }
         return mapWithStatusId(saved);
@@ -742,9 +761,7 @@ public class TicketService {
             return;
         }
 
-        roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse(IT_MANAGER_ROLE_NAME)
-                .map(Role::getRoleId)
-                .map(String::valueOf)
+        findRoleIdByName(IT_MANAGER_ROLE_NAME)
                 .ifPresent(roleId -> notifyRoleMembersOfStatusUpdate(ticket, roleId, existingData));
     }
 
@@ -785,6 +802,69 @@ public class TicketService {
                 ex.printStackTrace();
             }
         }
+    }
+
+    private void notifyRoleMembersOfRecommendedSeverityApproval(Ticket ticket,
+                                                                 String approvedSeverity,
+                                                                 String approverIdentifier,
+                                                                 String roleId) {
+        if (ticket == null || roleId == null || roleId.isBlank()) {
+            return;
+        }
+
+        List<User> roleMembers = userRepository.findAll()
+                .stream()
+                .filter(user -> userHasRole(user, roleId))
+                .toList();
+
+        if (roleMembers.isEmpty()) {
+            return;
+        }
+
+        String severityDisplay = firstNonBlank(approvedSeverity, ticket.getSeverity());
+        String actorDisplayName = resolveUserDisplayName(approverIdentifier);
+        String updateMessage = (severityDisplay != null && !severityDisplay.isBlank())
+                ? String.format("Recommended severity %s approved by %s", severityDisplay, actorDisplayName)
+                : String.format("Recommended severity approved by %s", actorDisplayName);
+
+        for (User member : roleMembers) {
+            try {
+                String recipientIdentifier = resolveRecipientIdentifier(member);
+                Map<String, Object> notificationData = new HashMap<>();
+                notificationData.put("ticketId", ticket.getId());
+                notificationData.put("ticketNumber", ticket.getId());
+                notificationData.put("updateType", RECOMMENDED_SEVERITY_APPROVED_UPDATE_TYPE);
+                notificationData.put("updateMessage", updateMessage);
+                notificationData.put("actorName", actorDisplayName);
+                if (severityDisplay != null && !severityDisplay.isBlank()) {
+                    notificationData.put("recommendedSeverity", severityDisplay);
+                }
+
+                String memberName = resolveUserName(member);
+                if (memberName != null && !memberName.isBlank()) {
+                    notificationData.put("recipientName", memberName);
+                }
+
+                notificationService.sendNotification(
+                        ChannelType.IN_APP,
+                        TICKET_UPDATED_NOTIFICATION_CODE,
+                        notificationData,
+                        recipientIdentifier
+                );
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private Optional<String> findRoleIdByName(String roleName) {
+        if (roleName == null || roleName.isBlank()) {
+            return Optional.empty();
+        }
+
+        return roleRepository.findByRoleIgnoreCaseAndIsDeletedFalse(roleName)
+                .map(Role::getRoleId)
+                .map(String::valueOf);
     }
 
     private boolean userHasRole(User user, String roleId) {
