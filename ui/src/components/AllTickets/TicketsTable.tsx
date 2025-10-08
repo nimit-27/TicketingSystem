@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import { checkAccessMaster, checkMyTicketsColumnAccess } from '../../utils/permissions';
-import { getStatusNameById, truncateWithEllipsis } from '../../utils/Utils';
+import { getStatusNameById, truncateWithLeadingEllipsis } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
 import { Menu, MenuItem, ListItemIcon, Tooltip, Button } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
@@ -215,7 +215,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     <Tooltip title={record.id} placement="top" >
                         <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
                         {/* <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}> */}
-                            {truncateWithEllipsis(record.id, 10)}
+                            {truncateWithLeadingEllipsis(record.id, 10)}
                             {record.isMaster && <MasterIcon />}
                             {(record.breachedByMinutes ?? 0) > 0 && (
                                 <CustomIconButton icon="runningWithErrors" color='error' />
