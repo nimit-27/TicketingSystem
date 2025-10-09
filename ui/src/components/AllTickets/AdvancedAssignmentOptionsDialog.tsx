@@ -4,6 +4,7 @@ import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { getCurrentUserDetails } from '../../config/config';
 import { updateTicket } from '../../services/TicketService';
 import CustomTabsComponent, { TabItem } from '../UI/CustomTabsComponent';
+import { TicketStatusWorkflow } from '../../types';
 
 interface User {
     userId: string;
@@ -29,6 +30,7 @@ interface AdvancedAssignmentOptionsDialogProps {
     updateTicketApiHandler: any;
     searchCurrentTicketsPaginatedApi?: (id: string) => void;
     onAssigned?: (name: string) => void;
+    getAllAvailableActionsByCurrentStatus?: (statusId: string) => TicketStatusWorkflow[]
 }
 
 const REQUESTER_STATUS_ID = '3';
@@ -60,79 +62,79 @@ const AssignUserTab: React.FC<{
     handleCancelRemark,
     handleSubmitRemark,
 }) => {
-    const allowedRoleIds = ['3', '8'];
-    const expandedUsers: User[] = React.useMemo(() => {
-        const baseUsers = selectedLevel
-            ? users.filter(u => (u.levels || []).includes(selectedLevel))
-            : users;
-        return baseUsers.flatMap(u => {
-            const ids = u.levels && u.levels.length ? u.levels : [''];
-            return ids.map(id => ({ ...u, levelId: id }));
-        });
-    }, [users, selectedLevel]);
+        const allowedRoleIds = ['3', '8'];
+        const expandedUsers: User[] = React.useMemo(() => {
+            const baseUsers = selectedLevel
+                ? users.filter(u => (u.levels || []).includes(selectedLevel))
+                : users;
+            return baseUsers.flatMap(u => {
+                const ids = u.levels && u.levels.length ? u.levels : [''];
+                return ids.map(id => ({ ...u, levelId: id }));
+            });
+        }, [users, selectedLevel]);
 
-    const allowedUsers = expandedUsers.filter(u =>
-        u.roles?.split('|').some(r => allowedRoleIds.includes(r))
-    );
+        const allowedUsers = expandedUsers.filter(u =>
+            u.roles?.split('|').some(r => allowedRoleIds.includes(r))
+        );
 
-    const filtered = allowedUsers.filter(u =>
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.username.toLowerCase().includes(search.toLowerCase())
-    );
+        const filtered = allowedUsers.filter(u =>
+            u.name.toLowerCase().includes(search.toLowerCase()) ||
+            u.username.toLowerCase().includes(search.toLowerCase())
+        );
 
-    return (
-        <>
-            <Box>
-                <input
-                    type="text"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search"
-                    className="form-control mb-2"
-                />
-                <Box sx={{ mb: 1, display: 'flex', flexWrap: 'wrap' }}>
-                    {levels.map(l => (
-                        <span
-                            key={l.levelId}
-                            className={`badge me-1 mb-1 ${selectedLevel === l.levelId ? 'bg-primary' : 'bg-light text-dark'}`}
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setSelectedLevel(selectedLevel === l.levelId ? '' : l.levelId)}
-                        >
-                            {l.levelId}
-                        </span>
-                    ))}
-                </Box>
-                <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
-                    <ul className="list-group">
-                        {filtered.map(u => (
-                            <li
-                                key={`${u.userId}-${u.levelId}`}
-                                className="list-group-item list-group-item-action"
+        return (
+            <>
+                <Box>
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Search"
+                        className="form-control mb-2"
+                    />
+                    <Box sx={{ mb: 1, display: 'flex', flexWrap: 'wrap' }}>
+                        {levels.map(l => (
+                            <span
+                                key={l.levelId}
+                                className={`badge me-1 mb-1 ${selectedLevel === l.levelId ? 'bg-primary' : 'bg-light text-dark'}`}
                                 style={{ cursor: 'pointer' }}
-                                onClick={() => handleSelect(u)}
+                                onClick={() => setSelectedLevel(selectedLevel === l.levelId ? '' : l.levelId)}
                             >
-                                <div className="d-flex">
-                                    <div style={{ width: 60 }}>{u.levelId}</div>
-                                    <div className="flex-grow-1">{u.name}</div>
-                                    <div style={{ width: 80, fontStyle: 'italic', color: '#888' }}>{u.username}</div>
-                                </div>
-                            </li>
+                                {l.levelId}
+                            </span>
                         ))}
-                    </ul>
-                </Box>
-                {showActionRemark && selectedUser && (
-                    <Box sx={{ mt: 1 }}>
-                        <RemarkComponent
-                            actionName="Assign"
-                            onCancel={handleCancelRemark}
-                            onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
-                        />
                     </Box>
-                )}
-            </Box>
-        </>
-    );
-};
+                    <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
+                        <ul className="list-group">
+                            {filtered.map(u => (
+                                <li
+                                    key={`${u.userId}-${u.levelId}`}
+                                    className="list-group-item list-group-item-action"
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => handleSelect(u)}
+                                >
+                                    <div className="d-flex">
+                                        <div style={{ width: 60 }}>{u.levelId}</div>
+                                        <div className="flex-grow-1">{u.name}</div>
+                                        <div style={{ width: 80, fontStyle: 'italic', color: '#888' }}>{u.username}</div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </Box>
+                    {showActionRemark && selectedUser && (
+                        <Box sx={{ mt: 1 }}>
+                            <RemarkComponent
+                                actionName="Assign"
+                                onCancel={handleCancelRemark}
+                                onSubmit={(remark) => handleSubmitRemark(remark, selectedUser)}
+                            />
+                        </Box>
+                    )}
+                </Box>
+            </>
+        );
+    };
 
 // --- RequesterTab Component ---
 const RequesterTab: React.FC<{
@@ -263,31 +265,31 @@ const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogP
         },
         ...(canRequester
             ? [
-                  {
-                      key: 'requester',
-                      tabTitle: 'Requester',
-                      tabComponent: (
-                          <RequesterTab
-                              onCancel={onClose}
-                              onSubmit={handleAssignRequester}
-                          />
-                      ),
-                  },
-              ]
+                {
+                    key: 'requester',
+                    tabTitle: 'Requester',
+                    tabComponent: (
+                        <RequesterTab
+                            onCancel={onClose}
+                            onSubmit={handleAssignRequester}
+                        />
+                    ),
+                },
+            ]
             : []),
         ...(canAssignToFci
             ? [
-                  {
-                      key: 'fci',
-                      tabTitle: 'Assign to FCI',
-                      tabComponent: (
-                          <AssignToFciTab
-                              onCancel={onClose}
-                              onSubmit={handleAssignToFci}
-                          />
-                      ),
-                  },
-              ]
+                {
+                    key: 'fci',
+                    tabTitle: 'Assign to FCI',
+                    tabComponent: (
+                        <AssignToFciTab
+                            onCancel={onClose}
+                            onSubmit={handleAssignToFci}
+                        />
+                    ),
+                },
+            ]
             : []),
     ];
 

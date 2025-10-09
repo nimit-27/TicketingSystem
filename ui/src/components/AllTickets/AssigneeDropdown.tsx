@@ -10,6 +10,7 @@ import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { updateTicket } from '../../services/TicketService';
 import { getCurrentUserDetails } from '../../config/config';
 import AdvancedAssignmentOptionsDialog from './AdvancedAssignmentOptionsDialog';
+import { TicketStatusWorkflow } from '../../types';
 
 interface AssigneeDropdownProps {
     ticketId: string;
@@ -17,12 +18,13 @@ interface AssigneeDropdownProps {
     onAssigned?: (name: string) => void;
     searchCurrentTicketsPaginatedApi?: (id: string) => void;
     requestorId?: string;
+    getAllAvailableActionsByCurrentStatus?: (statusId: string) => TicketStatusWorkflow[]
 }
 
 interface Level { levelId: string; levelName: string; }
 interface User { userId: string; username: string; name: string; roles?: string; levels?: string[]; levelId?: string; levelName?: string; }
 
-const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi, requestorId }) => {
+const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi, requestorId, getAllAvailableActionsByCurrentStatus }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
@@ -198,6 +200,7 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                 updateTicketApiHandler={updateTicketApiHandler}
                 searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                 onAssigned={onAssigned}
+                getAllAvailableActionsByCurrentStatus={getAllAvailableActionsByCurrentStatus}
             />
         </>
     );

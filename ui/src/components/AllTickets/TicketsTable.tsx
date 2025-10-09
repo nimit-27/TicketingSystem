@@ -123,6 +123,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         }
     };
 
+    const handleAssignBack = (ticketId: string, statusId?: string, assignee?: string) => {
+        const recordActions = getAvailableActions(statusId);
+        if (assignee) {
+            // STATUS WORKFLOW: ON HOLD-> ASSIGNED
+            let assignBackToAssigneeAction = recordActions.find(a => a.nextStatus === 2) as TicketStatusWorkflow
+            handleActionClick(assignBackToAssigneeAction, ticketId)
+        } else {
+            // STATUS WORKFLOW: ON HOLD -> OPEN
+            let assignBackToOpenAction = recordActions.find(a => a.nextStatus === 1) as TicketStatusWorkflow
+            handleActionClick(assignBackToOpenAction, ticketId)
+        }
+    }
+
     const onIdClickRca = (id: string, state: any) => navigate(`/root-cause-analysis/${id}`, { state });
 
     const openMenu = (event: React.MouseEvent, record: TicketRow) => {
@@ -214,7 +227,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 render: (_: any, record: TicketRow) => (
                     <Tooltip title={record.id} placement="top" >
                         <div className="d-flex align-items-center" onClick={() => onIdClick(record.id)} style={{ cursor: 'pointer' }}>
-                        {/* <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}> */}
+                            {/* <div className="d-flex align-items-center" onClick={() => onIdClickRca(record.id, { rcaStatus: record.rcaStatus })} style={{ cursor: 'pointer' }}> */}
                             {truncateWithLeadingEllipsis(record.id, 10)}
                             {record.isMaster && <MasterIcon />}
                             {(record.breachedByMinutes ?? 0) > 0 && (
@@ -310,6 +323,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 assigneeName={record.assignedToName || record.assignedTo}
                                 requestorId={record.userId}
                                 searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+                                getAllAvailableActionsByCurrentStatus={getAllAvailableActionsByCurrentStatus}
                             />
                         );
                     }
@@ -363,9 +377,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     const recordActions = getAvailableActions(record.statusId);
                     const statusName = getStatusNameById(record.statusId || '') || '';
                     const resumeAction = recordActions.find(a => a.action === 'Resume');
-                    const isFciOnHold = statusName === FCI_STATUS_NAME;
+                    // const isFciOnHold = statusName === FCI_STATUS_NAME;
                     const showSubmit = Boolean(resumeAction && statusName === 'On Hold (Pending with Requester)');
-                    const canAssignBack = Boolean(isFciOnHold && resumeAction && (canAssignBackByLevel || record.assignedBy?.toLowerCase() === currentUsername));
+                    // const canAssignBack = Boolean(isFciOnHold && resumeAction && (canAssignBackByLevel || record.assignedBy?.toLowerCase() === currentUsername));
                     const nonResumeActions = recordActions.filter(a => a.action !== 'Resume');
                     const showInlineActions = !showSubmit && nonResumeActions.length > 0 && nonResumeActions.length <= 2;
                     const showActionsMenu = !showSubmit && nonResumeActions.length > 2;
@@ -379,11 +393,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             {showSubmit && resumeAction && (
                                 <Button size="small" onClick={() => handleActionClick(resumeAction, record.id)}>Submit</Button>
                             )}
-                            {canAssignBack && resumeAction && (
+                            {resumeAction && (
                                 <Tooltip title="Assign Back" placement="top">
                                     <CustomIconButton
                                         size="small"
-                                        onClick={() => handleActionClick(resumeAction, record.id)}
+                                        // onClick={() => handleActionClick(resumeAction, record.id)}
+                                        onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
                                         icon="undo"
                                     />
                                 </Tooltip>
