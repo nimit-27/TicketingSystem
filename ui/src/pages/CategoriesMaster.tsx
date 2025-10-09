@@ -38,6 +38,15 @@ const CategoriesMaster: React.FC = () => {
         sc => !sc.subCategory.toLowerCase().includes(subCategoryInput.toLowerCase())
     );
 
+    const trimmedSubCategoryInput = subCategoryInput.trim();
+    const normalizedSubCategoryInput = trimmedSubCategoryInput.toLowerCase();
+    const subCategoryExists = filteredSubCategories?.some(
+        sc => sc.subCategory.toLowerCase() === normalizedSubCategoryInput
+    ) ?? false;
+    const isUniqueSubCategory = Boolean(trimmedSubCategoryInput) && !subCategoryExists;
+    const canAddSubCategory = Boolean(selectedCategory) && isUniqueSubCategory;
+    const canSelectSeverity = Boolean(selectedSubCategory) || canAddSubCategory;
+
     const fetchCategories = () => {
         getCategoriesApiHandler(() => getCategories())
     };
@@ -64,12 +73,19 @@ const CategoriesMaster: React.FC = () => {
     }, [categories, selectedCategory]);
 
     useEffect(() => {
-        if (getSubCategoriesData) {
-            const cleaned = getSubCategoriesData.map((sc: SubCategory) => ({
-                ...sc,
-                subCategory: sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
-            }));
+        if (Array.isArray(getSubCategoriesData)) {
+            const cleaned = getSubCategoriesData
+                .filter((sc: SubCategory & { severity?: { id?: string | null } }) =>
+                    Boolean(sc && (sc.severityId || sc?.severity?.id))
+                )
+                .map((sc: SubCategory & { severity?: { id?: string | null } }) => ({
+                    ...sc,
+                    severityId: sc.severityId ?? sc?.severity?.id ?? null,
+                    subCategory: sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
+                }));
             setSubCategories(cleaned);
+        } else if (getSubCategoriesData) {
+            setSubCategories([]);
         }
     }, [getSubCategoriesData]);
 
@@ -119,17 +135,25 @@ const CategoriesMaster: React.FC = () => {
     };
 
     const handleAddSubCategory = () => {
-        const name = subCategoryInput.trim();
-        if (!name || !selectedCategory) return;
-        if (!selectedCategory.subCategories.find(sc => sc.subCategory.toLowerCase() === name.toLowerCase())) {
-            const newSub = { subCategory: name, categoryId: selectedCategory.categoryId, createdBy: getCurrentUserDetails()?.userId };
+        if (!canAddSubCategory || !selectedCategory) return;
+        const name = trimmedSubCategoryInput;
+        const newSub: any = {
+            subCategory: name,
+            categoryId: selectedCategory.categoryId,
+            createdBy: getCurrentUserDetails()?.userId
+        };
 
-            addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => {
-                fetchSubCategories();
-                fetchCategories();
-            });
+        if (selectedSeverity) {
+            newSub.severityId = selectedSeverity;
         }
+
+        addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => {
+            fetchSubCategories();
+            fetchCategories();
+        });
         setSubCategoryInput('');
+        setSelectedSeverity('');
+        setSelectedSubCategory(null);
     };
 
     const handleEditSubCategory = (sc: SubCategory) => {
@@ -159,17 +183,13 @@ const CategoriesMaster: React.FC = () => {
 
     const handleSeverityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        if (!selectedSubCategory) return;
         setSelectedSeverity(value);
+        if (!selectedSubCategory) return;
         const payload: any = {};
         if (selectedSubCategory.subCategory) {
             payload.subCategory = selectedSubCategory.subCategory;
         }
-        if (value) {
-            payload.severity = { id: value };
-        } else {
-            payload.severity = { id: '' };
-        }
+        payload.severity = value ? { id: value } : { id: '' };
         updateSubCategoryApiHandler(() => updateSubCategory(selectedSubCategory.subCategoryId, payload)).then(() => {
             fetchSubCategories();
             fetchCategories();
@@ -303,10 +323,20 @@ const CategoriesMaster: React.FC = () => {
                         label="Sub-Category"
                         fullWidth
                         value={subCategoryInput}
-                        onChange={e => setSubCategoryInput(e.target.value)}
-                        onFocus={() => setSubCategoryInput('')}
+                        onChange={e => {
+                            setSubCategoryInput(e.target.value);
+                            if (selectedSubCategory) {
+                                setSelectedSubCategory(null);
+                                setSelectedSeverity('');
+                            }
+                        }}
+                        onFocus={() => {
+                            setSubCategoryInput('');
+                            setSelectedSubCategory(null);
+                            setSelectedSeverity('');
+                        }}
                     />
-                    {subCategoryInput && !displaySubCategories?.some(sc => sc.subCategory.toLowerCase() === subCategoryInput.toLowerCase()) && (
+                    {canAddSubCategory && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>
                             {t('Add Sub-Category')}
                         </Button>
@@ -317,7 +347,7 @@ const CategoriesMaster: React.FC = () => {
                         fullWidth
                         className="mt-3"
                         value={selectedSeverity}
-                        disabled={!selectedCategory || !selectedSubCategory}
+                        disabled={!canSelectSeverity}
                         onChange={handleSeverityChange}
                     >
                         <MenuItem value="">

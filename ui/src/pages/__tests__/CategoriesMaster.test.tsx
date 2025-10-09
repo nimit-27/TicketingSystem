@@ -4,7 +4,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react';
 const mockAddCategory = jest.fn(() => Promise.resolve());
 const mockFetchCategories = jest.fn(() => Promise.resolve([{ categoryId: '1', category: 'Existing', subCategories: [] }]));
 const mockFetchSubCategories = jest.fn(() => Promise.resolve([
-  { subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1' },
+  { subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1', severityId: 'S1' },
 ]));
 
 const mockUseApi = jest.fn();
@@ -54,7 +54,7 @@ describe('CategoriesMaster', () => {
     mockAddCategory.mockResolvedValue(undefined);
     mockFetchCategories.mockResolvedValue([{ categoryId: '1', category: 'Existing', subCategories: [] }]);
     mockFetchSubCategories.mockResolvedValue([
-      { subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1' },
+      { subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1', severityId: 'S1' },
     ]);
 
     let call = 0;
@@ -68,7 +68,7 @@ describe('CategoriesMaster', () => {
       }
       if (call === 2) {
         return {
-          data: [{ subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1' }],
+          data: [{ subCategoryId: '10', categoryId: '1', subCategory: 'Child', createdBy: '1', severityId: 'S1' }],
           apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
         };
       }
