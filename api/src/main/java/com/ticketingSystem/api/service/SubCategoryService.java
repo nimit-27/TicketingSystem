@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.SubCategoryDto;
+import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.models.Category;
 import com.ticketingSystem.api.models.SubCategory;
@@ -42,10 +43,17 @@ public class SubCategoryService {
         Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException("Category", categoryId));
         subCategory.setCategory(category);
-        if (subCategory.getSeverity() != null && subCategory.getSeverity().getId() != null) {
-            severityRepository.findById(subCategory.getSeverity().getId())
-                    .ifPresent(subCategory::setSeverity);
+        if (subCategory.getSeverity() == null ||
+                subCategory.getSeverity().getId() == null ||
+                subCategory.getSeverity().getId().isBlank()) {
+            throw new InvalidRequestException("Severity is required for a sub-category");
         }
+
+        String severityId = subCategory.getSeverity().getId();
+        subCategory.setSeverity(
+                severityRepository.findById(severityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Severity", severityId))
+        );
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         subCategory.setTimestamp(now);
         subCategory.setLastUpdated(now);
@@ -64,10 +72,12 @@ public class SubCategoryService {
                 if (updated.getSeverity() != null) {
                     String severityId = updated.getSeverity().getId();
                     if (severityId == null || severityId.isBlank()) {
-                        existing.setSeverity(null);
+                        throw new InvalidRequestException("Severity is required for a sub-category");
                     } else {
-                        severityRepository.findById(severityId)
-                                .ifPresentOrElse(existing::setSeverity, () -> existing.setSeverity(null));
+                        existing.setSeverity(
+                                severityRepository.findById(severityId)
+                                        .orElseThrow(() -> new ResourceNotFoundException("Severity", severityId))
+                        );
                     }
                 }
                 existing.setLastUpdated(java.time.LocalDateTime.now());
