@@ -6,7 +6,6 @@ import { getStatusHistory } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
 import { Paper, useTheme, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { getStatuses } from '../../utils/Utils';
 
 interface HistoryEntry {
     id: string;
@@ -14,6 +13,8 @@ interface HistoryEntry {
     timestamp: string;
     previousStatus: string;
     currentStatus: string;
+    statusName?: string;
+    label?: string;
     remark?: string;
 }
 
@@ -27,21 +28,10 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const [statusMap, setStatusMap] = useState<Record<string, string>>({});
 
     useEffect(() => {
         apiHandler(() => getStatusHistory(ticketId));
     }, [ticketId]);
-
-    useEffect(() => {
-        getStatuses().then(list => {
-            const map: Record<string, string> = {};
-            list.forEach((s: any) => {
-                map[s.statusId] = s.statusName;
-            });
-            setStatusMap(map);
-        });
-    }, []);
 
     const columns = [
         { title: t('Updated By'), dataIndex: 'updatedBy', key: 'updatedBy' },
@@ -55,8 +45,8 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             title: t('Status'),
             dataIndex: 'currentStatus',
             key: 'currentStatus',
-            render: (v: string) => {
-                const statusLabel = statusMap[v] || v?.replace(/_/g, ' ');
+            render: (_: string, record: HistoryEntry) => {
+                const statusLabel = record.label || record.statusName || record.currentStatus?.replace(/_/g, ' ');
                 return statusLabel ? t(statusLabel) : '';
             }
         },
@@ -90,7 +80,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             ) : (
                 <Timeline>
                     {history.map((h, idx) => {
-                        const timelineStatusLabel = statusMap[h?.currentStatus] || h?.currentStatus?.replace(/_/g, ' ');
+                        const timelineStatusLabel = h.label || h.statusName || h.currentStatus?.replace(/_/g, ' ');
                         return (
                             <TimelineItem key={h.id}>
                                 <TimelineSeparator>

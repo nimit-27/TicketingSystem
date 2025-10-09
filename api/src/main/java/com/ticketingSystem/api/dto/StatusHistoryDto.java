@@ -13,6 +13,8 @@ public class StatusHistoryDto {
     private String updatedBy;
     private String previousStatus;
     private String currentStatus;
+    private String statusName;
+    private String label;
     private LocalDateTime timestamp;
     private Boolean slaFlag;
     private String remark;
