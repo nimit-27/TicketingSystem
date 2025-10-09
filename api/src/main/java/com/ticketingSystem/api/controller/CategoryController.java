@@ -2,6 +2,7 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.CategoryDto;
 import com.ticketingSystem.api.dto.SubCategoryDto;
+import com.ticketingSystem.api.dto.SubCategoryRequest;
 import com.ticketingSystem.api.models.Category;
 import com.ticketingSystem.api.models.SubCategory;
 import com.ticketingSystem.api.service.CategoryService;
@@ -59,7 +60,8 @@ public class CategoryController {
     }
 
     @PostMapping("/{categoryId}/sub-categories")
-    public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId, @RequestBody SubCategory subCategory) {
+    public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId,
+                                                      @RequestBody SubCategoryRequest subCategory) {
         return ResponseEntity.ok(subCategoryService.saveSubCategory(categoryId, subCategory));
     }
 }

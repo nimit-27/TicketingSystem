@@ -1,7 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.SubCategoryDto;
-import com.ticketingSystem.api.exception.InvalidRequestException;
+import com.ticketingSystem.api.dto.SubCategoryRequest;
 import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.models.Category;
 import com.ticketingSystem.api.models.SubCategory;
@@ -40,21 +40,31 @@ public class SubCategoryService {
         return subCategoryRepository.findById(subCategoryId);
     }
 
-    public SubCategory saveSubCategory(String categoryId, SubCategory subCategory) {
-        Category category = categoryRepository.findById(categoryId)
-            .orElseThrow(() -> new ResourceNotFoundException("Category", categoryId));
-        subCategory.setCategory(category);
-//        if (subCategory.getSeverity() == null ||
-//                subCategory.getSeverity().getId() == null ||
-//                subCategory.getSeverity().getId().isBlank()) {
-//            throw new InvalidRequestException("Severity is required for a sub-category");
-//        }
+    public SubCategory saveSubCategory(String categoryId, SubCategoryRequest request) {
+        String resolvedCategoryId = (request.getCategoryId() != null && !request.getCategoryId().isBlank())
+                ? request.getCategoryId()
+                : categoryId;
+        Category category = categoryRepository.findById(resolvedCategoryId)
+            .orElseThrow(() -> new ResourceNotFoundException("Category", resolvedCategoryId));
 
-        String severityId = subCategory.getSeverity().getId();
-        subCategory.setSeverity(
-                severityRepository.findById(severityId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Severity", severityId))
-        );
+        SubCategory subCategory = new SubCategory();
+        subCategory.setCategory(category);
+        subCategory.setSubCategory(request.getSubCategory());
+        subCategory.setDescription(request.getDescription());
+        subCategory.setCreatedBy(request.getCreatedBy());
+        subCategory.setUpdatedBy(request.getUpdatedBy());
+        subCategory.setIsActive(request.getIsActive());
+
+        String severityId = request.getSeverityId();
+        if (severityId != null && !severityId.isBlank()) {
+            subCategory.setSeverity(
+                    severityRepository.findById(severityId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Severity", severityId))
+            );
+        } else {
+            subCategory.setSeverity(null);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         subCategory.setTimestamp(now);
         subCategory.setLastUpdated(now);
@@ -71,7 +81,7 @@ public class SubCategoryService {
                 if (updated.getSeverity() != null) {
                     String severityId = updated.getSeverity().getId();
                     if (severityId == null || severityId.isBlank()) {
-                        throw new InvalidRequestException("Severity is required for a sub-category");
+                        existing.setSeverity(null);
                     } else {
                         existing.setSeverity(
                                 severityRepository.findById(severityId)

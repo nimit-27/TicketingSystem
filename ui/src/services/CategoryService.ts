@@ -4,6 +4,26 @@ import { BASE_URL } from './api';
 let categoriesCache: any[] | null = null;
 const subCategoryCache: Record<string, any[]> = {};
 
+const filterSubCategoriesWithSeverity = (subCategories: any[]) => {
+    if (!Array.isArray(subCategories)) return [];
+    return subCategories
+        .filter(sc => sc && (sc.severityId || sc?.severity?.id))
+        .map(sc => {
+            if (!sc.severityId && sc?.severity?.id) {
+                return { ...sc, severityId: sc.severity.id };
+            }
+            return sc;
+        });
+};
+
+const sanitizeCategoriesResponse = (data: any) => {
+    if (!Array.isArray(data)) return data;
+    return data.map(cat => ({
+        ...cat,
+        subCategories: filterSubCategoriesWithSeverity(cat?.subCategories)
+    }));
+};
+
 const resetCategoriesCache = () => {
     categoriesCache = null;
 };
@@ -21,13 +41,22 @@ export function getCategories() {
         return Promise.resolve({ data: categoriesCache } as any);
     }
     return axios.get(`${BASE_URL}/categories`).then(res => {
-        categoriesCache = res.data;
+        const sanitized = sanitizeCategoriesResponse(res.data);
+        if (Array.isArray(sanitized)) {
+            categoriesCache = sanitized;
+        } else {
+            categoriesCache = null;
+        }
+        res.data = sanitized;
         return res;
     });
 }
 
 export function getAllSubCategories() {
-    return axios.get(`${BASE_URL}/sub-categories`);
+    return axios.get(`${BASE_URL}/sub-categories`).then(res => {
+        res.data = filterSubCategoriesWithSeverity(res.data);
+        return res;
+    });
 }
 
 export function addSubCategory(subCategory: any) {
@@ -64,7 +93,9 @@ export function getSubCategories(category: string) {
         return Promise.resolve({ data: subCategoryCache[category] } as any);
     }
     return axios.get(`${BASE_URL}/categories/${category}/sub-categories`).then(res => {
-        subCategoryCache[category] = res.data;
+        const filtered = filterSubCategoriesWithSeverity(res.data);
+        subCategoryCache[category] = filtered;
+        res.data = filtered;
         return res;
     });
 }
