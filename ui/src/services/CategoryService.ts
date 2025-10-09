@@ -4,16 +4,26 @@ import { BASE_URL } from './api';
 let categoriesCache: any[] | null = null;
 const subCategoryCache: Record<string, any[]> = {};
 
-const filterSubCategoriesWithSeverity = (subCategories: any[]) => {
+const normalizeSubCategory = (sc: any) => {
+    if (!sc) return sc;
+    const severityId = sc.severityId ?? sc?.severity?.id ?? null;
+    const subCategory = typeof sc.subCategory === 'string'
+        ? sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
+        : sc.subCategory;
+    return {
+        ...sc,
+        severityId,
+        subCategory
+    };
+};
+
+const normalizeSubCategories = (subCategories: any[]) => {
     if (!Array.isArray(subCategories)) return [];
-    return subCategories
-        .filter(sc => sc && (sc.severityId || sc?.severity?.id))
-        .map(sc => {
-            if (!sc.severityId && sc?.severity?.id) {
-                return { ...sc, severityId: sc.severity.id };
-            }
-            return sc;
-        });
+    return subCategories.map(normalizeSubCategory);
+};
+
+const filterSubCategoriesWithSeverity = (subCategories: any[]) => {
+    return normalizeSubCategories(subCategories).filter(sc => sc && sc.severityId);
 };
 
 const sanitizeCategoriesResponse = (data: any) => {
@@ -52,9 +62,9 @@ export function getCategories() {
     });
 }
 
-export function getAllSubCategories() {
-    return axios.get(`${BASE_URL}/sub-categories`).then(res => {
-        res.data = filterSubCategoriesWithSeverity(res.data);
+export function getAllSubCategories(categoryId: string) {
+    return axios.get(`${BASE_URL}/categories/${categoryId}/all-sub-categories`).then(res => {
+        res.data = normalizeSubCategories(res.data);
         return res;
     });
 }

@@ -11,6 +11,7 @@ import com.ticketingSystem.api.mapper.DtoMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -61,7 +62,15 @@ public class CategoryService {
                 .findById(categoryId)
                 .map(category -> category.getSubCategories().stream()
                         .map(DtoMapper::toSubCategoryDto)
-                        .collect(java.util.stream.Collectors.toSet()));
+                        .collect(Collectors.toSet()));
+    }
+
+    public Optional<List<SubCategoryDto>> getAllSubCategoriesByCategory(String categoryId) {
+        return categoryRepository
+                .findById(categoryId)
+                .map(category -> category.getSubCategories().stream()
+                        .map(DtoMapper::toSubCategoryDto)
+                        .collect(Collectors.toList()));
     }
 
 
