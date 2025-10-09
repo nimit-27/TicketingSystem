@@ -59,6 +59,12 @@ public class CategoryController {
         return subCategoriesOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{categoryId}/all-sub-categories")
+    public ResponseEntity<List<SubCategoryDto>> getAllSubCategoriesByCategory(@PathVariable String categoryId) {
+        Optional<List<SubCategoryDto>> subCategoriesOptional = categoryService.getAllSubCategoriesByCategory(categoryId);
+        return subCategoriesOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/{categoryId}/sub-categories")
     public ResponseEntity<SubCategory> addSubCategory(@PathVariable String categoryId,
                                                       @RequestBody SubCategoryRequest subCategory) {

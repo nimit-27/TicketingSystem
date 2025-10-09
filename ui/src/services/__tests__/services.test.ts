@@ -138,7 +138,7 @@ describe("CategoryService", () => {
 
   it("supports CRUD operations on categories and sub categories", async () => {
     const service = await import("../CategoryService");
-    await service.getAllSubCategories();
+    await service.getAllSubCategories('1');
     await service.addSubCategory({ categoryId: "1", name: "Sub" });
     await service.updateSubCategory("2", { name: "Updated" });
     await service.deleteSubCategory("3");
@@ -147,7 +147,7 @@ describe("CategoryService", () => {
     await service.deleteCategory("5");
     await service.deleteCategories(["6", "7"]);
 
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/sub-categories"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/categories/1/all-sub-categories"));
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/categories/1/sub-categories"), expect.any(Object));
     expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/sub-categories/2"), expect.any(Object));
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/sub-categories/3"));

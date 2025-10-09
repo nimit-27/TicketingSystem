@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, List, ListItem, TextField, Box, MenuItem } from '@mui/material';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import Title from '../components/Title';
@@ -14,7 +14,7 @@ const CategoriesMaster: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-    const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
+    const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<string | null>(null);
     const [categoryInput, setCategoryInput] = useState('');
     const [subCategoryInput, setSubCategoryInput] = useState('');
     const [selectedSeverity, setSelectedSeverity] = useState<string>('');
@@ -45,14 +45,29 @@ const CategoriesMaster: React.FC = () => {
     ) ?? false;
     const isUniqueSubCategory = Boolean(trimmedSubCategoryInput) && !subCategoryExists;
     const canAddSubCategory = Boolean(selectedCategory) && isUniqueSubCategory;
+    const selectedSubCategory = useMemo(
+        () => subCategories.find(sc => sc.subCategoryId === selectedSubCategoryId) ?? null,
+        [subCategories, selectedSubCategoryId]
+    );
     const canSelectSeverity = Boolean(selectedSubCategory) || canAddSubCategory;
 
-    const fetchCategories = () => {
-        getCategoriesApiHandler(() => getCategories())
-    };
-    const fetchSubCategories = () => {
-        getSubCategoriesApiHandler(() => getAllSubCategories())
-    };
+    const fetchCategories = useCallback(() => {
+        getCategoriesApiHandler(() => getCategories());
+    }, [getCategoriesApiHandler]);
+    const fetchSubCategories = useCallback((categoryId?: string | null) => {
+        let targetCategoryId: string | null | undefined;
+        if (typeof categoryId === 'string' && categoryId) {
+            targetCategoryId = categoryId;
+        } else if (categoryId === null || categoryId === '') {
+            targetCategoryId = null;
+        } else {
+            targetCategoryId = selectedCategory?.categoryId ?? null;
+        }
+        if (!targetCategoryId) {
+            return;
+        }
+        getSubCategoriesApiHandler(() => getAllSubCategories(targetCategoryId));
+    }, [getSubCategoriesApiHandler, selectedCategory?.categoryId]);
 
     useEffect(() => {
         getSeverityApiHandler(() => getSeverities());
@@ -74,15 +89,13 @@ const CategoriesMaster: React.FC = () => {
 
     useEffect(() => {
         if (Array.isArray(getSubCategoriesData)) {
-            const cleaned = getSubCategoriesData
-                .filter((sc: SubCategory & { severity?: { id?: string | null } }) =>
-                    Boolean(sc && (sc.severityId || sc?.severity?.id))
-                )
-                .map((sc: SubCategory & { severity?: { id?: string | null } }) => ({
-                    ...sc,
-                    severityId: sc.severityId ?? sc?.severity?.id ?? null,
-                    subCategory: sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
-                }));
+            const cleaned = getSubCategoriesData.map((sc: SubCategory & { severity?: { id?: string | null } }) => ({
+                ...sc,
+                severityId: sc.severityId ?? sc?.severity?.id ?? null,
+                subCategory: typeof sc.subCategory === 'string'
+                    ? sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
+                    : sc.subCategory
+            }));
             setSubCategories(cleaned);
         } else if (getSubCategoriesData) {
             setSubCategories([]);
@@ -91,20 +104,32 @@ const CategoriesMaster: React.FC = () => {
 
     useEffect(() => {
         if (selectedSubCategory) {
-            const updated = subCategories.find(sc => sc.subCategoryId === selectedSubCategory.subCategoryId);
-            if (updated) {
-                setSelectedSubCategory(updated);
-                setSelectedSeverity(updated.severityId ?? '');
+            const normalizedSeverity = selectedSubCategory.severityId ?? '';
+            if (normalizedSeverity !== selectedSeverity) {
+                setSelectedSeverity(normalizedSeverity);
             }
-        } else {
+        } else if (selectedSeverity !== '') {
             setSelectedSeverity('');
         }
-    }, [subCategories, selectedSubCategory?.subCategoryId]);
+    }, [selectedSubCategory, selectedSeverity]);
 
     useEffect(() => {
         fetchCategories();
-        fetchSubCategories();
-    }, []);
+    }, [fetchCategories]);
+
+    useEffect(() => {
+        if (!selectedCategory?.categoryId) {
+            return;
+        }
+        fetchSubCategories(selectedCategory.categoryId);
+    }, [selectedCategory?.categoryId, fetchSubCategories]);
+
+    useEffect(() => {
+        if (selectedCategory?.categoryId) {
+            return;
+        }
+        setSubCategories(prev => (Array.isArray(prev) && prev.length > 0 ? [] : prev));
+    }, [selectedCategory?.categoryId, subCategories.length]);
 
     const handleAddCategory = () => {
         const name = categoryInput.trim();
@@ -124,12 +149,13 @@ const CategoriesMaster: React.FC = () => {
 
     const handleDeleteCategory = (id: string) => {
         if (window.confirm('Delete this category?')) {
+            const currentSelectedCategoryId = selectedCategory?.categoryId;
             deleteCategory(id).then(() => {
-                if (selectedCategory?.categoryId === id) setSelectedCategory(null);
-                setSelectedSubCategory(null);
+                if (currentSelectedCategoryId === id) setSelectedCategory(null);
+                setSelectedSubCategoryId(null);
                 setSelectedSeverity('');
                 fetchCategories();
-                fetchSubCategories();
+                fetchSubCategories(currentSelectedCategoryId === id ? null : currentSelectedCategoryId);
             });
         }
     };
@@ -153,7 +179,7 @@ const CategoriesMaster: React.FC = () => {
         });
         setSubCategoryInput('');
         setSelectedSeverity('');
-        setSelectedSubCategory(null);
+        setSelectedSubCategoryId(null);
     };
 
     const handleEditSubCategory = (sc: SubCategory) => {
@@ -169,8 +195,8 @@ const CategoriesMaster: React.FC = () => {
     const handleDeleteSubCategory = (id: string) => {
         if (window.confirm('Delete this sub-category?')) {
             deleteSubCategory(id).then(() => {
-                if (selectedSubCategory?.subCategoryId === id) {
-                    setSelectedSubCategory(null);
+                if (selectedSubCategoryId === id) {
+                    setSelectedSubCategoryId(null);
                     setSelectedSeverity('');
                 }
                 fetchSubCategories();
@@ -241,12 +267,12 @@ const CategoriesMaster: React.FC = () => {
                         onChange={e => {
                             setCategoryInput(e.target.value);
                             setSelectedCategory(null);
-                            setSelectedSubCategory(null);
+                            setSelectedSubCategoryId(null);
                             setSelectedSeverity('');
                         }}
                         onFocus={() => {
                             setSelectedCategory(null);
-                            setSelectedSubCategory(null);
+                            setSelectedSubCategoryId(null);
                             setSelectedSeverity('');
                         }}
                     />
@@ -272,7 +298,7 @@ const CategoriesMaster: React.FC = () => {
                                     onClick={() => {
                                         setSelectedCategory(cat);
                                         setCategoryInput(cat.category);
-                                        setSelectedSubCategory(null);
+                                        setSelectedSubCategoryId(null);
                                         setSelectedSeverity('');
                                     }}
                                 >
@@ -305,7 +331,7 @@ const CategoriesMaster: React.FC = () => {
                                     onClick={() => {
                                         setSelectedCategory(cat);
                                         setCategoryInput(cat.category);
-                                        setSelectedSubCategory(null);
+                                        setSelectedSubCategoryId(null);
                                         setSelectedSeverity('');
                                     }}
                                 >
@@ -326,13 +352,13 @@ const CategoriesMaster: React.FC = () => {
                         onChange={e => {
                             setSubCategoryInput(e.target.value);
                             if (selectedSubCategory) {
-                                setSelectedSubCategory(null);
+                                setSelectedSubCategoryId(null);
                                 setSelectedSeverity('');
                             }
                         }}
                         onFocus={() => {
                             setSubCategoryInput('');
-                            setSelectedSubCategory(null);
+                            setSelectedSubCategoryId(null);
                             setSelectedSeverity('');
                         }}
                     />
@@ -365,18 +391,18 @@ const CategoriesMaster: React.FC = () => {
                                     key={sc.subCategoryId}
                                     sx={{
                                         '&:hover': {
-                                            background: getSubCategoryBackground(sc, true, selectedSubCategory?.subCategoryId === sc.subCategoryId),
+                                            background: getSubCategoryBackground(sc, true, selectedSubCategoryId === sc.subCategoryId),
                                         },
                                         '&:hover .actions': { visibility: 'visible' },
                                         cursor: 'pointer',
-                                        background: getSubCategoryBackground(sc, false, selectedSubCategory?.subCategoryId === sc.subCategoryId),
+                                        background: getSubCategoryBackground(sc, false, selectedSubCategoryId === sc.subCategoryId),
                                         borderRadius: 1,
                                         mb: 0.5,
                                         display: 'flex',
                                         alignItems: 'center'
                                     }}
                                     onClick={() => {
-                                        setSelectedSubCategory(sc);
+                                        setSelectedSubCategoryId(sc.subCategoryId);
                                         setSelectedSeverity(sc.severityId ?? '');
                                     }}
                                 >
@@ -403,18 +429,18 @@ const CategoriesMaster: React.FC = () => {
                                     key={sc.subCategoryId}
                                     sx={{
                                         '&:hover': {
-                                            background: getSubCategoryBackground(sc, true, selectedSubCategory?.subCategoryId === sc.subCategoryId),
+                                            background: getSubCategoryBackground(sc, true, selectedSubCategoryId === sc.subCategoryId),
                                         },
                                         '&:hover .actions': { visibility: 'visible' },
                                         cursor: 'pointer',
-                                        background: getSubCategoryBackground(sc, false, selectedSubCategory?.subCategoryId === sc.subCategoryId),
+                                        background: getSubCategoryBackground(sc, false, selectedSubCategoryId === sc.subCategoryId),
                                         borderRadius: 1,
                                         mb: 0.5,
                                         display: 'flex',
                                         alignItems: 'center'
                                     }}
                                     onClick={() => {
-                                        setSelectedSubCategory(sc);
+                                        setSelectedSubCategoryId(sc.subCategoryId);
                                         setSelectedSeverity(sc.severityId ?? '');
                                     }}
                                 >
