@@ -58,8 +58,9 @@ const CategoriesMaster: React.FC = () => {
     const fetchAllSubCategories = useCallback(() => {
         // Load the complete sub-category list. We filter it locally whenever
         // a category is selected so the UI stays responsive.
+        console.log("fetchAllSubCategories")
         getSubCategoriesApiHandler(() => getAllSubCategories());
-    }, [getSubCategoriesApiHandler]);
+    }, []);
 
     useEffect(() => {
         getSeverityApiHandler(() => getSeverities());
@@ -101,7 +102,7 @@ const CategoriesMaster: React.FC = () => {
     useEffect(() => {
         fetchCategories();
         fetchAllSubCategories();
-    }, [fetchCategories, fetchAllSubCategories]);
+    }, []);
 
     const handleAddCategory = () => {
         const name = categoryInput.trim();
@@ -360,31 +361,31 @@ const CategoriesMaster: React.FC = () => {
                     <List className="mt-2">
                         {displaySubCategories?.map(sc => (
                             <ListItem
-                                    key={sc.subCategoryId}
-                                    sx={{
-                                        '&:hover': {
-                                            background: getSubCategoryBackground(sc, true, selectedSubCategoryId === sc.subCategoryId),
-                                        },
-                                        '&:hover .actions': { visibility: 'visible' },
-                                        cursor: 'pointer',
-                                        background: getSubCategoryBackground(sc, false, selectedSubCategoryId === sc.subCategoryId),
-                                        borderRadius: 1,
-                                        mb: 0.5,
-                                        display: 'flex',
-                                        alignItems: 'center'
-                                    }}
-                                    onClick={() => {
-                                        setSelectedSubCategoryId(sc.subCategoryId);
-                                        setSelectedSeverity(sc.severityId ?? '');
-                                    }}
-                                >
-                                    <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
-                                    <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        <CustomIconButton icon="Edit" size="small" onClick={() => handleEditSubCategory(sc)} />
-                                        <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)} />
-                                    </Box>
-                                </ListItem>
-                            ))}
+                                key={sc.subCategoryId}
+                                sx={{
+                                    '&:hover': {
+                                        background: getSubCategoryBackground(sc, true, selectedSubCategoryId === sc.subCategoryId),
+                                    },
+                                    '&:hover .actions': { visibility: 'visible' },
+                                    cursor: 'pointer',
+                                    background: getSubCategoryBackground(sc, false, selectedSubCategoryId === sc.subCategoryId),
+                                    borderRadius: 1,
+                                    mb: 0.5,
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                                onClick={() => {
+                                    setSelectedSubCategoryId(sc.subCategoryId);
+                                    setSelectedSeverity(sc.severityId ?? '');
+                                }}
+                            >
+                                <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
+                                <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                    <CustomIconButton icon="Edit" size="small" onClick={() => handleEditSubCategory(sc)} />
+                                    <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)} />
+                                </Box>
+                            </ListItem>
+                        ))}
                     </List>
                     {/* Gap between lists */}
                     <Box sx={{ height: 24 }} />
@@ -398,31 +399,31 @@ const CategoriesMaster: React.FC = () => {
                     >
                         {otherSubCategories?.map(sc => (
                             <ListItem
-                                    key={sc.subCategoryId}
-                                    sx={{
-                                        '&:hover': {
-                                            background: getSubCategoryBackground(sc, true, selectedSubCategoryId === sc.subCategoryId),
-                                        },
-                                        '&:hover .actions': { visibility: 'visible' },
-                                        cursor: 'pointer',
-                                        background: getSubCategoryBackground(sc, false, selectedSubCategoryId === sc.subCategoryId),
-                                        borderRadius: 1,
-                                        mb: 0.5,
-                                        display: 'flex',
-                                        alignItems: 'center'
-                                    }}
-                                    onClick={() => {
-                                        setSelectedSubCategoryId(sc.subCategoryId);
-                                        setSelectedSeverity(sc.severityId ?? '');
-                                    }}
-                                >
-                                    <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
-                                    <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        <CustomIconButton icon="Edit" size="small" onClick={() => handleEditSubCategory(sc)} />
-                                        <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)} />
-                                    </Box>
-                                </ListItem>
-                            ))}
+                                key={sc.subCategoryId}
+                                sx={{
+                                    '&:hover': {
+                                        background: getSubCategoryBackground(sc, true, selectedSubCategoryId === sc.subCategoryId),
+                                    },
+                                    '&:hover .actions': { visibility: 'visible' },
+                                    cursor: 'pointer',
+                                    background: getSubCategoryBackground(sc, false, selectedSubCategoryId === sc.subCategoryId),
+                                    borderRadius: 1,
+                                    mb: 0.5,
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                                onClick={() => {
+                                    setSelectedSubCategoryId(sc.subCategoryId);
+                                    setSelectedSeverity(sc.severityId ?? '');
+                                }}
+                            >
+                                <span style={{ flexGrow: 1 }}>{sc.subCategory}</span>
+                                <Box className="actions" sx={{ visibility: 'hidden' }} onClick={e => e.stopPropagation()}>
+                                    <CustomIconButton icon="Edit" size="small" onClick={() => handleEditSubCategory(sc)} />
+                                    <CustomIconButton icon="Delete" size="small" onClick={() => handleDeleteSubCategory(sc.subCategoryId)} />
+                                </Box>
+                            </ListItem>
+                        ))}
                     </List>
                 </div>
             </div>

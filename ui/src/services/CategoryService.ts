@@ -62,10 +62,7 @@ export function getCategories() {
 
 export function getAllSubCategories() {
     // Fetch the entire sub-category catalogue. Consumers decide how to filter the list.
-    return axios.get(`${BASE_URL}/sub-categories`).then(res => {
-        res.data = normalizeSubCategories(res.data);
-        return res;
-    });
+    return axios.get(`${BASE_URL}/sub-categories`);
 }
 
 export function addSubCategory(subCategory: any) {
@@ -103,12 +100,7 @@ export function getAllSubCategoriesByCategory(categoryId: string) {
     if (subCategoryCache[categoryId]) {
         return Promise.resolve({ data: subCategoryCache[categoryId] } as any);
     }
-    return axios.get(`${BASE_URL}/categories/${categoryId}/sub-categories`).then(res => {
-        const normalized = normalizeSubCategories(res.data);
-        subCategoryCache[categoryId] = normalized;
-        res.data = normalized;
-        return res;
-    });
+    return axios.get(`${BASE_URL}/categories/${categoryId}/sub-categories`);
 }
 
 export function addCategory(category: any) {
