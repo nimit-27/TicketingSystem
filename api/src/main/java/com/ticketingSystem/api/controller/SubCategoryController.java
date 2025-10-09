@@ -17,6 +17,10 @@ import java.util.Optional;
 public class SubCategoryController {
     private final SubCategoryService subCategoryService;
 
+    /**
+     * Return the complete list of sub-categories so the UI can decide how it
+     * wants to present or filter the data.
+     */
     @GetMapping
     public ResponseEntity<List<SubCategoryDto>> getAllSubCategories() {
         return ResponseEntity.ok(subCategoryService.getAllSubCategories());

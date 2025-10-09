@@ -1,6 +1,6 @@
 jest.mock('../../services/CategoryService', () => ({
   getCategories: jest.fn(),
-  getSubCategories: jest.fn(),
+  getAllSubCategoriesByCategory: jest.fn(),
 }));
 
 jest.mock('../../utils/Utils', () => ({
@@ -10,7 +10,7 @@ jest.mock('../../utils/Utils', () => ({
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useCategoryFilters } from '../useCategoryFilters';
-import { getCategories, getSubCategories } from '../../services/CategoryService';
+import { getCategories, getAllSubCategoriesByCategory } from '../../services/CategoryService';
 import { getDropdownOptions } from '../../utils/Utils';
 
 describe('useCategoryFilters', () => {
@@ -51,11 +51,20 @@ describe('useCategoryFilters', () => {
     });
 
     expect(result.current.subCategoryOptions).toEqual([defaultOption]);
-    expect(getSubCategories).not.toHaveBeenCalled();
+    expect(getAllSubCategoriesByCategory).not.toHaveBeenCalled();
   });
 
   it('loads subcategories for a given category', async () => {
-    (getSubCategories as jest.Mock).mockResolvedValue({ data: { body: { data: [{ subCategory: 'B' }] } } });
+    (getAllSubCategoriesByCategory as jest.Mock).mockResolvedValue({
+      data: {
+        body: {
+          data: [
+            { subCategory: 'B', severityId: 'sev-1' },
+            { subCategory: 'Skip', severityId: null },
+          ],
+        },
+      },
+    });
     (getDropdownOptions as jest.Mock)
       .mockReturnValueOnce([])
       .mockReturnValueOnce([{ label: 'Sub', value: '2' }]);
@@ -68,13 +77,17 @@ describe('useCategoryFilters', () => {
       await result.current.loadSubCategories('cat-1');
     });
 
-    expect(getSubCategories).toHaveBeenCalledWith('cat-1');
-    expect(getDropdownOptions).toHaveBeenLastCalledWith([{ subCategory: 'B' }], 'subCategory', 'subCategoryId');
+    expect(getAllSubCategoriesByCategory).toHaveBeenCalledWith('cat-1');
+    expect(getDropdownOptions).toHaveBeenLastCalledWith(
+      [{ subCategory: 'B', severityId: 'sev-1' }],
+      'subCategory',
+      'subCategoryId'
+    );
     expect(result.current.subCategoryOptions).toEqual([defaultOption, { label: 'Sub', value: '2' }]);
   });
 
   it('resets subcategories when fetching fails', async () => {
-    (getSubCategories as jest.Mock).mockRejectedValue(new Error('nope'));
+    (getAllSubCategoriesByCategory as jest.Mock).mockRejectedValue(new Error('nope'));
     (getDropdownOptions as jest.Mock).mockReturnValueOnce([]);
 
     const { result } = renderHook(() => useCategoryFilters());

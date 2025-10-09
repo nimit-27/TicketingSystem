@@ -122,23 +122,23 @@ describe("CategoryService", () => {
     expect(axiosMock.get).not.toHaveBeenCalled();
   });
 
-  it("fetches sub categories and caches per category", async () => {
+  it("fetches sub categories by category and caches the response", async () => {
     const response = { data: [{ id: 10 }] };
     axiosMock.get.mockResolvedValue(response);
     const service = await import("../CategoryService");
 
-    await service.getSubCategories("network");
+    await service.getAllSubCategoriesByCategory("network");
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/categories/network/sub-categories"));
 
     axiosMock.get.mockClear();
-    const cached = await service.getSubCategories("network");
+    const cached = await service.getAllSubCategoriesByCategory("network");
     expect(cached.data).toEqual(response.data);
     expect(axiosMock.get).not.toHaveBeenCalled();
   });
 
   it("supports CRUD operations on categories and sub categories", async () => {
     const service = await import("../CategoryService");
-    await service.getAllSubCategories('1');
+    await service.getAllSubCategories();
     await service.addSubCategory({ categoryId: "1", name: "Sub" });
     await service.updateSubCategory("2", { name: "Updated" });
     await service.deleteSubCategory("3");
@@ -147,7 +147,7 @@ describe("CategoryService", () => {
     await service.deleteCategory("5");
     await service.deleteCategories(["6", "7"]);
 
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/categories/1/all-sub-categories"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/sub-categories"));
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/categories/1/sub-categories"), expect.any(Object));
     expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/sub-categories/2"), expect.any(Object));
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/sub-categories/3"));

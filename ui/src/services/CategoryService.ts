@@ -22,16 +22,12 @@ const normalizeSubCategories = (subCategories: any[]) => {
     return subCategories.map(normalizeSubCategory);
 };
 
-const filterSubCategoriesWithSeverity = (subCategories: any[]) => {
-    return normalizeSubCategories(subCategories).filter(sc => sc && sc.severityId);
-};
-
-const sanitizeCategoriesResponse = (data: any) => {
-    if (!Array.isArray(data)) return data;
-    return data.map(cat => ({
-        ...cat,
-        subCategories: filterSubCategoriesWithSeverity(cat?.subCategories)
-    }));
+const normalizeCategory = (category: any) => {
+    if (!category) return category;
+    return {
+        ...category,
+        subCategories: normalizeSubCategories(category?.subCategories)
+    };
 };
 
 const resetCategoriesCache = () => {
@@ -51,19 +47,22 @@ export function getCategories() {
         return Promise.resolve({ data: categoriesCache } as any);
     }
     return axios.get(`${BASE_URL}/categories`).then(res => {
-        const sanitized = sanitizeCategoriesResponse(res.data);
-        if (Array.isArray(sanitized)) {
-            categoriesCache = sanitized;
+        const normalized = Array.isArray(res.data)
+            ? res.data.map(normalizeCategory)
+            : res.data;
+        if (Array.isArray(normalized)) {
+            categoriesCache = normalized;
         } else {
             categoriesCache = null;
         }
-        res.data = sanitized;
+        res.data = normalized;
         return res;
     });
 }
 
-export function getAllSubCategories(categoryId: string) {
-    return axios.get(`${BASE_URL}/categories/${categoryId}/all-sub-categories`).then(res => {
+export function getAllSubCategories() {
+    // Fetch the entire sub-category catalogue. Consumers decide how to filter the list.
+    return axios.get(`${BASE_URL}/sub-categories`).then(res => {
         res.data = normalizeSubCategories(res.data);
         return res;
     });
@@ -98,14 +97,16 @@ export function deleteSubCategory(id: string) {
     });
 }
 
-export function getSubCategories(category: string) {
-    if (subCategoryCache[category]) {
-        return Promise.resolve({ data: subCategoryCache[category] } as any);
+export function getAllSubCategoriesByCategory(categoryId: string) {
+    // Fetch every sub-category for a specific category. Callers can filter
+    // out inactive or severity-less options as needed.
+    if (subCategoryCache[categoryId]) {
+        return Promise.resolve({ data: subCategoryCache[categoryId] } as any);
     }
-    return axios.get(`${BASE_URL}/categories/${category}/sub-categories`).then(res => {
-        const filtered = filterSubCategoriesWithSeverity(res.data);
-        subCategoryCache[category] = filtered;
-        res.data = filtered;
+    return axios.get(`${BASE_URL}/categories/${categoryId}/sub-categories`).then(res => {
+        const normalized = normalizeSubCategories(res.data);
+        subCategoryCache[categoryId] = normalized;
+        res.data = normalized;
         return res;
     });
 }

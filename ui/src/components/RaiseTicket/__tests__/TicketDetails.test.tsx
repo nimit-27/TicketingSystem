@@ -34,11 +34,11 @@ jest.mock('../../../services/LevelService', () => ({
 }));
 
 const mockGetCategories = jest.fn(() => Promise.resolve([]));
-const mockGetSubCategories = jest.fn(() => Promise.resolve([]));
+const mockGetAllSubCategoriesByCategory = jest.fn(() => Promise.resolve([]));
 
 jest.mock('../../../services/CategoryService', () => ({
   getCategories: (...args: any[]) => mockGetCategories(...args),
-  getSubCategories: (...args: any[]) => mockGetSubCategories(...args),
+  getAllSubCategoriesByCategory: (...args: any[]) => mockGetAllSubCategoriesByCategory(...args),
 }));
 
 const mockGetNextStatuses = jest.fn(() => Promise.resolve([]));
@@ -133,7 +133,7 @@ describe('TicketDetails', () => {
       .mockReturnValueOnce(makeReturn([]))
       .mockReturnValueOnce(makeReturn([]))
       .mockReturnValueOnce(makeReturn([{ category: 'Hardware', categoryId: 'cat-1' }]))
-      .mockReturnValueOnce(makeReturn([{ subCategory: 'Laptop', subCategoryId: 'sub-1' }]))
+      .mockReturnValueOnce(makeReturn([{ subCategory: 'Laptop', subCategoryId: 'sub-1', severityId: 'sev-1' }]))
       .mockReturnValueOnce(makeReturn([]))
       .mockReturnValueOnce(makeReturn([{ id: 'p1', level: 'High', description: 'High impact' }]))
       .mockReturnValueOnce(makeReturn([{ id: 's1', level: 'Critical', description: 'Critical issue' }]));
@@ -176,7 +176,7 @@ describe('TicketDetails', () => {
 
     await waitFor(() => {
       expect(mockGetAllUsersByLevel).toHaveBeenCalledWith('L1');
-      expect(mockGetSubCategories).toHaveBeenCalledWith('cat-1');
+      expect(mockGetAllSubCategoriesByCategory).toHaveBeenCalledWith('cat-1');
       expect(mockGetNextStatuses).toHaveBeenCalledWith('status-1');
     });
   });

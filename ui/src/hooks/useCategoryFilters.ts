@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { DropdownOption } from '../components/UI/Dropdown/GenericDropdown';
-import { getCategories, getSubCategories } from '../services/CategoryService';
+import { getCategories, getAllSubCategoriesByCategory } from '../services/CategoryService';
 import { getDropdownOptions } from '../utils/Utils';
 
 const parseResponseList = (response: any): any[] => {
@@ -13,6 +13,14 @@ const parseResponseList = (response: any): any[] => {
 };
 
 const defaultAllOption: DropdownOption = { label: 'All', value: 'All' };
+
+const onlyWithSeverity = (subCategories: any[]) =>
+    subCategories.filter(sc => {
+        if (!sc) return false;
+        // Dropdowns should only display sub-categories that are linked to a severity.
+        const severityId = sc.severityId ?? sc?.severity?.id;
+        return Boolean(severityId);
+    });
 
 export const useCategoryFilters = () => {
     const [categoryOptions, setCategoryOptions] = useState<DropdownOption[]>([defaultAllOption]);
@@ -37,8 +45,8 @@ export const useCategoryFilters = () => {
         }
 
         try {
-            const response = await getSubCategories(categoryId);
-            const subCategories = parseResponseList(response);
+            const response = await getAllSubCategoriesByCategory(categoryId);
+            const subCategories = onlyWithSeverity(parseResponseList(response));
             const options = getDropdownOptions(subCategories, 'subCategory', 'subCategoryId');
             setSubCategoryOptions([defaultAllOption, ...options]);
         } catch (error) {

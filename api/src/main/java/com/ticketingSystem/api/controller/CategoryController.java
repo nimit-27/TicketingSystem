@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/categories")
@@ -53,16 +51,15 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Return every sub-category for the supplied category id.
+     * This is used by the UI to filter sub-categories client side so we keep
+     * the response simple and always return an array (empty when nothing is found).
+     */
     @GetMapping("/{categoryId}/sub-categories")
-    public ResponseEntity<Set<SubCategoryDto>> getSubCategoriesByCategory(@PathVariable String categoryId) {
-        Optional<Set<SubCategoryDto>> subCategoriesOptional = categoryService.getSubCategoriesByCategory(categoryId);
-        return subCategoriesOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/{categoryId}/all-sub-categories")
     public ResponseEntity<List<SubCategoryDto>> getAllSubCategoriesByCategory(@PathVariable String categoryId) {
-        Optional<List<SubCategoryDto>> subCategoriesOptional = categoryService.getAllSubCategoriesByCategory(categoryId);
-        return subCategoriesOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        List<SubCategoryDto> subCategories = subCategoryService.getAllSubCategoriesByCategory(categoryId);
+        return ResponseEntity.ok(subCategories);
     }
 
     @PostMapping("/{categoryId}/sub-categories")

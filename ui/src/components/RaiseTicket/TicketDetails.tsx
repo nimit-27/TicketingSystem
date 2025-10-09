@@ -9,7 +9,7 @@ import { useApi } from "../../hooks/useApi";
 import React, { useEffect, useState, useMemo } from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { getAllUsersByLevel, getAllLevels } from "../../services/LevelService";
-import { getCategories, getSubCategories } from "../../services/CategoryService";
+import { getCategories, getAllSubCategoriesByCategory } from "../../services/CategoryService";
 import { getNextStatusListByStatusId } from "../../services/StatusService";
 import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
@@ -64,7 +64,14 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const assignLevelOptions: DropdownOption[] = getDropdownOptions(allLevels, 'levelName', 'levelId');
     const assignToOptions: DropdownOption[] = getDropdownOptions(allUsersByLevel, 'name', 'username');
     const categoryOptions: DropdownOption[] = getDropdownOptions(allCategories, 'category', 'categoryId');
-    const subCategoryOptions: DropdownOption[] = getDropdownOptions(allSubCategories, 'subCategory', 'subCategoryId');
+    const normalizedSubCategories = Array.isArray(allSubCategories)
+        ? allSubCategories.filter((sc: any) => {
+            // Only allow sub-categories that carry a severity mapping.
+            const severityId = sc?.severityId ?? sc?.severity?.id;
+            return Boolean(severityId);
+        })
+        : [];
+    const subCategoryOptions: DropdownOption[] = getDropdownOptions(normalizedSubCategories, 'subCategory', 'subCategoryId');
     const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'nextStatus');
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: PriorityInfo) => ({ label: p.level, value: p.id })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level })) : [];
@@ -143,7 +150,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
 
     useEffect(() => {
         if (category) {
-            getSubCategoriesApiHandler(() => getSubCategories(category));
+            getSubCategoriesApiHandler(() => getAllSubCategoriesByCategory(category));
+        } else {
+            getSubCategoriesApiHandler(() => Promise.resolve([] as any));
         }
     }, [category])
 
