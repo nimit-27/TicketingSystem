@@ -105,7 +105,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     let showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity');
     let showImpact = checkFieldAccess('ticketDetails', 'impact');
     let showSelectedImpact = checkFieldAccess('ticketDetails', 'impact');
-    let showIsMaster = checkFieldAccess('ticketDetails', 'isMaster');
+    let showIsMasterCheckbox = checkFieldAccess('ticketDetails', 'isMasterCheckbox');
     let showSubject = checkFieldAccess('ticketDetails', 'subject');
     let showDescription = checkFieldAccess('ticketDetails', 'description');
     let showAttachment = checkFieldAccess('ticketDetails', 'attachment');
@@ -281,7 +281,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         />
                     </div>
                 )}
-                {showIsMaster && (
+                {showIsMasterCheckbox && (
                     <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
                         <FormControlLabel
                             control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
@@ -512,7 +512,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         />
                     </div>
                 )}
-                {showIsMaster && (
+                {showIsMasterCheckbox && (
                     <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
                         <FormControlLabel
                             control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
