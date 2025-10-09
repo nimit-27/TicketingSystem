@@ -26,7 +26,7 @@ import GenericDropdown, { DropdownOption } from '../UI/Dropdown/GenericDropdown'
 import RemarkComponent from '../UI/Remark/RemarkComponent';
 import { getDropdownOptions, getStatusNameById } from '../../utils/Utils';
 import SlaProgressChart from './SlaProgressChart';
-import { getCategories, getSubCategories } from '../../services/CategoryService';
+import { getCategories, getAllSubCategoriesByCategory } from '../../services/CategoryService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import RootCauseAnalysisModal from './RootCauseAnalysisModal';
 import ChildTicketsTable from '../Ticket/ChildTicketsTable';
@@ -200,12 +200,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
 
     try {
-      const response = await getSubCategories(categoryValue);
+      const response = await getAllSubCategoriesByCategory(categoryValue);
       const rawPayload = response?.data ?? response;
       const payload = rawPayload?.body?.data ?? rawPayload;
       const subCategories = Array.isArray(payload) ? payload : [];
-      setSubCategoryOptions(getDropdownOptions(subCategories, 'subCategory', 'subCategoryId'));
-      return subCategories;
+      const withSeverity = subCategories.filter((sc: any) => {
+        // Ticket dropdowns should only show sub-categories that are tied to a severity.
+        const severityId = sc?.severityId ?? sc?.severity?.id;
+        return Boolean(severityId);
+      });
+      setSubCategoryOptions(getDropdownOptions(withSeverity, 'subCategory', 'subCategoryId'));
+      return withSeverity;
     } catch {
       setSubCategoryOptions([]);
       return [];

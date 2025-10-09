@@ -5,7 +5,7 @@ import { useApi } from '../../../hooks/useApi';
 import { getTicketSla } from '../../../services/TicketService';
 import { getPriorities } from '../../../services/PriorityService';
 import { getSeverities } from '../../../services/SeverityService';
-import { getCategories, getSubCategories } from '../../../services/CategoryService';
+import { getCategories, getAllSubCategoriesByCategory } from '../../../services/CategoryService';
 import { getFeedback } from '../../../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../../../services/StatusService';
 import Histories from '../../../pages/Histories';
@@ -95,7 +95,7 @@ jest.mock('../../../services/SeverityService', () => ({
 
 jest.mock('../../../services/CategoryService', () => ({
   getCategories: jest.fn(() => Promise.resolve({ data: { body: { data: [] } } })),
-  getSubCategories: jest.fn(() => Promise.resolve({ data: { body: { data: [] } } })),
+  getAllSubCategoriesByCategory: jest.fn(() => Promise.resolve({ data: { body: { data: [] } } })),
 }));
 
 jest.mock('../../../services/FeedbackService', () => ({
@@ -203,7 +203,7 @@ const getStatusNameByIdMock = getStatusNameById as jest.MockedFunction<typeof ge
 const getPrioritiesMock = getPriorities as jest.Mock;
 const getSeveritiesMock = getSeverities as jest.Mock;
 const getCategoriesMock = getCategories as jest.Mock;
-const getSubCategoriesMock = getSubCategories as jest.Mock;
+const getAllSubCategoriesByCategoryMock = getAllSubCategoriesByCategory as jest.Mock;
 const getFeedbackMock = getFeedback as jest.Mock;
 const getStatusWorkflowMappingsMock = getStatusWorkflowMappings as jest.Mock;
 const getTicketSlaMock = getTicketSla as jest.Mock;
@@ -219,7 +219,7 @@ describe('TicketView', () => {
     getPrioritiesMock.mockResolvedValue({ data: { body: { data: [] } } });
     getSeveritiesMock.mockResolvedValue({ data: [] });
     getCategoriesMock.mockResolvedValue({ data: { body: { data: [] } } });
-    getSubCategoriesMock.mockResolvedValue({ data: { body: { data: [] } } });
+    getAllSubCategoriesByCategoryMock.mockResolvedValue({ data: { body: { data: [] } } });
     getFeedbackMock.mockResolvedValue({ data: null });
     getStatusWorkflowMappingsMock.mockResolvedValue({});
 

@@ -54,20 +54,12 @@ const CategoriesMaster: React.FC = () => {
     const fetchCategories = useCallback(() => {
         getCategoriesApiHandler(() => getCategories());
     }, [getCategoriesApiHandler]);
-    const fetchSubCategories = useCallback((categoryId?: string | null) => {
-        let targetCategoryId: string | null | undefined;
-        if (typeof categoryId === 'string' && categoryId) {
-            targetCategoryId = categoryId;
-        } else if (categoryId === null || categoryId === '') {
-            targetCategoryId = null;
-        } else {
-            targetCategoryId = selectedCategory?.categoryId ?? null;
-        }
-        if (!targetCategoryId) {
-            return;
-        }
-        getSubCategoriesApiHandler(() => getAllSubCategories(targetCategoryId));
-    }, [getSubCategoriesApiHandler, selectedCategory?.categoryId]);
+
+    const fetchAllSubCategories = useCallback(() => {
+        // Load the complete sub-category list. We filter it locally whenever
+        // a category is selected so the UI stays responsive.
+        getSubCategoriesApiHandler(() => getAllSubCategories());
+    }, [getSubCategoriesApiHandler]);
 
     useEffect(() => {
         getSeverityApiHandler(() => getSeverities());
@@ -89,14 +81,7 @@ const CategoriesMaster: React.FC = () => {
 
     useEffect(() => {
         if (Array.isArray(getSubCategoriesData)) {
-            const cleaned = getSubCategoriesData.map((sc: SubCategory & { severity?: { id?: string | null } }) => ({
-                ...sc,
-                severityId: sc.severityId ?? sc?.severity?.id ?? null,
-                subCategory: typeof sc.subCategory === 'string'
-                    ? sc.subCategory.replace(/\+/g, ' ').replace(/=/g, '')
-                    : sc.subCategory
-            }));
-            setSubCategories(cleaned);
+            setSubCategories(getSubCategoriesData);
         } else if (getSubCategoriesData) {
             setSubCategories([]);
         }
@@ -115,21 +100,8 @@ const CategoriesMaster: React.FC = () => {
 
     useEffect(() => {
         fetchCategories();
-    }, [fetchCategories]);
-
-    useEffect(() => {
-        if (!selectedCategory?.categoryId) {
-            return;
-        }
-        fetchSubCategories(selectedCategory.categoryId);
-    }, [selectedCategory?.categoryId, fetchSubCategories]);
-
-    useEffect(() => {
-        if (selectedCategory?.categoryId) {
-            return;
-        }
-        setSubCategories(prev => (Array.isArray(prev) && prev.length > 0 ? [] : prev));
-    }, [selectedCategory?.categoryId, subCategories.length]);
+        fetchAllSubCategories();
+    }, [fetchCategories, fetchAllSubCategories]);
 
     const handleAddCategory = () => {
         const name = categoryInput.trim();
@@ -155,7 +127,7 @@ const CategoriesMaster: React.FC = () => {
                 setSelectedSubCategoryId(null);
                 setSelectedSeverity('');
                 fetchCategories();
-                fetchSubCategories(currentSelectedCategoryId === id ? null : currentSelectedCategoryId);
+                fetchAllSubCategories();
             });
         }
     };
@@ -174,7 +146,7 @@ const CategoriesMaster: React.FC = () => {
         }
 
         addSubCategoryApiHandler(() => addSubCategory(newSub)).then(() => {
-            fetchSubCategories();
+            fetchAllSubCategories();
             fetchCategories();
         });
         setSubCategoryInput('');
@@ -186,7 +158,7 @@ const CategoriesMaster: React.FC = () => {
         const newName = prompt('Edit Sub-Category', sc.subCategory);
         if (newName && newName.trim() && newName !== sc.subCategory) {
             updateSubCategory(sc.subCategoryId, { subCategory: newName.trim() }).then(() => {
-                fetchSubCategories();
+                fetchAllSubCategories();
                 fetchCategories();
             });
         }
@@ -199,7 +171,7 @@ const CategoriesMaster: React.FC = () => {
                     setSelectedSubCategoryId(null);
                     setSelectedSeverity('');
                 }
-                fetchSubCategories();
+                fetchAllSubCategories();
                 fetchCategories();
             });
         }
@@ -217,7 +189,7 @@ const CategoriesMaster: React.FC = () => {
         }
         payload.severity = value ? { id: value } : { id: '' };
         updateSubCategoryApiHandler(() => updateSubCategory(selectedSubCategory.subCategoryId, payload)).then(() => {
-            fetchSubCategories();
+            fetchAllSubCategories();
             fetchCategories();
         });
     };

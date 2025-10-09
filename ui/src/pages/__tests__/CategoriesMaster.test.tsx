@@ -19,7 +19,7 @@ jest.mock('../../hooks/useApi', () => ({
 
 jest.mock('../../services/CategoryService', () => ({
   getCategories: () => mockFetchCategories(),
-  getAllSubCategories: (categoryId: string) => mockFetchSubCategories(categoryId),
+  getAllSubCategories: () => mockFetchSubCategories(),
   addCategory: (...args: unknown[]) => mockAddCategory(...args),
   updateCategory: jest.fn(() => Promise.resolve()),
   deleteCategory: jest.fn(() => Promise.resolve()),

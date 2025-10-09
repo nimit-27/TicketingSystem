@@ -36,6 +36,17 @@ public class SubCategoryService {
             .toList();
     }
 
+    /**
+     * Fetch every sub-category for a category. The UI decides how to display
+     * or filter the entries so we do not exclude items here.
+     */
+    public List<SubCategoryDto> getAllSubCategoriesByCategory(String categoryId) {
+        List<SubCategory> subCategories = subCategoryRepository.findByCategory_CategoryId(categoryId);
+        return subCategories.stream()
+            .map(DtoMapper::toSubCategoryDto)
+            .toList();
+    }
+
     public Optional<SubCategory> getSubCategoryDetails(String subCategoryId) {
         return subCategoryRepository.findById(subCategoryId);
     }
