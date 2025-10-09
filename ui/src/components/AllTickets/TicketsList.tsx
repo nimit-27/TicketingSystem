@@ -24,6 +24,7 @@ import DateRangeFilter, { getDateRangeApiParams } from "../Filters/DateRangeFilt
 import { DateRangeState } from "../../utils/dateUtils";
 import { useCategoryFilters } from "../../hooks/useCategoryFilters";
 import GenericInput from "../UI/Input/GenericInput";
+import FeedbackModal from "../Feedback/FeedbackModal";
 
 export interface TicketsListFilterState {
     search: string;
@@ -121,6 +122,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    const [feedbackOpen, setFeedbackOpen] = useState(false);
+    const [selectedTicketIdForFeedback, setSelectedTicketIdForFeedback] = useState('');
+    const [selectedTicketFeedbackStatus, setSelectedTicketFeedbackStatus] = useState('');
+
     const showTablePermission = allowTable && checkMyTicketsAccess("ticketsTable", permissionPathPrefix);
     const showGridPermission = allowGrid && checkMyTicketsAccess("grid", permissionPathPrefix);
     const initialViewMode: "grid" | "table" = showTablePermission ? "table" : "grid";
@@ -167,6 +172,12 @@ const TicketsList: React.FC<TicketsListProps> = ({
         ],
         [t],
     );
+
+    const handleFeedback = (ticketId: string, feedbackStatus: string) => {
+        setFeedbackOpen(true)
+        setSelectedTicketIdForFeedback(ticketId);
+        setSelectedTicketFeedbackStatus(feedbackStatus)
+    }
 
     const normalizedCategory = selectedCategory !== "All" ? selectedCategory : undefined;
     const normalizedSubCategory = selectedSubCategory !== "All" ? selectedSubCategory : undefined;
@@ -302,6 +313,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const handleSubCategoryChange = (value: string) => {
         setSelectedSubCategory(value);
         setPage(1);
+    };
+
+    const handleFeedbackClose = () => {
+        setFeedbackOpen(false);
     };
 
     const handleTicketSelection = (id: string | null, openSidebar: boolean = false) => {
@@ -489,6 +504,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             showSeverityColumn={tableOptions?.showSeverityColumn}
                             onRcaClick={tableOptions?.onRcaClick}
                             permissionPathPrefix={tableOptions?.permissionPathPrefix ?? permissionPathPrefix}
+                            handleFeedback={handleFeedback}
                         />
                         <PaginationControls
                             className="justify-content-between align-items-center mt-3 w-100"
@@ -533,6 +549,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 onClose={() => handleTicketSelection(null, false)}
                 {...viewTicketProps}
             />
+            {/* MODAL - FEEDBACK */}
+            {feedbackOpen && <FeedbackModal open={feedbackOpen} ticketId={selectedTicketIdForFeedback} onClose={handleFeedbackClose} feedbackStatus={selectedTicketFeedbackStatus} />}
         </div>
     );
 };

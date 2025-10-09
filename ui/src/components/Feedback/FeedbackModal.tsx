@@ -25,8 +25,10 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, ticketId, onClose, 
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
 
-  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<TicketFeedbackResponse>();
-  const { data: getFeedbackFormData, apiHandler: getFeedbackFormApiHandler, success: getFeedbackFormSuccess } = useApi<FeedbackFormResponse>();
+  const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<any>();
+  const { data: getFeedbackFormData, apiHandler: getFeedbackFormApiHandler, success: getFeedbackFormSuccess } = useApi<any>();
+  // const { data: getFeedbackData, apiHandler: getFeedbackApiHandler, success: getFeedbackSuccess } = useApi<TicketFeedbackResponse>();
+  // const { data: getFeedbackFormData, apiHandler: getFeedbackFormApiHandler, success: getFeedbackFormSuccess } = useApi<FeedbackFormResponse>();
 
   const getFeedbackApi = (id: string) => getFeedbackApiHandler(() => getFeedback(id));
   const getFeedbackFormApi = (id: string) => getFeedbackFormApiHandler(() => getFeedbackForm(id));

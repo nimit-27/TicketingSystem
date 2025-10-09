@@ -17,7 +17,6 @@ import InfoIcon from '../UI/Icons/InfoIcon';
 import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
-import { Popover } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 export interface TicketRow {
@@ -56,9 +55,10 @@ interface TicketsTableProps {
     showSeverityColumn?: boolean;
     onRcaClick?: (id: string, status?: TicketRow['rcaStatus']) => void;
     permissionPathPrefix?: string;
+    handleFeedback?: (ticketId: string, feedbackStatus: string) => void
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets' }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -89,6 +89,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             return !excludeInActionMenu.includes(a.action);
         });
     };
+
+    const getAllAvailableActionsByCurrentStatus = (statusId: string) => {
+        return statusWorkflows[statusId || ''] || []
+    }
 
     const allowAssigneeChange = (statusId?: string) => {
         return Boolean(statusWorkflows[statusId || ''] && allowAssignment);
@@ -284,33 +288,33 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 }
             },
             showSeverityColumn
-                && {
-                    title: t('Severity'),
-                    dataIndex: 'severity',
-                    key: 'severity',
-                    width: '10%',
-                    render: (_: any, record: TicketRow) => {
-                        const display = record.severity || record.severityLabel || record.severityId || '-';
-                        const label = record.severityLabel && record.severityLabel !== display ? record.severityLabel : undefined;
-                        return label ? (
-                            <Tooltip title={label} placement="top">
-                                <span>{display}</span>
-                            </Tooltip>
-                        ) : (display || '-');
-                    }
-                },
-                {
-                    title: (
-                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            {t('Priority')}
-                            <InfoIcon content={priorityInfoContent} />
-                        </span>
-                    ),
-                    dataIndex: 'priority',
-                    key: 'priority',
-                    width: '9%',
-                    render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} />
-                },
+            && {
+                title: t('Severity'),
+                dataIndex: 'severity',
+                key: 'severity',
+                width: '10%',
+                render: (_: any, record: TicketRow) => {
+                    const display = record.severity || record.severityLabel || record.severityId || '-';
+                    const label = record.severityLabel && record.severityLabel !== display ? record.severityLabel : undefined;
+                    return label ? (
+                        <Tooltip title={label} placement="top">
+                            <span>{display}</span>
+                        </Tooltip>
+                    ) : (display || '-');
+                }
+            },
+            {
+                title: (
+                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                        {t('Priority')}
+                        <InfoIcon content={priorityInfoContent} />
+                    </span>
+                ),
+                dataIndex: 'priority',
+                key: 'priority',
+                width: '9%',
+                render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} />
+            },
             {
                 title: t('Assignee'),
                 key: 'assignee',
@@ -420,14 +424,17 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 <CustomIconButton onClick={(event) => openMenu(event, record)} icon="moreVert" />
                             )}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
-                                <Tooltip title={record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Provide Feedback'} placement="top">
-                                    <CustomIconButton
-                                        size="small"
-                                        icon={record.feedbackStatus === 'PROVIDED' ? 'grading' : 'rateReview'}
-                                        className='p-0'
-                                        onClick={() => navigate(`/tickets/${record.id}/feedback`, { state: { feedbackStatus: record.feedbackStatus } })}
-                                    />
-                                </Tooltip>
+                                <>
+                                    <Tooltip title={record.feedbackStatus === 'PROVIDED' ? 'View Feedback' : 'Provide Feedback'} placement="top">
+                                        <CustomIconButton
+                                            size="small"
+                                            icon={record.feedbackStatus === 'PROVIDED' ? 'grading' : 'rateReview'}
+                                            className='p-0'
+                                            // onClick={() => navigate(`/tickets/${record.feedbackStatus === 'PROVIDED' ? record.id : ' '}/feedback`, { state: { feedbackStatus: record.feedbackStatus } })}
+                                            onClick={() => handleFeedback && handleFeedback(record.id, record.feedbackStatus ?? '')}
+                                        />
+                                    </Tooltip>
+                                </>
                             )}
                         </>
                     );
