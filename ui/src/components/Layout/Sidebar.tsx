@@ -30,6 +30,12 @@ const menuItems = [
     icon: "workOutline",
   },
   {
+    key: "calendar",
+    label: "Calendar",
+    to: "/calendar",
+    icon: "event",
+  },
+  {
     key: "rca",
     label: "Root Cause Analysis",
     to: "/root-cause-analysis",

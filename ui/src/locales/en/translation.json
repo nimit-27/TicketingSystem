@@ -60,6 +60,8 @@
   "Error loading tickets": "Error loading tickets",
   "Categories Master": "Categories Master",
   "Knowledge Base": "Knowledge Base",
+  "Calendar": "Calendar",
+  "Unable to load calendar data": "Unable to load calendar data",
   "Escalation Master": "Escalation Master",
   "Ticket Details": "Ticket Details",
   "Add Category": "Add Category",

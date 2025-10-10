@@ -51,6 +51,8 @@
   "Error loading tickets": "टिकट लोड करने में त्रुटि",
   "Categories Master": "श्रेणियाँ मास्टर",
   "Knowledge Base": "नॉलेज बेस",
+  "Calendar": "कैलेंडर",
+  "Unable to load calendar data": "कैलेंडर डेटा लोड करने में असमर्थ",
   "Escalation Master": "एस्केलेशन मास्टर",
   "Ticket Details": "टिकट विवरण",
   "Add Category": "श्रेणी जोड़ें",
