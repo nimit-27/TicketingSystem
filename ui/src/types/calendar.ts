@@ -24,3 +24,9 @@ export interface CalendarViewResponse {
   config: CalendarConfigDto;
   events: FullCalendarEventDto[];
 }
+
+export interface UpsertWorkingHoursRequest {
+  startTime: string;
+  endTime: string;
+  timezone?: string;
+}
