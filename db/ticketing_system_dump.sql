@@ -1222,6 +1222,16 @@ CREATE TABLE `calendar_working_hours` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `calendar_working_hours`
+--
+
+LOCK TABLES `calendar_working_hours` WRITE;
+/*!40000 ALTER TABLE `calendar_working_hours` DISABLE KEYS */;
+INSERT INTO `calendar_working_hours` VALUES (1,'15:30:00','15:35:00','Asia/Kolkata',1);
+/*!40000 ALTER TABLE `calendar_working_hours` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `calendar_working_hours_exception`
 --
 
