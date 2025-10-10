@@ -9,12 +9,15 @@ import com.ticketingSystem.api.repository.SlaConfigRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
+import com.ticketingSystem.calendar.service.SlaCalculatorService;
+import com.ticketingSystem.calendar.util.TimeUtils;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,20 +43,28 @@ public class TicketSlaService {
     private final StatusHistoryRepository statusHistoryRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final SlaCalculatorService slaCalculatorService;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
                             TicketSlaRepository ticketSlaRepository,
                             StatusHistoryRepository statusHistoryRepository,
                             NotificationService notificationService,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            SlaCalculatorService slaCalculatorService) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
+        this.slaCalculatorService = slaCalculatorService;
     }
 
+    @Deprecated(forRemoval = false)
     public TicketSla calculateAndSave(Ticket ticket, List<StatusHistory> history) {
+        return calculateAndSaveByCalendar(ticket, history);
+    }
+
+    public TicketSla calculateAndSaveByCalendar(Ticket ticket, List<StatusHistory> history) {
         if (ticket == null) return null;
 
         SlaConfig config = slaConfigRepository.findBySeverityLevel(ticket.getSeverity())
@@ -68,7 +79,7 @@ public class TicketSlaService {
 
         long resolutionPolicy = config.getResolutionMinutes() != null
                 ? config.getResolutionMinutes() : 0L;
-        LocalDateTime baseDueAt = reportedDate != null ? reportedDate.plusMinutes(resolutionPolicy) : null;
+        LocalDateTime baseDueAt = computeCalendarEnd(reportedDate, resolutionPolicy);
 
         List<StatusHistory> orderedHistory = history != null
                 ? new ArrayList<>(history)
@@ -155,8 +166,8 @@ public class TicketSlaService {
         }
 
         LocalDateTime currentDueAt = originalDueAt;
-        if (currentDueAt != null) {
-            currentDueAt = currentDueAt.plusMinutes(idle);
+        if (currentDueAt != null && idle > 0L) {
+            currentDueAt = computeCalendarEnd(currentDueAt, idle);
         }
 
         LocalDateTime slaTargetDueAt = escalatedDueAt != null ? escalatedDueAt : originalDueAt;
@@ -207,7 +218,7 @@ public class TicketSlaService {
                         return existing;
                     }
                     List<StatusHistory> history = statusHistoryRepository.findByTicketOrderByTimestampDesc(ticket);
-                    TicketSla refreshed = calculateAndSave(ticket, history);
+                    TicketSla refreshed = calculateAndSaveByCalendar(ticket, history);
                     if (refreshed.getCreatedAt() == null) {
                         refreshed.setCreatedAt(ticket.getReportedDate());
                     }
@@ -299,6 +310,16 @@ public class TicketSlaService {
                 log.warn("Failed to send SLA breach notification for ticket {} to recipient {}", ticket.getId(), recipient, ex);
             }
         }
+    }
+
+    private LocalDateTime computeCalendarEnd(LocalDateTime start, long durationMinutes) {
+        if (start == null) {
+            return null;
+        }
+        ZonedDateTime startZoned = start.atZone(TimeUtils.ZONE_ID);
+        Duration duration = Duration.ofMinutes(Math.max(durationMinutes, 0L));
+        ZonedDateTime end = slaCalculatorService.computeEnd(startZoned, duration);
+        return end.withZoneSameInstant(TimeUtils.ZONE_ID).toLocalDateTime();
     }
 
     private Optional<User> findUserByIdOrUsername(String identifier) {

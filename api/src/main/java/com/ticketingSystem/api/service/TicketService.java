@@ -258,7 +258,7 @@ public class TicketService {
 
             histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null));
         }
-        ticketSlaService.calculateAndSave(saved, histories);
+        ticketSlaService.calculateAndSaveByCalendar(saved, histories);
 
         if (isAssigned) {
             sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
@@ -272,7 +272,7 @@ public class TicketService {
 
         if (saved.getReportedDate() != null && saved.getSeverity() != null) {
             List<StatusHistory> historyEntries = statusHistoryRepository.findByTicketOrderByTimestampAsc(saved);
-            ticketSlaService.calculateAndSave(saved, historyEntries);
+            ticketSlaService.calculateAndSaveByCalendar(saved, historyEntries);
         }
 
         return mapWithStatusId(saved);

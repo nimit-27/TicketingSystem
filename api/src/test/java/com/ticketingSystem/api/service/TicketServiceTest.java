@@ -207,7 +207,7 @@ class TicketServiceTest {
                 .thenReturn(new StatusHistory());
         when(assignmentHistoryService.addHistory(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(null);
-        doNothing().when(ticketSlaService).calculateAndSave(any(Ticket.class), anyList());
+        doNothing().when(ticketSlaService).calculateAndSaveByCalendar(any(Ticket.class), anyList());
 
         ticketService.addTicket(ticket);
 
