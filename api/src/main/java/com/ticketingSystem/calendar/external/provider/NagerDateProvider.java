@@ -55,16 +55,19 @@ public class NagerDateProvider extends AbstractRestCalendarProvider implements E
         List<Holiday> holidays = new ArrayList<>();
         if (raw instanceof List<?> list) {
             for (Object entry : list) {
-                if (entry instanceof Map<?, ?> map && map.get("date") != null) {
+                if (entry instanceof Map<?, ?> rawMap && rawMap.get("date") != null) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> map = (Map<String, Object>) rawMap;
+
                     LocalDate date = LocalDate.parse(String.valueOf(map.get("date")));
-                    String name = String.valueOf(map.getOrDefault("localName", map.getOrDefault("name", "Holiday")));
-                    String region = String.valueOf(map.getOrDefault("countryCode", TimeUtils.DEFAULT_REGION));
-                    holidays.add(Holiday.builder()
-                            .date(date)
-                            .name(name)
-                            .region(region)
-                            .optional(false)
-                            .build());
+                        String name = String.valueOf(map.getOrDefault("localName", map.getOrDefault("name", "Holiday")));
+                        String region = String.valueOf(map.getOrDefault("countryCode", TimeUtils.DEFAULT_REGION));
+                        holidays.add(Holiday.builder()
+                                .date(date)
+                                .name(name)
+                                .region(region)
+                                .optional(false)
+                                .build());
                 }
             }
         }

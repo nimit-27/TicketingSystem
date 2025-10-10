@@ -25,7 +25,7 @@ public class SlaCalculatorService {
     public ZonedDateTime computeEnd(ZonedDateTime start, Duration duration) {
         ZonedDateTime cursor = start.withZoneSameInstant(TimeUtils.ZONE_ID);
         Duration remaining = duration;
-        while (remaining.isPositive()) {
+        while (!remaining.isNegative()) {
             LocalDate date = cursor.toLocalDate();
             if (isHoliday(date)) {
                 cursor = nextBusinessStart(date.plusDays(1));

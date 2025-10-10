@@ -63,15 +63,16 @@ public class BusinessHoursService {
         LocalDate cursor = from;
         while (!cursor.isAfter(to)) {
             List<WorkingHoursException> applicable = exceptionRepository.findApplicable(cursor, cursor.getDayOfWeek().getValue());
+            LocalDate finalCursor = cursor;
             exceptionPolicyService.resolve(cursor, applicable).ifPresent(exception -> {
                 if (exception.isClosed()) {
-                    result.add(new BusinessHoursDto(null, null, new Integer[]{cursor.getDayOfWeek().getValue()}));
+                    result.add(new BusinessHoursDto(null, null, new Integer[]{finalCursor.getDayOfWeek().getValue()}));
                 } else {
-                    WorkingWindow window = resolveWindow(cursor);
+                    WorkingWindow window = resolveWindow(finalCursor);
                     result.add(new BusinessHoursDto(
                             TimeUtils.toMinutes(window.startTime()),
                             TimeUtils.toMinutes(window.endTime()),
-                            new Integer[]{cursor.getDayOfWeek().getValue()}
+                            new Integer[]{finalCursor.getDayOfWeek().getValue()}
                     ));
                 }
             });

@@ -6,12 +6,14 @@ import com.ticketingSystem.calendar.external.ExternalCalendarProvider;
 import com.ticketingSystem.calendar.mapper.FullCalendarMapper;
 import com.ticketingSystem.calendar.repository.CalendarSourceRepository;
 import com.ticketingSystem.calendar.util.TimeUtils;
+
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -57,11 +59,16 @@ public class CalendarBharatProvider extends AbstractRestCalendarProvider impleme
         List<Holiday> holidays = new ArrayList<>();
         if (raw instanceof List<?> list) {
             for (Object entry : list) {
-                if (entry instanceof Map<?, ?> map && map.get("date") != null) {
+
+                if (entry instanceof Map<?, ?> rawMap && rawMap.get("date") != null) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> map = (Map<String, Object>) rawMap;
+
                     LocalDate date = LocalDate.parse(String.valueOf(map.get("date")));
                     String name = String.valueOf(map.getOrDefault("name", "Holiday"));
                     String region = String.valueOf(map.getOrDefault("region", TimeUtils.DEFAULT_REGION));
                     boolean optional = Boolean.parseBoolean(String.valueOf(map.getOrDefault("optional", false)));
+
                     holidays.add(Holiday.builder()
                             .date(date)
                             .name(name)
@@ -69,6 +76,7 @@ public class CalendarBharatProvider extends AbstractRestCalendarProvider impleme
                             .optional(optional)
                             .build());
                 }
+
             }
         }
         return holidays;
