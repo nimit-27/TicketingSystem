@@ -217,6 +217,7 @@ public class DtoMapper {
         dto.setCreatedAt(ticketSla.getCreatedAt());
         dto.setTotalSlaMinutes(ticketSla.getTotalSlaMinutes());
         dto.setTimeTillDueDate(ticketSla.getTimeTillDueDate());
+        dto.setWorkingTimeLeftMinutes(ticketSla.getWorkingTimeLeftMinutes());
         return dto;
     }
 }

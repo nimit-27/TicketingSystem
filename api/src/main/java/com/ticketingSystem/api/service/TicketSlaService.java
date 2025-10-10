@@ -167,7 +167,7 @@ public class TicketSlaService {
 
         LocalDateTime currentDueAt = originalDueAt;
         if (currentDueAt != null && idle > 0L) {
-            currentDueAt = computeCalendarEnd(currentDueAt, idle);
+            currentDueAt = currentDueAt.plusMinutes(idle);
         }
 
         LocalDateTime slaTargetDueAt = escalatedDueAt != null ? escalatedDueAt : originalDueAt;
@@ -178,8 +178,14 @@ public class TicketSlaService {
         }
         long breachedBy = resolution - allowedMinutes;
         Long timeTillDueDate = null;
+        Long workingTimeLeft = null;
         if (currentDueAt != null) {
             timeTillDueDate = Duration.between(calculationTime, currentDueAt).toMinutes();
+            Duration workingDuration = slaCalculatorService.computeWorkingDurationBetween(
+                    calculationTime.atZone(TimeUtils.ZONE_ID),
+                    currentDueAt.atZone(TimeUtils.ZONE_ID)
+            );
+            workingTimeLeft = workingDuration != null ? workingDuration.toMinutes() : null;
         }
 
         ticketSla.setTicket(ticket);
@@ -199,7 +205,9 @@ public class TicketSlaService {
             ticketSla.setTotalSlaMinutes(null);
         }
         ticketSla.setTimeTillDueDate(timeTillDueDate);
+        ticketSla.setWorkingTimeLeftMinutes(workingTimeLeft);
         TicketSla saved = ticketSlaRepository.save(ticketSla);
+        saved.setWorkingTimeLeftMinutes(workingTimeLeft);
 
         boolean hasBreached = breachedBy > 0;
         boolean breachJustOccurred = hasBreached && (previousBreached == null || previousBreached <= 0);
