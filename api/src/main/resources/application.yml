@@ -26,6 +26,14 @@ security:
     max-age: 3600
     allow-credentials: true
 
+calendar:
+  ui:
+    provider-code: ${CALENDAR_PROVIDER_CODE:NAGER_DATE}
+    region: ${CALENDAR_REGION:IN-WB-Kolkata}
+    ensure-on-demand: ${CALENDAR_ENSURE_ON_DEMAND:true}
+    scheduler-enabled: ${CALENDAR_SCHEDULER_ENABLED:true}
+    scheduler-horizon-years: ${CALENDAR_SCHEDULER_HORIZON_YEARS:1}
+
 ---
 spring:
   config:

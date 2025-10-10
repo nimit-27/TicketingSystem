@@ -21,6 +21,7 @@ const ROUTE_TITLES: RouteTitle[] = [
   { path: '/faq/new', title: 'New FAQ' },
   { path: '/faq', title: 'FAQ' },
   { path: '/knowledge-base', title: 'Knowledge Base' },
+  { path: '/calendar', title: 'Calendar' },
   { path: '/categories-master', title: 'Categories Master' },
   { path: '/escalation-master', title: 'Escalation Master' },
   { path: '/role-master/:roleId', title: 'Role Details' },

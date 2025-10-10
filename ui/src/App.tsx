@@ -19,6 +19,7 @@ import Faq from './pages/Faq';
 import FaqForm from './pages/FaqForm';
 import RootCauseAnalysis from './pages/RootCauseAnalysis';
 import MISReports from './pages/MISReports';
+import CalendarPage from './pages/Calendar';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
@@ -64,6 +65,7 @@ function App() {
         <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
         <Route path="knowledge-base" element={<KnowledgeBase />} />
         <Route path="mis-reports" element={<MISReports />} />
+        <Route path="calendar" element={<CalendarPage />} />
         <Route path="categories-master" element={<CategoriesMaster />} />
         <Route path="escalation-master" element={<EscalationMaster />} />
         <Route path="role-master" element={<RoleMaster />} />

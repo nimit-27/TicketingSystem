@@ -14,6 +14,8 @@ public interface HolidayRepository extends JpaRepository<Holiday, Long> {
 
     List<Holiday> findByDateBetweenAndRegion(LocalDate from, LocalDate to, String region);
 
+    boolean existsByDateBetweenAndRegion(LocalDate from, LocalDate to, String region);
+
     Optional<Holiday> findByDateAndRegion(LocalDate date, String region);
 
     @Query("select h from Holiday h where h.date between :from and :to and h.region in :regions")
