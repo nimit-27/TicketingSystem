@@ -1186,6 +1186,111 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `calendar_holiday`
+--
+
+DROP TABLE IF EXISTS `calendar_holiday`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `calendar_holiday` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `holiday_date` date NOT NULL,
+  `name` varchar(128) NOT NULL,
+  `region` varchar(64) NOT NULL DEFAULT 'IN-WB-Kolkata',
+  `is_optional` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_calendar_holiday_date_region` (`holiday_date`,`region`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `calendar_working_hours`
+--
+
+DROP TABLE IF EXISTS `calendar_working_hours`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `calendar_working_hours` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `timezone` varchar(64) NOT NULL DEFAULT 'Asia/Kolkata',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_calendar_working_hours_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `calendar_working_hours_exception`
+--
+
+DROP TABLE IF EXISTS `calendar_working_hours_exception`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `calendar_working_hours_exception` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `scope` varchar(16) NOT NULL,
+  `target_date` date DEFAULT NULL,
+  `weekday` tinyint DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `is_closed` tinyint(1) NOT NULL DEFAULT '0',
+  `priority` int NOT NULL DEFAULT '0',
+  `note` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_calendar_working_hours_exception_scope` (`scope`),
+  KEY `idx_calendar_working_hours_exception_date` (`target_date`),
+  KEY `idx_calendar_working_hours_exception_weekday` (`weekday`),
+  KEY `idx_calendar_working_hours_exception_range` (`start_date`,`end_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `calendar_event`
+--
+
+DROP TABLE IF EXISTS `calendar_event`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `calendar_event` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `start_at` datetime NOT NULL,
+  `end_at` datetime NOT NULL,
+  `is_all_day` tinyint(1) NOT NULL DEFAULT '0',
+  `background_color` varchar(16) DEFAULT NULL,
+  `text_color` varchar(16) DEFAULT NULL,
+  `meta` json DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_calendar_event_start` (`start_at`),
+  KEY `idx_calendar_event_end` (`end_at`),
+  KEY `idx_calendar_event_all_day` (`is_all_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `calendar_source`
+--
+
+DROP TABLE IF EXISTS `calendar_source`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `calendar_source` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `provider_code` varchar(64) NOT NULL,
+  `base_url` varchar(255) NOT NULL,
+  `api_key` varchar(255) DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_calendar_source_provider` (`provider_code`),
+  KEY `idx_calendar_source_enabled` (`enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping events for database 'ticketing_system'
 --
 
