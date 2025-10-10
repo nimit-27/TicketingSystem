@@ -57,4 +57,7 @@ public class TicketSla {
 
     @Transient
     private Long timeTillDueDate;
+
+    @Transient
+    private Long workingTimeLeftMinutes;
 }

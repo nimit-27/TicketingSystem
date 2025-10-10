@@ -17,6 +17,7 @@ describe('SlaDetails', () => {
     idleTimeMinutes: 30,
     elapsedTimeMinutes: 200,
     timeTillDueDate: 100,
+    workingTimeLeftMinutes: 80,
     breachedByMinutes: 0,
     status: 'IN_PROGRESS',
   } as any;
@@ -29,6 +30,7 @@ describe('SlaDetails', () => {
     expect(screen.getAllByText(/2024/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('45')).toBeInTheDocument();
     expect(screen.getByText('120')).toBeInTheDocument();
+    expect(screen.getByText('80')).toBeInTheDocument();
   });
 
   it('renders fallback when values missing', () => {

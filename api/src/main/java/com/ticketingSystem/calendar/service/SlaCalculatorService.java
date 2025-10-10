@@ -55,6 +55,66 @@ public class SlaCalculatorService {
         return cursor;
     }
 
+    public Duration computeWorkingDurationBetween(ZonedDateTime start, ZonedDateTime end) {
+        if (start == null || end == null) {
+            return Duration.ZERO;
+        }
+
+        ZonedDateTime normalizedStart = start.withZoneSameInstant(TimeUtils.ZONE_ID);
+        ZonedDateTime normalizedEnd = end.withZoneSameInstant(TimeUtils.ZONE_ID);
+
+        if (normalizedStart.equals(normalizedEnd)) {
+            return Duration.ZERO;
+        }
+
+        boolean negative = normalizedEnd.isBefore(normalizedStart);
+        ZonedDateTime cursor = negative ? normalizedEnd : normalizedStart;
+        ZonedDateTime target = negative ? normalizedStart : normalizedEnd;
+        Duration total = Duration.ZERO;
+
+        while (cursor.isBefore(target)) {
+            LocalDate date = cursor.toLocalDate();
+            if (isHoliday(date)) {
+                cursor = nextBusinessStart(date.plusDays(1));
+                continue;
+            }
+            WorkingWindow window = businessHoursService.resolveWindow(date);
+            if (!window.isOpen()) {
+                cursor = nextBusinessStart(date.plusDays(1));
+                continue;
+            }
+            ZonedDateTime windowStart = TimeUtils.atZone(date, window.startTime());
+            ZonedDateTime windowEnd = TimeUtils.atZone(date, window.endTime());
+
+            if (cursor.isBefore(windowStart)) {
+                cursor = windowStart;
+                if (!cursor.isBefore(target)) {
+                    break;
+                }
+            }
+
+            if (!cursor.isBefore(windowEnd)) {
+                cursor = nextBusinessStart(date.plusDays(1));
+                continue;
+            }
+
+            ZonedDateTime sliceEnd = target.isBefore(windowEnd) ? target : windowEnd;
+            if (!cursor.isBefore(sliceEnd)) {
+                cursor = nextBusinessStart(date.plusDays(1));
+                continue;
+            }
+
+            total = total.plus(Duration.between(cursor, sliceEnd));
+            cursor = sliceEnd;
+
+            if (!cursor.isBefore(windowEnd)) {
+                cursor = nextBusinessStart(date.plusDays(1));
+            }
+        }
+
+        return negative ? total.negated() : total;
+    }
+
     private boolean isHoliday(LocalDate date) {
         return holidayRepository.findByDateAndRegion(date, TimeUtils.DEFAULT_REGION).isPresent();
     }

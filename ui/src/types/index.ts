@@ -123,6 +123,7 @@ export interface TicketSla {
     dueDate?: string;
     createdAt?: string;
     timeTillDueDate?: number;
+    workingTimeLeftMinutes?: number;
 }
 
 export interface Faq {

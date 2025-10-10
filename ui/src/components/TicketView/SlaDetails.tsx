@@ -29,6 +29,10 @@ const SlaDetails: React.FC<Props> = ({ sla }) => (
         <td><Typography>{renderNumber(sla.timeTillDueDate)}</Typography></td>
       </tr>
       <tr>
+        <td><Typography color="text.secondary">Working Time Left (mins)</Typography></td>
+        <td><Typography>{renderNumber(sla.workingTimeLeftMinutes ?? null)}</Typography></td>
+      </tr>
+      <tr>
         <td><Typography color="text.secondary">Response Time (mins)</Typography></td>
         <td><Typography>{renderNumber(sla.responseTimeMinutes ?? null)}</Typography></td>
       </tr>

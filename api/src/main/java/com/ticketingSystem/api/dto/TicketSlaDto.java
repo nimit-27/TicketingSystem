@@ -23,4 +23,5 @@ public class TicketSlaDto {
     private LocalDateTime createdAt;
     private Long totalSlaMinutes;
     private Long timeTillDueDate;
+    private Long workingTimeLeftMinutes;
 }
