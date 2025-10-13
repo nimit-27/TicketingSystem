@@ -167,7 +167,7 @@ public class TicketSlaService {
 
         LocalDateTime currentDueAt = originalDueAt;
         if (currentDueAt != null && idle > 0L) {
-            currentDueAt = currentDueAt.plusMinutes(idle);
+            currentDueAt = computeCalendarEnd(currentDueAt, idle);
         }
 
         LocalDateTime slaTargetDueAt = escalatedDueAt != null ? escalatedDueAt : originalDueAt;
