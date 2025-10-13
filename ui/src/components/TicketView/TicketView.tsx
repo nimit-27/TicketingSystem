@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button } from '@mui/material';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../../services/TicketService';
@@ -34,6 +34,7 @@ import type { TicketRow } from '../AllTickets/TicketsTable';
 import { useSnackbar } from '../../context/SnackbarContext';
 import ChildTicketsList from './ChildTicketsList';
 import LinkToMasterTicketModal from '../RaiseTicket/LinkToMasterTicketModal';
+import AssigneeDropdown from '../AllTickets/AssigneeDropdown';
 
 interface TicketViewProps {
   ticketId: string;
@@ -133,6 +134,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     showMessage(`Ticket ${ticketId} has been linked to master ticket ${masterTicketId}`, 'success');
   }, [getTicketHandler, ticketId, showMessage]);
 
+  const handleAssigneeUpdate = useCallback(() => {
+    getTicketHandler(() => getTicket(ticketId));
+  }, [getTicketHandler, ticketId]);
+
   const noopSetMasterId = useCallback((_id: string) => {
     // Intentionally left blank for existing tickets
   }, []);
@@ -158,11 +163,26 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
   const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
 
+  const allowAssigneeAssignment = useMemo(
+    () => checkAccessMaster(['ticketView', 'header', 'assignee', 'allowAssignment']),
+    [],
+  );
+
   // ACTIONS ACCORDING TO STATUS WORKFLOW
   const availableStatusActions = useMemo(() => {
     if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
     return statusWorkflows[ticket.statusId] || [];
   }, [statusWorkflows, ticket?.statusId]);
+
+  const getAllAvailableActionsByCurrentStatus = useCallback(
+    (statusId: string) => statusWorkflows[statusId || ''] || [],
+    [statusWorkflows],
+  );
+
+  const allowAssigneeChange = useMemo(() => {
+    if (!ticket?.statusId) return false;
+    return Boolean(statusWorkflows[ticket.statusId] && allowAssigneeAssignment);
+  }, [statusWorkflows, ticket?.statusId, allowAssigneeAssignment]);
 
   const resolveAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
@@ -731,7 +751,21 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         <Box className="d-flex flex-column col-6" >
           <div className='d-flex'>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <UserAvatar name={ticket.assignedToName || ticket.assignedTo || 'NA'} size={32} />
+              {allowAssigneeChange ? (
+                <AssigneeDropdown
+                  ticketId={ticket.id}
+                  assigneeName={ticket.assignedToName || ticket.assignedTo}
+                  onAssigned={handleAssigneeUpdate}
+                  requestorId={ticket.userId}
+                  getAllAvailableActionsByCurrentStatus={getAllAvailableActionsByCurrentStatus}
+                />
+              ) : (
+                <Tooltip title={ticket.assignedToName || ticket.assignedTo || ''}>
+                  <span>
+                    <UserAvatar name={ticket.assignedToName || ticket.assignedTo || 'NA'} size={32} />
+                  </span>
+                </Tooltip>
+              )}
               <Typography variant="subtitle1">{ticket.id}</Typography>
             </Box>
 
