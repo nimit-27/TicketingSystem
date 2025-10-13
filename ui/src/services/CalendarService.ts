@@ -3,10 +3,10 @@ import { CalendarViewResponse, UpsertWorkingHoursRequest } from "../types/calend
 
 export const CalendarService = {
   async fetchCalendar(from: string, to: string): Promise<CalendarViewResponse> {
-    const response = await apiClient.get<CalendarViewResponse>("/api/calendar/view", {
+    const response = await apiClient.get<any>("/api/calendar/view", {
       params: { from, to },
     });
-    return response.data;
+    return response.data.body.data;
   },
 
   async upsertWorkingHours(payload: UpsertWorkingHoursRequest): Promise<void> {
