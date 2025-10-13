@@ -106,7 +106,11 @@ public class TicketSlaService {
         LocalDateTime endTime = resolvedAt != null ? resolvedAt : calculationTime;
         long elapsed = 0L;
         if (reportedDate != null) {
-            elapsed = Math.max(Duration.between(reportedDate, endTime).toMinutes(), 0L);
+            Duration workingElapsed = slaCalculatorService.computeWorkingDurationBetween(
+                    reportedDate.atZone(TimeUtils.ZONE_ID),
+                    endTime.atZone(TimeUtils.ZONE_ID)
+            );
+            elapsed = Math.max(workingElapsed.toMinutes(), 0L);
         }
 
         long resolution = 0L;
