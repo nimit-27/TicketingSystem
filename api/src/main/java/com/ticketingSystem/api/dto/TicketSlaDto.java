@@ -3,6 +3,7 @@ package com.ticketingSystem.api.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO for {@link com.ticketingSystem.api.models.TicketSla}.
@@ -24,4 +25,23 @@ public class TicketSlaDto {
     private Long totalSlaMinutes;
     private Long timeTillDueDate;
     private Long workingTimeLeftMinutes;
+
+    private TicketSummaryDto ticket;
+
+    @Data
+    public static class TicketSummaryDto {
+        private String id;
+        private String assignedTo;
+        private String assignedToLevel;
+        private String levelId;
+        private UserSummaryDto user;
+    }
+
+    @Data
+    public static class UserSummaryDto {
+        private String userId;
+        private String username;
+        private String name;
+        private List<String> userLevel;
+    }
 }

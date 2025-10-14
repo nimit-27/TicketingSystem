@@ -9,6 +9,8 @@ import com.ticketingSystem.api.service.TicketService;
 import com.ticketingSystem.api.dto.TicketSearchResultDto;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
+import com.ticketingSystem.api.dto.TicketSlaDto;
+import com.ticketingSystem.api.mapper.DtoMapper;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +68,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/sla")
-    public ResponseEntity<TicketSla> getTicketSla(@PathVariable("id") String id) {
+    public ResponseEntity<TicketSlaDto> getTicketSla(@PathVariable("id") String id) {
         logger.info("Request to get SLA for ticket {}", id);
         TicketSla sla = ticketSlaService.getByTicketId(id);
         if (sla == null) {
@@ -74,7 +76,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);
-        return ResponseEntity.ok(sla);
+        return ResponseEntity.ok(DtoMapper.toTicketSlaDto(sla));
     }
 
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })

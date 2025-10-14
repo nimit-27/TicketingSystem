@@ -218,6 +218,38 @@ public class DtoMapper {
         dto.setTotalSlaMinutes(ticketSla.getTotalSlaMinutes());
         dto.setTimeTillDueDate(ticketSla.getTimeTillDueDate());
         dto.setWorkingTimeLeftMinutes(ticketSla.getWorkingTimeLeftMinutes());
+
+        Ticket ticket = ticketSla.getTicket();
+        if (ticket != null) {
+            TicketSlaDto.TicketSummaryDto ticketSummaryDto = new TicketSlaDto.TicketSummaryDto();
+            ticketSummaryDto.setId(ticket.getId());
+            ticketSummaryDto.setAssignedTo(ticket.getAssignedTo());
+            ticketSummaryDto.setAssignedToLevel(ticket.getAssignedToLevel());
+            ticketSummaryDto.setLevelId(ticket.getLevelId());
+
+            User user = ticket.getUser();
+            if (user != null) {
+                TicketSlaDto.UserSummaryDto userSummaryDto = new TicketSlaDto.UserSummaryDto();
+                userSummaryDto.setUserId(user.getUserId());
+                userSummaryDto.setUsername(user.getUsername());
+                userSummaryDto.setName(user.getName());
+
+                if (user.getUserLevel() != null && user.getUserLevel().getLevelIds() != null) {
+                    List<String> levels = Arrays.stream(user.getUserLevel().getLevelIds().split("\\|"))
+                            .map(String::trim)
+                            .filter(level -> !level.isBlank())
+                            .collect(Collectors.toList());
+                    userSummaryDto.setUserLevel(levels);
+                } else {
+                    userSummaryDto.setUserLevel(Collections.emptyList());
+                }
+
+                ticketSummaryDto.setUser(userSummaryDto);
+            }
+
+            dto.setTicket(ticketSummaryDto);
+        }
+
         return dto;
     }
 }
