@@ -13,11 +13,11 @@ import com.ticketingSystem.calendar.service.SlaCalculatorService;
 import com.ticketingSystem.calendar.util.TimeUtils;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.service.NotificationService;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.sql.Time;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -77,8 +77,9 @@ public class TicketSlaService {
         LocalDateTime resolvedAt = ticket.getResolvedAt();
         LocalDateTime calculationTime = resolvedAt != null ? resolvedAt : LocalDateTime.now();
 
-        long resolutionPolicy = config.getResolutionMinutes() != null
-                ? config.getResolutionMinutes() : 0L;
+        long resolutionPolicy = Objects.requireNonNullElse(config.getResolutionMinutes(), 0L);
+//        long resolutionPolicy = config.getResolutionMinutes() != null
+//                ? config.getResolutionMinutes() : 0L;
         LocalDateTime baseDueAt = computeCalendarEnd(reportedDate, resolutionPolicy);
 
         List<StatusHistory> orderedHistory = history != null
@@ -100,7 +101,11 @@ public class TicketSlaService {
 
         long responseMinutes = 0L;
         if (reportedDate != null && assignTime != null) {
-            responseMinutes = Math.max(Duration.between(reportedDate, assignTime).toMinutes(), 0L);
+            Duration responseMinutesDuration = slaCalculatorService.computeWorkingDurationBetween(
+                    reportedDate.atZone(TimeUtils.ZONE_ID),
+                    assignTime.atZone(TimeUtils.ZONE_ID)
+            );
+            responseMinutes = Math.max(responseMinutesDuration.toMinutes(), 0L);
         }
 
         LocalDateTime endTime = resolvedAt != null ? resolvedAt : calculationTime;
@@ -115,42 +120,64 @@ public class TicketSlaService {
 
         long resolution = 0L;
         long idle = 0L;
-        LocalDateTime prevTime = reportedDate != null ? reportedDate : assignTime;
-        Boolean prevFlag = Boolean.FALSE;
 
-        for (StatusHistory sh : orderedHistory) {
-            LocalDateTime timestamp = sh.getTimestamp();
-            if (timestamp == null || prevTime == null) {
-                prevTime = timestamp != null ? timestamp : prevTime;
-                prevFlag = sh.getSlaFlag();
-                continue;
-            }
-            long diff = Math.max(Duration.between(prevTime, timestamp).toMinutes(), 0L);
-            if (Boolean.TRUE.equals(prevFlag)) {
-                resolution += diff;
-            } else {
-                idle += diff;
-            }
-            prevTime = timestamp;
-            prevFlag = sh.getSlaFlag();
-        }
+//        IF STATUS HISTORY LIST HAS ONLY 1 ELEMENT
+        if (orderedHistory.size() == 1) {
+            StatusHistory item = orderedHistory.get(0);
+            LocalDateTime timestamp = item.getTimestamp();
+            Boolean flag = item.getSlaFlag();
 
-        if (prevTime == null) {
-            prevTime = reportedDate != null ? reportedDate : endTime;
-        }
-        long finalDiff = Math.max(Duration.between(prevTime, endTime).toMinutes(), 0L);
-        if (Boolean.TRUE.equals(prevFlag)) {
-            resolution += finalDiff;
+            Duration diffDuration = slaCalculatorService.computeWorkingDurationBetween(
+                    timestamp.atZone(TimeUtils.ZONE_ID),
+                    endTime.atZone(TimeUtils.ZONE_ID)
+            );
+            long diff = Math.max(diffDuration.toMinutes(), 0L);
+
+            if (Boolean.TRUE.equals(flag)) resolution += diff;
+            else idle += diff;
+
         } else {
-            idle += finalDiff;
-        }
+//            IF STATUS HISTORY HAS MORE THAN 1 ELEMENT
+            StatusHistory firstElement = orderedHistory.get(0);
+            LocalDateTime prevTimestamp = firstElement.getTimestamp();
+            Boolean prevFlag = firstElement.getSlaFlag();
+//            START FROM THE SECOND ELEMENT
+            for(int i = 1; i < orderedHistory.size(); i++) {
+                StatusHistory currElement = orderedHistory.get(i);
+                LocalDateTime currTimestamp = currElement.getTimestamp();
+                Boolean currFlag = currElement.getSlaFlag();
 
-//        if (elapsed > 0 && resolution > elapsed) {
-//            resolution = elapsed;
-//        }
-//        if (elapsed > 0) {
-//            idle = Math.max(elapsed - resolution, idle);
-//        }
+                Duration diffDuration = slaCalculatorService.computeWorkingDurationBetween(
+                  prevTimestamp.atZone(TimeUtils.ZONE_ID),
+                  currTimestamp .atZone(TimeUtils.ZONE_ID)
+                );
+
+                long diff = Math.max(diffDuration.toMinutes(), 0L);
+                if(Boolean.TRUE.equals(prevFlag)) {
+                    resolution += diff;
+                } else {
+                    idle += diff;
+                }
+                prevFlag = currFlag;
+                prevTimestamp = currTimestamp;
+            }
+            Duration finalDiffDuration = slaCalculatorService.computeWorkingDurationBetween(
+              prevTimestamp.atZone(TimeUtils.ZONE_ID),
+              endTime.atZone(TimeUtils.ZONE_ID)
+            );
+            long finalDiff = Math.max(finalDiffDuration.toMinutes(), 0L);
+            if (Boolean.TRUE.equals(prevFlag)) {
+                resolution += finalDiff;
+            } else {
+                idle += finalDiff;
+            }
+
+        if (elapsed > 0 && resolution > elapsed) {
+            resolution = elapsed;
+        }
+        if (elapsed > 0) {
+            idle = Math.max(elapsed - resolution, idle);
+        }
 
         TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
                 .orElseGet(TicketSla::new);
@@ -159,10 +186,7 @@ public class TicketSlaService {
                 && !Objects.equals(ticketSla.getSlaConfig().getId(), config.getId());
 
         Long previousBreached = ticketSla.getBreachedByMinutes();
-        LocalDateTime originalDueAt = ticketSla.getActualDueAt();
-        if (originalDueAt == null) {
-            originalDueAt = baseDueAt;
-        }
+        LocalDateTime originalDueAt = Objects.requireNonNullElse(ticketSla.getActualDueAt(), baseDueAt);
 
         LocalDateTime escalatedDueAt = ticketSla.getDueAtAfterEscalation();
         if (severityChanged) {
@@ -170,15 +194,19 @@ public class TicketSlaService {
         }
 
         LocalDateTime currentDueAt = originalDueAt;
-        if (currentDueAt != null && idle > 0L) {
+        if (idle > 0L) {
             currentDueAt = computeCalendarEnd(currentDueAt, idle);
         }
 
         LocalDateTime slaTargetDueAt = escalatedDueAt != null ? escalatedDueAt : originalDueAt;
 
         long allowedMinutes = 0L;
-        if (reportedDate != null && slaTargetDueAt != null) {
-            allowedMinutes = Math.max(Duration.between(reportedDate, slaTargetDueAt).toMinutes(), 0L);
+        if (reportedDate != null) {
+            Duration allowedMinutesDuration = slaCalculatorService.computeWorkingDurationBetween(
+                    reportedDate.atZone(TimeUtils.ZONE_ID),
+                    slaTargetDueAt.atZone(TimeUtils.ZONE_ID)
+            );
+            allowedMinutes = Math.max(allowedMinutesDuration.toMinutes(), 0L);
         }
         long breachedBy = resolution - allowedMinutes;
         Long timeTillDueDate = null;

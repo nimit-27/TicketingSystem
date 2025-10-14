@@ -12,6 +12,7 @@ import com.ticketingSystem.api.repository.*;
 import com.ticketingSystem.api.typesense.TypesenseClient;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
+import com.ticketingSystem.notification.service.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -403,7 +404,7 @@ class TicketServiceTest {
     }
 
     @Test
-    void updateTicket_recommendedSeverityApprovedByNonItManager_doesNotNotifyTeamLeads() {
+    void updateTicket_recommendedSeverityApprovedByNonItManager_doesNotNotifyTeamLeads() throws Exception {
         String ticketId = "T-SEV-NEG";
         Ticket existing = buildExistingTicket(ticketId, null);
         existing.setSeverity("LOW");
