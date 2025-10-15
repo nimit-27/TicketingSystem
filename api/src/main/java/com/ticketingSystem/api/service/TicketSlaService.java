@@ -141,11 +141,19 @@ public class TicketSlaService {
             StatusHistory firstElement = orderedHistory.get(0);
             LocalDateTime prevTimestamp = firstElement.getTimestamp();
             Boolean prevFlag = firstElement.getSlaFlag();
+            String prevStatus = normalizeStatus(firstElement.getCurrentStatus());
 //            START FROM THE SECOND ELEMENT
             for(int i = 1; i < orderedHistory.size(); i++) {
                 StatusHistory currElement = orderedHistory.get(i);
                 LocalDateTime currTimestamp = currElement.getTimestamp();
                 Boolean currFlag = currElement.getSlaFlag();
+
+                if (shouldSkipResolvedToReopened(prevStatus, currElement)) {
+                    prevTimestamp = currTimestamp;
+                    prevFlag = currFlag;
+                    prevStatus = normalizeStatus(currElement.getCurrentStatus());
+                    continue;
+                }
 
                 Duration diffDuration = slaCalculatorService.computeWorkingDurationBetween(
                   prevTimestamp.atZone(TimeUtils.ZONE_ID),
@@ -160,6 +168,7 @@ public class TicketSlaService {
                 }
                 prevFlag = currFlag;
                 prevTimestamp = currTimestamp;
+                prevStatus = normalizeStatus(currElement.getCurrentStatus());
             }
             Duration finalDiffDuration = slaCalculatorService.computeWorkingDurationBetween(
               prevTimestamp.atZone(TimeUtils.ZONE_ID),
@@ -268,6 +277,25 @@ public class TicketSlaService {
                     return refreshed;
                 })
                 .orElse(null);
+    }
+
+    private boolean shouldSkipResolvedToReopened(String previousStatus, StatusHistory current) {
+        String normalizedPrevious = previousStatus;
+        String normalizedCurrent = normalizeStatus(current.getCurrentStatus());
+        if (!"REOPENED".equals(normalizedCurrent)) {
+            return false;
+        }
+
+        if ("RESOLVED".equals(normalizedPrevious)) {
+            return true;
+        }
+
+        String currentPreviousStatus = normalizeStatus(current.getPreviousStatus());
+        return "RESOLVED".equals(currentPreviousStatus);
+    }
+
+    private String normalizeStatus(String status) {
+        return status == null ? null : status.trim().toUpperCase(Locale.ROOT);
     }
 
     private void notifyAssigneeOfSlaBreach(Ticket ticket, long breachedByMinutes, LocalDateTime dueAt) {
