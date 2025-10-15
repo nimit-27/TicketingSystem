@@ -171,7 +171,7 @@ public class TicketSlaService {
             } else {
                 idle += finalDiff;
             }
-
+        }
         if (elapsed > 0 && resolution > elapsed) {
             resolution = elapsed;
         }
