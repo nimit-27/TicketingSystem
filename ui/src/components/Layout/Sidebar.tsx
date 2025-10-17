@@ -93,10 +93,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  const bgColor = theme.palette.secondary.main;
-  const textColor =
-    theme.palette.mode === 'light' ? '#FFFFFF' : '#ff9800';
-  const sidebarBorder = `1px solid #ff9800`;
+  const bgColor = theme.palette.sidebar.background;
+  // const bgColor = theme.palette.secondary.main;
+  const textColor = theme.palette.sidebar.text;
+    // theme.palette.mode === 'light' ? '#FFFFFF' : '#ff9800';
+  const sidebarBorder = `1px solid ${theme.palette.sidebar.border}`;
 
   return (
     <div

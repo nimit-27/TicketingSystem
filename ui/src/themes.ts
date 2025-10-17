@@ -69,15 +69,15 @@ const lightLayout: LayoutDefinition = {
     accent: '#99d5ae',
   },
   header: {
-    background: '#ffffff',
+    background: '#00522B',
     border: '#e0e0e0',
     text: '#1b5e20',
     accent: '#73b579',
   },
   global: {
     table: {
-      border: '#e0e0e0',
-      headerBackground: '#f3f7f5',
+      border: '#B5D9C8',
+      headerBackground: '#CAE9DC',
       headerText: '#006536',
       rowHover: '#f0f7f4',
       rowSelected: '#e0f2f1',
@@ -170,8 +170,8 @@ const lightLayout: LayoutDefinition = {
 
 const darkLayout: LayoutDefinition = {
   sidebar: {
-    background: '#006536',
-    border: '#004d29',
+    background: '#262626ff',
+    border: '#00cd6dff',
     text: '#f5f5f5',
     accent: '#7ccca1',
   },

@@ -30,10 +30,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
       .toUpperCase()
     : "";
 
-  const headerBgColor =
-    theme.palette.mode === "dark"
-      ? theme.palette.secondary.main
-      : theme.palette.primary.main;
+  const headerBgColor = theme.palette.header.background
 
   const iconColor =
     theme.palette.mode === "dark"
