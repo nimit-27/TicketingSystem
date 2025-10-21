@@ -70,13 +70,13 @@ describe('RequestDetails', () => {
     createMode: true,
   } as any;
 
-  it('renders request mode radio buttons when access is allowed in layout 1', () => {
+  it('renders request mode icon buttons when access is allowed in layout 1', () => {
     render(<RequestDetails {...baseProps} />);
 
     expect(screen.getByText('Request Mode')).toBeInTheDocument();
-    expect(screen.getByLabelText('Self')).toBeInTheDocument();
-    expect(screen.getByLabelText('Call')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByText('person')).toBeInTheDocument();
+    expect(screen.getByText('call')).toBeInTheDocument();
+    expect(screen.getByText('email')).toBeInTheDocument();
   });
 
   it('calls setValue when selecting a different mode in layout 1', () => {
@@ -91,12 +91,12 @@ describe('RequestDetails', () => {
 
     mockSetValue.mockClear();
 
-    fireEvent.click(screen.getByLabelText('Call'));
+    fireEvent.click(screen.getByText('call'));
 
     expect(mockSetValue).toHaveBeenCalledWith('mode', 'Call');
   });
 
-  it('renders icon toggle buttons when layout is not 1', () => {
+  it('renders request mode radio buttons when layout is 2', () => {
     render(
       <ThemeModeContext.Provider value={{ mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() }}>
         <RequestDetails {...baseProps} />
@@ -104,12 +104,12 @@ describe('RequestDetails', () => {
     );
 
     expect(screen.getByText('Request Mode')).toBeInTheDocument();
-    expect(screen.getByText('person')).toBeInTheDocument();
-    expect(screen.getByText('call')).toBeInTheDocument();
-    expect(screen.getByText('email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Self')).toBeInTheDocument();
+    expect(screen.getByLabelText('Call')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
   });
 
-  it('calls setValue when clicking on a different mode in non layout 1', () => {
+  it('calls setValue when selecting a different mode in layout 2', () => {
     mockUseWatch.mockImplementation(({ name }: { name: string }) => {
       if (name === 'mode') {
         return 'Self';
@@ -125,7 +125,7 @@ describe('RequestDetails', () => {
 
     mockSetValue.mockClear();
 
-    fireEvent.click(screen.getByText('call'));
+    fireEvent.click(screen.getByLabelText('Call'));
 
     expect(mockSetValue).toHaveBeenCalledWith('mode', 'Call');
   });
