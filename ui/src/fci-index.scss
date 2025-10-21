@@ -75,10 +75,11 @@ $i: 0;
 
 $font-size: 8;
 
-@while $font-size <= 40 {
+@while $font-size <=40 {
   .ts-#{$font-size} {
     font-size: #{$font-size}px !important;
   }
+
   $font-size: $font-size + 1;
 }
 
@@ -121,34 +122,32 @@ $font-size: 8;
   font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
 }
 
-.ant-table-thead > tr > th {
-  background-color: var(--table-header-bg, #1b5e20) !important;
-  color: var(--table-header-color, #ffffff) !important;
-  border-color: var(--table-border-color, var(--table-header-bg, #1b5e20)) !important;
+.ant-table-thead>tr>th {
+  border-radius: 1px !important;
 }
 
 .custom-bordered-table {
-  border-radius: 4px;
+  border-color: var(--table-border-color);
+  border-radius: 1px;
   overflow: hidden;
 }
 
 .custom-bordered-table .ant-table {
-  border-radius: 4px;
+  border-radius: 1px;
 }
 
 .custom-bordered-table .ant-table-container {
-  border-radius: 4px;
+  border-radius: 1px;
   border: 1px solid var(--table-border-color);
 }
 
 .tickets-table {
   .ant-table {
-    border-radius: 8px;
+    border-radius: 1px;
   }
 
   .ant-table-container {
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
+    border-radius: 1px;
   }
 }
 
@@ -161,25 +160,19 @@ $font-size: 8;
       border: 1px solid #444;
     }
 
-    &-thead > tr > th {
-      background-color: var(--table-header-bg, #1b5e20);
-      color: var(--table-header-color, #ffffff);
-      border-color: var(--table-header-border-color, var(--table-header-bg, #1b5e20));
-    }
-
-    &-tbody > tr > td {
+    &-tbody>tr>td {
       background-color: #1e1e1e;
       color: #ddd;
       border-color: #555;
     }
 
-    &-tbody > tr:hover > td {
+    &-tbody>tr:hover>td {
       background-color: rgba(255, 255, 255, 0.08);
     }
   }
 }
 
 // highlight latest history row
-tr.latest-row > td {
+tr.latest-row>td {
   background-color: #fff3e0 !important;
 }

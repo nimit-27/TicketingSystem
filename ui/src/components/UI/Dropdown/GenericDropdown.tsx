@@ -54,7 +54,7 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
     const { t } = useTranslation();
     const classes = `generic-dropdown ${className ?? ''}`.trim();
     // let size: "small" | "medium" = !FciTheme ? "small" : "medium";
-    let size: "small" | "medium" = "small";
+    let size: "small" | "medium" = "medium";
     const helperTextId = helperText ? `${id ?? name ?? 'generic-dropdown'}-helper-text` : undefined;
     const { ref, ...restProps } = rest;
     return (

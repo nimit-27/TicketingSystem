@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { ThemeModeContext } from "../../context/ThemeContext";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import Avatar from "@mui/material/Avatar";
@@ -45,56 +45,42 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
     setMenuAnchorEl(null);
   };
 
+  const fciLogo = useMemo(() => {
+    if (theme.palette.mode === "light") return "/logo.png"
+    else if (theme.palette.mode === "dark") return "fciLogo.png"
+  }, [theme.palette.mode])
+
   return (
     <header
+      className="d-flex py-1 px-2 align-items-center"
       style={{
         backgroundColor: headerBgColor,
         color: iconColor,
-        width: "100%",
-        padding: "10px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        borderBottom:
-          theme.palette.mode === "dark"
-            ? `1px solid ${theme.palette.success.main}`
-            : undefined,
+        borderBottom: theme.palette.header.border
       }}
     >
       <CustomIconButton
-        style={{
-          color: iconColor,
-        }}
+        style={{ color: iconColor }}
         icon={collapsed ? "menu" : "chevronleft"}
         onClick={toggleSidebar}
       />
       <div>
-        {theme.palette.mode === 'light' && (
-          <img src="/logo.png" style={{ height: '50px' }} />
-        )}
-        {theme.palette.mode === 'dark' && (
-          <img src="/fciLogo.png" style={{ height: '50px' }} />
-        )}
+        <img src={fciLogo} style={{ height: '25px' }} />
       </div>
+      <h5 className="p-0 m-0 ms-2 fw-bold">ANNA DARPAN</h5>
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
-          style={{
-            color: iconColor,
-          }}
+          style={{ color: iconColor }}
           icon={mode === "light" ? "darkmode" : "lightmode"}
           onClick={toggle}
         />
         <CustomIconButton
-          style={{
-            color: iconColor,
-          }}
+          style={{ color: iconColor }}
           icon="translate"
           onClick={toggleLanguage}
         />
         <CustomIconButton
-          style={{
-            color: devMode ? theme.palette.warning.main : iconColor,
-          }}
+          style={{ color: devMode ? theme.palette.warning.main : iconColor }}
           icon="code"
           onClick={toggleDevMode}
         />
@@ -119,11 +105,12 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
         <NotificationBell iconColor={iconColor} />
         <Avatar
           sx={{
-            bgcolor: theme.palette.grey[600],
+            bgcolor: "white",
             width: 32,
             height: 32,
             fontSize: 14,
             cursor: "pointer",
+            color: theme.palette.primary.main,
           }}
           onClick={handleAvatarClick}
         >

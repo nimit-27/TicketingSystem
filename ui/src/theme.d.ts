@@ -22,6 +22,7 @@ declare module '@mui/material/styles' {
     rowHover: string;
     rowSelected: string;
     rowDivider: string;
+    defaultTextColor: string;
   }
 
   interface ButtonVariantPalette {

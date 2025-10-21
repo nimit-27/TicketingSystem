@@ -36,6 +36,7 @@ type TableDefinition = {
   rowHover: string;
   rowSelected: string;
   rowDivider: string;
+  defaultTextColor: string;
 };
 
 type GlobalComponentsDefinition = {
@@ -64,24 +65,25 @@ type LayoutDefinition = {
 const lightLayout: LayoutDefinition = {
   sidebar: {
     background: '#006536',
-    border: '#004d29',
+    border: 'none',
     text: '#ffffff',
     accent: '#99d5ae',
   },
   header: {
     background: '#00522B',
-    border: '#e0e0e0',
+    border: 'none',
     text: '#1b5e20',
     accent: '#73b579',
   },
   global: {
     table: {
-      border: '#B5D9C8',
+      border: '#ABD4C1',
       headerBackground: '#CAE9DC',
       headerText: '#006536',
       rowHover: '#f0f7f4',
       rowSelected: '#e0f2f1',
       rowDivider: '#d9e4dd',
+      defaultTextColor: '#006536',
     },
     buttons: {
       save: {
@@ -171,13 +173,13 @@ const lightLayout: LayoutDefinition = {
 const darkLayout: LayoutDefinition = {
   sidebar: {
     background: '#262626ff',
-    border: '#00cd6dff',
+    border: '1px solid #00cd6dff',
     text: '#f5f5f5',
     accent: '#7ccca1',
   },
   header: {
     background: '#232222',
-    border: '#3c3c3c',
+    border: '1px solid #73b579',
     text: '#ffffff',
     accent: '#73b579',
   },
@@ -189,6 +191,7 @@ const darkLayout: LayoutDefinition = {
       rowHover: '#2a332f',
       rowSelected: '#224c3c',
       rowDivider: '#365148',
+      defaultTextColor: '#e0f2f1',
     },
     buttons: {
       save: {
@@ -296,6 +299,7 @@ const fciLayout: LayoutDefinition = {
       rowHover: '#fff8ef',
       rowSelected: '#fdeacc',
       rowDivider: '#f0dfc5',
+      defaultTextColor: '#2e7d32',
     },
     buttons: {
       save: {

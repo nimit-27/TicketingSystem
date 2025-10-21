@@ -402,7 +402,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     {showSearchBar && (
                         <GenericInput
                             label="Search"
-                            size="small"
                             className="col-3 pe-1"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -416,7 +415,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             value={statusFilter}
                             onChange={(value) => { setStatusFilter(value); setPage(1); }}
                             options={statusFilterOptions}
-                        // style={{ width: 180, marginRight: 8 }}
                         />
                     )}
                     <DropdownController
@@ -425,7 +423,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         className="col-3 px-1"
                         onChange={handleCategoryChange}
                         options={categoryOptions}
-                    // style={{ width: 200 }}
                     />
                     {selectedCategory !== "All" ? (
                         <DropdownController
@@ -434,7 +431,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             className="col-3 ps-1"
                             onChange={handleSubCategoryChange}
                             options={subCategoryOptions}
-                        // style={{ width: 220 }}
                         />
                     )
                         : <div className="d-flex col-3"></div>}

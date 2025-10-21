@@ -23,7 +23,7 @@ const GenericInput: React.FC<GenericInputProps> = ({
     ...props
 }) => {
     const classes = `generic-input ${className ?? ''}`.trim();
-    let size: "small" | "medium" = !FciTheme ? "small" : "medium";
+    let size: "small" | "medium" = "medium";
     const { t } = useTranslation();
 
     return (
