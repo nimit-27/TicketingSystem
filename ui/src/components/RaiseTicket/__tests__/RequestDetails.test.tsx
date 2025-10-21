@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
+import { ThemeModeContext } from '../../../context/ThemeContext';
 
 const mockSetValue = jest.fn();
 const mockUseWatch = jest.fn();
@@ -18,6 +19,7 @@ jest.mock('@mui/material/styles', () => ({
     palette: {
       primary: { main: '#111' },
       secondary: { main: '#222' },
+      sidebar: { background: '#0f0', border: '', text: '' },
     },
   }),
 }));
@@ -68,16 +70,16 @@ describe('RequestDetails', () => {
     createMode: true,
   } as any;
 
-  it('renders mode toggle buttons when access is allowed', () => {
+  it('renders request mode radio buttons when access is allowed in layout 1', () => {
     render(<RequestDetails {...baseProps} />);
 
     expect(screen.getByText('Request Mode')).toBeInTheDocument();
-    expect(screen.getByText('Self')).toBeInTheDocument();
-    expect(screen.getByText('Call')).toBeInTheDocument();
-    expect(screen.getByText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Self')).toBeInTheDocument();
+    expect(screen.getByLabelText('Call')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
   });
 
-  it('calls setValue when clicking on a different mode', () => {
+  it('calls setValue when selecting a different mode in layout 1', () => {
     mockUseWatch.mockImplementation(({ name }: { name: string }) => {
       if (name === 'mode') {
         return 'Self';
@@ -86,6 +88,42 @@ describe('RequestDetails', () => {
     });
 
     render(<RequestDetails {...baseProps} />);
+
+    mockSetValue.mockClear();
+
+    fireEvent.click(screen.getByLabelText('Call'));
+
+    expect(mockSetValue).toHaveBeenCalledWith('mode', 'Call');
+  });
+
+  it('renders icon toggle buttons when layout is not 1', () => {
+    render(
+      <ThemeModeContext.Provider value={{ mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() }}>
+        <RequestDetails {...baseProps} />
+      </ThemeModeContext.Provider>
+    );
+
+    expect(screen.getByText('Request Mode')).toBeInTheDocument();
+    expect(screen.getByText('person')).toBeInTheDocument();
+    expect(screen.getByText('call')).toBeInTheDocument();
+    expect(screen.getByText('email')).toBeInTheDocument();
+  });
+
+  it('calls setValue when clicking on a different mode in non layout 1', () => {
+    mockUseWatch.mockImplementation(({ name }: { name: string }) => {
+      if (name === 'mode') {
+        return 'Self';
+      }
+      return '';
+    });
+
+    render(
+      <ThemeModeContext.Provider value={{ mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() }}>
+        <RequestDetails {...baseProps} />
+      </ThemeModeContext.Provider>
+    );
+
+    mockSetValue.mockClear();
 
     fireEvent.click(screen.getByText('call'));
 

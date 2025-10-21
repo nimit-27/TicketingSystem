@@ -5,10 +5,12 @@ import { useWatch } from "react-hook-form";
 import CustomFieldset from "../CustomFieldset";
 import { isHelpdesk } from "../../config/config";
 import { checkFieldAccess, getFieldChildren } from "../../utils/permissions";
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import { useTheme } from "@mui/material/styles";
+import { Radio, RadioGroup, FormControlLabel } from "@mui/material";
+import { ThemeModeContext } from "../../context/ThemeContext";
 
 interface RequestDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -29,6 +31,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     const mode = useWatch({ control, name: 'mode' });
     const helpdesk = true
     const theme = useTheme();
+    const { layout } = useContext(ThemeModeContext);
 
     const modeChildren = getFieldChildren('requestDetails', 'mode') || {};
     const allowedModes = modeOptions.filter(opt => modeChildren?.[opt.value.toLowerCase()]?.show);
@@ -41,30 +44,63 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ register, control, erro
     }, [setValue, allowedModes.length]);
 
     const { t } = useTranslation();
+
+    const handleModeChange = (value: string) => {
+        if (setValue) {
+            setValue('mode', value);
+        }
+    };
     return (
         <>
             {showModeField && (
-                // <CustomFieldset variant="basic" title={t('Request Mode')} style={{ width: 'fit-content' }} className="d-flex">
-                <div className="d-flex gap-4 align-items-center px-4 py-1 border rounded-2 mb-4" style={{ width: 'fit-content' }}>
-                    <span className="text-muted fs-6">{t('Request Mode')}</span>
-                    {allowedModes.map(opt => (
-                        <div
-                            key={opt.value}
-                            onClick={() => setValue && setValue('mode', opt.value)}
-                            style={{ cursor: 'pointer' }}
-                            className="text-center"
+                <div
+                    className={`px-4 border rounded-2 mb-4 ${layout === 1 ? 'py-3' : 'py-1 d-flex gap-4 align-items-center'}`}
+                    style={{ width: 'fit-content' }}
+                >
+                    <span className={`text-muted fs-6 ${layout === 1 ? 'd-block mb-2' : ''}`}>{t('Request Mode')}</span>
+                    {layout === 1 ? (
+                        <RadioGroup
+                            row
+                            value={mode || allowedModes[0]?.value || ''}
+                            onChange={event => handleModeChange(event.target.value)}
+                            sx={{ display: 'flex', gap: 2 }}
                         >
-                            <CustomIconButton
-                                className="p-0 m-0 ts-20"
-                                icon={opt.icon}
-                                disabled={disableAll || !helpdesk}
-                                sx={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}
-                            />
-                            <p className="p-0 m-0 ts-14" style={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}>{t(opt.label)}</p>
-                        </div>
-                    ))}
+                            {allowedModes.map(opt => (
+                                <FormControlLabel
+                                    key={opt.value}
+                                    value={opt.value}
+                                    control={(
+                                        <Radio
+                                            disabled={disableAll || !helpdesk}
+                                            sx={{
+                                                color: theme.palette.sidebar.background,
+                                                '&.Mui-checked': { color: theme.palette.sidebar.background }
+                                            }}
+                                        />
+                                    )}
+                                    label={t(opt.label)}
+                                />
+                            ))}
+                        </RadioGroup>
+                    ) : (
+                        allowedModes.map(opt => (
+                            <div
+                                key={opt.value}
+                                onClick={() => handleModeChange(opt.value)}
+                                style={{ cursor: 'pointer' }}
+                                className="text-center"
+                            >
+                                <CustomIconButton
+                                    className="p-0 m-0 ts-20"
+                                    icon={opt.icon}
+                                    disabled={disableAll || !helpdesk}
+                                    sx={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}
+                                />
+                                <p className="p-0 m-0 ts-14" style={{ color: mode === opt.value ? theme.palette.secondary.main : theme.palette.primary.main }}>{t(opt.label)}</p>
+                            </div>
+                        ))
+                    )}
                 </div>
-                // </CustomFieldset>
             )}
         </>
         // <CustomFieldset title={t('Request Details')} disabled={isFieldSetDisabled}>
