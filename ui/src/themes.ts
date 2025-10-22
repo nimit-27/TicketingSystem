@@ -40,6 +40,9 @@ type TableDefinition = {
 };
 
 type GlobalComponentsDefinition = {
+  pageTitle: {
+    text: string;
+  };
   table: TableDefinition;
   buttons: ButtonsDefinition;
   input: FieldDefinition;
@@ -76,6 +79,9 @@ const lightLayout: LayoutDefinition = {
     accent: '#73b579',
   },
   global: {
+    pageTitle: {
+      text: '#006636',
+    },
     table: {
       border: '#ABD4C1',
       headerBackground: '#CAE9DC',
@@ -184,6 +190,9 @@ const darkLayout: LayoutDefinition = {
     accent: '#73b579',
   },
   global: {
+    pageTitle: {
+      text: '#73b579',
+    },
     table: {
       border: '#3c3c3c',
       headerBackground: '#2f3a36',
@@ -292,6 +301,9 @@ const fciLayout: LayoutDefinition = {
     accent: '#ffb74d',
   },
   global: {
+    pageTitle: {
+      text: '#006536',
+    },
     table: {
       border: '#e5e5e5',
       headerBackground: '#fff3e8',

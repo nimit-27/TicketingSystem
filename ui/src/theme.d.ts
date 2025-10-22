@@ -56,6 +56,9 @@ declare module '@mui/material/styles' {
   }
 
   interface GlobalComponentsPalette {
+    pageTitle: {
+      text: string;
+    }
     table: TablePalette;
     buttons: ButtonsPalette;
     input: FieldPalette;
