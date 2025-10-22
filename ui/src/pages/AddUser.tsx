@@ -80,7 +80,8 @@ const AddUser: React.FC = () => {
     data: rolesData,
     pending: rolesPending,
     apiHandler: fetchRoles,
-  } = useApi<RoleResponse[]>();
+  // } = useApi<RoleResponse[]>();
+  } = useApi<any>();
   const {
     data: stakeholdersData,
     pending: stakeholdersPending,
@@ -201,7 +202,8 @@ const AddUser: React.FC = () => {
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            {/* <Grid item xs={12} md={6}> */}
+            <div className=''>
               <TextField
                 label={t('Username')}
                 fullWidth
@@ -213,8 +215,8 @@ const AddUser: React.FC = () => {
                 helperText={errors.username?.message}
                 autoComplete="username"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </div>
+            <div className=''>
               <TextField
                 label={t('Name')}
                 fullWidth
@@ -225,8 +227,8 @@ const AddUser: React.FC = () => {
                 error={Boolean(errors.name)}
                 helperText={errors.name?.message}
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </div>
+            <div className=''>
               <TextField
                 label={t('Email ID')}
                 type="email"
@@ -242,8 +244,8 @@ const AddUser: React.FC = () => {
                 helperText={errors.emailId?.message}
                 autoComplete="email"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </div>
+            <div className=''>
               <TextField
                 label={t('Mobile No.')}
                 type="tel"
@@ -259,8 +261,8 @@ const AddUser: React.FC = () => {
                 helperText={errors.mobileNo?.message}
                 autoComplete="tel"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </div>
+            <div className=''>
               <TextField
                 label={t('Office')}
                 fullWidth
@@ -270,8 +272,8 @@ const AddUser: React.FC = () => {
                 error={Boolean(errors.office)}
                 helperText={errors.office?.message}
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </div>
+            <div className=''>
               <TextField
                 label={t('Password')}
                 type="password"
@@ -284,8 +286,8 @@ const AddUser: React.FC = () => {
                 helperText={errors.password?.message}
                 autoComplete="new-password"
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </div>
+            <div className=''>
               <Controller
                 control={control}
                 name="roleIds"
@@ -323,8 +325,8 @@ const AddUser: React.FC = () => {
                   </TextField>
                 )}
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </div>
+            <div className=''>
               <Controller
                 control={control}
                 name="levelIds"
@@ -362,8 +364,8 @@ const AddUser: React.FC = () => {
                   </TextField>
                 )}
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </div>
+            <div className=''>
               <Controller
                 control={control}
                 name="stakeholderIds"
@@ -401,7 +403,7 @@ const AddUser: React.FC = () => {
                   </TextField>
                 )}
               />
-            </Grid>
+            </div>
           </Grid>
           <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
             <Button variant="outlined" onClick={handleCancel} disabled={creatingUser}>
