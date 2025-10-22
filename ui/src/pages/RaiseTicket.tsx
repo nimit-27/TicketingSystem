@@ -7,6 +7,7 @@ import { useContext, useState } from "react";
 import Title from "../components/Title";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
 import GenericButton from "../components/UI/Button";
+import GenericSubmitButton from "../components/UI/Button/GenericSubmitButton";
 import { useApi } from "../hooks/useApi";
 import { addAttachments, addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
@@ -14,7 +15,7 @@ import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
 import { checkAccessMaster } from "../utils/permissions";
 
 const RaiseTicket: React.FC<any> = () => {
-    const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
+    const { register, handleSubmit, control, setValue, getValues, formState: { errors, isValid }, resetField, trigger } = useForm({ mode: 'onChange' });
     const today = new Date();
 
     const { data, pending, error, success, apiHandler } = useApi();
@@ -109,6 +110,7 @@ const RaiseTicket: React.FC<any> = () => {
         resetField('statusId');
         setAttachments([]);
         setValue('attachments', []);
+        void trigger();
     };
 
     const handleClearForm = () => {
@@ -163,7 +165,7 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Submit Button */}
                 <div className="text-end mt-3 d-flex justify-content-end gap-2">
                     <GenericButton textKey="Clear Form" variant="outlined" type="button" onClick={handleClearForm} />
-                    <GenericButton textKey="Submit Ticket" variant="contained" type="submit" />
+                    <GenericSubmitButton textKey="Submit Ticket" disabled={!isValid} />
                 </div>
             </form>
 

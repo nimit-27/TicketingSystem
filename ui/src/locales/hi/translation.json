@@ -175,5 +175,11 @@
   "Attachment removed successfully": "संलग्नक सफलतापूर्वक हटाया गया",
   "Root cause analysis submitted successfully": "रूट कॉज विश्लेषण सफलतापूर्वक सबमिट हुआ",
   "Description of cause is required": "कारण का विवरण आवश्यक है",
-  "Resolution description is required": "समाधान विवरण आवश्यक है"
+  "Resolution description is required": "समाधान विवरण आवश्यक है",
+  "global": {
+    "buttons": {
+      "save": "सहेजें",
+      "cancel": "रद्द करें"
+    }
+  }
 }

@@ -8,6 +8,8 @@ import CustomFormInput from '../components/UI/Input/CustomFormInput';
 import Title from '../components/Title';
 import { getCurrentUserDetails } from '../config/config';
 import GenericButton from '../components/UI/Button';
+import GenericSubmitButton from '../components/UI/Button/GenericSubmitButton';
+import GenericCancelButton from '../components/UI/Button/GenericCancelButton';
 import { useTranslation } from 'react-i18next';
 
 interface FaqFormValues {
@@ -22,12 +24,21 @@ interface FaqFormValues {
 
 const FaqForm: React.FC = () => {
   const { t } = useTranslation();
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FaqFormValues>();
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FaqFormValues>({ mode: 'onChange' });
   const navigate = useNavigate();
   const [successOpen, setSuccessOpen] = useState(false);
   const [failureOpen, setFailureOpen] = useState(false);
   const answerEnRef = useRef<HTMLTextAreaElement | null>(null);
   const answerHiRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const questionEn = watch('questionEn') ?? '';
+  const questionHi = watch('questionHi') ?? '';
+  const answerEn = watch('answerEn') ?? '';
+  const answerHi = watch('answerHi') ?? '';
+
+  const hasQuestion = questionEn.trim().length > 0 || questionHi.trim().length > 0;
+  const hasAnswer = answerEn.trim().length > 0 || answerHi.trim().length > 0;
+  const isSubmitDisabled = !hasQuestion || !hasAnswer;
 
   const onSubmit = async (data: FaqFormValues) => {
       data.answerEn = answerEnRef.current?.value;
@@ -105,8 +116,8 @@ const FaqForm: React.FC = () => {
           name="keywords"
           placeholder="Keywords (pipe separated)"
         />
-        <GenericButton variant="contained" type="submit" className="align-self-end">Submit</GenericButton>
-        <GenericButton variant="contained" className="align-self-end" onClick={() => navigate(-1)}>Cancel</GenericButton>
+        <GenericSubmitButton type="submit" className="align-self-end" disabled={isSubmitDisabled} textKey="Submit" />
+        <GenericCancelButton className="align-self-end" onClick={() => navigate(-1)} textKey="Cancel" />
       </form>
 
       <SuccessModal

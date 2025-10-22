@@ -3,7 +3,8 @@ import Title from '../components/Title';
 import CustomFieldset from '../components/CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import GenericInput from '../components/UI/Input/GenericInput';
-import GenericButton from '../components/UI/Button';
+import GenericSubmitButton from '../components/UI/Button/GenericSubmitButton';
+import GenericCancelButton from '../components/UI/Button/GenericCancelButton';
 import GenericTable from '../components/UI/GenericTable';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { addUser, deleteUser, getAllUsers } from '../services/UserService';
@@ -79,6 +80,8 @@ const EscalationMaster: React.FC = () => {
     setPhone('');
   };
 
+  const isSubmitDisabled = !name.trim() || !email.trim() || !phone.trim();
+
   const columns = [
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { title: 'Designation', dataIndex: 'office', key: 'office' },
@@ -117,12 +120,12 @@ const EscalationMaster: React.FC = () => {
           </div>
         </div>
         <div className="mt-3">
-          <GenericButton variant="contained" color="success" className="me-2" onClick={handleSubmit}>
+          <GenericSubmitButton className="me-2" onClick={handleSubmit} disabled={isSubmitDisabled}>
             {t('Submit')}
-          </GenericButton>
-          <GenericButton variant="contained" color="error" onClick={handleCancel}>
+          </GenericSubmitButton>
+          <GenericCancelButton onClick={handleCancel}>
             {t('Cancel')}
-          </GenericButton>
+          </GenericCancelButton>
         </div>
       </CustomFieldset>
       <div className="my-3 w-25">

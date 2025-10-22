@@ -75,7 +75,7 @@ const lightLayout: LayoutDefinition = {
   header: {
     background: '#00522B',
     border: 'none',
-    text: '#1b5e20',
+    text: '#006636',
     accent: '#73b579',
   },
   global: {
@@ -93,9 +93,9 @@ const lightLayout: LayoutDefinition = {
     },
     buttons: {
       save: {
-        background: '#006536',
+        background: '#006636',
         color: '#ffffff',
-        border: '#006536',
+        border: '#006636',
         hoverBackground: '#004d29',
         hoverColor: '#ffffff',
         hoverBorder: '#004d29',
@@ -117,9 +117,9 @@ const lightLayout: LayoutDefinition = {
         hoverBorder: '#e68600',
       },
       solidGreen: {
-        background: '#1b5e20',
+        background: '#006636',
         color: '#ffffff',
-        border: '#1b5e20',
+        border: '#006636',
         hoverBackground: '#144619',
         hoverColor: '#ffffff',
         hoverBorder: '#144619',
@@ -160,7 +160,7 @@ const lightLayout: LayoutDefinition = {
     input: {
       background: '#ffffff',
       border: '#c2c2c2',
-      text: '#1b5e20',
+      text: '#006636',
       placeholder: '#6f6f6f',
       focus: '#006536',
       disabledBackground: '#f5f5f5',
@@ -168,7 +168,7 @@ const lightLayout: LayoutDefinition = {
     dropdown: {
       background: '#ffffff',
       border: '#c2c2c2',
-      text: '#1b5e20',
+      text: '#006636',
       placeholder: '#6f6f6f',
       focus: '#006536',
       disabledBackground: '#f5f5f5',
@@ -228,9 +228,9 @@ const darkLayout: LayoutDefinition = {
         hoverBorder: '#e68600',
       },
       solidGreen: {
-        background: '#1b5e20',
+        background: '#006636',
         color: '#ffffff',
-        border: '#1b5e20',
+        border: '#006636',
         hoverBackground: '#144619',
         hoverColor: '#ffffff',
         hoverBorder: '#144619',
@@ -401,9 +401,9 @@ const fciLayout: LayoutDefinition = {
 const lightTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#1b5e20' },
+    primary: { main: '#006636' },
     secondary: { main: '#ff671f' },
-    success: { main: '#1b5e20' },
+    success: { main: '#006636' },
     background: {
       default: '#ffffff',
       paper: '#ffffff',
