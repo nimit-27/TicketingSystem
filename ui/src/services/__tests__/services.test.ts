@@ -442,12 +442,27 @@ describe("UserService", () => {
     await service.getAllUsers();
     await service.getUsersByRoles(["ADMIN"]);
     await service.addUser({ name: "Test" });
+    await service.createUser({
+      username: "testuser",
+      name: "Test User",
+      emailId: "test@example.com",
+      mobileNo: "1234567890",
+      office: "HQ",
+      password: "password123",
+      roleIds: ["1"],
+      levelIds: ["L1"],
+      stakeholderIds: ["1"],
+    });
     await service.deleteUser("2");
 
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/1"));
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users"));
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/users/by-roles"), ["ADMIN"]);
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/users"), expect.any(Object));
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      expect.stringContaining("/users/admin"),
+      expect.objectContaining({ username: "testuser" })
+    );
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/users/2"));
   });
 });
