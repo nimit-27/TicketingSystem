@@ -9,6 +9,8 @@ import { saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment, getRootCauseA
 import { useApi } from '../../hooks/useApi';
 import { useSnackbar } from '../../context/SnackbarContext';
 import GenericButton from '../UI/Button';
+import GenericSubmitButton from '../UI/Button/GenericSubmitButton';
+import GenericCancelButton from '../UI/Button/GenericCancelButton';
 import CustomFormInput from '../UI/Input/CustomFormInput';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import { getTicket } from '../../services/TicketService';
@@ -51,8 +53,10 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
     reset,
     setValue,
     control,
-    formState: { errors },
+    trigger,
+    formState: { errors, isValid },
   } = useForm<any>({
+    mode: 'onChange',
     defaultValues: {
       descriptionOfCause: rcaData?.descriptionOfCause ?? '',
       resolutionDescription: rcaData?.resolutionDescription ?? '',
@@ -103,8 +107,9 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
         resolutionDescription: data?.resolutionDescription ?? '',
         attachments: [],
       });
+      void trigger();
     },
-    [reset],
+    [reset, trigger],
   );
 
   useEffect(() => {
@@ -307,12 +312,12 @@ const RootCauseAnalysisModal: React.FC<RootCauseAnalysisModalProps> = ({
           {showCloseButton && <GenericButton variant="outlined" onClick={handleClose} disabled={savePending}>
             {t('Close')}
           </GenericButton>}
-          {showCancelButton && <GenericButton variant="outlined" onClick={onCancel} disabled={savePending}>
+          {showCancelButton && <GenericCancelButton onClick={onCancel} disabled={savePending}>
             {t('Cancel')}
-          </GenericButton>}
-          {showSubmitButton && <GenericButton type="submit" variant="contained" disabled={savePending}>
+          </GenericCancelButton>}
+          {showSubmitButton && <GenericSubmitButton disabled={!isValid || savePending}>
             {submitLabel}
-          </GenericButton>}
+          </GenericSubmitButton>}
         </Box>
       </Box>
     </Modal>

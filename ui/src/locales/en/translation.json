@@ -184,5 +184,11 @@
   "Attachment removed successfully": "Attachment removed successfully",
   "Root cause analysis submitted successfully": "Root cause analysis submitted successfully",
   "Description of cause is required": "Description of cause is required",
-  "Resolution description is required": "Resolution description is required"
+  "Resolution description is required": "Resolution description is required",
+  "global": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  }
 }
