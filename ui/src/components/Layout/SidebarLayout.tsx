@@ -29,12 +29,10 @@ const SidebarLayout: React.FC = () => {
   return (
     <>
       <Header collapsed={collapsed} toggleSidebar={toggleSidebar} />
-      <div
-        className="d-flex pb-2"
-        style={{ height: "calc(100vh - 60px)" }}
-      >
-        {isMobile ? (
-          <Drawer
+      <div className="d-flex pb-2" style={{ height: "calc(100vh - 40px)" }}>
+        {/* SIDEBAR */}
+        {isMobile
+          ? <Drawer
             variant="temporary"
             open={mobileOpen}
             onClose={toggleSidebar}
@@ -42,15 +40,10 @@ const SidebarLayout: React.FC = () => {
           >
             <Sidebar collapsed={false} />
           </Drawer>
-        ) : (
-          <Sidebar collapsed={collapsedState} />
-        )}
-        <div
-          className="flex-grow-1 p-3"
-          style={{ marginTop: "0", overflowY: "scroll", overflowX: "clip" }}
-        >
-          <Outlet />
-        </div>
+          : <Sidebar collapsed={collapsedState} />}
+
+        {/* PAGE VIEW */}
+        <div className="flex-grow-1 p-2" style={{ overflowY: "scroll", overflowX: "clip" }}><Outlet /></div>
       </div>
     </>
   );

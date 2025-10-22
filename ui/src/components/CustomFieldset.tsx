@@ -46,7 +46,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
 
     // Also update if the prop changes
     useEffect(() => {
-        setCurrentVariant(variant);
+        variant !== null && setCurrentVariant(variant);
     }, [variant]);
 
     const toggleCollapse = () => setCollapsed(!collapsed);

@@ -3,7 +3,7 @@ import RequestDetails from "../components/RaiseTicket/RequestDetails";
 import RequestorDetails from "../components/RaiseTicket/RequestorDetails";
 import TicketDetails from "../components/RaiseTicket/TicketDetails";
 import SuccessfulModal from "../components/RaiseTicket/SuccessfulModal";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import Title from "../components/Title";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
 import GenericButton from "../components/UI/Button";
@@ -11,12 +11,10 @@ import { useApi } from "../hooks/useApi";
 import { addAttachments, addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
-import { formatDateWithSuffix } from "../utils/Utils";
 import { checkAccessMaster } from "../utils/permissions";
 
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors }, resetField } = useForm();
-    const reportedDate = formatDateWithSuffix(new Date());
     const today = new Date();
 
     const { data, pending, error, success, apiHandler } = useApi();
@@ -52,18 +50,14 @@ const RaiseTicket: React.FC<any> = () => {
             requestorEmailId: emailId,
             requestorMobileNo: mobileNo,
             stakeholder,
-            // include time (ISO-8601) similar to lastModified
-            // reportedDate: new Date()
         };
 
-        
         // Map assignment fields to backend expected keys
         if (assignTo) payload.assignedTo = assignTo;
         if (assignToLevel) payload.levelId = assignToLevel;
-        
-        console.table("payload")
+
         console.table(payload)
-        
+
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
             if (key === 'attachments' && Array.isArray(value) && value.length > 0) {
