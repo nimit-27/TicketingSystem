@@ -83,6 +83,12 @@ const menuItems = [
     to: "/role-master",
     icon: "manageAccounts",
   },
+  {
+    key: "addUser",
+    label: "Add New User",
+    to: "/users/new",
+    icon: "personAdd",
+  },
 ];
 
 interface SidebarProps {

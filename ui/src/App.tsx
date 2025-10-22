@@ -20,6 +20,7 @@ import FaqForm from './pages/FaqForm';
 import RootCauseAnalysis from './pages/RootCauseAnalysis';
 import MISReports from './pages/MISReports';
 import CalendarPage from './pages/Calendar';
+import AddUser from './pages/AddUser';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
@@ -70,6 +71,7 @@ function App() {
         <Route path="escalation-master" element={<EscalationMaster />} />
         <Route path="role-master" element={<RoleMaster />} />
         <Route path="role-master/:roleId" element={<RoleDetails />} />
+        <Route path="users/new" element={<AddUser />} />
       </Route>
     </Routes>
   );

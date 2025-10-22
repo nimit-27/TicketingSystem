@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.service.UserService;
@@ -8,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
@@ -41,6 +44,11 @@ public class UserController {
     public ResponseEntity<?> addUser(@RequestBody User user) {
         User saved = userService.saveUser(user);
         return ResponseEntity.ok(java.util.Map.of("message", "User " + saved.getName() + " added successfully"));
+    }
+
+    @PostMapping("/admin")
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
+        return ResponseEntity.ok(userService.createUser(request));
     }
 
     @PutMapping("/{userId}")
