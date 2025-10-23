@@ -227,6 +227,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 title: t('Ticket Id'),
                 dataIndex: 'id',
                 key: 'ticketId',
+                width: '12%',
                 ellipsis: true,
                 render: (_: any, record: TicketRow) => (
                     <Tooltip title={record.id} placement="top" >
@@ -244,6 +245,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             {
                 title: t('Requester'),
                 key: 'requestorName',
+                width: '15%',
                 ellipsis: true,
                 render: (_: any, record: TicketRow) =>
                     record.requestorName ? (
@@ -261,7 +263,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 title: t('Category'),
                 dataIndex: 'category',
                 key: 'category',
-                width: '13%',
+                width: '15%',
                 ellipsis: true,
                 render: (value: string) => {
                     const category = value || '';
@@ -276,7 +278,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 title: t('Sub-Category'),
                 dataIndex: 'subCategory',
                 key: 'subCategory',
-                width: '15%',
+                width: '17%',
                 ellipsis: true,
                 render: (value: string) => {
                     const subCategory = value || '';
@@ -293,6 +295,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 dataIndex: 'severity',
                 key: 'severity',
                 width: '10%',
+                ellipsis: true,
                 render: (_: any, record: TicketRow) => {
                     const display = record.severity || record.severityLabel || record.severityId || '-';
                     const label = record.severityLabel && record.severityLabel !== display ? record.severityLabel : undefined;
@@ -313,12 +316,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 dataIndex: 'priority',
                 key: 'priority',
                 width: '9%',
+                ellipsis: true,
                 render: (v: string, data: TicketRow) => <PriorityIcon level={priorityMap[data?.priorityId] || 0} priorityText={data?.priority} />
             },
             {
                 title: t('Assignee'),
                 key: 'assignee',
                 width: '10%',
+                ellipsis: true,
                 render: (_: any, record: TicketRow) => {
                     if (allowAssigneeChange(record.statusId)) {
                         return (
@@ -346,6 +351,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 dataIndex: 'statusLabel',
                 key: 'statusLabel',
                 width: '11%',
+                ellipsis: true,
                 render: (_: any, record: TicketRow) => {
                     const statusName = record?.statusId ? getStatusNameById(record.statusId) : '';
                     const translatedStatusName = statusName ? t(statusName) : '';
@@ -360,7 +366,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             {
                 title: t('Actions'),
                 key: 'action',
-                width: 'auto',
+                width: '9%',
+                ellipsis: true,
                 render: (_: any, record: TicketRow) => {
                     if (record.rcaStatus) {
                         const isSubmitted = record.rcaStatus === 'SUBMITTED';

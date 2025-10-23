@@ -107,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   return (
     <div
-      className="p-2"
+      className="p-2 position-relative"
       style={{
         backgroundColor: bgColor,
         color: textColor,
@@ -118,27 +118,30 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         borderRight: sidebarBorder,
       }}
     >
-      <List component="nav">
-        {menuItems.map(({ key, label, to, icon }) => {
-          if (!checkSidebarAccess(key)) {
-            return null;
-          }
-          return (
-            <ListItemButton component={Link} to={to} key={label}>
-              <IconComponent icon={icon} style={{ color: textColor }} className="me-2" />
-              {!collapsed && (
-                <ListItemText
-                  primaryTypographyProps={{
-                    fontSize: "1.2rem",
-                    style: { color: textColor },
-                  }}
-                  primary={t(label)}
-                />
-              )}
-            </ListItemButton>
-          );
-        })}
-      </List>
+      <>
+        <img src="/menu-leaf.png" className="position-absolute" style={{ left: "0", bottom: "0", width: collapsed ? "80px" : "auto" }} />
+        <List component="nav">
+          {menuItems.map(({ key, label, to, icon }) => {
+            if (!checkSidebarAccess(key)) {
+              return null;
+            }
+            return (
+              <ListItemButton component={Link} to={to} key={label}>
+                <IconComponent icon={icon} style={{ color: textColor }} className="me-2" />
+                {!collapsed && (
+                  <ListItemText
+                    primaryTypographyProps={{
+                      fontSize: "1.2rem",
+                      style: { color: textColor },
+                    }}
+                    primary={t(label)}
+                  />
+                )}
+              </ListItemButton>
+            );
+          })}
+        </List>
+      </>
     </div>
   );
 };

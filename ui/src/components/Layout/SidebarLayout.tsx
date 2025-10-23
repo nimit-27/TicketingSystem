@@ -43,7 +43,10 @@ const SidebarLayout: React.FC = () => {
           : <Sidebar collapsed={collapsedState} />}
 
         {/* PAGE VIEW */}
-        <div className="flex-grow-1 p-2" style={{ overflowY: "scroll", overflowX: "clip" }}><Outlet /></div>
+        <div className="flex-grow-1 p-0 position-relative" style={{ overflowY: "scroll", overflowX: "clip" }}>
+          <img src="/page-leaf.png" className="position-absolute" style={{ right: "0", top: "-60px"}} />
+          <Outlet />
+          </div>
       </div>
     </>
   );

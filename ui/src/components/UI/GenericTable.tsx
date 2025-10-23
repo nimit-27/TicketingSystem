@@ -27,7 +27,7 @@ const GenericTable = <T extends object = any>({ className, style, ...props }: Ta
     } as (CSSProperties & Record<string, string | number>);
     // inlineStyle['--table-header-color'] = headerTextColor;
     return <ConfigProvider theme={tableTheme}>
-        <Table className={classes} style={inlineStyle} {...props} bordered />
+        <Table className={classes} style={inlineStyle} {...props} size='small' bordered />
     </ConfigProvider>
 };
 
