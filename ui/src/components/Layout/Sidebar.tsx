@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -99,15 +99,19 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const { t } = useTranslation();
   const theme = useTheme();
 
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+
   const {
     background: bgColor,
     border: sidebarBorder,
     text: textColor
   } = useMemo(() => theme.palette.sidebar, [theme.palette.mode]);
 
+  console.log(selectedKey)
+
   return (
     <div
-      className="p-2 position-relative"
+      className="p-0 position-relative"
       style={{
         backgroundColor: bgColor,
         color: textColor,
@@ -122,17 +126,36 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         <img src="/menu-leaf.png" className="position-absolute" style={{ left: "0", bottom: "0", width: collapsed ? "80px" : "auto" }} />
         <List component="nav">
           {menuItems.map(({ key, label, to, icon }) => {
+            console.log(key === selectedKey);
             if (!checkSidebarAccess(key)) {
               return null;
             }
             return (
-              <ListItemButton component={Link} to={to} key={label}>
+              <ListItemButton
+
+
+                sx={{
+                  backgroundColor: selectedKey === key ? 'rgba(168, 252, 213, 0.34)' : 'inherit',
+                  color: selectedKey === key ? 'white' : textColor,
+                  '&:hover': {
+                    backgroundColor: selectedKey === key
+                      ? 'rgba(168, 252, 213, 0.34)'
+                      : 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+
+
+                component={Link}
+                to={to}
+                key={label}
+                onClick={() => setSelectedKey(key)}
+              >
                 <IconComponent icon={icon} style={{ color: textColor }} className="me-2" />
                 {!collapsed && (
                   <ListItemText
                     primaryTypographyProps={{
                       fontSize: "1.2rem",
-                      style: { color: textColor },
+                      style: { color: selectedKey === key ? 'white' : textColor, },
                     }}
                     primary={t(label)}
                   />
