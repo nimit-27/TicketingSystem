@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import colors from './colors';
 
 type ButtonVariantDefinition = {
   background: string;
@@ -67,7 +68,7 @@ type LayoutDefinition = {
 
 const lightLayout: LayoutDefinition = {
   sidebar: {
-    background: '#006536',
+    background: colors.green.default,
     border: 'none',
     text: '#ffffff',
     accent: '#99d5ae',
@@ -75,34 +76,34 @@ const lightLayout: LayoutDefinition = {
   header: {
     background: '#00522B',
     border: 'none',
-    text: '#006636',
+    text: colors.green.default,
     accent: '#73b579',
   },
   global: {
     pageTitle: {
-      text: '#006636',
+      text: colors.green.default,
     },
     table: {
       border: '#ABD4C1',
       headerBackground: '#CAE9DC',
-      headerText: '#006536',
+      headerText: colors.green.default,
       rowHover: '#f0f7f4',
       rowSelected: '#e0f2f1',
       rowDivider: '#d9e4dd',
-      defaultTextColor: '#006536',
+      defaultTextColor: colors.green.default,
     },
     buttons: {
       save: {
-        background: '#006636',
+        background: colors.green.default,
         color: '#ffffff',
-        border: '#006636',
+        border: colors.green.default,
         hoverBackground: '#004d29',
         hoverColor: '#ffffff',
         hoverBorder: '#004d29',
       },
       cancel: {
         background: '#ffffff',
-        color: '#006536',
+        color: colors.green.default,
         border: '#bdbdbd',
         hoverBackground: '#f5f5f5',
         hoverColor: '#004d29',
@@ -117,9 +118,9 @@ const lightLayout: LayoutDefinition = {
         hoverBorder: '#e68600',
       },
       solidGreen: {
-        background: '#006636',
+        background: colors.green.default,
         color: '#ffffff',
-        border: '#006636',
+        border: colors.green.default,
         hoverBackground: '#144619',
         hoverColor: '#ffffff',
         hoverBorder: '#144619',
@@ -134,8 +135,8 @@ const lightLayout: LayoutDefinition = {
       },
       greenOutlined: {
         background: '#ffffff',
-        color: '#006536',
-        border: '#006536',
+        color: colors.green.default,
+        border: colors.green.default,
         hoverBackground: '#e0f2f1',
         hoverColor: '#004d29',
         hoverBorder: '#004d29',
@@ -160,17 +161,17 @@ const lightLayout: LayoutDefinition = {
     input: {
       background: '#ffffff',
       border: '#c2c2c2',
-      text: '#006636',
+      text: colors.green.default,
       placeholder: '#6f6f6f',
-      focus: '#006536',
+      focus: colors.green.default,
       disabledBackground: '#f5f5f5',
     },
     dropdown: {
       background: '#ffffff',
       border: '#c2c2c2',
-      text: '#006636',
+      text: colors.green.default,
       placeholder: '#6f6f6f',
-      focus: '#006536',
+      focus: colors.green.default,
       disabledBackground: '#f5f5f5',
     },
   },
@@ -228,9 +229,9 @@ const darkLayout: LayoutDefinition = {
         hoverBorder: '#e68600',
       },
       solidGreen: {
-        background: '#006636',
+        background: colors.green.default,
         color: '#ffffff',
-        border: '#006636',
+        border: colors.green.default,
         hoverBackground: '#144619',
         hoverColor: '#ffffff',
         hoverBorder: '#144619',
@@ -289,7 +290,7 @@ const darkLayout: LayoutDefinition = {
 
 const fciLayout: LayoutDefinition = {
   sidebar: {
-    background: '#006536',
+    background: colors.green.default,
     border: '#004d29',
     text: '#ffffff',
     accent: '#8fd2a8',
@@ -302,7 +303,7 @@ const fciLayout: LayoutDefinition = {
   },
   global: {
     pageTitle: {
-      text: '#006536',
+      text: colors.green.default,
     },
     table: {
       border: '#e5e5e5',
@@ -401,9 +402,9 @@ const fciLayout: LayoutDefinition = {
 const lightTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#006636' },
+    primary: { main: colors.green.default },
     secondary: { main: '#ff671f' },
-    success: { main: '#006636' },
+    success: { main: colors.green.default },
     background: {
       default: '#ffffff',
       paper: '#ffffff',
