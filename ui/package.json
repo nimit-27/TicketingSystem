@@ -41,7 +41,8 @@
     "sass": "^1.89.0",
     "sockjs-client": "^1.6.1",
     "typesense": "^1.2.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
