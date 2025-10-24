@@ -13,6 +13,7 @@ import { addAttachments, addTicket } from "../services/TicketService";
 import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
 import { checkAccessMaster } from "../utils/permissions";
+import GenericCancelButton from "../components/UI/Button/GenericCancelButton";
 
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors, isValid }, resetField, trigger } = useForm({ mode: 'onChange' });
@@ -140,7 +141,7 @@ const RaiseTicket: React.FC<any> = () => {
     }
 
     return (
-        <div className="container pb-5">
+        <div className="w-100">
             <Title text="Raise Ticket" rightContent={<span>{today.toLocaleString()}</span>} />
             {devMode && <CustomIconButton icon="listAlt" onClick={() => console.table(getValues())} />}
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -163,9 +164,9 @@ const RaiseTicket: React.FC<any> = () => {
                     </div>
                 )}
                 {/* Submit Button */}
-                <div className="text-end mt-3 d-flex justify-content-end gap-2">
-                    <GenericButton textKey="Clear Form" variant="outlined" type="button" onClick={handleClearForm} />
-                    <GenericSubmitButton textKey="Submit Ticket" disabled={!isValid} />
+                <div className="text-end mt-3 d-flex justify-content-center gap-2">
+                    <GenericCancelButton textKey="Clear Form" type="button" onClick={handleClearForm} style={{ width: '220px' }} />
+                    <GenericSubmitButton textKey="Submit Ticket" disabled={!isValid} style={{ width: '220px' }} />
                 </div>
             </form>
 

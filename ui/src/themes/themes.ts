@@ -40,6 +40,12 @@ type TableDefinition = {
   defaultTextColor: string;
 };
 
+type FieldsetDefinition = {
+  header: {
+    text: string;
+  }
+}
+
 type GlobalComponentsDefinition = {
   pageTitle: {
     text: string;
@@ -48,6 +54,7 @@ type GlobalComponentsDefinition = {
   buttons: ButtonsDefinition;
   input: FieldDefinition;
   dropdown: FieldDefinition;
+  fieldset: FieldsetDefinition;
 };
 
 type LayoutDefinition = {
@@ -102,9 +109,9 @@ const lightLayout: LayoutDefinition = {
         hoverBorder: '#004d29',
       },
       cancel: {
-        background: '#ffffff',
-        color: colors.green.default,
-        border: '#bdbdbd',
+        background: colors.orange.default,
+        color: "#ffffff",
+        border: colors.orange.default,
         hoverBackground: '#f5f5f5',
         hoverColor: '#004d29',
         hoverBorder: '#9e9e9e',
@@ -173,6 +180,11 @@ const lightLayout: LayoutDefinition = {
       placeholder: '#6f6f6f',
       focus: colors.green.default,
       disabledBackground: '#f5f5f5',
+    },
+    fieldset: {
+      header: {
+        text: colors.gray.dark,
+      }
     },
   },
 };
@@ -285,6 +297,11 @@ const darkLayout: LayoutDefinition = {
       focus: '#73b579',
       disabledBackground: '#1f1f1f',
     },
+    fieldset: {
+      header: {
+        text: colors.gray.light,
+      }
+    },
   },
 };
 
@@ -395,6 +412,11 @@ const fciLayout: LayoutDefinition = {
       placeholder: '#7a7a7a',
       focus: '#ff9800',
       disabledBackground: '#f5f5f5',
+    },
+    fieldset: {
+      header: {
+        text: colors.gray.dark,
+      }
     },
   },
 };

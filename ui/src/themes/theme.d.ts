@@ -55,6 +55,12 @@ declare module '@mui/material/styles' {
     disabledBackground: string;
   }
 
+  interface FieldsetPalette {
+    header: {
+      text: string;
+    }
+  }
+
   interface GlobalComponentsPalette {
     pageTitle: {
       text: string;
@@ -63,6 +69,7 @@ declare module '@mui/material/styles' {
     buttons: ButtonsPalette;
     input: FieldPalette;
     dropdown: FieldPalette;
+    fieldset: FieldsetPalette;
   }
 
   interface ButtonsPaletteOptions {

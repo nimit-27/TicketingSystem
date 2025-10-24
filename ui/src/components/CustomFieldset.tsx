@@ -52,13 +52,14 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
     const toggleCollapse = () => setCollapsed(!collapsed);
 
     if (currentVariant === "underlined") return (
-        <div className="form-container" style={{ ...style }}>
-            <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
-                <h4 className="mb-0">{title}</h4>
+        <div className="mb-4" style={{ ...style }}>
+            {/* <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}> */}
+            <div className={`d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
+                <h4 className="mb-3 ts-16 fw-bold" style={{color: theme.palette.global.fieldset.header.text}}>{title}</h4>
                 <CustomIconButton icon={collapsed ? 'arrowdown' : 'arrowup'} size="small" />
             </div>
             {!collapsed && (
-                <div className="p-2">
+                <div className="">
                     {actionElement && (
                         <div className="d-flex m-2 justify-content-end">
                             {actionElement}
@@ -98,7 +99,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
 
     if (currentVariant === "basic") return (
         <fieldset
-            className={`border p-2 px-3 position-relative rounded mb-4 ${className}`}
+            className={`border position-relative rounded mb-4 ${className}`}
             style={style}
         >
             <legend

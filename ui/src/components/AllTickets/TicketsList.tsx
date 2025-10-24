@@ -395,7 +395,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const viewTicketProps = getViewTicketProps?.(selectedTicketId) ?? {};
 
     return (
-        <div className="container" style={{ display: "flex" }}>
+        <div className="" style={{ display: "flex" }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey={titleKey} />
                 <div className="d-flex flex-wrap align-items-center mb-3">

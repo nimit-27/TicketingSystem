@@ -119,6 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         transition: "width 0.3s",
         display: "flex",
         flexDirection: "column",
+        overflow: "clip",
         borderRight: sidebarBorder,
       }}
     >

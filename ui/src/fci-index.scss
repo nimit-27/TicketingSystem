@@ -83,6 +83,13 @@ $font-size: 8;
   $font-size: $font-size + 1;
 }
 
+
+$font-color: black;
+
+.tc-#{$font-color} {
+  color: #{$font-color} !important;
+}
+
 // Only fci file
 .form-container {
   padding: 20px;
@@ -170,6 +177,12 @@ $font-size: 8;
       background-color: rgba(255, 255, 255, 0.08);
     }
   }
+}
+
+.container-fluid::after {
+  content: "";
+  display: block;
+  height: 1rem;
 }
 
 // highlight latest history row

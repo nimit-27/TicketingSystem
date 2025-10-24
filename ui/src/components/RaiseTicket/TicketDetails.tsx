@@ -167,9 +167,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
 
     return (
         <CustomFieldset variant="bordered" title={t('Ticket Details')} actionElement={actionElement}>
-            <div className="row">
+            <div className="row m-0">
                 {showAssignedToLevel && (
-                    <div className="col-md-6 mb-3 px-4">
+                    <div className="col-md-6 mb-3 p-0">
                         <CustomFormInput
                             name="assignedToLevel"
                             label="Assigned To Level"
@@ -197,7 +197,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showCategory && (
-                    <div className="col-md-4 mb-3 px-4">
+                    <div className="col-md-4 mb-3 px-2">
                         <GenericDropdownController
                             name="category"
                             control={control}
@@ -210,7 +210,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showSubCategory && (
-                    <div className="col-md-4 mb-3 px-4">
+                    <div className="col-md-4 mb-3 px-2">
                         <GenericDropdownController
                             name="subCategory"
                             control={control}
@@ -223,7 +223,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showPriority && (
-                    <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
+                    <div className="col-md-4 mb-3 px-2 d-flex align-items-center">
                         <GenericDropdownController
                             name="priority"
                             control={control}
@@ -240,7 +240,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     // {showSeverityFields && (
                     <>
                         {showSelectedImpact && (
-                            <div className="col-md-4 mb-3 px-4">
+                            <div className="col-md-2 mb-3 px-4">
                                 <GenericDropdownController
                                     name="impact"
                                     control={control}
@@ -252,7 +252,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             </div>
                         )}
                         {!createMode && showRecommendedSeverity && (
-                            <div className="col-md-4 mb-3 px-4">
+                            <div className="col-md-2 mb-3 px-4">
                                 <GenericDropdownController
                                     name="recommendedSeverity"
                                     control={control}
@@ -291,7 +291,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showIsMasterCheckbox && (
-                    <div className="col-md-5 mb-3 px-4 d-flex align-items-center">
+                    <div className="col-md-5 mb-3 px-2 d-flex align-items-center">
                         <FormControlLabel
                             control={<Checkbox {...register('isMaster')} disabled={disableAll} />}
                             label={t('Mark this ticket as Master')}
@@ -299,7 +299,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showSubject && (
-                    <div className="col-md-12 mb-3 px-4">
+                    <div className="col-md-12 mb-3 px-2">
                         <CustomFormInput
                             slotProps={{
                                 inputLabel: { shrink: subjectValue }
@@ -315,7 +315,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showDescription && (
-                    <div className="col-md-12 mb-3 px-4">
+                    <div className="col-md-12 mb-3 px-2">
                         <CustomFormInput
                             slotProps={{
                                 inputLabel: { shrink: descriptionValue }
@@ -332,7 +332,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showAttachment && (
-                    <div className="col-md-12 mb-3 px-4">
+                    <div className="col-md-12 mb-3 px-2">
                         <FileUpload
                             maxSizeMB={2}
                             thumbnailSize={100}
@@ -346,7 +346,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                 )}
                 {/* <div className="col-md-6 mb-3"></div> */}
                 {showStatus && (
-                    <div className="col-md-12 mb-3 px-4">
+                    <div className="col-md-12 mb-3 px-2">
                         <GenericDropdownController
                             name="statusId"
                             control={control}
@@ -359,7 +359,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showAssignFurther && (
-                    <div className="col-md-4 mb-3 px-4 d-flex align-items-center">
+                    <div className="col-md-4 mb-3 px-2 d-flex align-items-center">
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -374,7 +374,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                 {!getCurrentUserDetails()?.role?.includes("USER") && assignFurther && (
                     <>
                         {showAssignToLevelDropdown && (
-                            <div className="col-md-4 mb-3  px-4">
+                            <div className="col-md-4 mb-3  px-2">
                                 <GenericDropdownController
                                     name="assignToLevel"
                                     control={control}
@@ -385,7 +385,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             </div>
                         )}
                         {showAssignToDropdown && (
-                            <div className="col-md-4 mb-3 px-4">
+                            <div className="col-md-4 mb-3 px-2">
                                 <GenericDropdownController
                                     name="assignTo"
                                     control={control}

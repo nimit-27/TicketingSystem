@@ -29,7 +29,8 @@ const SidebarLayout: React.FC = () => {
   return (
     <>
       <Header collapsed={collapsed} toggleSidebar={toggleSidebar} />
-      <div className="d-flex pb-2" style={{ height: "calc(100vh - 40px)" }}>
+      <div className="d-flex " style={{ flex: "1 1 auto", overflow: "auto" }}>
+      {/* <div className="d-flex pb-2" style={{ height: "calc(100vh - 40px)" }}> */}
         {/* SIDEBAR */}
         {isMobile
           ? <Drawer
@@ -43,10 +44,10 @@ const SidebarLayout: React.FC = () => {
           : <Sidebar collapsed={collapsedState} />}
 
         {/* PAGE VIEW */}
-        <div className="flex-grow-1 p-0 position-relative" style={{ overflowY: "scroll", overflowX: "clip" }}>
-          <img src="/page-leaf.png" className="position-absolute" style={{ right: "0", top: "-60px"}} />
+        <div className="container-fluid d-flex mb-2 flex-grow-1 p-2 position-relative" style={{ overflowY: "scroll", overflowX: "clip" }}>
+          <img src="/page-leaf.png" className="position-absolute" style={{ right: "0", top: "-60px", zIndex: "-1" }} />
           <Outlet />
-          </div>
+        </div>
       </div>
     </>
   );

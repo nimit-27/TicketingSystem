@@ -289,7 +289,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     return (
         <>
             {showRequestorDetails && <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
-                <div className="row w-100">
+                <div className="d-flex w-100 justify-content-between">
                     {(showSearchUserAutocomplete || showStakeholder) && (
                         <div className="col-md-6 d-flex flex-column">
                             {showSearchUserAutocomplete && (
@@ -324,7 +324,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             )}
                         </div>
                     )}
-                    <CustomFieldset variant="basic" className="col-md-6 mb-3" style={{ background: "#02ff194d" }} >
+                    <div className="p-2 me-4" style={{ background: "#cae8db" }} >
                         <div className="d-flex align-items-center justify-content-center mb-2">
                             <UserAvatar name={requestorName} />
                             {/* <span className="ms-2 fs-5">{requestorName}</span> */}
@@ -346,7 +346,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             {showOffice && office && renderReadOnlyField("Office", office)}
                             {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
                         </div>
-                    </CustomFieldset>
+                    </div>
                 </div>
 
             </CustomFieldset>}

@@ -80,8 +80,8 @@ const RequestMode: React.FC<RequestModeProps> = ({
     );
 
     const renderLayoutTwo = () => (
-        <div className="px-4 border rounded-2 mb-4 py-3" style={{ width: "fit-content" }}>
-            <span className="text-muted fs-6 d-block mb-2">{t("Request Mode")}</span>
+        <div className="mb-4" style={{ width: "fit-content" }}>
+            <span className="fw-bold d-block" style={{ color: theme.palette.global.fieldset.header.text }}>{t("Request Mode")}</span>
             <RadioGroup
                 row
                 value={mode || allowedModes[0]?.value || ""}
