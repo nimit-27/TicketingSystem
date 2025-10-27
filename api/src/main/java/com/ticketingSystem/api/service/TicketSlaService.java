@@ -20,6 +20,7 @@ import java.sql.Time;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -378,6 +379,33 @@ public class TicketSlaService {
                 log.warn("Failed to send SLA breach notification for ticket {} to recipient {}", ticket.getId(), recipient, ex);
             }
         }
+    }
+
+    public void notifyAssigneeOfExistingSlaBreach(TicketSla ticketSla) {
+        if (ticketSla == null) {
+            return;
+        }
+
+        Long breached = ticketSla.getBreachedByMinutes();
+        if (breached == null || breached <= 0) {
+            return;
+        }
+
+        Ticket ticket = ticketSla.getTicket();
+        LocalDateTime dueAt = ticketSla.getDueAtAfterEscalation() != null
+                ? ticketSla.getDueAtAfterEscalation()
+                : ticketSla.getDueAt();
+        notifyAssigneeOfSlaBreach(ticket, breached, dueAt);
+    }
+
+    public void notifyAssigneesOfBreachedTickets(Collection<TicketSla> breachedTickets) {
+        if (breachedTickets == null || breachedTickets.isEmpty()) {
+            return;
+        }
+
+        breachedTickets.stream()
+                .filter(Objects::nonNull)
+                .forEach(this::notifyAssigneeOfExistingSlaBreach);
     }
 
     private LocalDateTime computeCalendarEnd(LocalDateTime start, long durationMinutes) {

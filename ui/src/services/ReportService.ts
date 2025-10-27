@@ -16,3 +16,11 @@ export function fetchCustomerSatisfactionReport() {
 export function fetchProblemManagementReport() {
     return axios.get(`${BASE_URL}/reports/problem-management`);
 }
+
+export function fetchSlaPerformanceReport() {
+    return axios.get(`${BASE_URL}/reports/sla-performance`);
+}
+
+export function notifyBreachedTicketAssignees() {
+    return axios.post(`${BASE_URL}/reports/sla-performance/notify-breaches`);
+}
