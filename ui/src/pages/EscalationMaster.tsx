@@ -11,6 +11,7 @@ import { addUser, deleteUser, getAllUsers } from '../services/UserService';
 import { useApi } from '../hooks/useApi';
 import { useDebounce } from '../hooks/useDebounce';
 import { useSnackbar } from '../context/SnackbarContext';
+import CancelAndSubmitButtons from '../components/UI/Button/CancelAndSubmitButtons';
 
 const EscalationMaster: React.FC = () => {
   const [name, setName] = useState('');
@@ -105,7 +106,7 @@ const EscalationMaster: React.FC = () => {
   ];
 
   return (
-    <div className="container">
+    <div className="w-100">
       <Title textKey="User to be added for Escalation" />
       <CustomFieldset title={t('Add new User for Escalation')}>
         <div className="row g-3">
@@ -119,14 +120,15 @@ const EscalationMaster: React.FC = () => {
             <GenericInput label="Phone Number" fullWidth value={phone} onChange={e => setPhone(e.target.value)} />
           </div>
         </div>
-        <div className="mt-3">
-          <GenericSubmitButton className="me-2" onClick={handleSubmit} disabled={isSubmitDisabled}>
-            {t('Submit')}
-          </GenericSubmitButton>
+        <CancelAndSubmitButtons handleCancel={handleCancel} handleSubmit={handleSubmit} isSubmitDisabled={isSubmitDisabled} />
+        {/* <div className="d-flex gap-2 mt-3 justify-content-center">
           <GenericCancelButton onClick={handleCancel}>
             {t('Cancel')}
           </GenericCancelButton>
-        </div>
+          <GenericSubmitButton className="me-2" onClick={handleSubmit} disabled={isSubmitDisabled}>
+            {t('Submit')}
+          </GenericSubmitButton>
+        </div> */}
       </CustomFieldset>
       <div className="my-3 w-25">
         <GenericInput label="Search" fullWidth value={search} onChange={e => setSearch(e.target.value)} />

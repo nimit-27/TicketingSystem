@@ -343,7 +343,7 @@ public class ReportService {
                         .build())
                 .collect(Collectors.toList());
 
-        breachedTickets.sort(Comparator.comparingLong(summary -> Optional.ofNullable(summary.getBreachedByMinutes()).orElse(0L)).reversed());
+        breachedTickets.sort(Comparator.comparingLong(summary -> Optional.ofNullable(((SlaPerformanceReportDto.SlaBreachedTicketSummaryDto) summary).getBreachedByMinutes()).orElse(0L)).reversed());
 
         return SlaPerformanceReportDto.builder()
                 .totalTicketsWithSla(total)

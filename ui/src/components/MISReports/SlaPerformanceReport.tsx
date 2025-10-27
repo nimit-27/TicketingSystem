@@ -63,7 +63,8 @@ const formatDateTime = (value: string | null | undefined) => {
 
 const SlaPerformanceReport: React.FC = () => {
     const theme = useTheme();
-    const { data, pending, apiHandler } = useApi<SlaPerformanceReportProps>();
+    const { data, pending, apiHandler } = useApi<any>();
+    // const { data, pending, apiHandler } = useApi<SlaPerformanceReportProps>();
     const { showMessage } = useSnackbar();
     const [notifying, setNotifying] = useState(false);
 
@@ -201,12 +202,12 @@ const SlaPerformanceReport: React.FC = () => {
         if (!data) {
             return {};
         }
-        const categories = data.severityBreakdown?.map((item) => item.severity) ?? [];
+        const categories = data.severityBreakdown?.map((item: any) => item.severity) ?? [];
         const onTrackSeries = data.severityBreakdown?.map(
-            (item) => item.onTrack + item.resolvedWithinSla
+            (item: any) => item.onTrack + item.resolvedWithinSla
         ) ?? [];
         const breachedSeries = data.severityBreakdown?.map(
-            (item) => item.breached + item.resolvedAfterBreach
+            (item: any) => item.breached + item.resolvedAfterBreach
         ) ?? [];
 
         return {
@@ -273,10 +274,10 @@ const SlaPerformanceReport: React.FC = () => {
         if (!data) {
             return {};
         }
-        const categories = data.breachTrend?.map((point) => point.date) ?? [];
-        const dueSeries = data.breachTrend?.map((point) => point.dueCount) ?? [];
-        const breachedSeries = data.breachTrend?.map((point) => point.breachedCount) ?? [];
-        const resolvedSeries = data.breachTrend?.map((point) => point.resolvedCount) ?? [];
+        const categories = data.breachTrend?.map((point: any) => point.date) ?? [];
+        const dueSeries = data.breachTrend?.map((point: any) => point.dueCount) ?? [];
+        const breachedSeries = data.breachTrend?.map((point: any) => point.breachedCount) ?? [];
+        const resolvedSeries = data.breachTrend?.map((point: any) => point.resolvedCount) ?? [];
 
         return {
             tooltip: {
@@ -359,7 +360,7 @@ const SlaPerformanceReport: React.FC = () => {
                 <Box display="flex" flexDirection="column" gap={3}>
                     <Grid container spacing={2}>
                         {summaryMetrics.map((metric) => (
-                            <Grid item xs={12} sm={6} md={4} key={metric.label}>
+                            <Grid key={metric.label}>
                                 <Paper
                                     elevation={metric.highlight ? 3 : 1}
                                     sx={{
@@ -397,7 +398,7 @@ const SlaPerformanceReport: React.FC = () => {
                     </Box>
 
                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={4}>
+                        <Grid>
                             <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA State Distribution
@@ -405,7 +406,7 @@ const SlaPerformanceReport: React.FC = () => {
                                 <ReactECharts option={statusPieOptions} style={{ height: 300 }} notMerge lazyUpdate />
                             </Paper>
                         </Grid>
-                        <Grid item xs={12} md={8}>
+                        <Grid>
                             <Paper elevation={1} sx={{ p: 2 }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA by Severity
@@ -453,7 +454,7 @@ const SlaPerformanceReport: React.FC = () => {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {breachedTickets.map((ticket) => (
+                                {breachedTickets.map((ticket: any) => (
                                     <TableRow key={`${ticket.ticketId}-${ticket.dueAt}`}>
                                         <TableCell>{ticket.ticketNumber ?? "-"}</TableCell>
                                         <TableCell>

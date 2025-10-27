@@ -155,7 +155,7 @@ const RootCauseAnalysis: React.FC = () => {
   }, [fetchTickets]);
 
   return (
-    <div className="container">
+    <div className="">
       <Title textKey="Root Cause Analysis" />
       <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
         <DateRangeFilter value={dateRange} onChange={setDateRange} />

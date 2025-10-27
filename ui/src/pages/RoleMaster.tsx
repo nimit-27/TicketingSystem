@@ -95,14 +95,10 @@ const RoleMaster: React.FC = () => {
         }];
 
     return (
-        <div className="container">
+        <div className="">
             <Title textKey="Role Master" />
             <div className="d-flex justify-content-between mb-3">
-                {creating ? (
-                    <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
-                ) : (
-                    <Button variant="contained" onClick={handleCreate}>Create Role</Button>
-                )}
+                {!creating && <Button variant="contained" onClick={handleCreate}>Create Role</Button>}
                 <ViewToggle value={view} onChange={setView} options={[{ icon: 'grid', value: 'grid' }, { icon: 'table', value: 'table' }]} />
             </div>
             {creating && (

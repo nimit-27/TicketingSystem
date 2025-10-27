@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import CustomIconButton from '../UI/IconButton/CustomIconButton';
 import { Category, SubCategory } from '../../types';
+import colors from '../../themes/colors';
 
 type CategoryItemProps = {
     type: 'category';
@@ -24,7 +25,7 @@ export type CategoryListItemProps = CategoryItemProps | SubCategoryItemProps;
 
 const getCategoryBackground = (cat: Category, isHovered: boolean, isSelected: boolean) => {
     const hasMissingSeverity = Array.isArray(cat.subCategories) && cat.subCategories.some(sc => !sc.severityId);
-    const baseGreen = '#dcedc8';
+    const baseGreen = colors.green.light;
     const hoverGreen = '#c5e1a5';
     const selectedGreen = '#a5d6a7';
     const baseOrange = '#ffe0b2';
@@ -41,7 +42,7 @@ const getCategoryBackground = (cat: Category, isHovered: boolean, isSelected: bo
 
 const getSubCategoryBackground = (sc: SubCategory, isHovered: boolean, isSelected: boolean) => {
     const hasSeverity = Boolean(sc.severityId);
-    const baseGreen = '#dcedc8';
+    const baseGreen = colors.green.light;
     const hoverGreen = '#c5e1a5';
     const selectedGreen = '#a5d6a7';
     const baseOrange = '#ffe0b2';
@@ -97,15 +98,16 @@ const CategoryListItem: React.FC<CategoryListItemProps> = props => {
 
     return (
         <li
-            className={`list-group-item d-flex align-items-center justify-content-between px-3 py-2 border border-secondary ${
+            className={`d-flex align-items-center justify-content-between px-3 py-2 ${
+                // className={`list-group-item d-flex align-items-center justify-content-between px-3 py-2 border border-secondary ${
                 isSelected ? 'fw-semibold' : ''
-            }`}
+                }`}
             style={{
                 background,
                 borderRadius: 0,
                 cursor: 'pointer',
-                borderColor: '#495057',
-                transition: 'background-color 0.2s ease-in-out'
+                transition: 'background-color 0.2s ease-in-out',
+                height: '40px',
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}

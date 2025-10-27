@@ -1,9 +1,6 @@
 package com.ticketingSystem.api.dto.reports;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -63,10 +60,11 @@ public class SlaPerformanceReportDto {
         private long resolvedCount;
     }
 
-    @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Getter
+    @Setter
     public static class SlaBreachedTicketSummaryDto {
         private String ticketId;
         private String ticketNumber;

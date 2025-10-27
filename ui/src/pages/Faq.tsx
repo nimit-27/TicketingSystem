@@ -19,7 +19,7 @@ const Faq: React.FC = () => {
     }, []);
 
     return (
-        <div className="p-3">
+        <div className="w-100">
             <Title
                 textKey="FAQ"
                 rightContent={

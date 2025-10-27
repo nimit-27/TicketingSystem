@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { TextField, Autocomplete, Chip, Button } from '@mui/material';
 import PermissionsModal from '../components/Permissions/PermissionsModal';
 import { getCurrentUserDetails } from '../config/config';
+import CancelAndSubmitButtons from '../components/UI/Button/CancelAndSubmitButtons';
 
 interface CreateRoleProps {
     roles: string[];
@@ -144,10 +145,8 @@ const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActio
                     />
                 )}
             />
-            <div>
-                <Button type="submit" variant="contained" className="me-2">Submit</Button>
-                <Button variant="outlined" onClick={onCancel}>Cancel</Button>
-            </div>
+            <CancelAndSubmitButtons handleCancel={onCancel} typeSubmit />
+
             <PermissionsModal
                 open={openCustom}
                 roles={roles}

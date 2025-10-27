@@ -87,7 +87,7 @@ const menuItems = [
     key: "addUser",
     label: "Add New User",
     to: "/users/new",
-    icon: "personAdd",
+    icon: "personAddAlt",
   },
 ];
 

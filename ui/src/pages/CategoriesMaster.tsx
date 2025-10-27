@@ -229,7 +229,7 @@ const CategoriesMaster: React.FC = () => {
 
 
     return (
-        <div className="container">
+        <div className="">
             <Title textKey="Categories Master" />
             <div className="row mb-4">
                 <div className="col-md-6 mb-3">
@@ -252,7 +252,7 @@ const CategoriesMaster: React.FC = () => {
                     {categoryInput && !categories.find(c => c.category.toLowerCase() === categoryInput.toLowerCase()) && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>{t('Add Category')}</Button>
                     )}
-                    <ul className="list-group mt-2">
+                    <ul className="list-group mt-2 gap-1">
                         {categories
                             ?.filter(cat => cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
                             .map(cat => (
@@ -274,7 +274,7 @@ const CategoriesMaster: React.FC = () => {
                     </ul>
                     <div className="my-3" style={{ height: 24 }} />
                     <div className="text-muted fw-semibold small">{t('Other Categories')}</div>
-                    <ul className="list-group mt-2">
+                    <ul className="list-group mt-2 gap-1">
                         {categories
                             ?.filter(cat => !cat.category.toLowerCase().includes(categoryInput.toLowerCase()))
                             .map(cat => (
@@ -336,7 +336,7 @@ const CategoriesMaster: React.FC = () => {
                             </MenuItem>
                         ))}
                     </TextField>
-                    <ul className="list-group mt-2">
+                    <ul className="list-group mt-2 gap-1">
                         {displaySubCategories?.map(sc => (
                             <CategoryListItem
                                 key={sc.subCategoryId}
@@ -354,7 +354,7 @@ const CategoriesMaster: React.FC = () => {
                     </ul>
                     <div className="my-3" style={{ height: 24 }} />
                     <div className="text-muted fw-semibold small">{t('Other Sub-Categories')}</div>
-                    <ul className="list-group mt-2">
+                    <ul className="list-group mt-2 gap-1">
                         {otherSubCategories?.map(sc => (
                             <CategoryListItem
                                 key={sc.subCategoryId}
