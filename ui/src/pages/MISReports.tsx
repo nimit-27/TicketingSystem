@@ -6,6 +6,7 @@ import TicketSummaryReport from "../components/MISReports/TicketSummaryReport";
 import TicketResolutionTimeReport from "../components/MISReports/TicketResolutionTimeReport";
 import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
 import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
+import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import Title from "../components/Title";
 import { useSnackbar } from "../context/SnackbarContext";
 import {
@@ -155,6 +156,7 @@ const MISReports: React.FC = () => {
                 Management Information System Reports
             </Typography> */}
 
+            <SlaPerformanceReport />
             <TicketSummaryReport />
             <TicketResolutionTimeReport />
             <CustomerSatisfactionReport />
