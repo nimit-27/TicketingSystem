@@ -3,6 +3,7 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.service.ReportService;
@@ -20,6 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReportsController {
     private final ReportService reportService;
+
+    @GetMapping("/support-dashboard-summary")
+    public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary() {
+        return ResponseEntity.ok(reportService.getSupportDashboardSummary());
+    }
 
     @GetMapping("/ticket-summary")
     public ResponseEntity<TicketSummaryReportDto> getTicketSummaryReport() {

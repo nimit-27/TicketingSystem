@@ -34,6 +34,12 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("SELECT t.category AS category, COUNT(t) AS count FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category")
     List<CategoryCountProjection> countTicketsByCategory();
 
+    @Query("SELECT LOWER(t.severity) AS severity, COUNT(t) AS count FROM Ticket t " +
+            "WHERE t.severity IS NOT NULL " +
+            "AND (:status IS NULL OR t.ticketStatus = :status) " +
+            "GROUP BY LOWER(t.severity)")
+    List<SeverityCountProjection> countTicketsBySeverity(@Param("status") TicketStatus status);
+
     @Query("SELECT t FROM Ticket t WHERE t.reportedDate IS NOT NULL AND t.resolvedAt IS NOT NULL")
     List<Ticket> findResolvedTickets();
 
@@ -112,6 +118,12 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     interface CategoryCountProjection {
         String getCategory();
+
+        Long getCount();
+    }
+
+    interface SeverityCountProjection {
+        String getSeverity();
 
         Long getCount();
     }

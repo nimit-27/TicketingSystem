@@ -79,3 +79,10 @@ export interface SlaPerformanceReportProps {
     breachTrend: SlaTrendPoint[];
     breachedTickets: SlaBreachedTicketSummary[];
 }
+
+export type SupportDashboardSeverityKey = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+
+export interface SupportDashboardSummary {
+    pendingForAcknowledgement: number;
+    severityCounts: Record<SupportDashboardSeverityKey, number>;
+}
