@@ -15,6 +15,7 @@ const ROUTE_TITLES: RouteTitle[] = [
   { path: '/tickets/:ticketId/feedback', title: 'Ticket Feedback' },
   { path: '/tickets/:ticketId', title: 'Ticket Details' },
   { path: '/create-ticket', title: 'Raise Ticket' },
+  { path: '/dashboard', title: 'Dashboard (Helpdesk)' },
   { path: '/tickets', title: 'All Tickets' },
   { path: '/my-tickets', title: 'My Tickets' },
   { path: '/root-cause-analysis', title: 'Root Cause Analysis' },

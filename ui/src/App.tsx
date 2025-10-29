@@ -21,6 +21,7 @@ import RootCauseAnalysis from './pages/RootCauseAnalysis';
 import MISReports from './pages/MISReports';
 import CalendarPage from './pages/Calendar';
 import AddUser from './pages/AddUser';
+import SupportDashboard from './pages/SupportDashboard';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
@@ -53,7 +54,8 @@ function App() {
           </RequireAuth>
         )}
       >
-        <Route index element={<Navigate to="/my-tickets" replace />} /> {/* Default route */}
+        <Route index element={<Navigate to="/dashboard" replace />} /> {/* Default route */}
+        <Route path="dashboard" element={<SupportDashboard />} />
         <Route path="create-ticket" element={<RaiseTicket />} />
         <Route path="tickets" element={<AllTickets />} />
         <Route path="my-tickets" element={<MyTickets />} />
