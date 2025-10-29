@@ -29,12 +29,81 @@ import {
   Line,
 } from "recharts";
 
-const severityData = [
-  { name: "Critical", value: 2, color: "#64d4a2" },
-  { name: "High", value: 4, color: "#ff7043" },
-  { name: "Medium", value: 7, color: "#90a4ae" },
-  { name: "Low", value: 15, color: "#ffeb3b" },
+import { fetchSupportDashboardSummary } from "../services/ReportService";
+import {
+  SupportDashboardSeverityKey,
+  SupportDashboardSummary,
+} from "../types/reports";
+
+const severityLevels: SupportDashboardSeverityKey[] = [
+  "CRITICAL",
+  "HIGH",
+  "MEDIUM",
+  "LOW",
 ];
+
+const severityCardStyles: Record<SupportDashboardSeverityKey, {
+  label: string;
+  background: string;
+  color: string;
+  chartColor: string;
+}> = {
+  CRITICAL: {
+    label: "Critical",
+    background: "#e8f5e9",
+    color: "#2e7d32",
+    chartColor: "#64d4a2",
+  },
+  HIGH: {
+    label: "High",
+    background: "#ff8a65",
+    color: "#fff",
+    chartColor: "#ff7043",
+  },
+  MEDIUM: {
+    label: "Medium",
+    background: "#cfd8dc",
+    color: "#37474f",
+    chartColor: "#90a4ae",
+  },
+  LOW: {
+    label: "Low",
+    background: "#fff59d",
+    color: "#795548",
+    chartColor: "#ffeb3b",
+  },
+};
+
+const createDefaultSeverityCounts = (): Record<SupportDashboardSeverityKey, number> => ({
+  CRITICAL: 0,
+  HIGH: 0,
+  MEDIUM: 0,
+  LOW: 0,
+});
+
+const createDefaultSummary = (): SupportDashboardSummary => ({
+  pendingForAcknowledgement: 0,
+  severityCounts: createDefaultSeverityCounts(),
+});
+
+const normalizeSeverityCounts = (
+  counts?: Partial<Record<string, number>>,
+): Record<SupportDashboardSeverityKey, number> => {
+  const normalized = createDefaultSeverityCounts();
+
+  if (!counts) {
+    return normalized;
+  }
+
+  Object.entries(counts).forEach(([key, value]) => {
+    const upperKey = key.toUpperCase() as SupportDashboardSeverityKey;
+    if ((severityLevels as string[]).includes(upperKey) && typeof value === "number") {
+      normalized[upperKey] = value;
+    }
+  });
+
+  return normalized;
+};
 
 const openResolvedData = [
   { name: "Open", value: 12, color: "#ff7043" },
@@ -55,41 +124,78 @@ const ticketsPerMonth = [
   { month: "Jan 2025", tickets: 156 },
 ];
 
-const summaryCards = [
-  {
-    label: "Pending for Acknowledgement",
-    value: "05",
-    background: "#ff5252",
-    color: "#fff",
-  },
-  {
-    label: "Critical",
-    value: "02",
-    background: "#e8f5e9",
-    color: "#2e7d32",
-  },
-  {
-    label: "High",
-    value: "04",
-    background: "#ff8a65",
-    color: "#fff",
-  },
-  {
-    label: "Medium",
-    value: "07",
-    background: "#cfd8dc",
-    color: "#37474f",
-  },
-  {
-    label: "Low",
-    value: "15",
-    background: "#fff59d",
-    color: "#795548",
-  },
-];
+const formatSummaryValue = (value: number) => value.toString().padStart(2, "0");
 
 const SupportDashboard: React.FC = () => {
   const theme = useTheme();
+  const [summary, setSummary] = React.useState<SupportDashboardSummary>(() => createDefaultSummary());
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadSummary = async () => {
+      try {
+        const response = await fetchSupportDashboardSummary();
+        if (!isMounted) {
+          return;
+        }
+
+        const data: SupportDashboardSummary = response.data;
+        setSummary({
+          pendingForAcknowledgement: data?.pendingForAcknowledgement ?? 0,
+          severityCounts: normalizeSeverityCounts(data?.severityCounts),
+        });
+        setError(null);
+      } catch (err) {
+        if (!isMounted) {
+          return;
+        }
+        console.error("Failed to load support dashboard summary", err);
+        setSummary(createDefaultSummary());
+        setError("Unable to load latest ticket metrics.");
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const summaryCards = React.useMemo(
+    () => [
+      {
+        label: "Pending for Acknowledgement",
+        value: formatSummaryValue(summary.pendingForAcknowledgement),
+        background: "#ff5252",
+        color: "#fff",
+      },
+      ...severityLevels.map((level) => ({
+        label: severityCardStyles[level].label,
+        value: formatSummaryValue(summary.severityCounts[level]),
+        background: severityCardStyles[level].background,
+        color: severityCardStyles[level].color,
+      })),
+    ],
+    [summary],
+  );
+
+  const severityData = React.useMemo(
+    () =>
+      severityLevels.map((level) => ({
+        name: severityCardStyles[level].label,
+        value: summary.severityCounts[level],
+        color: severityCardStyles[level].chartColor,
+      })),
+    [summary],
+  );
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, width: "100%" }}>
@@ -172,6 +278,12 @@ const SupportDashboard: React.FC = () => {
           </Grid>
         ))}
       </Grid>
+
+      {!isLoading && error && (
+        <Typography variant="body2" color="error">
+          {error}
+        </Typography>
+      )}
 
       {/* Charts Section */}
       <Grid container spacing={2}>

@@ -4,6 +4,7 @@ import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
@@ -40,6 +41,32 @@ public class ReportService {
     private final TicketFeedbackRepository ticketFeedbackRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
+
+    public SupportDashboardSummaryDto getSupportDashboardSummary() {
+        long openTickets = ticketRepository.countByTicketStatus(TicketStatus.OPEN);
+
+        Map<String, Long> severityCounts = new LinkedHashMap<>();
+        severityCounts.put("CRITICAL", 0L);
+        severityCounts.put("HIGH", 0L);
+        severityCounts.put("MEDIUM", 0L);
+        severityCounts.put("LOW", 0L);
+
+        ticketRepository.countTicketsBySeverity(TicketStatus.OPEN).forEach(projection -> {
+            if (projection.getSeverity() == null) {
+                return;
+            }
+
+            String severityKey = projection.getSeverity().toUpperCase(Locale.ROOT);
+            if (severityCounts.containsKey(severityKey)) {
+                severityCounts.put(severityKey, Optional.ofNullable(projection.getCount()).orElse(0L));
+            }
+        });
+
+        return SupportDashboardSummaryDto.builder()
+                .pendingForAcknowledgement(openTickets)
+                .severityCounts(severityCounts)
+                .build();
+    }
 
     public TicketSummaryReportDto getTicketSummaryReport() {
         long totalTickets = ticketRepository.count();

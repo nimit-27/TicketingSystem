@@ -1,6 +1,10 @@
 import axios from "./apiClient";
 import { BASE_URL } from "./api";
 
+export function fetchSupportDashboardSummary() {
+    return axios.get(`${BASE_URL}/reports/support-dashboard-summary`);
+}
+
 export function fetchTicketSummaryReport() {
     return axios.get(`${BASE_URL}/reports/ticket-summary`);
 }
