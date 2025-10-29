@@ -12,6 +12,12 @@ import { IconComponent } from "../UI/IconButton/CustomIconButton";
 
 const menuItems = [
   {
+    key: "supportDashboard",
+    label: "Support Dashboard",
+    to: "/dashboard",
+    icon: "dashboard",
+  },
+  {
     key: "allTickets",
     label: "All Tickets",
     to: "/tickets",

@@ -38,6 +38,7 @@
     "react-quill": "^2.0.0",
     "react-router-dom": "^7.6.1",
     "react-scripts": "5.0.1",
+    "recharts": "^3.3.0",
     "sass": "^1.89.0",
     "sockjs-client": "^1.6.1",
     "typesense": "^1.2.1",
