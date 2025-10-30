@@ -39,13 +39,12 @@ services:
       - typesense_data:/data
 
   api:
-    image: gradle:8.10.2-jdk17
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ticketing-api:latest
     container_name: ticketing-api
     restart: unless-stopped
-    working_dir: /home/gradle/project
-    command: ["./gradlew", "bootRun"]
-    volumes:
-      - ./api:/home/gradle/project
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticketing_system?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ticket_user
@@ -54,6 +53,8 @@ services:
       TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz123}
     ports:
       - "8082:8082"
+    volumes:
+      - api_uploads:/app/uploads
     depends_on:
       mysql:
         condition: service_healthy
@@ -64,6 +65,7 @@ services:
     build:
       context: ./ui
       dockerfile: Dockerfile
+    image: ticketing-ui:latest
     container_name: ticketing-ui
     restart: unless-stopped
     ports:
@@ -73,18 +75,17 @@ services:
         condition: service_started
 
   filegator:
-    extends: 
-      file: ./filegator/docker-compose-dev.yml
-      service: filegator
     build:
       context: ./filegator
+      dockerfile: Dockerfile.local
+    image: ticketing-filegator:latest
     container_name: filegator
     restart: unless-stopped
     ports:
       - "8080:8080"
     volumes:
-      - ./files:/var/www/filegator/repository
-      - ./filegator/configuration.php:/var/www/filegator/configuration.php
+      - filegator_repository:/var/www/filegator/repository
+      - filegator_private:/var/www/filegator/private
     depends_on:
       mysql:
         condition: service_healthy
@@ -92,3 +93,6 @@ services:
 volumes:
   mysql_data:
   typesense_data:
+  api_uploads:
+  filegator_repository:
+  filegator_private:
