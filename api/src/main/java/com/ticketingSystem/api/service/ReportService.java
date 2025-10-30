@@ -4,8 +4,11 @@ import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardOpenResolvedDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardSlaCompliancePointDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummarySectionDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardTicketVolumePointDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
@@ -21,10 +24,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
@@ -36,9 +40,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.time.temporal.TemporalAdjusters;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +55,14 @@ public class ReportService {
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
 
+    private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
+            TicketStatus.RESOLVED,
+            TicketStatus.CLOSED,
+            TicketStatus.CANCELLED
+    );
+
+    private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
+
     public SupportDashboardSummaryDto getSupportDashboardSummary(String userId, String timeScale, String timeRange) {
         DateRange dateRange = resolveDateRange(timeScale, timeRange);
 
@@ -57,9 +71,16 @@ public class ReportService {
                 .map(username -> buildSummarySection(username, dateRange))
                 .orElse(null);
 
+        SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange);
+        List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(dateRange);
+        List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(dateRange);
+
         return SupportDashboardSummaryDto.builder()
                 .allTickets(allTickets)
                 .myWorkload(myWorkload)
+                .openResolved(openResolved)
+                .slaCompliance(slaCompliance)
+                .ticketVolume(ticketVolume)
                 .build();
     }
 
@@ -89,6 +110,129 @@ public class ReportService {
                 .pendingForAcknowledgement(pendingCount)
                 .severityCounts(severityCounts)
                 .build();
+    }
+
+    private SupportDashboardOpenResolvedDto buildOpenResolvedSnapshot(DateRange dateRange) {
+        List<Ticket> reportedTickets = ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
+        EnumSet<TicketStatus> openLikeStatuses = EnumSet.allOf(TicketStatus.class);
+        openLikeStatuses.removeAll(RESOLVED_STATUSES);
+
+        long openTickets = reportedTickets.stream()
+                .filter(Objects::nonNull)
+                .filter(ticket -> {
+                    TicketStatus status = ticket.getTicketStatus();
+                    return status == null || openLikeStatuses.contains(status);
+                })
+                .count();
+
+        List<Ticket> resolvedTickets = ticketRepository.findByResolvedAtBetween(dateRange.from(), dateRange.to());
+        long resolvedCount = resolvedTickets.stream()
+                .filter(ticket -> ticket != null && ticket.getTicketStatus() != null)
+                .filter(ticket -> RESOLVED_STATUSES.contains(ticket.getTicketStatus()))
+                .count();
+
+        return SupportDashboardOpenResolvedDto.builder()
+                .openTickets(openTickets)
+                .resolvedTickets(resolvedCount)
+                .build();
+    }
+
+    private List<SupportDashboardSlaCompliancePointDto> buildSlaComplianceTrend(DateRange dateRange) {
+        List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
+        if (slaEntries.isEmpty()) {
+            return List.of();
+        }
+
+        Map<YearMonth, SlaComplianceAccumulator> accumulatorMap = new TreeMap<>();
+
+        for (TicketSla sla : slaEntries) {
+            if (sla == null) {
+                continue;
+            }
+
+            LocalDateTime reference = resolveSlaReferenceTimestamp(sla);
+            if (reference == null || !isWithinRange(reference, dateRange)) {
+                continue;
+            }
+
+            YearMonth month = YearMonth.from(reference);
+            SlaComplianceAccumulator accumulator = accumulatorMap.computeIfAbsent(month, key -> new SlaComplianceAccumulator());
+            boolean breached = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L) > 0L;
+
+            if (breached) {
+                accumulator.incrementOverdue();
+            } else {
+                accumulator.incrementWithin();
+            }
+        }
+
+        return accumulatorMap.entrySet().stream()
+                .map(entry -> SupportDashboardSlaCompliancePointDto.builder()
+                        .month(entry.getKey().format(MONTH_FORMATTER))
+                        .withinSla(entry.getValue().getWithin())
+                        .overdue(entry.getValue().getOverdue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private List<SupportDashboardTicketVolumePointDto> buildTicketVolumeTrend(DateRange dateRange) {
+        List<Ticket> tickets = ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
+
+        if (tickets.isEmpty()) {
+            return List.of();
+        }
+
+        Map<YearMonth, Long> countsByMonth = tickets.stream()
+                .filter(ticket -> ticket != null && ticket.getReportedDate() != null)
+                .collect(Collectors.groupingBy(ticket -> YearMonth.from(ticket.getReportedDate()), TreeMap::new, Collectors.counting()));
+
+        return countsByMonth.entrySet().stream()
+                .map(entry -> SupportDashboardTicketVolumePointDto.builder()
+                        .month(entry.getKey().format(MONTH_FORMATTER))
+                        .tickets(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private LocalDateTime resolveSlaReferenceTimestamp(TicketSla sla) {
+        if (sla == null) {
+            return null;
+        }
+
+        if (sla.getActualDueAt() != null) {
+            return sla.getActualDueAt();
+        }
+
+        if (sla.getDueAt() != null) {
+            return sla.getDueAt();
+        }
+
+        Ticket ticket = sla.getTicket();
+        if (ticket == null) {
+            return null;
+        }
+
+        if (ticket.getResolvedAt() != null) {
+            return ticket.getResolvedAt();
+        }
+
+        return ticket.getReportedDate();
+    }
+
+    private boolean isWithinRange(LocalDateTime value, DateRange dateRange) {
+        if (value == null) {
+            return false;
+        }
+
+        if (dateRange.from() != null && value.isBefore(dateRange.from())) {
+            return false;
+        }
+
+        if (dateRange.to() != null && value.isAfter(dateRange.to())) {
+            return false;
+        }
+
+        return true;
     }
 
     private Map<String, Long> createEmptySeverityCounts() {
@@ -196,6 +340,27 @@ public class ReportService {
 
     private record DateRange(LocalDateTime from, LocalDateTime to) {
         private DateRange {
+        }
+    }
+
+    private static class SlaComplianceAccumulator {
+        private long within;
+        private long overdue;
+
+        private void incrementWithin() {
+            within++;
+        }
+
+        private void incrementOverdue() {
+            overdue++;
+        }
+
+        private long getWithin() {
+            return within;
+        }
+
+        private long getOverdue() {
+            return overdue;
         }
     }
 
