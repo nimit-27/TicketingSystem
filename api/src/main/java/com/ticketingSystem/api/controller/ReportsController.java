@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,8 +25,11 @@ public class ReportsController {
     private final ReportService reportService;
 
     @GetMapping("/support-dashboard-summary")
-    public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary() {
-        return ResponseEntity.ok(reportService.getSupportDashboardSummary());
+    public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary(
+            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @RequestParam(value = "timeScale", required = false) String timeScale,
+            @RequestParam(value = "timeRange", required = false) String timeRange) {
+        return ResponseEntity.ok(reportService.getSupportDashboardSummary(userId, timeScale, timeRange));
     }
 
     @GetMapping("/ticket-summary")

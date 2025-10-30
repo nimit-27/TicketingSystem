@@ -37,8 +37,24 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("SELECT LOWER(t.severity) AS severity, COUNT(t) AS count FROM Ticket t " +
             "WHERE t.severity IS NOT NULL " +
             "AND (:status IS NULL OR t.ticketStatus = :status) " +
+            "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY LOWER(t.severity)")
-    List<SeverityCountProjection> countTicketsBySeverity(@Param("status") TicketStatus status);
+    List<SeverityCountProjection> countTicketsBySeverity(@Param("status") TicketStatus status,
+                                                         @Param("assignedTo") String assignedTo,
+                                                         @Param("fromDate") LocalDateTime fromDate,
+                                                         @Param("toDate") LocalDateTime toDate);
+
+    @Query("SELECT COUNT(t) FROM Ticket t " +
+            "WHERE (:status IS NULL OR t.ticketStatus = :status) " +
+            "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
+    long countTicketsByStatusAndFilters(@Param("status") TicketStatus status,
+                                        @Param("assignedTo") String assignedTo,
+                                        @Param("fromDate") LocalDateTime fromDate,
+                                        @Param("toDate") LocalDateTime toDate);
 
     @Query("SELECT t FROM Ticket t WHERE t.reportedDate IS NOT NULL AND t.resolvedAt IS NOT NULL")
     List<Ticket> findResolvedTickets();

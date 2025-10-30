@@ -82,7 +82,31 @@ export interface SlaPerformanceReportProps {
 
 export type SupportDashboardSeverityKey = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
-export interface SupportDashboardSummary {
+export type SupportDashboardScopeKey = "allTickets" | "myWorkload";
+
+export interface SupportDashboardSummaryView {
     pendingForAcknowledgement: number;
     severityCounts: Record<SupportDashboardSeverityKey, number>;
+}
+
+export type SupportDashboardSummary = Partial<Record<SupportDashboardScopeKey, SupportDashboardSummaryView | null>>;
+
+export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+
+export type SupportDashboardTimeRange =
+    | "LAST_DAY"
+    | "LAST_7_DAYS"
+    | "LAST_30_DAYS"
+    | "THIS_WEEK"
+    | "LAST_WEEK"
+    | "LAST_4_WEEKS"
+    | "THIS_MONTH"
+    | "LAST_MONTH"
+    | "LAST_12_MONTHS"
+    | "YEAR_TO_DATE"
+    | "LAST_YEAR";
+
+export interface SupportDashboardSummaryRequestParams {
+    timeScale?: SupportDashboardTimeScale;
+    timeRange?: SupportDashboardTimeRange;
 }

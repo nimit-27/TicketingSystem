@@ -5,11 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SupportDashboardSummaryDto {
-    private SupportDashboardSummarySectionDto allTickets;
-    private SupportDashboardSummarySectionDto myWorkload;
+public class SupportDashboardSummarySectionDto {
+    private long pendingForAcknowledgement;
+    private Map<String, Long> severityCounts;
 }
+

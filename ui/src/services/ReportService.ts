@@ -1,8 +1,9 @@
 import axios from "./apiClient";
 import { BASE_URL } from "./api";
+import { SupportDashboardSummaryRequestParams } from "../types/reports";
 
-export function fetchSupportDashboardSummary() {
-    return axios.get(`${BASE_URL}/reports/support-dashboard-summary`);
+export function fetchSupportDashboardSummary(params?: SupportDashboardSummaryRequestParams) {
+    return axios.get(`${BASE_URL}/reports/support-dashboard-summary`, { params });
 }
 
 export function fetchTicketSummaryReport() {
