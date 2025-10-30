@@ -1,0 +1,20 @@
+# build artefacts and runtime data
+node_modules
+vendor
+dist
+private
+repository
+data
+.github
+.git
+Dockerfile
+Dockerfile.dev
+Dockerfile.multiarch
+docker-compose.yml
+docker-compose-dev.yml
+cypress
+cypress.json
+docs
+tests
+.env*
+*.log
