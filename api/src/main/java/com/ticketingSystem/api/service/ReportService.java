@@ -5,20 +5,25 @@ import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardSummarySectionDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketFeedback;
 import com.ticketingSystem.api.models.TicketSla;
+import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.repository.TicketFeedbackRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
+import com.ticketingSystem.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,6 +38,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.time.temporal.TemporalAdjusters;
 
 @Service
 @RequiredArgsConstructor
@@ -41,31 +47,156 @@ public class ReportService {
     private final TicketFeedbackRepository ticketFeedbackRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
+    private final UserRepository userRepository;
 
-    public SupportDashboardSummaryDto getSupportDashboardSummary() {
-        long openTickets = ticketRepository.countByTicketStatus(TicketStatus.OPEN);
+    public SupportDashboardSummaryDto getSupportDashboardSummary(String userId, String timeScale, String timeRange) {
+        DateRange dateRange = resolveDateRange(timeScale, timeRange);
 
+        SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange);
+        SupportDashboardSummarySectionDto myWorkload = resolveUsername(userId)
+                .map(username -> buildSummarySection(username, dateRange))
+                .orElse(null);
+
+        return SupportDashboardSummaryDto.builder()
+                .allTickets(allTickets)
+                .myWorkload(myWorkload)
+                .build();
+    }
+
+    private SupportDashboardSummarySectionDto buildSummarySection(String assignedTo, DateRange dateRange) {
+        Map<String, Long> severityCounts = createEmptySeverityCounts();
+
+        ticketRepository.countTicketsBySeverity(TicketStatus.OPEN, assignedTo, dateRange.from(), dateRange.to())
+                .forEach(projection -> {
+                    if (projection.getSeverity() == null) {
+                        return;
+                    }
+
+                    String severityKey = projection.getSeverity().toUpperCase(Locale.ROOT);
+                    if (severityCounts.containsKey(severityKey)) {
+                        severityCounts.put(severityKey, Optional.ofNullable(projection.getCount()).orElse(0L));
+                    }
+                });
+
+        long pendingCount = ticketRepository.countTicketsByStatusAndFilters(
+                TicketStatus.OPEN,
+                assignedTo,
+                dateRange.from(),
+                dateRange.to()
+        );
+
+        return SupportDashboardSummarySectionDto.builder()
+                .pendingForAcknowledgement(pendingCount)
+                .severityCounts(severityCounts)
+                .build();
+    }
+
+    private Map<String, Long> createEmptySeverityCounts() {
         Map<String, Long> severityCounts = new LinkedHashMap<>();
         severityCounts.put("CRITICAL", 0L);
         severityCounts.put("HIGH", 0L);
         severityCounts.put("MEDIUM", 0L);
         severityCounts.put("LOW", 0L);
+        return severityCounts;
+    }
 
-        ticketRepository.countTicketsBySeverity(TicketStatus.OPEN).forEach(projection -> {
-            if (projection.getSeverity() == null) {
-                return;
+    private Optional<String> resolveUsername(String userId) {
+        if (!StringUtils.hasText(userId)) {
+            return Optional.empty();
+        }
+
+        Optional<String> resolved = userRepository.findById(userId)
+                .map(User::getUsername)
+                .filter(StringUtils::hasText);
+
+        if (resolved.isPresent()) {
+            return resolved;
+        }
+
+        resolved = userRepository.findByUsername(userId)
+                .map(User::getUsername)
+                .filter(StringUtils::hasText);
+
+        if (resolved.isPresent()) {
+            return resolved;
+        }
+
+        return Optional.of(userId);
+    }
+
+    private DateRange resolveDateRange(String timeScale, String timeRange) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
+        String normalizedScale = StringUtils.hasText(timeScale) ? timeScale.trim().toUpperCase(Locale.ROOT) : "";
+        String normalizedRange = StringUtils.hasText(timeRange) ? timeRange.trim().toUpperCase(Locale.ROOT) : "";
+
+        LocalDateTime from = null;
+        LocalDateTime to = now;
+
+        switch (normalizedScale) {
+            case "DAILY" -> {
+                if ("LAST_DAY".equals(normalizedRange)) {
+                    from = now.minusDays(1);
+                } else if ("LAST_7_DAYS".equals(normalizedRange)) {
+                    from = now.minusDays(7);
+                } else if ("LAST_30_DAYS".equals(normalizedRange)) {
+                    from = now.minusDays(30);
+                } else {
+                    from = now.minusDays(7);
+                }
             }
-
-            String severityKey = projection.getSeverity().toUpperCase(Locale.ROOT);
-            if (severityCounts.containsKey(severityKey)) {
-                severityCounts.put(severityKey, Optional.ofNullable(projection.getCount()).orElse(0L));
+            case "WEEKLY" -> {
+                LocalDate startOfThisWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                if ("LAST_WEEK".equals(normalizedRange)) {
+                    LocalDate startOfLastWeek = startOfThisWeek.minusWeeks(1);
+                    from = startOfLastWeek.atStartOfDay();
+                    to = startOfThisWeek.atStartOfDay().minusNanos(1);
+                } else if ("LAST_4_WEEKS".equals(normalizedRange)) {
+                    from = now.minusWeeks(4);
+                } else {
+                    from = startOfThisWeek.atStartOfDay();
+                    to = now;
+                }
             }
-        });
+            case "MONTHLY" -> {
+                LocalDate firstDayOfThisMonth = today.withDayOfMonth(1);
+                if ("LAST_MONTH".equals(normalizedRange)) {
+                    LocalDate firstDayOfLastMonth = firstDayOfThisMonth.minusMonths(1);
+                    from = firstDayOfLastMonth.atStartOfDay();
+                    to = firstDayOfThisMonth.atStartOfDay().minusNanos(1);
+                } else if ("LAST_12_MONTHS".equals(normalizedRange)) {
+                    from = now.minusMonths(12);
+                } else {
+                    from = firstDayOfThisMonth.atStartOfDay();
+                    to = now;
+                }
+            }
+            case "YEARLY" -> {
+                LocalDate firstDayOfThisYear = today.withDayOfYear(1);
+                if ("LAST_YEAR".equals(normalizedRange)) {
+                    LocalDate firstDayOfLastYear = firstDayOfThisYear.minusYears(1);
+                    from = firstDayOfLastYear.atStartOfDay();
+                    to = firstDayOfThisYear.atStartOfDay().minusNanos(1);
+                } else {
+                    from = firstDayOfThisYear.atStartOfDay();
+                    to = now;
+                }
+            }
+            default -> {
+                from = now.minusDays(7);
+            }
+        }
 
-        return SupportDashboardSummaryDto.builder()
-                .pendingForAcknowledgement(openTickets)
-                .severityCounts(severityCounts)
-                .build();
+        if (from != null && to != null && to.isBefore(from)) {
+            to = from;
+        }
+
+        return new DateRange(from, to);
+    }
+
+    private record DateRange(LocalDateTime from, LocalDateTime to) {
+        private DateRange {
+        }
     }
 
     public TicketSummaryReportDto getTicketSummaryReport() {

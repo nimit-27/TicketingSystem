@@ -5,8 +5,14 @@ import {
   Box,
   Card,
   CardContent,
+  Chip,
+  FormControl,
   Grid,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
   TextField,
   Typography,
   useTheme,
@@ -31,9 +37,14 @@ import {
 
 import { fetchSupportDashboardSummary } from "../services/ReportService";
 import {
+  SupportDashboardScopeKey,
   SupportDashboardSeverityKey,
   SupportDashboardSummary,
+  SupportDashboardSummaryView,
+  SupportDashboardTimeRange,
+  SupportDashboardTimeScale,
 } from "../types/reports";
+import { checkSidebarAccess } from "../utils/permissions";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "CRITICAL",
@@ -81,9 +92,14 @@ const createDefaultSeverityCounts = (): Record<SupportDashboardSeverityKey, numb
   LOW: 0,
 });
 
-const createDefaultSummary = (): SupportDashboardSummary => ({
+const createDefaultSummaryView = (): SupportDashboardSummaryView => ({
   pendingForAcknowledgement: 0,
   severityCounts: createDefaultSeverityCounts(),
+});
+
+const createDefaultSummary = (): SupportDashboardSummary => ({
+  allTickets: createDefaultSummaryView(),
+  myWorkload: createDefaultSummaryView(),
 });
 
 const normalizeSeverityCounts = (
@@ -103,6 +119,69 @@ const normalizeSeverityCounts = (
   });
 
   return normalized;
+};
+
+const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
+  if (!view || typeof view !== "object") {
+    return createDefaultSummaryView();
+  }
+
+  const typedView = view as Partial<SupportDashboardSummaryView> & {
+    severityCounts?: Partial<Record<string, number>>;
+  };
+
+  return {
+    pendingForAcknowledgement:
+      typeof typedView.pendingForAcknowledgement === "number"
+        ? typedView.pendingForAcknowledgement
+        : 0,
+    severityCounts: normalizeSeverityCounts(typedView.severityCounts),
+  };
+};
+
+const extractSummaryPayload = (raw: unknown): any => {
+  const dataLayer = (raw as any)?.data ?? raw;
+  const bodyLayer = dataLayer?.body ?? dataLayer;
+
+  if (bodyLayer && typeof bodyLayer === "object" && "data" in bodyLayer) {
+    return (bodyLayer as any).data ?? null;
+  }
+
+  return bodyLayer ?? null;
+};
+
+const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
+  { value: "DAILY", label: "Daily" },
+  { value: "WEEKLY", label: "Weekly" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "YEARLY", label: "Yearly" },
+];
+
+const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
+  DAILY: [
+    { value: "LAST_DAY", label: "Last 24 hours" },
+    { value: "LAST_7_DAYS", label: "Last 7 days" },
+    { value: "LAST_30_DAYS", label: "Last 30 days" },
+  ],
+  WEEKLY: [
+    { value: "THIS_WEEK", label: "This week" },
+    { value: "LAST_WEEK", label: "Previous week" },
+    { value: "LAST_4_WEEKS", label: "Last 4 weeks" },
+  ],
+  MONTHLY: [
+    { value: "THIS_MONTH", label: "This month" },
+    { value: "LAST_MONTH", label: "Previous month" },
+    { value: "LAST_12_MONTHS", label: "Last 12 months" },
+  ],
+  YEARLY: [
+    { value: "YEAR_TO_DATE", label: "Year to date" },
+    { value: "LAST_YEAR", label: "Previous year" },
+  ],
+};
+
+const scopeLabels: Record<SupportDashboardScopeKey, string> = {
+  allTickets: "All Tickets",
+  myWorkload: "My Workload",
 };
 
 const openResolvedData = [
@@ -131,22 +210,103 @@ const SupportDashboard: React.FC = () => {
   const [summary, setSummary] = React.useState<SupportDashboardSummary>(() => createDefaultSummary());
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
+  const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("LAST_7_DAYS");
+  const [activeScope, setActiveScope] = React.useState<SupportDashboardScopeKey>("allTickets");
+
+  const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
+  const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
+
+  const determineScope = React.useCallback(
+    (data: SupportDashboardSummary): SupportDashboardScopeKey => {
+      const allTicketsAvailable = data.allTickets !== null && data.allTickets !== undefined;
+      const myWorkloadAvailable = data.myWorkload !== null && data.myWorkload !== undefined;
+
+      if (hasAllTicketsAccess && allTicketsAvailable) {
+        return "allTickets";
+      }
+
+      if (!hasAllTicketsAccess && hasMyWorkloadAccess && myWorkloadAvailable) {
+        return "myWorkload";
+      }
+
+      if (allTicketsAvailable) {
+        return "allTickets";
+      }
+
+      if (myWorkloadAvailable) {
+        return "myWorkload";
+      }
+
+      if (hasAllTicketsAccess) {
+        return "allTickets";
+      }
+
+      if (hasMyWorkloadAccess) {
+        return "myWorkload";
+      }
+
+      return "allTickets";
+    },
+    [hasAllTicketsAccess, hasMyWorkloadAccess],
+  );
+
+  const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
+
+  const handleTimeScaleChange = React.useCallback(
+    (event: SelectChangeEvent) => {
+      const value = event.target.value as SupportDashboardTimeScale;
+      setTimeScale(value);
+      const defaultRange = (timeRangeOptions[value] ?? [])[0]?.value;
+      if (defaultRange) {
+        setTimeRange(defaultRange);
+      }
+    },
+    [],
+  );
+
+  const handleTimeRangeChange = React.useCallback(
+    (event: SelectChangeEvent) => {
+      setTimeRange(event.target.value as SupportDashboardTimeRange);
+    },
+    [],
+  );
 
   React.useEffect(() => {
     let isMounted = true;
 
     const loadSummary = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetchSupportDashboardSummary();
+        const response = await fetchSupportDashboardSummary({ timeScale, timeRange });
         if (!isMounted) {
           return;
         }
 
-        const data: SupportDashboardSummary = response.data;
-        setSummary({
-          pendingForAcknowledgement: data?.pendingForAcknowledgement ?? 0,
-          severityCounts: normalizeSeverityCounts(data?.severityCounts),
-        });
+        const payload = extractSummaryPayload(response);
+        const resolvedSummary = createDefaultSummary();
+        const availabilitySnapshot: SupportDashboardSummary = { allTickets: null, myWorkload: null };
+
+        if (payload && typeof payload === "object") {
+          if ("allTickets" in payload) {
+            if (payload.allTickets != null) {
+              const normalized = normalizeSummaryView(payload.allTickets);
+              resolvedSummary.allTickets = normalized;
+              availabilitySnapshot.allTickets = normalized;
+            }
+          }
+
+          if ("myWorkload" in payload) {
+            if (payload.myWorkload != null) {
+              const normalized = normalizeSummaryView(payload.myWorkload);
+              resolvedSummary.myWorkload = normalized;
+              availabilitySnapshot.myWorkload = normalized;
+            }
+          }
+        }
+
+        setSummary(resolvedSummary);
+        setActiveScope(determineScope(availabilitySnapshot));
         setError(null);
       } catch (err) {
         if (!isMounted) {
@@ -162,40 +322,47 @@ const SupportDashboard: React.FC = () => {
       }
     };
 
-    loadSummary();
+    void loadSummary();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [determineScope, timeRange, timeScale]);
+
+  const activeSummaryView = React.useMemo(() => {
+    const view = summary[activeScope];
+    return view ?? createDefaultSummaryView();
+  }, [activeScope, summary]);
 
   const summaryCards = React.useMemo(
     () => [
       {
         label: "Pending for Acknowledgement",
-        value: formatSummaryValue(summary.pendingForAcknowledgement),
+        value: formatSummaryValue(activeSummaryView.pendingForAcknowledgement),
         background: "#ff5252",
         color: "#fff",
       },
       ...severityLevels.map((level) => ({
         label: severityCardStyles[level].label,
-        value: formatSummaryValue(summary.severityCounts[level]),
+        value: formatSummaryValue(activeSummaryView.severityCounts[level]),
         background: severityCardStyles[level].background,
         color: severityCardStyles[level].color,
       })),
     ],
-    [summary],
+    [activeSummaryView],
   );
 
   const severityData = React.useMemo(
     () =>
       severityLevels.map((level) => ({
         name: severityCardStyles[level].label,
-        value: summary.severityCounts[level],
+        value: activeSummaryView.severityCounts[level],
         color: severityCardStyles[level].chartColor,
       })),
-    [summary],
+    [activeSummaryView],
   );
+
+  const activeScopeLabel = scopeLabels[activeScope];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, width: "100%" }}>
@@ -216,9 +383,10 @@ const SupportDashboard: React.FC = () => {
           <Box
             sx={{
               display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              alignItems: { xs: "stretch", md: "center" },
+              flexDirection: { xs: "column", lg: "row" },
+              alignItems: { xs: "stretch", lg: "center" },
               gap: 2,
+              flexWrap: "wrap",
             }}
           >
             <Box
@@ -239,6 +407,56 @@ const SupportDashboard: React.FC = () => {
                 variant="standard"
                 placeholder="Search tickets"
                 InputProps={{ disableUnderline: true }}
+              />
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 1.5,
+                minWidth: { xs: "100%", lg: "auto" },
+              }}
+            >
+              <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 160 } }}>
+                <InputLabel id="support-dashboard-timescale-label">Interval</InputLabel>
+                <Select
+                  labelId="support-dashboard-timescale-label"
+                  value={timeScale}
+                  label="Interval"
+                  onChange={handleTimeScaleChange}
+                  disabled={isLoading}
+                >
+                  {timeScaleOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 200 } }}>
+                <InputLabel id="support-dashboard-timerange-label">Range</InputLabel>
+                <Select
+                  labelId="support-dashboard-timerange-label"
+                  value={timeRange}
+                  label="Range"
+                  onChange={handleTimeRangeChange}
+                  disabled={isLoading}
+                >
+                  {availableTimeRanges.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Chip
+                label={isLoading ? `Loading… (${activeScopeLabel})` : `Data source: ${activeScopeLabel}`}
+                color="primary"
+                variant="outlined"
+                size="small"
+                disabled={isLoading}
+                sx={{ fontWeight: 600, textTransform: "uppercase" }}
               />
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
