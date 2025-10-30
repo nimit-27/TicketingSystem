@@ -36,10 +36,12 @@ import {
 } from "recharts";
 
 import { fetchSupportDashboardSummary } from "../services/ReportService";
+import { useApi } from "../hooks/useApi";
 import {
   SupportDashboardScopeKey,
   SupportDashboardSeverityKey,
   SupportDashboardSummary,
+  SupportDashboardSummaryResponse,
   SupportDashboardSummaryView,
   SupportDashboardTimeRange,
   SupportDashboardTimeScale,
@@ -139,17 +141,6 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
   };
 };
 
-const extractSummaryPayload = (raw: unknown): any => {
-  const dataLayer = (raw as any)?.data ?? raw;
-  const bodyLayer = dataLayer?.body ?? dataLayer;
-
-  if (bodyLayer && typeof bodyLayer === "object" && "data" in bodyLayer) {
-    return (bodyLayer as any).data ?? null;
-  }
-
-  return bodyLayer ?? null;
-};
-
 const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
   { value: "DAILY", label: "Daily" },
   { value: "WEEKLY", label: "Weekly" },
@@ -184,35 +175,22 @@ const scopeLabels: Record<SupportDashboardScopeKey, string> = {
   myWorkload: "My Workload",
 };
 
-const openResolvedData = [
-  { name: "Open", value: 12, color: "#ff7043" },
-  { name: "Resolved", value: 21, color: "#64d4a2" },
-];
-
-const slaData = [
-  { month: "Oct 2024", within: 88, overdue: 12 },
-  { month: "Nov 2024", within: 82, overdue: 18 },
-  { month: "Dec 2024", within: 91, overdue: 9 },
-  { month: "Jan 2025", within: 86, overdue: 14 },
-];
-
-const ticketsPerMonth = [
-  { month: "Oct 2024", tickets: 120 },
-  { month: "Nov 2024", tickets: 134 },
-  { month: "Dec 2024", tickets: 142 },
-  { month: "Jan 2025", tickets: 156 },
-];
-
 const formatSummaryValue = (value: number) => value.toString().padStart(2, "0");
 
 const SupportDashboard: React.FC = () => {
   const theme = useTheme();
   const [summary, setSummary] = React.useState<SupportDashboardSummary>(() => createDefaultSummary());
-  const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
   const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
   const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("LAST_7_DAYS");
   const [activeScope, setActiveScope] = React.useState<SupportDashboardScopeKey>("allTickets");
+
+  const {
+    data: summaryData,
+    pending: isLoading,
+    error: apiError,
+    apiHandler: getSummaryApiHandler,
+  } = useApi<SupportDashboardSummaryResponse>();
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -273,61 +251,40 @@ const SupportDashboard: React.FC = () => {
   );
 
   React.useEffect(() => {
-    let isMounted = true;
+    void getSummaryApiHandler(() => fetchSupportDashboardSummary({ timeScale, timeRange }));
+  }, [getSummaryApiHandler, timeRange, timeScale]);
 
-    const loadSummary = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetchSupportDashboardSummary({ timeScale, timeRange });
-        if (!isMounted) {
-          return;
-        }
+  React.useEffect(() => {
+    const resolvedSummary = createDefaultSummary();
+    const availabilitySnapshot: SupportDashboardSummary = { allTickets: null, myWorkload: null };
 
-        const payload = extractSummaryPayload(response);
-        const resolvedSummary = createDefaultSummary();
-        const availabilitySnapshot: SupportDashboardSummary = { allTickets: null, myWorkload: null };
-
-        if (payload && typeof payload === "object") {
-          if ("allTickets" in payload) {
-            if (payload.allTickets != null) {
-              const normalized = normalizeSummaryView(payload.allTickets);
-              resolvedSummary.allTickets = normalized;
-              availabilitySnapshot.allTickets = normalized;
-            }
-          }
-
-          if ("myWorkload" in payload) {
-            if (payload.myWorkload != null) {
-              const normalized = normalizeSummaryView(payload.myWorkload);
-              resolvedSummary.myWorkload = normalized;
-              availabilitySnapshot.myWorkload = normalized;
-            }
-          }
-        }
-
-        setSummary(resolvedSummary);
-        setActiveScope(determineScope(availabilitySnapshot));
-        setError(null);
-      } catch (err) {
-        if (!isMounted) {
-          return;
-        }
-        console.error("Failed to load support dashboard summary", err);
-        setSummary(createDefaultSummary());
-        setError("Unable to load latest ticket metrics.");
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    if (summaryData && typeof summaryData === "object") {
+      if (summaryData.allTickets != null) {
+        const normalized = normalizeSummaryView(summaryData.allTickets);
+        resolvedSummary.allTickets = normalized;
+        availabilitySnapshot.allTickets = normalized;
       }
-    };
 
-    void loadSummary();
+      if (summaryData.myWorkload != null) {
+        const normalized = normalizeSummaryView(summaryData.myWorkload);
+        resolvedSummary.myWorkload = normalized;
+        availabilitySnapshot.myWorkload = normalized;
+      }
+    }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [determineScope, timeRange, timeScale]);
+    setSummary(resolvedSummary);
+    const nextScope = determineScope(availabilitySnapshot);
+    setActiveScope((current) => (current !== nextScope ? nextScope : current));
+  }, [determineScope, summaryData]);
+
+  React.useEffect(() => {
+    if (apiError) {
+      const message = apiError.toString() || "Unable to load latest ticket metrics.";
+      setError(message);
+    } else {
+      setError(null);
+    }
+  }, [apiError]);
 
   const activeSummaryView = React.useMemo(() => {
     const view = summary[activeScope];
@@ -360,6 +317,39 @@ const SupportDashboard: React.FC = () => {
         color: severityCardStyles[level].chartColor,
       })),
     [activeSummaryView],
+  );
+
+  const openResolvedData = React.useMemo(
+    () => {
+      const openCount = typeof summaryData?.openResolved?.openTickets === "number" ? summaryData.openResolved.openTickets : 0;
+      const resolvedCount =
+        typeof summaryData?.openResolved?.resolvedTickets === "number" ? summaryData.openResolved.resolvedTickets : 0;
+
+      return [
+        { name: "Open", value: openCount, color: "#ff7043" },
+        { name: "Resolved", value: resolvedCount, color: "#64d4a2" },
+      ];
+    },
+    [summaryData],
+  );
+
+  const slaData = React.useMemo(
+    () =>
+      (summaryData?.slaCompliance ?? []).map((point) => ({
+        month: point?.month ?? "Unknown",
+        within: typeof point?.withinSla === "number" ? point.withinSla : 0,
+        overdue: typeof point?.overdue === "number" ? point.overdue : 0,
+      })),
+    [summaryData],
+  );
+
+  const ticketsPerMonth = React.useMemo(
+    () =>
+      (summaryData?.ticketVolume ?? []).map((point) => ({
+        month: point?.month ?? "Unknown",
+        tickets: typeof point?.tickets === "number" ? point.tickets : 0,
+      })),
+    [summaryData],
   );
 
   const activeScopeLabel = scopeLabels[activeScope];
@@ -474,7 +464,7 @@ const SupportDashboard: React.FC = () => {
       {/* Summary Cards */}
       <Grid container spacing={2}>
         {summaryCards.map((card) => (
-          <Grid>
+          <Grid item xs={12} sm={6} md={3} key={card.label}>
             <Card
               sx={{
                 borderRadius: 3,
@@ -505,11 +495,11 @@ const SupportDashboard: React.FC = () => {
 
       {/* Charts Section */}
       <Grid container spacing={2}>
-        <Grid>
+        <Grid item xs={12} md={6}>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Tickets by Severity (Current Month)
+                Tickets by Severity
               </Typography>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -532,11 +522,11 @@ const SupportDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid>
+        <Grid item xs={12} md={6}>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Open vs Resolved (Current Month)
+                Open vs Resolved
               </Typography>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -559,11 +549,11 @@ const SupportDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid>
+        <Grid item xs={12} md={6}>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                SLA Compliance (Oct 2024 - Jan 2025)
+                SLA Compliance Trend
               </Typography>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={slaData}>
@@ -579,11 +569,11 @@ const SupportDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid>
+        <Grid item xs={12} md={6}>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Average Tickets per Month
+                Tickets Created Per Month
               </Typography>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={ticketsPerMonth}>

@@ -91,6 +91,35 @@ export interface SupportDashboardSummaryView {
 
 export type SupportDashboardSummary = Partial<Record<SupportDashboardScopeKey, SupportDashboardSummaryView | null>>;
 
+export interface SupportDashboardOpenResolvedStats {
+    openTickets: number;
+    resolvedTickets: number;
+}
+
+export interface SupportDashboardSlaCompliancePoint {
+    month: string;
+    withinSla: number;
+    overdue: number;
+}
+
+export interface SupportDashboardTicketVolumePoint {
+    month: string;
+    tickets: number;
+}
+
+export interface SupportDashboardSummaryResponse {
+    allTickets?: SupportDashboardSummarySectionDto | null;
+    myWorkload?: SupportDashboardSummarySectionDto | null;
+    openResolved?: SupportDashboardOpenResolvedStats | null;
+    slaCompliance?: SupportDashboardSlaCompliancePoint[];
+    ticketVolume?: SupportDashboardTicketVolumePoint[];
+}
+
+export interface SupportDashboardSummarySectionDto {
+    pendingForAcknowledgement: number;
+    severityCounts: Record<string, number>;
+}
+
 export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 
 export type SupportDashboardTimeRange =

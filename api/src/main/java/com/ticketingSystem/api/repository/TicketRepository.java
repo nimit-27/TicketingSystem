@@ -63,6 +63,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     List<Ticket> findByTicketStatusAndResolvedAtBefore(TicketStatus ticketStatus, LocalDateTime time);
 
+    List<Ticket> findByReportedDateBetween(LocalDateTime fromDate, LocalDateTime toDate);
+
+    List<Ticket> findByResolvedAtBetween(LocalDateTime fromDate, LocalDateTime toDate);
+
     Page<Ticket> findByPriority(String priority, Pageable pageable);
 
     @Query("SELECT t FROM Ticket t " +
