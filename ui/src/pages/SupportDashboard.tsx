@@ -474,7 +474,7 @@ const SupportDashboard: React.FC = () => {
       {/* Summary Cards */}
       <Grid container spacing={2}>
         {summaryCards.map((card) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={card.label}>
+          <Grid>
             <Card
               sx={{
                 borderRadius: 3,
@@ -505,7 +505,7 @@ const SupportDashboard: React.FC = () => {
 
       {/* Charts Section */}
       <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
@@ -532,7 +532,7 @@ const SupportDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
@@ -559,7 +559,7 @@ const SupportDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
@@ -579,7 +579,7 @@ const SupportDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid>
           <Card sx={{ height: "100%", borderRadius: 3 }}>
             <CardContent sx={{ height: 360 }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>

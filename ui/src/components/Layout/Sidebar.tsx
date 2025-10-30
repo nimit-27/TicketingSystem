@@ -95,6 +95,12 @@ const menuItems = [
     to: "/users/new",
     icon: "personAddAlt",
   },
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    to: "/dashboard",
+    icon: "dashboard",
+  },
 ];
 
 interface SidebarProps {
