@@ -39,6 +39,7 @@ RUN composer install --no-dev --prefer-dist --optimize-autoloader
 ENV CYPRESS_INSTALL_BINARY=0
 
 RUN npm install
+RUN npx eslint ./frontend --fix
 RUN npm run build
 RUN rm -rf frontend tests docs .git .github node_modules
 
