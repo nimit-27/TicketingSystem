@@ -47,6 +47,7 @@ import {
   SupportDashboardTimeScale,
 } from "../types/reports";
 import { checkSidebarAccess } from "../utils/permissions";
+import Title from "../components/Title";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "CRITICAL",
@@ -190,7 +191,8 @@ const SupportDashboard: React.FC = () => {
     pending: isLoading,
     error: apiError,
     apiHandler: getSummaryApiHandler,
-  } = useApi<SupportDashboardSummaryResponse>();
+    // } = useApi<SupportDashboardSummaryResponse>();
+  } = useApi<any>();
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -335,7 +337,7 @@ const SupportDashboard: React.FC = () => {
 
   const slaData = React.useMemo(
     () =>
-      (summaryData?.slaCompliance ?? []).map((point) => ({
+      (summaryData?.slaCompliance ?? []).map((point: any) => ({
         month: point?.month ?? "Unknown",
         within: typeof point?.withinSla === "number" ? point.withinSla : 0,
         overdue: typeof point?.overdue === "number" ? point.overdue : 0,
@@ -345,7 +347,7 @@ const SupportDashboard: React.FC = () => {
 
   const ticketsPerMonth = React.useMemo(
     () =>
-      (summaryData?.ticketVolume ?? []).map((point) => ({
+      (summaryData?.ticketVolume ?? []).map((point: any) => ({
         month: point?.month ?? "Unknown",
         tickets: typeof point?.tickets === "number" ? point.tickets : 0,
       })),
@@ -355,21 +357,10 @@ const SupportDashboard: React.FC = () => {
   const activeScopeLabel = scopeLabels[activeScope];
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, width: "100%" }}>
-      {/* Header */}
-      <Card sx={{ borderRadius: 3, boxShadow: "0px 12px 30px rgba(0,0,0,0.06)" }}>
-        <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box component="img" src="/logo.png" alt="Anna Darpan logo" sx={{ height: 48 }} />
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, textTransform: "uppercase" }}>
-                Anna Darpan
-              </Typography>
-              <Typography variant="subtitle1" color="text.secondary">
-                Dashboard (Helpdesk)
-              </Typography>
-            </Box>
-          </Box>
+    <div className="">
+      <Title textKey="Dashboard" />
+      <div className="row -mb-4">
+        <div className="d-flex flex-column gap-3 w-100">
           <Box
             sx={{
               display: "flex",
@@ -458,171 +449,171 @@ const SupportDashboard: React.FC = () => {
               <Avatar sx={{ bgcolor: theme.palette.primary.main }}>AD</Avatar>
             </Box>
           </Box>
-        </CardContent>
-      </Card>
 
-      {/* Summary Cards */}
-      <Grid container spacing={2}>
-        {summaryCards.map((card) => (
-          <Grid item xs={12} sm={6} md={3} key={card.label}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                background: card.background,
-                color: card.color,
-                height: "100%",
-                boxShadow: "0px 12px 24px rgba(0,0,0,0.08)",
-              }}
-            >
-              <CardContent>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  {card.label}
-                </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                  {card.value}
-                </Typography>
-              </CardContent>
-            </Card>
+          {/* Summary Cards */}
+          <Grid container spacing={2}>
+            {summaryCards.map((card) => (
+              <Grid>
+                <Card
+                  sx={{
+                    borderRadius: 3,
+                    background: card.background,
+                    color: card.color,
+                    height: "100%",
+                    boxShadow: "0px 12px 24px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <CardContent>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      {card.label}
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {card.value}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
 
-      {!isLoading && error && (
-        <Typography variant="body2" color="error">
-          {error}
-        </Typography>
-      )}
-
-      {/* Charts Section */}
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: "100%", borderRadius: 3 }}>
-            <CardContent sx={{ height: 360 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Tickets by Severity
-              </Typography>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={severityData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={4}
-                  >
-                    {severityData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Legend verticalAlign="bottom" height={36} />
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: "100%", borderRadius: 3 }}>
-            <CardContent sx={{ height: 360 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Open vs Resolved
-              </Typography>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={openResolvedData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={6}
-                  >
-                    {openResolvedData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Legend verticalAlign="bottom" height={36} />
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: "100%", borderRadius: 3 }}>
-            <CardContent sx={{ height: 360 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                SLA Compliance Trend
-              </Typography>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={slaData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis unit="%" domain={[0, 100]} />
-                  <Tooltip formatter={(value: number) => `${value}%`} />
-                  <Legend />
-                  <Bar dataKey="within" fill="#64d4a2" name="Within SLA" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="overdue" fill="#ff7043" name="SLA Overdue" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: "100%", borderRadius: 3 }}>
-            <CardContent sx={{ height: 360 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Tickets Created Per Month
-              </Typography>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={ticketsPerMonth}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="tickets" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} name="Tickets" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Footer Widget */}
-      <Card sx={{ borderRadius: 3, display: "flex", justifyContent: "center" }}>
-        <CardContent sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Box sx={{ position: "relative", display: "inline-flex" }}>
-            <Box
-              sx={{
-                width: 120,
-                height: 120,
-                borderRadius: "50%",
-                border: "12px solid",
-                borderColor: theme.palette.primary.main,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: theme.palette.background.paper,
-              }}
-            >
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                501
-              </Typography>
-            </Box>
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" color="text.secondary">
-              Overall Tickets
+          {!isLoading && error && (
+            <Typography variant="body2" color="error">
+              {error}
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Anna Darpan Helpdesk Overview
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    </Box>
+          )}
+
+          {/* Charts Section */}
+          <Grid container spacing={2}>
+            <Grid>
+              <Card sx={{ height: "100%", borderRadius: 3 }}>
+                <CardContent sx={{ height: 360 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    Tickets by Severity
+                  </Typography>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={severityData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={4}
+                      >
+                        {severityData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend verticalAlign="bottom" height={36} />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid>
+              <Card sx={{ height: "100%", borderRadius: 3 }}>
+                <CardContent sx={{ height: 360 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    Open vs Resolved
+                  </Typography>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={openResolvedData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={6}
+                      >
+                        {openResolvedData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend verticalAlign="bottom" height={36} />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid>
+              <Card sx={{ height: "100%", borderRadius: 3 }}>
+                <CardContent sx={{ height: 360 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    SLA Compliance Trend
+                  </Typography>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={slaData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis unit="%" domain={[0, 100]} />
+                      <Tooltip formatter={(value: number) => `${value}%`} />
+                      <Legend />
+                      <Bar dataKey="within" fill="#64d4a2" name="Within SLA" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="overdue" fill="#ff7043" name="SLA Overdue" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid>
+              <Card sx={{ height: "100%", borderRadius: 3 }}>
+                <CardContent sx={{ height: 360 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    Tickets Created Per Month
+                  </Typography>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={ticketsPerMonth}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="tickets" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} name="Tickets" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Footer Widget */}
+          <Card sx={{ borderRadius: 3, display: "flex", justifyContent: "center" }}>
+            <CardContent sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <Box sx={{ position: "relative", display: "inline-flex" }}>
+                <Box
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: "50%",
+                    border: "12px solid",
+                    borderColor: theme.palette.primary.main,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: theme.palette.background.paper,
+                  }}
+                >
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    501
+                  </Typography>
+                </Box>
+              </Box>
+              <Box>
+                <Typography variant="subtitle1" color="text.secondary">
+                  Overall Tickets
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Anna Darpan Helpdesk Overview
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
