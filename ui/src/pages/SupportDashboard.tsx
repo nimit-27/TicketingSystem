@@ -1,7 +1,5 @@
 import React from "react";
-import { Avatar, Badge, Card, CardContent, Chip, IconButton, SelectChangeEvent, Typography } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import { Card, CardContent, SelectChangeEvent, Typography } from "@mui/material";
 import {
   PieChart,
   Pie,
@@ -24,14 +22,12 @@ import {
   SupportDashboardScopeKey,
   SupportDashboardSeverityKey,
   SupportDashboardSummary,
-  SupportDashboardSummaryResponse,
   SupportDashboardSummaryView,
   SupportDashboardTimeRange,
   SupportDashboardTimeScale,
 } from "../types/reports";
 import { checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
-import GenericInput from "../components/UI/Input/GenericInput";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
 
@@ -348,15 +344,6 @@ const SupportDashboard: React.FC = () => {
       <div className="row -mb-4">
         <div className="d-flex flex-column gap-3 w-100">
           <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-3 flex-wrap">
-            <div className="d-flex align-items-center bg-white rounded-3 px-3 py-2 shadow-sm flex-grow-1">
-              <SearchIcon className="text-secondary me-2" />
-              <GenericInput
-                fullWidth
-                variant="standard"
-                placeholder={t("supportDashboard.filters.searchPlaceholder")}
-                InputProps={{ disableUnderline: true }}
-              />
-            </div>
             <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-lg-auto">
               <GenericDropdown
                 id="support-dashboard-timescale"
@@ -378,7 +365,7 @@ const SupportDashboard: React.FC = () => {
                 options={availableTimeRanges}
                 className="flex-grow-1 flex-sm-grow-0"
               />
-              <Chip
+              {/* <Chip
                 label={
                   isLoading
                     ? t("supportDashboard.filters.loading", { scope: activeScopeLabel })
@@ -389,22 +376,34 @@ const SupportDashboard: React.FC = () => {
                 size="small"
                 disabled={isLoading}
                 className="fw-semibold text-uppercase"
-              />
-            </div>
-            <div className="d-flex align-items-center gap-2 ms-lg-auto">
-              <IconButton className="border rounded-circle border-secondary-subtle">
-                <Badge color="error" variant="dot">
-                  <NotificationsNoneIcon />
-                </Badge>
-              </IconButton>
-              <Avatar className="bg-primary text-white">AD</Avatar>
+              /> */}
             </div>
           </div>
 
           {/* Summary Cards */}
           <div className="row g-3">
+            <div className="position-relative d-flex flex-column align-items-center col-12 col-sm-6 col-xl-2">
+              <div>
+                <Typography variant="subtitle1" color="text.secondary">
+                  {t("supportDashboard.metrics.overallTickets")}
+                </Typography>
+              </div>
+              <div
+                className="rounded-circle d-flex align-items-center justify-content-center bg-white"
+                style={{
+                  width: 120,
+                  height: 120,
+                  border: "12px solid",
+                  borderColor: "var(--bs-primary)",
+                }}
+              >
+                <Typography variant="h5" className="fw-bold">
+                  501
+                </Typography>
+              </div>
+            </div>
             {summaryCards.map((card) => (
-              <div className="col-12 col-sm-6 col-xl-3" key={card.label}>
+              <div className="col-12 col-sm-6 col-xl-2" key={card.label}>
                 <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
                   <CardContent className="py-4">
                     <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1">
@@ -515,42 +514,13 @@ const SupportDashboard: React.FC = () => {
                       <Tooltip />
                       <Legend />
                       <Line type="monotone" dataKey="tickets" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} name={t("supportDashboard.metrics.tickets")}
- />
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
             </div>
           </div>
-
-          {/* Footer Widget */}
-          <Card className="border-0 shadow-sm">
-            <CardContent className="d-flex align-items-center gap-3 flex-wrap justify-content-center justify-content-md-start">
-              <div className="position-relative d-inline-flex">
-                <div
-                  className="rounded-circle d-flex align-items-center justify-content-center bg-white"
-                  style={{
-                    width: 120,
-                    height: 120,
-                    border: "12px solid",
-                    borderColor: "var(--bs-primary)",
-                  }}
-                >
-                  <Typography variant="h5" className="fw-bold">
-                    501
-                  </Typography>
-                </div>
-              </div>
-              <div>
-                <Typography variant="subtitle1" color="text.secondary">
-                  {t("supportDashboard.metrics.overallTickets")}
-                </Typography>
-                <Typography variant="h6" className="fw-semibold">
-                  {t("supportDashboard.metrics.helpdeskOverview")}
-                </Typography>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
