@@ -87,6 +87,7 @@ export type SupportDashboardScopeKey = "allTickets" | "myWorkload";
 export interface SupportDashboardSummaryView {
     pendingForAcknowledgement: number;
     severityCounts: Record<SupportDashboardSeverityKey, number>;
+    totalTickets: number;
 }
 
 export type SupportDashboardSummary = Partial<Record<SupportDashboardScopeKey, SupportDashboardSummaryView | null>>;
@@ -97,13 +98,13 @@ export interface SupportDashboardOpenResolvedStats {
 }
 
 export interface SupportDashboardSlaCompliancePoint {
-    month: string;
+    label: string;
     withinSla: number;
     overdue: number;
 }
 
 export interface SupportDashboardTicketVolumePoint {
-    month: string;
+    label: string;
     tickets: number;
 }
 
@@ -118,6 +119,7 @@ export interface SupportDashboardSummaryResponse {
 export interface SupportDashboardSummarySectionDto {
     pendingForAcknowledgement: number;
     severityCounts: Record<string, number>;
+    totalTickets: number;
 }
 
 export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
@@ -129,13 +131,17 @@ export type SupportDashboardTimeRange =
     | "THIS_WEEK"
     | "LAST_WEEK"
     | "LAST_4_WEEKS"
-    | "THIS_MONTH"
-    | "LAST_MONTH"
-    | "LAST_12_MONTHS"
+    | "LAST_6_MONTHS"
+    | "CURRENT_YEAR"
     | "YEAR_TO_DATE"
-    | "LAST_YEAR";
+    | "LAST_YEAR"
+    | "LAST_5_YEARS"
+    | "CUSTOM_MONTH_RANGE"
+    | "ALL_TIME";
 
 export interface SupportDashboardSummaryRequestParams {
     timeScale?: SupportDashboardTimeScale;
     timeRange?: SupportDashboardTimeRange;
+    customStartYear?: number;
+    customEndYear?: number;
 }

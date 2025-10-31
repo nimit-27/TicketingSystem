@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupportDashboardSlaCompliancePointDto {
-    private String month;
+    private String label;
     private long withinSla;
     private long overdue;
 }

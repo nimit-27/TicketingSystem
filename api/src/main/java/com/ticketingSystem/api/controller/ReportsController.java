@@ -28,8 +28,10 @@ public class ReportsController {
     public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary(
             @RequestHeader(value = "X-USER-ID", required = false) String userId,
             @RequestParam(value = "timeScale", required = false) String timeScale,
-            @RequestParam(value = "timeRange", required = false) String timeRange) {
-        return ResponseEntity.ok(reportService.getSupportDashboardSummary(userId, timeScale, timeRange));
+            @RequestParam(value = "timeRange", required = false) String timeRange,
+            @RequestParam(value = "customStartYear", required = false) Integer customStartYear,
+            @RequestParam(value = "customEndYear", required = false) Integer customEndYear) {
+        return ResponseEntity.ok(reportService.getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear));
     }
 
     @GetMapping("/ticket-summary")

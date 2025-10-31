@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupportDashboardTicketVolumePointDto {
-    private String month;
+    private String label;
     private long tickets;
 }

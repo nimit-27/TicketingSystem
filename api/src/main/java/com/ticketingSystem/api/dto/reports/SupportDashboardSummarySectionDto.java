@@ -14,5 +14,6 @@ import java.util.Map;
 public class SupportDashboardSummarySectionDto {
     private long pendingForAcknowledgement;
     private Map<String, Long> severityCounts;
+    private long totalTickets;
 }
 

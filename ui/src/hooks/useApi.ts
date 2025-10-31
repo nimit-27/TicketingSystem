@@ -5,14 +5,14 @@ import { useSnackbar } from "../context/SnackbarContext";
 interface UseApiResponse<R> {
     data: R | null;
     pending: boolean;
-    error: String | null;
+    error: string | null;
     success: boolean;
-    apiHandler: (apiCall: () => Promise<R>) => Promise<R>;
+    apiHandler: (apiCall: () => Promise<any>) => Promise<R>;
 }
 
 export const useApi = <R,>(): UseApiResponse<R> => {
     const [data, setData] = useState<R | null>(null);
-    const [error, setError] = useState<String | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const [pending, startTransition] = useTransition();
     const [success, setSuccess] = useState<boolean>(false);
 
