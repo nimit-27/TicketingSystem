@@ -186,6 +186,51 @@
   "Root cause analysis submitted successfully": "Root cause analysis submitted successfully",
   "Description of cause is required": "Description of cause is required",
   "Resolution description is required": "Resolution description is required",
+  "Pending for Acknowledgement": "Pending for Acknowledgement",
+  "Critical": "Critical",
+  "High": "High",
+  "Medium": "Medium",
+  "Low": "Low",
+  "Open": "Open",
+  "supportDashboard": {
+    "filters": {
+      "searchPlaceholder": "Search tickets",
+      "interval": {
+        "label": "Interval",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "range": {
+        "label": "Range",
+        "lastDay": "Last 24 hours",
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "thisWeek": "This week",
+        "previousWeek": "Previous week",
+        "last4Weeks": "Last 4 weeks",
+        "thisMonth": "This month",
+        "previousMonth": "Previous month",
+        "last12Months": "Last 12 months",
+        "yearToDate": "Year to date",
+        "previousYear": "Previous year"
+      },
+      "loading": "Loading… ({{scope}})",
+      "dataSource": "Data source: {{scope}}"
+    },
+    "metrics": {
+      "ticketsBySeverity": "Tickets by Severity",
+      "openVsResolved": "Open vs Resolved",
+      "slaCompliance": "SLA Compliance Trend",
+      "withinSla": "Within SLA",
+      "slaOverdue": "SLA Overdue",
+      "ticketsPerMonth": "Tickets Created Per Month",
+      "tickets": "Tickets",
+      "overallTickets": "Overall Tickets",
+      "helpdeskOverview": "Anna Darpan Helpdesk Overview"
+    }
+  },
   "global": {
     "buttons": {
       "save": "Save",

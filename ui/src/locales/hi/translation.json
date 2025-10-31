@@ -35,6 +35,7 @@
   "View Feedback": "प्रतिक्रिया देखें",
   "Status": "स्थिति",
   "My Tickets": "मेरे टिकट",
+  "My Workload": "मेरा कार्यभार",
   "Search by Id or Subject": "आईडी या विषय से खोजें",
   "Ticket Id": "टिकट आईडी",
   "Requestor Name": "अनुरोधकर्ता नाम",
@@ -177,6 +178,51 @@
   "Root cause analysis submitted successfully": "रूट कॉज विश्लेषण सफलतापूर्वक सबमिट हुआ",
   "Description of cause is required": "कारण का विवरण आवश्यक है",
   "Resolution description is required": "समाधान विवरण आवश्यक है",
+  "Pending for Acknowledgement": "स्वीकृति हेतु लंबित",
+  "Critical": "गंभीर",
+  "High": "उच्च",
+  "Medium": "मध्यम",
+  "Low": "निम्न",
+  "Open": "खुला",
+  "supportDashboard": {
+    "filters": {
+      "searchPlaceholder": "टिकट खोजें",
+      "interval": {
+        "label": "अंतराल",
+        "daily": "दैनिक",
+        "weekly": "साप्ताहिक",
+        "monthly": "मासिक",
+        "yearly": "वार्षिक"
+      },
+      "range": {
+        "label": "सीमा",
+        "lastDay": "पिछले 24 घंटे",
+        "last7Days": "पिछले 7 दिन",
+        "last30Days": "पिछले 30 दिन",
+        "thisWeek": "इस सप्ताह",
+        "previousWeek": "पिछला सप्ताह",
+        "last4Weeks": "पिछले 4 सप्ताह",
+        "thisMonth": "इस माह",
+        "previousMonth": "पिछला माह",
+        "last12Months": "पिछले 12 माह",
+        "yearToDate": "वर्ष की शुरुआत से अब तक",
+        "previousYear": "पिछला वर्ष"
+      },
+      "loading": "लोड हो रहा है… ({{scope}})",
+      "dataSource": "डेटा स्रोत: {{scope}}"
+    },
+    "metrics": {
+      "ticketsBySeverity": "गंभीरता के अनुसार टिकट",
+      "openVsResolved": "खुले बनाम समाधान",
+      "slaCompliance": "एसएलए अनुपालन प्रवृत्ति",
+      "withinSla": "एसएलए के भीतर",
+      "slaOverdue": "एसएलए लंबित",
+      "ticketsPerMonth": "प्रति माह बनाए गए टिकट",
+      "tickets": "टिकट",
+      "overallTickets": "कुल टिकट",
+      "helpdeskOverview": "अन्ना दर्पण हेल्पडेस्क अवलोकन"
+    }
+  },
   "global": {
     "buttons": {
       "save": "सहेजें",

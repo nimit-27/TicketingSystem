@@ -1,22 +1,5 @@
 import React from "react";
-import {
-  Avatar,
-  Badge,
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  TextField,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Avatar, Badge, Card, CardContent, Chip, IconButton, SelectChangeEvent, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import {
@@ -48,6 +31,9 @@ import {
 } from "../types/reports";
 import { checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
+import GenericInput from "../components/UI/Input/GenericInput";
+import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
+import { useTranslation } from "react-i18next";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "CRITICAL",
@@ -143,31 +129,31 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
 };
 
 const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
-  { value: "DAILY", label: "Daily" },
-  { value: "WEEKLY", label: "Weekly" },
-  { value: "MONTHLY", label: "Monthly" },
-  { value: "YEARLY", label: "Yearly" },
+  { value: "DAILY", label: "supportDashboard.filters.interval.daily" },
+  { value: "WEEKLY", label: "supportDashboard.filters.interval.weekly" },
+  { value: "MONTHLY", label: "supportDashboard.filters.interval.monthly" },
+  { value: "YEARLY", label: "supportDashboard.filters.interval.yearly" },
 ];
 
 const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
   DAILY: [
-    { value: "LAST_DAY", label: "Last 24 hours" },
-    { value: "LAST_7_DAYS", label: "Last 7 days" },
-    { value: "LAST_30_DAYS", label: "Last 30 days" },
+    { value: "LAST_DAY", label: "supportDashboard.filters.range.lastDay" },
+    { value: "LAST_7_DAYS", label: "supportDashboard.filters.range.last7Days" },
+    { value: "LAST_30_DAYS", label: "supportDashboard.filters.range.last30Days" },
   ],
   WEEKLY: [
-    { value: "THIS_WEEK", label: "This week" },
-    { value: "LAST_WEEK", label: "Previous week" },
-    { value: "LAST_4_WEEKS", label: "Last 4 weeks" },
+    { value: "THIS_WEEK", label: "supportDashboard.filters.range.thisWeek" },
+    { value: "LAST_WEEK", label: "supportDashboard.filters.range.previousWeek" },
+    { value: "LAST_4_WEEKS", label: "supportDashboard.filters.range.last4Weeks" },
   ],
   MONTHLY: [
-    { value: "THIS_MONTH", label: "This month" },
-    { value: "LAST_MONTH", label: "Previous month" },
-    { value: "LAST_12_MONTHS", label: "Last 12 months" },
+    { value: "THIS_MONTH", label: "supportDashboard.filters.range.thisMonth" },
+    { value: "LAST_MONTH", label: "supportDashboard.filters.range.previousMonth" },
+    { value: "LAST_12_MONTHS", label: "supportDashboard.filters.range.last12Months" },
   ],
   YEARLY: [
-    { value: "YEAR_TO_DATE", label: "Year to date" },
-    { value: "LAST_YEAR", label: "Previous year" },
+    { value: "YEAR_TO_DATE", label: "supportDashboard.filters.range.yearToDate" },
+    { value: "LAST_YEAR", label: "supportDashboard.filters.range.previousYear" },
   ],
 };
 
@@ -179,7 +165,7 @@ const scopeLabels: Record<SupportDashboardScopeKey, string> = {
 const formatSummaryValue = (value: number) => value.toString().padStart(2, "0");
 
 const SupportDashboard: React.FC = () => {
-  const theme = useTheme();
+  const { t } = useTranslation();
   const [summary, setSummary] = React.useState<SupportDashboardSummary>(() => createDefaultSummary());
   const [error, setError] = React.useState<string | null>(null);
   const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
@@ -314,11 +300,11 @@ const SupportDashboard: React.FC = () => {
   const severityData = React.useMemo(
     () =>
       severityLevels.map((level) => ({
-        name: severityCardStyles[level].label,
+        name: t(severityCardStyles[level].label),
         value: activeSummaryView.severityCounts[level],
         color: severityCardStyles[level].chartColor,
       })),
-    [activeSummaryView],
+    [activeSummaryView, t],
   );
 
   const openResolvedData = React.useMemo(
@@ -328,11 +314,11 @@ const SupportDashboard: React.FC = () => {
         typeof summaryData?.openResolved?.resolvedTickets === "number" ? summaryData.openResolved.resolvedTickets : 0;
 
       return [
-        { name: "Open", value: openCount, color: "#ff7043" },
-        { name: "Resolved", value: resolvedCount, color: "#64d4a2" },
+        { name: t("Open"), value: openCount, color: "#ff7043" },
+        { name: t("Resolved"), value: resolvedCount, color: "#64d4a2" },
       ];
     },
-    [summaryData],
+    [summaryData, t],
   );
 
   const slaData = React.useMemo(
@@ -354,127 +340,84 @@ const SupportDashboard: React.FC = () => {
     [summaryData],
   );
 
-  const activeScopeLabel = scopeLabels[activeScope];
+  const activeScopeLabel = t(scopeLabels[activeScope]);
 
   return (
     <div className="">
       <Title textKey="Dashboard" />
       <div className="row -mb-4">
         <div className="d-flex flex-column gap-3 w-100">
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", lg: "row" },
-              alignItems: { xs: "stretch", lg: "center" },
-              gap: 2,
-              flexWrap: "wrap",
-            }}
-          >
-            <Box
-              sx={{
-                flexGrow: 1,
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: theme.palette.background.paper,
-                borderRadius: 2,
-                px: 2,
-                py: 0.5,
-                boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)",
-              }}
-            >
-              <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
-              <TextField
+          <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-3 flex-wrap">
+            <div className="d-flex align-items-center bg-white rounded-3 px-3 py-2 shadow-sm flex-grow-1">
+              <SearchIcon className="text-secondary me-2" />
+              <GenericInput
                 fullWidth
                 variant="standard"
-                placeholder="Search tickets"
+                placeholder={t("supportDashboard.filters.searchPlaceholder")}
                 InputProps={{ disableUnderline: true }}
               />
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                gap: 1.5,
-                minWidth: { xs: "100%", lg: "auto" },
-              }}
-            >
-              <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 160 } }}>
-                <InputLabel id="support-dashboard-timescale-label">Interval</InputLabel>
-                <Select
-                  labelId="support-dashboard-timescale-label"
-                  value={timeScale}
-                  label="Interval"
-                  onChange={handleTimeScaleChange}
-                  disabled={isLoading}
-                >
-                  {timeScaleOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 200 } }}>
-                <InputLabel id="support-dashboard-timerange-label">Range</InputLabel>
-                <Select
-                  labelId="support-dashboard-timerange-label"
-                  value={timeRange}
-                  label="Range"
-                  onChange={handleTimeRangeChange}
-                  disabled={isLoading}
-                >
-                  {availableTimeRanges.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            </div>
+            <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-lg-auto">
+              <GenericDropdown
+                id="support-dashboard-timescale"
+                label="supportDashboard.filters.interval.label"
+                value={timeScale}
+                onChange={handleTimeScaleChange}
+                disabled={isLoading}
+                fullWidth
+                options={timeScaleOptions}
+                className="flex-grow-1 flex-sm-grow-0"
+              />
+              <GenericDropdown
+                id="support-dashboard-timerange"
+                label="supportDashboard.filters.range.label"
+                value={timeRange}
+                onChange={handleTimeRangeChange}
+                disabled={isLoading}
+                fullWidth
+                options={availableTimeRanges}
+                className="flex-grow-1 flex-sm-grow-0"
+              />
               <Chip
-                label={isLoading ? `Loading… (${activeScopeLabel})` : `Data source: ${activeScopeLabel}`}
+                label={
+                  isLoading
+                    ? t("supportDashboard.filters.loading", { scope: activeScopeLabel })
+                    : t("supportDashboard.filters.dataSource", { scope: activeScopeLabel })
+                }
                 color="primary"
                 variant="outlined"
                 size="small"
                 disabled={isLoading}
-                sx={{ fontWeight: 600, textTransform: "uppercase" }}
+                className="fw-semibold text-uppercase"
               />
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <IconButton sx={{ border: "1px solid", borderColor: "divider" }}>
+            </div>
+            <div className="d-flex align-items-center gap-2 ms-lg-auto">
+              <IconButton className="border rounded-circle border-secondary-subtle">
                 <Badge color="error" variant="dot">
                   <NotificationsNoneIcon />
                 </Badge>
               </IconButton>
-              <Avatar sx={{ bgcolor: theme.palette.primary.main }}>AD</Avatar>
-            </Box>
-          </Box>
+              <Avatar className="bg-primary text-white">AD</Avatar>
+            </div>
+          </div>
 
           {/* Summary Cards */}
-          <Grid container spacing={2}>
+          <div className="row g-3">
             {summaryCards.map((card) => (
-              <Grid>
-                <Card
-                  sx={{
-                    borderRadius: 3,
-                    background: card.background,
-                    color: card.color,
-                    height: "100%",
-                    boxShadow: "0px 12px 24px rgba(0,0,0,0.08)",
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {card.label}
+              <div className="col-12 col-sm-6 col-xl-3" key={card.label}>
+                <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
+                  <CardContent className="py-4">
+                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1">
+                      {t(card.label)}
                     </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" className="fw-bold">
                       {card.value}
                     </Typography>
                   </CardContent>
                 </Card>
-              </Grid>
+              </div>
             ))}
-          </Grid>
+          </div>
 
           {!isLoading && error && (
             <Typography variant="body2" color="error">
@@ -483,12 +426,12 @@ const SupportDashboard: React.FC = () => {
           )}
 
           {/* Charts Section */}
-          <Grid container spacing={2}>
-            <Grid>
-              <Card sx={{ height: "100%", borderRadius: 3 }}>
-                <CardContent sx={{ height: 360 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Tickets by Severity
+          <div className="row g-3">
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 360 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3">
+                    {t("supportDashboard.metrics.ticketsBySeverity")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -510,12 +453,12 @@ const SupportDashboard: React.FC = () => {
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid>
-              <Card sx={{ height: "100%", borderRadius: 3 }}>
-                <CardContent sx={{ height: 360 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Open vs Resolved
+            </div>
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 360 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3">
+                    {t("supportDashboard.metrics.openVsResolved")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -537,12 +480,12 @@ const SupportDashboard: React.FC = () => {
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid>
-              <Card sx={{ height: "100%", borderRadius: 3 }}>
-                <CardContent sx={{ height: 360 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    SLA Compliance Trend
+            </div>
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 360 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3">
+                    {t("supportDashboard.metrics.slaCompliance")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={slaData}>
@@ -551,18 +494,18 @@ const SupportDashboard: React.FC = () => {
                       <YAxis unit="%" domain={[0, 100]} />
                       <Tooltip formatter={(value: number) => `${value}%`} />
                       <Legend />
-                      <Bar dataKey="within" fill="#64d4a2" name="Within SLA" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="overdue" fill="#ff7043" name="SLA Overdue" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="within" fill="#64d4a2" name={t("supportDashboard.metrics.withinSla")} radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="overdue" fill="#ff7043" name={t("supportDashboard.metrics.slaOverdue")} radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid>
-              <Card sx={{ height: "100%", borderRadius: 3 }}>
-                <CardContent sx={{ height: 360 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Tickets Created Per Month
+            </div>
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 360 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3">
+                    {t("supportDashboard.metrics.ticketsPerMonth")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={ticketsPerMonth}>
@@ -571,44 +514,41 @@ const SupportDashboard: React.FC = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="tickets" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} name="Tickets" />
+                      <Line type="monotone" dataKey="tickets" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} name={t("supportDashboard.metrics.tickets")}
+ />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </Grid>
-          </Grid>
+            </div>
+          </div>
 
           {/* Footer Widget */}
-          <Card sx={{ borderRadius: 3, display: "flex", justifyContent: "center" }}>
-            <CardContent sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <Box sx={{ position: "relative", display: "inline-flex" }}>
-                <Box
-                  sx={{
+          <Card className="border-0 shadow-sm">
+            <CardContent className="d-flex align-items-center gap-3 flex-wrap justify-content-center justify-content-md-start">
+              <div className="position-relative d-inline-flex">
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center bg-white"
+                  style={{
                     width: 120,
                     height: 120,
-                    borderRadius: "50%",
                     border: "12px solid",
-                    borderColor: theme.palette.primary.main,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: theme.palette.background.paper,
+                    borderColor: "var(--bs-primary)",
                   }}
                 >
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h5" className="fw-bold">
                     501
                   </Typography>
-                </Box>
-              </Box>
-              <Box>
+                </div>
+              </div>
+              <div>
                 <Typography variant="subtitle1" color="text.secondary">
-                  Overall Tickets
+                  {t("supportDashboard.metrics.overallTickets")}
                 </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Anna Darpan Helpdesk Overview
+                <Typography variant="h6" className="fw-semibold">
+                  {t("supportDashboard.metrics.helpdeskOverview")}
                 </Typography>
-              </Box>
+              </div>
             </CardContent>
           </Card>
         </div>
