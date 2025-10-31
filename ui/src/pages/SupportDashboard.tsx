@@ -137,13 +137,10 @@ const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = 
 
 const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
   DAILY: [
-    { value: "LAST_DAY", label: "supportDashboard.filters.range.lastDay" },
     { value: "LAST_7_DAYS", label: "supportDashboard.filters.range.last7Days" },
     { value: "LAST_30_DAYS", label: "supportDashboard.filters.range.last30Days" },
   ],
   WEEKLY: [
-    { value: "THIS_WEEK", label: "supportDashboard.filters.range.thisWeek" },
-    { value: "LAST_WEEK", label: "supportDashboard.filters.range.previousWeek" },
     { value: "LAST_4_WEEKS", label: "supportDashboard.filters.range.last4Weeks" },
   ],
   MONTHLY: [
