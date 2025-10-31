@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, String> {
@@ -66,6 +67,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     List<Ticket> findByReportedDateBetween(LocalDateTime fromDate, LocalDateTime toDate);
 
     List<Ticket> findByResolvedAtBetween(LocalDateTime fromDate, LocalDateTime toDate);
+
+    Optional<Ticket> findFirstByReportedDateNotNullOrderByReportedDateAsc();
+
+    Optional<Ticket> findFirstByReportedDateNotNullOrderByReportedDateDesc();
 
     Page<Ticket> findByPriority(String priority, Pageable pageable);
 

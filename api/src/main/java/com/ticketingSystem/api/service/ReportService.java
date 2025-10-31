@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.time.temporal.TemporalAdjusters;
@@ -61,10 +60,16 @@ public class ReportService {
             TicketStatus.CANCELLED
     );
 
+    private static final DateTimeFormatter DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
-    public SupportDashboardSummaryDto getSupportDashboardSummary(String userId, String timeScale, String timeRange) {
-        DateRange dateRange = resolveDateRange(timeScale, timeRange);
+    public SupportDashboardSummaryDto getSupportDashboardSummary(String userId,
+                                                                 String timeScale,
+                                                                 String timeRange,
+                                                                 Integer customStartYear,
+                                                                 Integer customEndYear) {
+        TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear);
+        DateRange dateRange = timeSeries.dateRange();
 
         SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange);
         SupportDashboardSummarySectionDto myWorkload = resolveUsername(userId)
@@ -72,8 +77,8 @@ public class ReportService {
                 .orElse(null);
 
         SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange);
-        List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(dateRange);
-        List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(dateRange);
+        List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries);
+        List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries);
 
         return SupportDashboardSummaryDto.builder()
                 .allTickets(allTickets)
@@ -106,9 +111,17 @@ public class ReportService {
                 dateRange.to()
         );
 
+        long totalTickets = ticketRepository.countTicketsByStatusAndFilters(
+                null,
+                assignedTo,
+                dateRange.from(),
+                dateRange.to()
+        );
+
         return SupportDashboardSummarySectionDto.builder()
                 .pendingForAcknowledgement(pendingCount)
                 .severityCounts(severityCounts)
+                .totalTickets(totalTickets)
                 .build();
     }
 
@@ -137,13 +150,16 @@ public class ReportService {
                 .build();
     }
 
-    private List<SupportDashboardSlaCompliancePointDto> buildSlaComplianceTrend(DateRange dateRange) {
-        List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
-        if (slaEntries.isEmpty()) {
+    private List<SupportDashboardSlaCompliancePointDto> buildSlaComplianceTrend(TimeSeriesDefinition timeSeries) {
+        List<TimeBucket> buckets = timeSeries.buckets();
+        if (buckets.isEmpty()) {
             return List.of();
         }
 
-        Map<YearMonth, SlaComplianceAccumulator> accumulatorMap = new TreeMap<>();
+        Map<String, SlaComplianceAccumulator> accumulatorMap = new LinkedHashMap<>();
+        buckets.forEach(bucket -> accumulatorMap.put(bucket.label(), new SlaComplianceAccumulator()));
+
+        List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
 
         for (TicketSla sla : slaEntries) {
             if (sla == null) {
@@ -151,12 +167,20 @@ public class ReportService {
             }
 
             LocalDateTime reference = resolveSlaReferenceTimestamp(sla);
-            if (reference == null || !isWithinRange(reference, dateRange)) {
+            if (reference == null || !isWithinRange(reference, timeSeries.dateRange())) {
                 continue;
             }
 
-            YearMonth month = YearMonth.from(reference);
-            SlaComplianceAccumulator accumulator = accumulatorMap.computeIfAbsent(month, key -> new SlaComplianceAccumulator());
+            TimeBucket bucket = findBucketForTimestamp(buckets, reference);
+            if (bucket == null) {
+                continue;
+            }
+
+            SlaComplianceAccumulator accumulator = accumulatorMap.get(bucket.label());
+            if (accumulator == null) {
+                continue;
+            }
+
             boolean breached = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L) > 0L;
 
             if (breached) {
@@ -166,30 +190,54 @@ public class ReportService {
             }
         }
 
-        return accumulatorMap.entrySet().stream()
-                .map(entry -> SupportDashboardSlaCompliancePointDto.builder()
-                        .month(entry.getKey().format(MONTH_FORMATTER))
-                        .withinSla(entry.getValue().getWithin())
-                        .overdue(entry.getValue().getOverdue())
-                        .build())
+        return buckets.stream()
+                .map(bucket -> {
+                    SlaComplianceAccumulator accumulator = accumulatorMap.get(bucket.label());
+                    long within = accumulator != null ? accumulator.getWithin() : 0L;
+                    long overdue = accumulator != null ? accumulator.getOverdue() : 0L;
+                    return SupportDashboardSlaCompliancePointDto.builder()
+                            .label(bucket.label())
+                            .withinSla(within)
+                            .overdue(overdue)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
-    private List<SupportDashboardTicketVolumePointDto> buildTicketVolumeTrend(DateRange dateRange) {
-        List<Ticket> tickets = ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
-
-        if (tickets.isEmpty()) {
+    private List<SupportDashboardTicketVolumePointDto> buildTicketVolumeTrend(TimeSeriesDefinition timeSeries) {
+        List<TimeBucket> buckets = timeSeries.buckets();
+        if (buckets.isEmpty()) {
             return List.of();
         }
 
-        Map<YearMonth, Long> countsByMonth = tickets.stream()
-                .filter(ticket -> ticket != null && ticket.getReportedDate() != null)
-                .collect(Collectors.groupingBy(ticket -> YearMonth.from(ticket.getReportedDate()), TreeMap::new, Collectors.counting()));
+        Map<String, Long> countsByLabel = new LinkedHashMap<>();
+        buckets.forEach(bucket -> countsByLabel.put(bucket.label(), 0L));
 
-        return countsByMonth.entrySet().stream()
-                .map(entry -> SupportDashboardTicketVolumePointDto.builder()
-                        .month(entry.getKey().format(MONTH_FORMATTER))
-                        .tickets(entry.getValue())
+        List<Ticket> tickets = ticketRepository.findByReportedDateBetween(timeSeries.dateRange().from(), timeSeries.dateRange().to());
+
+        for (Ticket ticket : tickets) {
+            if (ticket == null || ticket.getReportedDate() == null) {
+                continue;
+            }
+
+            LocalDateTime reportedDate = ticket.getReportedDate();
+            if (!isWithinRange(reportedDate, timeSeries.dateRange())) {
+                continue;
+            }
+
+            TimeBucket bucket = findBucketForTimestamp(buckets, reportedDate);
+            if (bucket == null) {
+                continue;
+            }
+
+            String label = bucket.label();
+            countsByLabel.computeIfPresent(label, (key, current) -> current + 1L);
+        }
+
+        return buckets.stream()
+                .map(bucket -> SupportDashboardTicketVolumePointDto.builder()
+                        .label(bucket.label())
+                        .tickets(countsByLabel.getOrDefault(bucket.label(), 0L))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -268,78 +316,245 @@ public class ReportService {
         return Optional.of(userId);
     }
 
-    private DateRange resolveDateRange(String timeScale, String timeRange) {
+    private TimeSeriesDefinition resolveTimeSeries(String timeScale,
+                                                   String timeRange,
+                                                   Integer customStartYear,
+                                                   Integer customEndYear) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDate today = LocalDate.now();
+        LocalDate today = now.toLocalDate();
         String normalizedScale = StringUtils.hasText(timeScale) ? timeScale.trim().toUpperCase(Locale.ROOT) : "";
         String normalizedRange = StringUtils.hasText(timeRange) ? timeRange.trim().toUpperCase(Locale.ROOT) : "";
 
-        LocalDateTime from = null;
-        LocalDateTime to = now;
+        List<TimeBucket> buckets = new ArrayList<>();
 
         switch (normalizedScale) {
             case "DAILY" -> {
+                int days;
                 if ("LAST_DAY".equals(normalizedRange)) {
-                    from = now.minusDays(1);
-                } else if ("LAST_7_DAYS".equals(normalizedRange)) {
-                    from = now.minusDays(7);
+                    days = 1;
                 } else if ("LAST_30_DAYS".equals(normalizedRange)) {
-                    from = now.minusDays(30);
+                    days = 30;
                 } else {
-                    from = now.minusDays(7);
+                    days = 7;
+                }
+
+                LocalDate startDate = today.minusDays(days - 1L);
+                for (int index = 0; index < days; index++) {
+                    LocalDate date = startDate.plusDays(index);
+                    LocalDateTime bucketStart = date.atStartOfDay();
+                    LocalDateTime bucketEnd = date.plusDays(1).atStartOfDay().minusNanos(1);
+                    if (bucketEnd.isAfter(now)) {
+                        bucketEnd = now;
+                    }
+                    buckets.add(new TimeBucket(bucketStart, bucketEnd, date.format(DAY_FORMATTER)));
                 }
             }
             case "WEEKLY" -> {
-                LocalDate startOfThisWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                LocalDate startOfCurrentWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
                 if ("LAST_WEEK".equals(normalizedRange)) {
-                    LocalDate startOfLastWeek = startOfThisWeek.minusWeeks(1);
-                    from = startOfLastWeek.atStartOfDay();
-                    to = startOfThisWeek.atStartOfDay().minusNanos(1);
-                } else if ("LAST_4_WEEKS".equals(normalizedRange)) {
-                    from = now.minusWeeks(4);
+                    LocalDate weekStart = startOfCurrentWeek.minusWeeks(1);
+                    LocalDateTime bucketStart = weekStart.atStartOfDay();
+                    LocalDateTime bucketEnd = startOfCurrentWeek.atStartOfDay().minusNanos(1);
+                    buckets.add(new TimeBucket(bucketStart, bucketEnd, "Week of " + weekStart.format(DAY_FORMATTER)));
                 } else {
-                    from = startOfThisWeek.atStartOfDay();
-                    to = now;
+                    int weeks = "LAST_4_WEEKS".equals(normalizedRange) ? 4 : 1;
+                    LocalDate firstWeekStart = startOfCurrentWeek.minusWeeks(weeks - 1L);
+                    for (int index = 0; index < weeks; index++) {
+                        LocalDate weekStart = firstWeekStart.plusWeeks(index);
+                        LocalDateTime bucketStart = weekStart.atStartOfDay();
+                        LocalDateTime bucketEnd = weekStart.plusWeeks(1).atStartOfDay().minusNanos(1);
+                        if (weekStart.equals(startOfCurrentWeek) && bucketEnd.isAfter(now)) {
+                            bucketEnd = now;
+                        }
+                        buckets.add(new TimeBucket(bucketStart, bucketEnd, "Week of " + weekStart.format(DAY_FORMATTER)));
+                    }
                 }
             }
             case "MONTHLY" -> {
-                LocalDate firstDayOfThisMonth = today.withDayOfMonth(1);
-                if ("LAST_MONTH".equals(normalizedRange)) {
-                    LocalDate firstDayOfLastMonth = firstDayOfThisMonth.minusMonths(1);
-                    from = firstDayOfLastMonth.atStartOfDay();
-                    to = firstDayOfThisMonth.atStartOfDay().minusNanos(1);
-                } else if ("LAST_12_MONTHS".equals(normalizedRange)) {
-                    from = now.minusMonths(12);
-                } else {
-                    from = firstDayOfThisMonth.atStartOfDay();
-                    to = now;
+                YearMonth currentMonth = YearMonth.from(today);
+                List<YearMonth> months = new ArrayList<>();
+
+                switch (normalizedRange) {
+                    case "LAST_6_MONTHS" -> {
+                        YearMonth start = currentMonth.minusMonths(5);
+                        for (int index = 0; index < 6; index++) {
+                            months.add(start.plusMonths(index));
+                        }
+                    }
+                    case "CURRENT_YEAR" -> {
+                        YearMonth start = YearMonth.of(today.getYear(), 1);
+                        YearMonth pointer = start;
+                        while (!pointer.isAfter(currentMonth)) {
+                            months.add(pointer);
+                            pointer = pointer.plusMonths(1);
+                        }
+                    }
+                    case "LAST_YEAR" -> {
+                        int targetYear = today.getYear() - 1;
+                        YearMonth pointer = YearMonth.of(targetYear, 1);
+                        for (int month = 0; month < 12; month++) {
+                            months.add(pointer.plusMonths(month));
+                        }
+                    }
+                    case "LAST_5_YEARS" -> {
+                        YearMonth start = currentMonth.minusMonths(5 * 12L - 1L);
+                        YearMonth pointer = start;
+                        while (!pointer.isAfter(currentMonth)) {
+                            months.add(pointer);
+                            pointer = pointer.plusMonths(1);
+                        }
+                    }
+                    case "CUSTOM_MONTH_RANGE" -> {
+                        if (customStartYear != null && customEndYear != null) {
+                            int startYear = Math.min(customStartYear, customEndYear);
+                            int endYear = Math.max(customStartYear, customEndYear);
+                            YearMonth start = YearMonth.of(startYear, 1);
+                            YearMonth end = YearMonth.of(endYear, 12);
+                            YearMonth pointer = start;
+                            while (!pointer.isAfter(end)) {
+                                months.add(pointer);
+                                pointer = pointer.plusMonths(1);
+                            }
+                        }
+                    }
+                    case "ALL_TIME" -> {
+                        Optional<YearMonth> earliest = resolveEarliestTicketMonth();
+                        Optional<YearMonth> latest = resolveLatestTicketMonth();
+                        if (earliest.isPresent() && latest.isPresent()) {
+                            YearMonth start = earliest.get();
+                            YearMonth end = latest.get();
+                            if (end.isBefore(start)) {
+                                end = start;
+                            }
+                            YearMonth pointer = start;
+                            while (!pointer.isAfter(end)) {
+                                months.add(pointer);
+                                pointer = pointer.plusMonths(1);
+                            }
+                        }
+                    }
+                    default -> {
+                        if (months.isEmpty()) {
+                            YearMonth start = currentMonth.minusMonths(5);
+                            for (int index = 0; index < 6; index++) {
+                                months.add(start.plusMonths(index));
+                            }
+                        }
+                    }
+                }
+
+                if (months.isEmpty()) {
+                    YearMonth start = currentMonth.minusMonths(5);
+                    for (int index = 0; index < 6; index++) {
+                        months.add(start.plusMonths(index));
+                    }
+                }
+
+                for (YearMonth month : months) {
+                    LocalDateTime bucketStart = month.atDay(1).atStartOfDay();
+                    LocalDateTime bucketEnd = month.plusMonths(1).atDay(1).atStartOfDay().minusNanos(1);
+                    if (month.equals(currentMonth) && bucketEnd.isAfter(now)) {
+                        bucketEnd = now;
+                    }
+                    buckets.add(new TimeBucket(bucketStart, bucketEnd, month.format(MONTH_FORMATTER)));
                 }
             }
             case "YEARLY" -> {
-                LocalDate firstDayOfThisYear = today.withDayOfYear(1);
+                int currentYear = today.getYear();
+                List<Integer> years = new ArrayList<>();
+
                 if ("LAST_YEAR".equals(normalizedRange)) {
-                    LocalDate firstDayOfLastYear = firstDayOfThisYear.minusYears(1);
-                    from = firstDayOfLastYear.atStartOfDay();
-                    to = firstDayOfThisYear.atStartOfDay().minusNanos(1);
+                    years.add(currentYear - 1);
+                } else if ("LAST_5_YEARS".equals(normalizedRange)) {
+                    for (int year = currentYear - 4; year <= currentYear; year++) {
+                        years.add(year);
+                    }
                 } else {
-                    from = firstDayOfThisYear.atStartOfDay();
-                    to = now;
+                    years.add(currentYear);
+                }
+
+                for (Integer year : years) {
+                    LocalDateTime bucketStart = LocalDate.of(year, 1, 1).atStartOfDay();
+                    LocalDateTime bucketEnd = LocalDate.of(year, 12, 31).atTime(23, 59, 59);
+                    if (year == currentYear && bucketEnd.isAfter(now)) {
+                        bucketEnd = now;
+                    }
+                    buckets.add(new TimeBucket(bucketStart, bucketEnd, String.valueOf(year)));
                 }
             }
             default -> {
-                from = now.minusDays(7);
+                if (buckets.isEmpty()) {
+                    LocalDate startDate = today.minusDays(6);
+                    for (int index = 0; index < 7; index++) {
+                        LocalDate date = startDate.plusDays(index);
+                        LocalDateTime bucketStart = date.atStartOfDay();
+                        LocalDateTime bucketEnd = date.plusDays(1).atStartOfDay().minusNanos(1);
+                        if (bucketEnd.isAfter(now)) {
+                            bucketEnd = now;
+                        }
+                        buckets.add(new TimeBucket(bucketStart, bucketEnd, date.format(DAY_FORMATTER)));
+                    }
+                }
             }
         }
 
-        if (from != null && to != null && to.isBefore(from)) {
+        if (buckets.isEmpty()) {
+            LocalDateTime fallbackFrom = now.minusDays(7);
+            buckets.add(new TimeBucket(fallbackFrom, now, now.format(DAY_FORMATTER)));
+        }
+
+        LocalDateTime from = buckets.stream()
+                .map(TimeBucket::from)
+                .min(LocalDateTime::compareTo)
+                .orElse(now.minusDays(7));
+        LocalDateTime to = buckets.stream()
+                .map(TimeBucket::to)
+                .max(LocalDateTime::compareTo)
+                .orElse(now);
+
+        if (to.isBefore(from)) {
             to = from;
         }
 
-        return new DateRange(from, to);
+        return new TimeSeriesDefinition(new DateRange(from, to), buckets);
+    }
+
+    private TimeBucket findBucketForTimestamp(List<TimeBucket> buckets, LocalDateTime timestamp) {
+        for (TimeBucket bucket : buckets) {
+            if ((timestamp.isEqual(bucket.from()) || timestamp.isAfter(bucket.from()))
+                    && (timestamp.isEqual(bucket.to()) || timestamp.isBefore(bucket.to()))) {
+                return bucket;
+            }
+        }
+        return null;
+    }
+
+    private Optional<YearMonth> resolveEarliestTicketMonth() {
+        return ticketRepository.findFirstByReportedDateNotNullOrderByReportedDateAsc()
+                .map(Ticket::getReportedDate)
+                .filter(Objects::nonNull)
+                .map(YearMonth::from);
+    }
+
+    private Optional<YearMonth> resolveLatestTicketMonth() {
+        return ticketRepository.findFirstByReportedDateNotNullOrderByReportedDateDesc()
+                .map(Ticket::getReportedDate)
+                .filter(Objects::nonNull)
+                .map(YearMonth::from);
     }
 
     private record DateRange(LocalDateTime from, LocalDateTime to) {
         private DateRange {
+        }
+    }
+
+    private record TimeSeriesDefinition(DateRange dateRange, List<TimeBucket> buckets) {
+        private TimeSeriesDefinition {
+        }
+    }
+
+    private record TimeBucket(LocalDateTime from, LocalDateTime to, String label) {
+        private TimeBucket {
         }
     }
 

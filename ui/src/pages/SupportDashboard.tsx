@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent, SelectChangeEvent, Typography } from "@mui/material";
+import { Box, Card, CardContent, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import {
   PieChart,
   Pie,
@@ -23,6 +23,8 @@ import {
   SupportDashboardSeverityKey,
   SupportDashboardSummary,
   SupportDashboardSummaryView,
+  SupportDashboardSummaryResponse,
+  SupportDashboardSummaryRequestParams,
   SupportDashboardTimeRange,
   SupportDashboardTimeScale,
 } from "../types/reports";
@@ -80,6 +82,7 @@ const createDefaultSeverityCounts = (): Record<SupportDashboardSeverityKey, numb
 const createDefaultSummaryView = (): SupportDashboardSummaryView => ({
   pendingForAcknowledgement: 0,
   severityCounts: createDefaultSeverityCounts(),
+  totalTickets: 0,
 });
 
 const createDefaultSummary = (): SupportDashboardSummary => ({
@@ -121,6 +124,7 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
         ? typedView.pendingForAcknowledgement
         : 0,
     severityCounts: normalizeSeverityCounts(typedView.severityCounts),
+    totalTickets: typeof typedView.totalTickets === "number" ? typedView.totalTickets : 0,
   };
 };
 
@@ -143,13 +147,17 @@ const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashbo
     { value: "LAST_4_WEEKS", label: "supportDashboard.filters.range.last4Weeks" },
   ],
   MONTHLY: [
-    { value: "THIS_MONTH", label: "supportDashboard.filters.range.thisMonth" },
-    { value: "LAST_MONTH", label: "supportDashboard.filters.range.previousMonth" },
-    { value: "LAST_12_MONTHS", label: "supportDashboard.filters.range.last12Months" },
+    { value: "LAST_6_MONTHS", label: "supportDashboard.filters.range.last6Months" },
+    { value: "CURRENT_YEAR", label: "supportDashboard.filters.range.currentYear" },
+    { value: "LAST_YEAR", label: "supportDashboard.filters.range.previousYear" },
+    { value: "LAST_5_YEARS", label: "supportDashboard.filters.range.last5Years" },
+    { value: "CUSTOM_MONTH_RANGE", label: "supportDashboard.filters.range.customRange" },
+    { value: "ALL_TIME", label: "supportDashboard.filters.range.allTime" },
   ],
   YEARLY: [
     { value: "YEAR_TO_DATE", label: "supportDashboard.filters.range.yearToDate" },
     { value: "LAST_YEAR", label: "supportDashboard.filters.range.previousYear" },
+    { value: "LAST_5_YEARS", label: "supportDashboard.filters.range.last5Years" },
   ],
 };
 
@@ -167,14 +175,18 @@ const SupportDashboard: React.FC = () => {
   const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
   const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("LAST_7_DAYS");
   const [activeScope, setActiveScope] = React.useState<SupportDashboardScopeKey>("allTickets");
+  const [customMonthRange, setCustomMonthRange] = React.useState<{ start: number | null; end: number | null }>({
+    start: null,
+    end: null,
+  });
+  const currentYear = React.useMemo(() => new Date().getFullYear(), []);
 
   const {
     data: summaryData,
     pending: isLoading,
     error: apiError,
     apiHandler: getSummaryApiHandler,
-    // } = useApi<SupportDashboardSummaryResponse>();
-  } = useApi<any>();
+  } = useApi<SupportDashboardSummaryResponse>();
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -215,6 +227,46 @@ const SupportDashboard: React.FC = () => {
 
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
 
+  const customRangeIsValid = React.useMemo(() => {
+    if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
+      return true;
+    }
+
+    const { start, end } = customMonthRange;
+    if (typeof start !== "number" || typeof end !== "number") {
+      return false;
+    }
+
+    if (start > end) {
+      return false;
+    }
+
+    if (end > currentYear) {
+      return false;
+    }
+
+    return start >= 1970;
+  }, [customMonthRange, currentYear, timeRange, timeScale]);
+
+  const requestParams = React.useMemo(() => {
+    if (!customRangeIsValid) {
+      return null;
+    }
+
+    const params: SupportDashboardSummaryRequestParams = { timeScale, timeRange };
+
+    if (timeScale === "MONTHLY" && timeRange === "CUSTOM_MONTH_RANGE") {
+      const { start, end } = customMonthRange;
+      if (typeof start !== "number" || typeof end !== "number") {
+        return null;
+      }
+      params.customStartYear = start;
+      params.customEndYear = end;
+    }
+
+    return params;
+  }, [customMonthRange, customRangeIsValid, timeRange, timeScale]);
+
   const handleTimeScaleChange = React.useCallback(
     (event: SelectChangeEvent) => {
       const value = event.target.value as SupportDashboardTimeScale;
@@ -223,20 +275,54 @@ const SupportDashboard: React.FC = () => {
       if (defaultRange) {
         setTimeRange(defaultRange);
       }
+      if (value !== "MONTHLY") {
+        setCustomMonthRange({ start: null, end: null });
+      }
     },
     [],
   );
 
   const handleTimeRangeChange = React.useCallback(
     (event: SelectChangeEvent) => {
-      setTimeRange(event.target.value as SupportDashboardTimeRange);
+      const value = event.target.value as SupportDashboardTimeRange;
+      setTimeRange(value);
+
+      if (value === "CUSTOM_MONTH_RANGE") {
+        setCustomMonthRange((previous) => ({
+          start: typeof previous.start === "number" ? previous.start : currentYear - 1,
+          end: typeof previous.end === "number" ? previous.end : currentYear,
+        }));
+      } else {
+        setCustomMonthRange({ start: null, end: null });
+      }
+    },
+    [currentYear],
+  );
+
+  const handleCustomMonthRangeChange = React.useCallback(
+    (key: "start" | "end") => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = event.target.value.trim();
+      if (rawValue === "") {
+        setCustomMonthRange((previous) => ({ ...previous, [key]: null }));
+        return;
+      }
+
+      const numericValue = Number.parseInt(rawValue, 10);
+      setCustomMonthRange((previous) => ({
+        ...previous,
+        [key]: Number.isNaN(numericValue) ? previous[key] : numericValue,
+      }));
     },
     [],
   );
 
   React.useEffect(() => {
-    void getSummaryApiHandler(() => fetchSupportDashboardSummary({ timeScale, timeRange }));
-  }, [getSummaryApiHandler, timeRange, timeScale]);
+    if (!requestParams) {
+      return;
+    }
+
+    void getSummaryApiHandler(() => fetchSupportDashboardSummary(requestParams));
+  }, [getSummaryApiHandler, requestParams]);
 
   React.useEffect(() => {
     const resolvedSummary = createDefaultSummary();
@@ -293,6 +379,8 @@ const SupportDashboard: React.FC = () => {
     [activeSummaryView],
   );
 
+  const overallTickets = React.useMemo(() => activeSummaryView.totalTickets ?? 0, [activeSummaryView.totalTickets]);
+
   const severityData = React.useMemo(
     () =>
       severityLevels.map((level) => ({
@@ -320,17 +408,17 @@ const SupportDashboard: React.FC = () => {
   const slaData = React.useMemo(
     () =>
       (summaryData?.slaCompliance ?? []).map((point: any) => ({
-        month: point?.month ?? "Unknown",
+        label: typeof point?.label === "string" ? point.label : "Unknown",
         within: typeof point?.withinSla === "number" ? point.withinSla : 0,
         overdue: typeof point?.overdue === "number" ? point.overdue : 0,
       })),
     [summaryData],
   );
 
-  const ticketsPerMonth = React.useMemo(
+  const ticketVolumeSeries = React.useMemo(
     () =>
       (summaryData?.ticketVolume ?? []).map((point: any) => ({
-        month: point?.month ?? "Unknown",
+        label: typeof point?.label === "string" ? point.label : "Unknown",
         tickets: typeof point?.tickets === "number" ? point.tickets : 0,
       })),
     [summaryData],
@@ -378,39 +466,62 @@ const SupportDashboard: React.FC = () => {
                 className="fw-semibold text-uppercase"
               /> */}
             </div>
+            {timeScale === "MONTHLY" && timeRange === "CUSTOM_MONTH_RANGE" && (
+              <Box className="d-flex flex-column flex-sm-row align-items-start gap-2 w-100">
+                <TextField
+                  label={t("supportDashboard.filters.range.startYear")}
+                  type="number"
+                  size="small"
+                  value={customMonthRange.start ?? ""}
+                  onChange={handleCustomMonthRangeChange("start")}
+                  inputProps={{ min: 1970, max: currentYear, step: 1 }}
+                />
+                <TextField
+                  label={t("supportDashboard.filters.range.endYear")}
+                  type="number"
+                  size="small"
+                  value={customMonthRange.end ?? ""}
+                  onChange={handleCustomMonthRangeChange("end")}
+                  inputProps={{ min: 1970, max: currentYear, step: 1 }}
+                />
+                {!customRangeIsValid && (
+                  <Typography variant="caption" color="error" className="fw-semibold">
+                    {t("supportDashboard.filters.range.customRangeError", { currentYear })}
+                  </Typography>
+                )}
+              </Box>
+            )}
           </div>
 
           {/* Summary Cards */}
           <div className="row g-3">
             <div className="position-relative d-flex flex-column align-items-center col-12 col-sm-6 col-xl-2">
-              <div>
-                <Typography variant="subtitle1" color="text.secondary">
-                  {t("supportDashboard.metrics.overallTickets")}
-                </Typography>
-              </div>
-              <div
+              <Typography variant="subtitle2" color="text.secondary" className="fw-semibold text-uppercase mb-2">
+                {t("supportDashboard.metrics.overallTickets")}
+              </Typography>
+              <Box
                 className="rounded-circle d-flex align-items-center justify-content-center bg-white"
-                style={{
-                  width: 120,
-                  height: 120,
-                  border: "12px solid",
+                sx={{
+                  width: 110,
+                  height: 110,
+                  border: "10px solid",
                   borderColor: "var(--bs-primary)",
                 }}
               >
-                <Typography variant="h5" className="fw-bold">
-                  501
+                <Typography sx={{ fontWeight: 700, fontSize: 28 }}>
+                  {overallTickets.toLocaleString()}
                 </Typography>
-              </div>
+              </Box>
             </div>
             {summaryCards.map((card) => (
               <div className="col-12 col-sm-6 col-xl-2" key={card.label}>
                 <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
-                  <CardContent className="py-4">
-                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1">
+                  <CardContent className="py-3">
+                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
                       {t(card.label)}
                     </Typography>
-                    <Typography variant="h4" className="fw-bold">
-                      {card.value}
+                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                      {card.value.toString()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -428,8 +539,8 @@ const SupportDashboard: React.FC = () => {
           <div className="row g-3">
             <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 360 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.ticketsBySeverity")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
@@ -438,16 +549,17 @@ const SupportDashboard: React.FC = () => {
                         data={severityData}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={4}
+                        innerRadius={50}
+                        outerRadius={90}
+                        paddingAngle={3}
+                        labelLine={false}
                       >
                         {severityData.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Legend verticalAlign="bottom" height={36} />
-                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ fontSize: 12 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -455,8 +567,8 @@ const SupportDashboard: React.FC = () => {
             </div>
             <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 360 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.openVsResolved")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
@@ -465,16 +577,17 @@ const SupportDashboard: React.FC = () => {
                         data={openResolvedData}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={6}
+                        innerRadius={50}
+                        outerRadius={90}
+                        paddingAngle={5}
+                        labelLine={false}
                       >
                         {openResolvedData.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Legend verticalAlign="bottom" height={36} />
-                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ fontSize: 12 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -482,19 +595,19 @@ const SupportDashboard: React.FC = () => {
             </div>
             <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 360 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.slaCompliance")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={slaData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis unit="%" domain={[0, 100]} />
-                      <Tooltip formatter={(value: number) => `${value}%`} />
-                      <Legend />
-                      <Bar dataKey="within" fill="#64d4a2" name={t("supportDashboard.metrics.withinSla")} radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="overdue" fill="#ff7043" name={t("supportDashboard.metrics.slaOverdue")} radius={[6, 6, 0, 0]} />
+                      <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
+                      <YAxis unit="%" domain={[0, 100]} tick={{ fontSize: 12 }} tickLine={false} />
+                      <Tooltip formatter={(value: number) => `${value}%`} contentStyle={{ fontSize: 12 }} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Bar dataKey="within" fill="#64d4a2" name={t("supportDashboard.metrics.withinSla")} radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="overdue" fill="#ff7043" name={t("supportDashboard.metrics.slaOverdue")} radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -502,18 +615,24 @@ const SupportDashboard: React.FC = () => {
             </div>
             <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 360 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.ticketsPerMonth")}
                   </Typography>
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={ticketsPerMonth}>
+                    <LineChart data={ticketVolumeSeries}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="tickets" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} name={t("supportDashboard.metrics.tickets")}
+                      <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12 }} tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: 12 }} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Line
+                        type="monotone"
+                        dataKey="tickets"
+                        stroke="#1976d2"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        name={t("supportDashboard.metrics.tickets")}
                       />
                     </LineChart>
                   </ResponsiveContainer>
