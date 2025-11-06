@@ -1,0 +1,6 @@
+[DEFAULT]
+user=ocid1.domain.oc1..aaaaaaaar6xu22svlrupi7inn2gl55d45x65gdu7iqdokxu7vf5n7hbbavha
+fingerprint=6b:31:0f:ca:5b:7f:2b:cf:b6:db:87:db:0a:bf:50:67
+key_file=/home/nimit/.oci/oci_api_key.pem
+tenancy=ocid1.tenancy.oc1..aaaaaaaalkye5hwkvy4v33m5if5o2vmmjyp4w2bp3r5is4k4l34cslly3lhq
+region=ap-mumbai-1

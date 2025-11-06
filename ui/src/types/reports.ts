@@ -80,7 +80,8 @@ export interface SlaPerformanceReportProps {
     breachedTickets: SlaBreachedTicketSummary[];
 }
 
-export type SupportDashboardSeverityKey = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+export type SupportDashboardSeverityKey = "S1" | "S2" | "S3" | "S4";
+// export type SupportDashboardSeverityKey = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
 export type SupportDashboardScopeKey = "allTickets" | "myWorkload";
 

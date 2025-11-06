@@ -285,10 +285,10 @@ public class ReportService {
 
     private Map<String, Long> createEmptySeverityCounts() {
         Map<String, Long> severityCounts = new LinkedHashMap<>();
-        severityCounts.put("CRITICAL", 0L);
-        severityCounts.put("HIGH", 0L);
-        severityCounts.put("MEDIUM", 0L);
-        severityCounts.put("LOW", 0L);
+        severityCounts.put("S1", 0L);
+        severityCounts.put("S2", 0L);
+        severityCounts.put("S3", 0L);
+        severityCounts.put("S4", 0L);
         return severityCounts;
     }
 

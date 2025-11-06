@@ -22,7 +22,7 @@ echo "$SCRIPT_DIR"
 # Define paths
 REACT_DIR="$SCRIPT_DIR/ui"
 JAVA_DIR="$SCRIPT_DIR/api"
-IDEA="/c/Program Files/JetBrains/IntelliJ IDEA Community Edition 2025.2.2/bin/idea64.exe"
+IDEA="/c/Program Files/JetBrains/IntelliJ IDEA Community Edition 2025.1.1.1/bin/idea64.exe"
 
 # Initial flags
 open=false

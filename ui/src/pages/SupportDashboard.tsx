@@ -34,11 +34,17 @@ import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
-  "CRITICAL",
-  "HIGH",
-  "MEDIUM",
-  "LOW",
+  "S1",
+  "S2",
+  "S3",
+  "S4",
 ];
+// const severityLevels: SupportDashboardSeverityKey[] = [
+//   "CRITICAL",
+//   "HIGH",
+//   "MEDIUM",
+//   "LOW",
+// ];
 
 const severityCardStyles: Record<SupportDashboardSeverityKey, {
   label: string;
@@ -46,25 +52,25 @@ const severityCardStyles: Record<SupportDashboardSeverityKey, {
   color: string;
   chartColor: string;
 }> = {
-  CRITICAL: {
+  S1: {
     label: "Critical",
     background: "#e8f5e9",
     color: "#2e7d32",
     chartColor: "#64d4a2",
   },
-  HIGH: {
+  S2: {
     label: "High",
     background: "#ff8a65",
     color: "#fff",
     chartColor: "#ff7043",
   },
-  MEDIUM: {
+  S3: {
     label: "Medium",
     background: "#cfd8dc",
     color: "#37474f",
     chartColor: "#90a4ae",
   },
-  LOW: {
+  S4: {
     label: "Low",
     background: "#fff59d",
     color: "#795548",
@@ -73,10 +79,10 @@ const severityCardStyles: Record<SupportDashboardSeverityKey, {
 };
 
 const createDefaultSeverityCounts = (): Record<SupportDashboardSeverityKey, number> => ({
-  CRITICAL: 0,
-  HIGH: 0,
-  MEDIUM: 0,
-  LOW: 0,
+  S1: 0,
+  S2: 0,
+  S3: 0,
+  S4: 0,
 });
 
 const createDefaultSummaryView = (): SupportDashboardSummaryView => ({
@@ -163,7 +169,7 @@ const scopeLabels: Record<SupportDashboardScopeKey, string> = {
   myWorkload: "My Workload",
 };
 
-const formatSummaryValue = (value: number) => value.toString().padStart(2, "0");
+const formatSummaryValue = (value: number) => value?.toString().padStart(2, "0");
 
 const SupportDashboard: React.FC = () => {
   const { t } = useTranslation();

@@ -45,12 +45,12 @@ services:
     image: ticketing-api:latest
     container_name: ticketing-api
     restart: unless-stopped
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticketing_system?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ticket_user
-      SPRING_DATASOURCE_PASSWORD: ticket_password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz123}
+    # environment:
+    #   SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ticketing_system?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    #   SPRING_DATASOURCE_USERNAME: ticket_user
+    #   SPRING_DATASOURCE_PASSWORD: ticket_password
+    #   SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    #   TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz123}
     ports:
       - "8082:8082"
     volumes:
