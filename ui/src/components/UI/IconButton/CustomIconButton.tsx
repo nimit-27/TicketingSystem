@@ -50,6 +50,7 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import { useTheme } from '@mui/material';
 
 // Define the icon map
 const iconMap = {
@@ -117,17 +118,23 @@ export const IconComponent: React.FC<{
     fontSize?: 'small' | 'medium' | 'large';
     className?: string;
     style?: React.CSSProperties;
+    color?: string;
 }> = ({
     icon,
     fontSize = 'small',
     className,
     style,
+    color,
 }) => {
+        const theme = useTheme();
+
         const key = icon as IconKey;
         const Icon = iconMap[key];
 
+        let finalColor = style?.color || color || theme.palette.global.icon.color;
+
         if (Icon) {
-            return <Icon fontSize={fontSize} className={className} style={style} />;
+            return <Icon fontSize={fontSize} className={className} style={{ ...style, color: finalColor }} />;
         }
 
         return (
@@ -145,7 +152,7 @@ interface CustomIconButtonProps extends IconButtonProps {
 const CustomIconButton: React.FC<CustomIconButtonProps> = ({ icon, className, ...props }) => {
     return (
         <IconButton {...props} className={className}>
-            <IconComponent icon={icon} className={className} />
+            <IconComponent icon={icon} className={className} style={props.style} />
         </IconButton>
     );
 };

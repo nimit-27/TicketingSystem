@@ -32,10 +32,12 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
 
   const headerBgColor = theme.palette.header.background
 
-  const iconColor =
-    theme.palette.mode === "dark"
-      ? theme.palette.success.main
-      : theme.palette.getContrastText(headerBgColor);
+  const iconColor = theme.palette.header.icon.color;
+
+  console.log({ iconColor })
+    // theme.palette.mode === "dark"
+    //   ? theme.palette.success.main
+    //   : theme.palette.getContrastText(headerBgColor);
 
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchorEl(event.currentTarget);

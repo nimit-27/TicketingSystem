@@ -38,6 +38,7 @@ const PriorityIcon: React.FC<PriorityIconProps> = ({ level, rotateRight, priorit
             fontSize='small'
             className='priority-icon position-absolute'
             style={{ fontSize: 30, color, top: (2 - i) * 6 - 20 }}
+            color={color}
             key={i}
           />
         })}

@@ -54,7 +54,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
                 open={open}
                 onClose={handleClose}
                 variant="persistent"
-                PaperProps={{ sx: { top: '70px', height: 'calc(100vh - 70px)' } }}
+                PaperProps={{ sx: { top: '48px', height: 'calc(100vh - 48px)' } }}
             >
                 <Box sx={{ width: 400, position: 'relative', p: 2 }}>
                     <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>

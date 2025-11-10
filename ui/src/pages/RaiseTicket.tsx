@@ -62,6 +62,7 @@ const RaiseTicket: React.FC<any> = () => {
 
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
+            if(key === 'isMaster') debugger
             if (key === 'attachments' && Array.isArray(value) && value.length > 0) {
                 value.forEach(file => formData.append('attachments', file));
             } else if (value !== undefined && value !== null) {
@@ -72,6 +73,8 @@ const RaiseTicket: React.FC<any> = () => {
                 }
             }
         });
+        // debugger
+        console.table(formData);
 
         // 1) Create ticket (no files)
         apiHandler(() => addTicket(formData))

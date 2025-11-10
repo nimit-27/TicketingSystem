@@ -184,7 +184,10 @@ public class TicketService {
     public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
 
-        if(ticket.isMaster()) ticket.setMasterId(null);
+        if(ticket.isMaster()) {
+            ticket.setMasterId(null);
+            ticket.setMaster(true);
+        }
         if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
 
         if (ticket.getMode() == null && ticket.getModeId() != null) {

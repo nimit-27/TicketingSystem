@@ -1,6 +1,7 @@
 {
   "name": "ui",
   "version": "0.1.0",
+  "homepage": "/helpdesk",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",

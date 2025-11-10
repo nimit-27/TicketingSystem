@@ -13,6 +13,9 @@ declare module '@mui/material/styles' {
     border: string;
     text: string;
     accent?: string;
+    icon: {
+      color: string;
+    }
   }
 
   interface TablePalette {
@@ -64,6 +67,9 @@ declare module '@mui/material/styles' {
   interface GlobalComponentsPalette {
     pageTitle: {
       text: string;
+    }
+    icon: {
+      color: string;
     }
     table: TablePalette;
     buttons: ButtonsPalette;

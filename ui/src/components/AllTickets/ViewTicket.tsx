@@ -145,7 +145,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusR
       open={open}
       onClose={handleClose}
       variant="persistent"
-      PaperProps={{ sx: { top: '70px', height: 'calc(100vh - 70px)' } }}
+      PaperProps={{ sx: { top: '48px', height: 'calc(100vh - 48px)' } }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, pt: 1 }}>
         <IconButton onClick={handleClose}>

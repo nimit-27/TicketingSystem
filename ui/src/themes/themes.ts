@@ -1,5 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 import colors from './colors';
+import { color } from 'echarts';
 
 type ButtonVariantDefinition = {
   background: string;
@@ -50,6 +51,9 @@ type GlobalComponentsDefinition = {
   pageTitle: {
     text: string;
   };
+  icon: {
+    color: string;
+  };
   table: TableDefinition;
   buttons: ButtonsDefinition;
   input: FieldDefinition;
@@ -69,6 +73,9 @@ type LayoutDefinition = {
     border: string;
     text: string;
     accent?: string;
+    icon: {
+      color: string;
+    }
   };
   global: GlobalComponentsDefinition;
 };
@@ -85,10 +92,16 @@ const lightLayout: LayoutDefinition = {
     border: 'none',
     text: colors.green.default,
     accent: '#73b579',
+    icon: {
+      color: '#ffffff',
+    }
   },
   global: {
     pageTitle: {
       text: colors.green.default,
+    },
+    icon: {
+      color: colors.green.default,
     },
     table: {
       border: '#ABD4C1',
@@ -201,10 +214,16 @@ const darkLayout: LayoutDefinition = {
     border: '1px solid #73b579',
     text: '#ffffff',
     accent: '#73b579',
+    icon: {
+      color: '#73b579',
+    }
   },
   global: {
     pageTitle: {
       text: '#73b579',
+    },
+    icon: {
+      color: '#73b579',
     },
     table: {
       border: '#3c3c3c',
@@ -317,10 +336,16 @@ const fciLayout: LayoutDefinition = {
     border: '#dddddd',
     text: '#2e7d32',
     accent: '#ffb74d',
+    icon: {
+      color: colors.green.default,
+    }
   },
   global: {
     pageTitle: {
       text: colors.green.default,
+    },
+    icon: {
+      color: colors.green.default,
     },
     table: {
       border: '#e5e5e5',

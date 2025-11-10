@@ -69,7 +69,8 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
     }, [hasPageSize, pageSize, pageSizeOptions]);
 
     const handlePageSizeSelectChange = useCallback(
-        (event: SelectChangeEvent) => {
+        (event: any) => {
+        // (event: SelectChangeEvent) => {
             if (!onPageSizeChange) {
                 return;
             }

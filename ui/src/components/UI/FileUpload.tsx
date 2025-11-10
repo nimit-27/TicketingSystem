@@ -157,7 +157,7 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
                                 const current = attachments[index];
                                 const isFile = current instanceof File;
                                 const url = isFile ? URL.createObjectURL(current) : current;
-                                const alt = isFile ? current.name : current.split('/').pop() || '';
+                                const alt = isFile ? current.name : current?.split('/').pop() || '';
                                 return (
                                     <img
                                         src={url}
