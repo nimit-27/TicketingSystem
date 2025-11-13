@@ -25,16 +25,16 @@ interface ExtendedJwtPayload extends JwtPayload {
 let decodedCache: DecodedAuthDetails | null = null;
 
 export function storeToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token);
+  sessionStorage.setItem(TOKEN_KEY, token);
   decodedCache = null;
 }
 
 export function getActiveToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY);
 }
 
 export function clearStoredToken() {
-  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
   decodedCache = null;
 }
 

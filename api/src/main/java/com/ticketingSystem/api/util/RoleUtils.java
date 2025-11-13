@@ -49,7 +49,7 @@ public final class RoleUtils {
 
     public static boolean hasUnrestrictedTicketAccess(Collection<String> roles) {
         if (roles == null || roles.isEmpty()) {
-            return true;
+            return false;
         }
         List<String> normalized = normalizeRoles(roles);
         if (containsAny(normalized, TEAM_LEAD_ROLE_IDENTIFIERS)
