@@ -20,7 +20,7 @@ const MyWorkload: React.FC = () => {
         );
 
         const isHelpdeskAgent = roles.some(role =>
-            ["3"].includes(role)
+            ["3", "8"].includes(role)
         );
         return { isTeamLeadRole, isItManagerRole, isHelpdeskAgent };
     }, []);

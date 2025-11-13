@@ -161,8 +161,8 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
 
     return (
         <>
-            {assigneeName ? (
-                <Tooltip title={assigneeName}>
+            {assigneeName
+                ? <Tooltip title={assigneeName}>
                     <span>
                         <UserAvatar
                             name={assigneeName}
@@ -171,15 +171,14 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
                         />
                     </span>
                 </Tooltip>
-            ) : (
-                <IconButton
+                : <IconButton
                     size="small"
                     onClick={(e) => setAnchorEl(e.currentTarget)}
                     className="assignee-btn shadow"
                 >
                     <PersonAddAltIcon fontSize="small" />
                 </IconButton>
-            )}
+            }
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
                 <Box sx={{ p: 1, width: 350 }}>
                     {renderAssignForm()}
