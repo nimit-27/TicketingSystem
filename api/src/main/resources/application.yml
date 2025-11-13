@@ -7,6 +7,7 @@ security:
     allowed-origins:
       - http://localhost:3000
       - http://localhost:5173
+      - https://dev.annadarpan.in
     allowed-methods:
       - GET
       - POST

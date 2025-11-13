@@ -1,0 +1,81 @@
+Tag version pushed
+v1.8 - UI API
+v1.9 - UI API
+
+
+====================================================================================================================================
+
+Build a docker image
+--------------------------------
+
+Build docker image using compose file
+
+Open WSL in the docker compose directory. 
+	docker compose -f <filename> build <service>
+
+
+Build a docker image for service ui
+docker compose -f docker-compose.full.yml build ui
+
+Build a docker for service api
+docker compose -f docker-compose.full.yml build api
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+Build Docker image using Dockerfile (basic)
+
+Syntax:
+	docker build -t <image_name> <context_path>
+
+Build docker image for ui named "ticketing-ui". It will override "ticketing-ui" image if it already exists
+docker build -t ticketing-ui .
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+Build Docker image using Dockerfile and build arg
+
+Syntax:
+	docker build --build-arg <ARG_NAME>=<value> -t <image_name> <context_path>
+
+Build docker image UI for config file default-2.conf and docker image named "ticketing-ui-two"
+docker build --build-arg NGINX_CONF=nginx/default-2.conf -t ticketing-ui-two .
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+====================================================================================================================================
+
+Creating image tag to push to registry
+
+There must be an existing image already of which tag has to be made.
+	docker tag <image name> <registry>/<namespace>/<repository>:<tag>
+
+
+Creating tag for UI to be pushed to ad_test_repo repository
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.11
+
+Creating tag for API to be pushed to ad_test_repo repository
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.11
+
+====================================================================================================================================
+
+Pushing the image to registry
+
+Command syntax
+	docker push <registry>/<namespace>/<repository>:<tag>
+
+
+Pushing UI image to ad_test_repo
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.11
+
+Pushing API image ad_test_repo
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.11
+
+====================================================================================================================================
+
+Running a container
+
+Command syntax
+	docker run -p <host port>:<container port> <image-name>
+
+
