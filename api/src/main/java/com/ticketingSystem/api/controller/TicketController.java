@@ -13,6 +13,8 @@ import com.ticketingSystem.api.service.TicketSlaService;
 import com.ticketingSystem.api.dto.TicketSlaDto;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
+import com.ticketingSystem.api.service.UserService;
+import com.ticketingSystem.api.dto.UserDto;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import jakarta.servlet.http.HttpSession;
 
@@ -41,6 +45,7 @@ public class TicketController {
     private final FileStorageService fileStorageService;
     private final TicketSlaService ticketSlaService;
     private final TicketAuthorizationService ticketAuthorizationService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -63,18 +68,20 @@ public class TicketController {
     @GetMapping("/{id}")
     public ResponseEntity<TicketDto> getTicket(@PathVariable("id") String id,
                                                @AuthenticationPrincipal LoginPayload authenticatedUser,
-                                               HttpSession session) {
+                                               HttpSession session,
+                                               @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
         logger.info("Request to get ticket {}", id);
         TicketDto dto = ticketService.getTicket(id);
         if (dto == null) {
             logger.warn("Ticket {} not found, returning {}", id, HttpStatus.NOT_FOUND);
             return ResponseEntity.notFound().build();
         }
+        LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
         ticketAuthorizationService.assertCanAccessTicket(
                 id,
                 dto.getUserId(),
                 dto.getAssignedTo(),
-                authenticatedUser,
+                resolvedUser,
                 session);
         logger.info("Ticket {} retrieved successfully, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
@@ -83,17 +90,19 @@ public class TicketController {
     @GetMapping("/{id}/sla")
     public ResponseEntity<TicketSlaDto> getTicketSla(@PathVariable("id") String id,
                                                      @AuthenticationPrincipal LoginPayload authenticatedUser,
-                                                     HttpSession session) {
+                                                     HttpSession session,
+                                                     @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
         logger.info("Request to get SLA for ticket {}", id);
         TicketSla sla = ticketSlaService.getByTicketId(id);
         if (sla == null) {
             logger.info("SLA for ticket {} not found, returning {}", id, HttpStatus.CREATED);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
+        LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
         ticketAuthorizationService.assertCanAccessTicket(id,
                 sla.getTicket() != null ? sla.getTicket().getUserId() : null,
                 sla.getTicket() != null ? sla.getTicket().getAssignedTo() : null,
-                authenticatedUser,
+                resolvedUser,
                 session);
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(DtoMapper.toTicketSlaDto(sla));
@@ -274,5 +283,38 @@ public class TicketController {
         TicketDto dto = ticketService.markAsMaster(id);
         logger.info("Ticket {} marked as master, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
+    }
+
+    private LoginPayload resolveAuthenticatedUser(LoginPayload authenticatedUser,
+                                                  String userIdHeader) {
+        if (authenticatedUser != null || userIdHeader == null || userIdHeader.isBlank()) {
+            return authenticatedUser;
+        }
+        return userService.getUserDetails(userIdHeader.trim())
+                .map(this::toLoginPayload)
+                .orElse(null);
+    }
+
+    private LoginPayload toLoginPayload(UserDto user) {
+        List<String> roles = user.getRoleNames() != null && !user.getRoleNames().isEmpty()
+                ? user.getRoleNames()
+                : parseRoles(user.getRoles());
+        return LoginPayload.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .name(user.getName())
+                .roles(roles)
+                .levels(user.getLevels() != null ? user.getLevels() : Collections.emptyList())
+                .build();
+    }
+
+    private List<String> parseRoles(String roles) {
+        if (roles == null || roles.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(roles.split("\\|"))
+                .map(String::trim)
+                .filter(role -> !role.isEmpty())
+                .toList();
     }
 }
