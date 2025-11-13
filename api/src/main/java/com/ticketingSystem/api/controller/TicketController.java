@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.TicketDto;
 import com.ticketingSystem.api.models.Ticket;
@@ -11,6 +12,7 @@ import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
 import com.ticketingSystem.api.dto.TicketSlaDto;
 import com.ticketingSystem.api.mapper.DtoMapper;
+import com.ticketingSystem.api.service.TicketAuthorizationService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +24,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.servlet.http.HttpSession;
 
 @RequestMapping("/tickets")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -36,6 +40,7 @@ public class TicketController {
     private final TicketService ticketService;
     private final FileStorageService fileStorageService;
     private final TicketSlaService ticketSlaService;
+    private final TicketAuthorizationService ticketAuthorizationService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -56,25 +61,40 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TicketDto> getTicket(@PathVariable("id") String id) {
+    public ResponseEntity<TicketDto> getTicket(@PathVariable("id") String id,
+                                               @AuthenticationPrincipal LoginPayload authenticatedUser,
+                                               HttpSession session) {
         logger.info("Request to get ticket {}", id);
         TicketDto dto = ticketService.getTicket(id);
         if (dto == null) {
             logger.warn("Ticket {} not found, returning {}", id, HttpStatus.NOT_FOUND);
             return ResponseEntity.notFound().build();
         }
+        ticketAuthorizationService.assertCanAccessTicket(
+                id,
+                dto.getUserId(),
+                dto.getAssignedTo(),
+                authenticatedUser,
+                session);
         logger.info("Ticket {} retrieved successfully, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{id}/sla")
-    public ResponseEntity<TicketSlaDto> getTicketSla(@PathVariable("id") String id) {
+    public ResponseEntity<TicketSlaDto> getTicketSla(@PathVariable("id") String id,
+                                                     @AuthenticationPrincipal LoginPayload authenticatedUser,
+                                                     HttpSession session) {
         logger.info("Request to get SLA for ticket {}", id);
         TicketSla sla = ticketSlaService.getByTicketId(id);
         if (sla == null) {
             logger.info("SLA for ticket {} not found, returning {}", id, HttpStatus.CREATED);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
+        ticketAuthorizationService.assertCanAccessTicket(id,
+                sla.getTicket() != null ? sla.getTicket().getUserId() : null,
+                sla.getTicket() != null ? sla.getTicket().getAssignedTo() : null,
+                authenticatedUser,
+                session);
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(DtoMapper.toTicketSlaDto(sla));
     }
