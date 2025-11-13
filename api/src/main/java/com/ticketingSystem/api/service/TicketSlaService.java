@@ -5,6 +5,7 @@ import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.util.RoleUtils;
 import com.ticketingSystem.api.repository.SlaConfigRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
@@ -38,7 +39,6 @@ import org.slf4j.LoggerFactory;
 public class TicketSlaService {
     private static final Logger log = LoggerFactory.getLogger(TicketSlaService.class);
     private static final String SLA_BREACHED_NOTIFICATION_CODE = "TICKET_SLA_BREACHED";
-    private static final Set<String> REQUESTOR_ROLE_IDENTIFIERS = Set.of("5", "requestor", "role_requestor", "user");
     private final SlaConfigRepository slaConfigRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final StatusHistoryRepository statusHistoryRepository;
@@ -484,12 +484,6 @@ public class TicketSlaService {
             }
         }
 
-        if (normalized.size() != 1) {
-            return false;
-        }
-
-        String role = normalized.get(0);
-        String normalizedRole = role.toLowerCase(Locale.ROOT);
-        return REQUESTOR_ROLE_IDENTIFIERS.contains(normalizedRole);
+        return RoleUtils.isRequestorOnly(normalized);
     }
 }
