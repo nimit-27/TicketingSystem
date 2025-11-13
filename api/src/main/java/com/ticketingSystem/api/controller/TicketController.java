@@ -66,11 +66,16 @@ public class TicketController {
                                                HttpSession session) {
         logger.info("Request to get ticket {}", id);
         TicketDto dto = ticketService.getTicket(id);
-        ticketAuthorizationService.assertCanAccessTicket(id, dto.getUserId(), authenticatedUser, session);
         if (dto == null) {
             logger.warn("Ticket {} not found, returning {}", id, HttpStatus.NOT_FOUND);
             return ResponseEntity.notFound().build();
         }
+        ticketAuthorizationService.assertCanAccessTicket(
+                id,
+                dto.getUserId(),
+                dto.getAssignedTo(),
+                authenticatedUser,
+                session);
         logger.info("Ticket {} retrieved successfully, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
     }
@@ -87,6 +92,7 @@ public class TicketController {
         }
         ticketAuthorizationService.assertCanAccessTicket(id,
                 sla.getTicket() != null ? sla.getTicket().getUserId() : null,
+                sla.getTicket() != null ? sla.getTicket().getAssignedTo() : null,
                 authenticatedUser,
                 session);
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);

@@ -16,15 +16,19 @@ public class TicketAuthorizationService {
 
     public void assertCanAccessTicket(String ticketId,
                                       String ticketOwnerId,
+                                      String ticketAssigneeId,
                                       LoginPayload authenticatedUser,
                                       HttpSession session) {
         List<String> roles = resolveRoles(authenticatedUser, session);
-        if (!RoleUtils.isRequestorOnly(roles)) {
+        if (RoleUtils.hasUnrestrictedTicketAccess(roles)) {
             return;
         }
 
         String requesterId = resolveUserId(authenticatedUser, session);
-        if (requesterId == null || ticketOwnerId == null || !ticketOwnerId.equalsIgnoreCase(requesterId)) {
+        boolean ownsTicket = ticketOwnerId != null && ticketOwnerId.equalsIgnoreCase(requesterId);
+        boolean assignedToTicket = ticketAssigneeId != null && ticketAssigneeId.equalsIgnoreCase(requesterId);
+
+        if (requesterId == null || (!ownsTicket && !assignedToTicket)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     String.format("Access to ticket %s is not allowed", ticketId)

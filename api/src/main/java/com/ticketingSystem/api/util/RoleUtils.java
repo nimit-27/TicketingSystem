@@ -15,6 +15,19 @@ public final class RoleUtils {
             "user"
     );
 
+    private static final Set<String> TEAM_LEAD_ROLE_IDENTIFIERS = Set.of(
+            "team lead",
+            "team_lead",
+            "teamlead",
+            "tl"
+    );
+
+    private static final Set<String> ADMIN_ROLE_IDENTIFIERS = Set.of(
+            "admin",
+            "administrator",
+            "role_admin"
+    );
+
     private RoleUtils() {
     }
 
@@ -32,5 +45,30 @@ public final class RoleUtils {
             return false;
         }
         return REQUESTOR_ROLE_IDENTIFIERS.contains(normalized.get(0));
+    }
+
+    public static boolean hasUnrestrictedTicketAccess(Collection<String> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return true;
+        }
+        List<String> normalized = normalizeRoles(roles);
+        if (containsAny(normalized, TEAM_LEAD_ROLE_IDENTIFIERS)
+                || containsAny(normalized, ADMIN_ROLE_IDENTIFIERS)) {
+            return true;
+        }
+        return !isRequestorOnly(roles);
+    }
+
+    private static List<String> normalizeRoles(Collection<String> roles) {
+        return roles.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(role -> !role.isEmpty())
+                .map(role -> role.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean containsAny(List<String> normalizedRoles, Set<String> identifiers) {
+        return normalizedRoles.stream().anyMatch(identifiers::contains);
     }
 }
