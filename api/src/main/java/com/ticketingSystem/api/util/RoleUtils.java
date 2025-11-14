@@ -56,7 +56,8 @@ public final class RoleUtils {
                 || containsAny(normalized, ADMIN_ROLE_IDENTIFIERS)) {
             return true;
         }
-        return !isRequestorOnly(roles);
+        return false;
+//        return !isRequestorOnly(roles);
     }
 
     private static List<String> normalizeRoles(Collection<String> roles) {
