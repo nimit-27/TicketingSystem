@@ -142,6 +142,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 return { icon: 'doneAll', className: 'icon-green' };
             case 'Reopen':
                 return { icon: 'replay' };
+            case 'Restore':
+                return { icon: 'restore', className: 'icon-green' };
             case 'Start':
                 return { icon: 'playArrow' };
             case 'Escalate':

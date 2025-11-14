@@ -83,6 +83,8 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                 return { icon: 'doneAll', className: 'icon-green' };
             case 'Reopen':
                 return { icon: 'replay' };
+            case 'Restore':
+                return { icon: 'restore', className: 'icon-green' };
             case 'Start':
                 return { icon: 'playArrow' };
             case 'Escalate':

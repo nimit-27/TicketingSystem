@@ -50,6 +50,7 @@ import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import RestoreIcon from '@mui/icons-material/Restore';
 import { useTheme } from '@mui/material';
 
 // Define the icon map
@@ -107,6 +108,7 @@ const iconMap = {
     linkOff: LinkOffIcon,
     undo: UndoIcon,
     dashboard: DashboardIcon,
+    restore: RestoreIcon,
 };
 
 // Valid keys for the icon map

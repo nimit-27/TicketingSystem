@@ -196,6 +196,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Reopen') || null,
     [availableStatusActions]
   );
+  const restoreAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Restore') || null,
+    [availableStatusActions]
+  );
 
   const recommendSeverityAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Recommend Escalation') || null,
@@ -575,6 +579,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isAssignedStatus = normalisedStatusName.includes('assigned');
   const isResolvedStatus = normalisedStatusName === 'resolved';
   const isClosedStatus = normalisedStatusName === 'closed';
+  const isCancelledStatus = normalisedStatusName === 'cancelled';
   const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
   const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2');
   // const showRCAButton = isClosedStatus && (isTeamLeadRole || isLevelAgent);
@@ -592,6 +597,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowResolve = Boolean(resolveAction && isAssignedStatus && isAssignedToCurrentUser);
   const shouldShowClose = Boolean(closeAction && isResolvedStatus && isRequester);
   const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
+  const shouldShowRestore = Boolean(restoreAction && isCancelledStatus);
   const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
@@ -700,6 +706,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             {shouldShowReopen && (
               <Button size="small" variant="outlined" color="success" onClick={() => handleStatusActionClick(reopenAction)}>
                 {t('Reopen Ticket')}
+              </Button>
+            )}
+            {shouldShowRestore && (
+              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(restoreAction)}>
+                {t('Restore Ticket')}
               </Button>
             )}
             {shouldShowFeedbackButton && (
