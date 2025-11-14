@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -7,7 +7,7 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkAccessMaster, checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById, truncateWithLeadingEllipsis } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
-import { Menu, MenuItem, ListItemIcon, Tooltip, Button } from '@mui/material';
+import { Menu, MenuItem, ListItemIcon, Tooltip, Button, Divider } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
 import RemarkComponent from '../UI/Remark/RemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
@@ -18,6 +18,12 @@ import { updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import GridOnIcon from '@mui/icons-material/GridOn';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export interface TicketRow {
     id: string;
@@ -66,10 +72,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
+    const [tableScrollY, setTableScrollY] = useState(520);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -83,6 +91,21 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
     let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
+
+    useEffect(() => {
+        const calculateScrollHeight = () => {
+            const fallbackHeight = 520;
+            if (typeof window === 'undefined') {
+                setTableScrollY(fallbackHeight);
+                return;
+            }
+            const availableHeight = window.innerHeight - 360;
+            setTableScrollY(Math.max(availableHeight, 360));
+        };
+        calculateScrollHeight();
+        window.addEventListener('resize', calculateScrollHeight);
+        return () => window.removeEventListener('resize', calculateScrollHeight);
+    }, []);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -159,6 +182,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setCurrentTicketId('');
     };
 
+    const handleDownloadMenuClose = () => setDownloadMenuAnchor(null);
+
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
         if (wf.action === 'Recommend Escalation') {
             onRecommendEscalation?.(ticketId);
@@ -175,6 +200,95 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setExpandedRowKeys([]);
         setSelectedAction(null);
         setCurrentTicketId('');
+    };
+
+    const exportColumns = useMemo(() => {
+        const columns = [
+            {
+                key: 'id',
+                label: t('Ticket Id'),
+                getValue: (record: TicketRow) => record.id,
+            },
+            {
+                key: 'requester',
+                label: t('Requester'),
+                getValue: (record: TicketRow) => record.requestorName || '-',
+            },
+            {
+                key: 'category',
+                label: t('Category'),
+                getValue: (record: TicketRow) => record.category || '-',
+            },
+            {
+                key: 'subCategory',
+                label: t('Sub-Category'),
+                getValue: (record: TicketRow) => record.subCategory || '-',
+            },
+            showSeverityColumn && {
+                key: 'severity',
+                label: t('Severity'),
+                getValue: (record: TicketRow) => record.severity || record.severityLabel || '-',
+            },
+            {
+                key: 'priority',
+                label: t('Priority'),
+                getValue: (record: TicketRow) => record.priority || '-',
+            },
+            {
+                key: 'assignee',
+                label: t('Assignee'),
+                getValue: (record: TicketRow) => record.assignedToName || record.assignedTo || '-',
+            },
+            {
+                key: 'status',
+                label: t('Status'),
+                getValue: (record: TicketRow) => record.statusLabel || getStatusNameById(record.statusId || '') || '-',
+            },
+        ].filter(Boolean) as { key: string, label: string, getValue: (record: TicketRow) => string }[];
+        return columns;
+    }, [t, showSeverityColumn]);
+
+    const buildExportJson = () => {
+        return tickets.map(ticket => {
+            const row: Record<string, string> = {};
+            exportColumns.forEach(col => {
+                row[col.label] = col.getValue(ticket);
+            });
+            return row;
+        });
+    };
+
+    const buildExportMatrix = () => tickets.map(ticket => exportColumns.map(col => col.getValue(ticket)));
+
+    const downloadAsExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(buildExportJson());
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Tickets');
+        XLSX.writeFile(workbook, 'tickets.xlsx');
+    };
+
+    const downloadAsPdf = () => {
+        const doc = new jsPDF('l', 'pt');
+        autoTable(doc, {
+            head: [exportColumns.map(col => col.label)],
+            body: buildExportMatrix(),
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [52, 71, 103] },
+        });
+        doc.save('tickets.pdf');
+    };
+
+    const handleDownloadSelection = (format: 'pdf' | 'excel') => {
+        if (!tickets.length) {
+            handleDownloadMenuClose();
+            return;
+        }
+        if (format === 'excel') {
+            downloadAsExcel();
+        } else {
+            downloadAsPdf();
+        }
+        handleDownloadMenuClose();
     };
 
 
@@ -458,6 +572,17 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     return (
         <>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <div />
+                <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<DownloadIcon fontSize="small" />}
+                    onClick={(event) => setDownloadMenuAnchor(event.currentTarget)}
+                >
+                    {t('Download')}
+                </Button>
+            </div>
             <GenericTable
                 className="tickets-table"
                 dataSource={tickets}
@@ -466,6 +591,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 pagination={false}
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
                 expandable={{ expandedRowRender, expandedRowKeys, expandIcon: () => null, showExpandColumn: false }}
+                scroll={{ y: tableScrollY }}
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 {actions.map(a => {
@@ -479,6 +605,26 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         </MenuItem>
                     );
                 })}
+            </Menu>
+            <Menu anchorEl={downloadMenuAnchor} open={Boolean(downloadMenuAnchor)} onClose={handleDownloadMenuClose}>
+                <MenuItem onClick={() => handleDownloadSelection('pdf')}>
+                    <ListItemIcon>
+                        <PictureAsPdfIcon fontSize="small" />
+                    </ListItemIcon>
+                    {t('Download PDF')}
+                </MenuItem>
+                <MenuItem onClick={() => handleDownloadSelection('excel')}>
+                    <ListItemIcon>
+                        <GridOnIcon fontSize="small" />
+                    </ListItemIcon>
+                    {t('Download Excel')}
+                </MenuItem>
+                {!tickets.length && (
+                    <>
+                        <Divider />
+                        <MenuItem disabled>{t('No data available')}</MenuItem>
+                    </>
+                )}
             </Menu>
         </>
     );
