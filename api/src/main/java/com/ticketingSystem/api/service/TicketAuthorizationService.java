@@ -16,7 +16,7 @@ public class TicketAuthorizationService {
 
     public void assertCanAccessTicket(String ticketId,
                                       String ticketOwnerId,
-                                      String ticketAssigneeUsername,
+                                      String ticketAssigneeUserId,
                                       LoginPayload authenticatedUser,
                                       HttpSession session) {
         List<String> roles = resolveRoles(authenticatedUser, session);
@@ -26,7 +26,7 @@ public class TicketAuthorizationService {
 
         String requesterId = resolveUserId(authenticatedUser, session);
         boolean ownsTicket = ticketOwnerId != null && ticketOwnerId.equalsIgnoreCase(requesterId);
-        boolean assignedToTicket = ticketAssigneeUsername != null && ticketAssigneeUsername.equalsIgnoreCase(requesterId);
+        boolean assignedToTicket = ticketAssigneeUserId != null && ticketAssigneeUserId.equalsIgnoreCase(requesterId);
 
         if (requesterId == null || (!ownsTicket && !assignedToTicket)) {
             throw new ResponseStatusException(
