@@ -2,6 +2,39 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import TicketsTable, { TicketRow } from '../TicketsTable';
 
+const mockJsPdfSave = jest.fn();
+const mockJsPdfConstructor = jest.fn();
+jest.mock('jspdf', () => ({
+    __esModule: true,
+    default: class {
+        constructor(...args: any[]) {
+            mockJsPdfConstructor(...args);
+        }
+
+        save = mockJsPdfSave
+    }
+}));
+
+const mockAutoTable = jest.fn();
+jest.mock('jspdf-autotable', () => ({
+    __esModule: true,
+    default: (...args: any[]) => mockAutoTable(...args),
+}));
+
+const mockJsonToSheet = jest.fn(() => ({}));
+const mockBookNew = jest.fn(() => ({}));
+const mockBookAppendSheet = jest.fn();
+const mockWriteFile = jest.fn();
+jest.mock('xlsx', () => ({
+    __esModule: true,
+    utils: {
+        json_to_sheet: (...args: any[]) => mockJsonToSheet(...args),
+        book_new: (...args: any[]) => mockBookNew(...args),
+        book_append_sheet: (...args: any[]) => mockBookAppendSheet(...args),
+    },
+    writeFile: (...args: any[]) => mockWriteFile(...args),
+}));
+
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -131,6 +164,13 @@ beforeEach(() => {
     mockNavigate.mockReset();
     mockCheckAccessMaster.mockImplementation(() => true);
     mockCheckMyTicketsColumnAccess.mockImplementation(() => true);
+    mockJsPdfSave.mockClear();
+    mockJsPdfConstructor.mockClear();
+    mockAutoTable.mockClear();
+    mockJsonToSheet.mockClear();
+    mockBookNew.mockClear();
+    mockBookAppendSheet.mockClear();
+    mockWriteFile.mockClear();
 });
 
 describe('TicketsTable', () => {
@@ -214,6 +254,6 @@ describe('TicketsTable', () => {
         const actionsColumn = tableProps.columns.find((col: any) => col.key === 'action');
         expect(actionsColumn).toBeDefined();
         const rendered = render(<>{actionsColumn.render(null, rcaTickets[0])}</>);
-        expect(rendered.getByRole('button')).toHaveTextContent('Submit RCA');
+        expect(rendered.getByRole('button', { name: 'Submit RCA' })).toBeInTheDocument();
     });
 });

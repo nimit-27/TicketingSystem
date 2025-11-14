@@ -58,18 +58,36 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
       style={{
         backgroundColor: headerBgColor,
         color: iconColor,
-        borderBottom: theme.palette.header.border
+        borderBottom: theme.palette.header.border,
+        position: 'relative'
       }}
     >
-      <CustomIconButton
-        style={{ color: iconColor }}
-        icon={collapsed ? "menu" : "chevronleft"}
-        onClick={toggleSidebar}
-      />
-      <div>
-        <img src={fciLogo} style={{ height: '25px' }} />
+      <div className="d-flex align-items-center" style={{ gap: '8px' }}>
+        <CustomIconButton
+          style={{ color: iconColor }}
+          icon={collapsed ? "menu" : "chevronleft"}
+          onClick={toggleSidebar}
+        />
+        <div>
+          <img src={fciLogo} style={{ height: '25px' }} />
+        </div>
+        <h5 className="p-0 m-0 fw-bold">ANNA DARPAN</h5>
       </div>
-      <h5 className="p-0 m-0 ms-2 fw-bold">ANNA DARPAN</h5>
+      <div
+        className="w-100 text-center"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontWeight: 600,
+          letterSpacing: 0.5,
+          color: iconColor,
+          fontSize: '1rem',
+          pointerEvents: 'none'
+        }}
+      >
+        Ticketing System
+      </div>
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
           style={{ color: iconColor }}
