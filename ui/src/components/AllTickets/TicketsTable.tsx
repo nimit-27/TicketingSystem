@@ -77,7 +77,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
-    const [tableScrollY, setTableScrollY] = useState(520);
+    // const [tableScrollY, setTableScrollY] = useState(300);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -92,20 +92,21 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
 
-    useEffect(() => {
-        const calculateScrollHeight = () => {
-            const fallbackHeight = 520;
-            if (typeof window === 'undefined') {
-                setTableScrollY(fallbackHeight);
-                return;
-            }
-            const availableHeight = window.innerHeight - 360;
-            setTableScrollY(Math.max(availableHeight, 360));
-        };
-        calculateScrollHeight();
-        window.addEventListener('resize', calculateScrollHeight);
-        return () => window.removeEventListener('resize', calculateScrollHeight);
-    }, []);
+    // useEffect(() => {
+    //     const calculateScrollHeight = () => {
+    //         debugger
+    //         const fallbackHeight = 520;
+    //         if (typeof window === 'undefined') {
+    //             setTableScrollY(fallbackHeight);
+    //             return;
+    //         }
+    //         const availableHeight = window.innerHeight * 0.3;
+    //         setTableScrollY(availableHeight);
+    //     };
+    //     calculateScrollHeight();
+    //     window.addEventListener('resize', calculateScrollHeight);
+    //     return () => window.removeEventListener('resize', calculateScrollHeight);
+    // }, []);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -591,7 +592,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 pagination={false}
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
                 expandable={{ expandedRowRender, expandedRowKeys, expandIcon: () => null, showExpandColumn: false }}
-                scroll={{ y: tableScrollY }}
+                // scroll={{ y: '30vh' }}
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 {actions.map(a => {

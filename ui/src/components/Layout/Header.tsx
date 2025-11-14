@@ -82,11 +82,11 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           fontWeight: 600,
           letterSpacing: 0.5,
           color: iconColor,
-          fontSize: '1rem',
+          fontSize: '1.2rem',
           pointerEvents: 'none'
         }}
       >
-        Ticketing System
+        TICKETING SYSTEM
       </div>
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
