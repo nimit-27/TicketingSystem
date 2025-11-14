@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import jakarta.servlet.http.HttpSession;
 
 @RequestMapping("/tickets")
@@ -77,10 +78,11 @@ public class TicketController {
             return ResponseEntity.notFound().build();
         }
         LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
+        String ticketAssigneeUserId = resolveTicketAssigneeUserId(dto.getAssignedTo());
         ticketAuthorizationService.assertCanAccessTicket(
                 id,
                 dto.getUserId(),
-                dto.getAssignedTo(),
+                ticketAssigneeUserId,
                 resolvedUser,
                 session);
         logger.info("Ticket {} retrieved successfully, returning {}", id, HttpStatus.OK);
@@ -99,9 +101,13 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
         LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
+        String slaTicketOwnerId = sla.getTicket() != null ? sla.getTicket().getUserId() : null;
+        String slaTicketAssigneeUserId = sla.getTicket() != null
+                ? resolveTicketAssigneeUserId(sla.getTicket().getAssignedTo())
+                : null;
         ticketAuthorizationService.assertCanAccessTicket(id,
-                sla.getTicket() != null ? sla.getTicket().getUserId() : null,
-                sla.getTicket() != null ? sla.getTicket().getAssignedTo() : null,
+                slaTicketOwnerId,
+                slaTicketAssigneeUserId,
                 resolvedUser,
                 session);
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);
@@ -292,6 +298,21 @@ public class TicketController {
         }
         return userService.getUserDetails(userIdHeader.trim())
                 .map(this::toLoginPayload)
+                .orElse(null);
+    }
+
+    private String resolveTicketAssigneeUserId(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return null;
+        }
+
+        Optional<UserDto> userById = userService.getUserDetails(identifier);
+        if (userById.isPresent()) {
+            return userById.get().getUserId();
+        }
+
+        return userService.getUserDetailsByUsername(identifier)
+                .map(UserDto::getUserId)
                 .orElse(null);
     }
 

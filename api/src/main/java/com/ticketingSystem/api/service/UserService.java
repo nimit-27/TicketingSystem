@@ -46,6 +46,13 @@ public class UserService {
         return userRepository.findById(userId).map(this::mapUserWithStakeholder);
     }
 
+    public Optional<UserDto> getUserDetailsByUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return Optional.empty();
+        }
+        return userRepository.findByUsername(username.trim()).map(this::mapUserWithStakeholder);
+    }
+
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapUserWithStakeholder)
