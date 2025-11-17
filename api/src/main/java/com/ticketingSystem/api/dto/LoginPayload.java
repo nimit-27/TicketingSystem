@@ -19,6 +19,8 @@ public class LoginPayload {
     private String userId;
     private String username;
     private String name;
+    private String firstName;
+    private String lastName;
     private List<String> roles;
     private List<String> levels;
     private RolePermission permissions;
