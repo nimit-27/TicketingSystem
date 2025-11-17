@@ -12,6 +12,8 @@ public class AuthenticatedUser {
     private final String userId;
     private final String username;
     private final String name;
+    private final String firstName;
+    private final String lastName;
     private final String password;
     private final String roles;
     private final UserLevel userLevel;
@@ -22,6 +24,8 @@ public class AuthenticatedUser {
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .name(user.getName())
+                .firstName(null)
+                .lastName(null)
                 .password(user.getPassword())
                 .roles(user.getRoles())
                 .userLevel(user.getUserLevel())
@@ -31,9 +35,11 @@ public class AuthenticatedUser {
 
     public static AuthenticatedUser fromRequesterUser(RequesterUser user) {
         return AuthenticatedUser.builder()
-                .userId(user.getUserId())
+                .userId(user.getRequesterUserId())
                 .username(user.getUsername())
                 .name(user.getName())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .password(user.getPassword())
                 .roles(user.getRoles())
                 .userLevel(null)

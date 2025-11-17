@@ -75,6 +75,8 @@ public class AuthController {
                     LoginPayload payload = LoginPayload.builder()
                             .userId(user.getUserId())
                             .name(user.getName())
+                            .firstName(user.getFirstName())
+                            .lastName(user.getLastName())
                             .username(user.getUsername())
                             .roles(roles)
                             .levels(levels)
@@ -89,6 +91,8 @@ public class AuthController {
                     response.put("userId", user.getUserId());
                     response.put("name", user.getName());
                     response.put("username", user.getUsername());
+                    response.put("firstName", user.getFirstName());
+                    response.put("lastName", user.getLastName());
                     response.put("roles", roles);
                     response.put("permissions", permissions);
                     response.put("levels", levels);
