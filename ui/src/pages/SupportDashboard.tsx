@@ -430,7 +430,7 @@ const SupportDashboard: React.FC = () => {
   const activeScopeLabel = t(scopeLabels[activeScope]);
 
   return (
-    <div className="">
+    <div className="d-flex flex-column flex-grow-1">
       <Title textKey="Dashboard" />
       <div className="row -mb-4">
         <div className="d-flex flex-column gap-3 w-100">

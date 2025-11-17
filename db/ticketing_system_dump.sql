@@ -619,6 +619,45 @@ INSERT INTO `recommended_severity_flow` VALUES (1,'843d91cc-8ee6-4407-89b2-9dd9a
 UNLOCK TABLES;
 
 --
+-- Table structure for table `requester_users`
+--
+
+DROP TABLE IF EXISTS `requester_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `requester_users` (
+  `requester_user_id` varchar(100) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `email_id` varchar(100) DEFAULT NULL,
+  `mobile_no` varchar(15) DEFAULT NULL,
+  `office` varchar(100) DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `roles` varchar(255) DEFAULT NULL,
+  `stakeholder` varchar(50) DEFAULT NULL,
+  `first_name` varchar(100) DEFAULT NULL,
+  `middle_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `date_of_joining` datetime DEFAULT NULL,
+  `date_of_retirement` datetime DEFAULT NULL,
+  `office_type` varchar(20) DEFAULT NULL,
+  `office_code` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`requester_user_id`),
+  UNIQUE KEY `requester_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `requester_users`
+--
+
+LOCK TABLES `requester_users` WRITE;
+/*!40000 ALTER TABLE `requester_users` DISABLE KEYS */;
+INSERT INTO `requester_users` VALUES ('203','Chirag Shah','chirag.shah@example.com','9123456782',NULL,'chirags','admin123','5','2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),('205','Esha Singh','esha.singh@example.com','9123456784',NULL,'eshas','admin123','5','2',NULL,NULL,NULL,NULL,NULL,NULL,NULL),('211','Guest Account','guest@example.com','6135712345',NULL,'guest','admin123','5','1',NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+/*!40000 ALTER TABLE `requester_users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `requestors`
 --
 
@@ -1319,38 +1358,6 @@ INSERT INTO `users` VALUES ('201','Arjun Mehta','arjun.mehta@example.com','91234
 UNLOCK TABLES;
 
 --
--- Table structure for table `requester_users`
---
-
-DROP TABLE IF EXISTS `requester_users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `requester_users` (
-  `user_id` varchar(100) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `email_id` varchar(100) DEFAULT NULL,
-  `mobile_no` varchar(15) DEFAULT NULL,
-  `office` varchar(100) DEFAULT NULL,
-  `username` varchar(50) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `roles` varchar(255) DEFAULT NULL,
-  `stakeholder` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `requester_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `requester_users`
---
-
-LOCK TABLES `requester_users` WRITE;
-/*!40000 ALTER TABLE `requester_users` DISABLE KEYS */;
-INSERT INTO `requester_users` VALUES ('203','Chirag Shah','chirag.shah@example.com','9123456782',NULL,'chirags','admin123','5','2'),('205','Esha Singh','esha.singh@example.com','9123456784',NULL,'eshas','admin123','5','2'),('211','Guest Account','guest@example.com','6135712345',NULL,'guest','admin123','5','1');
-/*!40000 ALTER TABLE `requester_users` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Temporary view structure for view `users_view`
 --
 
@@ -1403,4 +1410,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-14 13:38:42
+-- Dump completed on 2025-11-17 16:09:19

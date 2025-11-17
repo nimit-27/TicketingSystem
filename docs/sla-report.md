@@ -4,12 +4,12 @@ This report keeps the language simple and uses bullet points and tables so anyon
 
 ## 1. Key inputs
 
-| Severity | Target resolution minutes | Notes |
-| --- | --- | --- |
-| Critical | 120 | Fastest response, 2 business hours. |
-| High | 240 | 4 business hours. |
-| Medium | 480 | 1 business day. |
-| Low | 1440 | 3 business days. |
+| Severity | Target resolution minutes | Notes                               |
+| ---      | ---                       | ---                                 |
+| Critical | 120                       | Fastest response, 2 business hours. |
+| High     | 240                       | 4 business hours.                   |
+| Medium   | 480                       | 1 business day.                     |
+| Low      | 1440                      | 3 business days.                    |
 
 *Each severity points to an `SlaConfig` row that stores the minutes above. The system reads that value, adds it to the reported time, and creates the first due date using calendar time.* 【F:api/src/main/java/com/ticketingSystem/api/service/TicketSlaService.java†L71-L85】
 
