@@ -39,18 +39,18 @@ public class AuthController {
                     .body(Map.of("message", "Failed to load permissions"));
         }
 
-        return authService.authenticate(request.getUsername(), request.getPassword())
-                .map(emp -> {
-                    List<String> roles = emp.getRoles() == null ? List.of()
-                            : Arrays.asList(emp.getRoles().split("\\|"));
+        return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
+                .map(user -> {
+                    List<String> roles = user.getRoles() == null ? List.of()
+                            : Arrays.asList(user.getRoles().split("\\|"));
                     List<Integer> roleIds = roles.stream()
                             .filter(r -> !r.isBlank())
                             .map(Integer::parseInt)
                             .toList();
 
-                    List<String> levels = emp.getUserLevel() == null || emp.getUserLevel().getLevelIds() == null
+                    List<String> levels = user.getUserLevel() == null || user.getUserLevel().getLevelIds() == null
                             ? List.of()
-                            : Arrays.asList(emp.getUserLevel().getLevelIds().split("\\|"));
+                            : Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
 
                     RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
 
@@ -66,16 +66,16 @@ public class AuthController {
                     });
 
                     if (jwtProperties.isBypassEnabled()) {
-                        session.setAttribute("userId", emp.getUserId());
+                        session.setAttribute("userId", user.getUserId());
                         session.setAttribute("username", request.getUsername());
-                        session.setAttribute("roles", emp.getRoles());
-                        session.setAttribute("levels", emp.getUserLevel() != null ? emp.getUserLevel().getLevelIds() : null);
+                        session.setAttribute("roles", user.getRoles());
+                        session.setAttribute("levels", user.getUserLevel() != null ? user.getUserLevel().getLevelIds() : null);
                     }
 
                     LoginPayload payload = LoginPayload.builder()
-                            .userId(emp.getUserId())
-                            .name(emp.getName())
-                            .username(emp.getUsername())
+                            .userId(user.getUserId())
+                            .name(user.getName())
+                            .username(user.getUsername())
                             .roles(roles)
                             .levels(levels)
                             .permissions(permissions)
@@ -86,9 +86,9 @@ public class AuthController {
 
                     Map<String, Object> response = new LinkedHashMap<>();
                     response.put("token", token);
-                    response.put("userId", emp.getUserId());
-                    response.put("name", emp.getName());
-                    response.put("username", emp.getUsername());
+                    response.put("userId", user.getUserId());
+                    response.put("name", user.getName());
+                    response.put("username", user.getUsername());
                     response.put("roles", roles);
                     response.put("permissions", permissions);
                     response.put("levels", levels);
