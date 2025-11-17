@@ -3,6 +3,7 @@ package com.ticketingSystem.api.dto;
 public class LoginRequest {
     private String username;
     private String password;
+    private String portal;
 //    private List<String> roles;
 
     public String getUsername() {
@@ -19,6 +20,14 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPortal() {
+        return portal;
+    }
+
+    public void setPortal(String portal) {
+        this.portal = portal;
     }
 
 //    public List<String> getRoles() {

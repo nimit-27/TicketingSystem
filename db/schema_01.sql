@@ -893,6 +893,28 @@ CREATE TABLE `users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `requester_users`
+--
+
+DROP TABLE IF EXISTS `requester_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `requester_users` (
+  `user_id` int NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `email_id` varchar(100) DEFAULT NULL,
+  `mobile_no` varchar(15) DEFAULT NULL,
+  `office` varchar(100) DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `roles` varchar(255) DEFAULT NULL,
+  `stakeholder` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `requester_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Temporary view structure for view `users_view`
 --
 
