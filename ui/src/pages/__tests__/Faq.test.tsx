@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockApiHandler = jest.fn(() => Promise.resolve());
 const mockUseApi = jest.fn(() => ({
@@ -49,7 +49,7 @@ describe('Faq page', () => {
   });
 
   it('renders FAQ items and calls fetch on mount', () => {
-    const { getAllByText } = render(<Faq />);
+    const { getAllByText } = renderWithTheme(<Faq />);
     expect(mockApiHandler).toHaveBeenCalled();
     expect(getAllByText(/Question/)[0]).toBeInTheDocument();
     expect(getAllByText(/Answer/)[0]).toBeInTheDocument();

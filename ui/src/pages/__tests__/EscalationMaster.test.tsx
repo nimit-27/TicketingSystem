@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
 
 const mockUsers = [
   { UserId: '1', name: 'Alice', emailId: 'alice@example.com', mobileNo: '123', office: 'Manager' },
@@ -53,6 +53,7 @@ jest.mock('jwt-decode', () => ({
 }), { virtual: true });
 
 import EscalationMaster from '../EscalationMaster';
+import { renderWithTheme } from '../../test/testUtils';
 
 describe('EscalationMaster', () => {
   beforeEach(() => {
@@ -81,7 +82,7 @@ describe('EscalationMaster', () => {
   });
 
   it('submits new user details and refreshes list', async () => {
-    const { getByLabelText, getByText } = render(<EscalationMaster />);
+    const { getByLabelText, getByText } = renderWithTheme(<EscalationMaster />);
 
     fireEvent.change(getByLabelText('Name'), { target: { value: 'Charlie' } });
     fireEvent.change(getByLabelText('Email ID'), { target: { value: 'charlie@example.com' } });
@@ -102,7 +103,7 @@ describe('EscalationMaster', () => {
   });
 
   it('filters users based on search query', () => {
-    const { getByLabelText, getByTestId } = render(<EscalationMaster />);
+    const { getByLabelText, getByTestId } = renderWithTheme(<EscalationMaster />);
     fireEvent.change(getByLabelText('Search'), { target: { value: 'Alice' } });
     expect(getByTestId('table')).toHaveTextContent('Alice');
   });

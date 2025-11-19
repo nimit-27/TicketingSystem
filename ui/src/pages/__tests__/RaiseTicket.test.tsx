@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockAddTicket = jest.fn(() => Promise.resolve({ id: 'T-100' }));
 const mockAddAttachments = jest.fn(() => Promise.resolve());
@@ -118,7 +119,7 @@ describe('RaiseTicket', () => {
   });
 
   it('submits ticket and opens success modal', async () => {
-    const { getByText, getByTestId } = render(<RaiseTicket />);
+    const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
 
     fireEvent.click(getByTestId('add-attachment'));
     fireEvent.click(getByText('Submit Ticket'));
@@ -131,7 +132,7 @@ describe('RaiseTicket', () => {
   });
 
   it('opens link to master ticket modal', () => {
-    const { getByText, getByTestId } = render(<RaiseTicket />);
+    const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
     fireEvent.click(getByText('Link to a Master Ticket'));
     fireEvent.click(getByTestId('close-link-modal'));
   });

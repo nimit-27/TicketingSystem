@@ -1,5 +1,6 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockSubmit = jest.fn();
 const mockCancel = jest.fn();
@@ -92,7 +93,7 @@ describe('CreateRole', () => {
   });
 
   it('submits role details with selected permissions', async () => {
-    const { getByLabelText, getByText, getAllByTestId } = render(
+    const { getByLabelText, getByText, getAllByTestId } = renderWithTheme(
       <CreateRole
         roles={['Admin']}
         permissions={{}}
@@ -128,7 +129,7 @@ describe('CreateRole', () => {
   });
 
   it('triggers cancel handler on cancel click', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithTheme(
       <CreateRole roles={[]} permissions={{}} statusActions={[]} onSubmit={mockSubmit} onCancel={mockCancel} />
     );
     fireEvent.click(getByText('Cancel'));

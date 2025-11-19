@@ -20,12 +20,14 @@ const GenericTable = <T extends object = any>({ className, style, ...props }: Ta
         token: {
             colorText: theme.palette.global.table.defaultTextColor,
         },
-    }
-    const headerTextColor = theme.palette.global.table.headerText;
+    };
+
     const inlineStyle = {
         ...style,
-    } as (CSSProperties & Record<string, string | number>);
-    // inlineStyle['--table-header-color'] = headerTextColor;
+        ['--table-header-bg' as string]: theme.palette.global.table.headerBackground,
+        ['--table-header-color' as string]: theme.palette.global.table.headerText,
+        ['--table-border-color' as string]: theme.palette.global.table.border,
+    } as CSSProperties & Record<string, string | number>;
     return <ConfigProvider theme={tableTheme}>
         <Table className={classes} style={inlineStyle} {...props} size='small' bordered />
     </ConfigProvider>

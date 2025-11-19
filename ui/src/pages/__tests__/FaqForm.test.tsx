@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockCreateFaq = jest.fn(() => Promise.resolve());
 const mockNavigate = jest.fn();
@@ -55,7 +56,7 @@ describe('FaqForm', () => {
   });
 
   it('submits form when valid data is provided', async () => {
-    const { getByPlaceholderText, getByText, getByTestId } = render(<FaqForm />);
+    const { getByPlaceholderText, getByText, getByTestId } = renderWithTheme(<FaqForm />);
 
     fireEvent.change(getByPlaceholderText('Question (English)'), { target: { value: 'What?' } });
     fireEvent.change(getByPlaceholderText('Question (Hindi)'), { target: { value: 'क्या?' } });
@@ -72,7 +73,7 @@ describe('FaqForm', () => {
   });
 
   it('navigates back when cancel is clicked', () => {
-    const { getByText } = render(<FaqForm />);
+    const { getByText } = renderWithTheme(<FaqForm />);
     fireEvent.click(getByText('Cancel'));
     expect(mockNavigate).toHaveBeenCalledWith(-1);
   });

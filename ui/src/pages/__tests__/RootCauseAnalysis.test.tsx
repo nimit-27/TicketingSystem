@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockGetTickets = jest.fn(() => Promise.resolve({ items: [{ id: '1', severity: 'S1', severityLabel: 'Critical', rcaStatus: 'PENDING' }], totalPages: 2 }));
 const mockGetWorkflow = jest.fn(() => Promise.resolve({}));
@@ -99,7 +100,7 @@ describe('RootCauseAnalysis', () => {
   });
 
   it('fetches tickets and renders table with normalized severity', async () => {
-    const { getByTestId } = render(<RootCauseAnalysis />);
+    const { getByTestId } = renderWithTheme(<RootCauseAnalysis />);
 
     await waitFor(() => {
       expect(mockGetTickets).toHaveBeenCalled();

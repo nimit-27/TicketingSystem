@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockAddCategory = jest.fn(() => Promise.resolve());
 const mockFetchCategories = jest.fn(() => Promise.resolve([{ categoryId: '1', category: 'Existing', subCategories: [] }]));
@@ -86,7 +87,7 @@ describe('CategoriesMaster', () => {
   });
 
   it('allows adding a new category when unique name is entered', async () => {
-    const { getByLabelText, getByText } = render(<CategoriesMaster />);
+    const { getByLabelText, getByText } = renderWithTheme(<CategoriesMaster />);
 
     const input = getByLabelText('Category') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'New Category' } });

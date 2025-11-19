@@ -1,5 +1,6 @@
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockAddRole = jest.fn(() => Promise.resolve());
 const mockLoadPermissions = jest.fn(() => Promise.resolve());
@@ -128,7 +129,7 @@ describe('RoleMaster', () => {
   });
 
   it('creates a role when create flow is submitted', async () => {
-    const { getByText, getByTestId } = render(<RoleMaster />);
+    const { getByText, getByTestId } = renderWithTheme(<RoleMaster />);
 
     await act(async () => {
       fireEvent.click(getByText('Create Role'));
@@ -145,7 +146,7 @@ describe('RoleMaster', () => {
   });
 
   it('deletes selected roles', async () => {
-    const { getByText } = render(<RoleMaster />);
+    const { getByText } = renderWithTheme(<RoleMaster />);
     expect(capturedTableProps).not.toBeNull();
     await act(async () => {
       capturedTableProps.rowSelection.onChange(['1']);

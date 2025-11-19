@@ -100,7 +100,12 @@ export function getAllSubCategoriesByCategory(categoryId: string) {
     if (subCategoryCache[categoryId]) {
         return Promise.resolve({ data: subCategoryCache[categoryId] } as any);
     }
-    return axios.get(`${BASE_URL}/categories/${categoryId}/sub-categories`);
+    return axios.get(`${BASE_URL}/categories/${categoryId}/sub-categories`).then(res => {
+        const normalized = normalizeSubCategories(res.data);
+        subCategoryCache[categoryId] = normalized;
+        res.data = normalized;
+        return res;
+    });
 }
 
 export function addCategory(category: any) {
