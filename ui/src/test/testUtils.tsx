@@ -1,23 +1,32 @@
 import { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider, Theme, ThemeOptions, createTheme } from '@mui/material/styles';
+import { allThemes, ThemeName } from '../themes/themes';
 
-export const createTestTheme = (options?: ThemeOptions): Theme =>
-  createTheme({
+export const createTestTheme = (options?: ThemeOptions, themeName: ThemeName = 'light'): Theme => {
+  const baseTheme = allThemes[themeName];
+
+  if (!options) {
+    return baseTheme;
+  }
+
+  return createTheme({
+    ...baseTheme,
+    ...options,
     palette: {
-      mode: 'light',
-      primary: { main: '#1976d2' },
-      success: { main: '#2e7d32', dark: '#1b5e20' },
+      ...baseTheme.palette,
+      ...options.palette,
     },
     components: {
-      MuiButtonBase: {
-        defaultProps: {
-          disableRipple: true,
-        },
-      },
+      ...baseTheme.components,
+      ...options.components,
     },
-    ...options,
+    typography: {
+      ...baseTheme.typography,
+      ...options.typography,
+    },
   });
+};
 
 interface ProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
   theme?: Theme;

@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, waitFor, screen } from '@testing-library/react';
+import { fireEvent, waitFor, screen } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockUpdateRolePermission = jest.fn(() => Promise.resolve());
 const mockUpdateRole = jest.fn(() => Promise.resolve());
@@ -176,7 +177,7 @@ describe('RoleDetails', () => {
   });
 
   it('saves permissions and status actions', async () => {
-    const { getByText } = render(<RoleDetails />);
+    const { getByText } = renderWithTheme(<RoleDetails />);
 
     fireEvent.click(getByText('Save'));
 
@@ -188,7 +189,7 @@ describe('RoleDetails', () => {
   });
 
   it('allows renaming the role', () => {
-    const { getByTestId, getByDisplayValue } = render(<RoleDetails />);
+    const { getByTestId, getByDisplayValue } = renderWithTheme(<RoleDetails />);
     fireEvent.click(getByTestId('icon-edit'));
     fireEvent.change(getByDisplayValue('Admin'), { target: { value: 'Admin Updated' } });
     fireEvent.click(getByTestId('icon-check'));
@@ -196,7 +197,7 @@ describe('RoleDetails', () => {
   });
 
   it('allows selecting other roles from the title menu', async () => {
-    render(<RoleDetails />);
+    renderWithTheme(<RoleDetails />);
 
     fireEvent.click(screen.getByText('Role: Admin'));
 
@@ -208,7 +209,7 @@ describe('RoleDetails', () => {
   });
 
   it('updates the displayed role data when a new role is selected', async () => {
-    render(<RoleDetails />);
+    renderWithTheme(<RoleDetails />);
 
     fireEvent.click(screen.getByText('Role: Admin'));
 

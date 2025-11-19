@@ -1,10 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import RootCauseAnalysisModal from '../RootCauseAnalysisModal';
 import { useApi } from '../../../hooks/useApi';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { getRootCauseAnalysis, saveRootCauseAnalysis, deleteRootCauseAnalysisAttachment } from '../../../services/RootCauseAnalysisService';
 import { getTicket } from '../../../services/TicketService';
+import { renderWithTheme } from '../../../test/testUtils';
 
 type FileUploadProps = {
   onFilesChange?: (files: File[]) => void;
@@ -145,7 +146,7 @@ describe('RootCauseAnalysisModal', () => {
   });
 
   it('fetches data when opened and displays existing attachments', async () => {
-    render(
+    renderWithTheme(
       <RootCauseAnalysisModal
         open
         onClose={jest.fn()}
@@ -165,7 +166,7 @@ describe('RootCauseAnalysisModal', () => {
 
   it('submits form and saves RCA data', async () => {
     const onClose = jest.fn();
-    render(
+    renderWithTheme(
       <RootCauseAnalysisModal
         open
         onClose={onClose}
@@ -189,7 +190,7 @@ describe('RootCauseAnalysisModal', () => {
   });
 
   it('allows deleting existing attachment when in edit mode', async () => {
-    render(
+    renderWithTheme(
       <RootCauseAnalysisModal
         open
         onClose={jest.fn()}

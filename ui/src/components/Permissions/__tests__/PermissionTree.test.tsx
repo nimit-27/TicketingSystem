@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PermissionTree from '../PermissionTree';
 import { DevModeContext } from '../../../context/DevModeContext';
+import { renderWithTheme } from '../../../test/testUtils';
 
 jest.mock('../JsonEditModal', () => ({
   __esModule: true,
@@ -28,13 +29,12 @@ const devModeValue = {
   setJwtBypass: jest.fn(),
 };
 
-const renderWithContext = (ui: React.ReactNode, value = { ...devModeValue, devMode: false }) => {
-  return render(
+const renderWithContext = (ui: React.ReactNode, value = { ...devModeValue, devMode: false }) =>
+  renderWithTheme(
     <DevModeContext.Provider value={value as any}>
       {ui}
-    </DevModeContext.Provider>
+    </DevModeContext.Provider>,
   );
-};
 
 const findCheckboxForLabel = (label: string): HTMLInputElement => {
   const textEl = screen.getByText(label);

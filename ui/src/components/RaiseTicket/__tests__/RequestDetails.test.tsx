@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { ThemeModeContext } from '../../../context/ThemeContext';
+import { renderWithTheme } from '../../../test/testUtils';
 
 const mockSetValue = jest.fn();
 const mockUseWatch = jest.fn();
@@ -11,17 +12,6 @@ jest.mock('react-hook-form', () => ({
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
-}));
-
-jest.mock('@mui/material/styles', () => ({
-  ...jest.requireActual('@mui/material/styles'),
-  useTheme: () => ({
-    palette: {
-      primary: { main: '#111' },
-      secondary: { main: '#222' },
-      sidebar: { background: '#0f0', border: '', text: '' },
-    },
-  }),
 }));
 
 jest.mock('../../../utils/permissions', () => ({
@@ -41,6 +31,21 @@ jest.mock('../../UI/IconButton/CustomIconButton', () => ({
 }));
 
 const RequestDetails = require('../RequestDetails').default;
+
+const renderWithContext = (
+  ui: React.ReactElement,
+  contextValue: React.ContextType<typeof ThemeModeContext> = {
+    mode: 'light',
+    toggle: jest.fn(),
+    layout: 1,
+    toggleLayout: jest.fn(),
+  },
+) =>
+  renderWithTheme(
+    <ThemeModeContext.Provider value={contextValue}>
+      {ui}
+    </ThemeModeContext.Provider>,
+  );
 
 describe('RequestDetails', () => {
   beforeEach(() => {
@@ -71,7 +76,7 @@ describe('RequestDetails', () => {
   } as any;
 
   it('renders request mode icon buttons when access is allowed in layout 1', () => {
-    render(<RequestDetails {...baseProps} />);
+    renderWithContext(<RequestDetails {...baseProps} />);
 
     expect(screen.getByText('Request Mode')).toBeInTheDocument();
     expect(screen.getByText('person')).toBeInTheDocument();
@@ -87,7 +92,7 @@ describe('RequestDetails', () => {
       return '';
     });
 
-    render(<RequestDetails {...baseProps} />);
+    renderWithContext(<RequestDetails {...baseProps} />);
 
     mockSetValue.mockClear();
 
@@ -97,10 +102,9 @@ describe('RequestDetails', () => {
   });
 
   it('renders request mode radio buttons when layout is 2', () => {
-    render(
-      <ThemeModeContext.Provider value={{ mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() }}>
-        <RequestDetails {...baseProps} />
-      </ThemeModeContext.Provider>
+    renderWithContext(
+      <RequestDetails {...baseProps} />,
+      { mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() },
     );
 
     expect(screen.getByText('Request Mode')).toBeInTheDocument();
@@ -117,10 +121,9 @@ describe('RequestDetails', () => {
       return '';
     });
 
-    render(
-      <ThemeModeContext.Provider value={{ mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() }}>
-        <RequestDetails {...baseProps} />
-      </ThemeModeContext.Provider>
+    renderWithContext(
+      <RequestDetails {...baseProps} />,
+      { mode: 'light', toggle: jest.fn(), layout: 2, toggleLayout: jest.fn() },
     );
 
     mockSetValue.mockClear();
@@ -138,7 +141,7 @@ describe('RequestDetails', () => {
       email: { show: false },
     });
 
-    render(<RequestDetails {...baseProps} />);
+    renderWithContext(<RequestDetails {...baseProps} />);
 
     expect(screen.queryByText('Request Mode')).not.toBeInTheDocument();
   });
