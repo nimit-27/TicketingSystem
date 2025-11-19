@@ -324,8 +324,8 @@ public class TicketController {
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .name(user.getName())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
+//                .firstName(user.getFirstName())
+//                .lastName(user.getLastName())
                 .roles(roles)
                 .levels(user.getLevels() != null ? user.getLevels() : Collections.emptyList())
                 .build();
