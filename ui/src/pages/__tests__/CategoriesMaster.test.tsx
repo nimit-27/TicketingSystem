@@ -99,4 +99,14 @@ describe('CategoriesMaster', () => {
       expect(mockAddCategory).toHaveBeenCalled();
     });
   });
+
+  it('hides the add button for duplicate category names', () => {
+    const { getByLabelText, queryByText } = renderWithTheme(<CategoriesMaster />);
+
+    const input = getByLabelText('Category') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Existing' } });
+
+    expect(queryByText('Add Category')).toBeNull();
+    expect(mockAddCategory).not.toHaveBeenCalled();
+  });
 });
