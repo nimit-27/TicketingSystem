@@ -288,7 +288,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     return (
         <>
-            {showRequestorDetails && <CustomFieldset variant="bordered" title={t('Requestor Details')} className="mb-1">
+            {showRequestorDetails && <CustomFieldset title={t('Requestor Details')} className="mb-1">
                 <div className="d-flex w-100 justify-content-between">
                     {(showSearchUserAutocomplete || showStakeholder) && (
                         <div className="col-md-6 d-flex flex-column">

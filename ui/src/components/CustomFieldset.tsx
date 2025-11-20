@@ -8,7 +8,7 @@ import { ThemeModeContext } from "../context/ThemeContext";
 
 interface CustomFieldsetProps {
     title?: string;
-    variant?: "bordered" | "basic" | "underlined";
+    variant?: "bordered" | "basic" | "default";
     children: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
@@ -18,7 +18,7 @@ interface CustomFieldsetProps {
 
 const CustomFieldset: React.FC<CustomFieldsetProps> = ({
     title,
-    variant = "underlined",
+    variant = "default",
     children,
     className = "",
     style,
@@ -30,7 +30,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
     const [collapsed, setCollapsed] = useState(false);
 
     // Store variant in state to trigger rerender
-    const [currentVariant, setCurrentVariant] = useState<"bordered" | "basic" | "underlined">(variant);
+    const [currentVariant, setCurrentVariant] = useState<"bordered" | "basic" | "default">(variant);
 
     useEffect(() => {
         document.documentElement.style.setProperty('--sub-heading-text-color', theme.palette.success.main);
@@ -40,7 +40,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
     useEffect(() => {
         // Update variant based on layout
         if (layout === 1) setCurrentVariant("bordered");
-        else if (layout === 2) setCurrentVariant("underlined");
+        else if (layout === 2) setCurrentVariant("default");
         else if (layout === 3) setCurrentVariant("basic");
     }, [layout]);
 
@@ -51,8 +51,8 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
 
     const toggleCollapse = () => setCollapsed(!collapsed);
 
-    if (currentVariant === "underlined") return (
-        <div className={`mb-4 form-container ${className}`} style={{ ...style }}>
+    if (currentVariant === "default") return (
+        <div className={`mb-4 ${className}`} style={{ ...style }}>
             {/* <div className={`form-title-disabled ${disabled ? '-disabled' : ''} d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}> */}
             <div className={`d-flex justify-content-between align-items-center`} onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
                 <h4 className="mb-3 ts-16 fw-bold" style={{color: theme.palette.global.fieldset.header.text}}>{title}</h4>
@@ -99,7 +99,7 @@ const CustomFieldset: React.FC<CustomFieldsetProps> = ({
 
     if (currentVariant === "basic") return (
         <fieldset
-            className={`border position-relative rounded mb-4 px-3 ${className}`}
+            className={`border position-relative rounded mb-4 px-3 p-0 ${className}`}
             style={style}
         >
             <legend
