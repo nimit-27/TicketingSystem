@@ -45,7 +45,7 @@ const SidebarLayout: React.FC = () => {
 
         {/* PAGE VIEW */}
         <div className="container-fluid d-flex mb-2 flex-grow-1 p-2 position-relative" style={{ overflowY: "scroll", overflowX: "clip" }}>
-          <img src="/page-leaf.png" className="position-absolute" style={{ right: "0", top: "-60px", zIndex: "-1" }} />
+          <img src="./page-leaf.png" className="position-absolute" style={{ right: "0", top: "-60px", zIndex: "-1" }} />
           <Outlet />
         </div>
       </div>

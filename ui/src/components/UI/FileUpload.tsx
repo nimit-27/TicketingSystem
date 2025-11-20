@@ -35,16 +35,16 @@ const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
     switch (ext) {
         case 'pdf':
-            return '/icons/pdf-icon.png';   // your pdf icon path
+            return './icons/pdf-icon.png';   // your pdf icon path
         case 'doc':
         case 'docx':
-            return '/icons/word-icon.png';
+            return './icons/word-icon.png';
         case 'jpg':
         case 'jpeg':
         case 'png':
             return null; // these can be displayed directly
         default:
-            return '/icons/file-icon.png';  // generic file icon
+            return './icons/file-icon.png';  // generic file icon
     }
 };
 
