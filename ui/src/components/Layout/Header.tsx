@@ -48,8 +48,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   };
 
   const fciLogo = useMemo(() => {
-    if (theme.palette.mode === "light") return "/logo.png"
-    else if (theme.palette.mode === "dark") return "/fciLogo.png"
+    if (theme.palette.mode === "light") return "./logo.png"
+    else if (theme.palette.mode === "dark") return "./fciLogo.png"
   }, [theme.palette.mode])
 
   return (
