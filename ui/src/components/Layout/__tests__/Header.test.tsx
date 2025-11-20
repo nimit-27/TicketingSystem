@@ -109,7 +109,7 @@ describe('Header', () => {
   it('renders appropriate logo for light and dark themes', () => {
     const { unmount } = renderHeader({ mode: 'light' });
 
-    expect(screen.getByRole('img')).toHaveAttribute('src', '/logo.png');
+    expect(screen.getByRole('img')).toHaveAttribute('src', './logo.png');
 
     unmount();
 
@@ -133,6 +133,6 @@ describe('Header', () => {
     );
 
     const logo = screen.getByRole('img');
-    expect(logo).toHaveAttribute('src', '/fciLogo.png');
+    expect(logo).toHaveAttribute('src', './fciLogo.png');
   });
 });

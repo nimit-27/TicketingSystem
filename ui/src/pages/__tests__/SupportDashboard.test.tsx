@@ -14,7 +14,7 @@ jest.mock("../../hooks/useApi", () => ({
 const mockFetchSupportDashboardSummary = jest.fn(() => Promise.resolve({}));
 
 jest.mock("../../services/ReportService", () => ({
-  fetchSupportDashboardSummary: (...args: unknown[]) => mockFetchSupportDashboardSummary(...args),
+  fetchSupportDashboardSummary: (...args: unknown[]) => mockFetchSupportDashboardSummary.apply(null, args),
 }));
 
 jest.mock("../../utils/permissions", () => ({
@@ -94,11 +94,12 @@ describe("SupportDashboard", () => {
   });
 
   it("shows an error message when custom month range is invalid", async () => {
-    const { getByLabelText, findByText } = renderWithTheme(<SupportDashboard />);
+    const { getByLabelText, findByText, getByText } = renderWithTheme(<SupportDashboard />);
 
-    fireEvent.change(getByLabelText("supportDashboard.filters.interval.label"), {
-      target: { value: "MONTHLY" },
-    });
+    // fireEvent.change(getByLabelText("supportDashboard.filters.interval.label"), {
+    //   target: { value: "MONTHLY" },
+    // });
+    fireEvent.click(getByText("MONTHLY"));
 
     fireEvent.change(getByLabelText("supportDashboard.filters.range.label"), {
       target: { value: "CUSTOM_MONTH_RANGE" },

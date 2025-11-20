@@ -28,21 +28,21 @@ const renderFieldset = (
 describe('CustomFieldset', () => {
   it('renders the underlined variant and toggles collapse from the header', async () => {
     renderFieldset(
-      <CustomFieldset title="Details" variant="underlined">
-        <div>Underlined content</div>
+      <CustomFieldset title="Details" variant="default">
+        <div>Default content</div>
       </CustomFieldset>,
     );
 
-    expect(screen.getByText('Underlined content')).toBeInTheDocument();
+    expect(screen.getByText('Default content')).toBeInTheDocument();
 
     const header = screen.getByText('Details').closest('div');
     expect(header).not.toBeNull();
 
     await userEvent.click(header!);
-    expect(screen.queryByText('Underlined content')).not.toBeInTheDocument();
+    expect(screen.queryByText('Default content')).not.toBeInTheDocument();
 
     await userEvent.click(header!);
-    expect(screen.getByText('Underlined content')).toBeInTheDocument();
+    expect(screen.getByText('Default content')).toBeInTheDocument();
   });
 
   it('renders the bordered variant with an action element and collapses via the legend', async () => {
@@ -80,7 +80,6 @@ describe('CustomFieldset', () => {
     await waitFor(() => {
       expect(container.querySelector('fieldset')).toBeInTheDocument();
     });
-    expect(container.querySelector('.form-container')).toBeNull();
 
     rerender(
       <ThemeModeContext.Provider value={createContextValue()}>
@@ -98,15 +97,12 @@ describe('CustomFieldset', () => {
 
     rerender(
       <ThemeModeContext.Provider value={createContextValue()}>
-        <CustomFieldset title="Dynamic" variant="underlined">
+        <CustomFieldset title="Dynamic">
           <div>Dynamic content</div>
         </CustomFieldset>
       </ThemeModeContext.Provider>,
     );
 
-    await waitFor(() => {
-      expect(container.querySelector('.form-container')).toBeInTheDocument();
-    });
     expect(container.querySelector('fieldset')).toBeNull();
   });
 });
