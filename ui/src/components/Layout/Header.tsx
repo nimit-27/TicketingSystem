@@ -8,6 +8,7 @@ import { LanguageContext } from "../../context/LanguageContext";
 import { DevModeContext } from "../../context/DevModeContext";
 import UserMenu from "./UserMenu";
 import NotificationBell from "../Notifications/NotificationBell";
+import { useTranslation } from "react-i18next";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -19,6 +20,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
   const { toggleLanguage } = useContext(LanguageContext);
   const { toggleDevMode, devMode, jwtBypass, toggleJwtBypass } = useContext(DevModeContext);
   const theme = useTheme();
+  const { t } = useTranslation();
   const user = getCurrentUserDetails();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const initials = user?.name
@@ -71,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
         <div>
           <img src={fciLogo} style={{ height: '25px' }} />
         </div>
-        <h5 className="p-0 m-0 fw-bold">ANNA DARPAN</h5>
+        <h5 className="p-0 m-0 fw-bold">{t("Anna Darpan")}</h5>
       </div>
       <div
         className="w-100 text-center"
@@ -86,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           pointerEvents: 'none'
         }}
       >
-        TICKETING SYSTEM
+        {t("Ticketing System")}
       </div>
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
         <CustomIconButton
