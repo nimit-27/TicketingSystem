@@ -76,6 +76,9 @@ const Faq: React.FC = () => {
     const navigate = useNavigate();
     const { data: faqs, apiHandler } = useApi<any>();
     const canAddQnA = checkAccessMaster(["faq", "QNAButton"]);
+    const showAddQnAButton = checkAccessMaster(["faq", "addQnAButton"]);
+
+    console.log({canAddQnA, showAddQnAButton});
 
     useEffect(() => {
         apiHandler(() => getFaqs());
@@ -88,7 +91,7 @@ const Faq: React.FC = () => {
             <Title
                 textKey="FAQ"
                 rightContent={
-                    canAddQnA ? (
+                    showAddQnAButton ? (
                         <GenericButton variant="contained" onClick={() => navigate('/faq/new')}>
                             {t('Add Q & A')}
                         </GenericButton>

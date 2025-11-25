@@ -26,7 +26,7 @@ const AllChildrenChip: React.FC<AllChildrenChipProps> = ({ state, onClick, disab
     return (
         <Chip
             size="small"
-            label="All children"
+            label="All Nodes"
             color={chipConfig.color}
             variant={chipConfig.variant}
             onClick={onClick}

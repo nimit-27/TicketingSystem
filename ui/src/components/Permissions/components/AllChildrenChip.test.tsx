@@ -18,7 +18,7 @@ describe('AllChildrenChip', () => {
 
     render(<AllChildrenChip state="all" onClick={handleClick} />);
 
-    const chip = screen.getByRole('button', { name: /all children/i });
+    const chip = screen.getByRole('button', { name: /all nodes/i });
     expect(chip).toBeInTheDocument();
 
     await userEvent.click(chip);
@@ -31,7 +31,7 @@ describe('AllChildrenChip', () => {
 
     render(<AllChildrenChip state="none" onClick={handleClick} disabled />);
 
-    const chip = screen.getByRole('button', { name: /all children/i });
+    const chip = screen.getByRole('button', { name: /all nodes/i });
     expect(chip).toBeDisabled();
 
     fireEvent.click(chip);

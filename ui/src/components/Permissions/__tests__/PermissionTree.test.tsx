@@ -108,7 +108,7 @@ describe('PermissionTree', () => {
     expect(newChildCheckbox).toBeChecked();
   });
 
-  it('cycles all children visibility via the chip', async () => {
+  it('cycles all nodes visibility via the chip', async () => {
     const initialData = {
       pages: {
         show: true,
@@ -133,7 +133,7 @@ describe('PermissionTree', () => {
 
     renderWithContext(<Wrapper />);
 
-    const chip = screen.getByRole('button', { name: /all children/i });
+    const chip = screen.getByRole('button', { name: /all nodes/i });
 
     expect(findCheckboxForLabel('Dashboard')).toBeChecked();
     expect(findCheckboxForLabel('Reports')).not.toBeChecked();
