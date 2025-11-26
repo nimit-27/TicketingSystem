@@ -12,10 +12,12 @@ import com.ticketingSystem.api.dto.reports.SupportDashboardTicketVolumePointDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
+import com.ticketingSystem.api.models.Category;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketFeedback;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.repository.CategoryRepository;
 import com.ticketingSystem.api.repository.TicketFeedbackRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
@@ -53,6 +55,7 @@ public class ReportService {
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -693,10 +696,19 @@ public class ReportService {
     }
 
     public ProblemManagementReportDto getProblemManagementReport() {
-        List<ProblemCategoryStatDto> categoryStats = ticketRepository.countTicketsByCategory().stream()
+        List<TicketRepository.CategoryCountProjection> categoryCounts = ticketRepository.countTicketsByCategory();
+
+        Map<String, String> categoryNameById = categoryRepository.findAllById(categoryCounts.stream()
+                        .map(TicketRepository.CategoryCountProjection::getCategory)
+                        .filter(StringUtils::hasText)
+                        .collect(Collectors.toSet()))
+                .stream()
+                .collect(Collectors.toMap(Category::getCategoryId, Category::getCategory));
+
+        List<ProblemCategoryStatDto> categoryStats = categoryCounts.stream()
                 .sorted(Comparator.comparingLong(TicketRepository.CategoryCountProjection::getCount).reversed())
                 .map(projection -> ProblemCategoryStatDto.builder()
-                        .category(projection.getCategory())
+                        .category(categoryNameById.getOrDefault(projection.getCategory(), projection.getCategory()))
                         .ticketCount(Optional.ofNullable(projection.getCount()).orElse(0L))
                         .build())
                 .collect(Collectors.toList());
