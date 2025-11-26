@@ -40,6 +40,24 @@ const extractApiPayload = <T,>(response: any): T | null => {
     return (resp ?? null) as T | null;
 };
 
+const calculateColumnWidths = (rows: (string | number)[][]) => {
+    const widths: { wch: number }[] = [];
+
+    rows.forEach((row) => {
+        row.forEach((cell, columnIndex) => {
+            const value = cell == null ? "" : String(cell);
+            const maxLineLength = Math.max(...value.split("\n").map((line) => line.length));
+            const paddedWidth = maxLineLength + 2; // add small padding for readability
+
+            widths[columnIndex] = {
+                wch: Math.max(widths[columnIndex]?.wch ?? 0, paddedWidth, 12), // enforce a sensible minimum
+            };
+        });
+    });
+
+    return widths;
+};
+
 const MISReports: React.FC = () => {
     const [downloading, setDownloading] = useState(false);
     const { showMessage } = useSnackbar();
@@ -154,6 +172,8 @@ const MISReports: React.FC = () => {
 
             const workbook = XLSX.utils.book_new();
             const overviewSheet = XLSX.utils.aoa_to_sheet(overviewSheetData);
+
+            overviewSheet["!cols"] = calculateColumnWidths(overviewSheetData);
 
             XLSX.utils.book_append_sheet(workbook, overviewSheet, "MIS Overview");
 
