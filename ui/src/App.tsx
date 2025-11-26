@@ -1,30 +1,31 @@
-import React, { JSX, useContext } from 'react';
+import React, { JSX, Suspense, lazy, useContext } from 'react';
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import RaiseTicket from './pages/RaiseTicket';
-import AllTickets from './pages/AllTickets';
-import KnowledgeBase from './pages/KnowledgeBase';
-import TicketDetails from './pages/TicketDetails';
-import CustomerSatisfactionForm from './pages/CustomerSatisfactionForm';
-import CategoriesMaster from './pages/CategoriesMaster';
-import EscalationMaster from './pages/EscalationMaster';
-import RoleMaster from './pages/RoleMaster';
-import RoleDetails from './pages/RoleDetails';
-import SidebarLayout from './components/Layout/SidebarLayout';
-import Login from './pages/Login';
-import DevLogin from './pages/DevLogin';
-import MyTickets from './pages/MyTickets';
-import MyWorkload from './pages/MyWorkload';
-import Faq from './pages/Faq';
-import FaqForm from './pages/FaqForm';
-import RootCauseAnalysis from './pages/RootCauseAnalysis';
-import MISReports from './pages/MISReports';
-import CalendarPage from './pages/Calendar';
-import AddUser from './pages/AddUser';
-import SupportDashboard from './pages/SupportDashboard';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
+
+const SidebarLayout = lazy(() => import('./components/Layout/SidebarLayout'));
+const RaiseTicket = lazy(() => import('./pages/RaiseTicket'));
+const AllTickets = lazy(() => import('./pages/AllTickets'));
+const KnowledgeBase = lazy(() => import('./pages/KnowledgeBase'));
+const TicketDetails = lazy(() => import('./pages/TicketDetails'));
+const CustomerSatisfactionForm = lazy(() => import('./pages/CustomerSatisfactionForm'));
+const CategoriesMaster = lazy(() => import('./pages/CategoriesMaster'));
+const EscalationMaster = lazy(() => import('./pages/EscalationMaster'));
+const RoleMaster = lazy(() => import('./pages/RoleMaster'));
+const RoleDetails = lazy(() => import('./pages/RoleDetails'));
+const Login = lazy(() => import('./pages/Login'));
+const DevLogin = lazy(() => import('./pages/DevLogin'));
+const MyTickets = lazy(() => import('./pages/MyTickets'));
+const MyWorkload = lazy(() => import('./pages/MyWorkload'));
+const Faq = lazy(() => import('./pages/Faq'));
+const FaqForm = lazy(() => import('./pages/FaqForm'));
+const RootCauseAnalysis = lazy(() => import('./pages/RootCauseAnalysis'));
+const MISReports = lazy(() => import('./pages/MISReports'));
+const CalendarPage = lazy(() => import('./pages/Calendar'));
+const AddUser = lazy(() => import('./pages/AddUser'));
+const SupportDashboard = lazy(() => import('./pages/SupportDashboard'));
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const user = getUserDetails();
@@ -42,41 +43,43 @@ const LoginRoute: React.FC = () => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginRoute />} />
-      <Route
-        path="/"
-        element={(
-          <RequireAuth>
-            <NotificationProvider>
-              <SidebarLayout />
-            </NotificationProvider>
-          </RequireAuth>
-        )}
-      >
-        <Route index element={<Navigate to="/dashboard" replace />} /> {/* Default route */}
-        <Route path="dashboard" element={<SupportDashboard />} />
-        <Route path="create-ticket" element={<RaiseTicket />} />
-        <Route path="tickets" element={<AllTickets />} />
-        <Route path="my-tickets" element={<MyTickets />} />
-        <Route path="my-workload" element={<MyWorkload />} />
-        <Route path="root-cause-analysis" element={<RootCauseAnalysis />} />
-        <Route path="faq" element={<Faq />} />
-        <Route path="faq/new" element={<FaqForm />} />
-        <Route path="faq/:faqId/edit" element={<FaqForm />} />
-        <Route path="tickets/:ticketId" element={<TicketDetails />} />
-        <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
-        <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
-        <Route path="knowledge-base" element={<KnowledgeBase />} />
-        <Route path="mis-reports" element={<MISReports />} />
-        <Route path="calendar" element={<CalendarPage />} />
-        <Route path="categories-master" element={<CategoriesMaster />} />
-        <Route path="escalation-master" element={<EscalationMaster />} />
-        <Route path="role-master" element={<RoleMaster />} />
-        <Route path="role-master/:roleId" element={<RoleDetails />} />
-        <Route path="users/new" element={<AddUser />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route path="/login" element={<LoginRoute />} />
+        <Route
+          path="/"
+          element={(
+            <RequireAuth>
+              <NotificationProvider>
+                <SidebarLayout />
+              </NotificationProvider>
+            </RequireAuth>
+          )}
+        >
+          <Route index element={<Navigate to="/dashboard" replace />} /> {/* Default route */}
+          <Route path="dashboard" element={<SupportDashboard />} />
+          <Route path="create-ticket" element={<RaiseTicket />} />
+          <Route path="tickets" element={<AllTickets />} />
+          <Route path="my-tickets" element={<MyTickets />} />
+          <Route path="my-workload" element={<MyWorkload />} />
+          <Route path="root-cause-analysis" element={<RootCauseAnalysis />} />
+          <Route path="faq" element={<Faq />} />
+          <Route path="faq/new" element={<FaqForm />} />
+          <Route path="faq/:faqId/edit" element={<FaqForm />} />
+          <Route path="tickets/:ticketId" element={<TicketDetails />} />
+          <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
+          <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
+          <Route path="knowledge-base" element={<KnowledgeBase />} />
+          <Route path="mis-reports" element={<MISReports />} />
+          <Route path="calendar" element={<CalendarPage />} />
+          <Route path="categories-master" element={<CategoriesMaster />} />
+          <Route path="escalation-master" element={<EscalationMaster />} />
+          <Route path="role-master" element={<RoleMaster />} />
+          <Route path="role-master/:roleId" element={<RoleDetails />} />
+          <Route path="users/new" element={<AddUser />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 

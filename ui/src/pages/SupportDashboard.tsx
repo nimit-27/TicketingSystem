@@ -1,20 +1,5 @@
 import React from "react";
 import { Box, Card, CardContent, SelectChangeEvent, TextField, Typography } from "@mui/material";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Bar,
-  LineChart,
-  Line,
-} from "recharts";
 
 import { fetchSupportDashboardSummary } from "../services/ReportService";
 import { useApi } from "../hooks/useApi";
@@ -172,6 +157,7 @@ const scopeLabels: Record<SupportDashboardScopeKey, string> = {
 const formatSummaryValue = (value: number) => value?.toString().padStart(2, "0");
 
 const SupportDashboard: React.FC = () => {
+  const [recharts, setRecharts] = React.useState<typeof import("recharts") | null>(null);
   const { t } = useTranslation();
   const [summary, setSummary] = React.useState<SupportDashboardSummary>(() => createDefaultSummary());
   const [error, setError] = React.useState<string | null>(null);
@@ -190,6 +176,26 @@ const SupportDashboard: React.FC = () => {
     error: apiError,
     apiHandler: getSummaryApiHandler,
   } = useApi<SupportDashboardSummaryResponse>();
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    import("recharts")
+      .then((module) => {
+        if (isMounted) {
+          setRecharts(module);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setError("Failed to load charting library");
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -428,6 +434,20 @@ const SupportDashboard: React.FC = () => {
   );
 
   const activeScopeLabel = t(scopeLabels[activeScope]);
+
+  if (!recharts) {
+    return (
+      <div className="d-flex flex-column flex-grow-1">
+        <Title textKey="Dashboard" />
+        <Typography variant="body1" className="mt-3">
+          {t("supportDashboard.loadingCharts", { defaultValue: "Loading dashboard charts..." })}
+        </Typography>
+      </div>
+    );
+  }
+
+  const { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Bar, LineChart, Line } =
+    recharts;
 
   return (
     <div className="d-flex flex-column flex-grow-1">
