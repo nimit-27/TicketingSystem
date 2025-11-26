@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.FaqDto;
+import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.Faq;
 import com.ticketingSystem.api.repository.FaqRepository;
@@ -23,6 +24,12 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
+    public FaqDto getFaq(String id) {
+        return faqRepository.findById(id)
+                .map(DtoMapper::toFaqDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Faq", id));
+    }
+
     public FaqDto createFaq(FaqDto dto) {
         Faq faq = new Faq();
         faq.setQuestionEn(dto.getQuestionEn());
@@ -36,6 +43,22 @@ public class FaqService {
         faq.setUpdatedOn(dto.getUpdatedOn());
         Faq saved = faqRepository.save(faq);
         return DtoMapper.toFaqDto(saved);
+    }
+
+    public FaqDto updateFaq(String id, FaqDto dto) {
+        Faq existingFaq = faqRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Faq", id));
+
+        existingFaq.setQuestionEn(dto.getQuestionEn());
+        existingFaq.setQuestionHi(dto.getQuestionHi());
+        existingFaq.setAnswerEn(dto.getAnswerEn());
+        existingFaq.setAnswerHi(dto.getAnswerHi());
+        existingFaq.setKeywords(dto.getKeywords());
+        existingFaq.setUpdatedBy(dto.getUpdatedBy());
+        existingFaq.setUpdatedOn(dto.getUpdatedOn());
+
+        Faq updatedFaq = faqRepository.save(existingFaq);
+        return DtoMapper.toFaqDto(updatedFaq);
     }
 }
 

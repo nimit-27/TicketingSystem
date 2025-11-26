@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createFaq } from '../services/FaqService';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createFaq, getFaqById, updateFaq } from '../services/FaqService';
 import SuccessModal from '../components/UI/SuccessModal';
 import FailureModal from '../components/UI/FailureModal';
 import CustomFormInput from '../components/UI/Input/CustomFormInput';
@@ -24,12 +24,14 @@ interface FaqFormValues {
 
 const FaqForm: React.FC = () => {
   const { t } = useTranslation();
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FaqFormValues>({ mode: 'onChange' });
+  const { register, handleSubmit, reset, watch, formState: { errors }, setValue } = useForm<FaqFormValues>({ mode: 'onChange' });
   const navigate = useNavigate();
+  const { faqId } = useParams();
   const [successOpen, setSuccessOpen] = useState(false);
   const [failureOpen, setFailureOpen] = useState(false);
   const answerEnRef = useRef<HTMLTextAreaElement | null>(null);
   const answerHiRef = useRef<HTMLTextAreaElement | null>(null);
+  const isEditMode = Boolean(faqId);
 
   const questionEn = watch('questionEn') ?? '';
   const questionHi = watch('questionHi') ?? '';
@@ -40,11 +42,47 @@ const FaqForm: React.FC = () => {
   const hasAnswer = answerEn.trim().length > 0 || answerHi.trim().length > 0;
   const isSubmitDisabled = !hasQuestion || !hasAnswer;
 
+  useEffect(() => {
+      const fetchFaq = async () => {
+          if (!faqId) return;
+          try {
+              const response = await getFaqById(faqId);
+              const faq = response.data;
+              reset({
+                  questionEn: faq.questionEn || '',
+                  questionHi: faq.questionHi || '',
+                  answerEn: faq.answerEn || '',
+                  answerHi: faq.answerHi || '',
+                  keywords: faq.keywords || '',
+              });
+
+              setValue('questionEn', faq.questionEn || '');
+              setValue('questionHi', faq.questionHi || '');
+              setValue('answerEn', faq.answerEn || '');
+              setValue('answerHi', faq.answerHi || '');
+              setValue('keywords', faq.keywords || '');
+
+              if (answerEnRef.current) answerEnRef.current.value = faq.answerEn || '';
+              if (answerHiRef.current) answerHiRef.current.value = faq.answerHi || '';
+          } catch (e) {
+              setFailureOpen(true);
+          }
+      };
+
+      fetchFaq();
+  }, [faqId, reset, setValue]);
+
   const onSubmit = async (data: FaqFormValues) => {
       data.answerEn = answerEnRef.current?.value;
       data.answerHi = answerHiRef.current?.value;
-      data.createdBy = getCurrentUserDetails()?.userId;
-      data.createdOn = new Date().toISOString();
+      const userId = getCurrentUserDetails()?.userId;
+      if (isEditMode) {
+          data.updatedBy = userId;
+          data.updatedOn = new Date().toISOString();
+      } else {
+          data.createdBy = userId;
+          data.createdOn = new Date().toISOString();
+      }
       const hasQuestion = data.questionEn || data.questionHi;
       const hasAnswer = data.answerEn || data.answerHi;
       if (!hasQuestion || !hasAnswer) {
@@ -61,7 +99,11 @@ const FaqForm: React.FC = () => {
       }
 
       try {
-          await createFaq(data);
+          if (isEditMode && faqId) {
+              await updateFaq(faqId, data);
+          } else {
+              await createFaq(data);
+          }
           setSuccessOpen(true);
       } catch (e) {
           setFailureOpen(true);
@@ -70,7 +112,7 @@ const FaqForm: React.FC = () => {
 
   return (
     <div className="p-3">
-      <Title textKey="Add Q & A" />
+      <Title textKey={isEditMode ? 'Edit Q & A' : 'Add Q & A'} />
       <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-3">
         <div className="d-flex gap-3">
           <CustomFormInput
@@ -116,19 +158,21 @@ const FaqForm: React.FC = () => {
           name="keywords"
           placeholder="Keywords (pipe separated)"
         />
-        <GenericSubmitButton type="submit" className="align-self-end" disabled={isSubmitDisabled} textKey="Submit" />
+        <GenericSubmitButton type="submit" className="align-self-end" disabled={isSubmitDisabled} textKey={isEditMode ? 'Update' : 'Submit'} />
         <GenericCancelButton className="align-self-end" onClick={() => navigate(-1)} textKey="Cancel" />
       </form>
 
       <SuccessModal
         open={successOpen}
-        title="Question and answer created successfully"
+        title={isEditMode ? 'Question and answer updated successfully' : 'Question and answer created successfully'}
         onClose={() => { setSuccessOpen(false); reset(); }}
         actions={(
           <>
-            <GenericButton variant='outlined' onClick={() => { setSuccessOpen(false); reset(); }}>
-              Create a new question and answer
-            </GenericButton>
+            {!isEditMode && (
+              <GenericButton variant='outlined' onClick={() => { setSuccessOpen(false); reset(); }}>
+                Create a new question and answer
+              </GenericButton>
+            )}
             <GenericButton variant='outlined' onClick={() => navigate('/faq')}>
               {t('Go to FAQ')}
             </GenericButton>
@@ -138,7 +182,7 @@ const FaqForm: React.FC = () => {
 
       <FailureModal
         open={failureOpen}
-        title="Failed to create question and answer"
+        title={isEditMode ? 'Failed to update question and answer' : 'Failed to create question and answer'}
         onClose={() => setFailureOpen(false)}
       />
     </div>

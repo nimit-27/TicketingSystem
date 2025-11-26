@@ -78,8 +78,6 @@ const Faq: React.FC = () => {
     const canAddQnA = checkAccessMaster(["faq", "QNAButton"]);
     const showAddQnAButton = checkAccessMaster(["faq", "addQnAButton"]);
 
-    console.log({canAddQnA, showAddQnAButton});
-
     useEffect(() => {
         apiHandler(() => getFaqs());
     }, []);
@@ -101,10 +99,16 @@ const Faq: React.FC = () => {
             {combinedFaqs.map((item: FaqType, index: Key | null | undefined) => {
                 const question = i18n.language === 'hi' ? (item.questionHi || item.questionEn) : (item.questionEn || item.questionHi);
                 const answer = i18n.language === 'hi' ? (item.answerHi || item.answerEn) : (item.answerEn || item.answerHi);
+                const isEditable = canAddQnA && !`${item.id}`.startsWith('static-');
                 return (
                     <div key={index} className="mb-4">
                         <h5 className="ts-20" data-keywords={item.keywords}>{question}</h5>
                         <p className="ts-16" data-keywords={item.keywords}>{answer}</p>
+                        {isEditable && (
+                            <GenericButton variant="outlined" onClick={() => navigate(`/faq/${item.id}/edit`)}>
+                                {t('Edit Q & A')}
+                            </GenericButton>
+                        )}
                     </div>
                 );
             })}
