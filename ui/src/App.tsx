@@ -63,6 +63,7 @@ function App() {
         <Route path="root-cause-analysis" element={<RootCauseAnalysis />} />
         <Route path="faq" element={<Faq />} />
         <Route path="faq/new" element={<FaqForm />} />
+        <Route path="faq/:faqId/edit" element={<FaqForm />} />
         <Route path="tickets/:ticketId" element={<TicketDetails />} />
         <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
         <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />

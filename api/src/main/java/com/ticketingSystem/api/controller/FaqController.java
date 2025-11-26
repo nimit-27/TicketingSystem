@@ -20,9 +20,19 @@ public class FaqController {
         return ResponseEntity.ok(faqService.getAllFaqs());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<FaqDto> getFaq(@PathVariable String id) {
+        return ResponseEntity.ok(faqService.getFaq(id));
+    }
+
     @PostMapping
     public ResponseEntity<FaqDto> createFaq(@RequestBody FaqDto faqDto) {
         return ResponseEntity.ok(faqService.createFaq(faqDto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FaqDto> updateFaq(@PathVariable String id, @RequestBody FaqDto faqDto) {
+        return ResponseEntity.ok(faqService.updateFaq(id, faqDto));
     }
 }
 
