@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import * as XLSX from "xlsx";
 import TicketSummaryReport from "../components/MISReports/TicketSummaryReport";
@@ -9,6 +9,7 @@ import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport"
 import Title from "../components/Title";
 import { useSnackbar } from "../context/SnackbarContext";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
+import { getCurrentUserDetails } from "../config/config";
 import {
     fetchCustomerSatisfactionReport,
     fetchProblemManagementReport,
@@ -42,6 +43,7 @@ const extractApiPayload = <T,>(response: any): T | null => {
 const MISReports: React.FC = () => {
     const [downloading, setDownloading] = useState(false);
     const { showMessage } = useSnackbar();
+    const userDetails = useMemo(() => getCurrentUserDetails(), []);
 
     const downloadExcel = async (period: ReportPeriod, range: ReportRange) => {
         setDownloading(true);
@@ -68,63 +70,92 @@ const MISReports: React.FC = () => {
                 throw new Error("Incomplete data received for MIS reports.");
             }
 
-            const summarySheetData = [
-                ["Ticket Summary"],
-                ["Metric", "Value"],
-                ["Total Tickets", ticketSummary.totalTickets],
-                ["Open Tickets", ticketSummary.openTickets],
-                ["Closed Tickets", ticketSummary.closedTickets],
+            const downloadedBy = userDetails?.username || userDetails?.userId || "Unknown User";
+            const roleLabel = (userDetails?.role ?? []).join(", ") || "N/A";
+            const downloadedOn = new Date();
+
+            const buildHorizontalSection = (title: string, headers: (string | number)[], values: (string | number)[]) => [
+                [title],
+                headers,
+                values,
                 [],
-                ["Status", "Count"],
-                ...Object.entries(ticketSummary.statusCounts ?? {}).map(([status, count]) => [status, count]),
-                [],
-                ["Mode", "Count"],
-                ...Object.entries(ticketSummary.modeCounts ?? {}).map(([mode, count]) => [mode, count]),
             ];
 
-            const resolutionSheetData = [
-                ["Ticket Resolution Time"],
-                ["Metric", "Value"],
-                ["Average Resolution Hours", resolutionTime.averageResolutionHours],
-                ["Resolved Tickets Considered", resolutionTime.resolvedTicketCount],
+            const summarySection = buildHorizontalSection(
+                "Ticket Summary",
+                [
+                    "Total Tickets",
+                    "Open Tickets",
+                    "Closed Tickets",
+                    ...Object.keys(ticketSummary.statusCounts ?? {}),
+                    ...Object.keys(ticketSummary.modeCounts ?? {}),
+                ],
+                [
+                    ticketSummary.totalTickets,
+                    ticketSummary.openTickets,
+                    ticketSummary.closedTickets,
+                    ...Object.values(ticketSummary.statusCounts ?? {}),
+                    ...Object.values(ticketSummary.modeCounts ?? {}),
+                ],
+            );
+
+            const resolutionSection = buildHorizontalSection(
+                "Ticket Resolution Time",
+                [
+                    "Average Resolution Hours",
+                    "Resolved Tickets Considered",
+                    ...Object.keys(resolutionTime.averageResolutionHoursByStatus ?? {}),
+                ],
+                [
+                    resolutionTime.averageResolutionHours,
+                    resolutionTime.resolvedTicketCount,
+                    ...Object.values(resolutionTime.averageResolutionHoursByStatus ?? {}),
+                ],
+            );
+
+            const satisfactionSection = buildHorizontalSection(
+                "Customer Satisfaction",
+                [
+                    "Total Feedback Responses",
+                    "Overall Satisfaction Average",
+                    "Resolution Effectiveness Average",
+                    "Communication & Support Average",
+                    "Timeliness Average",
+                    "Composite Score",
+                ],
+                [
+                    satisfaction.totalResponses,
+                    satisfaction.overallSatisfactionAverage,
+                    satisfaction.resolutionEffectivenessAverage,
+                    satisfaction.communicationSupportAverage,
+                    satisfaction.timelinessAverage,
+                    satisfaction.compositeScore,
+                ],
+            );
+
+            const problemHeaders = (problemManagement.categoryStats ?? []).map(({ category }) => category);
+            const problemValues = (problemManagement.categoryStats ?? []).map(({ ticketCount }) => ticketCount);
+            const problemSection = buildHorizontalSection(
+                "Problem Management",
+                problemHeaders.length ? problemHeaders : ["Category"],
+                problemValues.length ? problemValues : ["N/A"],
+            );
+
+            const overviewSheetData = [
+                ["Downloaded By", downloadedBy],
+                ["Role", roleLabel],
+                ["Date", downloadedOn.toLocaleString()],
                 [],
-                ["Status", "Average Hours"],
-                ...Object.entries(resolutionTime.averageResolutionHoursByStatus ?? {}).map(([status, hours]) => [
-                    status,
-                    hours,
-                ]),
-            ];
-
-            const satisfactionSheetData = [
-                ["Customer Satisfaction"],
-                ["Metric", "Score"],
-                ["Total Feedback Responses", satisfaction.totalResponses],
-                ["Overall Satisfaction Average", satisfaction.overallSatisfactionAverage],
-                ["Resolution Effectiveness Average", satisfaction.resolutionEffectivenessAverage],
-                ["Communication & Support Average", satisfaction.communicationSupportAverage],
-                ["Timeliness Average", satisfaction.timelinessAverage],
-                ["Composite Score", satisfaction.compositeScore],
-            ];
-
-            const problemSheetData = [
-                ["Problem Management"],
-                ["Category", "Ticket Count"],
-                ...(problemManagement.categoryStats ?? []).map(({ category, ticketCount }) => [
-                    category,
-                    ticketCount,
-                ]),
+                ...summarySection,
+                ...resolutionSection,
+                ...satisfactionSection,
+                ...problemSection,
             ];
 
             const workbook = XLSX.utils.book_new();
-            const summarySheet = XLSX.utils.aoa_to_sheet(summarySheetData);
-            const resolutionSheet = XLSX.utils.aoa_to_sheet(resolutionSheetData);
-            const satisfactionSheet = XLSX.utils.aoa_to_sheet(satisfactionSheetData);
-            const problemSheet = XLSX.utils.aoa_to_sheet(problemSheetData);
+            const overviewSheet = XLSX.utils.aoa_to_sheet(overviewSheetData);
 
-            XLSX.utils.book_append_sheet(workbook, summarySheet, "Ticket Summary");
-            XLSX.utils.book_append_sheet(workbook, resolutionSheet, "Resolution Time");
-            XLSX.utils.book_append_sheet(workbook, satisfactionSheet, "Customer Satisfaction");
-            XLSX.utils.book_append_sheet(workbook, problemSheet, "Problem Management");
+            XLSX.utils.book_append_sheet(workbook, overviewSheet, "MIS Overview");
 
             const formattedEndDate = range.endDate.toISOString().split("T")[0];
             const fileName = `mis-reports-${period}-${formattedEndDate}.xlsx`;
