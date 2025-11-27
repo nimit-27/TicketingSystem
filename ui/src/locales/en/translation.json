@@ -203,7 +203,8 @@
         "daily": "Daily",
         "weekly": "Weekly",
         "monthly": "Monthly",
-        "yearly": "Yearly"
+        "yearly": "Yearly",
+        "custom": "Custom"
       },
       "range": {
         "label": "Range",
@@ -225,7 +226,10 @@
         "endYear": "End year",
         "customRangeError": "Enter a valid year range (1970-{{currentYear}}).",
         "yearToDate": "Year to date",
-        "previousYear": "Previous year"
+        "previousYear": "Previous year",
+        "customDates": "Custom dates",
+        "fromDate": "From",
+        "toDate": "To"
       },
       "loading": "Loading… ({{scope}})",
       "dataSource": "Data source: {{scope}}"

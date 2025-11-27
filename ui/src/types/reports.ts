@@ -123,7 +123,7 @@ export interface SupportDashboardSummarySectionDto {
     totalTickets: number;
 }
 
-export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | "CUSTOM";
 
 export type SupportDashboardTimeRange =
     | "LAST_DAY"
@@ -138,11 +138,14 @@ export type SupportDashboardTimeRange =
     | "LAST_YEAR"
     | "LAST_5_YEARS"
     | "CUSTOM_MONTH_RANGE"
-    | "ALL_TIME";
+    | "ALL_TIME"
+    | "CUSTOM_DATE_RANGE";
 
 export interface SupportDashboardSummaryRequestParams {
     timeScale?: SupportDashboardTimeScale;
     timeRange?: SupportDashboardTimeRange;
     customStartYear?: number;
     customEndYear?: number;
+    fromDate?: string;
+    toDate?: string;
 }
