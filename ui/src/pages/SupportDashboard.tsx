@@ -566,7 +566,7 @@ const SupportDashboard: React.FC = () => {
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.ticketsBySeverity")}
                   </Typography>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="90%">
                     <PieChart>
                       <Pie
                         data={severityData}
@@ -594,7 +594,7 @@ const SupportDashboard: React.FC = () => {
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.openVsResolved")}
                   </Typography>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="90%">
                     <PieChart>
                       <Pie
                         data={openResolvedData}
@@ -622,7 +622,7 @@ const SupportDashboard: React.FC = () => {
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.slaCompliance")}
                   </Typography>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="90%">
                     <BarChart data={slaData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
@@ -642,7 +642,7 @@ const SupportDashboard: React.FC = () => {
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.ticketsPerMonth")}
                   </Typography>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="90%">
                     <LineChart data={ticketVolumeSeries}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
