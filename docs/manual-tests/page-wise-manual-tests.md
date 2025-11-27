@@ -1,6 +1,6 @@
 # Page-wise Manual Test Cases
 
-The following manual test scenarios are organized by primary application pages to ensure comprehensive coverage across the ticketing platform. Dev mode behaviors are explicitly excluded as requested.
+The following manual test scenarios are organized by primary application pages to ensure comprehensive coverage across the ticketing platform. Dev mode behaviors are explicitly excluded as requested. For end-to-end flows by role, see [`ticket-flows-by-role.md`](./ticket-flows-by-role.md).
 
 ## Login & Portal Selection
 1. **Portal selection required before login submission** – Attempt to submit credentials without choosing a portal; ensure no authentication request is issued and a validation prompt appears.
