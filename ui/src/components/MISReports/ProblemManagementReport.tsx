@@ -4,15 +4,25 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchProblemManagementReport } from "../../services/ReportService";
-import { ProblemManagementReportProps } from "../../types/reports";
+import { MISReportRequestParams } from "../../types/reports";
 
-const ProblemManagementReport: React.FC = () => {
+interface ProblemManagementReportPropsWithParams {
+    params?: MISReportRequestParams;
+}
+
+const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> = ({ params }) => {
     const { data, pending, apiHandler } = useApi<any>();
-    // const { data, pending, apiHandler } = useApi<ProblemManagementReportProps>();
 
     useEffect(() => {
-        apiHandler(() => fetchProblemManagementReport());
-    }, [apiHandler]);
+        apiHandler(() =>
+            fetchProblemManagementReport({
+                fromDate: params?.fromDate,
+                toDate: params?.toDate,
+                scope: params?.scope,
+                userId: params?.userId,
+            }),
+        );
+    }, [apiHandler, params?.fromDate, params?.scope, params?.toDate, params?.userId]);
 
     const chartOptions = useMemo(() => {
         const stats = data?.categoryStats ?? [];

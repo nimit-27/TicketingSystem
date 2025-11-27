@@ -22,7 +22,7 @@ import {
     notifyBreachedTicketAssignees,
 } from "../../services/ReportService";
 import { useSnackbar } from "../../context/SnackbarContext";
-import { SlaPerformanceReportProps } from "../../types/reports";
+import { MISReportRequestParams, SlaPerformanceReportProps as SlaPerformanceReportPropsDto } from "../../types/reports";
 
 const formatNumber = (value: number | undefined | null, fractionDigits = 0) => {
     if (value === undefined || value === null || Number.isNaN(value)) {
@@ -61,16 +61,29 @@ const formatDateTime = (value: string | null | undefined) => {
     return parsed.toLocaleString();
 };
 
-const SlaPerformanceReport: React.FC = () => {
+interface SlaPerformanceReportProps {
+    params?: MISReportRequestParams;
+}
+
+const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) => {
     const theme = useTheme();
-    const { data, pending, apiHandler } = useApi<any>();
-    // const { data, pending, apiHandler } = useApi<SlaPerformanceReportProps>();
+    const { data, pending, apiHandler } = useApi<SlaPerformanceReportPropsDto>();
     const { showMessage } = useSnackbar();
     const [notifying, setNotifying] = useState(false);
 
+    const normalizedParams = useMemo(
+        () => ({
+            fromDate: params?.fromDate,
+            toDate: params?.toDate,
+            scope: params?.scope,
+            userId: params?.userId,
+        }),
+        [params?.fromDate, params?.scope, params?.toDate, params?.userId],
+    );
+
     const loadData = useCallback(() => {
-        return apiHandler(() => fetchSlaPerformanceReport());
-    }, [apiHandler]);
+        return apiHandler(() => fetchSlaPerformanceReport(normalizedParams));
+    }, [apiHandler, normalizedParams]);
 
     useEffect(() => {
         loadData();
