@@ -80,6 +80,13 @@ export interface SlaPerformanceReportProps {
     breachedTickets: SlaBreachedTicketSummary[];
 }
 
+export interface MISReportRequestParams {
+    fromDate?: string;
+    toDate?: string;
+    scope?: "all" | "user";
+    userId?: string;
+}
+
 export type SupportDashboardSeverityKey = "S1" | "S2" | "S3" | "S4";
 // export type SupportDashboardSeverityKey = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 

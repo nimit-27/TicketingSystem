@@ -1,29 +1,29 @@
 import axios from "./apiClient";
 import { BASE_URL } from "./api";
-import { SupportDashboardSummaryRequestParams } from "../types/reports";
+import { MISReportRequestParams, SupportDashboardSummaryRequestParams } from "../types/reports";
 
 export function fetchSupportDashboardSummary(params?: SupportDashboardSummaryRequestParams) {
     return axios.get(`${BASE_URL}/reports/support-dashboard-summary`, { params });
 }
 
-export function fetchTicketSummaryReport() {
-    return axios.get(`${BASE_URL}/reports/ticket-summary`);
+export function fetchTicketSummaryReport(params?: MISReportRequestParams) {
+    return axios.get(`${BASE_URL}/reports/ticket-summary`, { params });
 }
 
-export function fetchTicketResolutionTimeReport() {
-    return axios.get(`${BASE_URL}/reports/resolution-time`);
+export function fetchTicketResolutionTimeReport(params?: MISReportRequestParams) {
+    return axios.get(`${BASE_URL}/reports/resolution-time`, { params });
 }
 
-export function fetchCustomerSatisfactionReport() {
-    return axios.get(`${BASE_URL}/reports/customer-satisfaction`);
+export function fetchCustomerSatisfactionReport(params?: MISReportRequestParams) {
+    return axios.get(`${BASE_URL}/reports/customer-satisfaction`, { params });
 }
 
-export function fetchProblemManagementReport() {
-    return axios.get(`${BASE_URL}/reports/problem-management`);
+export function fetchProblemManagementReport(params?: MISReportRequestParams) {
+    return axios.get(`${BASE_URL}/reports/problem-management`, { params });
 }
 
-export function fetchSlaPerformanceReport() {
-    return axios.get(`${BASE_URL}/reports/sla-performance`);
+export function fetchSlaPerformanceReport(params?: MISReportRequestParams) {
+    return axios.get(`${BASE_URL}/reports/sla-performance`, { params });
 }
 
 export function notifyBreachedTicketAssignees() {

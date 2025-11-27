@@ -4,15 +4,27 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketResolutionTimeReport } from "../../services/ReportService";
+import { MISReportRequestParams } from "../../types/reports";
 import { TicketResolutionTimeReportProps } from "../../types/reports";
 
-const TicketResolutionTimeReport: React.FC = () => {
+interface TicketResolutionTimeReportProps {
+    params?: MISReportRequestParams;
+}
+
+const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({ params }) => {
     // const { data, pending, apiHandler } = useApi<TicketResolutionTimeReportProps>();
     const { data, pending, apiHandler } = useApi<any>();
 
     useEffect(() => {
-        apiHandler(() => fetchTicketResolutionTimeReport());
-    }, [apiHandler]);
+        apiHandler(() =>
+            fetchTicketResolutionTimeReport({
+                fromDate: params?.fromDate,
+                toDate: params?.toDate,
+                scope: params?.scope,
+                userId: params?.userId,
+            }),
+        );
+    }, [apiHandler, params?.fromDate, params?.scope, params?.toDate, params?.userId]);
 
     const chartOptions = useMemo(() => {
         const entries = Object.entries(data?.averageResolutionHoursByStatus ?? {});

@@ -4,15 +4,26 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchCustomerSatisfactionReport } from "../../services/ReportService";
-import { CustomerSatisfactionReportProps } from "../../types/reports";
+import { MISReportRequestParams } from "../../types/reports";
 
-const CustomerSatisfactionReport: React.FC = () => {
+interface CustomerSatisfactionReportPropsWithParams {
+    params?: MISReportRequestParams;
+}
+
+const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithParams> = ({ params }) => {
     // const { data, pending, apiHandler } = useApi<CustomerSatisfactionReport>();
     const { data, pending, apiHandler } = useApi<any>();
 
     useEffect(() => {
-        apiHandler(() => fetchCustomerSatisfactionReport());
-    }, [apiHandler]);
+        apiHandler(() =>
+            fetchCustomerSatisfactionReport({
+                fromDate: params?.fromDate,
+                toDate: params?.toDate,
+                scope: params?.scope,
+                userId: params?.userId,
+            }),
+        );
+    }, [apiHandler, params?.fromDate, params?.scope, params?.toDate, params?.userId]);
 
     const chartOptions = useMemo(() => {
         if (!data) {

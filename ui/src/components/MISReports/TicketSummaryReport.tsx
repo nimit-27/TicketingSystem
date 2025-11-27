@@ -4,15 +4,30 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketSummaryReport } from "../../services/ReportService";
+import { MISReportRequestParams } from "../../types/reports";
 // import { TicketSummaryReport } from "../../types/reports";
 
-const TicketSummaryReport: React.FC = () => {
+interface TicketSummaryReportProps {
+    params?: MISReportRequestParams;
+}
+
+const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => {
     // const { data, pending, apiHandler } = useApi<TicketSummaryReport>();
     const { data, pending, apiHandler } = useApi<any>();
 
+    const normalizedParams = useMemo(
+        () => ({
+            fromDate: params?.fromDate,
+            toDate: params?.toDate,
+            scope: params?.scope,
+            userId: params?.userId,
+        }),
+        [params?.fromDate, params?.scope, params?.toDate, params?.userId],
+    );
+
     useEffect(() => {
-        apiHandler(() => fetchTicketSummaryReport());
-    }, [apiHandler]);
+        apiHandler(() => fetchTicketSummaryReport(normalizedParams));
+    }, [apiHandler, normalizedParams]);
 
     const statusChartOptions = useMemo(() => {
         const entries = Object.entries(data?.statusCounts ?? {});
