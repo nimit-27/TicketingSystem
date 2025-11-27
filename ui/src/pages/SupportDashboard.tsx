@@ -17,6 +17,7 @@ import { checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
+import { getUserDetails } from "../utils/Utils";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -124,6 +125,7 @@ const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = 
   { value: "WEEKLY", label: "supportDashboard.filters.interval.weekly" },
   { value: "MONTHLY", label: "supportDashboard.filters.interval.monthly" },
   { value: "YEARLY", label: "supportDashboard.filters.interval.yearly" },
+  { value: "CUSTOM", label: "supportDashboard.filters.interval.custom" },
 ];
 
 const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
@@ -147,6 +149,7 @@ const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashbo
     { value: "LAST_YEAR", label: "supportDashboard.filters.range.previousYear" },
     { value: "LAST_5_YEARS", label: "supportDashboard.filters.range.last5Years" },
   ],
+  CUSTOM: [{ value: "CUSTOM_DATE_RANGE", label: "supportDashboard.filters.range.customDates" }],
 };
 
 const scopeLabels: Record<SupportDashboardScopeKey, string> = {
@@ -156,18 +159,174 @@ const scopeLabels: Record<SupportDashboardScopeKey, string> = {
 
 const formatSummaryValue = (value: number) => value?.toString().padStart(2, "0");
 
-const SupportDashboard: React.FC = () => {
+const ADMIN_ROLES = new Set(["Team Lead", "System Administrator", "Regional Nodal Officer"]);
+const ASSIGNEE_ROLES = new Set(["Helpdesk Agent", "Technical Team"]);
+const REQUESTER_ROLE = "Requester";
+
+const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
+
+const startOfWeek = (date: Date) => {
+  const clone = new Date(date);
+  const day = clone.getDay();
+  const diff = (day + 6) % 7;
+  clone.setDate(clone.getDate() - diff);
+  return clone;
+};
+
+const endOfWeek = (date: Date) => {
+  const start = startOfWeek(date);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return end;
+};
+
+const startOfYear = (year: number) => new Date(year, 0, 1);
+const endOfYear = (year: number) => new Date(year, 11, 31);
+
+const startOfMonth = (year: number, monthIndex: number) => new Date(year, monthIndex, 1);
+const endOfMonth = (year: number, monthIndex: number) => new Date(year, monthIndex + 1, 0);
+
+const calculateDateRange = (
+  timeScale: SupportDashboardTimeScale,
+  timeRange: SupportDashboardTimeRange,
+  customMonthRange: { start: number | null; end: number | null },
+) => {
+  const today = new Date();
+
+  const buildRange = (from: Date | null, to: Date | null) => ({
+    from: from ? formatDateInput(from) : "",
+    to: to ? formatDateInput(to) : "",
+  });
+
+  if (timeScale === "CUSTOM") {
+    return buildRange(null, null);
+  }
+
+  switch (timeScale) {
+    case "DAILY": {
+      if (timeRange === "LAST_DAY") {
+        const from = new Date(today);
+        from.setDate(from.getDate() - 1);
+        return buildRange(from, today);
+      }
+
+      if (timeRange === "LAST_7_DAYS") {
+        const from = new Date(today);
+        from.setDate(from.getDate() - 6);
+        return buildRange(from, today);
+      }
+
+      const from = new Date(today);
+      from.setDate(from.getDate() - 29);
+      return buildRange(from, today);
+    }
+    case "WEEKLY": {
+      if (timeRange === "THIS_WEEK") {
+        return buildRange(startOfWeek(today), endOfWeek(today));
+      }
+
+      if (timeRange === "LAST_WEEK") {
+        const start = startOfWeek(today);
+        start.setDate(start.getDate() - 7);
+        const end = endOfWeek(start);
+        return buildRange(start, end);
+      }
+
+      const start = startOfWeek(today);
+      start.setDate(start.getDate() - 21);
+      const end = endOfWeek(today);
+      return buildRange(start, end);
+    }
+    case "MONTHLY": {
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+
+      if (timeRange === "LAST_6_MONTHS") {
+        const startMonth = new Date(today);
+        startMonth.setMonth(currentMonth - 5, 1);
+        return buildRange(startOfMonth(startMonth.getFullYear(), startMonth.getMonth()), endOfMonth(currentYear, currentMonth));
+      }
+
+      if (timeRange === "CURRENT_YEAR") {
+        return buildRange(startOfYear(currentYear), endOfYear(currentYear));
+      }
+
+      if (timeRange === "LAST_YEAR") {
+        return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+      }
+
+      if (timeRange === "LAST_5_YEARS") {
+        return buildRange(startOfYear(currentYear - 4), endOfYear(currentYear));
+      }
+
+      if (timeRange === "CUSTOM_MONTH_RANGE") {
+        if (typeof customMonthRange.start === "number" && typeof customMonthRange.end === "number") {
+          return buildRange(startOfYear(customMonthRange.start), endOfYear(customMonthRange.end));
+        }
+        return buildRange(null, null);
+      }
+
+      return buildRange(null, null);
+    }
+    case "YEARLY": {
+      const currentYear = today.getFullYear();
+
+      if (timeRange === "YEAR_TO_DATE") {
+        return buildRange(startOfYear(currentYear), today);
+      }
+
+      if (timeRange === "LAST_YEAR") {
+        return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+      }
+
+      return buildRange(startOfYear(currentYear - 4), endOfYear(currentYear));
+    }
+    default:
+      return buildRange(null, null);
+  }
+};
+
+interface SupportDashboardProps {
+  initialTimeScale?: SupportDashboardTimeScale;
+  initialTimeRange?: SupportDashboardTimeRange;
+}
+
+const SupportDashboard: React.FC<SupportDashboardProps> = ({
+  initialTimeScale = "DAILY",
+  initialTimeRange = "LAST_7_DAYS",
+}) => {
   const [recharts, setRecharts] = React.useState<typeof import("recharts") | null>(null);
   const { t } = useTranslation();
+  const userDetails = React.useMemo(() => getUserDetails(), []);
+  const userRoles = React.useMemo(() => userDetails?.role ?? [], [userDetails]);
+  const preferredScope = React.useMemo<SupportDashboardScopeKey>(() => {
+    const hasAdminRole = userRoles.some((role) => ADMIN_ROLES.has(role));
+    const hasAssigneeRole = userRoles.some((role) => ASSIGNEE_ROLES.has(role));
+    const isRequesterOnly = userRoles.length === 1 && userRoles[0] === REQUESTER_ROLE;
+
+    if (hasAdminRole) {
+      return "allTickets";
+    }
+
+    if (hasAssigneeRole || isRequesterOnly) {
+      return "myWorkload";
+    }
+
+    return "allTickets";
+  }, [userRoles]);
+
   const [summary, setSummary] = React.useState<SupportDashboardSummary>(() => createDefaultSummary());
   const [error, setError] = React.useState<string | null>(null);
-  const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
-  const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("LAST_7_DAYS");
-  const [activeScope, setActiveScope] = React.useState<SupportDashboardScopeKey>("allTickets");
+  const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>(initialTimeScale);
+  const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>(initialTimeRange);
+  const [activeScope, setActiveScope] = React.useState<SupportDashboardScopeKey>(() => preferredScope);
   const [customMonthRange, setCustomMonthRange] = React.useState<{ start: number | null; end: number | null }>({
     start: null,
     end: null,
   });
+  const [dateRange, setDateRange] = React.useState<{ from: string; to: string }>(() =>
+    calculateDateRange(initialTimeScale, initialTimeRange, { start: null, end: null }),
+  );
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
 
   const {
@@ -205,6 +364,10 @@ const SupportDashboard: React.FC = () => {
       const allTicketsAvailable = data.allTickets !== null && data.allTickets !== undefined;
       const myWorkloadAvailable = data.myWorkload !== null && data.myWorkload !== undefined;
 
+      if (preferredScope && data[preferredScope] !== null && data[preferredScope] !== undefined) {
+        return preferredScope;
+      }
+
       if (hasAllTicketsAccess && allTicketsAvailable) {
         return "allTickets";
       }
@@ -229,12 +392,33 @@ const SupportDashboard: React.FC = () => {
         return "myWorkload";
       }
 
-      return "allTickets";
+      return preferredScope;
     },
-    [hasAllTicketsAccess, hasMyWorkloadAccess],
+    [hasAllTicketsAccess, hasMyWorkloadAccess, preferredScope],
   );
 
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
+
+  React.useEffect(() => {
+    setActiveScope((current) => (current !== preferredScope ? preferredScope : current));
+  }, [preferredScope]);
+
+  React.useEffect(() => {
+    if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
+      return;
+    }
+
+    setCustomMonthRange((previous) => {
+      const start = typeof previous.start === "number" ? previous.start : currentYear - 1;
+      const end = typeof previous.end === "number" ? previous.end : currentYear;
+
+      if (previous.start === start && previous.end === end) {
+        return previous;
+      }
+
+      return { start, end };
+    });
+  }, [currentYear, timeRange, timeScale]);
 
   const customRangeIsValid = React.useMemo(() => {
     if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
@@ -257,12 +441,56 @@ const SupportDashboard: React.FC = () => {
     return start >= 1970;
   }, [customMonthRange, currentYear, timeRange, timeScale]);
 
+  const derivedDateRange = React.useMemo(
+    () => calculateDateRange(timeScale, timeRange, customMonthRange),
+    [customMonthRange, timeRange, timeScale],
+  );
+
+  React.useEffect(() => {
+    if (timeScale === "CUSTOM") {
+      return;
+    }
+
+    setDateRange(derivedDateRange);
+  }, [derivedDateRange, timeScale]);
+
+  const activeDateRange = React.useMemo(
+    () => (timeScale === "CUSTOM" ? dateRange : derivedDateRange),
+    [dateRange, derivedDateRange, timeScale],
+  );
+
   const requestParams = React.useMemo(() => {
     if (!customRangeIsValid) {
       return null;
     }
 
     const params: SupportDashboardSummaryRequestParams = { timeScale, timeRange };
+
+    if (timeScale === "CUSTOM") {
+      if (!activeDateRange.from || !activeDateRange.to) {
+        return null;
+      }
+
+      const from = new Date(activeDateRange.from);
+      const to = new Date(activeDateRange.to);
+
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
+        return null;
+      }
+
+      params.timeRange = "CUSTOM_DATE_RANGE";
+      params.fromDate = activeDateRange.from;
+      params.toDate = activeDateRange.to;
+      return params;
+    }
+
+    if (activeDateRange.from) {
+      params.fromDate = activeDateRange.from;
+    }
+
+    if (activeDateRange.to) {
+      params.toDate = activeDateRange.to;
+    }
 
     if (timeScale === "MONTHLY" && timeRange === "CUSTOM_MONTH_RANGE") {
       const { start, end } = customMonthRange;
@@ -274,7 +502,7 @@ const SupportDashboard: React.FC = () => {
     }
 
     return params;
-  }, [customMonthRange, customRangeIsValid, timeRange, timeScale]);
+  }, [activeDateRange, customMonthRange, customRangeIsValid, timeRange, timeScale]);
 
   const handleTimeScaleChange = React.useCallback(
     (event: SelectChangeEvent) => {
@@ -286,6 +514,9 @@ const SupportDashboard: React.FC = () => {
       }
       if (value !== "MONTHLY") {
         setCustomMonthRange({ start: null, end: null });
+      }
+      if (value === "CUSTOM") {
+        setDateRange((previous) => ({ ...previous }));
       }
     },
     [],
@@ -321,6 +552,16 @@ const SupportDashboard: React.FC = () => {
         ...previous,
         [key]: Number.isNaN(numericValue) ? previous[key] : numericValue,
       }));
+    },
+    [],
+  );
+
+  const handleDateRangeChange = React.useCallback(
+    (key: "from" | "to") => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      setDateRange((previous) => ({ ...previous, [key]: value }));
+      setTimeScale("CUSTOM");
+      setTimeRange("CUSTOM_DATE_RANGE");
     },
     [],
   );
@@ -515,6 +756,29 @@ const SupportDashboard: React.FC = () => {
               </Box>
             )}
           </div>
+
+          <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
+            <TextField
+              id="support-dashboard-from"
+              label={t("supportDashboard.filters.range.fromDate")}
+              type="date"
+              size="small"
+              value={activeDateRange.from}
+              onChange={handleDateRangeChange("from")}
+              InputLabelProps={{ shrink: true }}
+              disabled={isLoading}
+            />
+            <TextField
+              id="support-dashboard-to"
+              label={t("supportDashboard.filters.range.toDate")}
+              type="date"
+              size="small"
+              value={activeDateRange.to}
+              onChange={handleDateRangeChange("to")}
+              InputLabelProps={{ shrink: true }}
+              disabled={isLoading}
+            />
+          </Box>
 
           {/* Summary Cards */}
           <div className="row g-3">

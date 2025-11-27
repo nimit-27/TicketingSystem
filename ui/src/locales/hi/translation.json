@@ -195,7 +195,8 @@
         "daily": "दैनिक",
         "weekly": "साप्ताहिक",
         "monthly": "मासिक",
-        "yearly": "वार्षिक"
+        "yearly": "वार्षिक",
+        "custom": "कस्टम"
       },
       "range": {
         "label": "सीमा",
@@ -217,7 +218,10 @@
         "endYear": "समाप्ति वर्ष",
         "customRangeError": "मान्य वर्ष सीमा दर्ज करें (1970-{{currentYear}})",
         "yearToDate": "वर्ष की शुरुआत से अब तक",
-        "previousYear": "पिछला वर्ष"
+        "previousYear": "पिछला वर्ष",
+        "customDates": "कस्टम तिथि",
+        "fromDate": "से",
+        "toDate": "तक"
       },
       "loading": "लोड हो रहा है… ({{scope}})",
       "dataSource": "डेटा स्रोत: {{scope}}"
