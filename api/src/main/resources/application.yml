@@ -2,7 +2,7 @@ security:
   jwt:
     secret: ${SECURITY_JWT_SECRET:change-me-change-me-change-me-change-me}
     expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
-    bypass: ${SECURITY_JWT_BYPASS:true}
+    bypass: ${SECURITY_JWT_BYPASS:false}
   cors:
     allowed-origins:
       - http://localhost:3000
