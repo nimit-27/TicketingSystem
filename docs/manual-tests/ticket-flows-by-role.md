@@ -114,3 +114,25 @@
 - **X3**
   - Flow: Portal ticket R1 → Agent resolves A6 → Requestor reopens R3 → L2 resolves S4
   - Expected Outcome: Reopen allowed once; resolution updates and RCA attached.
+- **X4**
+  - Flow: Requestor creates ticket (R1) → Team Lead assigns to L1 agent (L1) → L1 sets On Hold with clarification to requester (A3) → Requestor responds by comment (R2) → L1 resumes work and resolves (A6)
+  - Expected Outcome: Assignment tracked end-to-end; On Hold pauses SLA; requester reply resumes SLA and is visible; final resolution closes the ticket with full audit history.
+- **X5**
+  - Flow: Requestor raises via email (R5) → L1 triages and assigns to L2 (A4) → L2 recommends higher severity with justification (S3) → Team Lead approves recommendation and escalates priority (L2) → L2 continues fix and adds RCA (S4)
+  - Expected Outcome: Severity recommendation captured and approved with audit entries; priority and SLA adjust; RCA stored after fix; notifications issued to requester on key updates.
+- **X6**
+  - Flow: Requestor submits portal ticket (R1) → L1 links to master incident (A5) → Team Lead bulk assigns related tickets to specialist queue (L1) → Administrator reassigns one ticket across teams (ADM1) → Specialist escalates to higher tier (S2)
+  - Expected Outcome: Master/child relationships maintained across reassignments; bulk actions preserve links; cross-team move and escalation both log history and trigger notifications.
+
+## Recommended Severity Workflow (End-to-End)
+- **RS1 – Recommendation creation**
+  - Flow: L2/Specialist opens assigned ticket → Click **Recommend Severity** → Enter proposed severity and justification → Submit
+  - Expected Outcome: Recommendation saved with pending status; audit trail created; ticket remains in current status.
+  - Preconditions: Recommendation feature enabled; user has permission S3.
+- **RS2 – Approval/override by lead**
+  - Flow: Team Lead opens ticket with pending recommendation → Review justification → Approve or Reject/Override severity → Add required remark → Confirm
+  - Expected Outcome: On approval, ticket severity updates and SLA recalculates; on rejection, recommendation closed with rationale recorded; requester/assignee notified.
+  - Preconditions: Lead override rights (L2) granted.
+- **RS3 – Follow-up handling**
+  - Flow: After approval, L1/L2 continues work → Update status per A3/A6/S4 → If reopened, previous recommendation remains in history for reference
+  - Expected Outcome: Downstream actions respect new severity; history shows recommendation lifecycle; reopening does not reapply old recommendation but keeps record.
