@@ -23,8 +23,13 @@ import java.util.stream.Collectors;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> PUBLIC_ENDPOINTS = Set.of(
+            "helpdesk/auth/login",
+            "helpdesk/auth/logout",
+            "/auth/logout",
             "/auth/login",
-            "/auth/logout"
+            "auth/logout",
+            "auth/login",
+            "http://localhost:8082/helpdesk/auth/login"
     );
 
     private final JwtTokenService jwtTokenService;
