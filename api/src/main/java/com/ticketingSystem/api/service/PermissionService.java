@@ -18,11 +18,7 @@ public class PermissionService {
     private final RoleRepository repository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Set<Integer> USER_PAGE_ROLE_IDS = Set.of(2, 7);
-    private static final Set<String> USER_PAGE_ROLE_NAMES = Set.of(
-            "admin",
-            "system administrator",
-            "team lead"
-    );
+    private static final Set<Integer> USER_PAGE_ROLE_NAMES = Set.of(6, 7, 11);
 
     public PermissionService(RoleRepository repository) {
         this.repository = repository;
@@ -333,7 +329,8 @@ public class PermissionService {
             permission.setSidebar(sidebar);
         }
         Map<String, Object> sidebarChildren = getOrCreateChildMap(sidebar, "children");
-        setMenuPermission(sidebarChildren, "users", allowUsers, "Users");
+//        setMenuPermission(sidebarChildren, "users", allowUsers, "Users");
+        setMenuPermission(sidebarChildren, "users", true, "Users");
     }
 
     private boolean isUserManagementRole(Role role) {
@@ -346,7 +343,8 @@ public class PermissionService {
         }
 
         String roleName = role.getRole();
-        return roleName != null && USER_PAGE_ROLE_NAMES.contains(roleName.trim().toLowerCase());
+        return roleName != null;
+//        return roleName != null && USER_PAGE_ROLE_NAMES.contains(roleName.trim().toLowerCase());
     }
 
     @SuppressWarnings("unchecked")
