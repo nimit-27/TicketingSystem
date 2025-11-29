@@ -17,6 +17,7 @@ public class PermissionService {
     private PermissionsConfig config;
     private final RoleRepository repository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Set<Integer> USER_PAGE_ROLE_IDS = Set.of(2, 7);
 
     public PermissionService(RoleRepository repository) {
         this.repository = repository;
@@ -27,6 +28,7 @@ public class PermissionService {
         Map<Integer, RolePermission> map = new HashMap<>();
         for (Role rpc : repository.findByIsDeletedFalse()) {
             RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
+            applyUserManagementPermissions(rpc.getRoleId(), rp);
             map.put(rpc.getRoleId(), rp);
         }
         config = new PermissionsConfig();
@@ -45,6 +47,7 @@ public class PermissionService {
         repository.save(existingRole);
 
         ensureConfig();
+        applyUserManagementPermissions(roleId, permission);
         config.getRoles().put(roleId, permission);
 
         if (isMasterRole(existingRole)) {
@@ -300,5 +303,78 @@ public class PermissionService {
                 target.put(key, value);
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyUserManagementPermissions(Integer roleId, RolePermission permission) {
+        if (permission == null) {
+            return;
+        }
+
+        Map<String, Object> pages = permission.getPages();
+        if (pages == null) {
+            pages = new LinkedHashMap<>();
+            permission.setPages(pages);
+        }
+        Map<String, Object> pageChildren = getOrCreateChildMap(pages, "children");
+
+        boolean allowUsers = USER_PAGE_ROLE_IDS.contains(roleId);
+        setPagePermission(pageChildren, "Users", allowUsers);
+        setPagePermission(pageChildren, "UserProfile", allowUsers);
+
+        Map<String, Object> sidebar = permission.getSidebar();
+        if (sidebar == null) {
+            sidebar = new LinkedHashMap<>();
+            permission.setSidebar(sidebar);
+        }
+        Map<String, Object> sidebarChildren = getOrCreateChildMap(sidebar, "children");
+        setMenuPermission(sidebarChildren, "users", allowUsers, "Users");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getOrCreateChildMap(Map<String, Object> parent, String key) {
+        Object child = parent.get(key);
+        if (child instanceof Map<?, ?> existing) {
+            return (Map<String, Object>) existing;
+        }
+        Map<String, Object> newMap = new LinkedHashMap<>();
+        parent.put(key, newMap);
+        return newMap;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setPagePermission(Map<String, Object> pages, String key, boolean allow) {
+        Object existing = pages.get(key);
+        Map<String, Object> pageConfig = existing instanceof Map<?, ?>
+                ? new LinkedHashMap<>((Map<String, Object>) existing)
+                : new LinkedHashMap<>();
+
+        boolean existingFlag = Boolean.TRUE.equals(pageConfig.get("show"));
+        pageConfig.put("show", allow || existingFlag);
+        pageConfig.put("metadata", buildMetadata(pageConfig.get("metadata"), key, "page"));
+        pages.put(key, pageConfig);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setMenuPermission(Map<String, Object> sidebar, String key, boolean allow, String displayName) {
+        Object existing = sidebar.get(key);
+        Map<String, Object> menuConfig = existing instanceof Map<?, ?>
+                ? new LinkedHashMap<>((Map<String, Object>) existing)
+                : new LinkedHashMap<>();
+
+        boolean existingFlag = Boolean.TRUE.equals(menuConfig.get("show"));
+        menuConfig.put("show", allow || existingFlag);
+        menuConfig.put("metadata", buildMetadata(menuConfig.get("metadata"), displayName, "menu"));
+        sidebar.put(key, menuConfig);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> buildMetadata(Object existingMetadata, String name, String type) {
+        Map<String, Object> metadata = existingMetadata instanceof Map<?, ?>
+                ? new LinkedHashMap<>((Map<String, Object>) existingMetadata)
+                : new LinkedHashMap<>();
+        metadata.putIfAbsent("name", name);
+        metadata.putIfAbsent("type", type);
+        return metadata;
     }
 }

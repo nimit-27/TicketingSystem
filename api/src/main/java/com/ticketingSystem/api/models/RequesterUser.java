@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "requester_users")
 @Getter
@@ -23,6 +25,8 @@ public class RequesterUser {
     private String name;
     @Column(name = "first_name")
     private String firstName;
+    @Column(name = "middle_name")
+    private String middleName;
     @Column(name = "last_name")
     private String lastName;
     @Column(name = "email_id")
@@ -37,4 +41,16 @@ public class RequesterUser {
 
     @Column(name = "stakeholder")
     private String stakeholder;
+
+    @Column(name = "date_of_joining")
+    private LocalDateTime dateOfJoining;
+
+    @Column(name = "date_of_retirement")
+    private LocalDateTime dateOfRetirement;
+
+    @Column(name = "office_type")
+    private String officeType;
+
+    @Column(name = "office_code")
+    private String officeCode;
 }

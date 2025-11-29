@@ -90,6 +90,12 @@ const menuItems = [
     icon: "manageAccounts",
   },
   {
+    key: "users",
+    label: "Users",
+    to: "/users",
+    icon: "supervisorAccount",
+  },
+  {
     key: "addUser",
     label: "Add New User",
     to: "/users/new",

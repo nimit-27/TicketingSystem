@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.CreateUserRequest;
+import com.ticketingSystem.api.dto.HelpdeskUserDto;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.Level;
@@ -58,6 +59,17 @@ public class UserService {
                 .map(this::mapUserWithStakeholder)
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    public List<HelpdeskUserDto> getAllHelpdeskUsers() {
+        return userRepository.findAll().stream()
+                .map(DtoMapper::toHelpdeskUserDto)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    public Optional<HelpdeskUserDto> getHelpdeskUserDetails(String userId) {
+        return userRepository.findById(userId).map(DtoMapper::toHelpdeskUserDto);
     }
 
     public User saveUser(User user) {

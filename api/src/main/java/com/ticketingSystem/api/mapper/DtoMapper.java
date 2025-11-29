@@ -149,6 +149,51 @@ public class DtoMapper {
         return userDto;
     }
 
+    public static HelpdeskUserDto toHelpdeskUserDto(User user) {
+        if (user == null) return null;
+
+        HelpdeskUserDto dto = new HelpdeskUserDto();
+        dto.setUserId(user.getUserId());
+        dto.setUsername(user.getUsername());
+        dto.setName(user.getName());
+        dto.setEmailId(user.getEmailId());
+        dto.setMobileNo(user.getMobileNo());
+        dto.setOffice(user.getOffice());
+        dto.setPassword(user.getPassword());
+        dto.setRoles(user.getRoles());
+        dto.setStakeholder(user.getStakeholder());
+
+        if (user.getUserLevel() != null && user.getUserLevel().getLevelIds() != null) {
+            List<String> levels = Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
+            dto.setLevels(levels);
+        }
+
+        return dto;
+    }
+
+    public static RequesterUserDto toRequesterUserDto(RequesterUser user) {
+        if (user == null) return null;
+
+        RequesterUserDto dto = new RequesterUserDto();
+        dto.setRequesterUserId(user.getRequesterUserId());
+        dto.setUsername(user.getUsername());
+        dto.setName(user.getName());
+        dto.setFirstName(user.getFirstName());
+        dto.setMiddleName(user.getMiddleName());
+        dto.setLastName(user.getLastName());
+        dto.setEmailId(user.getEmailId());
+        dto.setMobileNo(user.getMobileNo());
+        dto.setOffice(user.getOffice());
+        dto.setPassword(user.getPassword());
+        dto.setRoles(user.getRoles());
+        dto.setStakeholder(user.getStakeholder());
+        dto.setDateOfJoining(user.getDateOfJoining());
+        dto.setDateOfRetirement(user.getDateOfRetirement());
+        dto.setOfficeType(user.getOfficeType());
+        dto.setOfficeCode(user.getOfficeCode());
+        return dto;
+    }
+
     public static StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
         if (statusHistory == null) return null;
         StatusHistoryDto dto = new StatusHistoryDto();
