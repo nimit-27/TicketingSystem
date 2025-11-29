@@ -15,6 +15,12 @@ public final class RoleUtils {
             "user"
     );
 
+    private static final Set<String> REGIONAL_NODAL_OFFICER_ROLE_IDENTIFIERS = Set.of(
+            "4",
+            "Regional Nodal Officer",
+            "regional_nodal_officer"
+    );
+
     private static final Set<String> TEAM_LEAD_ROLE_IDENTIFIERS = Set.of(
             "team lead",
             "team_lead",
@@ -52,11 +58,9 @@ public final class RoleUtils {
             return false;
         }
         List<String> normalized = normalizeRoles(roles);
-        if (containsAny(normalized, TEAM_LEAD_ROLE_IDENTIFIERS)
-                || containsAny(normalized, ADMIN_ROLE_IDENTIFIERS)) {
-            return true;
-        }
-        return false;
+        return containsAny(normalized, TEAM_LEAD_ROLE_IDENTIFIERS)
+                || containsAny(normalized, ADMIN_ROLE_IDENTIFIERS)
+                || containsAny(normalized, REGIONAL_NODAL_OFFICER_ROLE_IDENTIFIERS);
 //        return !isRequestorOnly(roles);
     }
 

@@ -126,13 +126,12 @@
 
 ## Recommended Severity Workflow (End-to-End)
 - **RS1 – Recommendation creation**
-  - Flow: L2/Specialist opens assigned ticket → Click **Recommend Severity** → Enter proposed severity and justification → Submit
+  - Flow: RNO opens a ticket → Click **Recommend Severity** → Enter proposed severity and justification → Submit
   - Expected Outcome: Recommendation saved with pending status; audit trail created; ticket remains in current status.
   - Preconditions: Recommendation feature enabled; user has permission S3.
-- **RS2 – Approval/override by lead**
-  - Flow: Team Lead opens ticket with pending recommendation → Review justification → Approve or Reject/Override severity → Add required remark → Confirm
+- **RS2 – Approval/override by IT Manager/IT Division**
+  - Flow: IT Manager opens ticket with pending recommendation → Review justification → Approve or Reject/Override severity → Add required remark → Confirm
   - Expected Outcome: On approval, ticket severity updates and SLA recalculates; on rejection, recommendation closed with rationale recorded; requester/assignee notified.
-  - Preconditions: Lead override rights (L2) granted.
 - **RS3 – Follow-up handling**
-  - Flow: After approval, L1/L2 continues work → Update status per A3/A6/S4 → If reopened, previous recommendation remains in history for reference
+  - Flow: After approval, L1/L2 continues work 
   - Expected Outcome: Downstream actions respect new severity; history shows recommendation lifecycle; reopening does not reapply old recommendation but keeps record.
