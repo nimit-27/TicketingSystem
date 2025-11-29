@@ -12,6 +12,7 @@ import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
 import com.ticketingSystem.api.dto.TicketSlaDto;
 import com.ticketingSystem.api.mapper.DtoMapper;
+import com.ticketingSystem.api.service.TicketAccessContext;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import com.ticketingSystem.api.service.UserService;
 import com.ticketingSystem.api.dto.UserDto;
@@ -81,8 +82,12 @@ public class TicketController {
         String ticketAssigneeUserId = resolveTicketAssigneeUserId(dto.getAssignedTo());
         ticketAuthorizationService.assertCanAccessTicket(
                 id,
-                dto.getUserId(),
-                ticketAssigneeUserId,
+                new TicketAccessContext(
+                        dto.getUserId(),
+                        ticketAssigneeUserId,
+                        dto.getStatus(),
+                        dto.getRecommendedSeverityStatus()
+                ),
                 resolvedUser,
                 session);
         logger.info("Ticket {} retrieved successfully, returning {}", id, HttpStatus.OK);
@@ -106,8 +111,12 @@ public class TicketController {
                 ? resolveTicketAssigneeUserId(sla.getTicket().getAssignedTo())
                 : null;
         ticketAuthorizationService.assertCanAccessTicket(id,
-                slaTicketOwnerId,
-                slaTicketAssigneeUserId,
+                new TicketAccessContext(
+                        slaTicketOwnerId,
+                        slaTicketAssigneeUserId,
+                        sla.getTicket() != null ? sla.getTicket().getTicketStatus() : null,
+                        null
+                ),
                 resolvedUser,
                 session);
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);
