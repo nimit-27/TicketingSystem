@@ -1376,6 +1376,118 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
+
+--
+-- Table structure for table `zone_master`
+--
+
+DROP TABLE IF EXISTS `zone_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `zone_master` (
+  `zone_code` varchar(10) NOT NULL,
+  `zone_name` varchar(100) NOT NULL,
+  `hrms_zone_code` varchar(10) NOT NULL,
+  PRIMARY KEY (`zone_code`),
+  UNIQUE KEY `uk_zone_hrms_code` (`hrms_zone_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `zone_master`
+--
+
+LOCK TABLES `zone_master` WRITE;
+/*!40000 ALTER TABLE `zone_master` DISABLE KEYS */;
+INSERT INTO `zone_master` VALUES ('E','East','EA11'),('F','NEF','FA11'),('N','North','NA11'),('S','South','SA11'),('W','West','WA11');
+/*!40000 ALTER TABLE `zone_master` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `region_master`
+--
+
+DROP TABLE IF EXISTS `region_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `region_master` (
+  `region_code` varchar(10) NOT NULL,
+  `region_name` varchar(100) NOT NULL,
+  `hrms_reg_code` varchar(10) NOT NULL,
+  `zone_code` varchar(10) NOT NULL,
+  `hrms_zone_code` varchar(10) NOT NULL,
+  PRIMARY KEY (`region_code`),
+  UNIQUE KEY `uk_region_hrms_code` (`hrms_reg_code`),
+  KEY `idx_region_zone_code` (`zone_code`),
+  KEY `idx_region_hrms_zone_code` (`hrms_zone_code`),
+  CONSTRAINT `fk_region_hrms_zone_code` FOREIGN KEY (`hrms_zone_code`) REFERENCES `zone_master` (`hrms_zone_code`),
+  CONSTRAINT `fk_region_zone_code` FOREIGN KEY (`zone_code`) REFERENCES `zone_master` (`zone_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `region_master`
+--
+
+LOCK TABLES `region_master` WRITE;
+/*!40000 ALTER TABLE `region_master` DISABLE KEYS */;
+INSERT INTO `region_master` VALUES ('EC','Bihar','EC11','E','EA11'),('ED','Jharkhand','ED11','E','EA11'),('EE','Orissa','EE11','E','EA11'),('EF','West Bengal','EF11','E','EA11'),('FB','Assam','FB11','F','FA11'),('FC','ARUNACHAL PRADESH','FC11','F','FA11'),('FD','NEF','FD11','F','FA11'),('FE','Nagaland','FE11','F','FA11'),('FF','Manipur','FF11','F','FA11'),('NB','Delhi','NB11','N','NA11'),('NC','Haryana','NC11','N','NA11'),('ND','Himachal Pradesh','ND11','N','NA11'),('NE','J & K','NE11','N','NA11'),('NF','Punjab','NF11','N','NA11'),('NG','Rajasthan','NG11','N','NA11'),('NH','Uttar Pradesh','NH11','N','NA11'),('NI','Uttaranchal','NI11','N','NA11'),('SB','Andhra Pradesh','SB11','S','SA11'),('SC','Kerala','SC11','S','SA11'),('SD','Karnataka','SD11','S','SA11'),('SE','Tamil Nadu','SE11','S','SA11'),('SF','Telangana','SF11','S','SA11'),('WB','Gujarat','WB11','W','WA11'),('WC','Maharastra','WC11','W','WA11'),('WD','Madhya Pradesh','WD11','W','WA11'),('WF','Chattisgarh','WF11','W','WA11');
+/*!40000 ALTER TABLE `region_master` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `headquarter_master`
+--
+
+DROP TABLE IF EXISTS `headquarter_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `headquarter_master` (
+  `headquarter_code` varchar(10) NOT NULL,
+  `headquarter_name` varchar(100) NOT NULL,
+  `hrms_headquarter_code` varchar(10) NOT NULL,
+  PRIMARY KEY (`headquarter_code`),
+  UNIQUE KEY `uk_headquarter_hrms_code` (`hrms_headquarter_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `headquarter_master`
+--
+
+LOCK TABLES `headquarter_master` WRITE;
+/*!40000 ALTER TABLE `headquarter_master` DISABLE KEYS */;
+INSERT INTO `headquarter_master` VALUES ('HQ','Head Quarter','HA11');
+/*!40000 ALTER TABLE `headquarter_master` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `district_master`
+--
+
+DROP TABLE IF EXISTS `district_master`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `district_master` (
+  `district_code` varchar(10) NOT NULL,
+  `district_name` varchar(100) NOT NULL,
+  `hrms_reg_code` varchar(10) NOT NULL,
+  PRIMARY KEY (`district_code`),
+  KEY `idx_district_hrms_reg_code` (`hrms_reg_code`),
+  CONSTRAINT `fk_district_region_hrms` FOREIGN KEY (`hrms_reg_code`) REFERENCES `region_master` (`hrms_reg_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `district_master`
+--
+
+LOCK TABLES `district_master` WRITE;
+/*!40000 ALTER TABLE `district_master` DISABLE KEYS */;
+INSERT INTO `district_master` VALUES ('EC12','BHAGALPUR','EC11'),('EC13','DARBHANGA','EC11'),('EC14','GAYA','EC11'),('EC15','MUZAFFARPUR','EC11'),('EC16','PURNIA','EC11'),('EC17','PATNA','EC11'),('EC18','MADHUBANI','EC11'),('EC19','MADHIPURA','EC11'),('EC20','HAJIPUR(CHHAPRA)','EC11'),('EC21','SAHRSA','EC11'),('EC22','SAMASTIPUR','EC11'),('EC23','MOTIHARI','EC11'),('EC24','JAMUI','EC11'),('EC25','ROHTAS','EC11'),('ED12','DHANBAD','ED11'),('ED13','RANCHI','ED11'),('ED14','DALTONGANJ','ED11'),('ED15','DEOGHAR','ED11'),('EE12','BALASORE','EE11'),('EE13','BEHRAMPUR','EE11'),('EE14','CUTTACK','EE11'),('EE15','JAYPORE','EE11'),('EE16','SAMBALPUR','EE11'),('EE17','TITLAGARH','EE11'),('EE18','BHUBANESWAR','EE11'),('EF12','BANKURA','EF11'),('EF13','BIRBHUM','EF11'),('EF14','BURDWAN','EF11'),('EF16','CALCUTTA (NORTH)','EF11'),('EF19','COOCH BIHAR','EF11'),('EF20','HOWRAH','EF11'),('EF21','HOOGHLY','EF11'),('EF22','JALPAIGURI','EF11'),('EF23','MALDA','EF11'),('EF24','MIDNAPUR','EF11'),('EF25','MURSHIDABAD','EF11'),('EF26','NADIA','EF11'),('EF27','PURULIA','EF11'),('EF28','24 PARGNAS','EF11'),('EF29','WEST DINAJPUR','EF11'),('EF30','DURGAPUR','EF11'),('EF31','CALCUTTA NPD','EF11'),('EF32','CALCUTTAPORT','EF11'),('EF33','SIKKIM(UT)','EF11'),('EF34','SILIGURI','EF11'),('FB12','GUWAHATI','FB11'),('FB13','JORHAT','FB11'),('FB14','KOKRAJHAR','FB11'),('FB15','NORTH LAKHIMPUR','FB11'),('FB16','NAGAON','FB11'),('FB17','SILCHAR','FB11'),('FB18','BONGAIGAON','FB11'),('FB19','DIBRUGARH','FB11'),('FB20','TEZPUR','FB11'),('FB21','BANDERDEWA','FB11'),('FC12','BANDERDEWA','FC11'),('FC13','BOMDILA','FC11'),('FC14','PASSIGHAT','FC11'),('FC15','TEZU','FC11'),('FD12','TRIPURA','FD11'),('FD15','AIZWAL-MIZORAM','FD11'),('FD16','SHILLONG-MEGHALYA','FD11'),('FE13','IMPHAL MANIPUR','FE11'),('FE14','DIMAPUR-NAGALAND','FE11'),('FF12','D.O.IMPHAL','FF11'),('NB12','MAYAPURI','NB11'),('NB13','SHAKTINAGAR','NB11'),('NC12','FARIDABAD','NC11'),('NC13','HISSAR','NC11'),('NC14','KARNAL','NC11'),('NC15','KURUKSHETRA','NC11'),('NC16','ROHTAK','NC11'),('ND12','SHIMLA','ND11'),('ND13','DHARAMSHALA','ND11'),('ND14','MANDI','ND11'),('NE12','JAMMU','NE11'),('NE13','SRINAGAR','NE11'),('NF12','AMRITSAR','NF11'),('NF13','BHATINDA','NF11'),('NF14','CHANDIGARH','NF11'),('NF15','FEROZPUR','NF11'),('NF16','FARIDKOT','NF11'),('NF17','GURDASPUR','NF11'),('NF18','HOSHIARPUR','NF11'),('NF19','JALLANDHAR','NF11'),('NF20','LUDHIANA','NF11'),('NF21','PATIALA','NF11'),('NF22','SANGRUR','NF11'),('NF23','KAPURTHALA','NF11'),('NF24','MOGA','NF11'),('NG12','ALWAR','NG11'),('NG13','BIKANER','NG11'),('NG14','JAIPUR','NG11'),('NG15','JODHPUR','NG11'),('NG16','KOTA','NG11'),('NG17','SRI GANGANAGAR','NG11'),('NG18','UDAIPUR','NG11'),('NG19','AJMER','NG11'),('NH12','AGRA','NH11'),('NH13','BAREILLY','NH11'),('NH14','BULANDSHAHAR','NH11'),('NH15','FAIZABAD','NH11'),('NH16','GORAKHPUR','NH11'),('NH17','HAPUR','NH11'),('NH19','JHANSI','NH11'),('NH20','KANPUR','NH11'),('NH21','LUCKNOW','NH11'),('NH22','MORADABAD','NH11'),('NH23','SAHARANPUR','NH11'),('NH24','VARANASI','NH11'),('NH26','ALLAHBAD','NH11'),('NH27','AZAMGARH','NH11'),('NH28','BANDA','NH11'),('NH30','GONDA','NH11'),('NH31','SHAHJAHANPUR','NH11'),('NH32','SITAPUR','NH11'),('NH34','ALIGARH','NH11'),('NI12','DEHRADUN','NI11'),('NI13','HALDWANI','NI11'),('NI14','SRINAGAR(P.GARHWAL)','NI11'),('SB12','GUNTUR','SB11'),('SB13','KAKINADA','SB11'),('SB14','VIJAYWADA','SB11'),('SB15','KURNOOL','SB11'),('SB16','NALGONDA','SB11'),('SB17','NELLORE','SB11'),('SB18','NIZAMABAD','SB11'),('SB19','SRIKAKULAM','SB11'),('SB20','SANATHNAGAR','SB11'),('SB21','MAHABOOBNAGAR','SB11'),('SB22','VISHAKHAPATNAM','SB11'),('SB23','WARANGAL','SB11'),('SB24','KHAMMAM','SB11'),('SB25','TADEPALLIGUDAM','SB11'),('SB26','KARIMNAGAR','SB11'),('SB27','PORT BLAIR (A&N)','SB11'),('SC12','ALLEPPY','SC11'),('SC13','CALICUT','SC11'),('SC14','COCHIN','SC11'),('SC15','KOTTYAM','SC11'),('SC16','MUZHAPPILANGAD','SC11'),('SC17','PALGHAT','SC11'),('SC18','QUILON','SC11'),('SC19','TRICHUR','SC11'),('SC20','TRIVANDRUM','SC11'),('SD12','BANGLORE','SD11'),('SD13','HUBLI','SD11'),('SD15','MYSORE','SD11'),('SD16','RAICHUR','SD11'),('SD17','SHIMOGA','SD11'),('SE12','COIMBATORE','SE11'),('SE14','CHENNAI','SE11'),('SE15','THOOTHUKKUDI','SE11'),('SE16','THANJAVUR','SE11'),('SE17','CUDDALORE(PONDICHERRY)','SE11'),('SE18','VELLORE','SE11'),('SF12','KARIMNAGAR','SF11'),('SF13','KHAMMAM','SF11'),('SF14','MAHBOOBNAGAR','SF11'),('SF15','NALGONDA','SF11'),('SF16','NIZAMABAD','SF11'),('SF17','SANATHNAGAR','SF11'),('SF18','WARANGAL','SF11'),('WB12','BARODA','WB11'),('WB13','RAJKOT','WB11'),('WB14','SABARMATI','WB11'),('WB15','PO KANDLA','WB11'),('WC12','BOMBAY CITY','WC11'),('WC13','GENL MOTORS','WC11'),('WC14','BORIVILLI','WC11'),('WC16','MANMAD','WC11'),('WC17','NAGPUR','WC11'),('WC18','POONA','WC11'),('WC19','GOA','WC11'),('WC20','PANVEL','WC11'),('WC21','AURANGABAD','WC11'),('WC22','AMRAVATI','WC11'),('WD12','BHOPAL','WD11'),('WD14','GWALIOR','WD11'),('WD15','INDORE','WD11'),('WD16','JABALPUR','WD11'),('WD19','SATNA','WD11'),('WD20','SAGAR','WD11'),('WD21','UJJAIN','WD11'),('WF12','BILASPUR','WF11'),('WF13','DURG','WF11'),('WF14','RAIPUR','WF11');
+/*!40000 ALTER TABLE `district_master` ENABLE KEYS */;
+UNLOCK TABLES;
+
 -- Dumping events for database 'ticketing_system'
 --
 
