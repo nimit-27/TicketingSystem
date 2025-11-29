@@ -17,6 +17,8 @@ const RoleMaster = lazy(() => import('./pages/RoleMaster'));
 const RoleDetails = lazy(() => import('./pages/RoleDetails'));
 const Login = lazy(() => import('./pages/Login'));
 const DevLogin = lazy(() => import('./pages/DevLogin'));
+const Users = lazy(() => import('./pages/Users'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
 const MyTickets = lazy(() => import('./pages/MyTickets'));
 const MyWorkload = lazy(() => import('./pages/MyWorkload'));
 const Faq = lazy(() => import('./pages/Faq'));
@@ -76,6 +78,8 @@ function App() {
           <Route path="escalation-master" element={<EscalationMaster />} />
           <Route path="role-master" element={<RoleMaster />} />
           <Route path="role-master/:roleId" element={<RoleDetails />} />
+          <Route path="users" element={<Users />} />
+          <Route path="users/:type/:userId" element={<UserProfile />} />
           <Route path="users/new" element={<AddUser />} />
         </Route>
       </Routes>

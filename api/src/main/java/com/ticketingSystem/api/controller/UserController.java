@@ -1,8 +1,11 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.CreateUserRequest;
+import com.ticketingSystem.api.dto.HelpdeskUserDto;
+import com.ticketingSystem.api.dto.RequesterUserDto;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.service.RequesterUserService;
 import com.ticketingSystem.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +21,35 @@ import jakarta.validation.Valid;
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final RequesterUserService requesterUserService;
 
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/helpdesk")
+    public ResponseEntity<List<HelpdeskUserDto>> getHelpdeskUsers() {
+        return ResponseEntity.ok(userService.getAllHelpdeskUsers());
+    }
+
+    @GetMapping("/helpdesk/{userId}")
+    public ResponseEntity<HelpdeskUserDto> getHelpdeskUserDetails(@PathVariable String userId) {
+        return userService.getHelpdeskUserDetails(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/requesters")
+    public ResponseEntity<List<RequesterUserDto>> getRequesterUsers() {
+        return ResponseEntity.ok(requesterUserService.getAllRequesterUsers());
+    }
+
+    @GetMapping("/requesters/{userId}")
+    public ResponseEntity<RequesterUserDto> getRequesterUserDetails(@PathVariable String userId) {
+        return requesterUserService.getRequesterUser(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/by-roles")
