@@ -18,6 +18,11 @@ public class PermissionService {
     private final RoleRepository repository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Set<Integer> USER_PAGE_ROLE_IDS = Set.of(2, 7);
+    private static final Set<String> USER_PAGE_ROLE_NAMES = Set.of(
+            "admin",
+            "system administrator",
+            "team lead"
+    );
 
     public PermissionService(RoleRepository repository) {
         this.repository = repository;
@@ -28,7 +33,7 @@ public class PermissionService {
         Map<Integer, RolePermission> map = new HashMap<>();
         for (Role rpc : repository.findByIsDeletedFalse()) {
             RolePermission rp = objectMapper.readValue(rpc.getPermissions(), RolePermission.class);
-            applyUserManagementPermissions(rpc.getRoleId(), rp);
+            applyUserManagementPermissions(rpc, rp);
             map.put(rpc.getRoleId(), rp);
         }
         config = new PermissionsConfig();
@@ -47,7 +52,7 @@ public class PermissionService {
         repository.save(existingRole);
 
         ensureConfig();
-        applyUserManagementPermissions(roleId, permission);
+        applyUserManagementPermissions(existingRole, permission);
         config.getRoles().put(roleId, permission);
 
         if (isMasterRole(existingRole)) {
@@ -306,7 +311,7 @@ public class PermissionService {
     }
 
     @SuppressWarnings("unchecked")
-    private void applyUserManagementPermissions(Integer roleId, RolePermission permission) {
+    private void applyUserManagementPermissions(Role role, RolePermission permission) {
         if (permission == null) {
             return;
         }
@@ -318,7 +323,7 @@ public class PermissionService {
         }
         Map<String, Object> pageChildren = getOrCreateChildMap(pages, "children");
 
-        boolean allowUsers = USER_PAGE_ROLE_IDS.contains(roleId);
+        boolean allowUsers = isUserManagementRole(role);
         setPagePermission(pageChildren, "Users", allowUsers);
         setPagePermission(pageChildren, "UserProfile", allowUsers);
 
@@ -329,6 +334,19 @@ public class PermissionService {
         }
         Map<String, Object> sidebarChildren = getOrCreateChildMap(sidebar, "children");
         setMenuPermission(sidebarChildren, "users", allowUsers, "Users");
+    }
+
+    private boolean isUserManagementRole(Role role) {
+        if (role == null) {
+            return false;
+        }
+
+        if (role.getRoleId() != null && USER_PAGE_ROLE_IDS.contains(role.getRoleId())) {
+            return true;
+        }
+
+        String roleName = role.getRole();
+        return roleName != null && USER_PAGE_ROLE_NAMES.contains(roleName.trim().toLowerCase());
     }
 
     @SuppressWarnings("unchecked")
