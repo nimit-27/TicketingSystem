@@ -42,7 +42,7 @@ public class SecurityConfig {
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout").permitAll()
+                .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "/auth/logout", "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
         );
