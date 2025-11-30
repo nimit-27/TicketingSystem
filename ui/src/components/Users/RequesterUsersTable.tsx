@@ -9,9 +9,11 @@ interface RequesterUsersTableProps {
   users: RequesterUser[];
   loading?: boolean;
   onViewProfile: (user: RequesterUser) => void;
+  onAppointRno?: (user: RequesterUser) => void;
+  appointingUserId?: string | null;
 }
 
-const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loading = false, onViewProfile }) => {
+const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loading = false, onViewProfile, onAppointRno, appointingUserId }) => {
   const { t } = useTranslation();
 
   const columns: ColumnsType<RequesterUser> = useMemo(() => [
@@ -43,15 +45,29 @@ const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loadin
     {
       title: t('Actions'),
       key: 'actions',
-      render: (_, record) => (
-        <CustomIconButton
-          size="small"
-          icon="visibility"
-          onClick={() => onViewProfile(record)}
-        />
-      ),
+      render: (_, record) => {
+        const alreadyRno = (record.roleIds ?? []).includes('4');
+        const isAppointing = appointingUserId === record.requesterUserId;
+
+        return (
+          <div className="d-flex gap-2">
+            <CustomIconButton
+              size="small"
+              icon="visibility"
+              onClick={() => onViewProfile(record)}
+            />
+            <CustomIconButton
+              size="small"
+              icon="verifiedUser"
+              disabled={!onAppointRno || alreadyRno || isAppointing}
+              title={alreadyRno ? t('Already appointed as RNO') : t('Appoint as RNO')}
+              onClick={() => onAppointRno?.(record)}
+            />
+          </div>
+        );
+      },
     },
-  ], [onViewProfile, t]);
+  ], [appointingUserId, onAppointRno, onViewProfile, t]);
 
   return (
     <GenericTable

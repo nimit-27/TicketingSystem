@@ -189,6 +189,9 @@ public class DtoMapper {
         dto.setDateOfRetirement(user.getDateOfRetirement());
         dto.setOfficeType(user.getOfficeType());
         dto.setOfficeCode(user.getOfficeCode());
+        dto.setZoneCode(user.getZoneCode());
+        dto.setRegionCode(user.getRegionCode());
+        dto.setDistrictCode(user.getDistrictCode());
         return dto;
     }
 

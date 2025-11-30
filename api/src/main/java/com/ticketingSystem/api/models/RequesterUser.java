@@ -53,4 +53,13 @@ public class RequesterUser {
 
     @Column(name = "office_code")
     private String officeCode;
+
+    @Column(name = "zone_code")
+    private String zoneCode;
+
+    @Column(name = "region_code")
+    private String regionCode;
+
+    @Column(name = "district_code")
+    private String districtCode;
 }

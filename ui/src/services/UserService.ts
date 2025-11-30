@@ -41,14 +41,33 @@ export function getRequesterUsers() {
     return axios.get<RequesterUser[]>(`${BASE_URL}/users/requesters`);
 }
 
-export function searchRequesterUsers(query: string, roleId?: string, stakeholderId?: string, page: number = 0, size: number = 10) {
+export function searchRequesterUsers(
+    query: string,
+    roleId?: string,
+    stakeholderId?: string,
+    officeCode?: string,
+    officeType?: string,
+    zoneCode?: string,
+    regionCode?: string,
+    districtCode?: string,
+    page: number = 0,
+    size: number = 10,
+) {
     return axios.get<PaginatedResponse<RequesterUser>>(`${BASE_URL}/users/requesters/search`, {
-        params: { query, roleId, stakeholderId, page, size },
+        params: { query, roleId, stakeholderId, officeCode, officeType, zoneCode, regionCode, districtCode, page, size },
     });
 }
 
 export function getRequesterUserDetails(userId: string) {
     return axios.get<RequesterUser>(`${BASE_URL}/users/requesters/${userId}`);
+}
+
+export function getRequesterOfficeTypes() {
+    return axios.get<string[]>(`${BASE_URL}/users/requesters/office-types`);
+}
+
+export function appointRequesterAsRno(userId: string) {
+    return axios.post(`${BASE_URL}/users/requesters/${userId}/appoint-rno`);
 }
 
 export function getUsersByRoles(roleIds: string[]) {

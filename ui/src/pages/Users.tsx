@@ -5,7 +5,7 @@ import ViewToggle from '../components/UI/ViewToggle';
 import { useApi } from '../hooks/useApi';
 import HelpdeskUsersTable from '../components/Users/HelpdeskUsersTable';
 import RequesterUsersTable from '../components/Users/RequesterUsersTable';
-import { searchHelpdeskUsers, searchRequesterUsers } from '../services/UserService';
+import { appointRequesterAsRno, getRequesterOfficeTypes, searchHelpdeskUsers, searchRequesterUsers } from '../services/UserService';
 import { HelpdeskUser, RequesterUser, UserProfileType } from '../types/users';
 import { checkAccessMaster } from '../utils/permissions';
 import GenericInput from '../components/UI/Input/GenericInput';
@@ -16,6 +16,8 @@ import { useDebounce } from '../hooks/useDebounce';
 import { getAllRoles } from '../services/RoleService';
 import { getStakeholders } from '../services/StakeholderService';
 import { PaginatedResponse } from '../types/pagination';
+import { useSnackbar } from '../context/SnackbarContext';
+import { getDistricts, getRegions, getZones } from '../services/LocationService';
 
 const Users: React.FC = () => {
   const { t } = useTranslation();
@@ -23,22 +25,40 @@ const Users: React.FC = () => {
   const [viewMode, setViewMode] = useState<UserProfileType>('requester');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 400);
+  const [officeCodeSearch, setOfficeCodeSearch] = useState('');
+  const debouncedOfficeCode = useDebounce(officeCodeSearch, 400);
   const [roleFilter, setRoleFilter] = useState<string>('All');
   const [stakeholderFilter, setStakeholderFilter] = useState<string>('All');
+  const [officeTypeFilter, setOfficeTypeFilter] = useState<string>('All');
+  const [zoneFilter, setZoneFilter] = useState<string>('All');
+  const [regionFilter, setRegionFilter] = useState<string>('All');
+  const [districtFilter, setDistrictFilter] = useState<string>('All');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [activeAppointmentUserId, setActiveAppointmentUserId] = useState<string | null>(null);
 
+  const { showMessage } = useSnackbar();
   const { data: requesterUsers = { items: [] } as PaginatedResponse<RequesterUser>, apiHandler: requesterHandler, pending: requesterPending } = useApi<PaginatedResponse<RequesterUser>>();
   const { data: helpdeskUsers = { items: [] } as PaginatedResponse<HelpdeskUser>, apiHandler: helpdeskHandler, pending: helpdeskPending } = useApi<PaginatedResponse<HelpdeskUser>>();
   const { data: rolesResponse = [], apiHandler: rolesHandler } = useApi<any>();
   const { data: stakeholdersResponse = [], apiHandler: stakeholdersHandler } = useApi<any>();
+  const { data: officeTypesResponse = [], apiHandler: officeTypesHandler } = useApi<string[]>();
+  const { data: zonesResponse = [], apiHandler: zonesHandler } = useApi<any>();
+  const { data: regionsResponse = [], apiHandler: regionsHandler } = useApi<any>();
+  const { data: districtsResponse = [], apiHandler: districtsHandler } = useApi<any>();
+  const { apiHandler: appointmentHandler } = useApi<any>();
 
   const canViewUsers = useMemo(() => checkAccessMaster(['Users']), []);
 
   const normalizedRole = roleFilter === 'All' ? undefined : roleFilter;
   const normalizedStakeholder = stakeholderFilter === 'All' ? undefined : stakeholderFilter;
+  const normalizedOfficeType = officeTypeFilter === 'All' ? undefined : officeTypeFilter;
+  const normalizedZone = zoneFilter === 'All' ? undefined : zoneFilter;
+  const normalizedRegion = regionFilter === 'All' ? undefined : regionFilter;
+  const normalizedDistrict = districtFilter === 'All' ? undefined : districtFilter;
+  const normalizedOfficeCode = debouncedOfficeCode.trim() === '' ? undefined : debouncedOfficeCode;
 
   const loadHelpdeskUsers = useCallback(() => {
     return helpdeskHandler(() =>
@@ -48,14 +68,29 @@ const Users: React.FC = () => {
 
   const loadRequesterUsers = useCallback(() => {
     return requesterHandler(() =>
-      searchRequesterUsers(debouncedSearch, normalizedRole, normalizedStakeholder, page - 1, pageSize),
+      searchRequesterUsers(
+        debouncedSearch,
+        normalizedRole,
+        normalizedStakeholder,
+        normalizedOfficeCode,
+        normalizedOfficeType,
+        normalizedZone,
+        normalizedRegion,
+        normalizedDistrict,
+        page - 1,
+        pageSize,
+      ),
     );
-  }, [debouncedSearch, normalizedRole, normalizedStakeholder, page, pageSize, requesterHandler]);
+  }, [debouncedSearch, normalizedDistrict, normalizedOfficeCode, normalizedOfficeType, normalizedRegion, normalizedRole, normalizedStakeholder, normalizedZone, page, pageSize, requesterHandler]);
 
   useEffect(() => {
     rolesHandler(() => getAllRoles());
     stakeholdersHandler(() => getStakeholders());
-  }, [rolesHandler, stakeholdersHandler]);
+    officeTypesHandler(() => getRequesterOfficeTypes());
+    zonesHandler(() => getZones());
+    regionsHandler(() => getRegions());
+    districtsHandler(() => getDistricts());
+  }, [districtsHandler, officeTypesHandler, regionsHandler, rolesHandler, stakeholdersHandler, zonesHandler]);
 
   useEffect(() => {
     setPage(1);
@@ -64,6 +99,10 @@ const Users: React.FC = () => {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedOfficeCode, roleFilter, stakeholderFilter, officeTypeFilter, zoneFilter, regionFilter, districtFilter]);
 
   useEffect(() => {
     const executeSearch = viewMode === 'requester' ? loadRequesterUsers : loadHelpdeskUsers;
@@ -77,6 +116,21 @@ const Users: React.FC = () => {
   const handleViewProfile = (type: UserProfileType, id: string) => {
     navigate(`/users/${type}/${id}`);
   };
+
+  const handleAppointRno = useCallback(async (user: RequesterUser) => {
+    if (!user?.requesterUserId) return;
+
+    setActiveAppointmentUserId(user.requesterUserId);
+    try {
+      const response = await appointmentHandler(() => appointRequesterAsRno(user.requesterUserId));
+      if (response) {
+        showMessage(t('User appointed as Regional Nodal Officer'), 'success');
+        loadRequesterUsers();
+      }
+    } finally {
+      setActiveAppointmentUserId(null);
+    }
+  }, [appointmentHandler, loadRequesterUsers, showMessage, t]);
 
   const roleOptions: DropdownOption[] = useMemo(
     () => [{ label: t('All'), value: 'All' }, ...((rolesResponse?.data ?? rolesResponse ?? []).map((r: any) => ({
@@ -92,6 +146,38 @@ const Users: React.FC = () => {
       value: String(s.id),
     })) as DropdownOption[])],
     [stakeholdersResponse, t],
+  );
+
+  const officeTypeOptions: DropdownOption[] = useMemo(
+    () => [{ label: t('All'), value: 'All' }, ...(((officeTypesResponse?.data ?? officeTypesResponse ?? []) as string[]).map((type: string) => ({
+      label: type,
+      value: type,
+    })) as DropdownOption[])],
+    [officeTypesResponse, t],
+  );
+
+  const zoneOptions: DropdownOption[] = useMemo(
+    () => [{ label: t('All'), value: 'All' }, ...((zonesResponse?.data ?? zonesResponse ?? []).map((z: any) => ({
+      label: z.zoneName ? `${z.zoneName} (${z.zoneCode})` : z.zoneCode,
+      value: String(z.zoneCode),
+    })) as DropdownOption[])],
+    [t, zonesResponse],
+  );
+
+  const regionOptions: DropdownOption[] = useMemo(
+    () => [{ label: t('All'), value: 'All' }, ...((regionsResponse?.data ?? regionsResponse ?? []).map((r: any) => ({
+      label: r.regionName ? `${r.regionName} (${r.regionCode})` : r.regionCode,
+      value: String(r.regionCode),
+    })) as DropdownOption[])],
+    [regionsResponse, t],
+  );
+
+  const districtOptions: DropdownOption[] = useMemo(
+    () => [{ label: t('All'), value: 'All' }, ...((districtsResponse?.data ?? districtsResponse ?? []).map((d: any) => ({
+      label: d.districtName ? `${d.districtName} (${d.districtCode})` : d.districtCode,
+      value: String(d.districtCode),
+    })) as DropdownOption[])],
+    [districtsResponse, t],
   );
 
   if (!canViewUsers) {
@@ -119,6 +205,14 @@ const Users: React.FC = () => {
           onChange={(e) => setSearch(e.target.value)}
           style={{ minWidth: 260 }}
         />
+        {viewMode === 'requester' && (
+          <GenericInput
+            placeholder={t('Search by office code')}
+            value={officeCodeSearch}
+            onChange={(e) => setOfficeCodeSearch(e.target.value)}
+            style={{ minWidth: 200 }}
+          />
+        )}
         <DropdownController
           label={t('Role')}
           options={roleOptions}
@@ -137,12 +231,54 @@ const Users: React.FC = () => {
             setPage(1);
           }}
         />
+        {viewMode === 'requester' && (
+          <>
+            <DropdownController
+              label={t('Office Type')}
+              options={officeTypeOptions}
+              value={officeTypeFilter}
+              onChange={(value) => {
+                setOfficeTypeFilter(String(value));
+                setPage(1);
+              }}
+            />
+            <DropdownController
+              label={t('Zone Code')}
+              options={zoneOptions}
+              value={zoneFilter}
+              onChange={(value) => {
+                setZoneFilter(String(value));
+                setPage(1);
+              }}
+            />
+            <DropdownController
+              label={t('Region Code')}
+              options={regionOptions}
+              value={regionFilter}
+              onChange={(value) => {
+                setRegionFilter(String(value));
+                setPage(1);
+              }}
+            />
+            <DropdownController
+              label={t('District Code')}
+              options={districtOptions}
+              value={districtFilter}
+              onChange={(value) => {
+                setDistrictFilter(String(value));
+                setPage(1);
+              }}
+            />
+          </>
+        )}
       </div>
 
       {viewMode === 'requester' ? (
         <RequesterUsersTable
           users={requesterUsers?.items ?? []}
           loading={requesterPending}
+          appointingUserId={activeAppointmentUserId}
+          onAppointRno={handleAppointRno}
           onViewProfile={user => handleViewProfile('requester', user.requesterUserId)}
         />
       ) : (
