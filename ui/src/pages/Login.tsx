@@ -1,5 +1,5 @@
 import { FC, ReactNode, useContext, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser, LoginPayload } from "../services/AuthService";
 import { setPermissions } from "../utils/permissions";
 import { RoleLookupItem, setRoleLookup, setUserDetails } from "../utils/Utils";
@@ -23,10 +23,11 @@ interface ThemeProps {
     error?: string;
     heading: string;
     bypassControl: ReactNode;
+    faqLink: ReactNode;
     onBack: () => void;
 }
 
-const ThemeOne: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error, heading, bypassControl, onBack }) => (
+const ThemeOne: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error, heading, bypassControl, faqLink, onBack }) => (
     <div style={{ display: "flex", minHeight: "100vh", justifyContent: "center", alignItems: "center", background: "#f5f5f5", padding: "1rem" }}>
         <div style={{ background: "#fff", padding: "2rem", borderRadius: "8px", boxShadow: "0 0 10px rgba(0,0,0,0.1)", textAlign: "center", width: "320px" }}>
             <h2 style={{ color: "#1b5e20", marginBottom: "1rem" }}>{heading}</h2>
@@ -43,12 +44,15 @@ const ThemeOne: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, ha
                 {error && <div className="text-danger mt-2" role="alert">{error}</div>}
             </form>
             <div style={{ marginTop: "1.5rem" }}>{bypassControl}</div>
+            <div className="mt-2">
+                {faqLink}
+            </div>
             <button type="button" className="btn btn-link mt-3" onClick={onBack}>Choose a different portal</button>
         </div>
     </div>
 );
 
-const ThemeTwo: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error, heading, bypassControl, onBack }) => (
+const ThemeTwo: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error, heading, bypassControl, faqLink, onBack }) => (
     <div style={{ display: "flex", minHeight: "100vh", justifyContent: "center", alignItems: "center", background: "linear-gradient(135deg, #1b5e20, #FF671F)", padding: "1rem" }}>
         <form onSubmit={handleSubmit} style={{ background: "#fff", padding: "2rem", borderRadius: "8px", width: "320px", boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}>
             <h2 style={{ textAlign: "center", color: "#FF671F", marginBottom: "1rem" }}>{heading}</h2>
@@ -63,12 +67,15 @@ const ThemeTwo: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, ha
             <button style={{ background: "#1b5e20", border: "none" }} className="btn w-100 text-white" type="submit">Login</button>
             {error && <div className="text-danger mt-2" role="alert">{error}</div>}
             <div style={{ marginTop: "1.5rem" }}>{bypassControl}</div>
+            <div className="mt-2 text-center">
+                {faqLink}
+            </div>
             <button type="button" className="btn btn-link mt-3 w-100 text-center" onClick={onBack}>Choose a different portal</button>
         </form>
     </div>
 );
 
-const ThemeThree: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error, heading, bypassControl, onBack }) => (
+const ThemeThree: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, handleSubmit, error, heading, bypassControl, faqLink, onBack }) => (
     <div style={{ display: "flex", minHeight: "100vh", justifyContent: "center", alignItems: "center", background: "#fff8e1", padding: "1rem" }}>
         <div style={{ width: "300px", background: "#fff", padding: "2rem", borderRadius: "8px", boxShadow: "0 0 12px rgba(0,0,0,0.08)" }}>
             <h2 style={{ textAlign: "center", color: "#1b5e20", marginBottom: "1.5rem" }}>{heading}</h2>
@@ -85,6 +92,9 @@ const ThemeThree: FC<ThemeProps> = ({ userId, password, setUserId, setPassword, 
                 {error && <div className="text-danger mt-2" role="alert">{error}</div>}
             </form>
             <div style={{ marginTop: "1.5rem" }}>{bypassControl}</div>
+            <div className="mt-2">
+                {faqLink}
+            </div>
             <button type="button" className="btn btn-link mt-3" onClick={onBack}>Choose a different portal</button>
         </div>
     </div>
@@ -132,6 +142,10 @@ const Login: FC = () => {
     useEffect(() => {
         document.title = "Login";
     }, []);
+
+    const faqLink = (
+        <Link to="/public/faq" className="text-decoration-none">Visit FAQ</Link>
+    );
 
     useEffect(() => {
         const persistLoginData = async () => {
@@ -285,6 +299,7 @@ const Login: FC = () => {
             error: errorMessage,
             heading,
             bypassControl: bypassToggle,
+            faqLink,
             onBack: () => setSelectedPortal(null),
         };
 
