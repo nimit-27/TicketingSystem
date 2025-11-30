@@ -16,6 +16,7 @@ import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import { logout } from "../../utils/Utils";
 import { getCurrentUserDetails } from "../../config/config";
 import { getRoleLookup, RoleLookupItem } from "../../utils/Utils";
+import { useNavigate } from "react-router-dom";
 
 interface UserMenuProps {
   anchorEl: null | HTMLElement;
@@ -26,6 +27,7 @@ interface UserMenuProps {
 const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
   const user = getCurrentUserDetails();
   const [roleLookup, setRoleLookupState] = useState<RoleLookupItem[]>(() => getRoleLookup() ?? []);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (open) {
@@ -108,6 +110,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
     }
   };
 
+  const handleOpenProfile = () => {
+    onClose();
+    navigate('/my-profile');
+  };
+
   const renderDetailRow = (
     icon: React.ReactElement,
     label: string,
@@ -158,7 +165,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
       PaperProps={{ sx: { mt: 1, minWidth: 280 } }}
     >
       <Box sx={{ px: 2, py: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: 'pointer' }}
+          onClick={handleOpenProfile}
+        >
           <Avatar sx={{ bgcolor: "primary.main" }}>{initials || primaryName.charAt(0)}</Avatar>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>

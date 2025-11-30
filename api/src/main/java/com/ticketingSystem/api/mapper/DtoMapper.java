@@ -159,7 +159,6 @@ public class DtoMapper {
         dto.setEmailId(user.getEmailId());
         dto.setMobileNo(user.getMobileNo());
         dto.setOffice(user.getOffice());
-        dto.setPassword(user.getPassword());
         dto.setRoles(user.getRoles());
         dto.setStakeholder(user.getStakeholder());
 
@@ -184,7 +183,6 @@ public class DtoMapper {
         dto.setEmailId(user.getEmailId());
         dto.setMobileNo(user.getMobileNo());
         dto.setOffice(user.getOffice());
-        dto.setPassword(user.getPassword());
         dto.setRoles(user.getRoles());
         dto.setStakeholder(user.getStakeholder());
         dto.setDateOfJoining(user.getDateOfJoining());

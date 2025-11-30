@@ -21,7 +21,6 @@ const HelpdeskUsersTable: React.FC<HelpdeskUsersTableProps> = ({ users, loading 
     { title: t('Mobile No.'), dataIndex: 'mobileNo', key: 'mobileNo' },
     { title: t('Office'), dataIndex: 'office', key: 'office' },
     { title: t('Username'), dataIndex: 'username', key: 'username' },
-    { title: t('Password'), dataIndex: 'password', key: 'password' },
     { title: t('Roles'), dataIndex: 'roles', key: 'roles' },
     { title: t('Stakeholder'), dataIndex: 'stakeholder', key: 'stakeholder' },
     {

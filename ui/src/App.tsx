@@ -19,6 +19,7 @@ const Login = lazy(() => import('./pages/Login'));
 const DevLogin = lazy(() => import('./pages/DevLogin'));
 const Users = lazy(() => import('./pages/Users'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
+const MyProfile = lazy(() => import('./pages/MyProfile'));
 const MyTickets = lazy(() => import('./pages/MyTickets'));
 const MyWorkload = lazy(() => import('./pages/MyWorkload'));
 const Faq = lazy(() => import('./pages/Faq'));
@@ -81,6 +82,7 @@ function App() {
           <Route path="users" element={<Users />} />
           <Route path="users/:type/:userId" element={<UserProfile />} />
           <Route path="users/new" element={<AddUser />} />
+          <Route path="my-profile" element={<MyProfile />} />
         </Route>
       </Routes>
     </Suspense>

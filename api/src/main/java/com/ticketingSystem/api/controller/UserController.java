@@ -2,12 +2,14 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
+import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.RequesterUserDto;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.service.RequesterUserService;
 import com.ticketingSystem.api.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +35,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllHelpdeskUsers());
     }
 
+    @GetMapping("/helpdesk/search")
+    public ResponseEntity<PaginationResponse<HelpdeskUserDto>> searchHelpdeskUsers(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String roleId,
+            @RequestParam(required = false) String stakeholderId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(userService.searchHelpdeskUsers(query, roleId, stakeholderId, PageRequest.of(page, size)));
+    }
+
     @GetMapping("/helpdesk/{userId}")
     public ResponseEntity<HelpdeskUserDto> getHelpdeskUserDetails(@PathVariable String userId) {
         return userService.getHelpdeskUserDetails(userId)
@@ -43,6 +55,16 @@ public class UserController {
     @GetMapping("/requesters")
     public ResponseEntity<List<RequesterUserDto>> getRequesterUsers() {
         return ResponseEntity.ok(requesterUserService.getAllRequesterUsers());
+    }
+
+    @GetMapping("/requesters/search")
+    public ResponseEntity<PaginationResponse<RequesterUserDto>> searchRequesterUsers(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String roleId,
+            @RequestParam(required = false) String stakeholderId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(requesterUserService.searchRequesterUsers(query, roleId, stakeholderId, PageRequest.of(page, size)));
     }
 
     @GetMapping("/requesters/{userId}")
