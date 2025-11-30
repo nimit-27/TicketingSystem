@@ -3,7 +3,7 @@ import { formFieldValue, inputColStyling } from "../../constants/bootstrapClasse
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
-import { getUserDetails, getAllUsers } from "../../services/UserService";
+import { getRequesterUserDetails, getRequesterUsers } from "../../services/UserService";
 import { FieldValues, useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -43,7 +43,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isDisabled = disableAll || disabled;
 
     const { data: userDetailsData, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
-    const { data: usersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
+    const { data: requesterUsersData, apiHandler: getRequesterUsersApiHandler } = useApi<any>();
     const { data: stakeholderData, apiHandler: getStakeholdersApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
@@ -57,8 +57,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const role = useWatch({ control, name: 'role' });
     const debouncedUserId = useDebounce(userId, 500);
 
-    const allUsers = usersData || [];
-    const filteredUsers = allUsers.filter((u: any) => !stakeholder || u.stakeholderId === stakeholder);
+    const requesterUsers = requesterUsersData || [];
+    const filteredUsers = requesterUsers.filter((u: any) => !stakeholder || u.stakeholderId === stakeholder);
     const stakeholderOptions: DropdownOption[] = Array.isArray(stakeholderData)
         ? stakeholderData.map((s: any) => ({ label: s.description, value: String(s.id) }))
         : [];
@@ -67,7 +67,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     // let showRequestorDetails = mode.toLowerCase() !== 'self';
 
     const getUserDetailsHandler = (userId: any) => {
-        getUserDetailsApiHandler(() => getUserDetails(userId))
+        getUserDetailsApiHandler(() => getRequesterUserDetails(userId))
     }
 
     const clearUserDetails = () => {
@@ -79,6 +79,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("mobileNo", "");
             setValue("role", "");
             setValue("office", "");
+            setValue("officeCode", "");
+            setValue("regionCode", "");
+            setValue("zoneCode", "");
+            setValue("districtCode", "");
         }
     }
 
@@ -86,7 +90,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         console.log("Populating user details:", data);
         setSelectedUser(data)
         if (setValue && data) {
-            setValue("requestorName", data.username);
+            setValue("requestorName", data.name ?? data.username ?? "");
             setValue("emailId", data.emailId);
             setValue("mobileNo", data.mobileNo);
 
@@ -98,6 +102,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
             setValue("role", resolvedRole);
             setValue("office", data?.office ?? data?.officeName ?? '');
+            setValue("officeCode", data?.officeCode ?? '');
+            setValue("regionCode", data?.regionCode ?? '');
+            setValue("zoneCode", data?.zoneCode ?? '');
+            setValue("districtCode", data?.districtCode ?? '');
 
             if (!fciUser) {
                 setValue("stakeholder", data.stakeholderId ?? data.stakeholder);
@@ -108,12 +116,16 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     useEffect(() => {
         register('role');
         register('office');
+        register('officeCode');
+        register('regionCode');
+        register('zoneCode');
+        register('districtCode');
     }, [register]);
 
     useEffect(() => {
-        getAllUsersApiHandler(() => getAllUsers());
+        getRequesterUsersApiHandler(() => getRequesterUsers());
         getStakeholdersApiHandler(() => getStakeholders());
-    }, [getAllUsersApiHandler, getStakeholdersApiHandler]);
+    }, [getRequesterUsersApiHandler, getStakeholdersApiHandler]);
 
     // On initial render, if mode is Self, verify and populate logged-in user details
     // useEffect(() => {
@@ -211,6 +223,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("userId", "");
             setValue("role", "");
             setValue("office", "");
+            setValue("officeCode", "");
+            setValue("regionCode", "");
+            setValue("zoneCode", "");
+            setValue("districtCode", "");
             setValue("stakeholder", "");
         }
         setDisabled(false);
@@ -260,7 +276,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         setSelectedUser(val);
         if (val) {
             populateUserDetails(val);
-            setValue && setValue('userId', val.userId);
+            setValue && setValue('userId', val.requesterUserId);
         } else {
             clearUserDetails();
         }
@@ -271,7 +287,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         return options.filter((o: any) => {
             return (
                 o.name?.toLowerCase().includes(txt) ||
-                o.userId?.toString().toLowerCase().includes(txt) ||
+                o.requesterUserId?.toString().toLowerCase().includes(txt) ||
                 o.username?.toLowerCase().includes(txt) ||
                 o.emailId?.toLowerCase().includes(txt) ||
                 o.mobileNo?.toLowerCase().includes(txt)
@@ -295,11 +311,11 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             {showSearchUserAutocomplete && (
                                 <Autocomplete
                                     options={filteredUsers}
-                                    getOptionLabel={(option: any) => option.name || ''}
+                                    getOptionLabel={(option: any) => option.name || option.username || ''}
                                     renderOption={(props, option: any) => (
-                                        <li {...props} key={option.userId}>
+                                        <li {...props} key={option.requesterUserId}>
                                             <span className="fw-semibold">{option.name}</span>
-                                            <span className="text-muted ms-2">{option.username} | {option.mobileNo} | {option.emailId}</span>
+                                            <span className="text-muted ms-2">{option.username} | {option.requesterUserId} | {option.mobileNo} | {option.emailId}</span>
                                         </li>
                                     )}
                                     renderInput={(params) => <TextField {...params} label="Search User" size="small" />}
@@ -344,6 +360,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         <div className="w-100">
                             {/* {showRole && role && renderReadOnlyField("Role", role)} */}
                             {showOffice && office && renderReadOnlyField("Office", office)}
+                            {selectedUser?.officeType && renderReadOnlyField("Office Type", selectedUser.officeType)}
+                            {selectedUser?.officeCode && renderReadOnlyField("Office Code", selectedUser.officeCode)}
                             {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
                         </div>
                     </div>

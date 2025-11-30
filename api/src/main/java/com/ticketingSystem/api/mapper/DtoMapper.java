@@ -73,6 +73,11 @@ public class DtoMapper {
         dto.setRequestorName(ticket.getRequestorName());
         dto.setRequestorEmailId(ticket.getRequestorEmailId());
         dto.setRequestorMobileNo(ticket.getRequestorMobileNo());
+        dto.setOffice(ticket.getOffice());
+        dto.setOfficeCode(ticket.getOfficeCode());
+        dto.setRegionCode(ticket.getRegionCode());
+        dto.setZoneCode(ticket.getZoneCode());
+        dto.setDistrictCode(ticket.getDistrictCode());
         dto.setStakeholder(ticket.getStakeholder());
         dto.setStakeholderId(ticket.getStakeholder());
         dto.setSubject(ticket.getSubject());

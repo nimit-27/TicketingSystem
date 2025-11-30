@@ -9,7 +9,6 @@ import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.*;
-import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.api.repository.TicketCommentRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
@@ -19,6 +18,8 @@ import com.ticketingSystem.api.repository.SubCategoryRepository;
 import com.ticketingSystem.api.repository.PriorityRepository;
 import com.ticketingSystem.api.repository.UploadedFileRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
+import com.ticketingSystem.api.repository.UserRepository;
+import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.RecommendedSeverityFlowRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.enums.Mode;
@@ -59,6 +60,7 @@ public class TicketService {
     private String searchEngine;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final RequesterUserRepository requesterUserRepository;
     private final TicketCommentRepository commentRepository;
     private final AssignmentHistoryService assignmentHistoryService;
     private final StatusHistoryService statusHistoryService;
@@ -165,6 +167,10 @@ public class TicketService {
         }
     }
 
+    private String firstNonBlank(String primary, String fallback) {
+        return (primary != null && !primary.isBlank()) ? primary : fallback;
+    }
+
     public Page<TicketDto> getTickets(String priority, Pageable pageable) {
         Page<Ticket> ticketPage;
         if (priority != null && !priority.equalsIgnoreCase("All")) {
@@ -201,10 +207,36 @@ public class TicketService {
 
         // If userId exists
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
-            User user = userRepository.findById(ticket.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User", ticket.getUserId()));
-            ticket.setUser(user);
-            ticket.setRequestorName(user.getUsername());
+            userRepository.findById(ticket.getUserId()).ifPresentOrElse(user -> {
+                ticket.setUser(user);
+                if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
+                    ticket.setRequestorName(user.getUsername());
+                }
+                if (ticket.getRequestorEmailId() == null) {
+                    ticket.setRequestorEmailId(user.getEmailId());
+                }
+                if (ticket.getRequestorMobileNo() == null) {
+                    ticket.setRequestorMobileNo(user.getMobileNo());
+                }
+                if (ticket.getOffice() == null) {
+                    ticket.setOffice(user.getOffice());
+                }
+            }, () -> requesterUserRepository.findById(ticket.getUserId()).ifPresent(requester -> {
+                if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
+                    ticket.setRequestorName(requester.getName());
+                }
+                if (ticket.getRequestorEmailId() == null) {
+                    ticket.setRequestorEmailId(requester.getEmailId());
+                }
+                if (ticket.getRequestorMobileNo() == null) {
+                    ticket.setRequestorMobileNo(requester.getMobileNo());
+                }
+                ticket.setOffice(firstNonBlank(ticket.getOffice(), requester.getOffice()));
+                ticket.setOfficeCode(firstNonBlank(ticket.getOfficeCode(), requester.getOfficeCode()));
+                ticket.setRegionCode(firstNonBlank(ticket.getRegionCode(), requester.getRegionCode()));
+                ticket.setZoneCode(firstNonBlank(ticket.getZoneCode(), requester.getZoneCode()));
+                ticket.setDistrictCode(firstNonBlank(ticket.getDistrictCode(), requester.getDistrictCode()));
+            }));
         }
 
         // TO DO: Remove TicketStatus during Code Cleaning
@@ -446,6 +478,11 @@ public class TicketService {
         if (updated.getImpact() != null) existing.setImpact(updated.getImpact());
         if (updated.getSeverityRecommendedBy() != null) existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
         if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
+        if (updated.getOffice() != null) existing.setOffice(updated.getOffice());
+        if (updated.getOfficeCode() != null) existing.setOfficeCode(updated.getOfficeCode());
+        if (updated.getRegionCode() != null) existing.setRegionCode(updated.getRegionCode());
+        if (updated.getZoneCode() != null) existing.setZoneCode(updated.getZoneCode());
+        if (updated.getDistrictCode() != null) existing.setDistrictCode(updated.getDistrictCode());
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
         if (updated.getLevelId() != null) existing.setLevelId(updated.getLevelId());
         boolean assignmentChangeAllowed = updated.getAssignedTo() != null
