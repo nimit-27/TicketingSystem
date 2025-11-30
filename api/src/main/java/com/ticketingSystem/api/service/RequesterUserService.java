@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,15 +29,18 @@ public class RequesterUserService {
     private final StakeholderRepository stakeholderRepository;
     private final RoleRepository roleRepository;
     private final NotificationService notificationService;
+    private final RnoAppointedUserService rnoAppointedUserService;
 
     public RequesterUserService(RequesterUserRepository requesterUserRepository,
                                 StakeholderRepository stakeholderRepository,
                                 RoleRepository roleRepository,
-                                NotificationService notificationService) {
+                                NotificationService notificationService,
+                                RnoAppointedUserService rnoAppointedUserService) {
         this.requesterUserRepository = requesterUserRepository;
         this.stakeholderRepository = stakeholderRepository;
         this.roleRepository = roleRepository;
         this.notificationService = notificationService;
+        this.rnoAppointedUserService = rnoAppointedUserService;
     }
 
     public List<RequesterUserDto> getAllRequesterUsers() {
@@ -77,6 +82,10 @@ public class RequesterUserService {
         RequesterUser requesterUser = requesterUserRepository.findById(requesterUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requester user not found"));
 
+        if (!"RO".equalsIgnoreCase(trimToEmpty(requesterUser.getOfficeType()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only RO office type users can be appointed as Regional Nodal Officer");
+        }
+
         List<String> roleIds = new ArrayList<>(splitIds(requesterUser.getRoles()));
         if (!roleIds.contains(REGIONAL_NODAL_OFFICER_ROLE_ID)) {
             roleIds.add(REGIONAL_NODAL_OFFICER_ROLE_ID);
@@ -84,6 +93,7 @@ public class RequesterUserService {
             requesterUserRepository.save(requesterUser);
         }
 
+        rnoAppointedUserService.recordAppointment(requesterUser, getCurrentActor());
         sendRnoAppointmentNotification(requesterUser);
         return mapRequesterUser(requesterUser);
     }
@@ -216,6 +226,10 @@ public class RequesterUserService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    private String trimToEmpty(String value) {
+        return value == null ? "" : value.trim();
+    }
+
     private List<String> splitIds(String value) {
         if (value == null || value.isBlank()) {
             return Collections.emptyList();
@@ -225,5 +239,13 @@ public class RequesterUserService {
                 .map(String::trim)
                 .filter(part -> !part.isEmpty())
                 .toList();
+    }
+
+    private String getCurrentActor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getName();
+        }
+        return null;
     }
 }

@@ -48,6 +48,7 @@ const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loadin
       render: (_, record) => {
         const alreadyRno = (record.roleIds ?? []).includes('4');
         const isAppointing = appointingUserId === record.requesterUserId;
+        const isRoOffice = (record.officeType ?? '').trim().toUpperCase() === 'RO';
 
         return (
           <div className="d-flex gap-2">
@@ -56,13 +57,15 @@ const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loadin
               icon="visibility"
               onClick={() => onViewProfile(record)}
             />
-            <CustomIconButton
-              size="small"
-              icon="verifiedUser"
-              disabled={!onAppointRno || alreadyRno || isAppointing}
-              title={alreadyRno ? t('Already appointed as RNO') : t('Appoint as RNO')}
-              onClick={() => onAppointRno?.(record)}
-            />
+            {isRoOffice && (
+              <CustomIconButton
+                size="small"
+                icon="verifiedUser"
+                disabled={!onAppointRno || alreadyRno || isAppointing}
+                title={alreadyRno ? t('Already appointed as RNO') : t('Appoint as RNO')}
+                onClick={() => onAppointRno?.(record)}
+              />
+            )}
           </div>
         );
       },
