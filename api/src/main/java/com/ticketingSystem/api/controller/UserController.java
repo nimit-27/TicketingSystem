@@ -62,9 +62,19 @@ public class UserController {
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String roleId,
             @RequestParam(required = false) String stakeholderId,
+            @RequestParam(required = false) String officeCode,
+            @RequestParam(required = false) String officeType,
+            @RequestParam(required = false) String zoneCode,
+            @RequestParam(required = false) String regionCode,
+            @RequestParam(required = false) String districtCode,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(requesterUserService.searchRequesterUsers(query, roleId, stakeholderId, PageRequest.of(page, size)));
+        return ResponseEntity.ok(requesterUserService.searchRequesterUsers(query, roleId, stakeholderId, officeCode, officeType, zoneCode, regionCode, districtCode, PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/requesters/office-types")
+    public ResponseEntity<List<String>> getRequesterOfficeTypes() {
+        return ResponseEntity.ok(requesterUserService.getOfficeTypes());
     }
 
     @GetMapping("/requesters/{userId}")
@@ -72,6 +82,11 @@ public class UserController {
         return requesterUserService.getRequesterUser(userId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/requesters/{userId}/appoint-rno")
+    public ResponseEntity<RequesterUserDto> appointRequesterAsRno(@PathVariable String userId) {
+        return ResponseEntity.ok(requesterUserService.appointAsRegionalNodalOfficer(userId));
     }
 
     @PostMapping("/by-roles")

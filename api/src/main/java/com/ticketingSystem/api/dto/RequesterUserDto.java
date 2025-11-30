@@ -27,4 +27,7 @@ public class RequesterUserDto {
     private LocalDateTime dateOfRetirement;
     private String officeType;
     private String officeCode;
+    private String zoneCode;
+    private String regionCode;
+    private String districtCode;
 }

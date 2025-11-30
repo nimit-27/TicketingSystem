@@ -41,6 +41,7 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                             showMessage(message, 'error');
                             setData(null);
                             setSuccess(false);
+                            resolve(null as R);
                         }
                     })
                     .catch((err: any) => {
@@ -53,6 +54,7 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                         showMessage(message, 'error');
                         setData(null);
                         setSuccess(false);
+                        resolve(null as R);
                     });
             });
         });

@@ -8,25 +8,34 @@ import com.ticketingSystem.api.models.Stakeholder;
 import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
+import com.ticketingSystem.notification.enums.ChannelType;
+import com.ticketingSystem.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class RequesterUserService {
+    private static final String REGIONAL_NODAL_OFFICER_ROLE_ID = "4";
+    private static final String RNO_APPOINTMENT_NOTIFICATION_CODE = "RNO_APPOINTMENT";
     private final RequesterUserRepository requesterUserRepository;
     private final StakeholderRepository stakeholderRepository;
     private final RoleRepository roleRepository;
+    private final NotificationService notificationService;
 
     public RequesterUserService(RequesterUserRepository requesterUserRepository,
                                 StakeholderRepository stakeholderRepository,
-                                RoleRepository roleRepository) {
+                                RoleRepository roleRepository,
+                                NotificationService notificationService) {
         this.requesterUserRepository = requesterUserRepository;
         this.stakeholderRepository = stakeholderRepository;
         this.roleRepository = roleRepository;
+        this.notificationService = notificationService;
     }
 
     public List<RequesterUserDto> getAllRequesterUsers() {
@@ -40,13 +49,43 @@ public class RequesterUserService {
                 .map(this::mapRequesterUser);
     }
 
-    public PaginationResponse<RequesterUserDto> searchRequesterUsers(String query, String roleId, String stakeholderId, Pageable pageable) {
-        Page<RequesterUser> page = requesterUserRepository.searchUsers(trimToNull(query), trimToNull(roleId), trimToNull(stakeholderId), pageable);
+    public PaginationResponse<RequesterUserDto> searchRequesterUsers(String query, String roleId, String stakeholderId, String officeCode,
+                                                                     String officeType, String zoneCode, String regionCode, String districtCode,
+                                                                     Pageable pageable) {
+        Page<RequesterUser> page = requesterUserRepository.searchUsers(
+                trimToNull(query),
+                trimToNull(roleId),
+                trimToNull(stakeholderId),
+                trimToNull(officeCode),
+                trimToNull(officeType),
+                trimToNull(zoneCode),
+                trimToNull(regionCode),
+                trimToNull(districtCode),
+                pageable);
         List<RequesterUserDto> items = page.getContent().stream()
                 .map(this::mapRequesterUser)
                 .filter(Objects::nonNull)
                 .toList();
         return new PaginationResponse<>(items, page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
+    }
+
+    public List<String> getOfficeTypes() {
+        return requesterUserRepository.findDistinctOfficeTypes();
+    }
+
+    public RequesterUserDto appointAsRegionalNodalOfficer(String requesterUserId) {
+        RequesterUser requesterUser = requesterUserRepository.findById(requesterUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requester user not found"));
+
+        List<String> roleIds = new ArrayList<>(splitIds(requesterUser.getRoles()));
+        if (!roleIds.contains(REGIONAL_NODAL_OFFICER_ROLE_ID)) {
+            roleIds.add(REGIONAL_NODAL_OFFICER_ROLE_ID);
+            requesterUser.setRoles(String.join("|", roleIds));
+            requesterUserRepository.save(requesterUser);
+        }
+
+        sendRnoAppointmentNotification(requesterUser);
+        return mapRequesterUser(requesterUser);
     }
 
     private RequesterUserDto mapRequesterUser(RequesterUser user) {
@@ -63,6 +102,28 @@ public class RequesterUserService {
         dto.setStakeholderId(user.getStakeholder());
         dto.setStakeholder(resolveStakeholderName(user.getStakeholder()));
         return dto;
+    }
+
+    private void sendRnoAppointmentNotification(RequesterUser requesterUser) {
+        if (requesterUser == null) {
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("roleName", "Regional Nodal Officer");
+        if (requesterUser.getName() != null && !requesterUser.getName().isBlank()) {
+            data.put("recipientName", requesterUser.getName());
+        }
+
+        try {
+            notificationService.sendNotification(
+                    ChannelType.IN_APP,
+                    RNO_APPOINTMENT_NOTIFICATION_CODE,
+                    data,
+                    requesterUser.getRequesterUserId()
+            );
+        } catch (Exception ignored) {
+        }
     }
 
     private String resolveStakeholderName(String stakeholderId) {

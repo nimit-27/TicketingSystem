@@ -34,4 +34,7 @@ export interface RequesterUser {
   dateOfRetirement?: string;
   officeType?: string;
   officeCode?: string;
+  zoneCode?: string;
+  regionCode?: string;
+  districtCode?: string;
 }
