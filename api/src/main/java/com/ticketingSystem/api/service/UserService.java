@@ -2,6 +2,7 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
+import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.Level;
@@ -12,6 +13,8 @@ import com.ticketingSystem.api.repository.LevelRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
@@ -63,13 +66,22 @@ public class UserService {
 
     public List<HelpdeskUserDto> getAllHelpdeskUsers() {
         return userRepository.findAll().stream()
-                .map(DtoMapper::toHelpdeskUserDto)
+                .map(this::mapHelpdeskUser)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
     public Optional<HelpdeskUserDto> getHelpdeskUserDetails(String userId) {
-        return userRepository.findById(userId).map(DtoMapper::toHelpdeskUserDto);
+        return userRepository.findById(userId).map(this::mapHelpdeskUser);
+    }
+
+    public PaginationResponse<HelpdeskUserDto> searchHelpdeskUsers(String query, String roleId, String stakeholderId, Pageable pageable) {
+        Page<User> page = userRepository.searchUsers(trimToNull(query), trimToNull(roleId), trimToNull(stakeholderId), pageable);
+        List<HelpdeskUserDto> items = page.getContent().stream()
+                .map(this::mapHelpdeskUser)
+                .filter(Objects::nonNull)
+                .toList();
+        return new PaginationResponse<>(items, page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
     public User saveUser(User user) {
@@ -144,6 +156,27 @@ public class UserService {
 
     public void deleteUser(String id) {
         userRepository.deleteById(id);
+    }
+
+    private HelpdeskUserDto mapHelpdeskUser(User user) {
+        HelpdeskUserDto dto = DtoMapper.toHelpdeskUserDto(user);
+        if (dto == null) {
+            return null;
+        }
+
+        List<String> roleIds = splitIds(user.getRoles());
+        List<String> roleNames = resolveRoleNames(user.getRoles());
+
+        dto.setRoleIds(roleIds);
+        dto.setRoleNames(roleNames);
+        dto.setRoles(roleNames.isEmpty() ? null : String.join(", ", roleNames));
+        dto.setStakeholderId(user.getStakeholder());
+        dto.setStakeholder(resolveStakeholderName(user.getStakeholder()));
+        if (dto.getLevels() == null) {
+            dto.setLevels(Collections.emptyList());
+        }
+
+        return dto;
     }
 
     private void validateUsername(String username) {
@@ -261,6 +294,25 @@ public class UserService {
 
     private boolean isBcryptHash(String value) {
         return value.startsWith("$2a$") || value.startsWith("$2b$") || value.startsWith("$2y$");
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private List<String> splitIds(String value) {
+        if (value == null || value.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.stream(value.split("\\|"))
+                .map(String::trim)
+                .filter(part -> !part.isEmpty())
+                .toList();
     }
 
     private UserDto mapUserWithStakeholder(User user) {

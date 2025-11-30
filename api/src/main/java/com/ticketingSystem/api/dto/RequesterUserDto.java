@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,9 +18,11 @@ public class RequesterUserDto {
     private String emailId;
     private String mobileNo;
     private String office;
-    private String password;
     private String roles;
+    private List<String> roleNames;
+    private List<String> roleIds;
     private String stakeholder;
+    private String stakeholderId;
     private LocalDateTime dateOfJoining;
     private LocalDateTime dateOfRetirement;
     private String officeType;

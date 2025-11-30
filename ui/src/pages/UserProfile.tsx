@@ -69,7 +69,6 @@ const UserProfile: React.FC = () => {
             <DetailRow label={t('Office')} value={profile.office} />
             <DetailRow label={t('Stakeholder')} value={profile.stakeholder} />
             <DetailRow label={t('Roles')} value={profile.roles} />
-            <DetailRow label={t('Password')} value={profile.password} />
           </CustomFieldset>
 
           <CustomFieldset title={t('Additional Information')}>
@@ -95,7 +94,6 @@ const UserProfile: React.FC = () => {
             <DetailRow label={t('Office')} value={profile.office} />
             <DetailRow label={t('Stakeholder')} value={profile.stakeholder} />
             <DetailRow label={t('Roles')} value={profile.roles} />
-            <DetailRow label={t('Password')} value={profile.password} />
           </CustomFieldset>
 
           <CustomFieldset title={t('Additional Information')}>

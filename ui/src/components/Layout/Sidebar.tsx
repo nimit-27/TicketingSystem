@@ -96,6 +96,12 @@ const menuItems = [
     icon: "supervisorAccount",
   },
   {
+    key: "myProfile",
+    label: "My Profile",
+    to: "/my-profile",
+    icon: "accountCircle",
+  },
+  {
     key: "addUser",
     label: "Add New User",
     to: "/users/new",
@@ -146,7 +152,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         <List component="nav">
           {menuItems.map(({ key, label, to, icon }) => {
             console.log(key === selectedKey);
-            if (!checkSidebarAccess(key)) {
+            const alwaysVisible = key === 'myProfile';
+            if (!alwaysVisible && !checkSidebarAccess(key)) {
               return null;
             }
             return (

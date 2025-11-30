@@ -7,9 +7,11 @@ export interface HelpdeskUser {
   emailId?: string;
   mobileNo?: string;
   office?: string;
-  password?: string;
   roles?: string;
+  roleNames?: string[];
+  roleIds?: string[];
   stakeholder?: string;
+  stakeholderId?: string;
   levels?: string[];
 }
 
@@ -23,9 +25,11 @@ export interface RequesterUser {
   emailId?: string;
   mobileNo?: string;
   office?: string;
-  password?: string;
   roles?: string;
+  roleNames?: string[];
+  roleIds?: string[];
   stakeholder?: string;
+  stakeholderId?: string;
   dateOfJoining?: string;
   dateOfRetirement?: string;
   officeType?: string;
