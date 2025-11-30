@@ -78,6 +78,8 @@ public class DtoMapper {
         dto.setRegionCode(ticket.getRegionCode());
         dto.setZoneCode(ticket.getZoneCode());
         dto.setDistrictCode(ticket.getDistrictCode());
+        dto.setRegionName(ticket.getRegionName());
+        dto.setDistrictName(ticket.getDistrictName());
         dto.setStakeholder(ticket.getStakeholder());
         dto.setStakeholderId(ticket.getStakeholder());
         dto.setSubject(ticket.getSubject());
