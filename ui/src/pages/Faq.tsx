@@ -1,4 +1,4 @@
-import { Key, useEffect } from "react";
+import { Key, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
@@ -77,12 +77,25 @@ const Faq: React.FC = () => {
     const { data: faqs, apiHandler } = useApi<any>();
     const canAddQnA = checkAccessMaster(["faq", "QNAButton"]);
     const showAddQnAButton = checkAccessMaster(["faq", "addQnAButton"]);
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         apiHandler(() => getFaqs());
     }, []);
 
-    const combinedFaqs = [...requesterFaqs, ...(faqs ?? [])];
+    const combinedFaqs = useMemo(() => [...requesterFaqs, ...(faqs ?? [])], [faqs]);
+
+    const toggleAnswer = (id: string) => {
+        setExpandedIds(prev => {
+            const updated = new Set(prev);
+            if (updated.has(id)) {
+                updated.delete(id);
+            } else {
+                updated.add(id);
+            }
+            return updated;
+        });
+    };
 
     return (
         <div className="w-100">
@@ -100,14 +113,28 @@ const Faq: React.FC = () => {
                 const question = i18n.language === 'hi' ? (item.questionHi || item.questionEn) : (item.questionEn || item.questionHi);
                 const answer = i18n.language === 'hi' ? (item.answerHi || item.answerEn) : (item.answerEn || item.answerHi);
                 const isEditable = canAddQnA && !`${item.id}`.startsWith('static-');
+                const itemId = `${item.id ?? index}`;
+                const isExpanded = expandedIds.has(itemId);
                 return (
-                    <div key={index} className="mb-4">
-                        <h5 className="ts-20" data-keywords={item.keywords}>{question}</h5>
-                        <p className="ts-16" data-keywords={item.keywords}>{answer}</p>
+                    <div key={index} className="mb-4 pb-3 border-bottom border-secondary-subtle">
+                        <button
+                            type="button"
+                            onClick={() => toggleAnswer(itemId)}
+                            className="btn w-100 text-start p-0 border-0 bg-transparent d-flex justify-content-between align-items-center"
+                            aria-expanded={isExpanded}
+                        >
+                            <h5 className="ts-20 mb-0" data-keywords={item.keywords}>{question}</h5>
+                            <span className="ts-20" aria-hidden>{isExpanded ? '−' : '+'}</span>
+                        </button>
+                        {isExpanded && (
+                            <p className="ts-16 mt-3 mb-0" data-keywords={item.keywords}>{answer}</p>
+                        )}
                         {isEditable && (
-                            <GenericButton variant="outlined" onClick={() => navigate(`/faq/${item.id}/edit`)}>
-                                {t('Edit Q & A')}
-                            </GenericButton>
+                            <div className="mt-3">
+                                <GenericButton variant="outlined" onClick={() => navigate(`/faq/${item.id}/edit`)}>
+                                    {t('Edit Q & A')}
+                                </GenericButton>
+                            </div>
                         )}
                     </div>
                 );

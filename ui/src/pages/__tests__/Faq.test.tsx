@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react';
 import { renderWithTheme } from '../../test/testUtils';
 
 const mockApiHandler = jest.fn(() => Promise.resolve());
@@ -49,9 +50,12 @@ describe('Faq page', () => {
   });
 
   it('renders FAQ items and calls fetch on mount', () => {
-    const { getAllByText } = renderWithTheme(<Faq />);
+    const { getAllByText, queryByText } = renderWithTheme(<Faq />);
     expect(mockApiHandler).toHaveBeenCalled();
-    expect(getAllByText(/Question/)[0]).toBeInTheDocument();
-    expect(getAllByText(/Answer/)[0]).toBeInTheDocument();
+    const question = getAllByText(/Question/)[0];
+    expect(question).toBeInTheDocument();
+    expect(queryByText(/Answer EN/)).not.toBeInTheDocument();
+    fireEvent.click(question);
+    expect(getAllByText(/Answer EN/)[0]).toBeInTheDocument();
   });
 });

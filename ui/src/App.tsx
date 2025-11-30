@@ -23,6 +23,7 @@ const MyProfile = lazy(() => import('./pages/MyProfile'));
 const MyTickets = lazy(() => import('./pages/MyTickets'));
 const MyWorkload = lazy(() => import('./pages/MyWorkload'));
 const Faq = lazy(() => import('./pages/Faq'));
+const PublicFaq = lazy(() => import('./pages/PublicFaq'));
 const FaqForm = lazy(() => import('./pages/FaqForm'));
 const RootCauseAnalysis = lazy(() => import('./pages/RootCauseAnalysis'));
 const MISReports = lazy(() => import('./pages/MISReports'));
@@ -49,6 +50,7 @@ function App() {
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         <Route path="/login" element={<LoginRoute />} />
+        <Route path="/public/faq" element={<PublicFaq />} />
         <Route
           path="/"
           element={(
