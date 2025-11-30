@@ -483,6 +483,8 @@ public class TicketService {
         if (updated.getRegionCode() != null) existing.setRegionCode(updated.getRegionCode());
         if (updated.getZoneCode() != null) existing.setZoneCode(updated.getZoneCode());
         if (updated.getDistrictCode() != null) existing.setDistrictCode(updated.getDistrictCode());
+        if (updated.getRegionName() != null) existing.setRegionName(updated.getRegionName());
+        if (updated.getDistrictName() != null) existing.setDistrictName(updated.getDistrictName());
         if (updated.getAssignedToLevel() != null) existing.setAssignedToLevel(updated.getAssignedToLevel());
         if (updated.getLevelId() != null) existing.setLevelId(updated.getLevelId());
         boolean assignmentChangeAllowed = updated.getAssignedTo() != null
