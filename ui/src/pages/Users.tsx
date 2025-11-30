@@ -40,8 +40,10 @@ const Users: React.FC = () => {
   const [activeAppointmentUserId, setActiveAppointmentUserId] = useState<string | null>(null);
 
   const { showMessage } = useSnackbar();
-  const { data: requesterUsers = { items: [] } as PaginatedResponse<RequesterUser>, apiHandler: requesterHandler, pending: requesterPending } = useApi<PaginatedResponse<RequesterUser>>();
-  const { data: helpdeskUsers = { items: [] } as PaginatedResponse<HelpdeskUser>, apiHandler: helpdeskHandler, pending: helpdeskPending } = useApi<PaginatedResponse<HelpdeskUser>>();
+  const { data: requesterUsers = { items: [] } as any, apiHandler: requesterHandler, pending: requesterPending } = useApi<PaginatedResponse<RequesterUser>>();
+  const { data: helpdeskUsers = { items: [] } as any, apiHandler: helpdeskHandler, pending: helpdeskPending } = useApi<PaginatedResponse<HelpdeskUser>>();
+  // const { data: requesterUsers = { items: [] } as PaginatedResponse<RequesterUser>, apiHandler: requesterHandler, pending: requesterPending } = useApi<PaginatedResponse<RequesterUser>>();
+  // const { data: helpdeskUsers = { items: [] } as PaginatedResponse<HelpdeskUser>, apiHandler: helpdeskHandler, pending: helpdeskPending } = useApi<PaginatedResponse<HelpdeskUser>>();
   const { data: rolesResponse = [], apiHandler: rolesHandler } = useApi<any>();
   const { data: stakeholdersResponse = [], apiHandler: stakeholdersHandler } = useApi<any>();
   const { data: officeTypesResponse = [], apiHandler: officeTypesHandler } = useApi<string[]>();
@@ -149,7 +151,7 @@ const Users: React.FC = () => {
   );
 
   const officeTypeOptions: DropdownOption[] = useMemo(
-    () => [{ label: t('All'), value: 'All' }, ...(((officeTypesResponse?.data ?? officeTypesResponse ?? []) as string[]).map((type: string) => ({
+    () => [{ label: t('All'), value: 'All' }, ...(((officeTypesResponse ?? []) as string[]).map((type: string) => ({
       label: type,
       value: type,
     })) as DropdownOption[])],
