@@ -41,16 +41,18 @@ const MyProfile: React.FC = () => {
     }
   }, [loadProfile, userId]);
 
-  if (!userId) {
-    return <Navigate to="/login" replace />;
-  }
-
-  const payload: ProfilePayload | undefined = profileData?.data ?? profileData;
-
+  
+  const payload: ProfilePayload | null = profileData;
+  // const payload: ProfilePayload | undefined = profileData?.data ?? profileData;
+  
   const roleDisplay = useMemo(() => {
     const roles = payload?.roleNames ?? payload?.roles?.split(',') ?? [];
     return roles.map((role) => role.trim()).filter(Boolean).join(', ');
   }, [payload]);
+
+  if (!userId) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="container mt-4">
