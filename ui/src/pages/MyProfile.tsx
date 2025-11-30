@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Button, Card, CardContent, Grid, TextField, Typography, Chip } from '@mui/material';
+import CustomFieldset from '../components/CustomFieldset';
 import { getCurrentUserDetails } from '../config/config';
 import { useApi } from '../hooks/useApi';
-import { getUserDetails, updateUser } from '../services/UserService';
-import { setUserDetails } from '../utils/Utils';
+import { getUserDetails } from '../services/UserService';
 
 interface ProfilePayload {
   userId: string;
@@ -20,20 +19,21 @@ interface ProfilePayload {
   stakeholderId?: string;
 }
 
+const DetailRow: React.FC<{ label: string; value?: React.ReactNode }> = ({ label, value }) => (
+  <div className="d-flex justify-content-between py-2 border-bottom">
+    <span className="fw-semibold">{label}</span>
+    <span className="text-end ms-3" style={{ maxWidth: '65%' }}>
+      {value ?? '-'}
+    </span>
+  </div>
+);
+
 const MyProfile: React.FC = () => {
   const { t } = useTranslation();
   const currentUser = getCurrentUserDetails();
   const userId = currentUser?.userId;
 
-  const [formState, setFormState] = useState({
-    name: '',
-    emailId: '',
-    mobileNo: '',
-    username: '',
-  });
-
-  const { data: profileData, pending, apiHandler: loadProfile } = useApi<any>();
-  const { pending: saving, apiHandler: saveProfile } = useApi<any>();
+  const { data: profileData, pending, apiHandler: loadProfile } = useApi<ProfilePayload>();
 
   useEffect(() => {
     if (userId) {
@@ -41,117 +41,50 @@ const MyProfile: React.FC = () => {
     }
   }, [loadProfile, userId]);
 
-  useEffect(() => {
-    const payload: ProfilePayload | undefined = profileData?.data ?? profileData;
-    if (payload) {
-      setFormState({
-        name: payload.name ?? '',
-        emailId: payload.emailId ?? '',
-        mobileNo: payload.mobileNo ?? '',
-        username: payload.username ?? '',
-      });
-    }
-  }, [profileData]);
-
-  const roleBadges = useMemo(() => {
-    const payload: ProfilePayload | undefined = profileData?.data ?? profileData;
-    const roles = payload?.roleNames ?? payload?.roles?.split(',') ?? [];
-    return roles.map((role) => role.trim()).filter(Boolean);
-  }, [profileData]);
-
   if (!userId) {
     return <Navigate to="/login" replace />;
   }
 
-  const handleSave = async () => {
-    const payload: ProfilePayload | undefined = profileData?.data ?? profileData;
-    if (!payload) return;
-
-    await saveProfile(() =>
-      updateUser(userId, {
-        ...payload,
-        name: formState.name,
-        emailId: formState.emailId,
-        mobileNo: formState.mobileNo,
-        username: formState.username,
-      }),
-    );
-
-    setUserDetails({
-      ...currentUser,
-      name: formState.name,
-      email: formState.emailId,
-      phone: formState.mobileNo,
-      username: formState.username,
-    } as any);
-
-    alert(t('Profile updated successfully'));
-  };
-
   const payload: ProfilePayload | undefined = profileData?.data ?? profileData;
+
+  const roleDisplay = useMemo(() => {
+    const roles = payload?.roleNames ?? payload?.roles?.split(',') ?? [];
+    return roles.map((role) => role.trim()).filter(Boolean).join(', ');
+  }, [payload]);
 
   return (
     <div className="container mt-4">
-      <Typography variant="h5" className="mb-3">{t('My Profile')}</Typography>
-      <Card>
-        <CardContent>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label={t('Name')}
-                value={formState.name}
-                onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
-                fullWidth
-                disabled={pending}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label={t('Email ID')}
-                value={formState.emailId}
-                onChange={(e) => setFormState((prev) => ({ ...prev, emailId: e.target.value }))}
-                fullWidth
-                disabled={pending}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label={t('Mobile No.')}
-                value={formState.mobileNo}
-                onChange={(e) => setFormState((prev) => ({ ...prev, mobileNo: e.target.value }))}
-                fullWidth
-                disabled={pending}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label={t('Username')}
-                value={formState.username}
-                onChange={(e) => setFormState((prev) => ({ ...prev, username: e.target.value }))}
-                fullWidth
-                disabled={pending}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label={t('User ID')} value={payload?.userId ?? ''} fullWidth disabled />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField label={t('Stakeholder')} value={payload?.stakeholder ?? ''} fullWidth disabled />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>{t('Roles')}</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {roleBadges.length ? roleBadges.map((role) => <Chip key={role} label={role} />) : <Typography>{t('No roles')}</Typography>}
-              </Box>
-            </Grid>
-          </Grid>
-          <Box className="d-flex justify-content-end mt-3">
-            <Button variant="contained" onClick={handleSave} disabled={pending || saving}>
-              {saving ? t('Saving...') : t('Save Changes')}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3 className="mb-0">{t('My Profile')}</h3>
+        {payload?.stakeholder && <span className="badge bg-primary text-uppercase">{payload.stakeholder}</span>}
+      </div>
+
+      {pending && <div className="mb-3">{t('Loading...')}</div>}
+
+      {!pending && !payload && (
+        <div className="alert alert-warning" role="alert">
+          {t('No data available')}
+        </div>
+      )}
+
+      {payload && (
+        <>
+          <CustomFieldset title={t('Primary Details')}>
+            <DetailRow label={t('User ID')} value={payload.userId} />
+            <DetailRow label={t('Name')} value={payload.name} />
+            <DetailRow label={t('Username')} value={payload.username} />
+            <DetailRow label={t('Email ID')} value={payload.emailId} />
+            <DetailRow label={t('Mobile No.')} value={payload.mobileNo} />
+            <DetailRow label={t('Office')} value={payload.office} />
+            <DetailRow label={t('Stakeholder')} value={payload.stakeholder} />
+            <DetailRow label={t('Roles')} value={roleDisplay} />
+          </CustomFieldset>
+
+          <CustomFieldset title={t('Additional Information')}>
+            <DetailRow label={t('Stakeholder ID')} value={payload.stakeholderId} />
+          </CustomFieldset>
+        </>
+      )}
     </div>
   );
 };
