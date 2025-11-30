@@ -7,6 +7,8 @@ export interface HelpdeskUser {
   emailId?: string;
   mobileNo?: string;
   office?: string;
+  officeType?: string;
+  officeCode?: string;
   roles?: string;
   roleNames?: string[];
   roleIds?: string[];

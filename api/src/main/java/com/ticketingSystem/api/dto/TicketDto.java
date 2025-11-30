@@ -22,6 +22,11 @@ public class TicketDto {
     private String requestorName;
     private String requestorEmailId;
     private String requestorMobileNo;
+    private String office;
+    private String officeCode;
+    private String regionCode;
+    private String zoneCode;
+    private String districtCode;
     private String stakeholder;
     private String stakeholderId;
     private String subject;

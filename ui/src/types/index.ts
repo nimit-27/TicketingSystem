@@ -54,6 +54,11 @@ export interface Ticket {
     requestorName?: string;
     requestorEmailId?: string;
     requestorMobileNo?: string;
+    office?: string;
+    officeCode?: string;
+    regionCode?: string;
+    zoneCode?: string;
+    districtCode?: string;
     stakeholder?: string;
     stakeholderId?: string;
     reportedDate?: string; // ISO-8601 datetime

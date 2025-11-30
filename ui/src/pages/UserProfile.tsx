@@ -98,6 +98,8 @@ const UserProfile: React.FC = () => {
 
           <CustomFieldset title={t('Additional Information')}>
             <DetailRow label={t('Levels')} value={profile.levels?.join(', ')} />
+            <DetailRow label={t('Office Type')} value={profile.officeType} />
+            <DetailRow label={t('Office Code')} value={profile.officeCode} />
           </CustomFieldset>
         </>
       )}
