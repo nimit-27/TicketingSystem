@@ -209,6 +209,42 @@ public class DtoMapper {
         return dto;
     }
 
+    public static RnoAppointedUserDto toRnoAppointedUserDto(RnoAppointedUser appointedUser) {
+        if (appointedUser == null) return null;
+
+        RnoAppointedUserDto dto = new RnoAppointedUserDto();
+        dto.setRnoAppointedUserId(appointedUser.getId());
+        dto.setRequesterUserId(appointedUser.getRequesterUser() != null ? appointedUser.getRequesterUser().getRequesterUserId() : null);
+        dto.setOfficeCode(appointedUser.getOfficeCode());
+        dto.setOfficeType(appointedUser.getOfficeType());
+        dto.setRegionCode(appointedUser.getRegionCode());
+        dto.setActive(appointedUser.getActive());
+        dto.setCreatedBy(appointedUser.getCreatedBy());
+        dto.setCreatedOn(appointedUser.getCreatedOn());
+        dto.setUpdatedBy(appointedUser.getUpdatedBy());
+        dto.setUpdatedOn(appointedUser.getUpdatedOn());
+        return dto;
+    }
+
+    public static RnoAppointedUserHistoryDto toRnoAppointedUserHistoryDto(RnoAppointedUserHistory history) {
+        if (history == null) return null;
+
+        RnoAppointedUserHistoryDto dto = new RnoAppointedUserHistoryDto();
+        dto.setRnoAppointedUserHistoryId(history.getId());
+        dto.setRnoAppointedUserId(history.getRnoAppointedUser() != null ? history.getRnoAppointedUser().getId() : null);
+        dto.setRequesterUserId(history.getRequesterUser() != null ? history.getRequesterUser().getRequesterUserId() : null);
+        dto.setOfficeCode(history.getOfficeCode());
+        dto.setOfficeType(history.getOfficeType());
+        dto.setRegionCode(history.getRegionCode());
+        dto.setActive(history.getActive());
+        dto.setCreatedBy(history.getCreatedBy());
+        dto.setCreatedOn(history.getCreatedOn());
+        dto.setUpdatedBy(history.getUpdatedBy());
+        dto.setUpdatedOn(history.getUpdatedOn());
+        dto.setHistoryRecordedOn(history.getHistoryRecordedOn());
+        return dto;
+    }
+
     public static StakeholderDto toStakeholderDto(Stakeholder stakeholder) {
         if (stakeholder == null) return null;
         StakeholderDto dto = new StakeholderDto();
