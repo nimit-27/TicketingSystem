@@ -176,7 +176,15 @@ const RaiseTicket: React.FC<any> = () => {
             </form>
 
             {/* Link to Master Ticket Modal */}
-            <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} subject={subject} masterId={masterId} currentTicketId={currentTicketId} />
+            <LinkToMasterTicketModal
+                open={linkToMasterTicketModalOpen}
+                onClose={onLinkToMasterTicketModalClose}
+                setMasterId={setMasterId}
+                subject={subject}
+                masterId={masterId}
+                currentTicketId={currentTicketId}
+                isCurrentTicketMaster={isMaster}
+            />
             {/* Successful Modal */}
             <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
         </div>

@@ -309,6 +309,13 @@ describe('TicketView', () => {
     expect(childProps.parentId).toBe('T-1');
   });
 
+  it('shows the master icon instead of link button for master tickets', async () => {
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    expect(await screen.findByLabelText('Master Ticket')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Link to a Master Ticket' })).not.toBeInTheDocument();
+  });
+
   it('hides link to master ticket button when ticket is resolved', async () => {
     getStatusNameByIdMock.mockReturnValue('Resolved');
     mockTicket.statusLabel = 'Resolved';

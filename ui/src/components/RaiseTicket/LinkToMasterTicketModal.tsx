@@ -15,6 +15,7 @@ interface LinkToMasterTicketModalProps {
     currentTicketId?: string; // Optional prop to pass current ticket ID
     masterId?: string;
     onLinkSuccess?: (masterId: string) => void;
+    isCurrentTicketMaster?: boolean;
 }
 
 interface MasterTicket {
@@ -26,7 +27,16 @@ interface MasterTicket {
 
 const PAGE_SIZE = 20;
 
-const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open, onClose, subject, setMasterId, currentTicketId, masterId, onLinkSuccess }) => {
+const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({
+    open,
+    onClose,
+    subject,
+    setMasterId,
+    currentTicketId,
+    masterId,
+    onLinkSuccess,
+    isCurrentTicketMaster = false,
+}) => {
     const [query, setQuery] = useState('');
     const [paginatedTickets, setPaginatedTickets] = useState<MasterTicket[]>([]);
     const [page, setPage] = useState(0);
@@ -37,6 +47,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
     const [linked, setLinked] = useState(false);
     const [conversionInProgress, setConversionInProgress] = useState(false);
     const [conversionError, setConversionError] = useState<string | null>(null);
+    const [linkError, setLinkError] = useState<string | null>(null);
     const currentUser = getCurrentUserDetails();
     const currentUsername = currentUser?.username || '';
 
@@ -82,9 +93,11 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
             setConversionError(null);
             setConversionInProgress(false);
             setQuery('');
+            setLinkError(null);
         }).catch(() => {
             setSelected(null);
             setLinked(false);
+            setLinkError(null);
         });
     }, []);
 
@@ -104,6 +117,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                 handleSelect(masterId);
                 setLinked(true);
             }
+            setLinkError(null);
         }
     }, [open, fetchPaginatedTickets, masterId, handleSelect]);
 
@@ -127,10 +141,16 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
         }
 
         if (shouldLink) {
+            if (isCurrentTicketMaster && selected.isMaster) {
+                setLinkError('Master Ticket cannot be linked to another Master Ticket');
+                setLinked(false);
+                return;
+            }
             if (currentTicketId) {
                 try {
                     await linkTicketToMaster(currentTicketId, selected.id, currentUsername || undefined);
                     setLinked(true);
+                    setLinkError(null);
                     onLinkSuccess?.(selected.id);
                 } catch {
                     setLinked(false);
@@ -138,10 +158,12 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
             } else {
                 setMasterId(selected.id);
                 setLinked(true);
+                setLinkError(null);
             }
         } else if (!currentTicketId) {
             setMasterId('');
             setLinked(false);
+            setLinkError(null);
         }
     };
 
@@ -228,6 +250,9 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({ open,
                             >
                                 <p>Subject: {selected.subject}</p>
                             </CustomFieldset>
+                            {linkError && (
+                                <p className="text-danger text-center m-0">{linkError}</p>
+                            )}
                             <div className='d-flex justify-content-center'>
                                 <Tooltip title={`Link ${currentTicket.id || 'this ticket'} to Master ${selected.id}`} placement="top">
                                     <ToggleButton
