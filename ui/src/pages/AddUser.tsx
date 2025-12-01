@@ -20,7 +20,7 @@ import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOu
 
 import Title from '../components/Title';
 import { useApi } from '../hooks/useApi';
-import { getAllRoles, getRoleLevels } from '../services/RoleService';
+import { getRoleLevels, getRoleSummaries } from '../services/RoleService';
 import { getStakeholders } from '../services/StakeholderService';
 import { getAllLevels } from '../services/LevelService';
 import { checkUsernameAvailability, createUser, CreateUserPayload } from '../services/UserService';
@@ -95,7 +95,7 @@ const AddUser: React.FC = () => {
     data: rolesData,
     pending: rolesPending,
     apiHandler: fetchRoles,
-  } = useApi<any>();
+  } = useApi<RoleResponse[]>();
   const {
     data: stakeholdersData,
     pending: stakeholdersPending,
@@ -116,7 +116,7 @@ const AddUser: React.FC = () => {
   } = useApi<any>();
 
   useEffect(() => {
-    fetchRoles(() => getAllRoles());
+    fetchRoles(() => getRoleSummaries());
     fetchStakeholders(() => getStakeholders());
     fetchLevels(() => getAllLevels());
     fetchRoleLevels(() => getRoleLevels());
