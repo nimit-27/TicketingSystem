@@ -9,7 +9,6 @@ export interface CreateUserPayload {
     emailId: string;
     mobileNo: string;
     office: string;
-    password: string;
     roleIds: string[];
     levelIds: string[];
     stakeholderIds: string[];

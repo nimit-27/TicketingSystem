@@ -33,10 +33,6 @@ public class CreateUserRequest {
     @NotBlank(message = "Office is required")
     private String office;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
-    private String password;
-
     @NotEmpty(message = "At least one role is required")
     private List<String> roleIds;
 
