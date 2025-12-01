@@ -7,7 +7,6 @@ import { useApi } from "../hooks/useApi";
 import { DevModeContext } from "../context/DevModeContext";
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
-import DeveloperModeIcon from "@mui/icons-material/DeveloperMode";
 import { getRoleSummaries } from "../services/RoleService";
 import { storeToken, getDecodedAuthDetails } from "../utils/authToken";
 import { RolePermission, UserDetails } from "../types/auth";
@@ -135,7 +134,7 @@ const Login: FC = () => {
     const [themeIdx, setThemeIdx] = useState(0);
     const [selectedPortal, setSelectedPortal] = useState<PortalType | null>(null);
     const navigate = useNavigate();
-    const { devMode, jwtBypass, toggleJwtBypass, toggleDevMode } = useContext(DevModeContext);
+    const { devMode, jwtBypass, toggleJwtBypass } = useContext(DevModeContext);
 
     const { data: loginData, error: loginError, apiHandler: loginApiHandler } = useApi<LoginResponse>();
 
@@ -246,33 +245,6 @@ const Login: FC = () => {
 
     const errorMessage = useMemo(() => (loginError ? String(loginError) : undefined), [loginError]);
 
-    const devModeToggle = (
-        <button
-            type="button"
-            onClick={toggleDevMode}
-            title={devMode ? "Disable developer mode" : "Enable developer mode"}
-            style={{
-                position: "fixed",
-                top: "20px",
-                right: "20px",
-                width: "44px",
-                height: "44px",
-                borderRadius: "50%",
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: devMode ? "#1b5e20" : "rgba(0,0,0,0.65)",
-                color: "#fff",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
-                cursor: "pointer",
-                zIndex: 10,
-            }}
-        >
-            <DeveloperModeIcon />
-        </button>
-    );
-
     const bypassToggle = (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
             <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
@@ -360,7 +332,6 @@ const Login: FC = () => {
     if (!selectedPortal) {
         return (
             <>
-                {devModeToggle}
                 {renderPortalSelection()}
             </>
         );
@@ -368,7 +339,6 @@ const Login: FC = () => {
 
     return (
         <>
-            {devModeToggle}
             {renderTheme()}
             {devMode && (
                 <div style={{ position: "fixed", bottom: "20px", width: "100%", display: "flex", justifyContent: "space-between", padding: "0 20px" }}>
