@@ -12,6 +12,45 @@ import Histories from '../../../pages/Histories';
 import ChildTicketsList from '../ChildTicketsList';
 import { getStatusNameById } from '../../../utils/Utils';
 
+const mockJsPdfSave = jest.fn();
+const mockJsPdfConstructor = jest.fn();
+const mockJsPdfSetFontSize = jest.fn();
+const mockJsPdfText = jest.fn();
+const mockJsPdfAddPage = jest.fn();
+jest.mock('jspdf', () => ({
+  __esModule: true,
+  default: class {
+    constructor(...args: any[]) {
+      mockJsPdfConstructor(...args);
+    }
+
+    save = mockJsPdfSave;
+    setFontSize = mockJsPdfSetFontSize;
+    text = mockJsPdfText;
+    addPage = mockJsPdfAddPage;
+  },
+}), { virtual: true });
+
+const mockAutoTable = jest.fn();
+jest.mock('jspdf-autotable', () => ({
+  __esModule: true,
+  default: (...args: any[]) => mockAutoTable(...args),
+}), { virtual: true });
+
+const mockJsonToSheet = jest.fn(() => ({}));
+const mockBookNew = jest.fn(() => ({}));
+const mockBookAppendSheet = jest.fn();
+const mockWriteFile = jest.fn();
+jest.mock('xlsx', () => ({
+  __esModule: true,
+  utils: {
+    json_to_sheet: (...args: any[]) => mockJsonToSheet(...args),
+    book_new: (...args: any[]) => mockBookNew(...args),
+    book_append_sheet: (...args: any[]) => mockBookAppendSheet(...args),
+  },
+  writeFile: (...args: any[]) => mockWriteFile(...args),
+}), { virtual: true });
+
 const mockTicket = {
   id: 'T-1',
   subject: 'Test Subject',
