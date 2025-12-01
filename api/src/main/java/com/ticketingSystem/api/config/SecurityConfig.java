@@ -21,13 +21,19 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtProperties jwtProperties;
     private final CorsProperties corsProperties;
+    private final ClientTypeRoutingFilter clientTypeRoutingFilter;
+    private final ClientTypeAuthorizationFilter clientTypeAuthorizationFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           JwtProperties jwtProperties,
-                          CorsProperties corsProperties) {
+                          CorsProperties corsProperties,
+                          ClientTypeRoutingFilter clientTypeRoutingFilter,
+                          ClientTypeAuthorizationFilter clientTypeAuthorizationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtProperties = jwtProperties;
         this.corsProperties = corsProperties;
+        this.clientTypeRoutingFilter = clientTypeRoutingFilter;
+        this.clientTypeAuthorizationFilter = clientTypeAuthorizationFilter;
     }
 
     @Bean
@@ -46,7 +52,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
         );
+        http.addFilterBefore(clientTypeRoutingFilter, JwtAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(clientTypeAuthorizationFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 

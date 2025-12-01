@@ -1,14 +1,17 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.config.JwtProperties;
+import com.ticketingSystem.api.config.ClientTypeRoutingFilter;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.LoginRequest;
+import com.ticketingSystem.api.enums.ClientType;
 import com.ticketingSystem.api.permissions.RolePermission;
 import com.ticketingSystem.api.service.AuthService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.PermissionService;
 import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +32,7 @@ public class AuthController {
     private final JwtProperties jwtProperties;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session, HttpServletRequest httpServletRequest) {
         try {
             // Reload permissions on each login so that any changes in the database
             // are reflected in the login response.
@@ -72,6 +75,8 @@ public class AuthController {
                         session.setAttribute("levels", user.getUserLevel() != null ? user.getUserLevel().getLevelIds() : null);
                     }
 
+                    ClientType clientType = resolveClientType(httpServletRequest);
+
                     LoginPayload payload = LoginPayload.builder()
                             .userId(user.getUserId())
                             .name(user.getName())
@@ -82,6 +87,7 @@ public class AuthController {
                             .levels(levels)
                             .permissions(permissions)
                             .allowedStatusActionIds(allowedStatusActionIds)
+                            .clientType(clientType)
                             .build();
 
                     String token = jwtTokenService.generateToken(payload);
@@ -97,6 +103,7 @@ public class AuthController {
                     response.put("permissions", permissions);
                     response.put("levels", levels);
                     response.put("allowedStatusActionIds", allowedStatusActionIds);
+                    response.put("clientType", clientType.name());
 
                     return ResponseEntity.ok(response);
 //                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -112,5 +119,13 @@ public class AuthController {
             session.invalidate();
         }
         return ResponseEntity.ok().build();
+    }
+
+    private ClientType resolveClientType(HttpServletRequest httpServletRequest) {
+        Object clientType = httpServletRequest.getAttribute(ClientTypeRoutingFilter.CLIENT_TYPE_ATTRIBUTE);
+        if (clientType instanceof ClientType resolved) {
+            return resolved;
+        }
+        return ClientType.INTERNAL;
     }
 }

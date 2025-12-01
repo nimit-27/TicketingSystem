@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.dto;
 
 import com.ticketingSystem.api.permissions.RolePermission;
+import com.ticketingSystem.api.enums.ClientType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,4 +26,5 @@ public class LoginPayload {
     private List<String> levels;
     private RolePermission permissions;
     private Set<String> allowedStatusActionIds;
+    private ClientType clientType;
 }
