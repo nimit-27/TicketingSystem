@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
-  Button,
   Card,
   Chip,
   CircularProgress,
+  Divider,
   Grid,
   IconButton,
   InputAdornment,
@@ -25,6 +25,7 @@ import { getStakeholders } from '../services/StakeholderService';
 import { getAllLevels } from '../services/LevelService';
 import { checkUsernameAvailability, createUser, CreateUserPayload } from '../services/UserService';
 import { useSnackbar } from '../context/SnackbarContext';
+import CancelAndSubmitButtons from '../components/UI/Button/CancelAndSubmitButtons';
 
 type RoleResponse = {
   roleId?: number | string;
@@ -78,11 +79,11 @@ const AddUser: React.FC = () => {
     control,
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
     watch,
     setValue,
-  } = useForm<AddUserFormValues>({ defaultValues });
+  } = useForm<AddUserFormValues>({ defaultValues, mode: 'onChange' });
 
   const [usernameStatus, setUsernameStatus] = useState<
     | { state: 'idle' }
@@ -125,15 +126,16 @@ const AddUser: React.FC = () => {
   const roleOptions = useMemo(() => {
     if (!Array.isArray(rolesData)) return [] as { value: string; label: string }[];
     return rolesData
+      .filter((role) => !role?.isDeleted)
       .map((role) => ({
-        value: String(role?.roleId ?? role?.role ?? ''),
-        label: role?.role ?? String(role?.roleId ?? ''),
+        value: role?.roleId != null ? String(role.roleId) : '',
+        label: role?.role ?? '',
       }))
       .filter((option) => option.value && option.label);
   }, [rolesData]);
 
   const roleLevelMap = useMemo(() => {
-    if (!Array.isArray(roleLevelsData)) return new Map<string, string[]>();
+    if (!Array.isArray(roleLevelsData) || !roleLevelsData.length) return new Map<string, string[]>();
 
     return new Map(
       roleLevelsData
@@ -263,7 +265,7 @@ const AddUser: React.FC = () => {
         message: available ? t('Username is available') : t('Username already exists'),
       });
     });
-  }, [t, usernameValue]);
+  }, [t, usernameValue, checkUsernameHandler]);
 
   const handleCancel = useCallback(() => {
     reset(defaultValues);
@@ -277,230 +279,269 @@ const AddUser: React.FC = () => {
     [rolesPending, stakeholdersPending, levelsPending]
   );
 
+  const isSubmitDisabled = useMemo(
+    () =>
+      creatingUser ||
+      isLoadingOptions ||
+      !isValid ||
+      usernameStatus.state === 'taken' ||
+      usernameStatus.state === 'error',
+    [creatingUser, isLoadingOptions, isValid, usernameStatus.state]
+  );
+
   return (
     <div className="container">
       <Title textKey="Add New User" />
-      <Card sx={{ p: 3 }}>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>
-          {t('Provide complete details to create a new user account.')}
-        </Typography>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Grid container spacing={2}>
-            {/* <Grid item xs={12} md={6}> */}
-            <div className=''>
-              <TextField
-                label={t('Username')}
-                fullWidth
-                {...register('username', {
-                  required: t('Username is required'),
-                  minLength: { value: 3, message: t('Username must be at least 3 characters') },
-                })}
-                error={
-                  Boolean(errors.username) || usernameStatus.state === 'taken' || usernameStatus.state === 'error'
-                }
-                helperText={errors.username?.message ?? (usernameStatus.state !== 'idle' ? usernameStatus.message : '')}
-                autoComplete="username"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <IconButton onClick={handleUsernameCheck} edge="start" disabled={checkingUsername}>
-                        {checkingUsername ? <CircularProgress size={20} /> : <ArrowCircleRightOutlinedIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </div>
-            <div className=''>
-              <TextField
-                label={t('Name')}
-                fullWidth
-                {...register('name', {
-                  required: t('Name is required'),
-                  minLength: { value: 2, message: t('Name must be at least 2 characters') },
-                })}
-                error={Boolean(errors.name)}
-                helperText={errors.name?.message}
-              />
-            </div>
-            <div className=''>
-              <TextField
-                label={t('Email ID')}
-                type="email"
-                fullWidth
-                {...register('emailId', {
-                  required: t('Email is required'),
-                  pattern: {
-                    value: /\S+@\S+\.\S+/,
-                    message: t('Enter a valid email address'),
-                  },
-                })}
-                error={Boolean(errors.emailId)}
-                helperText={errors.emailId?.message}
-                autoComplete="email"
-              />
-            </div>
-            <div className=''>
-              <TextField
-                label={t('Mobile No.')}
-                type="tel"
-                fullWidth
-                {...register('mobileNo', {
-                  required: t('Mobile number is required'),
-                  pattern: {
-                    value: /^[0-9+\-() ]{7,20}$/,
-                    message: t('Enter a valid mobile number'),
-                  },
-                })}
-                error={Boolean(errors.mobileNo)}
-                helperText={errors.mobileNo?.message}
-                autoComplete="tel"
-              />
-            </div>
-            <div className=''>
-              <TextField
-                label={t('Office')}
-                fullWidth
-                {...register('office', {
-                  required: t('Office is required'),
-                })}
-                error={Boolean(errors.office)}
-                helperText={errors.office?.message}
-              />
-            </div>
-            <div className=''>
-              <Controller
-                control={control}
-                name="roleIds"
-                rules={{
-                  validate: (value) => (value?.length ? true : t('Please select at least one role')),
-                }}
-                render={({ field }) => (
-                  <TextField
-                    select
-                    label={t('Roles')}
-                    fullWidth
-                    SelectProps={{
-                      multiple: true,
-                      value: field.value ?? [],
-                      onChange: (event) => field.onChange(event.target.value as string[]),
-                      renderValue: (selected) => renderSelection(selected, roleLabelMap),
-                    }}
-                    value={field.value ?? []}
-                    onBlur={field.onBlur}
-                    error={Boolean(errors.roleIds)}
-                    helperText={errors.roleIds?.message}
-                    disabled={isLoadingOptions}
-                  >
-                    {roleOptions.length ? (
-                      roleOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem value="" disabled>
-                        {t('No options available')}
-                      </MenuItem>
-                    )}
-                  </TextField>
-                )}
-              />
-            </div>
-            {shouldShowLevels && (
-              <div className=''>
-                <Controller
-                  control={control}
-                  name="levelIds"
-                  rules={{
-                    validate: (value) => (value?.length ? true : t('Please select at least one level')),
-                  }}
-                  render={({ field }) => (
+      <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, boxShadow: 3 }}>
+        <Stack spacing={3}>
+          <Typography variant="subtitle1" color="text.secondary">
+            {t('Provide complete details to create a new user account.')}
+          </Typography>
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <Stack spacing={3}>
+              <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: { xs: 2, md: 3 } }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={1}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    {t('Account details')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('Ensure the username is unique before proceeding.')}
+                  </Typography>
+                </Stack>
+
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
-                      select
-                      label={t('Levels')}
+                      label={t('Username')}
                       fullWidth
-                      SelectProps={{
-                        multiple: true,
-                        value: field.value ?? [],
-                        onChange: (event) => field.onChange(event.target.value as string[]),
-                        renderValue: (selected) => renderSelection(selected, levelLabelMap),
+                      {...register('username', {
+                        required: t('Username is required'),
+                        minLength: { value: 3, message: t('Username must be at least 3 characters') },
+                      })}
+                      error={
+                        Boolean(errors.username) || usernameStatus.state === 'taken' || usernameStatus.state === 'error'
+                      }
+                      helperText={errors.username?.message ?? (usernameStatus.state !== 'idle' ? usernameStatus.message : '')}
+                      autoComplete="username"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <IconButton onClick={handleUsernameCheck} edge="start" disabled={checkingUsername}>
+                              {checkingUsername ? <CircularProgress size={20} /> : <ArrowCircleRightOutlinedIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
                       }}
-                      value={field.value ?? []}
-                      onBlur={field.onBlur}
-                      error={Boolean(errors.levelIds)}
-                      helperText={errors.levelIds?.message}
-                      disabled={isLoadingOptions}
-                    >
-                      {filteredLevelOptions.length ? (
-                        filteredLevelOptions.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))
-                      ) : (
-                        <MenuItem value="" disabled>
-                          {t('No options available')}
-                        </MenuItem>
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label={t('Name')}
+                      fullWidth
+                      {...register('name', {
+                        required: t('Name is required'),
+                        minLength: { value: 2, message: t('Name must be at least 2 characters') },
+                      })}
+                      error={Boolean(errors.name)}
+                      helperText={errors.name?.message}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label={t('Email ID')}
+                      type="email"
+                      fullWidth
+                      {...register('emailId', {
+                        required: t('Email is required'),
+                        pattern: {
+                          value: /\S+@\S+\.\S+/, 
+                          message: t('Enter a valid email address'),
+                        },
+                      })}
+                      error={Boolean(errors.emailId)}
+                      helperText={errors.emailId?.message}
+                      autoComplete="email"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label={t('Mobile No.')}
+                      type="tel"
+                      fullWidth
+                      {...register('mobileNo', {
+                        required: t('Mobile number is required'),
+                        pattern: {
+                          value: /^[0-9+\-() ]{7,20}$/,
+                          message: t('Enter a valid mobile number'),
+                        },
+                      })}
+                      error={Boolean(errors.mobileNo)}
+                      helperText={errors.mobileNo?.message}
+                      autoComplete="tel"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label={t('Office')}
+                      fullWidth
+                      {...register('office', {
+                        required: t('Office is required'),
+                      })}
+                      error={Boolean(errors.office)}
+                      helperText={errors.office?.message}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Divider flexItem />
+
+              <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: { xs: 2, md: 3 } }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', mb: 1 }}>
+                  {t('Assignments & Access')}
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      control={control}
+                      name="roleIds"
+                      rules={{
+                        validate: (value) => (value?.length ? true : t('Please select at least one role')),
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          select
+                          label={t('Roles')}
+                          fullWidth
+                          SelectProps={{
+                            multiple: true,
+                            value: field.value ?? [],
+                            onChange: (event) => field.onChange(event.target.value as string[]),
+                            renderValue: (selected) => renderSelection(selected, roleLabelMap),
+                          }}
+                          value={field.value ?? []}
+                          onBlur={field.onBlur}
+                          error={Boolean(errors.roleIds)}
+                          helperText={errors.roleIds?.message}
+                          disabled={isLoadingOptions}
+                        >
+                          {roleOptions.length ? (
+                            roleOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem value="" disabled>
+                              {t('No options available')}
+                            </MenuItem>
+                          )}
+                        </TextField>
                       )}
-                    </TextField>
+                    />
+                  </Grid>
+
+                  {shouldShowLevels && (
+                    <Grid item xs={12} md={6}>
+                      <Controller
+                        control={control}
+                        name="levelIds"
+                        rules={{
+                          validate: (value) => (value?.length ? true : t('Please select at least one level')),
+                        }}
+                        render={({ field }) => (
+                          <TextField
+                            select
+                            label={t('Levels')}
+                            fullWidth
+                            SelectProps={{
+                              multiple: true,
+                              value: field.value ?? [],
+                              onChange: (event) => field.onChange(event.target.value as string[]),
+                              renderValue: (selected) => renderSelection(selected, levelLabelMap),
+                            }}
+                            value={field.value ?? []}
+                            onBlur={field.onBlur}
+                            error={Boolean(errors.levelIds)}
+                            helperText={errors.levelIds?.message}
+                            disabled={isLoadingOptions}
+                          >
+                            {filteredLevelOptions.length ? (
+                              filteredLevelOptions.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </MenuItem>
+                              ))
+                            ) : (
+                              <MenuItem value="" disabled>
+                                {t('No options available')}
+                              </MenuItem>
+                            )}
+                          </TextField>
+                        )}
+                      />
+                    </Grid>
                   )}
-                />
-              </div>
-            )}
-            <div className=''>
-              <Controller
-                control={control}
-                name="stakeholderIds"
-                rules={{
-                  validate: (value) => (value?.length ? true : t('Please select at least one stakeholder')),
-                }}
-                render={({ field }) => (
-                  <TextField
-                    select
-                    label={t('Stakeholder')}
-                    fullWidth
-                    SelectProps={{
-                      multiple: true,
-                      value: field.value ?? [],
-                      onChange: (event) => field.onChange(event.target.value as string[]),
-                      renderValue: (selected) => renderSelection(selected, stakeholderLabelMap),
-                    }}
-                    value={field.value ?? []}
-                    onBlur={field.onBlur}
-                    error={Boolean(errors.stakeholderIds)}
-                    helperText={errors.stakeholderIds?.message}
-                    disabled={isLoadingOptions}
-                  >
-                    {stakeholderOptions.length ? (
-                      stakeholderOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem value="" disabled>
-                        {t('No options available')}
-                      </MenuItem>
-                    )}
-                  </TextField>
-                )}
+
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      control={control}
+                      name="stakeholderIds"
+                      rules={{
+                        validate: (value) => (value?.length ? true : t('Please select at least one stakeholder')),
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          select
+                          label={t('Stakeholder')}
+                          fullWidth
+                          SelectProps={{
+                            multiple: true,
+                            value: field.value ?? [],
+                            onChange: (event) => field.onChange(event.target.value as string[]),
+                            renderValue: (selected) => renderSelection(selected, stakeholderLabelMap),
+                          }}
+                          value={field.value ?? []}
+                          onBlur={field.onBlur}
+                          error={Boolean(errors.stakeholderIds)}
+                          helperText={errors.stakeholderIds?.message}
+                          disabled={isLoadingOptions}
+                        >
+                          {stakeholderOptions.length ? (
+                            stakeholderOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem value="" disabled>
+                              {t('No options available')}
+                            </MenuItem>
+                          )}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <CancelAndSubmitButtons
+                handleCancel={handleCancel}
+                isSubmitDisabled={isSubmitDisabled}
+                typeSubmit
               />
-            </div>
-          </Grid>
-          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
-            <Button variant="outlined" onClick={handleCancel} disabled={creatingUser}>
-              {t('Cancel')}
-            </Button>
-            <Button variant="contained" type="submit" disabled={creatingUser || isLoadingOptions}>
-              {creatingUser ? <CircularProgress size={20} color="inherit" /> : t('Submit')}
-            </Button>
-          </Stack>
-        </form>
+            </Stack>
+          </form>
+        </Stack>
       </Card>
     </div>
   );
 };
 
 export default AddUser;
-
