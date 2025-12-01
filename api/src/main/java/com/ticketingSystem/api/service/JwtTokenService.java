@@ -2,6 +2,7 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.config.JwtProperties;
 import com.ticketingSystem.api.dto.LoginPayload;
+import com.ticketingSystem.api.enums.ClientType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -46,6 +47,9 @@ public class JwtTokenService {
         claims.put("roles", payload.getRoles());
         claims.put("levels", payload.getLevels());
         claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+        if (payload.getClientType() != null) {
+            claims.put("clientType", payload.getClientType().name());
+        }
 
         Instant now = Instant.now();
         Instant expiry = now.plus(properties.getExpirationMinutes(), ChronoUnit.MINUTES);
@@ -80,6 +84,7 @@ public class JwtTokenService {
                     .roles(convertList(claims.get("roles")))
                     .levels(convertList(claims.get("levels")))
                     .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
+                    .clientType(resolveClientType(claims.get("clientType", String.class)))
                     .build();
             return Optional.of(payload);
         } catch (JwtException ex) {
@@ -107,6 +112,17 @@ public class JwtTokenService {
             return Collections.emptySet();
         }
         return objectMapper.convertValue(value, SET_OF_STRING);
+    }
+
+    private ClientType resolveClientType(String clientType) {
+        if (clientType == null || clientType.isBlank()) {
+            return ClientType.INTERNAL;
+        }
+        try {
+            return ClientType.valueOf(clientType);
+        } catch (IllegalArgumentException ex) {
+            return ClientType.INTERNAL;
+        }
     }
 
     private Key signingKey() {
