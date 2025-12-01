@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> PUBLIC_ENDPOINTS = Set.of(
             "helpdesk/auth/login",
