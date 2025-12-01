@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip } from '@mui/material';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../../services/TicketService';
@@ -36,6 +36,10 @@ import ChildTicketsList from './ChildTicketsList';
 import LinkToMasterTicketModal from '../RaiseTicket/LinkToMasterTicketModal';
 import AssignMasterTicketModal from '../RaiseTicket/AssignMasterTicketModal';
 import AssigneeDropdown from '../AllTickets/AssigneeDropdown';
+import DownloadIcon from '@mui/icons-material/Download';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 interface TicketViewProps {
   ticketId: string;
@@ -110,6 +114,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
   const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
+  const [slaDownloadAnchor, setSlaDownloadAnchor] = useState<null | HTMLElement>(null);
   const [assignMasterTicketModalOpen, setAssignMasterTicketModalOpen] = useState(false);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
@@ -175,6 +180,36 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return value;
   }, []);
 
+  const formatSlaDate = useCallback((value?: string) => (value ? new Date(value).toLocaleString() : '-'), []);
+
+  const formatSlaNumber = useCallback((value?: number | null) => (typeof value === 'number' ? value : '-'), []);
+
+  const buildSlaReportRows = useCallback((data: TicketSla | null, contextLabel: string) => {
+    if (!data) return [] as { metric: string; value: string | number }[];
+
+    const rows: { metric: string; value: string | number }[] = [];
+    const ticketLabel = contextLabel === 'Master Ticket SLA' ? ticket?.masterId : ticket?.id;
+
+    if (ticketLabel) {
+      rows.push({ metric: 'Ticket ID', value: ticketLabel });
+    }
+
+    rows.push(
+      { metric: 'Original Due Date', value: formatSlaDate(data.actualDueAt) },
+      { metric: 'Due Date After Escalation', value: formatSlaDate(data.dueAtAfterEscalation) },
+      { metric: 'Current Due Date', value: formatSlaDate(data.dueAt) },
+      { metric: 'Time Till Due Date (mins)', value: formatSlaNumber(data.timeTillDueDate) },
+      { metric: 'Working Time Left (mins)', value: formatSlaNumber(data.workingTimeLeftMinutes ?? null) },
+      { metric: 'Response Time (mins)', value: formatSlaNumber(data.responseTimeMinutes ?? null) },
+      { metric: 'Resolution Time (mins)', value: formatSlaNumber(data.resolutionTimeMinutes ?? null) },
+      { metric: 'Idle Time (mins)', value: formatSlaNumber(data.idleTimeMinutes ?? null) },
+      { metric: 'Elapsed Time (mins)', value: formatSlaNumber(data.elapsedTimeMinutes ?? null) },
+      { metric: 'Breached By (mins)', value: formatSlaNumber(data.breachedByMinutes ?? null) },
+    );
+
+    return rows;
+  }, [formatSlaDate, formatSlaNumber, ticket?.id, ticket?.masterId]);
+
   // DROPDOWN OPTIONS - getDropdownOptions(arr, label, value)
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
   const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
@@ -200,6 +235,60 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return Boolean(statusWorkflows[ticket.statusId] && allowAssigneeAssignment);
   }, [statusWorkflows, ticket?.statusId, allowAssigneeAssignment]);
 
+  const downloadSlaAsExcel = useCallback(() => {
+    if (!sla && !masterSla) return;
+
+    const workbook = XLSX.utils.book_new();
+
+    const addSheet = (data: TicketSla | null, title: string) => {
+      if (!data) return;
+      const rows = buildSlaReportRows(data, title).map(row => ({ Metric: row.metric, Value: row.value }));
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(workbook, worksheet, title);
+    };
+
+    addSheet(sla, 'Ticket SLA');
+    addSheet(masterSla, 'Master Ticket SLA');
+
+    const fileName = ticket?.id ? `ticket-${ticket.id}-sla.xlsx` : 'ticket-sla.xlsx';
+    XLSX.writeFile(workbook, fileName);
+  }, [sla, masterSla, buildSlaReportRows, ticket?.id]);
+
+  const downloadSlaAsPdf = useCallback(() => {
+    if (!sla && !masterSla) return;
+
+    const doc = new jsPDF();
+    let startY = 14;
+
+    const addSection = (data: TicketSla | null, title: string) => {
+      if (!data) return;
+
+      doc.setFontSize(14);
+      doc.text(title, 14, startY);
+      autoTable(doc, {
+        startY: startY + 4,
+        head: [['Metric', 'Value']],
+        body: buildSlaReportRows(data, title).map(row => [row.metric, row.value]),
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [52, 71, 103] },
+      });
+
+      const finalY = (doc as any).lastAutoTable?.finalY ?? startY;
+      startY = finalY + 10;
+
+      if (startY > 260) {
+        doc.addPage();
+        startY = 20;
+      }
+    };
+
+    addSection(sla, 'Ticket SLA');
+    addSection(masterSla, 'Master Ticket SLA');
+
+    const fileName = ticket?.id ? `ticket-${ticket.id}-sla.pdf` : 'ticket-sla.pdf';
+    doc.save(fileName);
+  }, [sla, masterSla, buildSlaReportRows, ticket?.id]);
+
   const resolveAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
     [availableStatusActions]
@@ -216,6 +305,29 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Restore') || null,
     [availableStatusActions]
   );
+
+  const handleSlaDownloadMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setSlaDownloadAnchor(event.currentTarget);
+  }, []);
+
+  const handleSlaDownloadMenuClose = useCallback(() => {
+    setSlaDownloadAnchor(null);
+  }, []);
+
+  const handleSlaDownload = useCallback((format: 'excel' | 'pdf') => {
+    if (!sla && !masterSla) {
+      handleSlaDownloadMenuClose();
+      return;
+    }
+
+    if (format === 'excel') {
+      downloadSlaAsExcel();
+    } else {
+      downloadSlaAsPdf();
+    }
+
+    handleSlaDownloadMenuClose();
+  }, [downloadSlaAsExcel, downloadSlaAsPdf, handleSlaDownloadMenuClose, masterSla, sla]);
 
   const recommendSeverityAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Recommend Escalation') || null,
@@ -685,6 +797,29 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     </div>
   ), [severityList, t]);
 
+  const slaActionElement = useMemo(() => {
+    if (!sla && !masterSla) return null;
+
+    return (
+      <>
+        <Tooltip title={t('Download SLA Report')}>
+          <IconButton size="small" onClick={handleSlaDownloadMenuOpen}>
+            <DownloadIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Menu
+          anchorEl={slaDownloadAnchor}
+          open={Boolean(slaDownloadAnchor)}
+          onClose={handleSlaDownloadMenuClose}
+          keepMounted
+        >
+          <MenuItem onClick={() => handleSlaDownload('excel')}>{t('Download Excel')}</MenuItem>
+          <MenuItem onClick={() => handleSlaDownload('pdf')}>{t('Download PDF')}</MenuItem>
+        </Menu>
+      </>
+    );
+  }, [handleSlaDownload, handleSlaDownloadMenuClose, handleSlaDownloadMenuOpen, masterSla, sla, slaDownloadAnchor, t]);
+
   if (!ticket) return null;
 
   // DESIGN 1
@@ -987,7 +1122,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       )}
       {/* SLA */}
       {(sla || masterSla) && (
-        <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }}>
+        <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }} actionElement={slaActionElement}>
           {sla && (
             <>
               <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
