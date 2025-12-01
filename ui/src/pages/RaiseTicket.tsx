@@ -6,7 +6,6 @@ import SuccessfulModal from "../components/RaiseTicket/SuccessfulModal";
 import { useContext, useState } from "react";
 import Title from "../components/Title";
 import LinkToMasterTicketModal from "../components/RaiseTicket/LinkToMasterTicketModal";
-import AssignMasterTicketModal from "../components/RaiseTicket/AssignMasterTicketModal";
 import GenericButton from "../components/UI/Button";
 import GenericSubmitButton from "../components/UI/Button/GenericSubmitButton";
 import { useApi } from "../hooks/useApi";
@@ -32,7 +31,6 @@ const RaiseTicket: React.FC<any> = () => {
 
     const [successfullModalOpen, setSuccessfulModalOpen] = useState(false);
     const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
-    const [assignMasterModalOpen, setAssignMasterModalOpen] = useState(false);
     const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
     const [attachments, setAttachments] = useState<File[]>([]);
 
@@ -145,13 +143,6 @@ const RaiseTicket: React.FC<any> = () => {
         setValue('masterId', id)
     }
 
-    const handleAssignMasterSuccess = () => {
-        setValue('isMaster', true);
-    };
-
-    const handleAssignMasterModalOpen = () => setAssignMasterModalOpen(true);
-    const handleAssignMasterModalClose = () => setAssignMasterModalOpen(false);
-
     const currentTicketId = createdTicketId || getValues('ticketId');
 
     return (
@@ -170,12 +161,6 @@ const RaiseTicket: React.FC<any> = () => {
                 {showLinkToMasterTicket && !isMaster && (
                     <div className="text-start d-flex align-items-center gap-2 flex-wrap">
                         <GenericButton textKey="Link to a Master Ticket" variant="contained" onClick={onLinkToMasterTicketModalOpen} disabled={isMaster} />
-                        <GenericButton
-                            textKey="Assign this ticket as Master"
-                            variant="outlined"
-                            onClick={handleAssignMasterModalOpen}
-                            disabled={!currentTicketId}
-                        />
                         {masterId && (
                             <span className="text-success">
                                 This ticket is linked to master ticket ID {masterId}
@@ -192,12 +177,6 @@ const RaiseTicket: React.FC<any> = () => {
 
             {/* Link to Master Ticket Modal */}
             <LinkToMasterTicketModal open={linkToMasterTicketModalOpen} onClose={onLinkToMasterTicketModalClose} setMasterId={setMasterId} subject={subject} masterId={masterId} currentTicketId={currentTicketId} />
-            <AssignMasterTicketModal
-                open={assignMasterModalOpen}
-                onClose={handleAssignMasterModalClose}
-                ticketId={currentTicketId}
-                onSuccess={handleAssignMasterSuccess}
-            />
             {/* Successful Modal */}
             <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
         </div>
