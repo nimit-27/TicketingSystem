@@ -61,8 +61,6 @@ const defaultValues: AddUserFormValues = {
   levelIds: [],
 };
 
-const DEFAULT_PASSWORD = 'AnnaDarpan@123';
-
 const AddUser: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -166,7 +164,6 @@ const AddUser: React.FC = () => {
         emailId: values.emailId.trim(),
         mobileNo: values.mobileNo.trim(),
         office: values.office.trim(),
-        password: DEFAULT_PASSWORD,
         roleIds: values.roleIds,
         stakeholderIds: values.stakeholderIds,
         levelIds: values.levelIds,

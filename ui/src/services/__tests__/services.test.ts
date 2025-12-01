@@ -448,7 +448,6 @@ describe("UserService", () => {
       emailId: "test@example.com",
       mobileNo: "1234567890",
       office: "HQ",
-      password: "password123",
       roleIds: ["1"],
       levelIds: ["L1"],
       stakeholderIds: ["1"],
