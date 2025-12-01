@@ -45,7 +45,6 @@ interface AddUserFormValues {
   emailId: string;
   mobileNo: string;
   office: string;
-  password: string;
   roleIds: string[];
   stakeholderIds: string[];
   levelIds: string[];
@@ -57,11 +56,12 @@ const defaultValues: AddUserFormValues = {
   emailId: '',
   mobileNo: '',
   office: '',
-  password: '',
   roleIds: [],
   stakeholderIds: [],
   levelIds: [],
 };
+
+const DEFAULT_PASSWORD = 'AnnaDarpan@123';
 
 const AddUser: React.FC = () => {
   const navigate = useNavigate();
@@ -166,7 +166,7 @@ const AddUser: React.FC = () => {
         emailId: values.emailId.trim(),
         mobileNo: values.mobileNo.trim(),
         office: values.office.trim(),
-        password: values.password,
+        password: DEFAULT_PASSWORD,
         roleIds: values.roleIds,
         stakeholderIds: values.stakeholderIds,
         levelIds: values.levelIds,
@@ -271,20 +271,6 @@ const AddUser: React.FC = () => {
                 })}
                 error={Boolean(errors.office)}
                 helperText={errors.office?.message}
-              />
-            </div>
-            <div className=''>
-              <TextField
-                label={t('Password')}
-                type="password"
-                fullWidth
-                {...register('password', {
-                  required: t('Password is required'),
-                  minLength: { value: 8, message: t('Password must be at least 8 characters') },
-                })}
-                error={Boolean(errors.password)}
-                helperText={errors.password?.message}
-                autoComplete="new-password"
               />
             </div>
             <div className=''>
