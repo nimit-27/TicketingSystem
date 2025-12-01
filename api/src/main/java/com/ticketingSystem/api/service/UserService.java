@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+    private static final String DEFAULT_PASSWORD = "AnnaDarpan@123";
+
     private final UserRepository userRepository;
     private final StakeholderRepository stakeholderRepository;
     private final RoleRepository roleRepository;
@@ -118,7 +120,7 @@ public class UserService {
         user.setOffice(request.getOffice().trim());
         user.setRoles(String.join("|", roleIds));
         user.setStakeholder(String.join("|", stakeholderIds));
-        user.setPassword(encodePassword(request.getPassword()));
+        user.setPassword(encodePassword(DEFAULT_PASSWORD));
 
         UserLevel userLevel = new UserLevel();
         userLevel.setLevelIds(String.join("|", levelIds));
