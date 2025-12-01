@@ -34,6 +34,7 @@ import type { TicketRow } from '../AllTickets/TicketsTable';
 import { useSnackbar } from '../../context/SnackbarContext';
 import ChildTicketsList from './ChildTicketsList';
 import LinkToMasterTicketModal from '../RaiseTicket/LinkToMasterTicketModal';
+import AssignMasterTicketModal from '../RaiseTicket/AssignMasterTicketModal';
 import AssigneeDropdown from '../AllTickets/AssigneeDropdown';
 
 interface TicketViewProps {
@@ -109,6 +110,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [rcaData, setRcaData] = useState<RootCauseAnalysis | null>(null);
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);
   const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
+  const [assignMasterTicketModalOpen, setAssignMasterTicketModalOpen] = useState(false);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const { showMessage } = useSnackbar();
@@ -132,6 +134,20 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const handleMasterLinkSuccess = useCallback(async (masterTicketId: string) => {
     await getTicketHandler(() => getTicket(ticketId));
     showMessage(`Ticket ${ticketId} has been linked to master ticket ${masterTicketId}`, 'success');
+  }, [getTicketHandler, ticketId, showMessage]);
+
+  const handleAssignMasterModalOpen = useCallback(() => {
+    setAssignMasterTicketModalOpen(true);
+  }, []);
+
+  const handleAssignMasterModalClose = useCallback(() => {
+    setAssignMasterTicketModalOpen(false);
+  }, []);
+
+  const handleAssignMasterSuccess = useCallback(async () => {
+    await getTicketHandler(() => getTicket(ticketId));
+    showMessage(`Ticket ${ticketId} has been marked as master`, 'success');
+    setAssignMasterTicketModalOpen(false);
   }, [getTicketHandler, ticketId, showMessage]);
 
   const handleAssigneeUpdate = useCallback(() => {
@@ -603,6 +619,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
   const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
   const shouldShowLinkToMasterTicketButton = showLinkToMasterTicketButton && !isResolvedStatus && !isClosedStatus;
+  const shouldShowAssignMasterTicketButton = shouldShowLinkToMasterTicketButton && !ticket?.isMaster;
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
     setSelectedStatusAction(action);
@@ -731,6 +748,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             {shouldShowLinkToMasterTicketButton && (
               <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
                 {t('Link to a Master Ticket')}
+              </Button>
+            )}
+            {shouldShowAssignMasterTicketButton && (
+              <Button size="small" variant="outlined" onClick={handleAssignMasterModalOpen}>
+                {t('Assign this ticket as Master')}
               </Button>
             )}
           </Box>
@@ -1008,6 +1030,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         currentTicketId={ticket.id}
         masterId={ticket.masterId}
         onLinkSuccess={handleMasterLinkSuccess}
+      />
+
+      <AssignMasterTicketModal
+        open={assignMasterTicketModalOpen}
+        onClose={handleAssignMasterModalClose}
+        ticketId={ticket.id}
+        onSuccess={handleAssignMasterSuccess}
       />
 
       {/* MODAL - FEEDBACK */}
