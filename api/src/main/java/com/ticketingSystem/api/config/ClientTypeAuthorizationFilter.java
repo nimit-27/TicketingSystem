@@ -6,6 +6,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +18,8 @@ import java.io.IOException;
 import java.util.Set;
 
 @Component
-public class ClientTypeAuthorizationFilter extends OncePerRequestFilter {
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class ClientTypeAuthorizationFilter extends OncePerRequestFilter implements Ordered {
 
     private static final Set<String> PUBLIC_PATHS = Set.of(
             "/auth/login",
@@ -60,5 +63,10 @@ public class ClientTypeAuthorizationFilter extends OncePerRequestFilter {
         }
 
         return false;
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }
