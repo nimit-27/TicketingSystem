@@ -84,7 +84,6 @@ const AddUser: React.FC = () => {
     setValue,
   } = useForm<AddUserFormValues>({ defaultValues });
 
-  const [checkingUsername, setCheckingUsername] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<
     | { state: 'idle' }
     | { state: 'available'; message: string }
@@ -114,6 +113,7 @@ const AddUser: React.FC = () => {
     pending: creatingUser,
     apiHandler: createUserHandler,
   } = useApi<any>();
+  const { pending: checkingUsername, apiHandler: checkUsernameHandler } = useApi<any>();
 
   useEffect(() => {
     fetchRoles(() => getRoleSummaries());
@@ -248,22 +248,21 @@ const AddUser: React.FC = () => {
       return;
     }
 
-    setCheckingUsername(true);
-    checkUsernameAvailability(usernameValue.trim())
-      .then((response) => {
-        const availabilityValue =
-          response?.data?.available ?? response?.data?.data?.available ?? response?.available;
-        const available = availabilityValue === true || availabilityValue === 'true' || availabilityValue === 1;
+    checkUsernameHandler(() => checkUsernameAvailability(usernameValue.trim())).then((response) => {
+      const availabilityValue =
+        response?.available ?? response?.data?.available ?? response?.data?.data?.available;
+      const available = availabilityValue === true || availabilityValue === 'true' || availabilityValue === 1;
 
-        setUsernameStatus({
-          state: available ? 'available' : 'taken',
-          message: available ? t('Username is available') : t('Username already exists'),
-        });
-      })
-      .catch(() => {
+      if (response == null) {
         setUsernameStatus({ state: 'error', message: t('Unable to verify username right now') });
-      })
-      .finally(() => setCheckingUsername(false));
+        return;
+      }
+
+      setUsernameStatus({
+        state: available ? 'available' : 'taken',
+        message: available ? t('Username is available') : t('Username already exists'),
+      });
+    });
   }, [t, usernameValue]);
 
   const handleCancel = useCallback(() => {
