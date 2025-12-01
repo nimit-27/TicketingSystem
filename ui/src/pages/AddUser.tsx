@@ -8,7 +8,6 @@ import {
   Chip,
   CircularProgress,
   Divider,
-  Grid,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -310,8 +309,8 @@ const AddUser: React.FC = () => {
                   </Typography>
                 </Stack>
 
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={12} md={6}>
+                <div className="row g-3 mt-1">
+                  <div className="col-12 col-md-6">
                     <TextField
                       label={t('Username')}
                       fullWidth
@@ -334,9 +333,9 @@ const AddUser: React.FC = () => {
                         ),
                       }}
                     />
-                  </Grid>
+                  </div>
 
-                  <Grid item xs={12} md={6}>
+                  <div className="col-12 col-md-6">
                     <TextField
                       label={t('Name')}
                       fullWidth
@@ -347,9 +346,9 @@ const AddUser: React.FC = () => {
                       error={Boolean(errors.name)}
                       helperText={errors.name?.message}
                     />
-                  </Grid>
+                  </div>
 
-                  <Grid item xs={12} md={6}>
+                  <div className="col-12 col-md-6">
                     <TextField
                       label={t('Email ID')}
                       type="email"
@@ -357,7 +356,7 @@ const AddUser: React.FC = () => {
                       {...register('emailId', {
                         required: t('Email is required'),
                         pattern: {
-                          value: /\S+@\S+\.\S+/, 
+                          value: /\S+@\S+\.\S+/,
                           message: t('Enter a valid email address'),
                         },
                       })}
@@ -365,9 +364,9 @@ const AddUser: React.FC = () => {
                       helperText={errors.emailId?.message}
                       autoComplete="email"
                     />
-                  </Grid>
+                  </div>
 
-                  <Grid item xs={12} md={6}>
+                  <div className="col-12 col-md-6">
                     <TextField
                       label={t('Mobile No.')}
                       type="tel"
@@ -383,9 +382,9 @@ const AddUser: React.FC = () => {
                       helperText={errors.mobileNo?.message}
                       autoComplete="tel"
                     />
-                  </Grid>
+                  </div>
 
-                  <Grid item xs={12} md={6}>
+                  <div className="col-12 col-md-6">
                     <TextField
                       label={t('Office')}
                       fullWidth
@@ -395,8 +394,8 @@ const AddUser: React.FC = () => {
                       error={Boolean(errors.office)}
                       helperText={errors.office?.message}
                     />
-                  </Grid>
-                </Grid>
+                  </div>
+                </div>
               </Box>
 
               <Divider flexItem />
@@ -406,8 +405,8 @@ const AddUser: React.FC = () => {
                   {t('Assignments & Access')}
                 </Typography>
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                <div className="row g-3">
+                  <div className="col-12 col-md-6">
                     <Controller
                       control={control}
                       name="roleIds"
@@ -445,10 +444,10 @@ const AddUser: React.FC = () => {
                         </TextField>
                       )}
                     />
-                  </Grid>
+                  </div>
 
                   {shouldShowLevels && (
-                    <Grid item xs={12} md={6}>
+                    <div className="col-12 col-md-6">
                       <Controller
                         control={control}
                         name="levelIds"
@@ -486,10 +485,10 @@ const AddUser: React.FC = () => {
                           </TextField>
                         )}
                       />
-                    </Grid>
+                    </div>
                   )}
 
-                  <Grid item xs={12} md={6}>
+                  <div className="col-12 col-md-6">
                     <Controller
                       control={control}
                       name="stakeholderIds"
@@ -527,8 +526,8 @@ const AddUser: React.FC = () => {
                         </TextField>
                       )}
                     />
-                  </Grid>
-                </Grid>
+                  </div>
+                </div>
               </Box>
 
               <CancelAndSubmitButtons
