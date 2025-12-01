@@ -37,6 +37,7 @@ import LinkToMasterTicketModal from '../RaiseTicket/LinkToMasterTicketModal';
 import AssignMasterTicketModal from '../RaiseTicket/AssignMasterTicketModal';
 import AssigneeDropdown from '../AllTickets/AssigneeDropdown';
 import DownloadIcon from '@mui/icons-material/Download';
+import MasterIcon from '../UI/Icons/MasterIcon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -730,7 +731,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
   const shouldShowViewRcaButton = showViewRCAButton && rcaStatus === 'SUBMITTED';
-  const shouldShowLinkToMasterTicketButton = showLinkToMasterTicketButton && !isResolvedStatus && !isClosedStatus;
+  const shouldShowLinkToMasterTicketButton = showLinkToMasterTicketButton
+    && !isResolvedStatus
+    && !isClosedStatus
+    && !ticket?.isMaster;
   const shouldShowAssignMasterTicketButton = shouldShowLinkToMasterTicketButton && !ticket?.isMaster;
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
@@ -880,11 +884,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {t('View RCA')}
               </Button>
             )}
-            {shouldShowLinkToMasterTicketButton && (
+            {ticket?.isMaster ? (
+              <MasterIcon />
+            ) : shouldShowLinkToMasterTicketButton ? (
               <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
                 {t('Link to a Master Ticket')}
               </Button>
-            )}
+            ) : null}
             {shouldShowAssignMasterTicketButton && (
               <Button size="small" variant="outlined" onClick={handleAssignMasterModalOpen}>
                 {t('Assign this ticket as Master')}
@@ -1165,6 +1171,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         currentTicketId={ticket.id}
         masterId={ticket.masterId}
         onLinkSuccess={handleMasterLinkSuccess}
+        isCurrentTicketMaster={ticket.isMaster || false}
       />
 
       <AssignMasterTicketModal

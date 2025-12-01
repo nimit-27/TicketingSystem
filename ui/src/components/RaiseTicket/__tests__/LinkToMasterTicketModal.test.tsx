@@ -129,6 +129,30 @@ describe('LinkToMasterTicketModal', () => {
     });
   });
 
+  it('prevents linking a master ticket to another master ticket', async () => {
+    mockGetTicket.mockResolvedValue({ body: { data: { id: 'MT-1', subject: 'Master ticket', isMaster: true } } });
+
+    render(
+      <LinkToMasterTicketModal
+        {...baseProps}
+        currentTicketId="T-1"
+        isCurrentTicketMaster
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockSearchTicketsPaginated).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText(/Master ticket/));
+
+    const linkToggle = await screen.findByText('Link');
+    fireEvent.click(linkToggle);
+
+    expect(await screen.findByText('Master Ticket cannot be linked to another Master Ticket')).toBeInTheDocument();
+    expect(mockLinkTicketToMaster).not.toHaveBeenCalled();
+  });
+
   it('resets state when cancelled', async () => {
     render(<LinkToMasterTicketModal {...baseProps} />);
 
