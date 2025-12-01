@@ -21,13 +21,16 @@ jest.mock('react-hook-form', () => ({
     };
     return {
       register: jest.fn(),
-      handleSubmit: (fn: (values: any) => void) => () => fn(mockFormValues),
+      handleSubmit: (fn: (values: any) => void) => (event?: any) => {
+        event?.preventDefault?.();
+        return fn(mockFormValues);
+      },
       control: {},
       setValue: (name: string, value: any) => {
         mockFormValues[name] = value;
       },
       getValues: () => mockFormValues,
-      formState: { errors: {} },
+      formState: { errors: {}, isValid: true },
       resetField: (name: string) => {
         delete mockFormValues[name];
       },
@@ -64,6 +67,18 @@ jest.mock('../../components/RaiseTicket/LinkToMasterTicketModal', () => ({
   __esModule: true,
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) => (
     open ? <button data-testid="close-link-modal" onClick={onClose}>Close</button> : null
+  ),
+}));
+
+jest.mock('../../components/RaiseTicket/AssignMasterTicketModal', () => ({
+  __esModule: true,
+  default: ({ open, onClose, onSuccess }: any) => (
+    open ? (
+      <div>
+        <button data-testid="assign-master-close" onClick={onClose}>Close Assign</button>
+        <button data-testid="assign-master-success" onClick={() => { onSuccess?.(); onClose(); }}>Mark Master</button>
+      </div>
+    ) : null
   ),
 }));
 
@@ -135,5 +150,23 @@ describe('RaiseTicket', () => {
     const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
     fireEvent.click(getByText('Link to a Master Ticket'));
     fireEvent.click(getByTestId('close-link-modal'));
+  });
+
+  it('allows assigning the ticket as master through the modal', () => {
+    mockFormValues.ticketId = 'T-200';
+    const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
+
+    fireEvent.click(getByText('Assign this ticket as Master'));
+    fireEvent.click(getByTestId('assign-master-success'));
+
+    expect(mockFormValues.isMaster).toBe(true);
+  });
+
+  it('hides link button for master tickets', () => {
+    mockFormValues.isMaster = true;
+    const { queryByText } = renderWithTheme(<RaiseTicket />);
+
+    expect(queryByText('Link to a Master Ticket')).toBeNull();
+    expect(queryByText('Assign this ticket as Master')).toBeNull();
   });
 });

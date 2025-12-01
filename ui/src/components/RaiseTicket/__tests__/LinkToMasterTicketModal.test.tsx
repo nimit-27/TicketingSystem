@@ -26,14 +26,12 @@ jest.mock('../../UI/Input/GenericInput', () => ({
   ),
 }));
 
-const mockSearchTickets = jest.fn(() => Promise.resolve({ body: { data: { hits: [] } } }));
 const mockGetTicket = jest.fn(() => Promise.resolve({ body: { data: { id: 'MT-1', subject: 'Master ticket' } } }));
 const mockLinkTicketToMaster = jest.fn(() => Promise.resolve());
 const mockMakeTicketMaster = jest.fn(() => Promise.resolve({ body: { data: { id: 'MT-1', subject: 'Master ticket', isMaster: true } } }));
 const mockSearchTicketsPaginated = jest.fn(() => Promise.resolve({ body: { data: { items: [{ id: 'MT-1', subject: 'Master ticket' }], totalPages: 1, page: 0 } } }));
 
 jest.mock('../../../services/TicketService', () => ({
-  searchTickets: (...args: any[]) => mockSearchTickets(...args),
   getTicket: (...args: any[]) => mockGetTicket(...args),
   linkTicketToMaster: (...args: any[]) => mockLinkTicketToMaster(...args),
   makeTicketMaster: (...args: any[]) => mockMakeTicketMaster(...args),
@@ -52,7 +50,6 @@ describe('LinkToMasterTicketModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSearchTickets.mockImplementation(() => Promise.resolve({ body: { data: { hits: [] } } }));
     mockGetTicket.mockImplementation(() => Promise.resolve({ body: { data: { id: 'MT-1', subject: 'Master ticket' } } }));
     mockSearchTicketsPaginated.mockImplementation(() => Promise.resolve({ body: { data: { items: [{ id: 'MT-1', subject: 'Master ticket' }], totalPages: 1, page: 0 } } }));
     mockLinkTicketToMaster.mockResolvedValue(undefined);
@@ -63,23 +60,17 @@ describe('LinkToMasterTicketModal', () => {
     render(<LinkToMasterTicketModal {...baseProps} />);
 
     await waitFor(() => {
-      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('', undefined, true, 0, 20);
+      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('', undefined, false, 0, 20);
     });
 
     expect(await screen.findByText(/MT-1/)).toBeInTheDocument();
   });
 
   it('allows searching and linking a master ticket during creation', async () => {
-    mockSearchTickets.mockResolvedValueOnce({
-      body: {
-        data: {
-          hits: [
-            { document: { id: 'MT-2', subject: 'Another ticket' } },
-          ],
-        },
-      },
-    });
-    mockGetTicket.mockResolvedValueOnce({
+    mockSearchTicketsPaginated.mockImplementation(() =>
+      Promise.resolve({ body: { data: { items: [{ id: 'MT-2', subject: 'Another ticket' }], totalPages: 1, page: 0 } } })
+    );
+    mockGetTicket.mockResolvedValue({
       body: { data: { id: 'MT-2', subject: 'Another ticket' } },
     });
 
@@ -90,7 +81,7 @@ describe('LinkToMasterTicketModal', () => {
     });
 
     await waitFor(() => {
-      expect(mockSearchTickets).toHaveBeenCalledWith('MT');
+      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('MT', undefined, false, 0, 20);
     });
 
     fireEvent.click(await screen.findByText(/Another ticket/));
