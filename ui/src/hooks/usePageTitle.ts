@@ -20,7 +20,7 @@ const ROUTE_TITLES: RouteTitle[] = [
   { path: '/my-tickets', title: 'My Tickets' },
   { path: '/root-cause-analysis', title: 'Root Cause Analysis' },
   { path: '/faq/new', title: 'New FAQ' },
-  { path: '/faq', title: 'FAQ' },
+  { path: '/faq', title: 'Frequently Asked Questions' },
   { path: '/knowledge-base', title: 'Knowledge Base' },
   { path: '/calendar', title: 'Calendar' },
   { path: '/categories-master', title: 'Categories Master' },
