@@ -11,11 +11,20 @@ import NotificationBell from "../Notifications/NotificationBell";
 import { useTranslation } from "react-i18next";
 
 interface HeaderProps {
-  collapsed: boolean;
-  toggleSidebar: () => void;
+  collapsed?: boolean;
+  toggleSidebar?: () => void;
+  showMenuToggle?: boolean;
+  showNotifications?: boolean;
+  showProfile?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({
+  collapsed = false,
+  toggleSidebar = () => undefined,
+  showMenuToggle = true,
+  showNotifications = true,
+  showProfile = true,
+}) => {
   const { toggle, mode, toggleLayout, layout } = useContext(ThemeModeContext);
   const { toggleLanguage } = useContext(LanguageContext);
   const { toggleDevMode, devMode, jwtBypass, toggleJwtBypass } = useContext(DevModeContext);
@@ -32,14 +41,9 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
       .toUpperCase()
     : "";
 
-  const headerBgColor = theme.palette.header.background
+  const headerBgColor = theme.palette.header.background;
 
   const iconColor = theme.palette.header.icon.color;
-
-  console.log({ iconColor })
-    // theme.palette.mode === "dark"
-    //   ? theme.palette.success.main
-    //   : theme.palette.getContrastText(headerBgColor);
 
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchorEl(event.currentTarget);
@@ -65,11 +69,13 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
       }}
     >
       <div className="d-flex align-items-center" style={{ gap: '8px' }}>
-        <CustomIconButton
-          style={{ color: iconColor }}
-          icon={collapsed ? "menu" : "chevronleft"}
-          onClick={toggleSidebar}
-        />
+        {showMenuToggle && (
+          <CustomIconButton
+            style={{ color: iconColor }}
+            icon={collapsed ? "menu" : "chevronleft"}
+            onClick={toggleSidebar}
+          />
+        )}
         <div>
           <img src={fciLogo} style={{ height: '25px' }} />
         </div>
@@ -124,22 +130,26 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar }) => {
           // icon="code"
           onClick={toggleLayout}
         />}
-        <NotificationBell iconColor={iconColor} />
-        <Avatar
-          sx={{
-            bgcolor: "white",
-            width: 32,
-            height: 32,
-            fontSize: 14,
-            cursor: "pointer",
-            color: theme.palette.primary.main,
-          }}
-          onClick={handleAvatarClick}
-        >
-          {initials}
-        </Avatar>
+        {showNotifications && <NotificationBell iconColor={iconColor} />}
+        {showProfile && user && (
+          <Avatar
+            sx={{
+              bgcolor: "white",
+              width: 32,
+              height: 32,
+              fontSize: 14,
+              cursor: "pointer",
+              color: theme.palette.primary.main,
+            }}
+            onClick={handleAvatarClick}
+          >
+            {initials}
+          </Avatar>
+        )}
       </div>
-      <UserMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose} />
+      {showProfile && (
+        <UserMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose} />
+      )}
     </header>
   );
 };

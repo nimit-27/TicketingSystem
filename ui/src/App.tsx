@@ -30,6 +30,7 @@ const MISReports = lazy(() => import('./pages/MISReports'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const AddUser = lazy(() => import('./pages/AddUser'));
 const SupportDashboard = lazy(() => import('./pages/SupportDashboard'));
+const PublicLayout = lazy(() => import('./components/Layout/PublicLayout'));
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const user = getUserDetails();
@@ -49,8 +50,10 @@ function App() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
-        <Route path="/login" element={<LoginRoute />} />
-        <Route path="/public/faq" element={<PublicFaq />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/login" element={<LoginRoute />} />
+          <Route path="/public/faq" element={<PublicFaq />} />
+        </Route>
         <Route
           path="/"
           element={(
