@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.RoleDto;
+import com.ticketingSystem.api.dto.RoleLevelDto;
 import com.ticketingSystem.api.dto.RoleSummaryDto;
 import com.ticketingSystem.api.service.RoleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,6 +22,11 @@ public class RoleController {
     @GetMapping
     public ResponseEntity<List<RoleDto>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
+    }
+
+    @GetMapping("/levels")
+    public ResponseEntity<List<RoleLevelDto>> getRoleLevels() {
+        return ResponseEntity.ok(roleService.getRoleLevels());
     }
 
     @GetMapping("/summaries")

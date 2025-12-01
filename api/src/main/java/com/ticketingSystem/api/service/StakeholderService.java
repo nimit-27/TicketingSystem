@@ -17,7 +17,7 @@ public class StakeholderService {
     }
 
     public List<StakeholderDto> getAll() {
-        return repository.findAll().stream()
+        return repository.findByStakeholderGroupId(3).stream()
                 .map(DtoMapper::toStakeholderDto)
                 .collect(Collectors.toList());
     }

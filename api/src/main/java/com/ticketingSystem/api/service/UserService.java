@@ -10,6 +10,7 @@ import com.ticketingSystem.api.models.Stakeholder;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.models.UserLevel;
 import com.ticketingSystem.api.repository.LevelRepository;
+import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.UserRepository;
@@ -38,14 +39,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final StakeholderRepository stakeholderRepository;
     private final RoleRepository roleRepository;
+    private final RequesterUserRepository requesterUserRepository;
     private final LevelRepository levelRepository;
 
     public UserService(UserRepository userRepository, StakeholderRepository stakeholderRepository,
-                       RoleRepository roleRepository, LevelRepository levelRepository) {
+                       RoleRepository roleRepository, LevelRepository levelRepository,
+                       RequesterUserRepository requesterUserRepository) {
         this.userRepository = userRepository;
         this.stakeholderRepository = stakeholderRepository;
         this.roleRepository = roleRepository;
         this.levelRepository = levelRepository;
+        this.requesterUserRepository = requesterUserRepository;
     }
 
     public Optional<UserDto> getUserDetails(String userId) {
@@ -186,9 +190,21 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
         String trimmed = username.trim();
-        userRepository.findByUsername(trimmed).ifPresent(existing -> {
+        if (!isUsernameAvailable(trimmed)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
-        });
+        }
+    }
+
+    public boolean isUsernameAvailable(String username) {
+        if (username == null || username.isBlank()) {
+            return false;
+        }
+
+        String trimmed = username.trim();
+        boolean existsInUsers = userRepository.findByUsername(trimmed).isPresent();
+        boolean existsInRequesterUsers = requesterUserRepository.findByUsername(trimmed).isPresent();
+
+        return !(existsInUsers || existsInRequesterUsers);
     }
 
     private List<String> sanitizeList(List<String> items) {

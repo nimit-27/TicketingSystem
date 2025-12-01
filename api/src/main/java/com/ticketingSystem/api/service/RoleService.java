@@ -1,11 +1,14 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.RoleDto;
+import com.ticketingSystem.api.dto.RoleLevelDto;
 import com.ticketingSystem.api.dto.RoleSummaryDto;
 import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.mapper.DtoMapper;
+import com.ticketingSystem.api.models.RoleLevel;
 import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.permissions.RolePermission;
+import com.ticketingSystem.api.repository.RoleLevelRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,20 +24,29 @@ import java.util.stream.Collectors;
 public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionService permissionService;
+    private final RoleLevelRepository roleLevelRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.developerMode:false}")
     private boolean developerMode;
 
     // Add a constructor for the required beans (without developerMode)
-    public RoleService(RoleRepository roleRepository, PermissionService permissionService) {
+    public RoleService(RoleRepository roleRepository, PermissionService permissionService, RoleLevelRepository roleLevelRepository) {
         this.roleRepository = roleRepository;
         this.permissionService = permissionService;
+        this.roleLevelRepository = roleLevelRepository;
     }
 
     public List<RoleDto> getAllRoles() {
-        List<Role> roles = roleRepository.findByIsDeletedFalse();
+        List<Role> roles = roleRepository.findAll();
         return roles.stream().map(DtoMapper::toRoleDto).collect(Collectors.toList());
+    }
+
+    public List<RoleLevelDto> getRoleLevels() {
+        return roleLevelRepository.findAll().stream()
+                .map(this::toRoleLevelDto)
+                .filter(dto -> dto.getLevelIds() != null && !dto.getLevelIds().isEmpty())
+                .collect(Collectors.toList());
     }
 
     public List<RoleSummaryDto> getRoleSummaries() {
@@ -116,5 +128,23 @@ public class RoleService {
             permissionService.loadPermissions();
         } catch (Exception ignored) {
         }
+    }
+
+    private RoleLevelDto toRoleLevelDto(RoleLevel roleLevel) {
+        if (roleLevel == null) {
+            return null;
+        }
+
+        String levelIds = roleLevel.getLevelIds();
+        if (levelIds == null || levelIds.isBlank()) {
+            return new RoleLevelDto(roleLevel.getRoleId(), List.of());
+        }
+
+        List<String> ids = Arrays.stream(levelIds.split("\\|"))
+                .map(String::trim)
+                .filter(id -> !id.isEmpty())
+                .toList();
+
+        return new RoleLevelDto(roleLevel.getRoleId(), ids);
     }
 }

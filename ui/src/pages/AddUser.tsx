@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -9,18 +9,21 @@ import {
   Chip,
   CircularProgress,
   Grid,
+  IconButton,
+  InputAdornment,
   MenuItem,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 
 import Title from '../components/Title';
 import { useApi } from '../hooks/useApi';
-import { getAllRoles } from '../services/RoleService';
+import { getAllRoles, getRoleLevels } from '../services/RoleService';
 import { getStakeholders } from '../services/StakeholderService';
 import { getAllLevels } from '../services/LevelService';
-import { createUser, CreateUserPayload } from '../services/UserService';
+import { checkUsernameAvailability, createUser, CreateUserPayload } from '../services/UserService';
 import { useSnackbar } from '../context/SnackbarContext';
 
 type RoleResponse = {
@@ -37,6 +40,11 @@ type StakeholderResponse = {
 type LevelResponse = {
   levelId?: string;
   levelName?: string;
+};
+
+type RoleLevelResponse = {
+  roleId?: number | string;
+  levelIds?: string[];
 };
 
 interface AddUserFormValues {
@@ -72,13 +80,21 @@ const AddUser: React.FC = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm<AddUserFormValues>({ defaultValues });
+
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<
+    | { state: 'idle' }
+    | { state: 'available'; message: string }
+    | { state: 'taken' | 'error'; message: string }
+  >({ state: 'idle' });
 
   const {
     data: rolesData,
     pending: rolesPending,
     apiHandler: fetchRoles,
-  // } = useApi<RoleResponse[]>();
   } = useApi<any>();
   const {
     data: stakeholdersData,
@@ -91,6 +107,10 @@ const AddUser: React.FC = () => {
     apiHandler: fetchLevels,
   } = useApi<LevelResponse[]>();
   const {
+    data: roleLevelsData,
+    apiHandler: fetchRoleLevels,
+  } = useApi<RoleLevelResponse[]>();
+  const {
     pending: creatingUser,
     apiHandler: createUserHandler,
   } = useApi<any>();
@@ -99,18 +119,31 @@ const AddUser: React.FC = () => {
     fetchRoles(() => getAllRoles());
     fetchStakeholders(() => getStakeholders());
     fetchLevels(() => getAllLevels());
-  }, [fetchRoles, fetchStakeholders, fetchLevels]);
+    fetchRoleLevels(() => getRoleLevels());
+  }, [fetchLevels, fetchRoleLevels, fetchRoles, fetchStakeholders]);
 
   const roleOptions = useMemo(() => {
     if (!Array.isArray(rolesData)) return [] as { value: string; label: string }[];
     return rolesData
-      .filter((role) => !(role?.isDeleted ?? false))
       .map((role) => ({
         value: String(role?.roleId ?? role?.role ?? ''),
         label: role?.role ?? String(role?.roleId ?? ''),
       }))
       .filter((option) => option.value && option.label);
   }, [rolesData]);
+
+  const roleLevelMap = useMemo(() => {
+    if (!Array.isArray(roleLevelsData)) return new Map<string, string[]>();
+
+    return new Map(
+      roleLevelsData
+        .map((item) => {
+          if (!item?.roleId || !Array.isArray(item.levelIds)) return null;
+          return [String(item.roleId), item.levelIds.filter(Boolean)] as const;
+        })
+        .filter(Boolean) as [string, string[]][]
+    );
+  }, [roleLevelsData]);
 
   const stakeholderOptions = useMemo(() => {
     if (!Array.isArray(stakeholdersData)) return [] as { value: string; label: string }[];
@@ -138,6 +171,37 @@ const AddUser: React.FC = () => {
     [stakeholderOptions]
   );
   const levelLabelMap = useMemo(() => new Map(levelOptions.map((option) => [option.value, option.label])), [levelOptions]);
+
+  const selectedRoleIds = watch('roleIds');
+  const usernameValue = watch('username');
+
+  const allowedLevelIds = useMemo(() => {
+    if (!Array.isArray(selectedRoleIds)) return [] as string[];
+
+    const ids = selectedRoleIds
+      .map((roleId) => roleLevelMap.get(roleId) || [])
+      .flat()
+      .filter(Boolean);
+
+    return Array.from(new Set(ids));
+  }, [roleLevelMap, selectedRoleIds]);
+
+  const shouldShowLevels = allowedLevelIds.length > 0;
+
+  const filteredLevelOptions = useMemo(() => {
+    if (!shouldShowLevels) return [] as { value: string; label: string }[];
+    return levelOptions.filter((option) => allowedLevelIds.includes(option.value));
+  }, [allowedLevelIds, levelOptions, shouldShowLevels]);
+
+  useEffect(() => {
+    setUsernameStatus({ state: 'idle' });
+  }, [usernameValue]);
+
+  useEffect(() => {
+    if (!shouldShowLevels) {
+      setValue('levelIds', []);
+    }
+  }, [setValue, shouldShowLevels]);
 
   const renderSelection = useCallback(
     (selected: unknown, labelMap: Map<string, string>) => {
@@ -178,6 +242,27 @@ const AddUser: React.FC = () => {
     [createUserHandler, reset, showMessage, t]
   );
 
+  const handleUsernameCheck = useCallback(() => {
+    if (!usernameValue || !usernameValue.trim()) {
+      setUsernameStatus({ state: 'error', message: t('Please enter a username to check availability') });
+      return;
+    }
+
+    setCheckingUsername(true);
+    checkUsernameAvailability(usernameValue.trim())
+      .then((response) => {
+        const available = Boolean(response?.data?.available);
+        setUsernameStatus({
+          state: available ? 'available' : 'taken',
+          message: available ? t('Username is available') : t('Username already exists'),
+        });
+      })
+      .catch(() => {
+        setUsernameStatus({ state: 'error', message: t('Unable to verify username right now') });
+      })
+      .finally(() => setCheckingUsername(false));
+  }, [t, usernameValue]);
+
   const handleCancel = useCallback(() => {
     reset(defaultValues);
     if (window.history.length > 1) {
@@ -208,9 +293,20 @@ const AddUser: React.FC = () => {
                   required: t('Username is required'),
                   minLength: { value: 3, message: t('Username must be at least 3 characters') },
                 })}
-                error={Boolean(errors.username)}
-                helperText={errors.username?.message}
+                error={
+                  Boolean(errors.username) || usernameStatus.state === 'taken' || usernameStatus.state === 'error'
+                }
+                helperText={errors.username?.message ?? (usernameStatus.state !== 'idle' ? usernameStatus.message : '')}
                 autoComplete="username"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <IconButton onClick={handleUsernameCheck} edge="start" disabled={checkingUsername}>
+                        {checkingUsername ? <CircularProgress size={20} /> : <ArrowCircleRightOutlinedIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </div>
             <div className=''>
@@ -309,45 +405,47 @@ const AddUser: React.FC = () => {
                 )}
               />
             </div>
-            <div className=''>
-              <Controller
-                control={control}
-                name="levelIds"
-                rules={{
-                  validate: (value) => (value?.length ? true : t('Please select at least one level')),
-                }}
-                render={({ field }) => (
-                  <TextField
-                    select
-                    label={t('Levels')}
-                    fullWidth
-                    SelectProps={{
-                      multiple: true,
-                      value: field.value ?? [],
-                      onChange: (event) => field.onChange(event.target.value as string[]),
-                      renderValue: (selected) => renderSelection(selected, levelLabelMap),
-                    }}
-                    value={field.value ?? []}
-                    onBlur={field.onBlur}
-                    error={Boolean(errors.levelIds)}
-                    helperText={errors.levelIds?.message}
-                    disabled={isLoadingOptions}
-                  >
-                    {levelOptions.length ? (
-                      levelOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
+            {shouldShowLevels && (
+              <div className=''>
+                <Controller
+                  control={control}
+                  name="levelIds"
+                  rules={{
+                    validate: (value) => (value?.length ? true : t('Please select at least one level')),
+                  }}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      label={t('Levels')}
+                      fullWidth
+                      SelectProps={{
+                        multiple: true,
+                        value: field.value ?? [],
+                        onChange: (event) => field.onChange(event.target.value as string[]),
+                        renderValue: (selected) => renderSelection(selected, levelLabelMap),
+                      }}
+                      value={field.value ?? []}
+                      onBlur={field.onBlur}
+                      error={Boolean(errors.levelIds)}
+                      helperText={errors.levelIds?.message}
+                      disabled={isLoadingOptions}
+                    >
+                      {filteredLevelOptions.length ? (
+                        filteredLevelOptions.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem value="" disabled>
+                          {t('No options available')}
                         </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem value="" disabled>
-                        {t('No options available')}
-                      </MenuItem>
-                    )}
-                  </TextField>
-                )}
-              />
-            </div>
+                      )}
+                    </TextField>
+                  )}
+                />
+              </div>
+            )}
             <div className=''>
               <Controller
                 control={control}

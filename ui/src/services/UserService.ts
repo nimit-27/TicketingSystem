@@ -81,6 +81,10 @@ export function createUser(user: CreateUserPayload) {
     return axios.post(`${BASE_URL}/users/admin`, user);
 }
 
+export function checkUsernameAvailability(username: string) {
+    return axios.get(`${BASE_URL}/users/check-username`, { params: { username } });
+}
+
 export function deleteUser(id: string) {
     return axios.delete(`${BASE_URL}/users/${id}`);
 }
