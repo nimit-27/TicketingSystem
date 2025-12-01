@@ -50,9 +50,9 @@ describe('Faq page', () => {
   });
 
   it('renders FAQ items and calls fetch on mount', () => {
-    const { getAllByText, queryByText } = renderWithTheme(<Faq />);
+    const { getAllByText, getByText, queryByText } = renderWithTheme(<Faq />);
     expect(mockApiHandler).toHaveBeenCalled();
-    const question = getAllByText(/Question/)[0];
+    const question = getByText('Question EN');
     expect(question).toBeInTheDocument();
     expect(queryByText(/Answer EN/)).not.toBeInTheDocument();
     fireEvent.click(question);

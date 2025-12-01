@@ -37,7 +37,7 @@ const Faq: React.FC = () => {
     return (
         <div className="w-100">
             <Title
-                textKey="FAQ"
+                textKey="Frequently Asked Questions"
                 rightContent={
                     showAddQnAButton ? (
                         <GenericButton variant="contained" onClick={() => navigate('/faq/new')}>

@@ -47,7 +47,7 @@ describe('usePageTitle', () => {
 
     renderHook(() => usePageTitle());
 
-    expect(document.title).toBe('(3) FAQ');
+    expect(document.title).toBe('(3) Frequently Asked Questions');
   });
 
   it('falls back to the default title when no route matches', () => {
