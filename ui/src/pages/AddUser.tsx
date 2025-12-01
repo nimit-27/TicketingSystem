@@ -125,6 +125,7 @@ const AddUser: React.FC = () => {
   const roleOptions = useMemo(() => {
     if (!Array.isArray(rolesData)) return [] as { value: string; label: string }[];
     return rolesData
+      .filter((role) => role?.isDeleted === false || role?.isDeleted === 0 || role?.isDeleted == null)
       .map((role) => ({
         value: String(role?.roleId ?? role?.role ?? ''),
         label: role?.role ?? String(role?.roleId ?? ''),
@@ -251,7 +252,10 @@ const AddUser: React.FC = () => {
     setCheckingUsername(true);
     checkUsernameAvailability(usernameValue.trim())
       .then((response) => {
-        const available = Boolean(response?.data?.available);
+        const availabilityValue =
+          response?.data?.available ?? response?.data?.data?.available ?? response?.available;
+        const available = availabilityValue === true || availabilityValue === 'true' || availabilityValue === 1;
+
         setUsernameStatus({
           state: available ? 'available' : 'taken',
           message: available ? t('Username is available') : t('Username already exists'),
