@@ -1,7 +1,6 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.config.JwtProperties;
-import com.ticketingSystem.api.config.ClientTypeRoutingFilter;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.LoginRequest;
 import com.ticketingSystem.api.enums.ClientType;
@@ -11,7 +10,6 @@ import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.PermissionService;
 import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +30,7 @@ public class AuthController {
     private final JwtProperties jwtProperties;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
         try {
             // Reload permissions on each login so that any changes in the database
             // are reflected in the login response.
@@ -75,7 +73,7 @@ public class AuthController {
                         session.setAttribute("levels", user.getUserLevel() != null ? user.getUserLevel().getLevelIds() : null);
                     }
 
-                    ClientType clientType = resolveClientType(httpServletRequest);
+                    ClientType clientType = ClientType.INTERNAL;
 
                     LoginPayload payload = LoginPayload.builder()
                             .userId(user.getUserId())
@@ -121,11 +119,4 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    private ClientType resolveClientType(HttpServletRequest httpServletRequest) {
-        Object clientType = httpServletRequest.getAttribute(ClientTypeRoutingFilter.CLIENT_TYPE_ATTRIBUTE);
-        if (clientType instanceof ClientType resolved) {
-            return resolved;
-        }
-        return ClientType.INTERNAL;
-    }
 }
