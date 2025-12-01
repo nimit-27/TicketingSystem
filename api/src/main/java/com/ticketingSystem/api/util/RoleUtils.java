@@ -22,6 +22,7 @@ public final class RoleUtils {
     );
 
     private static final Set<String> TEAM_LEAD_ROLE_IDENTIFIERS = Set.of(
+            "7",
             "team lead",
             "team_lead",
             "teamlead",

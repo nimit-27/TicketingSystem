@@ -35,7 +35,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({
     currentTicketId,
     masterId,
     onLinkSuccess,
-    isCurrentTicketMaster = false,
+    isCurrentTicketMaster = true,
 }) => {
     const [query, setQuery] = useState('');
     const [paginatedTickets, setPaginatedTickets] = useState<MasterTicket[]>([]);
@@ -60,7 +60,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({
     const fetchPaginatedTickets = useCallback((pageIndex: number, searchQuery: string = '') => {
         setIsPaginatedLoading(true);
         setPaginatedError(null);
-        searchTicketsPaginated(searchQuery, undefined, false, pageIndex, PAGE_SIZE)
+        searchTicketsPaginated(searchQuery, undefined, true, pageIndex, PAGE_SIZE)
             .then((response) => {
                 const rawPayload = response?.data ?? response;
                 const payload = rawPayload?.body?.data ?? rawPayload;
@@ -218,7 +218,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({
                                 <p className='text-danger mb-2'>{paginatedError}</p>
                             )}
                             {!isPaginatedLoading && !paginatedError && ticketsToDisplay.length === 0 && (
-                                <p className='text-muted mb-2'>No non-master tickets available.</p>
+                                <p className='text-muted mb-2'>No Master tickets available.</p>
                             )}
                             {ticketsToDisplay.map((ticket) => (
                                 <div key={ticket.id}
