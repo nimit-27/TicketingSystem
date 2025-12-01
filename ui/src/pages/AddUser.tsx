@@ -125,7 +125,6 @@ const AddUser: React.FC = () => {
   const roleOptions = useMemo(() => {
     if (!Array.isArray(rolesData)) return [] as { value: string; label: string }[];
     return rolesData
-      .filter((role) => role?.isDeleted === false || role?.isDeleted === 0 || role?.isDeleted == null)
       .map((role) => ({
         value: String(role?.roleId ?? role?.role ?? ''),
         label: role?.role ?? String(role?.roleId ?? ''),
