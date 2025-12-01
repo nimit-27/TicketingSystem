@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from './api';
 
 export function getFaqs() {
-  return axios.get(`${BASE_URL}/faqs`);
+  return axios.get(`${BASE_URL}/public/faqs`);
 }
 
 export function getFaqById(id: string) {
