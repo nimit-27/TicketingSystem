@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 
@@ -109,6 +110,12 @@ public class UserController {
     public ResponseEntity<?> addUser(@RequestBody User user) {
         User saved = userService.saveUser(user);
         return ResponseEntity.ok(java.util.Map.of("message", "User " + saved.getName() + " added successfully"));
+    }
+
+    @GetMapping("/check-username")
+    public ResponseEntity<Map<String, Boolean>> checkUsernameAvailability(@RequestParam String username) {
+        boolean available = userService.isUsernameAvailable(username);
+        return ResponseEntity.ok(Map.of("available", available));
     }
 
     @PostMapping("/admin")
