@@ -7,10 +7,25 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = "com.ticketingSystem")
+@SpringBootApplication(
+        scanBasePackages = {
+            "com.ticketingSystem.api",
+            "com.ticketingSystem.calendar",
+            "com.ticketingSystem.notification"
+        })
 @ConfigurationPropertiesScan(basePackages = "com.ticketingSystem")
-@EnableJpaRepositories(basePackages = {"com.ticketingSystem.notification.repository", "com.ticketingSystem.api.repository"})
-@EntityScan(basePackages = {"com.ticketingSystem.notification.models", "com.ticketingSystem.api.models"})
+@EnableJpaRepositories(
+        basePackages = {
+            "com.ticketingSystem.api.repository",
+            "com.ticketingSystem.calendar.repository",
+            "com.ticketingSystem.notification.repository"
+        })
+@EntityScan(
+        basePackages = {
+            "com.ticketingSystem.api.models",
+            "com.ticketingSystem.calendar.entity",
+            "com.ticketingSystem.notification.models"
+        })
 @EnableScheduling
 public class Main {
 
