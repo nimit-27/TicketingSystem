@@ -66,6 +66,12 @@ const menuItems = [
     icon: "libraryBooks",
   },
   {
+    key: "fileManagement",
+    label: "File Management",
+    to: "/file-management",
+    icon: "folder",
+  },
+  {
     key: "misReports",
     label: "MIS Reports",
     to: "/mis-reports",

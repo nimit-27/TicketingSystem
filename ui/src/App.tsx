@@ -30,6 +30,7 @@ const MISReports = lazy(() => import('./pages/MISReports'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const AddUser = lazy(() => import('./pages/AddUser'));
 const SupportDashboard = lazy(() => import('./pages/SupportDashboard'));
+const FileManagementSystem = lazy(() => import('./pages/FileManagementSystem'));
 const PublicLayout = lazy(() => import('./components/Layout/PublicLayout'));
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
@@ -78,6 +79,7 @@ function App() {
           <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
           <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
+          <Route path="file-management" element={<FileManagementSystem />} />
           <Route path="mis-reports" element={<MISReports />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="categories-master" element={<CategoriesMaster />} />
