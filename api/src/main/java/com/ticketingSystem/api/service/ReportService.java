@@ -782,25 +782,10 @@ public class ReportService {
     public ProblemManagementReportDto getProblemManagementReport() {
         List<TicketRepository.CategoryStatusAggregation> categoryCounts = ticketRepository.countResolvedClosedTicketsByCategory();
 
-        Map<String, String> categoryNameById = categoryRepository.findAllById(categoryCounts.stream()
-                        .map(TicketRepository.CategoryStatusAggregation::getCategoryId)
-                        .filter(StringUtils::hasText)
-                        .collect(Collectors.toSet()))
-                .stream()
-                .collect(Collectors.toMap(Category::getCategoryId, Category::getCategory));
-
-        Map<String, String> subcategoryNameById = subCategoryRepository.findAllById(categoryCounts.stream()
-                        .map(TicketRepository.CategoryStatusAggregation::getSubcategoryId)
-                        .filter(StringUtils::hasText)
-                        .collect(Collectors.toSet()))
-                .stream()
-                .collect(Collectors.toMap(SubCategory::getSubCategoryId, SubCategory::getSubCategory));
-
         List<ProblemCategoryStatDto> categoryStats = categoryCounts.stream()
-                .sorted(Comparator.comparingLong(projection -> Optional.ofNullable(projection.getTotalCount()).orElse(0L)).reversed())
                 .map(projection -> {
-                    String categoryName = categoryNameById.getOrDefault(projection.getCategoryId(), projection.getCategoryName());
-                    String subcategoryName = subcategoryNameById.getOrDefault(projection.getSubcategoryId(), projection.getSubcategoryName());
+                    String categoryName = projection.getCategoryName();
+                    String subcategoryName = projection.getSubcategoryName();
 
                     return ProblemCategoryStatDto.builder()
                             .category(Optional.ofNullable(projection.getCategoryId()).orElse(projection.getCategoryName()))
@@ -1052,7 +1037,7 @@ public class ReportService {
         return duration.toMinutes() / 60.0;
     }
 
-    private double round(double value) {
+    private static double round(double value) {
         return Math.round(value * 100.0) / 100.0;
     }
 
