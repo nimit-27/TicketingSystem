@@ -10,6 +10,7 @@ export interface TicketResolutionTimeReportProps {
     averageResolutionHours: number;
     resolvedTicketCount: number;
     averageResolutionHoursByStatus: Record<string, number>;
+    categoryStats?: ResolutionCategoryStat[];
     categoryPriorityStats?: ResolutionCategoryPriorityStat[];
 }
 
@@ -19,6 +20,14 @@ export interface ResolutionCategoryPriorityStat {
     priority: string;
     averageResolutionHours: number;
     resolvedTicketCount: number;
+}
+
+export interface ResolutionCategoryStat {
+    category: string;
+    subcategory: string;
+    resolvedTickets: number;
+    closedTickets: number;
+    averageResolutionHours: number;
 }
 
 export interface CustomerSatisfactionReportProps {

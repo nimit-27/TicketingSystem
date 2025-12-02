@@ -211,6 +211,25 @@ const MISReports: React.FC = () => {
                 ],
             );
 
+            const resolutionCategorySection = (() => {
+                const stats = resolutionTime.categoryStats ?? [];
+                if (!stats.length) {
+                    return [] as (string | number)[][];
+                }
+
+                return [
+                    ["Ticket Resolution Time by Category/Subcategory"],
+                    ["Category > Subcategory", "Resolved Tickets", "Closed Tickets", "Average Resolution Time"],
+                    ...stats.map((stat) => [
+                        `${stat.category} > ${stat.subcategory ?? "N/A"}`,
+                        stat.resolvedTickets,
+                        stat.closedTickets,
+                        stat.averageResolutionHours,
+                    ]),
+                    [],
+                ];
+            })();
+
             const resolutionCategoryPrioritySection = (() => {
                 const stats = resolutionTime.categoryPriorityStats ?? [];
                 if (!stats.length) {
@@ -310,6 +329,7 @@ const MISReports: React.FC = () => {
                 [],
                 ...summarySection,
                 ...resolutionSection,
+                ...resolutionCategorySection,
                 ...resolutionCategoryPrioritySection,
                 ...satisfactionSection,
                 ...satisfactionBreakdownSection,

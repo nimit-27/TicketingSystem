@@ -32,7 +32,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
     List<ModeCountProjection> countTicketsByMode();
 
-    @Query("SELECT t.category AS category, COUNT(t) AS count FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category")
+    @Query("SELECT t.category AS category, t.subCategory AS subcategory, COUNT(t) AS count " +
+            "FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category, t.subCategory")
     List<CategoryCountProjection> countTicketsByCategory();
 
     @Query("SELECT LOWER(t.severity) AS severity, COUNT(t) AS count FROM Ticket t " +
@@ -143,6 +144,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     interface CategoryCountProjection {
         String getCategory();
+
+        String getSubcategory();
 
         Long getCount();
     }

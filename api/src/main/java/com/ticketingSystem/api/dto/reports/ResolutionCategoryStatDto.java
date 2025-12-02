@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProblemCategoryStatDto {
+public class ResolutionCategoryStatDto {
     private String category;
     private String subcategory;
-    private long ticketCount;
+    private long resolvedTickets;
+    private long closedTickets;
+    private double averageResolutionHours;
 }
