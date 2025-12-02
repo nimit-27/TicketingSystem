@@ -27,6 +27,10 @@ const PublicFaq = lazy(() => import('./pages/PublicFaq'));
 const FaqForm = lazy(() => import('./pages/FaqForm'));
 const RootCauseAnalysis = lazy(() => import('./pages/RootCauseAnalysis'));
 const MISReports = lazy(() => import('./pages/MISReports'));
+const TicketSummaryReportPage = lazy(() => import('./pages/TicketSummaryReportPage'));
+const TicketResolutionTimeReportPage = lazy(() => import('./pages/TicketResolutionTimeReportPage'));
+const CustomerSatisfactionReportPage = lazy(() => import('./pages/CustomerSatisfactionReportPage'));
+const ProblemManagementReportPage = lazy(() => import('./pages/ProblemManagementReportPage'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const AddUser = lazy(() => import('./pages/AddUser'));
 const SupportDashboard = lazy(() => import('./pages/SupportDashboard'));
@@ -81,6 +85,16 @@ function App() {
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="file-management" element={<FileManagementSystem />} />
           <Route path="mis-reports" element={<MISReports />} />
+          <Route path="mis-reports/ticket-summary" element={<TicketSummaryReportPage />} />
+          <Route
+            path="mis-reports/resolution-time"
+            element={<TicketResolutionTimeReportPage />}
+          />
+          <Route
+            path="mis-reports/customer-satisfaction"
+            element={<CustomerSatisfactionReportPage />}
+          />
+          <Route path="mis-reports/problem-management" element={<ProblemManagementReportPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="categories-master" element={<CategoriesMaster />} />
           <Route path="escalation-master" element={<EscalationMaster />} />

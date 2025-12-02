@@ -36,6 +36,8 @@ export interface CustomerSatisfactionPriorityStat {
     subcategory: string;
     priority: string;
     ratingCounts: Record<string, number>;
+    ticketCount?: number;
+    breachedTickets?: number;
     totalResponses: number;
 }
 

@@ -70,6 +70,20 @@ const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithPa
         return Array.from(ratingSet);
     }, [priorityBreakdown]);
 
+    const ticketTotals = useMemo(
+        () =>
+            priorityBreakdown.reduce(
+                (acc, stat) => {
+                    return {
+                        tickets: acc.tickets + (stat.ticketCount ?? 0),
+                        breached: acc.breached + (stat.breachedTickets ?? 0),
+                    };
+                },
+                { tickets: 0, breached: 0 },
+            ),
+        [priorityBreakdown],
+    );
+
     return (
         <CustomFieldset title="Customer Satisfaction" variant="bordered">
             {pending && (
@@ -95,6 +109,17 @@ const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithPa
                             </Typography>
                             <Typography variant="h5" fontWeight={700}>
                                 {data.compositeScore.toFixed(2)} / 5
+                            </Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Tickets Represented
+                            </Typography>
+                            <Typography variant="h5" fontWeight={700}>
+                                {ticketTotals.tickets}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Breached: {ticketTotals.breached}
                             </Typography>
                         </Box>
                     </Box>
@@ -130,26 +155,38 @@ const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithPa
                                                     <Box component="th" align="left" sx={{ py: 1, pr: 2 }}>
                                                         Category &amp; Subcategory
                                                     </Box>
+                                                    <Box component="th" align="right" sx={{ py: 1, pr: 2 }}>
+                                                        Ticket Count
+                                                    </Box>
+                                                    <Box component="th" align="right" sx={{ py: 1, pr: 2 }}>
+                                                        Breached Tickets
+                                                    </Box>
                                                     {ratingHeaders.map((rating) => (
                                                         <Box key={rating} component="th" align="right" sx={{ py: 1, pr: 2 }}>
                                                             {rating}
                                                         </Box>
                                                     ))}
                                                     <Box component="th" align="right" sx={{ py: 1 }}>
-                                                        Total
+                                                        Total Responses
                                                     </Box>
                                                 </Box>
                                             </Box>
-                                            <Box component="tbody">
-                                                <Box component="tr" sx={{ "&:nth-of-type(odd)": { bgcolor: "action.hover" } }}>
-                                                    <Box component="td" align="left" sx={{ py: 1, pr: 2 }}>
-                                                        {stat.category} &gt; {stat.subcategory || "N/A"}
-                                                    </Box>
-                                                    {ratingHeaders.map((rating) => (
-                                                        <Box key={rating} component="td" align="right" sx={{ py: 1, pr: 2 }}>
-                                                            {stat.ratingCounts?.[rating] ?? 0}
+                                                <Box component="tbody">
+                                                    <Box component="tr" sx={{ "&:nth-of-type(odd)": { bgcolor: "action.hover" } }}>
+                                                        <Box component="td" align="left" sx={{ py: 1, pr: 2 }}>
+                                                            {stat.category} &gt; {stat.subcategory || "N/A"}
                                                         </Box>
-                                                    ))}
+                                                        <Box component="td" align="right" sx={{ py: 1, pr: 2 }}>
+                                                            {stat.ticketCount ?? 0}
+                                                        </Box>
+                                                        <Box component="td" align="right" sx={{ py: 1, pr: 2 }}>
+                                                            {stat.breachedTickets ?? 0}
+                                                        </Box>
+                                                        {ratingHeaders.map((rating) => (
+                                                            <Box key={rating} component="td" align="right" sx={{ py: 1, pr: 2 }}>
+                                                                {stat.ratingCounts?.[rating] ?? 0}
+                                                            </Box>
+                                                        ))}
                                                     <Box component="td" align="right" sx={{ py: 1 }}>
                                                         {stat.totalResponses}
                                                     </Box>
