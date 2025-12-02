@@ -17,13 +17,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaRepositories(
         basePackages = {
             "com.ticketingSystem.api.repository",
-            "com.ticketingSystem.calendar.repository",
             "com.ticketingSystem.notification.repository"
         })
 @EntityScan(
         basePackages = {
             "com.ticketingSystem.api.models",
-            "com.ticketingSystem.calendar.entity",
             "com.ticketingSystem.notification.models"
         })
 @EnableScheduling
