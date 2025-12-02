@@ -66,6 +66,9 @@ const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({
         }, {});
     }, [data]);
 
+    const formatCategoryLabel = (stat: ResolutionCategoryPriorityStat) =>
+        `${stat.categoryName ?? stat.category ?? "Unspecified"} > ${stat.subcategoryName ?? stat.subcategory ?? "N/A"}`;
+
     return (
         <CustomFieldset title="Ticket Resolution Time" variant="bordered">
             {pending && (
@@ -138,11 +141,11 @@ const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({
                                                 {stats.map((stat) => (
                                                     <Box
                                                         component="tr"
-                                                        key={`${stat.category}-${stat.subcategory}`}
+                                                        key={`${stat.categoryName ?? stat.category}-${stat.subcategoryName ?? stat.subcategory}`}
                                                         sx={{ "&:nth-of-type(odd)": { bgcolor: "action.hover" } }}
                                                     >
                                                         <Box component="td" align="left" sx={{ py: 1, pr: 2 }}>
-                                                            {stat.category} &gt; {stat.subcategory || "N/A"}
+                                                            {formatCategoryLabel(stat)}
                                                         </Box>
                                                         <Box component="td" align="right" sx={{ py: 1, pr: 2 }}>
                                                             {stat.averageResolutionHours.toFixed(2)}

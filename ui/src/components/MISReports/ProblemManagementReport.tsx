@@ -26,7 +26,9 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
 
     const chartOptions = useMemo(() => {
         const stats = data?.categoryStats ?? [];
-        const labels = stats.map((stat) => `${stat.category} > ${stat.subcategory || "N/A"}`);
+        const labels = stats.map(
+            (stat) => `${stat.categoryName ?? stat.category ?? "N/A"} > ${stat.subcategoryName ?? stat.subcategory ?? "N/A"}`,
+        );
         return {
             tooltip: {
                 trigger: "axis",
@@ -99,7 +101,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
                                 Most Reported Category/Subcategory
                             </Typography>
                             <Typography variant="h6" fontWeight={700}>
-                                {topCategory.category} &gt; {topCategory.subcategory || "N/A"} ({topCategory.ticketCount}
+                                {topCategory.categoryName ?? topCategory.category} &gt; {topCategory.subcategoryName ?? topCategory.subcategory || "N/A"} ({topCategory.ticketCount}
                                 {" "}
                                 tickets)
                             </Typography>

@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 public class ResolutionCategoryStatDto {
     private String category;
     private String subcategory;
+    private String categoryName;
+    private String subcategoryName;
     private long resolvedTickets;
     private long closedTickets;
     private double averageResolutionHours;
