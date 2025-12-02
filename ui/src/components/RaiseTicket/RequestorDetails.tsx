@@ -80,6 +80,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             undefined,
             undefined,
             undefined,
+            '',
             pageToLoad,
             PAGE_SIZE,
         )).then((response: any) => {
@@ -727,7 +728,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 )}
                 <div className="col-md-6 px-4">
                     <Autocomplete
-                        options={filteredUsers}
+                        options={[]}
                         getOptionLabel={(option: any) => option.name || ''}
                         renderOption={(props, option: any) => (
                             <li {...props} key={option.userId}>

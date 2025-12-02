@@ -193,7 +193,8 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
   const range = worksheet["!ref"] ? XLSX.utils.decode_range(worksheet["!ref"] as string) : null;
   if (!range) return;
 
-  const borderStyle = { style: "thin", color: { auto: 1 } } as XLSX.BorderStyleSpec;
+  const borderStyle = { style: "thin", color: { auto: 1 } } as any;
+  // const borderStyle = { style: "thin", color: { auto: 1 } } as XLSX.BorderStyleSpec;
 
   for (let row = range.s.r; row <= range.e.r; row += 1) {
     for (let col = range.s.c; col <= range.e.c; col += 1) {
@@ -207,7 +208,8 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
           left: borderStyle,
           right: borderStyle,
         },
-      } as XLSX.CellStyle;
+      } as any;
+      // } as XLSX.CellStyle;
       worksheet[cellAddress] = cell;
     }
   }
@@ -749,7 +751,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             doc.setFontSize(12);
             doc.text(section.title, 14, startY);
             doc.setFontSize(10);
-            autoTable(doc, {
+            (autoTable as any)(doc, {
               head: section.head ? [section.head] : undefined,
               body: section.rows,
               startY: startY + 4,
@@ -757,7 +759,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               tableLineWidth: 0.1,
               headStyles: { fillColor: [240, 240, 240] },
             });
-            startY = (doc.lastAutoTable?.finalY ?? startY) + 8;
+            const lastTableFinalY = (doc as any).lastAutoTable?.finalY;
+            startY = (typeof lastTableFinalY === "number" ? lastTableFinalY : startY) + 8;
           });
 
           doc.save(`support-dashboard-${period}-${formatDateInput(range.endDate)}.pdf`);

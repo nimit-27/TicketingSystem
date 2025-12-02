@@ -60,7 +60,8 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
     const range = worksheet["!ref"] ? XLSX.utils.decode_range(worksheet["!ref"] as string) : null;
     if (!range) return;
 
-    const borderStyle = { style: "thin", color: { auto: 1 } } as XLSX.BorderStyleSpec;
+    const borderStyle = { style: "thin", color: { auto: 1 } } as any;
+    // const borderStyle = { style: "thin", color: { auto: 1 } } as XLSX.BorderStyleSpec;
 
     for (let row = range.s.r; row <= range.e.r; row += 1) {
         for (let col = range.s.c; col <= range.e.c; col += 1) {
@@ -74,7 +75,8 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
                     left: borderStyle,
                     right: borderStyle,
                 },
-            } as XLSX.CellStyle;
+            // } as XLSX.CellStyle;
+            } as any;
             worksheet[cellAddress] = cell;
         }
     }
@@ -347,6 +349,7 @@ const MISReports: React.FC = () => {
             })();
 
             const problemEntries = problemManagement.categoryStats ?? [];
+            console.log({problemEntries})
             const problemSection = problemEntries.length
                 ? [
                       ["Problem Management"],

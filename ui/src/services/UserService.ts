@@ -48,7 +48,7 @@ export function searchRequesterUsers(
     officeType?: string,
     zoneCode?: string,
     regionCode?: string,
-    districtCode?: string,
+    districtCode: string = '',
     page: number = 0,
     size: number = 10,
 ) {

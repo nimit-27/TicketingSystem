@@ -101,7 +101,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
                                 Most Reported Category/Subcategory
                             </Typography>
                             <Typography variant="h6" fontWeight={700}>
-                                {topCategory.categoryName ?? topCategory.category} &gt; {topCategory.subcategoryName ?? topCategory.subcategory || "N/A"} ({topCategory.ticketCount}
+                                {topCategory.categoryName ?? topCategory.category} &gt; {(topCategory.subcategoryName ?? topCategory.subcategory) || "N/A"} ({topCategory.ticketCount}
                                 {" "}
                                 tickets)
                             </Typography>
