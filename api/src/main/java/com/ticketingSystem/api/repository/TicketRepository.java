@@ -50,6 +50,46 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             """, nativeQuery = true)
     List<CategoryStatusAggregation> countResolvedClosedTicketsByCategory();
 
+    @Query(value = """
+                SELECT
+                    c.category_id AS categoryId,
+                    c.category AS categoryName,
+                    sc.sub_category_id AS subcategoryId,
+                    sc.sub_category AS subcategoryName,
+                    SUM(CASE WHEN t.status_id = '7' THEN 1 ELSE 0 END) AS resolvedCount,
+                    SUM(CASE WHEN t.status_id = '8' THEN 1 ELSE 0 END) AS closedCount,
+                    AVG(TIMESTAMPDIFF(MINUTE, t.reported_date, t.resolved_at)) / 60 AS averageResolutionHours
+                FROM tickets t
+                LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
+                LEFT JOIN categories c ON c.category_id = sc.category_id
+                WHERE t.reported_date IS NOT NULL
+                  AND t.resolved_at IS NOT NULL
+                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
+                ORDER BY categoryName, subcategoryName
+            """, nativeQuery = true)
+    List<CategoryResolutionAggregation> aggregateResolutionTimeByCategory();
+
+    @Query(value = """
+                SELECT
+                    c.category_id AS categoryId,
+                    c.category AS categoryName,
+                    sc.sub_category_id AS subcategoryId,
+                    sc.sub_category AS subcategoryName,
+                    COUNT(*) AS totalResponses,
+                    AVG(tf.overall_satisfaction) AS overallSatisfactionAverage,
+                    AVG(tf.resolution_effectiveness) AS resolutionEffectivenessAverage,
+                    AVG(tf.communication_support) AS communicationSupportAverage,
+                    AVG(tf.timeliness) AS timelinessAverage,
+                    AVG((tf.overall_satisfaction + tf.resolution_effectiveness + tf.communication_support + tf.timeliness) / 4.0) AS compositeScore
+                FROM ticket_feedback tf
+                JOIN tickets t ON t.ticket_id = tf.ticket_id
+                LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
+                LEFT JOIN categories c ON c.category_id = sc.category_id
+                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
+                ORDER BY categoryName, subcategoryName
+            """, nativeQuery = true)
+    List<CustomerSatisfactionAggregation> aggregateCustomerSatisfactionByCategory();
+
     @Query("SELECT t.category AS category, t.subCategory AS subcategory, COUNT(t) AS count " +
             "FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category, t.subCategory")
     List<CategoryCountProjection> countTicketsByCategory();
@@ -182,6 +222,44 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
         Long getClosedCount();
 
         Long getTotalCount();
+    }
+
+    interface CategoryResolutionAggregation {
+        String getCategoryId();
+
+        String getCategoryName();
+
+        String getSubcategoryId();
+
+        String getSubcategoryName();
+
+        Long getResolvedCount();
+
+        Long getClosedCount();
+
+        Double getAverageResolutionHours();
+    }
+
+    interface CustomerSatisfactionAggregation {
+        String getCategoryId();
+
+        String getCategoryName();
+
+        String getSubcategoryId();
+
+        String getSubcategoryName();
+
+        Long getTotalResponses();
+
+        Double getOverallSatisfactionAverage();
+
+        Double getResolutionEffectivenessAverage();
+
+        Double getCommunicationSupportAverage();
+
+        Double getTimelinessAverage();
+
+        Double getCompositeScore();
     }
 
     interface SeverityCountProjection {
