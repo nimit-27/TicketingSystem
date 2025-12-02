@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
+import { getActiveToken } from '../utils/authToken';
 import { fetchNotifications, markNotificationsAsRead } from '../services/NotificationService';
 import {
   InAppNotificationPayload,
@@ -229,6 +230,11 @@ export const useNotifications = () => {
 
       const params = new URLSearchParams();
       recipientIds.forEach(id => params.append('recipientId', id));
+
+      const token = getActiveToken();
+      if (token) {
+        params.set('token', token);
+      }
 
       const source = new EventSource(`${SSE_ENDPOINT}?${params.toString()}`, {
         withCredentials: true,

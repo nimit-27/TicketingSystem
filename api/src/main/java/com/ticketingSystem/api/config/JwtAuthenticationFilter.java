@@ -52,8 +52,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        String token = resolveToken(header, request.getParameter("token"));
+
+        if (token != null) {
             jwtTokenService.parseToken(token).ifPresent(payload -> {
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authentication =
@@ -65,6 +66,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String resolveToken(String authorizationHeader, String tokenParam) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+
+        if (tokenParam != null && !tokenParam.isBlank()) {
+            return tokenParam.trim();
+        }
+
+        return null;
     }
 
     private boolean shouldBypass(HttpServletRequest request) {
