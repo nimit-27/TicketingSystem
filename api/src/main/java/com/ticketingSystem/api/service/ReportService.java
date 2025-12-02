@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
@@ -13,18 +14,12 @@ import com.ticketingSystem.api.dto.reports.SupportDashboardTicketVolumePointDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
-import com.ticketingSystem.api.models.Category;
-import com.ticketingSystem.api.models.SubCategory;
 import com.ticketingSystem.api.models.Ticket;
-import com.ticketingSystem.api.models.TicketFeedback;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
-import com.ticketingSystem.api.repository.CategoryRepository;
-import com.ticketingSystem.api.repository.TicketFeedbackRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
-import com.ticketingSystem.api.repository.SubCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -44,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.time.temporal.TemporalAdjusters;
@@ -54,12 +48,9 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class ReportService {
     private final TicketRepository ticketRepository;
-    private final TicketFeedbackRepository ticketFeedbackRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
-    private final SubCategoryRepository subCategoryRepository;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -662,6 +653,9 @@ public class ReportService {
     public TicketResolutionTimeReportDto getTicketResolutionTimeReport() {
         List<Ticket> resolvedTickets = ticketRepository.findResolvedTickets();
 
+        List<TicketRepository.CategoryResolutionAggregation> categoryAggregations =
+                ticketRepository.aggregateResolutionTimeByCategory();
+
         Map<String, DoubleSummaryStatistics> statsByStatus = resolvedTickets.stream()
                 .filter(ticket -> ticket.getReportedDate() != null && ticket.getResolvedAt() != null)
                 .collect(Collectors.groupingBy(
@@ -678,64 +672,52 @@ public class ReportService {
                         LinkedHashMap::new
                 ));
 
-        double overallAverage = resolvedTickets.stream()
-                .filter(ticket -> ticket.getReportedDate() != null && ticket.getResolvedAt() != null)
-                .mapToDouble(ticket -> getResolutionDurationInHours(ticket.getReportedDate(), ticket.getResolvedAt()))
-                .average()
-                .orElse(0.0);
+        List<ResolutionCategoryStatDto> categoryStats = categoryAggregations.stream()
+                .map(aggregation -> {
+                    long resolvedCount = Optional.ofNullable(aggregation.getResolvedCount()).orElse(0L);
+                    long closedCount = Optional.ofNullable(aggregation.getClosedCount()).orElse(0L);
+                    long totalResolved = resolvedCount + closedCount;
 
-        Map<String, String> categoryNameById = categoryRepository.findAll().stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Category::getCategoryId, Category::getCategory));
-
-        Map<String, String> subcategoryNameById = subCategoryRepository.findAll().stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(SubCategory::getSubCategoryId, SubCategory::getSubCategory));
-
-        Map<String, CategoryResolutionAccumulator> categoryAccumulators = new LinkedHashMap<>();
-
-        for (Ticket ticket : resolvedTickets) {
-            if (ticket == null || ticket.getReportedDate() == null || ticket.getResolvedAt() == null) {
-                continue;
-            }
-
-            String category = StringUtils.hasText(ticket.getCategory()) ? ticket.getCategory() : "Unspecified";
-            String subcategory = StringUtils.hasText(ticket.getSubCategory()) ? ticket.getSubCategory() : "N/A";
-            String categoryName = categoryNameById.getOrDefault(category, category);
-            String subcategoryName = subcategoryNameById.getOrDefault(subcategory, subcategory);
-
-            String key = category + "||" + subcategory;
-
-            CategoryResolutionAccumulator accumulator = categoryAccumulators.computeIfAbsent(
-                    key,
-                    unused -> new CategoryResolutionAccumulator(category, subcategory, categoryName, subcategoryName)
-            );
-
-            double resolutionHours = getResolutionDurationInHours(ticket.getReportedDate(), ticket.getResolvedAt());
-            accumulator.recordResolution(resolutionHours);
-
-            if (ticket.getTicketStatus() == TicketStatus.CLOSED) {
-                accumulator.incrementClosed();
-            }
-        }
-
-        List<ResolutionCategoryStatDto> categoryStats = categoryAccumulators.values().stream()
-                .map(CategoryResolutionAccumulator::toDto)
+                    return ResolutionCategoryStatDto.builder()
+                            .category(Optional.ofNullable(aggregation.getCategoryId()).orElse(aggregation.getCategoryName()))
+                            .subcategory(Optional.ofNullable(aggregation.getSubcategoryId()).orElse(aggregation.getSubcategoryName()))
+                            .categoryName(aggregation.getCategoryName())
+                            .subcategoryName(aggregation.getSubcategoryName())
+                            .resolvedTickets(totalResolved)
+                            .closedTickets(closedCount)
+                            .averageResolutionHours(round(Optional.ofNullable(aggregation.getAverageResolutionHours()).orElse(0.0)))
+                            .build();
+                })
                 .sorted(Comparator.comparingLong(ResolutionCategoryStatDto::getResolvedTickets).reversed())
                 .collect(Collectors.toList());
 
+        long resolvedTicketCount = categoryStats.stream()
+                .mapToLong(ResolutionCategoryStatDto::getResolvedTickets)
+                .sum();
+
+        double weightedAverageResolutionHours = resolvedTicketCount == 0 ? 0.0
+                : round(categoryAggregations.stream()
+                .mapToDouble(aggregation -> {
+                    long totalCount = Optional.ofNullable(aggregation.getResolvedCount()).orElse(0L)
+                            + Optional.ofNullable(aggregation.getClosedCount()).orElse(0L);
+                    double averageHours = Optional.ofNullable(aggregation.getAverageResolutionHours()).orElse(0.0);
+                    return averageHours * totalCount;
+                })
+                .sum() / resolvedTicketCount);
+
         return TicketResolutionTimeReportDto.builder()
-                .resolvedTicketCount(resolvedTickets.size())
-                .averageResolutionHours(round(overallAverage))
+                .resolvedTicketCount(resolvedTicketCount)
+                .averageResolutionHours(weightedAverageResolutionHours)
                 .averageResolutionHoursByStatus(averageByStatus)
                 .categoryStats(categoryStats)
                 .build();
     }
 
     public CustomerSatisfactionReportDto getCustomerSatisfactionReport() {
-        List<TicketFeedback> feedbackList = ticketFeedbackRepository.findAll();
+        List<TicketRepository.CustomerSatisfactionAggregation> aggregations =
+                ticketRepository.aggregateCustomerSatisfactionByCategory();
 
-        if (feedbackList.isEmpty()) {
+        if (aggregations.isEmpty()) {
             return CustomerSatisfactionReportDto.builder()
                     .totalResponses(0)
                     .overallSatisfactionAverage(0.0)
@@ -743,39 +725,62 @@ public class ReportService {
                     .communicationSupportAverage(0.0)
                     .timelinessAverage(0.0)
                     .compositeScore(0.0)
+                    .categoryStats(List.of())
                     .build();
         }
 
-        OptionalDouble overallSatisfaction = feedbackList.stream()
-                .mapToInt(TicketFeedback::getOverallSatisfaction)
-                .average();
-        OptionalDouble resolutionEffectiveness = feedbackList.stream()
-                .mapToInt(TicketFeedback::getResolutionEffectiveness)
-                .average();
-        OptionalDouble communicationSupport = feedbackList.stream()
-                .mapToInt(TicketFeedback::getCommunicationSupport)
-                .average();
-        OptionalDouble timeliness = feedbackList.stream()
-                .mapToInt(TicketFeedback::getTimeliness)
-                .average();
+        long totalResponses = aggregations.stream()
+                .mapToLong(aggregation -> Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                .sum();
 
-        double compositeScore = feedbackList.stream()
-                .mapToDouble(feedback -> (
-                        feedback.getOverallSatisfaction()
-                                + feedback.getResolutionEffectiveness()
-                                + feedback.getCommunicationSupport()
-                                + feedback.getTimeliness()
-                ) / 4.0)
-                .average()
-                .orElse(0.0);
+        double overallSatisfaction = aggregations.stream()
+                .mapToDouble(aggregation -> Optional.ofNullable(aggregation.getOverallSatisfactionAverage()).orElse(0.0)
+                        * Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                .sum();
+
+        double resolutionEffectiveness = aggregations.stream()
+                .mapToDouble(aggregation -> Optional.ofNullable(aggregation.getResolutionEffectivenessAverage()).orElse(0.0)
+                        * Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                .sum();
+
+        double communicationSupport = aggregations.stream()
+                .mapToDouble(aggregation -> Optional.ofNullable(aggregation.getCommunicationSupportAverage()).orElse(0.0)
+                        * Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                .sum();
+
+        double timeliness = aggregations.stream()
+                .mapToDouble(aggregation -> Optional.ofNullable(aggregation.getTimelinessAverage()).orElse(0.0)
+                        * Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                .sum();
+
+        double compositeScore = aggregations.stream()
+                .mapToDouble(aggregation -> Optional.ofNullable(aggregation.getCompositeScore()).orElse(0.0)
+                        * Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                .sum();
+
+        List<CustomerSatisfactionCategoryStatDto> categoryStats = aggregations.stream()
+                .map(aggregation -> CustomerSatisfactionCategoryStatDto.builder()
+                        .category(Optional.ofNullable(aggregation.getCategoryId()).orElse(aggregation.getCategoryName()))
+                        .subcategory(Optional.ofNullable(aggregation.getSubcategoryId()).orElse(aggregation.getSubcategoryName()))
+                        .categoryName(aggregation.getCategoryName())
+                        .subcategoryName(aggregation.getSubcategoryName())
+                        .totalResponses(Optional.ofNullable(aggregation.getTotalResponses()).orElse(0L))
+                        .overallSatisfactionAverage(round(Optional.ofNullable(aggregation.getOverallSatisfactionAverage()).orElse(0.0)))
+                        .resolutionEffectivenessAverage(round(Optional.ofNullable(aggregation.getResolutionEffectivenessAverage()).orElse(0.0)))
+                        .communicationSupportAverage(round(Optional.ofNullable(aggregation.getCommunicationSupportAverage()).orElse(0.0)))
+                        .timelinessAverage(round(Optional.ofNullable(aggregation.getTimelinessAverage()).orElse(0.0)))
+                        .compositeScore(round(Optional.ofNullable(aggregation.getCompositeScore()).orElse(0.0)))
+                        .build())
+                .collect(Collectors.toList());
 
         return CustomerSatisfactionReportDto.builder()
-                .totalResponses(feedbackList.size())
-                .overallSatisfactionAverage(round(overallSatisfaction.orElse(0.0)))
-                .resolutionEffectivenessAverage(round(resolutionEffectiveness.orElse(0.0)))
-                .communicationSupportAverage(round(communicationSupport.orElse(0.0)))
-                .timelinessAverage(round(timeliness.orElse(0.0)))
-                .compositeScore(round(compositeScore))
+                .totalResponses(totalResponses)
+                .overallSatisfactionAverage(totalResponses == 0 ? 0.0 : round(overallSatisfaction / totalResponses))
+                .resolutionEffectivenessAverage(totalResponses == 0 ? 0.0 : round(resolutionEffectiveness / totalResponses))
+                .communicationSupportAverage(totalResponses == 0 ? 0.0 : round(communicationSupport / totalResponses))
+                .timelinessAverage(totalResponses == 0 ? 0.0 : round(timeliness / totalResponses))
+                .compositeScore(totalResponses == 0 ? 0.0 : round(compositeScore / totalResponses))
+                .categoryStats(categoryStats)
                 .build();
     }
 

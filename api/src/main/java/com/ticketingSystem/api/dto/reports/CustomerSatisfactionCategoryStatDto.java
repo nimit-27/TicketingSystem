@@ -5,18 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerSatisfactionReportDto {
+public class CustomerSatisfactionCategoryStatDto {
+    private String category;
+    private String subcategory;
+    private String categoryName;
+    private String subcategoryName;
     private long totalResponses;
     private double overallSatisfactionAverage;
     private double resolutionEffectivenessAverage;
     private double communicationSupportAverage;
     private double timelinessAverage;
     private double compositeScore;
-    private List<CustomerSatisfactionCategoryStatDto> categoryStats;
 }
