@@ -40,4 +40,11 @@ public class ClientToken {
 
     @Column(name = "revoked_at")
     private LocalDateTime revokedAt;
+
+    @PrePersist
+    private void setIssuedAtIfMissing() {
+        if (issuedAt == null) {
+            issuedAt = LocalDateTime.now();
+        }
+    }
 }

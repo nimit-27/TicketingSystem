@@ -55,6 +55,10 @@ public class ClientCredentialService {
         return clientTokenRepository.findActiveByAccessTokenHash(accessTokenHash, LocalDateTime.now());
     }
 
+    public Optional<ClientToken> findActiveRefreshToken(String refreshTokenHash) {
+        return clientTokenRepository.findActiveByRefreshTokenHash(refreshTokenHash, LocalDateTime.now());
+    }
+
     public void revokeCredential(ClientCredential credential) {
         credential.setRevokedAt(LocalDateTime.now());
         clientCredentialRepository.save(credential);

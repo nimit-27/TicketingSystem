@@ -37,4 +37,11 @@ public class ClientCredential {
 
     @OneToMany(mappedBy = "clientCredential", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ClientToken> tokens;
+
+    @PrePersist
+    private void setCreatedAtIfMissing() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

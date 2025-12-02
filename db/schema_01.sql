@@ -179,8 +179,10 @@ CREATE TABLE `client_tokens` (
   `issued_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `revoked_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `client_tokens_access_token_hash_uindex` (`access_token_hash`),
   KEY `client_tokens_client_credential_id_index` (`client_credential_id`),
-  CONSTRAINT `client_tokens_client_credential_id_fk` FOREIGN KEY (`client_credential_id`) REFERENCES `client_credentials` (`id`)
+  KEY `client_tokens_refresh_token_hash_index` (`refresh_token_hash`),
+  CONSTRAINT `client_tokens_client_credential_id_fk` FOREIGN KEY (`client_credential_id`) REFERENCES `client_credentials` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
