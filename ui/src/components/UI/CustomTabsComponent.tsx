@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box, SxProps, Theme } from '@mui/material';
 
 interface TabItem {
     key: string;
@@ -11,9 +11,12 @@ interface CustomTabsComponentProps {
     tabs: TabItem[];
     currentTab?: string;
     onTabChange?: (key: string) => void;
+    tabsClassName?: string;
+    tabSx?: SxProps<Theme>;
+    getTabSx?: (key: string, isActive: boolean) => SxProps<Theme> | undefined;
 }
 
-const CustomTabsComponent: React.FC<CustomTabsComponentProps> = ({ tabs, currentTab, onTabChange }) => {
+const CustomTabsComponent: React.FC<CustomTabsComponentProps> = ({ tabs, currentTab, onTabChange, tabsClassName, tabSx, getTabSx }) => {
     const [value, setValue] = useState<string>(currentTab || tabs[0]?.key);
 
     useEffect(() => {
@@ -30,9 +33,19 @@ const CustomTabsComponent: React.FC<CustomTabsComponentProps> = ({ tabs, current
 
     return (
         <>
-            <Tabs value={activeTab} onChange={handleChange}>
+            <Tabs value={activeTab} onChange={handleChange} className={tabsClassName} TabIndicatorProps={{ sx: { display: 'none' } }}>
                 {tabs.map(t => (
-                    <Tab key={t.key} label={t.tabTitle} value={t.key} />
+                    <Tab
+                        key={t.key}
+                        label={t.tabTitle}
+                        value={t.key}
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            ...tabSx,
+                            ...(getTabSx ? getTabSx(t.key, activeTab === t.key) : {}),
+                        }}
+                    />
                 ))}
             </Tabs>
             <Box sx={{ mt: 2 }}>
