@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Card, CardContent, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import * as XLSX from "xlsx";
 
 import { fetchSupportDashboardSummary } from "../services/ReportService";
 import { useApi } from "../hooks/useApi";
@@ -18,6 +19,9 @@ import Title from "../components/Title";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
 import { getUserDetails } from "../utils/Utils";
+import MISReportGenerator from "../components/MISReports/MISReportGenerator";
+import { useSnackbar } from "../context/SnackbarContext";
+import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -165,6 +169,40 @@ const REQUESTER_ROLE = "Requester";
 
 const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
 
+const calculateColumnWidths = (rows: (string | number)[][]) => {
+  const widths: { wch: number }[] = [];
+
+  rows.forEach((row) => {
+    row.forEach((cell, columnIndex) => {
+      const value = cell == null ? "" : String(cell);
+      const maxLineLength = Math.max(...value.split("\n").map((line) => line.length));
+      const paddedWidth = maxLineLength + 2;
+
+      widths[columnIndex] = {
+        wch: Math.max(widths[columnIndex]?.wch ?? 0, paddedWidth, 12),
+      };
+    });
+  });
+
+  return widths;
+};
+
+const extractApiPayload = <T,>(response: any): T | null => {
+  const rawPayload = response?.data ?? response;
+  const resp = rawPayload?.body ?? rawPayload;
+
+  if (resp && typeof resp === "object" && "success" in resp && resp.success === false) {
+    const message = resp?.error?.message ?? "Unable to fetch report data.";
+    throw new Error(message);
+  }
+
+  if (resp && typeof resp === "object" && "data" in resp) {
+    return (resp.data ?? null) as T | null;
+  }
+
+  return (resp ?? null) as T | null;
+};
+
 const startOfWeek = (date: Date) => {
   const clone = new Date(date);
   const day = clone.getDay();
@@ -297,6 +335,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 }) => {
   const [recharts, setRecharts] = React.useState<typeof import("recharts") | null>(null);
   const { t } = useTranslation();
+  const { showMessage } = useSnackbar();
   const userDetails = React.useMemo(() => getUserDetails(), []);
   const userRoles = React.useMemo(() => userDetails?.role ?? [], [userDetails]);
   const preferredScope = React.useMemo<SupportDashboardScopeKey>(() => {
@@ -328,6 +367,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     calculateDateRange(initialTimeScale, initialTimeRange, { start: null, end: null }),
   );
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
+  const [downloadingReport, setDownloadingReport] = React.useState(false);
 
   const {
     data: summaryData,
@@ -503,6 +543,133 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
     return params;
   }, [activeDateRange, customMonthRange, customRangeIsValid, timeRange, timeScale]);
+
+  const downloadDashboardReport = React.useCallback(
+    async (period: ReportPeriod, range: ReportRange) => {
+      if (!requestParams) {
+        showMessage("Please select a valid date range before downloading the dashboard report.", "warning");
+        return;
+      }
+
+      setDownloadingReport(true);
+
+      try {
+        const response = await fetchSupportDashboardSummary(requestParams);
+        const dashboardData = extractApiPayload<SupportDashboardSummaryResponse>(response);
+
+        if (!dashboardData) {
+          throw new Error("No dashboard data available to download.");
+        }
+
+        const allTicketsView = dashboardData.allTickets ? normalizeSummaryView(dashboardData.allTickets) : null;
+        const myWorkloadView = dashboardData.myWorkload ? normalizeSummaryView(dashboardData.myWorkload) : null;
+
+        const openTickets =
+          typeof dashboardData.openResolved?.openTickets === "number" ? dashboardData.openResolved.openTickets : 0;
+        const resolvedTickets =
+          typeof dashboardData.openResolved?.resolvedTickets === "number" ? dashboardData.openResolved.resolvedTickets : 0;
+
+        const slaCompliance = (dashboardData.slaCompliance ?? []).map((entry: any) => ({
+          label: typeof entry?.label === "string" ? entry.label : "Unknown",
+          within: typeof entry?.withinSla === "number" ? entry.withinSla : 0,
+          overdue: typeof entry?.overdue === "number" ? entry.overdue : 0,
+        }));
+
+        const ticketVolume = (dashboardData.ticketVolume ?? []).map((entry: any) => ({
+          label: typeof entry?.label === "string" ? entry.label : "Unknown",
+          tickets: typeof entry?.tickets === "number" ? entry.tickets : 0,
+        }));
+
+        const overviewSection: (string | number)[][] = [
+          ["Dashboard Report"],
+          ["Report Period", getPeriodLabel(period)],
+          ["Range", `${range.startDate.toLocaleDateString()} - ${range.endDate.toLocaleDateString()}`],
+          ["Time Scale", timeScale],
+          ["Time Range", timeRange],
+          ["From Date", requestParams.fromDate ?? ""],
+          ["To Date", requestParams.toDate ?? ""],
+          ["Generated By", userDetails?.username || userDetails?.userId || "Unknown User"],
+          ["Generated On", new Date().toLocaleString()],
+          [],
+        ];
+
+        const buildScopeSection = (label: string, view: SupportDashboardSummaryView) => [
+          [label],
+          ["Total Tickets", view.totalTickets],
+          ["Pending for Acknowledgement", view.pendingForAcknowledgement],
+          ["S1 (Critical)", view.severityCounts.S1],
+          ["S2 (High)", view.severityCounts.S2],
+          ["S3 (Medium)", view.severityCounts.S3],
+          ["S4 (Low)", view.severityCounts.S4],
+          [],
+        ];
+
+        const sheetData: (string | number)[][] = [...overviewSection];
+
+        if (allTicketsView) {
+          sheetData.push(...buildScopeSection("All Tickets", allTicketsView));
+        }
+
+        if (myWorkloadView) {
+          sheetData.push(...buildScopeSection("My Workload", myWorkloadView));
+        }
+
+        sheetData.push(
+          ["Open vs Resolved"],
+          ["Open Tickets", openTickets],
+          ["Resolved Tickets", resolvedTickets],
+          [],
+          ["SLA Compliance"],
+          ["Period", "Within SLA", "Overdue"],
+          ...(slaCompliance.length ? slaCompliance.map((row) => [row.label, row.within, row.overdue]) : [["No data", 0, 0]]),
+          [],
+          ["Ticket Volume"],
+          ["Period", "Tickets"],
+          ...(ticketVolume.length ? ticketVolume.map((row) => [row.label, row.tickets]) : [["No data", 0]]),
+        );
+
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+        worksheet["!cols"] = calculateColumnWidths(sheetData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Support Dashboard");
+
+        const fileName = `support-dashboard-${period}-${formatDateInput(range.endDate)}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
+        showMessage("Dashboard report downloaded successfully.", "success");
+      } catch (error) {
+        console.error("Failed to download support dashboard report", error);
+        const message =
+          error instanceof Error ? error.message : "Failed to download support dashboard report.";
+        showMessage(message, "error");
+      } finally {
+        setDownloadingReport(false);
+      }
+    },
+    [requestParams, showMessage, timeRange, timeScale, userDetails?.userId, userDetails?.username],
+  );
+
+  const handleReportDownload = React.useCallback(
+    async (option: string, period: ReportPeriod, range: ReportRange) => {
+      if (option === "excel") {
+        await downloadDashboardReport(period, range);
+        return;
+      }
+
+      showMessage(`${option.toUpperCase()} downloads are not available yet.`, "info");
+    },
+    [downloadDashboardReport, showMessage],
+  );
+
+  const handleReportEmail = React.useCallback(
+    (period: ReportPeriod, range: ReportRange) => {
+      const formattedRange = `${range.startDate.toLocaleDateString()} - ${range.endDate.toLocaleDateString()}`;
+      showMessage(
+        `${getPeriodLabel(period)} report for ${formattedRange} will be emailed once ready.`,
+        "success",
+      );
+    },
+    [showMessage],
+  );
 
   const handleTimeScaleChange = React.useCallback(
     (event: SelectChangeEvent) => {
@@ -777,6 +944,16 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               onChange={handleDateRangeChange("to")}
               InputLabelProps={{ shrink: true }}
               disabled={isLoading}
+            />
+          </Box>
+
+          <Box className="d-flex">
+            <MISReportGenerator
+              onDownload={handleReportDownload}
+              onEmail={handleReportEmail}
+              defaultPeriod="daily"
+              busy={isLoading || downloadingReport}
+              downloadOptions={[{ value: "excel", label: "Download as Excel" }]}
             />
           </Box>
 
