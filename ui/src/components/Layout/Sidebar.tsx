@@ -186,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 {!collapsed && (
                   <ListItemText
                     primaryTypographyProps={{
-                      fontSize: "1.2rem",
+                      fontSize: "1rem",
                       style: { color: selectedKey === key ? 'white' : textColor, },
                     }}
                     primary={t(label)}
