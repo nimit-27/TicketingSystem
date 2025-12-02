@@ -214,6 +214,25 @@ const MISReports: React.FC = () => {
                 ],
             );
 
+            const resolutionCategoryPrioritySection = (() => {
+                const stats = resolutionTime.categoryPriorityStats ?? [];
+                if (!stats.length) {
+                    return [] as (string | number)[][];
+                }
+
+                return [
+                    ["Resolution by Category/Subcategory and Priority"],
+                    ["Priority", "Category > Subcategory", "Avg Resolution Hours", "Resolved Tickets"],
+                    ...stats.map((stat) => [
+                        stat.priority,
+                        `${stat.category} > ${stat.subcategory}`,
+                        stat.averageResolutionHours,
+                        stat.resolvedTicketCount,
+                    ]),
+                    [],
+                ];
+            })();
+
             const satisfactionSection = buildHorizontalSection(
                 "Customer Satisfaction",
                 [
@@ -234,15 +253,45 @@ const MISReports: React.FC = () => {
                 ],
             );
 
-            const problemEntries = (problemManagement.categoryStats ?? []).map(({ category, ticketCount }) => ({
-                key: category,
-                value: ticketCount,
-            }));
-            const problemSection = buildKeyValueSection(
-                "Problem Management",
-                problemEntries.length ? problemEntries : [{ key: "Category", value: "N/A" }],
-                ["Category", "Ticket Count"],
-            );
+            const satisfactionBreakdownSection = (() => {
+                const breakdown = satisfaction.priorityBreakdown ?? [];
+                if (!breakdown.length) {
+                    return [] as (string | number)[][];
+                }
+
+                const ratingHeaders = Array.from(
+                    breakdown.reduce((set, stat) => {
+                        Object.keys(stat.ratingCounts ?? {}).forEach((rating) => set.add(rating));
+                        return set;
+                    }, new Set<string>()),
+                );
+
+                return [
+                    ["Customer Satisfaction by Category/Subcategory and Priority"],
+                    ["Priority", "Category > Subcategory", ...ratingHeaders, "Total"],
+                    ...breakdown.map((stat) => [
+                        stat.priority,
+                        `${stat.category} > ${stat.subcategory}`,
+                        ...ratingHeaders.map((rating) => stat.ratingCounts?.[rating] ?? 0),
+                        stat.totalResponses,
+                    ]),
+                    [],
+                ];
+            })();
+
+            const problemEntries = problemManagement.categoryStats ?? [];
+            const problemSection = problemEntries.length
+                ? [
+                      ["Problem Management"],
+                      ["Category > Subcategory", "Ticket Count", "Breached Tickets"],
+                      ...problemEntries.map((entry) => [
+                          `${entry.category} > ${entry.subcategory ?? "N/A"}`,
+                          entry.ticketCount,
+                          entry.breachedTickets ?? 0,
+                      ]),
+                      [],
+                  ]
+                : buildKeyValueSection("Problem Management", [{ key: "Category", value: "N/A" }], ["Category", "Ticket Count"]);
 
             const overviewSheetData = [
                 ["Management Information System Report"],
@@ -255,7 +304,9 @@ const MISReports: React.FC = () => {
                 [],
                 ...summarySection,
                 ...resolutionSection,
+                ...resolutionCategoryPrioritySection,
                 ...satisfactionSection,
+                ...satisfactionBreakdownSection,
                 ...problemSection,
             ];
 

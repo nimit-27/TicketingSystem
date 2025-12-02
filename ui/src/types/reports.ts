@@ -10,6 +10,15 @@ export interface TicketResolutionTimeReportProps {
     averageResolutionHours: number;
     resolvedTicketCount: number;
     averageResolutionHoursByStatus: Record<string, number>;
+    categoryPriorityStats?: ResolutionCategoryPriorityStat[];
+}
+
+export interface ResolutionCategoryPriorityStat {
+    category: string;
+    subcategory: string;
+    priority: string;
+    averageResolutionHours: number;
+    resolvedTicketCount: number;
 }
 
 export interface CustomerSatisfactionReportProps {
@@ -19,11 +28,22 @@ export interface CustomerSatisfactionReportProps {
     communicationSupportAverage: number;
     timelinessAverage: number;
     compositeScore: number;
+    priorityBreakdown?: CustomerSatisfactionPriorityStat[];
+}
+
+export interface CustomerSatisfactionPriorityStat {
+    category: string;
+    subcategory: string;
+    priority: string;
+    ratingCounts: Record<string, number>;
+    totalResponses: number;
 }
 
 export interface ProblemCategoryStat {
     category: string;
+    subcategory?: string;
     ticketCount: number;
+    breachedTickets?: number;
 }
 
 export interface ProblemManagementReportProps {

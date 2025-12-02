@@ -4,14 +4,14 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchProblemManagementReport } from "../../services/ReportService";
-import { MISReportRequestParams } from "../../types/reports";
+import { MISReportRequestParams, ProblemCategoryStat } from "../../types/reports";
 
 interface ProblemManagementReportPropsWithParams {
     params?: MISReportRequestParams;
 }
 
 const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> = ({ params }) => {
-    const { data, pending, apiHandler } = useApi<any>();
+    const { data, pending, apiHandler } = useApi<{ categoryStats?: ProblemCategoryStat[] }>();
 
     useEffect(() => {
         apiHandler(() =>
@@ -26,6 +26,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
 
     const chartOptions = useMemo(() => {
         const stats = data?.categoryStats ?? [];
+        const labels = stats.map((stat) => `${stat.category} > ${stat.subcategory || "N/A"}`);
         return {
             tooltip: {
                 trigger: "axis",
@@ -41,17 +42,26 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
             },
             yAxis: {
                 type: "category",
-                data: stats.map((stat: { category: any; }) => stat.category),
+                data: labels,
                 axisLabel: {
-                    formatter: (value: string) => value?.length > 18 ? `${value.slice(0, 18)}…` : value,
+                    formatter: (value: string) => (value?.length > 24 ? `${value.slice(0, 24)}…` : value),
                 },
             },
             series: [
                 {
+                    name: "Total Tickets",
                     type: "bar",
-                    data: stats.map((stat: { ticketCount: any; }) => stat.ticketCount),
+                    data: stats.map((stat) => stat.ticketCount),
                     itemStyle: {
                         color: "#0288d1",
+                    },
+                },
+                {
+                    name: "Breached Tickets",
+                    type: "bar",
+                    data: stats.map((stat) => stat.breachedTickets ?? 0),
+                    itemStyle: {
+                        color: "#d32f2f",
                     },
                 },
             ],
@@ -63,10 +73,15 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
             return null;
         }
 
-        return data.categoryStats.reduce((prev: { ticketCount: number; }, current: { ticketCount: number; }) =>
-            current.ticketCount > prev.ticketCount ? current : prev
+        return data.categoryStats.reduce((prev, current) =>
+            current.ticketCount > prev.ticketCount ? current : prev,
         );
     }, [data]);
+
+    const totalBreachedTickets = useMemo(
+        () => (data?.categoryStats ?? []).reduce((sum, stat) => sum + (stat.breachedTickets ?? 0), 0),
+        [data],
+    );
 
     return (
         <CustomFieldset title="Problem Management" variant="bordered">
@@ -81,17 +96,31 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
                     {topCategory && (
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Most Reported Category
+                                Most Reported Category/Subcategory
                             </Typography>
                             <Typography variant="h6" fontWeight={700}>
-                                {topCategory.category} ({topCategory.ticketCount} tickets)
+                                {topCategory.category} &gt; {topCategory.subcategory || "N/A"} ({topCategory.ticketCount}
+                                {" "}
+                                tickets)
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Breached: {topCategory.breachedTickets ?? 0}
                             </Typography>
                         </Box>
                     )}
 
+                    <Box display="flex" gap={4} flexWrap="wrap">
+                        <Box>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Total Breached Tickets
+                            </Typography>
+                            <Typography variant="h6" fontWeight={700}>{totalBreachedTickets}</Typography>
+                        </Box>
+                    </Box>
+
                     <Box>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                            Category-wise Ticket Volume
+                            Category/Subcategory Ticket Volume (with Breaches)
                         </Typography>
                         <ReactECharts option={chartOptions} style={{ height: 320 }} />
                     </Box>
