@@ -1,13 +1,13 @@
-import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup, Autocomplete, TextField, Card } from "@mui/material";
+import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup, Autocomplete, TextField, Card, IconButton, CircularProgress } from "@mui/material";
 import { formFieldValue, inputColStyling } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
-import { getRequesterUserDetails, getRequesterUsers } from "../../services/UserService";
+import { getRequesterUserDetails, searchRequesterUsers } from "../../services/UserService";
 import { FieldValues, useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
 import { getCurrentUserDetails, FciTheme, isFciUser, isHelpdesk } from "../../config/config";
@@ -19,6 +19,8 @@ import { useTranslation } from "react-i18next";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getStakeholders } from "../../services/StakeholderService";
 import UserAvatar from "../UI/UserAvatar/UserAvatar";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { RequesterUser } from "../../types/users";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -35,6 +37,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const [viewMode, setViewMode] = useState<ViewMode>("nonFci");
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
     const [searchText, setSearchText] = useState("");
+    const [requesterUsers, setRequesterUsers] = useState<RequesterUser[]>([]);
+    const [userPage, setUserPage] = useState(0);
+    const [hasMoreUsers, setHasMoreUsers] = useState(true);
+    const [loadingUsers, setLoadingUsers] = useState(false);
     const { t } = useTranslation();
 
     const fciUser = isFciUser();
@@ -43,7 +49,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isDisabled = disableAll || disabled;
 
     const { data: userDetailsData, pending, success, apiHandler: getUserDetailsApiHandler } = useApi<any>();
-    const { data: requesterUsersData, apiHandler: getRequesterUsersApiHandler } = useApi<any>();
+    const { apiHandler: getRequesterUsersApiHandler } = useApi<any>();
     const { data: stakeholderData, apiHandler: getStakeholdersApiHandler } = useApi<any>();
 
     const userId = useWatch({ control, name: 'userId' });
@@ -56,12 +62,54 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const stakeholder = useWatch({ control, name: 'stakeholder' });
     const role = useWatch({ control, name: 'role' });
     const debouncedUserId = useDebounce(userId, 500);
+    const debouncedSearchText = useDebounce(searchText, 500);
 
-    const requesterUsers = requesterUsersData || [];
-    const filteredUsers = requesterUsers.filter((u: any) => !stakeholder || u.stakeholderId === stakeholder);
+    const PAGE_SIZE = 10;
+
     const stakeholderOptions: DropdownOption[] = Array.isArray(stakeholderData)
         ? stakeholderData.map((s: any) => ({ label: s.description, value: String(s.id) }))
         : [];
+
+    const fetchRequesterUsers = useCallback((pageToLoad: number = 0, append: boolean = false) => {
+        setLoadingUsers(true);
+        return getRequesterUsersApiHandler(() => searchRequesterUsers(
+            debouncedSearchText.trim(),
+            undefined,
+            stakeholder || undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            pageToLoad,
+            PAGE_SIZE,
+        )).then((response: any) => {
+            const items: RequesterUser[] = response?.items ?? [];
+            const totalPages = response?.totalPages ?? 0;
+            const totalElements = response?.totalElements;
+            const serverSaysMore = totalPages ? pageToLoad < totalPages - 1 : false;
+            const inferredMore = typeof totalElements === 'number'
+                ? (pageToLoad + 1) * PAGE_SIZE < totalElements
+                : items.length === PAGE_SIZE;
+            const canLoadMore = serverSaysMore || inferredMore;
+            setHasMoreUsers(canLoadMore);
+            setUserPage(pageToLoad);
+            setRequesterUsers((prev) => append ? [...prev, ...items] : items);
+        }).finally(() => setLoadingUsers(false));
+    }, [debouncedSearchText, stakeholder, getRequesterUsersApiHandler]);
+
+    const handleLoadMoreUsers = useCallback(() => {
+        if (loadingUsers || !hasMoreUsers) return;
+        const nextPage = userPage + 1;
+        fetchRequesterUsers(nextPage, true);
+    }, [fetchRequesterUsers, hasMoreUsers, loadingUsers, userPage]);
+
+    const autocompleteOptions = useMemo(() => {
+        const options: (RequesterUser | { loadMore: true })[] = [...requesterUsers];
+        if (hasMoreUsers) {
+            options.push({ loadMore: true });
+        }
+        return options;
+    }, [hasMoreUsers, requesterUsers]);
 
     let showRequestorDetails = true;
     // let showRequestorDetails = mode.toLowerCase() !== 'self';
@@ -123,9 +171,12 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }, [register]);
 
     useEffect(() => {
-        getRequesterUsersApiHandler(() => getRequesterUsers());
+        fetchRequesterUsers();
+    }, [fetchRequesterUsers]);
+
+    useEffect(() => {
         getStakeholdersApiHandler(() => getStakeholders());
-    }, [getRequesterUsersApiHandler, getStakeholdersApiHandler]);
+    }, [getStakeholdersApiHandler]);
 
     // On initial render, if mode is Self, verify and populate logged-in user details
     // useEffect(() => {
@@ -272,28 +323,24 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const isRequestorOrOnBehalfFci = !createMode && userId
     const isRequestorOnBehalfNonFci = !createMode && !userId && stakeholder
 
+    const isLoadMoreOption = (option: any): option is { loadMore: true } => option?.loadMore;
+
     const handleSelectUserChange = (e: any, val: any) => {
+        if (val && isLoadMoreOption(val)) {
+            handleLoadMoreUsers();
+            return;
+        }
         setSelectedUser(val);
         if (val) {
             populateUserDetails(val);
             setValue && setValue('userId', val.requesterUserId);
+            setSearchText(val.name || val.username || '');
         } else {
             clearUserDetails();
         }
     }
 
-    const handleFilterOptions = (options: any[], params: any) => {
-        const txt = params.inputValue.toLowerCase();
-        return options.filter((o: any) => {
-            return (
-                o.name?.toLowerCase().includes(txt) ||
-                o.requesterUserId?.toString().toLowerCase().includes(txt) ||
-                o.username?.toLowerCase().includes(txt) ||
-                o.emailId?.toLowerCase().includes(txt) ||
-                o.mobileNo?.toLowerCase().includes(txt)
-            );
-        });
-    }
+    const handleFilterOptions = (options: any[]) => options;
 
     const renderReadOnlyField = (label: string, value: string) => (
         <div className={`${formFieldValue} justify-content-center text-center flex-column flex-md-row`}>
@@ -310,21 +357,64 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         <div className="col-md-6 d-flex flex-column">
                             {showSearchUserAutocomplete && (
                                 <Autocomplete
-                                    options={filteredUsers}
-                                    getOptionLabel={(option: any) => option.name || option.username || ''}
-                                    renderOption={(props, option: any) => (
-                                        <li {...props} key={option.requesterUserId}>
-                                            <span className="fw-semibold">{option.name}</span>
-                                            <span className="text-muted ms-2">{option.username} | {option.requesterUserId} | {option.mobileNo} | {option.emailId}</span>
-                                        </li>
+                                    options={autocompleteOptions}
+                                    getOptionLabel={(option: any) => isLoadMoreOption(option) ? 'Load more users' : option.name || option.username || ''}
+                                    renderOption={(props, option: any) => {
+                                        if (isLoadMoreOption(option)) {
+                                            return (
+                                                <li
+                                                    {...props}
+                                                    key="load-more-users"
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        event.stopPropagation();
+                                                        handleLoadMoreUsers();
+                                                    }}
+                                                >
+                                                    <IconButton size="small" color="primary" disabled={loadingUsers || !hasMoreUsers}>
+                                                        <KeyboardArrowDownIcon />
+                                                    </IconButton>
+                                                    <span className="ms-2">Load more users</span>
+                                                </li>
+                                            );
+                                        }
+                                        return (
+                                            <li {...props} key={option.requesterUserId}>
+                                                <span className="fw-semibold">{option.name}</span>
+                                                <span className="text-muted ms-2">{option.username} | {option.requesterUserId} | {option.mobileNo} | {option.emailId}</span>
+                                            </li>
+                                        );
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Search User"
+                                            size="small"
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <>
+                                                        {loadingUsers ? <CircularProgress color="inherit" size={20} /> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </>
+                                                ),
+                                            }}
+                                        />
                                     )}
-                                    renderInput={(params) => <TextField {...params} label="Search User" size="small" />}
                                     value={selectedUser}
                                     inputValue={searchText}
-                                    onInputChange={(e, val) => setSearchText(val)}
+                                    onInputChange={(e, val, reason) => {
+                                        setSearchText(val);
+                                        if (reason === 'clear') {
+                                            setSelectedUser(null);
+                                            clearUserDetails();
+                                        }
+                                    }}
                                     onChange={handleSelectUserChange}
                                     filterOptions={handleFilterOptions}
+                                    isOptionEqualToValue={(option, value) => !isLoadMoreOption(option) && option.requesterUserId === value?.requesterUserId}
                                     disabled={disableAll}
+                                    loading={loadingUsers}
                                 />
                             )}
                             {showStakeholder && (
