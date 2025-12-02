@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs, Tab, Box, SxProps, Theme } from '@mui/material';
+import { Tabs, Box, SxProps, Theme } from '@mui/material';
+import Tab from '@mui/material/Tab';
+
 
 interface TabItem {
     key: string;
@@ -33,21 +35,18 @@ const CustomTabsComponent: React.FC<CustomTabsComponentProps> = ({ tabs, current
 
     return (
         <>
-            <Tabs value={activeTab} onChange={handleChange} className={tabsClassName} TabIndicatorProps={{ sx: { display: 'none' } }}>
-                {tabs.map(t => (
-                    <Tab
-                        key={t.key}
-                        label={t.tabTitle}
-                        value={t.key}
-                        sx={{
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            ...tabSx,
-                            ...(getTabSx ? getTabSx(t.key, activeTab === t.key) : {}),
-                        }}
-                    />
-                ))}
-            </Tabs>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={activeTab} onChange={handleChange} className={tabsClassName}>
+                    {tabs.map(t => (
+                        <Tab
+                            key={t.key}
+                            label={t.tabTitle}
+                            value={t.key}
+                        />
+                    ))}
+                </Tabs>
+            </Box>
+
             <Box sx={{ mt: 2 }}>
                 {activeComponent}
             </Box>

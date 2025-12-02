@@ -251,11 +251,11 @@ const LoginPage: FC = () => {
 
             <div className="login-layout">
                 <div className="login-left">
-                    <img className="login-leaf" src="/menu-leaf.png" alt="Decorative leaf" />
+                    <img className="login-leaf" src="./menu-leaf.png" alt="Decorative leaf" />
                     <div className="login-left__content">
                         <div className="login-badge">
                             <div className="login-badge__crest">
-                                <img src="/fciLogo.png" alt="Anna Darpan crest" />
+                                <img src="./fciLogo.png" alt="Anna Darpan crest" />
                             </div>
                             <div className="login-badge__text">
                                 <p className="tagline">सबको अन्न सबको आहार</p>
@@ -269,7 +269,7 @@ const LoginPage: FC = () => {
                 </div>
 
                 <div className="login-right">
-                    <div className="login-card">
+                    <div className="">
                         <div className="login-card__header">
                             <div className="login-avatar">
                                 <PersonIcon />
@@ -284,18 +284,18 @@ const LoginPage: FC = () => {
                             tabs={tabs}
                             currentTab={selectedPortal}
                             onTabChange={(key) => setSelectedPortal(key as PortalType)}
-                            tabsClassName="login-tabs"
-                            getTabSx={(key, isActive) => ({
-                                backgroundColor: isActive ? colors.green.default : "transparent",
-                                color: isActive ? "#ffffff" : colors.green.default,
-                                border: `1px solid ${colors.green.default}`,
-                                borderRadius: "10px",
-                                minWidth: 120,
-                                marginRight: "0.75rem",
-                                '&:hover': {
-                                    backgroundColor: isActive ? colors.green.default : colors.green.light,
-                                },
-                            })}
+                            // tabsClassName="login-tabs"
+                            // getTabSx={(key, isActive) => ({
+                            //     backgroundColor: isActive ? colors.green.default : "transparent",
+                            //     color: isActive ? "#ffffff" : colors.green.default,
+                            //     border: `1px solid ${colors.green.default}`,
+                            //     borderRadius: "10px",
+                            //     minWidth: 120,
+                            //     marginRight: "0.75rem",
+                            //     '&:hover': {
+                            //         backgroundColor: isActive ? colors.green.default : colors.green.light,
+                            //     },
+                            // })}
                         />
                     </div>
                 </div>
