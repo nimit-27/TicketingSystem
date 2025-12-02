@@ -2,6 +2,10 @@ import { createTheme } from '@mui/material/styles';
 import colors from './colors';
 import { color } from 'echarts';
 
+const baseTypography = {
+  fontFamily: "'Noto Sans', sans-serif",
+};
+
 type ButtonVariantDefinition = {
   background: string;
   color: string;
@@ -460,6 +464,7 @@ const lightTheme = createTheme({
     header: lightLayout.header,
     global: lightLayout.global,
   },
+  typography: baseTypography,
   components: {
     MuiButton: {
       styleOverrides: {
@@ -488,6 +493,7 @@ const darkTheme = createTheme({
     header: darkLayout.header,
     global: darkLayout.global,
   },
+  typography: baseTypography,
   components: {
     MuiButton: {
       styleOverrides: {
@@ -513,6 +519,7 @@ const fciTheme = createTheme({
     header: fciLayout.header,
     global: fciLayout.global,
   },
+  typography: baseTypography,
   components: {
     MuiButton: {
       styleOverrides: {
