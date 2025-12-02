@@ -14,6 +14,7 @@ import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.Category;
+import com.ticketingSystem.api.models.SubCategory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketFeedback;
 import com.ticketingSystem.api.models.TicketSla;
@@ -23,6 +24,7 @@ import com.ticketingSystem.api.repository.TicketFeedbackRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
+import com.ticketingSystem.api.repository.SubCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -57,6 +59,7 @@ public class ReportService {
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -586,13 +589,17 @@ public class ReportService {
     private static class CategoryResolutionAccumulator {
         private final String category;
         private final String subcategory;
+        private final String categoryName;
+        private final String subcategoryName;
         private long resolvedCount;
         private long closedCount;
         private double totalResolutionHours;
 
-        private CategoryResolutionAccumulator(String category, String subcategory) {
+        private CategoryResolutionAccumulator(String category, String subcategory, String categoryName, String subcategoryName) {
             this.category = category;
             this.subcategory = subcategory;
+            this.categoryName = categoryName;
+            this.subcategoryName = subcategoryName;
         }
 
         private void recordResolution(double hours) {
@@ -609,6 +616,8 @@ public class ReportService {
             return ResolutionCategoryStatDto.builder()
                     .category(category)
                     .subcategory(subcategory)
+                    .categoryName(categoryName)
+                    .subcategoryName(subcategoryName)
                     .resolvedTickets(resolvedCount)
                     .closedTickets(closedCount)
                     .averageResolutionHours(average)
@@ -675,6 +684,14 @@ public class ReportService {
                 .average()
                 .orElse(0.0);
 
+        Map<String, String> categoryNameById = categoryRepository.findAll().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Category::getCategoryId, Category::getCategory));
+
+        Map<String, String> subcategoryNameById = subCategoryRepository.findAll().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(SubCategory::getSubCategoryId, SubCategory::getSubCategory));
+
         Map<String, CategoryResolutionAccumulator> categoryAccumulators = new LinkedHashMap<>();
 
         for (Ticket ticket : resolvedTickets) {
@@ -684,11 +701,14 @@ public class ReportService {
 
             String category = StringUtils.hasText(ticket.getCategory()) ? ticket.getCategory() : "Unspecified";
             String subcategory = StringUtils.hasText(ticket.getSubCategory()) ? ticket.getSubCategory() : "N/A";
+            String categoryName = categoryNameById.getOrDefault(category, category);
+            String subcategoryName = subcategoryNameById.getOrDefault(subcategory, subcategory);
+
             String key = category + "||" + subcategory;
 
             CategoryResolutionAccumulator accumulator = categoryAccumulators.computeIfAbsent(
                     key,
-                    unused -> new CategoryResolutionAccumulator(category, subcategory)
+                    unused -> new CategoryResolutionAccumulator(category, subcategory, categoryName, subcategoryName)
             );
 
             double resolutionHours = getResolutionDurationInHours(ticket.getReportedDate(), ticket.getResolvedAt());
@@ -760,22 +780,36 @@ public class ReportService {
     }
 
     public ProblemManagementReportDto getProblemManagementReport() {
-        List<TicketRepository.CategoryCountProjection> categoryCounts = ticketRepository.countTicketsByCategory();
+        List<TicketRepository.CategoryStatusAggregation> categoryCounts = ticketRepository.countResolvedClosedTicketsByCategory();
 
         Map<String, String> categoryNameById = categoryRepository.findAllById(categoryCounts.stream()
-                        .map(TicketRepository.CategoryCountProjection::getCategory)
+                        .map(TicketRepository.CategoryStatusAggregation::getCategoryId)
                         .filter(StringUtils::hasText)
                         .collect(Collectors.toSet()))
                 .stream()
                 .collect(Collectors.toMap(Category::getCategoryId, Category::getCategory));
 
+        Map<String, String> subcategoryNameById = subCategoryRepository.findAllById(categoryCounts.stream()
+                        .map(TicketRepository.CategoryStatusAggregation::getSubcategoryId)
+                        .filter(StringUtils::hasText)
+                        .collect(Collectors.toSet()))
+                .stream()
+                .collect(Collectors.toMap(SubCategory::getSubCategoryId, SubCategory::getSubCategory));
+
         List<ProblemCategoryStatDto> categoryStats = categoryCounts.stream()
-                .sorted(Comparator.comparingLong(TicketRepository.CategoryCountProjection::getCount).reversed())
-                .map(projection -> ProblemCategoryStatDto.builder()
-                        .category(categoryNameById.getOrDefault(projection.getCategory(), projection.getCategory()))
-                        .subcategory(projection.getSubcategory())
-                        .ticketCount(Optional.ofNullable(projection.getCount()).orElse(0L))
-                        .build())
+                .sorted(Comparator.comparingLong(projection -> Optional.ofNullable(projection.getTotalCount()).orElse(0L)).reversed())
+                .map(projection -> {
+                    String categoryName = categoryNameById.getOrDefault(projection.getCategoryId(), projection.getCategoryName());
+                    String subcategoryName = subcategoryNameById.getOrDefault(projection.getSubcategoryId(), projection.getSubcategoryName());
+
+                    return ProblemCategoryStatDto.builder()
+                            .category(Optional.ofNullable(projection.getCategoryId()).orElse(projection.getCategoryName()))
+                            .subcategory(Optional.ofNullable(projection.getSubcategoryId()).orElse(projection.getSubcategoryName()))
+                            .categoryName(categoryName)
+                            .subcategoryName(subcategoryName)
+                            .ticketCount(Optional.ofNullable(projection.getTotalCount()).orElse(0L))
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return ProblemManagementReportDto.builder()

@@ -12,5 +12,7 @@ import lombok.NoArgsConstructor;
 public class ProblemCategoryStatDto {
     private String category;
     private String subcategory;
+    private String categoryName;
+    private String subcategoryName;
     private long ticketCount;
 }
