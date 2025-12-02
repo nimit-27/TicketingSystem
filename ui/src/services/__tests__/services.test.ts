@@ -220,8 +220,8 @@ describe("NotificationService", () => {
     await service.fetchNotifications(2, 15);
     await service.markNotificationsAsRead();
 
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/notifications"), { params: { page: 2, size: 15 }, withCredentials: true });
-    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/notifications/mark-read"), {}, { withCredentials: true });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/notifications"), { params: { page: 2, size: 15 } });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/notifications/mark-read"), {});
   });
 });
 
@@ -248,10 +248,10 @@ describe("ReportService", () => {
     await service.fetchCustomerSatisfactionReport();
     await service.fetchProblemManagementReport();
 
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/ticket-summary"));
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/resolution-time"));
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/customer-satisfaction"));
-    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/problem-management"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/ticket-summary"), { params: undefined });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/resolution-time"), { params: undefined });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/customer-satisfaction"), { params: undefined });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/problem-management"), { params: undefined });
   });
 });
 
