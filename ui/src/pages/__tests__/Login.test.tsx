@@ -44,6 +44,7 @@ jest.mock('../../context/DevModeContext', () => {
 
 jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
+  Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 import Login from '../Login';
@@ -55,23 +56,28 @@ describe('Login page', () => {
     mockUseApi.mockReturnValue({ data: null, error: null, apiHandler: jest.fn((fn: () => Promise<any>) => fn()) });
   });
 
-  it('allows portal selection and form submission', async () => {
+  it('allows requester login submission', async () => {
     const { getByText, getAllByRole, container } = render(<Login />);
 
-    fireEvent.click(getByText('Requestor Login'));
     const [userIdInput] = getAllByRole('textbox');
     fireEvent.change(userIdInput, { target: { value: 'tester' } });
     const passwordInput = container.querySelector('input[type="password"]') as HTMLInputElement;
     fireEvent.change(passwordInput, { target: { value: 'secret' } });
-    fireEvent.click(getByText('Login'));
+    fireEvent.click(getByText('LOGIN'));
 
     expect(mockLoginUser).toHaveBeenCalledWith({ username: 'tester', password: 'secret', portal: 'requestor' });
   });
 
-  it('returns to portal selection', () => {
-    const { getByText } = render(<Login />);
-    fireEvent.click(getByText('Helpdesk Login'));
-    fireEvent.click(getByText('Choose a different portal'));
-    expect(getByText('Select your portal')).toBeInTheDocument();
+  it('switches to helpdesk portal', () => {
+    const { getByRole, getAllByRole, container, getByText } = render(<Login />);
+
+    fireEvent.click(getByRole('tab', { name: 'Helpdesk' }));
+    const [userIdInput] = getAllByRole('textbox');
+    fireEvent.change(userIdInput, { target: { value: 'agent' } });
+    const passwordInput = container.querySelector('input[type="password"]') as HTMLInputElement;
+    fireEvent.change(passwordInput, { target: { value: 'secret' } });
+    fireEvent.click(getByText('LOGIN'));
+
+    expect(mockLoginUser).toHaveBeenCalledWith({ username: 'agent', password: 'secret', portal: 'helpdesk' });
   });
 });
