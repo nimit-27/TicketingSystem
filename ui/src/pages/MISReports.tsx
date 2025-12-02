@@ -141,6 +141,17 @@ const MISReports: React.FC = () => {
                 [],
             ];
 
+            const buildKeyValueSection = (
+                title: string,
+                entries: { key: string | number; value: string | number }[],
+                headerLabels: [string, string],
+            ) => [
+                [title],
+                headerLabels,
+                ...entries.map(({ key, value }) => [key, value]),
+                [],
+            ];
+
             const summarySection = buildHorizontalSection(
                 "Ticket Summary",
                 [
@@ -193,12 +204,14 @@ const MISReports: React.FC = () => {
                 ],
             );
 
-            const problemHeaders = (problemManagement.categoryStats ?? []).map(({ category }) => category);
-            const problemValues = (problemManagement.categoryStats ?? []).map(({ ticketCount }) => ticketCount);
-            const problemSection = buildHorizontalSection(
+            const problemEntries = (problemManagement.categoryStats ?? []).map(({ category, ticketCount }) => ({
+                key: category,
+                value: ticketCount,
+            }));
+            const problemSection = buildKeyValueSection(
                 "Problem Management",
-                problemHeaders.length ? problemHeaders : ["Category"],
-                problemValues.length ? problemValues : ["N/A"],
+                problemEntries.length ? problemEntries : [{ key: "Category", value: "N/A" }],
+                ["Category", "Ticket Count"],
             );
 
             const overviewSheetData = [
