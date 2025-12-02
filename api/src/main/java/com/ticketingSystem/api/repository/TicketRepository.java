@@ -33,20 +33,20 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     List<ModeCountProjection> countTicketsByMode();
 
     @Query(value = """
-            SELECT
-                c.category_id AS categoryId,
-                COALESCE(c.category, t.category) AS categoryName,
-                sc.sub_category_id AS subcategoryId,
-                COALESCE(sc.sub_category, t.sub_category) AS subcategoryName,
-                SUM(CASE WHEN t.status_id = '7' THEN 1 ELSE 0 END) AS resolvedCount,
-                SUM(CASE WHEN t.status_id = '8' THEN 1 ELSE 0 END) AS closedCount,
-                COUNT(*) AS totalCount
-            FROM tickets t
-            LEFT JOIN sub_categories sc ON sc.sub_category = t.sub_category
-            LEFT JOIN categories c ON c.category_id = sc.category_id
-            WHERE t.status_id IN ('7','8')
-            GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category, t.category, t.sub_category
-            ORDER BY categoryName, subcategoryName
+                SELECT
+                    c.category_id AS categoryId,
+                    c.category AS categoryName,
+                    sc.sub_category_id AS subcategoryId,
+                    sc.sub_category AS subcategoryName,
+                    SUM(CASE WHEN t.status_id = '7' THEN 1 ELSE 0 END) AS resolvedCount,
+                    SUM(CASE WHEN t.status_id = '8' THEN 1 ELSE 0 END) AS closedCount,
+                    COUNT(*) AS totalCount
+                FROM tickets t
+                LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
+                LEFT JOIN categories c ON c.category_id = sc.category_id
+                WHERE t.status_id IN ('7','8')
+                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category, t.status_id
+                ORDER BY categoryName, subcategoryName
             """, nativeQuery = true)
     List<CategoryStatusAggregation> countResolvedClosedTicketsByCategory();
 
