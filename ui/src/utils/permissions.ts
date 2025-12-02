@@ -7,7 +7,14 @@ export function setPermissions(perm: RolePermission) {
 
 export function checkSidebarAccess(key: string): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  return perms?.sidebar?.children?.[key]?.show ?? false;
+  const fromConfig = perms?.sidebar?.children?.[key]?.show;
+  if (typeof fromConfig === "boolean") {
+    return fromConfig;
+  }
+  if (key === "fileManagement") {
+    return true;
+  }
+  return false;
 }
 
 export function checkFormAccess(
