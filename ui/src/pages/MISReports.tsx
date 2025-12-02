@@ -1,10 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import * as XLSX from "xlsx";
-import TicketSummaryReport from "../components/MISReports/TicketSummaryReport";
-import TicketResolutionTimeReport from "../components/MISReports/TicketResolutionTimeReport";
-import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
-import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
 import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import Title from "../components/Title";
 import { useSnackbar } from "../context/SnackbarContext";
@@ -214,6 +211,25 @@ const MISReports: React.FC = () => {
                 ],
             );
 
+            const resolutionCategoryPrioritySection = (() => {
+                const stats = resolutionTime.categoryPriorityStats ?? [];
+                if (!stats.length) {
+                    return [] as (string | number)[][];
+                }
+
+                return [
+                    ["Resolution by Category/Subcategory and Priority"],
+                    ["Priority", "Category > Subcategory", "Avg Resolution Hours", "Resolved Tickets"],
+                    ...stats.map((stat) => [
+                        stat.priority,
+                        `${stat.category} > ${stat.subcategory}`,
+                        stat.averageResolutionHours,
+                        stat.resolvedTicketCount,
+                    ]),
+                    [],
+                ];
+            })();
+
             const satisfactionSection = buildHorizontalSection(
                 "Customer Satisfaction",
                 [
@@ -234,15 +250,54 @@ const MISReports: React.FC = () => {
                 ],
             );
 
-            const problemEntries = (problemManagement.categoryStats ?? []).map(({ category, ticketCount }) => ({
-                key: category,
-                value: ticketCount,
-            }));
-            const problemSection = buildKeyValueSection(
-                "Problem Management",
-                problemEntries.length ? problemEntries : [{ key: "Category", value: "N/A" }],
-                ["Category", "Ticket Count"],
-            );
+            const satisfactionBreakdownSection = (() => {
+                const breakdown = satisfaction.priorityBreakdown ?? [];
+                if (!breakdown.length) {
+                    return [] as (string | number)[][];
+                }
+
+                const ratingHeaders = Array.from(
+                    breakdown.reduce((set, stat) => {
+                        Object.keys(stat.ratingCounts ?? {}).forEach((rating) => set.add(rating));
+                        return set;
+                    }, new Set<string>()),
+                );
+
+                return [
+                    ["Customer Satisfaction by Category/Subcategory and Priority"],
+                    [
+                        "Priority",
+                        "Category > Subcategory",
+                        "Ticket Count",
+                        "Breached Tickets",
+                        ...ratingHeaders,
+                        "Total",
+                    ],
+                    ...breakdown.map((stat) => [
+                        stat.priority,
+                        `${stat.category} > ${stat.subcategory ?? "N/A"}`,
+                        stat.ticketCount ?? 0,
+                        stat.breachedTickets ?? 0,
+                        ...ratingHeaders.map((rating) => stat.ratingCounts?.[rating] ?? 0),
+                        stat.totalResponses,
+                    ]),
+                    [],
+                ];
+            })();
+
+            const problemEntries = problemManagement.categoryStats ?? [];
+            const problemSection = problemEntries.length
+                ? [
+                      ["Problem Management"],
+                      ["Category > Subcategory", "Ticket Count", "Breached Tickets"],
+                      ...problemEntries.map((entry) => [
+                          `${entry.category} > ${entry.subcategory ?? "N/A"}`,
+                          entry.ticketCount,
+                          entry.breachedTickets ?? 0,
+                      ]),
+                      [],
+                  ]
+                : buildKeyValueSection("Problem Management", [{ key: "Category", value: "N/A" }], ["Category", "Ticket Count"]);
 
             const overviewSheetData = [
                 ["Management Information System Report"],
@@ -255,7 +310,9 @@ const MISReports: React.FC = () => {
                 [],
                 ...summarySection,
                 ...resolutionSection,
+                ...resolutionCategoryPrioritySection,
                 ...satisfactionSection,
+                ...satisfactionBreakdownSection,
                 ...problemSection,
             ];
 
@@ -335,10 +392,30 @@ const MISReports: React.FC = () => {
             />
 
             <SlaPerformanceReport params={requestParams} />
-            <TicketSummaryReport params={requestParams} />
-            <TicketResolutionTimeReport params={requestParams} />
-            <CustomerSatisfactionReport params={requestParams} />
-            <ProblemManagementReport params={requestParams} />
+
+            <Box display="flex" flexDirection="column" gap={2}>
+                <Typography variant="subtitle1" fontWeight={700}>
+                    View individual MIS report pages
+                </Typography>
+                <Box display="flex" gap={2} flexWrap="wrap">
+                    <Button component={RouterLink} to="/mis-reports/ticket-summary" variant="outlined">
+                        Ticket Summary
+                    </Button>
+                    <Button component={RouterLink} to="/mis-reports/resolution-time" variant="outlined">
+                        Resolution Time
+                    </Button>
+                    <Button
+                        component={RouterLink}
+                        to="/mis-reports/customer-satisfaction"
+                        variant="outlined"
+                    >
+                        Customer Satisfaction
+                    </Button>
+                    <Button component={RouterLink} to="/mis-reports/problem-management" variant="outlined">
+                        Problem Management
+                    </Button>
+                </Box>
+            </Box>
         </Box>
     );
 };
