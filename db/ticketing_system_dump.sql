@@ -200,6 +200,65 @@ LOCK TABLES `calendar_working_hours_exception` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `client_credentials`
+--
+
+DROP TABLE IF EXISTS `client_credentials`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `client_credentials` (
+  `id` varchar(36) NOT NULL,
+  `client_id` varchar(100) NOT NULL,
+  `client_secret_hash` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `client_credentials_client_id_uindex` (`client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `client_credentials`
+--
+
+LOCK TABLES `client_credentials` WRITE;
+/*!40000 ALTER TABLE `client_credentials` DISABLE KEYS */;
+/*!40000 ALTER TABLE `client_credentials` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `client_tokens`
+--
+
+DROP TABLE IF EXISTS `client_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `client_tokens` (
+  `id` varchar(36) NOT NULL,
+  `client_credential_id` varchar(36) NOT NULL,
+  `access_token_hash` varchar(255) NOT NULL,
+  `refresh_token_hash` varchar(255) DEFAULT NULL,
+  `access_token_expires_at` datetime NOT NULL,
+  `refresh_token_expires_at` datetime DEFAULT NULL,
+  `issued_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `client_tokens_client_credential_id_index` (`client_credential_id`),
+  CONSTRAINT `client_tokens_client_credential_id_fk` FOREIGN KEY (`client_credential_id`) REFERENCES `client_credentials` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `client_tokens`
+--
+
+LOCK TABLES `client_tokens` WRITE;
+/*!40000 ALTER TABLE `client_tokens` DISABLE KEYS */;
+/*!40000 ALTER TABLE `client_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `categories`
 --
 
