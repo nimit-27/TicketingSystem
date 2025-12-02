@@ -44,12 +44,10 @@ interface MISReportGeneratorProps {
 
 const formatRange = (range: ReportRange) => {
     const format = (date: Date) =>
-        date.toLocaleString(undefined, {
+        date.toLocaleDateString(undefined, {
             year: "numeric",
             month: "short",
             day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
         });
 
     return `${format(range.startDate)} — ${format(range.endDate)}`;
