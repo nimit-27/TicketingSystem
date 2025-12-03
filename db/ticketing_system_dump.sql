@@ -1393,6 +1393,35 @@ INSERT INTO `users` VALUES ('201','Arjun Mehta','arjun.mehta@example.com','91234
 UNLOCK TABLES;
 
 --
+-- Table structure for table `user_refresh_tokens`
+--
+
+DROP TABLE IF EXISTS `user_refresh_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_refresh_tokens` (
+  `id` varchar(36) NOT NULL,
+  `user_id` varchar(100) NOT NULL,
+  `refresh_token_hash` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `issued_at` datetime NOT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_refresh_tokens_user` (`user_id`),
+  CONSTRAINT `fk_user_refresh_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_refresh_tokens`
+--
+
+LOCK TABLES `user_refresh_tokens` WRITE;
+/*!40000 ALTER TABLE `user_refresh_tokens` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_refresh_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Temporary view structure for view `users_view`
 --
 
