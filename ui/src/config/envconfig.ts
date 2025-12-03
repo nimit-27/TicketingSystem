@@ -1,6 +1,6 @@
 export const envConfig = {
     Roles: ["L1", "L2", "L3", "ADMIN", "FCI_USER", "USER", "RNO", "HELPDESK"],
-    devMode: true,
+    devMode: false,
     FciTheme: true,
     filegatorEnabled: false,
     Users: {
