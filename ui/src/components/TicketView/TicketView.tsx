@@ -1185,7 +1185,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           {masterSla && (
             <Box sx={{ mt: sla ? 6 : 4 }}>
               <Typography variant="h6" align="center" sx={{ mb: 2 }}>
-                SLA for master ticket ID {ticket?.masterId}
+                SLA for master ticket ID{' '}
+                <Button
+                  variant="text"
+                  size="small"
+                  sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
+                  onClick={() => navigate(`/tickets/${ticket?.masterId}`)}
+                >
+                  {ticket?.masterId}
+                </Button>
               </Typography>
               <Box sx={{ width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
                 <SlaProgressChart sla={masterSla} className="w-100" />
