@@ -5,12 +5,17 @@ import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final int BCRYPT_MAX_BYTES = 72;
     private final UserRepository userRepository;
     private final RequesterUserRepository requesterUserRepository;
 
@@ -33,14 +38,24 @@ public class AuthService {
     }
 
     private boolean passwordsMatch(String stored, String provided) {
-        if (stored == null) {
+        if (stored == null || provided == null) {
             return false;
         }
         if (isBcryptHash(stored)) {
             if (isBcryptHash(provided)) {
                 return Objects.equals(stored, provided);
             }
-            return BCrypt.checkpw(provided, stored);
+            int providedLength = provided.getBytes(StandardCharsets.UTF_8).length;
+            if (providedLength > BCRYPT_MAX_BYTES) {
+                log.warn("Provided password exceeds bcrypt limit ({} bytes > {})", providedLength, BCRYPT_MAX_BYTES);
+                return false;
+            }
+            try {
+                return BCrypt.checkpw(provided, stored);
+            } catch (IllegalArgumentException ex) {
+                log.warn("BCrypt rejected password input: {}", ex.getMessage());
+                return false;
+            }
         }
         return Objects.equals(stored, provided);
     }
