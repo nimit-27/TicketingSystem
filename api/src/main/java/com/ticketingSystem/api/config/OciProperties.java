@@ -10,6 +10,8 @@ public class OciProperties {
     private String bucketObject;
     private String region;
     private String endpoint;
+    private String configFile;
+    private String profile = "DEFAULT";
 
     public String getNamespace() {
         return namespace;
@@ -49,6 +51,24 @@ public class OciProperties {
 
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public String getConfigFile() {
+        return configFile;
+    }
+
+    public void setConfigFile(String configFile) {
+        this.configFile = configFile;
+    }
+
+    public String getProfile() {
+        return profile;
+    }
+
+    public void setProfile(String profile) {
+        if (profile != null && !profile.isBlank()) {
+            this.profile = profile;
+        }
     }
 
     public String getNormalizedBucketObject() {
