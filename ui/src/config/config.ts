@@ -6,6 +6,7 @@ const Users = envConfig.Users;
 export const Roles = envConfig.Roles;
 export const devMode = envConfig.devMode;
 export const FciTheme = envConfig.FciTheme;
+export const filegatorEnabled = envConfig.filegatorEnabled;
 
 export function getCurrentUserDetails() {
   return getUserDetails();
