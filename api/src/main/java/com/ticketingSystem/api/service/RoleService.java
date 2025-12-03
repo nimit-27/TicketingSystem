@@ -38,7 +38,7 @@ public class RoleService {
     }
 
     public List<RoleDto> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
+        List<Role> roles = roleRepository.findByIsDeletedFalse();
         return roles.stream().map(DtoMapper::toRoleDto).collect(Collectors.toList());
     }
 

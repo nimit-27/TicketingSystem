@@ -178,7 +178,7 @@ const RoleDetails: React.FC = () => {
                             onClick={handleTitleClick}
                             rightContent={rolesApiPending ? <CircularProgress size={20} /> : <KeyboardArrowDownIcon />}
                         />
-                        <CustomIconButton icon="edit" onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }} />
+                        <CustomIconButton className='mb-2' icon="edit" onClick={() => setEditing(true)} style={{ minWidth: 0, padding: 2 }} />
                     </>
                 )}
             </div>
