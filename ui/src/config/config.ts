@@ -16,7 +16,7 @@ export function isFciUser() {
 }
 
 export function isHelpdesk() {
-  return true;
-  return getCurrentUserDetails()?.role?.includes('HELPDESK');
+  const roles = getCurrentUserDetails()?.role ?? [];
+  return Array.isArray(roles) && roles.some((role) => role?.toUpperCase?.().includes('HELPDESK'));
 }
 
