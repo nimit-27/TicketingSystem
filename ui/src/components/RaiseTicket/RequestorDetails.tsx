@@ -66,9 +66,22 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const PAGE_SIZE = 10;
 
-    const stakeholderOptions: DropdownOption[] = Array.isArray(stakeholderData)
-        ? stakeholderData.map((s: any) => ({ label: s.description, value: String(s.id) }))
-        : [];
+    const stakeholderOptions: DropdownOption[] = useMemo(() => {
+        const rawStakeholders = Array.isArray(stakeholderData)
+            ? stakeholderData
+            : Array.isArray((stakeholderData as any)?.data)
+                ? (stakeholderData as any)?.data
+                : [];
+
+        const uniqueStakeholders = Array.from(
+            new Map(rawStakeholders.map((s: any) => [String(s.id), s])).values()
+        );
+
+        return uniqueStakeholders.map((s: any) => ({
+            label: s.description || s.name || s.stakeholder || 'Stakeholder',
+            value: String(s.id)
+        }));
+    }, [stakeholderData]);
 
     const fetchRequesterUsers = useCallback((pageToLoad: number = 0, append: boolean = false) => {
         setLoadingUsers(true);
@@ -350,42 +363,60 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         </div>
     );
 
+    const renderUserOption = (props: React.HTMLAttributes<HTMLLIElement>, option: any) => {
+        if (isLoadMoreOption(option)) {
+            return (
+                <li
+                    {...props}
+                    key="load-more-users"
+                    onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        handleLoadMoreUsers();
+                    }}
+                    className="d-flex align-items-center gap-2"
+                >
+                    <IconButton size="small" color="primary" disabled={loadingUsers || !hasMoreUsers}>
+                        <KeyboardArrowDownIcon />
+                    </IconButton>
+                    <span className="ms-1">Load more users</span>
+                </li>
+            );
+        }
+
+        const identityParts = [option.username, option.requesterUserId].filter(Boolean);
+        const contactParts = Array.from(new Set([option.mobileNo, option.emailId].filter(Boolean)));
+
+        return (
+            <li {...props} key={option.requesterUserId} className="d-flex w-100 align-items-start justify-content-between gap-3 py-2">
+                <div className="d-flex flex-column">
+                    <span className="fw-semibold">{option.name}</span>
+                    {identityParts.length > 0 && (
+                        <span className="text-muted ts-13">{identityParts.join(' • ')}</span>
+                    )}
+                </div>
+                {contactParts.length > 0 && (
+                    <div className="text-end text-muted ts-13">
+                        {contactParts.map((part: string) => (
+                            <div key={part}>{part}</div>
+                        ))}
+                    </div>
+                )}
+            </li>
+        );
+    };
+
     return (
         <>
             {showRequestorDetails && <CustomFieldset title={t('Requestor Details')} className="mb-1">
-                <div className="d-flex w-100 justify-content-between">
+                <div className="d-flex w-100 flex-column flex-lg-row align-items-start gap-3 justify-content-between">
                     {(showSearchUserAutocomplete || showStakeholder) && (
-                        <div className="col-md-6 d-flex flex-column">
+                        <div className="col-lg-6 d-flex flex-column">
                             {showSearchUserAutocomplete && (
                                 <Autocomplete
                                     options={autocompleteOptions}
                                     getOptionLabel={(option: any) => isLoadMoreOption(option) ? 'Load more users' : option.name || option.username || ''}
-                                    renderOption={(props, option: any) => {
-                                        if (isLoadMoreOption(option)) {
-                                            return (
-                                                <li
-                                                    {...props}
-                                                    key="load-more-users"
-                                                    onClick={(event) => {
-                                                        event.preventDefault();
-                                                        event.stopPropagation();
-                                                        handleLoadMoreUsers();
-                                                    }}
-                                                >
-                                                    <IconButton size="small" color="primary" disabled={loadingUsers || !hasMoreUsers}>
-                                                        <KeyboardArrowDownIcon />
-                                                    </IconButton>
-                                                    <span className="ms-2">Load more users</span>
-                                                </li>
-                                            );
-                                        }
-                                        return (
-                                            <li {...props} key={option.requesterUserId}>
-                                                <span className="fw-semibold">{option.name}</span>
-                                                <span className="text-muted ms-2">{option.username} | {option.requesterUserId} | {option.mobileNo} | {option.emailId}</span>
-                                            </li>
-                                        );
-                                    }}
+                                    renderOption={renderUserOption}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
@@ -431,31 +462,33 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                             )}
                         </div>
                     )}
-                    <div className="p-2 me-4" style={{ background: "#cae8db" }} >
-                        <div className="d-flex align-items-center justify-content-center mb-2">
-                            <UserAvatar name={requestorName} />
-                            {/* <span className="ms-2 fs-5">{requestorName}</span> */}
+                    {showRequestorDetailsCard && (
+                        <div className="p-3 bg-light border rounded shadow-sm flex-grow-1 flex-lg-grow-0" style={{ minWidth: '280px', maxWidth: '360px' }}>
+                            <div className="d-flex align-items-center justify-content-center mb-2">
+                                <UserAvatar name={requestorName} />
+                                {/* <span className="ms-2 fs-5">{requestorName}</span> */}
+                            </div>
+                            <div className="d-flex flex-column align-items-center mb-2 justify-content-center">
+                                {showRequestorName && requestorName && (
+                                    <div className="fw-semibold">{requestorName}</div>
+                                )}
+                                {(showEmailId && emailId) || (showMobileNo && mobileNo) ? (
+                                    <div className="text-muted">
+                                        {showEmailId && emailId && <span className="ts-14">{emailId}</span>}
+                                        {showEmailId && emailId && showMobileNo && mobileNo && <span> | </span>}
+                                        {showMobileNo && mobileNo && <span className="ts-13">{mobileNo}</span>}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <div className="w-100">
+                                {/* {showRole && role && renderReadOnlyField("Role", role)} */}
+                                {showOffice && office && renderReadOnlyField("Office", office)}
+                                {selectedUser?.officeType && renderReadOnlyField("Office Type", selectedUser.officeType)}
+                                {selectedUser?.officeCode && renderReadOnlyField("Office Code", selectedUser.officeCode)}
+                                {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
+                            </div>
                         </div>
-                        <div className="d-flex flex-column align-items-center mb-2 justify-content-center">
-                            {showRequestorName && requestorName && (
-                                <div className="fw-semibold">{requestorName}</div>
-                            )}
-                            {(showEmailId && emailId) || (showMobileNo && mobileNo) ? (
-                                <div className="text-muted">
-                                    {showEmailId && emailId && <span className="ts-14">{emailId}</span>}
-                                    {showEmailId && emailId && showMobileNo && mobileNo && <span> | </span>}
-                                    {showMobileNo && mobileNo && <span className="ts-13">{mobileNo}</span>}
-                                </div>
-                            ) : null}
-                        </div>
-                        <div className="w-100">
-                            {/* {showRole && role && renderReadOnlyField("Role", role)} */}
-                            {showOffice && office && renderReadOnlyField("Office", office)}
-                            {selectedUser?.officeType && renderReadOnlyField("Office Type", selectedUser.officeType)}
-                            {selectedUser?.officeCode && renderReadOnlyField("Office Code", selectedUser.officeCode)}
-                            {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
-                        </div>
-                    </div>
+                    )}
                 </div>
 
             </CustomFieldset>}
