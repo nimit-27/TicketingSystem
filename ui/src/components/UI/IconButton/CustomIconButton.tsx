@@ -51,6 +51,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import RestoreIcon from '@mui/icons-material/Restore';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useTheme } from '@mui/material';
 
 // Define the icon map
@@ -109,6 +110,7 @@ const iconMap = {
     undo: UndoIcon,
     dashboard: DashboardIcon,
     restore: RestoreIcon,
+    accountCircle: AccountCircleIcon
 };
 
 // Valid keys for the icon map

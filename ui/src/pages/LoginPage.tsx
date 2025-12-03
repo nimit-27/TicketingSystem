@@ -285,7 +285,7 @@ const LoginPage: FC = () => {
                         </div>
                     </div>
 
-                    <footer className="login-footer">
+                    <footer className="login-footer w-100">
                         <Link to="/public/faq" className="link">Frequently Asked Questions</Link>
                     </footer>
                 </div>
@@ -318,10 +318,6 @@ const LoginPage: FC = () => {
                     </div>
                 </div>
             </div>
-
-            {/* <footer className="login-footer">
-                <Link to="/public/faq" className="link">Frequently Asked Questions</Link>
-            </footer> */}
         </div>
     );
 };

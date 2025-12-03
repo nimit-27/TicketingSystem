@@ -83,7 +83,6 @@ function App() {
           <Route path="root-cause-analysis/:ticketId" element={<TicketDetails />} />
           <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
-          <Route path="file-management" element={<FileManagementSystem />} />
           <Route path="mis-reports" element={<MISReports />} />
           <Route path="mis-reports/ticket-summary" element={<TicketSummaryReportPage />} />
           <Route
