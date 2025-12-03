@@ -209,6 +209,7 @@ public class TicketService {
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             userRepository.findById(ticket.getUserId()).ifPresentOrElse(user -> {
                 ticket.setUser(user);
+                ticket.setUserId(user.getUserId());
                 if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
                     ticket.setRequestorName(user.getUsername());
                 }
