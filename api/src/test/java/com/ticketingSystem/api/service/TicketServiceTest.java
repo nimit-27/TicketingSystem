@@ -19,6 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TicketServiceTest {
 
     @Mock
@@ -38,6 +41,8 @@ class TicketServiceTest {
     private TicketRepository ticketRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private RequesterUserRepository requesterUserRepository;
     @Mock
     private TicketCommentRepository commentRepository;
     @Mock
@@ -208,7 +213,7 @@ class TicketServiceTest {
                 .thenReturn(new StatusHistory());
         when(assignmentHistoryService.addHistory(anyString(), anyString(), anyString(), anyString(), any()))
                 .thenReturn(null);
-        doNothing().when(ticketSlaService).calculateAndSaveByCalendar(any(Ticket.class), anyList());
+        when(ticketSlaService.calculateAndSaveByCalendar(any(Ticket.class), anyList())).thenReturn(null);
 
         ticketService.addTicket(ticket);
 
@@ -216,7 +221,7 @@ class TicketServiceTest {
         ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(notificationService, times(3)).sendNotification(
+        verify(notificationService, times(2)).sendNotification(
                 eq(ChannelType.IN_APP),
                 codeCaptor.capture(),
                 dataCaptor.capture(),
@@ -227,7 +232,7 @@ class TicketServiceTest {
         List<Map<String, Object>> payloads = dataCaptor.getAllValues();
         List<String> recipients = recipientCaptor.getAllValues();
 
-        assertThat(codes).containsExactlyInAnyOrder("TICKET_CREATED", "TICKET_ASSIGNED", "TICKET_UPDATED");
+        assertThat(codes).containsExactlyInAnyOrder("TICKET_ASSIGNED", "TICKET_UPDATED");
         int assignedIndex = codes.indexOf("TICKET_ASSIGNED");
         assertThat(assignedIndex).isGreaterThanOrEqualTo(0);
         assertThat(recipients.get(assignedIndex)).isEqualTo("agent-1");

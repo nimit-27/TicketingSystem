@@ -23,7 +23,6 @@ configurations {
 
 repositories {
         mavenCentral()
-        maven { url 'https://jitpack.io'}
 }
 
 ext {
@@ -36,7 +35,8 @@ dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-security'
         implementation 'org.springframework.boot:spring-boot-starter-aop'
         implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.46.0'
-        implementation 'com.github.typesense:typesense-java:0.2.0'
+        implementation 'com.oracle.oci.sdk:oci-java-sdk-common:3.46.0'
+        implementation 'org.typesense:typesense-java:2.0.0'
         implementation 'org.springframework.boot:spring-boot-starter-freemarker'
         implementation 'org.springframework.boot:spring-boot-starter-mail'
         implementation 'org.springframework.boot:spring-boot-starter-websocket'

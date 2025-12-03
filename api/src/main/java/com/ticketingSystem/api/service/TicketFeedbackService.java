@@ -123,7 +123,7 @@ public class TicketFeedbackService {
 
     public Page<TicketFeedback> search(Optional<String> ticketId, Optional<FeedbackStatus> status,
                                        Optional<LocalDateTime> from, Optional<LocalDateTime> to, Pageable pageable) {
-        Specification<TicketFeedback> spec = Specification.where(null);
+        Specification<TicketFeedback> spec = (root, query, cb) -> cb.conjunction();
         if (ticketId.isPresent()) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("ticketId"), ticketId.get()));
         }

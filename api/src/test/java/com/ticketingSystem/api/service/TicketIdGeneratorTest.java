@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.format.DateTimeFormatter;
+import java.time.YearMonth;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,8 @@ class TicketIdGeneratorTest {
 
     @Test
     void generateTicketId_createsSequenceWhenMissing() {
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("2"), any()))
+        YearMonth currentMonth = YearMonth.now();
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("GLOBAL"), any()))
                 .thenReturn(Optional.empty());
 
         String id = ticketIdGenerator.generateTicketId(Mode.Call);
@@ -46,19 +48,19 @@ class TicketIdGeneratorTest {
         verify(ticketSequenceRepository).save(sequenceCaptor.capture());
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
-        String expectedDate = savedSequence.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThat(savedSequence.getModeId()).isEqualTo("2");
+        String expectedMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        assertThat(savedSequence.getModeId()).isEqualTo("GLOBAL");
         assertThat(savedSequence.getLastValue()).isEqualTo(1);
-        assertThat(id).isEqualTo("TKT-2-" + expectedDate + "-1");
+        assertThat(id).isEqualTo("TKT-2-" + expectedMonth + "-00001");
     }
 
     @Test
     void generateTicketId_incrementsExistingSequence() {
         TicketSequence existing = new TicketSequence();
-        existing.setModeId("3");
-        existing.setSequenceDate(java.time.LocalDate.now());
+        existing.setModeId("GLOBAL");
+        existing.setSequenceDate(YearMonth.now().atDay(1));
         existing.setLastValue(5);
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("3"), any()))
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("GLOBAL"), any()))
                 .thenReturn(Optional.of(existing));
 
         String id = ticketIdGenerator.generateTicketId(Mode.Email);
@@ -67,15 +69,16 @@ class TicketIdGeneratorTest {
         verify(ticketSequenceRepository).save(sequenceCaptor.capture());
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
-        String expectedDate = savedSequence.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThat(savedSequence.getModeId()).isEqualTo("3");
+        String expectedMonth = existing.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        assertThat(savedSequence.getModeId()).isEqualTo("GLOBAL");
         assertThat(savedSequence.getLastValue()).isEqualTo(6);
-        assertThat(id).isEqualTo("TKT-3-" + expectedDate + "-6");
+        assertThat(id).isEqualTo("TKT-3-" + expectedMonth + "-00006");
     }
 
     @Test
     void generateTicketId_usesFallbackWhenModeMissing() {
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("NA"), any()))
+        YearMonth currentMonth = YearMonth.now();
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("GLOBAL"), any()))
                 .thenReturn(Optional.empty());
 
         String id = ticketIdGenerator.generateTicketId(null);
@@ -84,9 +87,9 @@ class TicketIdGeneratorTest {
         verify(ticketSequenceRepository).save(sequenceCaptor.capture());
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
-        String expectedDate = savedSequence.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThat(savedSequence.getModeId()).isEqualTo("NA");
+        String expectedMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        assertThat(savedSequence.getModeId()).isEqualTo("GLOBAL");
         assertThat(savedSequence.getLastValue()).isEqualTo(1);
-        assertThat(id).isEqualTo("TKT-NA-" + expectedDate + "-1");
+        assertThat(id).isEqualTo("TKT-NA-" + expectedMonth + "-00001");
     }
 }

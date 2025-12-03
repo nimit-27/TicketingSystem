@@ -5,6 +5,8 @@ import com.ticketingSystem.api.dto.TypesenseTicketPageResponse;
 import com.ticketingSystem.api.repository.CategoryRepository;
 import com.ticketingSystem.api.repository.PriorityRepository;
 import com.ticketingSystem.api.repository.RecommendedSeverityFlowRepository;
+import com.ticketingSystem.api.repository.RequesterUserRepository;
+import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
@@ -22,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
-import org.typesense.model.SearchResultRequestParams;
+import org.typesense.model.SearchRequestParams;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ class TicketServiceTypesenseTest {
     private TicketRepository ticketRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private RequesterUserRepository requesterUserRepository;
     @Mock
     private TicketCommentRepository commentRepository;
     @Mock
@@ -67,6 +71,8 @@ class TicketServiceTypesenseTest {
     @Mock
     private StakeholderRepository stakeholderRepository;
     @Mock
+    private RoleRepository roleRepository;
+    @Mock
     private TicketSlaService ticketSlaService;
     @Mock
     private RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
@@ -81,6 +87,7 @@ class TicketServiceTypesenseTest {
                 typesenseClient,
                 ticketRepository,
                 userRepository,
+                requesterUserRepository,
                 commentRepository,
                 assignmentHistoryService,
                 statusHistoryService,
@@ -93,6 +100,7 @@ class TicketServiceTypesenseTest {
                 priorityRepository,
                 uploadedFileRepository,
                 stakeholderRepository,
+                roleRepository,
                 ticketSlaService,
                 recommendedSeverityFlowRepository,
                 ticketIdGenerator
@@ -134,10 +142,10 @@ class TicketServiceTypesenseTest {
         when(hit.getDocument()).thenReturn(Map.of("id", "ABC", "subject", "Test"));
         when(result.getHits()).thenReturn(List.of(hit));
 
-        SearchResultRequestParams params = mock(SearchResultRequestParams.class);
+        SearchRequestParams params = mock(SearchRequestParams.class);
         when(params.getPerPage()).thenReturn(5);
         when(result.getRequestParams()).thenReturn(params);
-        when(result.getFound()).thenReturn(12L);
+        when(result.getFound()).thenReturn(12);
 
         when(typesenseClient.listTickets(1, 10)).thenReturn(result);
 
