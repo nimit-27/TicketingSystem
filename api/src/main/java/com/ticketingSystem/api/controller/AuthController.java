@@ -3,6 +3,7 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.config.JwtProperties;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.LoginRequest;
+import com.ticketingSystem.api.dto.RefreshTokenRequest;
 import com.ticketingSystem.api.enums.ClientType;
 import com.ticketingSystem.api.permissions.RolePermission;
 import com.ticketingSystem.api.service.AuthService;
@@ -14,6 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 
@@ -88,10 +90,14 @@ public class AuthController {
                             .clientType(clientType)
                             .build();
 
-                    String token = jwtTokenService.generateToken(payload);
+                    String token = jwtTokenService.generateAccessToken(payload);
+                    String refreshToken = jwtTokenService.generateRefreshToken(payload);
 
                     Map<String, Object> response = new LinkedHashMap<>();
                     response.put("token", token);
+                    response.put("refreshToken", refreshToken);
+                    response.put("expiresInMinutes", jwtProperties.getExpirationMinutes());
+                    response.put("refreshExpiresInMinutes", jwtProperties.getRefreshExpirationMinutes());
                     response.put("userId", user.getUserId());
                     response.put("name", user.getName());
                     response.put("username", user.getUsername());
@@ -117,6 +123,29 @@ public class AuthController {
             session.invalidate();
         }
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        if (!StringUtils.hasText(request.getRefreshToken())) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Refresh token is required"));
+        }
+
+        return jwtTokenService.parseRefreshToken(request.getRefreshToken())
+                .map(payload -> {
+                    String token = jwtTokenService.generateAccessToken(payload);
+                    String refreshToken = jwtTokenService.generateRefreshToken(payload);
+
+                    Map<String, Object> response = new LinkedHashMap<>();
+                    response.put("token", token);
+                    response.put("refreshToken", refreshToken);
+                    response.put("expiresInMinutes", jwtProperties.getExpirationMinutes());
+                    response.put("refreshExpiresInMinutes", jwtProperties.getRefreshExpirationMinutes());
+                    return ResponseEntity.ok(response);
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Invalid or expired refresh token")));
     }
 
 }

@@ -26,8 +26,14 @@ import java.util.Set;
 
 @Service
 public class JwtTokenService {
+    private static final String CLAIM_TOKEN_TYPE = "tokenType";
     private static final TypeReference<List<String>> LIST_OF_STRING = new TypeReference<>() {};
     private static final TypeReference<Set<String>> SET_OF_STRING = new TypeReference<>() {};
+
+    private enum TokenType {
+        ACCESS,
+        REFRESH
+    }
 
     private final JwtProperties properties;
     private final ObjectMapper objectMapper;
@@ -37,7 +43,15 @@ public class JwtTokenService {
         this.objectMapper = objectMapper;
     }
 
-    public String generateToken(LoginPayload payload) {
+    public String generateAccessToken(LoginPayload payload) {
+        return generateToken(payload, properties.getExpirationMinutes(), TokenType.ACCESS);
+    }
+
+    public String generateRefreshToken(LoginPayload payload) {
+        return generateToken(payload, properties.getRefreshExpirationMinutes(), TokenType.REFRESH);
+    }
+
+    private String generateToken(LoginPayload payload, long expirationMinutes, TokenType tokenType) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", payload.getUserId());
         claims.put("username", payload.getUsername());
@@ -50,9 +64,10 @@ public class JwtTokenService {
         if (payload.getClientType() != null) {
             claims.put("clientType", payload.getClientType().name());
         }
+        claims.put(CLAIM_TOKEN_TYPE, tokenType.name());
 
         Instant now = Instant.now();
-        Instant expiry = now.plus(properties.getExpirationMinutes(), ChronoUnit.MINUTES);
+        Instant expiry = now.plus(expirationMinutes, ChronoUnit.MINUTES);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -64,32 +79,42 @@ public class JwtTokenService {
     }
 
     public boolean isTokenValid(String token) {
+        return parseAccessToken(token).isPresent();
+    }
+
+    public Optional<LoginPayload> parseAccessToken(String token) {
+        return parseToken(token, TokenType.ACCESS);
+    }
+
+    public Optional<LoginPayload> parseRefreshToken(String token) {
+        return parseToken(token, TokenType.REFRESH);
+    }
+
+    private Optional<LoginPayload> parseToken(String token, TokenType expectedType) {
         try {
-            parseClaims(token);
-            return true;
+            Claims claims = parseClaims(token);
+            TokenType tokenType = resolveTokenType(claims.get(CLAIM_TOKEN_TYPE, String.class));
+            if (tokenType != expectedType) {
+                return Optional.empty();
+            }
+            return Optional.of(buildPayload(claims));
         } catch (JwtException | IllegalArgumentException ex) {
-            return false;
+            return Optional.empty();
         }
     }
 
-    public Optional<LoginPayload> parseToken(String token) {
-        try {
-            Claims claims = parseClaims(token);
-            LoginPayload payload = LoginPayload.builder()
-                    .userId(claims.get("userId", String.class))
-                    .username(claims.get("username", String.class))
-                    .name(claims.get("name", String.class))
-                    .firstName(claims.get("firstName", String.class))
-                    .lastName(claims.get("lastName", String.class))
-                    .roles(convertList(claims.get("roles")))
-                    .levels(convertList(claims.get("levels")))
-                    .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
-                    .clientType(resolveClientType(claims.get("clientType", String.class)))
-                    .build();
-            return Optional.of(payload);
-        } catch (JwtException ex) {
-            return Optional.empty();
-        }
+    private LoginPayload buildPayload(Claims claims) {
+        return LoginPayload.builder()
+                .userId(claims.get("userId", String.class))
+                .username(claims.get("username", String.class))
+                .name(claims.get("name", String.class))
+                .firstName(claims.get("firstName", String.class))
+                .lastName(claims.get("lastName", String.class))
+                .roles(convertList(claims.get("roles")))
+                .levels(convertList(claims.get("levels")))
+                .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
+                .clientType(resolveClientType(claims.get("clientType", String.class)))
+                .build();
     }
 
     private Claims parseClaims(String token) {
@@ -112,6 +137,17 @@ public class JwtTokenService {
             return Collections.emptySet();
         }
         return objectMapper.convertValue(value, SET_OF_STRING);
+    }
+
+    private TokenType resolveTokenType(String tokenType) {
+        if (!StringUtils.hasText(tokenType)) {
+            return TokenType.ACCESS;
+        }
+        try {
+            return TokenType.valueOf(tokenType);
+        } catch (IllegalArgumentException ex) {
+            return TokenType.ACCESS;
+        }
     }
 
     private ClientType resolveClientType(String clientType) {
