@@ -5,41 +5,37 @@ import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.UploadedFile;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.UploadedFileRepository;
-import org.springframework.beans.factory.annotation.Value;
+import com.ticketingSystem.api.config.OciProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
 
-    @Value("${file.storage.base-dir}")
-    private String baseDir;
-
     private final UploadedFileRepository uploadedFileRepository;
     private final TicketRepository ticketRepository;
+    private final OciObjectStorageService ociObjectStorageService;
+    private final OciProperties ociProperties;
 
     public FileStorageService(UploadedFileRepository uploadedFileRepository,
-                              TicketRepository ticketRepository) {
+                              TicketRepository ticketRepository,
+                              OciObjectStorageService ociObjectStorageService,
+                              OciProperties ociProperties) {
         this.uploadedFileRepository = uploadedFileRepository;
         this.ticketRepository = ticketRepository;
+        this.ociObjectStorageService = ociObjectStorageService;
+        this.ociProperties = ociProperties;
     }
 
     public String save(MultipartFile file, String ticketId, String uploadedBy) throws IOException {
-        Path dirPath = Paths.get(baseDir, ticketId);
-        Files.createDirectories(dirPath);
         String original = StringUtils.cleanPath(file.getOriginalFilename());
         String filename = UUID.randomUUID() + "_" + original;
-        Path filePath = dirPath.resolve(filename);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        String relativePath = ticketId + "/" + filename;
+        String relativePath = buildObjectKey(ticketId, filename);
+        ociObjectStorageService.upload(file, relativePath);
 
         UploadedFile uf = new UploadedFile();
         uf.setFileName(original);
@@ -55,5 +51,13 @@ public class FileStorageService {
         uploadedFileRepository.save(uf);
 
         return relativePath;
+    }
+
+    private String buildObjectKey(String ticketId, String filename) {
+        String prefix = ociProperties.getNormalizedBucketObject();
+        if (prefix.isBlank()) {
+            return ticketId + "/" + filename;
+        }
+        return prefix + "/" + ticketId + "/" + filename;
     }
 }

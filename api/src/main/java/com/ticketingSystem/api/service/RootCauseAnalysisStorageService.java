@@ -1,43 +1,42 @@
 package com.ticketingSystem.api.service;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.ticketingSystem.api.config.OciProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
 public class RootCauseAnalysisStorageService {
 
-    @Value("${file.storage.base-dir}")
-    private String baseDir;
+    private final OciObjectStorageService ociObjectStorageService;
+    private final OciProperties ociProperties;
+
+    public RootCauseAnalysisStorageService(OciObjectStorageService ociObjectStorageService,
+                                           OciProperties ociProperties) {
+        this.ociObjectStorageService = ociObjectStorageService;
+        this.ociProperties = ociProperties;
+    }
 
     public String save(MultipartFile file, String ticketId) throws IOException {
-        Path basePath = Paths.get(baseDir).toAbsolutePath().normalize();
-        Path dirPath = basePath.resolve(Paths.get("rca", ticketId)).normalize();
-        Files.createDirectories(dirPath);
         String original = StringUtils.cleanPath(file.getOriginalFilename());
         String filename = UUID.randomUUID() + "_" + original;
-        Path filePath = dirPath.resolve(filename);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        return Paths.get("rca", ticketId, filename).toString().replace('\\', '/');
+        String objectKey = buildObjectKey(ticketId, filename);
+        ociObjectStorageService.upload(file, objectKey);
+        return objectKey;
     }
 
     public void delete(String relativePath) throws IOException {
-        if (relativePath == null || relativePath.isBlank()) {
-            return;
+        ociObjectStorageService.delete(relativePath);
+    }
+
+    private String buildObjectKey(String ticketId, String filename) {
+        String prefix = ociProperties.getNormalizedBucketObject();
+        if (prefix.isBlank()) {
+            return "rca/" + ticketId + "/" + filename;
         }
-        Path basePath = Paths.get(baseDir).toAbsolutePath().normalize();
-        Path filePath = basePath.resolve(relativePath).normalize();
-        if (!filePath.startsWith(basePath)) {
-            throw new IOException("Invalid file path");
-        }
-        Files.deleteIfExists(filePath);
+        return prefix + "/rca/" + ticketId + "/" + filename;
     }
 }
