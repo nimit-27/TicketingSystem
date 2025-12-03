@@ -8,7 +8,7 @@ export const ThemeModeContext = createContext<{
   toggle: () => void;
   layout: number;
   toggleLayout: () => void;
-}>({ mode: "light", toggle: () => {}, layout: 1, toggleLayout: () => {} });
+}>({ mode: "light", toggle: () => {}, layout: 2, toggleLayout: () => {} });
 
 const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -17,7 +17,7 @@ const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const toggle = () => setMode((prev) => (prev === "light" ? "dark" : "light"));
   const theme = useMemo(() => allThemes[mode], [mode]);
 
-  const [layout, setLayout] = useState<number>(1);
+  const [layout, setLayout] = useState<number>(2);
   const toggleLayout = () => {
     setLayout(layout === 3 ? 1 : layout + 1);
   }
