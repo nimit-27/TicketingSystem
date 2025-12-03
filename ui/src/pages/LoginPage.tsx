@@ -264,17 +264,18 @@ const LoginPage: FC = () => {
                 </button>
             </div>
 
-            <div className="login-layout">
+            <div className="login-layout position-relative">
                 <div className="login-left">
-                    <img className="login-leaf" src="./menu-leaf.png" alt="Decorative leaf" />
+                    <img className="login-leaf position-absolute" src="./menu-leaf.png" alt="Decorative leaf" />
                     <div className="login-left__content">
-                        <div className="login-badge">
+                        <div className="justify-content-center">
                             <div className="login-badge__crest">
-                                <img src="./fciLogo.png" alt="Anna Darpan crest" />
+                                <img src="./fci-logo-white.png" alt="Anna Darpan crest" />
                             </div>
                             <div className="login-badge__text">
-                                <p className="tagline">सबको अन्न सबको आहार</p>
-                                <h1>Anna Darpan</h1>
+
+                                <h3 className="m-0">सबको <span style={{ color: "#f26727" }}>अन्न</span> सबको <span style={{ color: "#f26727" }}>अन्न</span> आहार </h3>
+                                {/* <h1>Anna Darpan</h1> */}
                             </div>
                         </div>
                         <p className="welcome">Welcome to</p>
@@ -284,7 +285,8 @@ const LoginPage: FC = () => {
                 </div>
 
                 <div className="login-right">
-                    <div className="login-card">
+                    {/* <div className="login-card"> */}
+                    <div>
                         <h2 className="login-card__title">Login</h2>
                         <CustomTabsComponent
                             tabs={tabs}
