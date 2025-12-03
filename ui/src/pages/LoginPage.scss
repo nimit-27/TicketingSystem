@@ -139,6 +139,17 @@ $dark-text: #231f20cc;
   background: linear-gradient(145deg, #ffffff 0%, #f5f5f5 40%, #ffffff 100%);
 }
 
+.login-card {
+  background: #ffffff;
+  padding: 2rem 1.75rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 102, 54, 0.08);
+  min-width: 360px;
+  max-width: 520px;
+  width: 100%;
+}
+
 .login-page.dark .login-card {
   background: #1f1f1f;
   color: #f5f5f5;
@@ -146,40 +157,12 @@ $dark-text: #231f20cc;
   border-color: #2c2c2c;
 }
 
-.login-card__header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.login-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: $green-light;
-  color: $green;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-}
-
-.login-page.dark .login-avatar {
-  background: rgba(202, 233, 220, 0.15);
-}
-
-.subtext {
-  margin: 0.15rem 0 0;
-  color: #666666;
-}
-
-.login-page.dark .subtext {
-  color: #d1d1d1;
-}
-
 .login-tabs {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.login-tabs .MuiTabs-flexContainer {
+  justify-content: center;
 }
 
 .login-form {

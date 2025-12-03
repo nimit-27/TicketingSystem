@@ -42,6 +42,7 @@ const CustomTabsComponent: React.FC<CustomTabsComponentProps> = ({ tabs, current
                             key={t.key}
                             label={t.tabTitle}
                             value={t.key}
+                            sx={[tabSx, getTabSx?.(t.key, activeTab === t.key)]}
                         />
                     ))}
                 </Tabs>
