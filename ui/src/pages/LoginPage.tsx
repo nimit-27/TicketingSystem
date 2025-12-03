@@ -285,6 +285,7 @@ const LoginPage: FC = () => {
 
                 <div className="login-right">
                     <div className="login-card">
+                        <h2 className="login-card__title">Login</h2>
                         <CustomTabsComponent
                             tabs={tabs}
                             currentTab={selectedPortal}
