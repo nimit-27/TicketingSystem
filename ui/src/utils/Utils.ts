@@ -138,10 +138,9 @@ export function logout() {
   });
   clearStoredToken();
   clearSession();
-  const basePath = process.env.PUBLIC_URL || ''
-  const loginPath = `${basePath}/login`
+  const basePath = process.env.PUBLIC_URL || '';
+  const loginPath = `${basePath}/login`;
   window.location.assign(loginPath);
-
 }
 
 export function getDropdownOptions<T>(arr: T[] | any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] {
