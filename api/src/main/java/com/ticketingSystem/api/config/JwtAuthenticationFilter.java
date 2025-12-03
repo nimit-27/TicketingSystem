@@ -29,8 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "helpdesk/auth/logout",
             "/auth/logout",
             "/auth/login",
+            "/auth/refresh",
             "auth/logout",
             "auth/login",
+            "auth/refresh",
+            "helpdesk/auth/refresh",
             "http://localhost:8082/helpdesk/auth/login"
     );
 
@@ -55,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(header, request.getParameter("token"));
 
         if (token != null) {
-            jwtTokenService.parseToken(token).ifPresent(payload -> {
+            jwtTokenService.parseAccessToken(token).ifPresent(payload -> {
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(payload, null, authorities(payload));

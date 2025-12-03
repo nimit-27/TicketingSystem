@@ -22,6 +22,11 @@ public class JwtProperties {
     private long expirationMinutes = 60;
 
     /**
+     * Refresh token expiration time expressed in minutes.
+     */
+    private long refreshExpirationMinutes = 60 * 24 * 30;
+
+    /**
      * When enabled, the JWT filter is bypassed so the legacy session based
      * behaviour keeps working for local development environments.
      */
