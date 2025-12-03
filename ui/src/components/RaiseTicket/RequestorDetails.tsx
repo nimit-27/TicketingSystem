@@ -3,7 +3,7 @@ import { formFieldValue, inputColStyling } from "../../constants/bootstrapClasse
 import { FormProps } from "../../types";
 import CustomFormInput from "../UI/Input/CustomFormInput";
 import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
-import { getRequesterUserDetails, searchRequesterUsers } from "../../services/UserService";
+import { getUserDetailsWithFallback, searchRequesterUsers } from "../../services/UserService";
 import { FieldValues, useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -116,7 +116,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     // let showRequestorDetails = mode.toLowerCase() !== 'self';
 
     const getUserDetailsHandler = (userId: any) => {
-        getUserDetailsApiHandler(() => getRequesterUserDetails(userId))
+        getUserDetailsApiHandler(() => getUserDetailsWithFallback(userId, helpdesk));
     }
 
     const clearUserDetails = () => {

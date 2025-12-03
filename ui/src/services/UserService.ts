@@ -36,6 +36,22 @@ export function getHelpdeskUserDetails(userId: string) {
     return apiClient.get<HelpdeskUser>(`${BASE_URL}/users/helpdesk/${userId}`);
 }
 
+export async function getUserDetailsWithFallback(userId: string, preferHelpdesk: boolean = false) {
+    const primaryFetcher = preferHelpdesk ? getHelpdeskUserDetails : getRequesterUserDetails;
+    const secondaryFetcher = preferHelpdesk ? getRequesterUserDetails : getHelpdeskUserDetails;
+
+    try {
+        return await primaryFetcher(userId);
+    } catch (error: any) {
+        const status = error?.response?.status;
+        if (status && status !== 404) {
+            throw error;
+        }
+    }
+
+    return secondaryFetcher(userId);
+}
+
 export function getRequesterUsers() {
     return apiClient.get<RequesterUser[]>(`${BASE_URL}/users/requesters`);
 }
