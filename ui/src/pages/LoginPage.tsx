@@ -6,6 +6,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import TranslateIcon from "@mui/icons-material/Translate";
 import DeveloperModeIcon from "@mui/icons-material/DeveloperMode";
+import { InputAdornment } from "@mui/material";
 import CustomTabsComponent, { TabItem } from "../components/UI/CustomTabsComponent";
 import { loginUser, LoginPayload } from "../services/AuthService";
 import { useApi } from "../hooks/useApi";
@@ -18,6 +19,8 @@ import colors from "../themes/colors";
 import { ThemeModeContext } from "../context/ThemeContext";
 import { LanguageContext } from "../context/LanguageContext";
 import { DevModeContext } from "../context/DevModeContext";
+import GenericInput from "../components/UI/Input/GenericInput";
+import GenericButton from "../components/UI/Button";
 import "./LoginPage.scss";
 
 type PortalType = "requestor" | "helpdesk";
@@ -158,32 +161,38 @@ const LoginPage: FC = () => {
 
     const renderLoginForm = (portal: PortalType): ReactNode => (
         <form className="login-form" onSubmit={handleSubmit}>
-            <label className="login-label" htmlFor={`${portal}-username`}>
-                Username / Employee Id
-            </label>
-            <div className="login-input">
-                <PersonIcon className="login-input__icon" />
-                <input
-                    id={`${portal}-username`}
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                    placeholder="Enter Username"
-                />
-            </div>
+            <GenericInput
+                id={`${portal}-username`}
+                label="Username / Employee Id"
+                fullWidth
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                placeholder="Enter Username"
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <PersonIcon className="login-input__icon" />
+                        </InputAdornment>
+                    ),
+                }}
+            />
 
-            <label className="login-label" htmlFor={`${portal}-password`}>
-                Password
-            </label>
-            <div className="login-input">
-                <LockIcon className="login-input__icon" />
-                <input
-                    id={`${portal}-password`}
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter Password"
-                />
-            </div>
+            <GenericInput
+                id={`${portal}-password`}
+                label="Password"
+                type="password"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter Password"
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <LockIcon className="login-input__icon" />
+                        </InputAdornment>
+                    ),
+                }}
+            />
 
             <div className="login-row">
                 <label className="remember-option">
@@ -201,15 +210,21 @@ const LoginPage: FC = () => {
                 </div>
             )}
 
-            <button type="submit" className="login-button">
+            <GenericButton type="submit" variant="contained" color="success" fullWidth sx={{ borderRadius: 2, fontWeight: 800 }}>
                 LOGIN
-            </button>
+            </GenericButton>
 
             <div className="divider">Or</div>
 
-            <button type="button" className="secondary-button">
+            <GenericButton
+                type="button"
+                variant="contained"
+                color="warning"
+                fullWidth
+                sx={{ borderRadius: 2, fontWeight: 800 }}
+            >
                 Login Via Anna Darpan
-            </button>
+            </GenericButton>
 
             {devMode && (
                 <label className="dev-toggle">
@@ -269,33 +284,28 @@ const LoginPage: FC = () => {
                 </div>
 
                 <div className="login-right">
-                    <div className="">
-                        <div className="login-card__header">
-                            <div className="login-avatar">
-                                <PersonIcon />
-                            </div>
-                            <div>
-                                <h3>Login</h3>
-                                <p className="subtext">Access your account</p>
-                            </div>
-                        </div>
-
+                    <div className="login-card">
+                        <h2 className="login-card__title">Login</h2>
                         <CustomTabsComponent
                             tabs={tabs}
                             currentTab={selectedPortal}
                             onTabChange={(key) => setSelectedPortal(key as PortalType)}
-                            // tabsClassName="login-tabs"
-                            // getTabSx={(key, isActive) => ({
-                            //     backgroundColor: isActive ? colors.green.default : "transparent",
-                            //     color: isActive ? "#ffffff" : colors.green.default,
-                            //     border: `1px solid ${colors.green.default}`,
-                            //     borderRadius: "10px",
-                            //     minWidth: 120,
-                            //     marginRight: "0.75rem",
-                            //     '&:hover': {
-                            //         backgroundColor: isActive ? colors.green.default : colors.green.light,
-                            //     },
-                            // })}
+                            tabsClassName="login-tabs"
+                            tabSx={{
+                                minWidth: 140,
+                                fontWeight: 700,
+                                color: colors.green.default,
+                            }}
+                            getTabSx={(key, isActive) => ({
+                                backgroundColor: isActive ? colors.green.default : "transparent",
+                                color: isActive ? "#ffffff" : colors.green.default,
+                                border: `1px solid ${colors.green.default}`,
+                                borderRadius: "12px 12px 0 0",
+                                marginRight: "0.75rem",
+                                '&:hover': {
+                                    backgroundColor: isActive ? colors.green.default : colors.green.light,
+                                },
+                            })}
                         />
                     </div>
                 </div>
