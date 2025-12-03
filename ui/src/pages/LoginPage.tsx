@@ -19,6 +19,7 @@ import colors from "../themes/colors";
 import { ThemeModeContext } from "../context/ThemeContext";
 import { LanguageContext } from "../context/LanguageContext";
 import { DevModeContext } from "../context/DevModeContext";
+import { devMode as envDevMode } from "../config/config";
 import GenericInput from "../components/UI/Input/GenericInput";
 import GenericButton from "../components/UI/Button";
 import "./LoginPage.scss";
@@ -226,7 +227,7 @@ const LoginPage: FC = () => {
                 Login Via Anna Darpan
             </GenericButton>
 
-            {devMode && (
+            {envDevMode && devMode && (
                 <label className="dev-toggle">
                     <input type="checkbox" checked={jwtBypass} onChange={toggleJwtBypass} />
                     Use session storage (JWT bypass)
@@ -259,9 +260,11 @@ const LoginPage: FC = () => {
                 <button type="button" className="icon-button" onClick={toggleTheme} aria-label="Toggle theme">
                     {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
                 </button>
-                <button type="button" className={`icon-button ${devMode ? "active" : ""}`} onClick={toggleDevMode} aria-label="Toggle dev mode">
-                    <DeveloperModeIcon />
-                </button>
+                {envDevMode && (
+                    <button type="button" className={`icon-button ${devMode ? "active" : ""}`} onClick={toggleDevMode} aria-label="Toggle dev mode">
+                        <DeveloperModeIcon />
+                    </button>
+                )}
             </div>
 
             <div className="login-layout">
