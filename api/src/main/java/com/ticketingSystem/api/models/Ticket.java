@@ -25,10 +25,10 @@ public class Ticket {
 
     @Column(name = "mode_id")
     private String modeId;
-    @Column(name = "user_id", insertable = false, updatable = false)
+    @Column(name = "user_id")
     private String userId;
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
 
     @Column(name = "requestor_name")
