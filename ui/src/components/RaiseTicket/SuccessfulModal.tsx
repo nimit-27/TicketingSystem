@@ -38,7 +38,7 @@ const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClo
                             <li>{t('Our support team will review your request and get back to you shortly.')}</li>
                             <li>
                                 {t('You can track the status of your ticket anytime from the Ticket page.')}
-                                <a href={`/tickets/${encodedTicketId}`} className="text-primary text-decoration-underline">
+                                <a href={`tickets/${encodedTicketId}`} className="text-primary text-decoration-underline">
                                     {t('Ticket')}
                                 </a>.
                             </li>
