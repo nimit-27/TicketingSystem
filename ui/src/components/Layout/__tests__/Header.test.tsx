@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Header from '../Header';
 import { ThemeModeContext } from '../../../context/ThemeContext';
 import { LanguageContext } from '../../../context/LanguageContext';
 import { DevModeContext } from '../../../context/DevModeContext';
 import { renderWithTheme, createTestTheme } from '../../../test/testUtils';
+import * as config from '../../../config/config';
 
 jest.mock('../UserMenu', () => ({ open }: { open: boolean }) => (
   <div data-testid="user-menu" data-open={open} />
@@ -15,13 +15,7 @@ jest.mock('../../Notifications/NotificationBell', () => ({ iconColor }: { iconCo
   <div data-testid="notification-bell" data-icon-color={iconColor} />
 ));
 
-jest.mock('../../../config/config', () => ({
-  getCurrentUserDetails: jest.fn(() => ({
-    name: 'John Doe',
-    username: 'johnd',
-    userId: 'user-1',
-  })),
-}));
+import Header from '../Header';
 
 describe('Header', () => {
   const toggleSidebar = jest.fn();
@@ -65,7 +59,13 @@ describe('Header', () => {
   };
 
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
+    jest.spyOn(config, 'getCurrentUserDetails').mockReturnValue({
+      name: 'John Doe',
+      username: 'johnd',
+      userId: 'user-1',
+    });
   });
 
   it('opens the user menu from the avatar and toggles the sidebar button', async () => {
@@ -77,7 +77,7 @@ describe('Header', () => {
     await userEvent.click(menuButton!);
     expect(toggleSidebar).toHaveBeenCalledTimes(1);
 
-    const avatar = screen.getByTestId('PersonIcon').closest('div');
+    const avatar = screen.getByText('JD').closest('div');
     expect(avatar).not.toBeNull();
 
     await userEvent.click(avatar!);

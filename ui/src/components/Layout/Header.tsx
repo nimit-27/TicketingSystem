@@ -2,7 +2,7 @@ import React, { useContext, useMemo, useState } from "react";
 import { ThemeModeContext } from "../../context/ThemeContext";
 import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import Avatar from "@mui/material/Avatar";
-import { getCurrentUserDetails } from "../../config/config";
+import { devMode as envDevMode, getCurrentUserDetails } from "../../config/config";
 import { useTheme } from "@mui/material/styles";
 import { LanguageContext } from "../../context/LanguageContext";
 import { DevModeContext } from "../../context/DevModeContext";
@@ -107,12 +107,14 @@ const Header: React.FC<HeaderProps> = ({
           icon="translate"
           onClick={toggleLanguage}
         />
-        <CustomIconButton
-          style={{ color: devMode ? theme.palette.warning.main : iconColor }}
-          icon="code"
-          onClick={toggleDevMode}
-        />
-        {devMode && (
+        {envDevMode && (
+          <CustomIconButton
+            style={{ color: devMode ? theme.palette.warning.main : iconColor }}
+            icon="code"
+            onClick={toggleDevMode}
+          />
+        )}
+        {envDevMode && devMode && (
           <CustomIconButton
             style={{
               color: jwtBypass
@@ -124,7 +126,7 @@ const Header: React.FC<HeaderProps> = ({
             title={jwtBypass ? "JWT bypass enabled" : "JWT protection active"}
           />
         )}
-        {devMode && <CustomIconButton
+        {envDevMode && devMode && <CustomIconButton
           style={{ color: iconColor, fontSize: 14 }}
           icon={layout.toString()}
           // icon="code"
