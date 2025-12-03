@@ -68,15 +68,46 @@ public class TicketSlaService {
     public TicketSla calculateAndSaveByCalendar(Ticket ticket, List<StatusHistory> history) {
         if (ticket == null) return null;
 
+        LocalDateTime reportedDate = ticket.getReportedDate();
+        LocalDateTime resolvedAt = ticket.getResolvedAt();
+        LocalDateTime calculationTime = resolvedAt != null ? resolvedAt : LocalDateTime.now();
+
+        if (ticket.getMasterId() != null && !ticket.getMasterId().isBlank()) {
+            long idleMinutes = 0L;
+            if (reportedDate != null) {
+                Duration workingElapsed = slaCalculatorService.computeWorkingDurationBetween(
+                        reportedDate.atZone(TimeUtils.ZONE_ID),
+                        calculationTime.atZone(TimeUtils.ZONE_ID)
+                );
+                idleMinutes = Math.max(workingElapsed.toMinutes(), 0L);
+            }
+
+            TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
+                    .orElseGet(TicketSla::new);
+
+            ticketSla.setTicket(ticket);
+            ticketSla.setSlaConfig(null);
+            ticketSla.setDueAt(null);
+            ticketSla.setActualDueAt(null);
+            ticketSla.setDueAtAfterEscalation(null);
+            ticketSla.setResolutionTimeMinutes(0L);
+            ticketSla.setElapsedTimeMinutes(idleMinutes);
+            ticketSla.setResponseTimeMinutes(0L);
+            ticketSla.setBreachedByMinutes(0L);
+            ticketSla.setIdleTimeMinutes(idleMinutes);
+            ticketSla.setCreatedAt(ticket.getReportedDate());
+            ticketSla.setTotalSlaMinutes(null);
+            ticketSla.setTimeTillDueDate(null);
+            ticketSla.setWorkingTimeLeftMinutes(null);
+
+            return ticketSlaRepository.save(ticketSla);
+        }
+
         SlaConfig config = slaConfigRepository.findBySeverityLevel(ticket.getSeverity())
                 .orElse(null);
         if (config == null) {
             throw new IllegalStateException("SLA configuration not found for severity: " + ticket.getSeverity());
         }
-
-        LocalDateTime reportedDate = ticket.getReportedDate();
-        LocalDateTime resolvedAt = ticket.getResolvedAt();
-        LocalDateTime calculationTime = resolvedAt != null ? resolvedAt : LocalDateTime.now();
 
         long resolutionPolicy = Objects.requireNonNullElse(config.getResolutionMinutes(), 0L);
 //        long resolutionPolicy = config.getResolutionMinutes() != null
