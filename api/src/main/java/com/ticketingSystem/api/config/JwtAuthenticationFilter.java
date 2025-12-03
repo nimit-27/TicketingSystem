@@ -1,7 +1,9 @@
 package com.ticketingSystem.api.config;
 
 import com.ticketingSystem.api.dto.LoginPayload;
+import com.ticketingSystem.api.dto.TokenPair;
 import com.ticketingSystem.api.service.JwtTokenService;
+import com.ticketingSystem.api.service.TokenPairService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,10 +41,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
+    private final TokenPairService tokenPairService;
 
-    public JwtAuthenticationFilter(JwtTokenService jwtTokenService, JwtProperties jwtProperties) {
+    public JwtAuthenticationFilter(JwtTokenService jwtTokenService,
+                                   JwtProperties jwtProperties,
+                                   TokenPairService tokenPairService) {
         this.jwtTokenService = jwtTokenService;
         this.jwtProperties = jwtProperties;
+        this.tokenPairService = tokenPairService;
     }
 
     @Override
@@ -58,17 +64,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(header, request.getParameter("token"));
 
         if (token != null) {
-            jwtTokenService.parseAccessToken(token).ifPresent(payload -> {
-                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(payload, null, authorities(payload));
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            });
+            JwtTokenService.TokenVerificationResult result = jwtTokenService.verifyAccessToken(token);
+            if (result.valid()) {
+                authenticate(result.payload(), request);
+            } else if (result.expired()) {
+                handleExpiredAccessToken(result.payload(), request, response);
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void handleExpiredAccessToken(LoginPayload payload,
+                                          HttpServletRequest request,
+                                          HttpServletResponse response) {
+        if (payload == null) {
+            return;
+        }
+
+        tokenPairService.rotateUsingStoredToken(payload).ifPresent(tokenPair -> {
+            authenticate(payload, request);
+            writeTokenHeaders(response, tokenPair);
+        });
+    }
+
+    private void authenticate(LoginPayload payload, HttpServletRequest request) {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return;
+        }
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(payload, null, authorities(payload));
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void writeTokenHeaders(HttpServletResponse response, TokenPair tokenPair) {
+        response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPair.token());
+        response.setHeader("X-Access-Token", tokenPair.token());
+        response.setHeader("X-Refresh-Token", tokenPair.refreshToken());
+        response.setHeader("X-Access-Token-Expires-In-Minutes", String.valueOf(tokenPair.expiresInMinutes()));
+        response.setHeader("X-Refresh-Token-Expires-In-Minutes", String.valueOf(tokenPair.refreshExpiresInMinutes()));
     }
 
     private String resolveToken(String authorizationHeader, String tokenParam) {

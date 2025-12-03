@@ -6,6 +6,7 @@ import com.ticketingSystem.api.enums.ClientType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -79,11 +80,31 @@ public class JwtTokenService {
     }
 
     public boolean isTokenValid(String token) {
-        return parseAccessToken(token).isPresent();
+        return verifyAccessToken(token).valid();
     }
 
     public Optional<LoginPayload> parseAccessToken(String token) {
         return parseToken(token, TokenType.ACCESS);
+    }
+
+    public TokenVerificationResult verifyAccessToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            TokenType tokenType = resolveTokenType(claims.get(CLAIM_TOKEN_TYPE, String.class));
+            if (tokenType != TokenType.ACCESS) {
+                return TokenVerificationResult.invalid();
+            }
+            return TokenVerificationResult.valid(buildPayload(claims));
+        } catch (ExpiredJwtException ex) {
+            Claims claims = ex.getClaims();
+            TokenType tokenType = resolveTokenType(claims.get(CLAIM_TOKEN_TYPE, String.class));
+            if (tokenType != TokenType.ACCESS) {
+                return TokenVerificationResult.invalid();
+            }
+            return TokenVerificationResult.expired(buildPayload(claims));
+        } catch (JwtException | IllegalArgumentException ex) {
+            return TokenVerificationResult.invalid();
+        }
     }
 
     public Optional<LoginPayload> parseRefreshToken(String token) {
@@ -167,5 +188,19 @@ public class JwtTokenService {
         }
         byte[] keyBytes = properties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public record TokenVerificationResult(boolean valid, boolean expired, LoginPayload payload) {
+        public static TokenVerificationResult valid(LoginPayload payload) {
+            return new TokenVerificationResult(true, false, payload);
+        }
+
+        public static TokenVerificationResult expired(LoginPayload payload) {
+            return new TokenVerificationResult(false, true, payload);
+        }
+
+        public static TokenVerificationResult invalid() {
+            return new TokenVerificationResult(false, false, null);
+        }
     }
 }

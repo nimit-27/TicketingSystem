@@ -4,10 +4,12 @@ import com.ticketingSystem.api.config.JwtProperties;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.LoginRequest;
 import com.ticketingSystem.api.dto.RefreshTokenRequest;
+import com.ticketingSystem.api.dto.TokenPair;
 import com.ticketingSystem.api.enums.ClientType;
 import com.ticketingSystem.api.permissions.RolePermission;
 import com.ticketingSystem.api.service.AuthService;
 import com.ticketingSystem.api.service.JwtTokenService;
+import com.ticketingSystem.api.service.TokenPairService;
 import com.ticketingSystem.api.service.PermissionService;
 import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
@@ -30,6 +32,7 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
+    private final TokenPairService tokenPairService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
@@ -90,14 +93,13 @@ public class AuthController {
                             .clientType(clientType)
                             .build();
 
-                    String token = jwtTokenService.generateAccessToken(payload);
-                    String refreshToken = jwtTokenService.generateRefreshToken(payload);
+                    TokenPair tokenPair = tokenPairService.issueTokens(payload);
 
                     Map<String, Object> response = new LinkedHashMap<>();
-                    response.put("token", token);
-                    response.put("refreshToken", refreshToken);
-                    response.put("expiresInMinutes", jwtProperties.getExpirationMinutes());
-                    response.put("refreshExpiresInMinutes", jwtProperties.getRefreshExpirationMinutes());
+                    response.put("token", tokenPair.token());
+                    response.put("refreshToken", tokenPair.refreshToken());
+                    response.put("expiresInMinutes", tokenPair.expiresInMinutes());
+                    response.put("refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes());
                     response.put("userId", user.getUserId());
                     response.put("name", user.getName());
                     response.put("username", user.getUsername());
@@ -126,6 +128,13 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    /**
+     * Rotates an access/refresh token pair. Clients should call this endpoint when the existing access
+     * token is about to expire (or receives a 401 due to expiry) and present the current refresh token
+     * in the request body. The endpoint validates the refresh token, issues a new access token for
+     * immediate use, and returns a new refresh token so the client can continue the session without
+     * re-entering credentials.
+     */
     public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
         if (!StringUtils.hasText(request.getRefreshToken())) {
             return ResponseEntity.badRequest()
@@ -133,17 +142,14 @@ public class AuthController {
         }
 
         return jwtTokenService.parseRefreshToken(request.getRefreshToken())
-                .map(payload -> {
-                    String token = jwtTokenService.generateAccessToken(payload);
-                    String refreshToken = jwtTokenService.generateRefreshToken(payload);
-
-                    Map<String, Object> response = new LinkedHashMap<>();
-                    response.put("token", token);
-                    response.put("refreshToken", refreshToken);
-                    response.put("expiresInMinutes", jwtProperties.getExpirationMinutes());
-                    response.put("refreshExpiresInMinutes", jwtProperties.getRefreshExpirationMinutes());
-                    return ResponseEntity.ok(response);
-                })
+                .flatMap(payload -> tokenPairService.rotateUsingProvidedRefreshToken(payload, request.getRefreshToken())
+                        .map(tokenPair -> Map.<String, Object>of(
+                                "token", tokenPair.token(),
+                                "refreshToken", tokenPair.refreshToken(),
+                                "expiresInMinutes", tokenPair.expiresInMinutes(),
+                                "refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes()
+                        )))
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid or expired refresh token")));
     }
