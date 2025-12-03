@@ -5,7 +5,11 @@ import com.ticketingSystem.api.repository.UserRefreshTokenRepository;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +41,7 @@ public class UserRefreshTokenService {
 
     public boolean isRefreshTokenValid(String userId, String refreshToken) {
         return findActiveToken(userId)
-                .filter(token -> BCrypt.checkpw(refreshToken, token.getRefreshTokenHash()))
+                .filter(token -> BCrypt.checkpw(sha256(refreshToken), token.getRefreshTokenHash()))
                 .isPresent();
     }
 
@@ -52,6 +56,16 @@ public class UserRefreshTokenService {
     }
 
     private String hash(String refreshToken) {
-        return BCrypt.hashpw(refreshToken, BCrypt.gensalt());
+        return BCrypt.hashpw(sha256(refreshToken), BCrypt.gensalt());
+    }
+
+    private String sha256(String refreshToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(refreshToken.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
 }
