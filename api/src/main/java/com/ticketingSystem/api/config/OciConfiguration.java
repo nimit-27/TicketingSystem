@@ -3,7 +3,7 @@ package com.ticketingSystem.api.config;
 import com.oracle.bmc.Region;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
-import com.oracle.bmc.auth.ConfigFileReader;
+import com.oracle.bmc.ConfigFileReader;
 import com.oracle.bmc.objectstorage.ObjectStorageClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

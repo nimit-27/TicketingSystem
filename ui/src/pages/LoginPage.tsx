@@ -264,24 +264,30 @@ const LoginPage: FC = () => {
                 </button>
             </div>
 
-            <div className="login-layout position-relative">
+            <div className="login-layout">
                 <div className="login-left">
-                    <img className="login-leaf position-absolute" src="./menu-leaf.png" alt="Decorative leaf" />
-                    <div className="login-left__content">
-                        <div className="justify-content-center">
-                            <div className="login-badge__crest">
-                                <img src="./fci-logo-white.png" alt="Anna Darpan crest" />
-                            </div>
-                            <div className="login-badge__text">
+                    <div className="position-relative">
+                        <img className="login-leaf position-absolute" src="./menu-leaf.png" alt="Decorative leaf" />
+                        <div className="login-left__content">
+                            <div className="justify-content-center">
+                                <div className="login-badge__crest">
+                                    <img src="./fci-logo-white.png" alt="Anna Darpan crest" />
+                                </div>
+                                <div className="login-badge__text">
 
-                                <h3 className="m-0">सबको <span style={{ color: "#f26727" }}>अन्न</span> सबको <span style={{ color: "#f26727" }}>अन्न</span> आहार </h3>
-                                {/* <h1>Anna Darpan</h1> */}
+                                    <h3 className="m-0">सबको <span style={{ color: "#f26727" }}>अन्न</span> सबको <span style={{ color: "#f26727" }}>अन्न</span> आहार </h3>
+                                    {/* <h1>Anna Darpan</h1> */}
+                                </div>
                             </div>
+                            <p className="welcome">Welcome to</p>
+                            <h2 className="title">Anna Darpan</h2>
+                            <p className="description">Ticketing System</p>
                         </div>
-                        <p className="welcome">Welcome to</p>
-                        <h2 className="title">Anna Darpan</h2>
-                        <p className="description">Ticketing System</p>
                     </div>
+
+                    <footer className="login-footer">
+                        <Link to="/public/faq" className="link">Frequently Asked Questions</Link>
+                    </footer>
                 </div>
 
                 <div className="login-right">
@@ -313,9 +319,9 @@ const LoginPage: FC = () => {
                 </div>
             </div>
 
-            <footer className="login-footer">
+            {/* <footer className="login-footer">
                 <Link to="/public/faq" className="link">Frequently Asked Questions</Link>
-            </footer>
+            </footer> */}
         </div>
     );
 };

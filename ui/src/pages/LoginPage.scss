@@ -62,9 +62,10 @@ $dark-text: #231f20cc;
   background: linear-gradient(135deg, #00522b, $green);
   color: #ffffff;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 0rem 0rem;
   position: relative;
   overflow: hidden;
 }
@@ -327,7 +328,7 @@ $dark-text: #231f20cc;
   background: #00522b;
   color: #ffffff;
   text-align: center;
-  padding: 0.9rem;
+  padding: 0.6rem;
   font-weight: 600;
 }
 
@@ -343,7 +344,7 @@ $dark-text: #231f20cc;
   }
 
   .login-left {
-    padding: 2rem 1.5rem;
+    padding: 0rem 0rem;
   }
 
   .login-right {
