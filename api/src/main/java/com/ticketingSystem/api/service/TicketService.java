@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
-import org.typesense.model.SearchResultRequestParams;
+import org.typesense.model.SearchRequestParams;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -363,7 +363,7 @@ public class TicketService {
                     .filter(Objects::nonNull)
                     .toList();
 
-            SearchResultRequestParams params = result.getRequestParams();
+            SearchRequestParams params = result.getRequestParams();
             int resolvedSize = params != null && params.getPerPage() != null && params.getPerPage() > 0
                     ? params.getPerPage()
                     : safeSize;
