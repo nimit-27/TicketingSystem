@@ -192,23 +192,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
         getStakeholdersApiHandler(() => getStakeholders());
     }, [getStakeholdersApiHandler]);
 
-    // On initial render, if mode is Self, verify and populate logged-in user details
-    // useEffect(() => {
-    //     if (mode === "Self") {
-    //         const user = getCurrentUserDetails();
-    //         if (setValue && user?.userId) {
-    //             setValue("userId", user?.userId);
-    //             verifyUserById(user?.userId);
-    //         }
-    //     }
-    // }, []);
-
-    // useEffect(() => {
-    //     setSelectedUser(null);
-    //     setSearchText("");
-    //     clearUserDetails();
-    // }, [stakeholder]);
-
     useEffect(() => {
         // When mode changes and is not "Self", enable the form fields and clear any selected user
         if (mode && mode !== "Self") {
@@ -260,14 +243,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 verifyUserById(user?.userId);
             }
         }
-        // Ticket creation by normal user - SELF
-        if (!fciUser && !helpdesk && createMode) {
-            const user = getCurrentUserDetails();
-            if (setValue && user?.userId) {
-                setValue('userId', user?.userId);
-                verifyUserById(user?.userId);
-            }
-        }
+      
         if (helpdesk && mode === 'Self' && createMode) {
             const user = getCurrentUserDetails();
             if (setValue && user?.userId) {
@@ -305,13 +281,10 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const showSearchUserAutocomplete = mode !== 'Self' && createMode
     const showRequestorDetailsCard = selectedUser && Object.keys(selectedUser).length > 0;
-    // const showRequestorDetailsCard = userDetailsData && Object.keys(userDetailsData).length > 0;
-    // const showRequestorDetailsCard = checkFieldAccess('requestorDetails', 'showRequestorDetailsCard') && !createMode;
     const isSelfHelpdesk = helpdesk && mode === 'Self';
 
     const showOnBehalfCheckbox = checkFieldAccess('requestorDetails', 'onBehalfOfFciUser') && createMode && mode !== 'Self';
 
-    const showFciToggle = false;
     const showUserId = checkFieldAccess('requestorDetails', 'userId')
     const showRequestorName = checkFieldAccess('requestorDetails', 'requestorName');
     const showEmailId = checkFieldAccess('requestorDetails', 'emailId');
