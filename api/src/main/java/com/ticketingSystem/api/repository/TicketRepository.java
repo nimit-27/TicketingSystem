@@ -94,19 +94,27 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category, t.subCategory")
     List<CategoryCountProjection> countTicketsByCategory();
 
-    @Query("SELECT t.category AS category, " +
-            "t.subCategory AS subcategory, " +
-            "SUM(CASE WHEN t.ticketStatus = 'OPEN' THEN 1 ELSE 0 END) AS pendingCount, " +
-            "COUNT(t) AS totalCount, " +
-            "SUM(CASE WHEN LOWER(t.severity) = 's1' THEN 1 ELSE 0 END) AS s1Count, " +
-            "SUM(CASE WHEN LOWER(t.severity) = 's2' THEN 1 ELSE 0 END) AS s2Count, " +
-            "SUM(CASE WHEN LOWER(t.severity) = 's3' THEN 1 ELSE 0 END) AS s3Count, " +
-            "SUM(CASE WHEN LOWER(t.severity) = 's4' THEN 1 ELSE 0 END) AS s4Count " +
-            "FROM Ticket t " +
-            "WHERE (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
-            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
-            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
-            "GROUP BY t.category, t.subCategory")
+    @Query(value = """
+                SELECT
+                    c.category_id AS categoryId,
+                    c.category AS categoryName,
+                    sc.sub_category_id AS subcategoryId,
+                    sc.sub_category AS subcategoryName,
+                    SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS pendingCount,
+                    COUNT(*) AS totalCount,
+                    SUM(CASE WHEN LOWER(t.severity) = 's1' THEN 1 ELSE 0 END) AS s1Count,
+                    SUM(CASE WHEN LOWER(t.severity) = 's2' THEN 1 ELSE 0 END) AS s2Count,
+                    SUM(CASE WHEN LOWER(t.severity) = 's3' THEN 1 ELSE 0 END) AS s3Count,
+                    SUM(CASE WHEN LOWER(t.severity) = 's4' THEN 1 ELSE 0 END) AS s4Count
+                FROM tickets t
+                LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
+                LEFT JOIN categories c ON c.category_id = sc.category_id
+                WHERE (:assignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:assignedTo))
+                  AND (:fromDate IS NULL OR t.reported_date >= :fromDate)
+                  AND (:toDate IS NULL OR t.reported_date <= :toDate)
+                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
+                ORDER BY categoryName, subcategoryName
+            """, nativeQuery = true)
     List<DashboardCategoryAggregation> aggregateDashboardStatsByCategory(@Param("assignedTo") String assignedTo,
                                                                          @Param("fromDate") LocalDateTime fromDate,
                                                                          @Param("toDate") LocalDateTime toDate);
@@ -280,9 +288,13 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     }
 
     interface DashboardCategoryAggregation {
-        String getCategory();
+        String getCategoryId();
 
-        String getSubcategory();
+        String getCategoryName();
+
+        String getSubcategoryId();
+
+        String getSubcategoryName();
 
         Long getPendingCount();
 
