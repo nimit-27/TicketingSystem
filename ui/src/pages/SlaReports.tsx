@@ -1,14 +1,14 @@
 import React from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Box, TextField, Typography } from "@mui/material";
 import Title from "../components/Title";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
+import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import { timeScaleOptions, timeRangeOptions } from "../utils/misReports";
 import { useMisReportFilters } from "../hooks/useMisReportFilters";
 import { useMisReportDownloader } from "../hooks/useMisReportDownloader";
 
-const MISReports: React.FC = () => {
+const SlaReports: React.FC = () => {
     const {
         requestParams,
         timeScale,
@@ -31,15 +31,18 @@ const MISReports: React.FC = () => {
 
     const { downloading, handleDownload, handleEmail } = useMisReportDownloader(requestParams);
 
-    let misReportGeneratorComponent = <MISReportGenerator
-        onDownload={handleDownload}
-        onEmail={handleEmail}
-        defaultPeriod="daily"
-        busy={downloading}
-    />;
+    const misReportGeneratorComponent = (
+        <MISReportGenerator
+            onDownload={handleDownload}
+            onEmail={handleEmail}
+            defaultPeriod="daily"
+            busy={downloading}
+        />
+    );
+
     return (
         <div className="d-flex flex-column flex-grow-1">
-            <Title textKey="Management Information System Reports" rightContent={misReportGeneratorComponent} />
+            <Title textKey="SLA Reports" rightContent={misReportGeneratorComponent} />
 
             <Box display="flex" flexDirection="column" gap={2}>
                 <Typography variant="subtitle2" color="text.secondary">
@@ -48,7 +51,7 @@ const MISReports: React.FC = () => {
                 <Box className="row g-3" alignItems="stretch">
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
-                            id="mis-report-interval"
+                            id="sla-report-interval"
                             label="Interval"
                             value={timeScale}
                             onChange={handleTimeScaleChange}
@@ -59,7 +62,7 @@ const MISReports: React.FC = () => {
                     </Box>
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
-                            id="mis-report-range"
+                            id="sla-report-range"
                             label="Range"
                             value={timeRange}
                             onChange={handleTimeRangeChange}
@@ -70,7 +73,7 @@ const MISReports: React.FC = () => {
                     </Box>
                     <Box className="col-12 col-md-6 col-lg-3">
                         <TextField
-                            id="mis-report-from"
+                            id="sla-report-from"
                             label="From Date"
                             type="date"
                             value={activeDateRange.from}
@@ -82,7 +85,7 @@ const MISReports: React.FC = () => {
                     </Box>
                     <Box className="col-12 col-md-6 col-lg-3">
                         <TextField
-                            id="mis-report-to"
+                            id="sla-report-to"
                             label="To Date"
                             type="date"
                             value={activeDateRange.to}
@@ -124,7 +127,7 @@ const MISReports: React.FC = () => {
                 <Box className="row g-3">
                     <Box className="col-12 col-md-6">
                         <GenericDropdown
-                            id="mis-report-category"
+                            id="sla-report-category"
                             label="Category"
                             value={selectedCategory}
                             onChange={handleCategoryChange}
@@ -135,7 +138,7 @@ const MISReports: React.FC = () => {
                     </Box>
                     <Box className="col-12 col-md-6">
                         <GenericDropdown
-                            id="mis-report-subcategory"
+                            id="sla-report-subcategory"
                             label="Subcategory"
                             value={selectedSubCategory}
                             onChange={handleSubCategoryChange}
@@ -148,31 +151,9 @@ const MISReports: React.FC = () => {
                 </Box>
             </Box>
 
-            <Box display="flex" flexDirection="column" gap={2}>
-                <Typography variant="subtitle1" fontWeight={700}>
-                    View individual MIS report pages
-                </Typography>
-                <Box display="flex" gap={2} flexWrap="wrap">
-                    <Button component={RouterLink} to="/mis-reports/ticket-summary" variant="outlined">
-                        Ticket Summary
-                    </Button>
-                    <Button component={RouterLink} to="/mis-reports/resolution-time" variant="outlined">
-                        Resolution Time
-                    </Button>
-                    <Button
-                        component={RouterLink}
-                        to="/mis-reports/customer-satisfaction"
-                        variant="outlined"
-                    >
-                        Customer Satisfaction
-                    </Button>
-                    <Button component={RouterLink} to="/mis-reports/problem-management" variant="outlined">
-                        Problem Management
-                    </Button>
-                </Box>
-            </Box>
+            <SlaPerformanceReport params={requestParams} />
         </div>
     );
 };
 
-export default MISReports;
+export default SlaReports;
