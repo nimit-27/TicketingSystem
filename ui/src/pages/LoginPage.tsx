@@ -8,6 +8,7 @@ import TranslateIcon from "@mui/icons-material/Translate";
 import DeveloperModeIcon from "@mui/icons-material/DeveloperMode";
 import { InputAdornment } from "@mui/material";
 import CustomTabsComponent, { TabItem } from "../components/UI/CustomTabsComponent";
+import { useTranslation } from "react-i18next";
 import { loginUser, LoginPayload } from "../services/AuthService";
 import { useApi } from "../hooks/useApi";
 import { setPermissions } from "../utils/permissions";
@@ -50,17 +51,13 @@ interface LoginResponse {
     [key: string]: any;
 }
 
-const portalLabels: Record<PortalType, string> = {
-    requestor: "Requester",
-    helpdesk: "Helpdesk",
-};
-
 const LoginPage: FC = () => {
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
     const [selectedPortal, setSelectedPortal] = useState<PortalType>("requestor");
     const navigate = useNavigate();
 
+    const { t } = useTranslation();
     const { devMode, jwtBypass, toggleJwtBypass, toggleDevMode } = useContext(DevModeContext);
     const { mode, toggle: toggleTheme } = useContext(ThemeModeContext);
     const { toggleLanguage } = useContext(LanguageContext);
@@ -68,8 +65,8 @@ const LoginPage: FC = () => {
     const { data: loginData, error: loginError, apiHandler: loginApiHandler } = useApi<LoginResponse>();
 
     useEffect(() => {
-        document.title = "Login";
-    }, []);
+        document.title = t("Login");
+    }, [t]);
 
     useEffect(() => {
         const persistLoginData = async () => {
@@ -164,11 +161,11 @@ const LoginPage: FC = () => {
         <form className="login-form" onSubmit={handleSubmit}>
             <GenericInput
                 id={`${portal}-username`}
-                label="Username / Employee Id"
+                label={t("Username / Employee Id")}
                 fullWidth
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
-                placeholder="Enter Username"
+                placeholder={t("Enter Username")}
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
@@ -180,12 +177,12 @@ const LoginPage: FC = () => {
 
             <GenericInput
                 id={`${portal}-password`}
-                label="Password"
+                label={t("Password")}
                 type="password"
                 fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter Password"
+                placeholder={t("Enter Password")}
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
@@ -198,10 +195,10 @@ const LoginPage: FC = () => {
             <div className="login-row">
                 <label className="remember-option">
                     <input type="checkbox" />
-                    Remember Me
+                    {t("Remember Me")}
                 </label>
                 <Link to="/forget-password" className="link subtle-link">
-                    Forget Password?
+                    {t("Forget Password?")}
                 </Link>
             </div>
 
@@ -212,10 +209,10 @@ const LoginPage: FC = () => {
             )}
 
             <GenericButton type="submit" variant="contained" color="success" fullWidth sx={{ borderRadius: 2, fontWeight: 800 }}>
-                LOGIN
+                {t("LOGIN")}
             </GenericButton>
 
-            <div className="divider">Or</div>
+            <div className="divider">{t("Or")}</div>
 
             <GenericButton
                 type="button"
@@ -224,7 +221,7 @@ const LoginPage: FC = () => {
                 fullWidth
                 sx={{ borderRadius: 2, fontWeight: 800 }}
             >
-                Login Via Anna Darpan
+                {t("Login Via Anna Darpan")}
             </GenericButton>
 
             {envDevMode && devMode && (
@@ -235,6 +232,11 @@ const LoginPage: FC = () => {
             )}
         </form>
     );
+
+    const portalLabels: Record<PortalType, string> = useMemo(() => ({
+        requestor: t("Requester"),
+        helpdesk: t("Helpdesk"),
+    }), [t]);
 
     const tabs: TabItem[] = [
         {
@@ -280,20 +282,20 @@ const LoginPage: FC = () => {
                                     <h3 className="m-0">सबको <span style={{ color: "#f26727" }}>अन्न</span> सबको <span style={{ color: "#f26727" }}>अन्न</span> आहार </h3>
                                 </div>
                             </div>
-                            <p className="welcome">Welcome to</p>
-                            <h2 className="title">Anna Darpan</h2>
-                            <p className="description">Ticketing System</p>
+                            <p className="welcome">{t("Welcome to")}</p>
+                            <h2 className="title">{t("Anna Darpan")}</h2>
+                            <p className="description">{t("Ticketing System")}</p>
                         </div>
                     </div>
-                    <footer className="login-footer w-100 position-absolute" style={{ bottom: 0 }}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       >
-                        <Link to="/public/faq" className="link">Frequently Asked Questions</Link>
+                    <footer className="login-footer w-100 position-absolute" style={{ bottom: 0 }}>
+                        <Link to="/public/faq" className="link">{t("Frequently Asked Questions")}</Link>
                         <img className="login-leaf position-absolute" src="./menu-leaf.png" alt="Decorative leaf" />
                     </footer>
                 </div>
 
                 <div className="login-right">
                     <div>
-                        <h2 className="login-card__title">Login</h2>
+                        <h2 className="login-card__title">{t("Login")}</h2>
                         <CustomTabsComponent
                             tabs={tabs}
                             currentTab={selectedPortal}
