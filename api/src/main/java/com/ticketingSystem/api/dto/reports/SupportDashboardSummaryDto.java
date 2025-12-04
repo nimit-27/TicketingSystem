@@ -14,6 +14,8 @@ import java.util.List;
 public class SupportDashboardSummaryDto {
     private SupportDashboardSummarySectionDto allTickets;
     private SupportDashboardSummarySectionDto myWorkload;
+    private List<SupportDashboardCategorySummaryDto> allTicketsByCategory;
+    private List<SupportDashboardCategorySummaryDto> myWorkloadByCategory;
     private SupportDashboardOpenResolvedDto openResolved;
     private List<SupportDashboardSlaCompliancePointDto> slaCompliance;
     private List<SupportDashboardTicketVolumePointDto> ticketVolume;
