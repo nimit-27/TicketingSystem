@@ -6,7 +6,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import TranslateIcon from "@mui/icons-material/Translate";
 import DeveloperModeIcon from "@mui/icons-material/DeveloperMode";
-import { InputAdornment } from "@mui/material";
+import { InputAdornment, useTheme } from "@mui/material";
 import CustomTabsComponent, { TabItem } from "../components/UI/CustomTabsComponent";
 import { useTranslation } from "react-i18next";
 import { loginUser, LoginPayload } from "../services/AuthService";
@@ -52,6 +52,8 @@ interface LoginResponse {
 }
 
 const LoginPage: FC = () => {
+    const theme = useTheme();
+
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
     const [selectedPortal, setSelectedPortal] = useState<PortalType>("requestor");
@@ -270,7 +272,7 @@ const LoginPage: FC = () => {
             </div>
 
             <div className="login-layout">
-                <div className="d-flex flex-column login-left position-relative">
+                <div className="d-flex flex-column login-left position-relative" style={{ background: theme.palette.sidebar.background }}>
                     <div className="login-left w-100">
                         <div className="login-left__content">
                             <div className="justify-content-center">
@@ -287,7 +289,7 @@ const LoginPage: FC = () => {
                             <p className="description">{t("Ticketing System")}</p>
                         </div>
                     </div>
-                    <footer className="login-footer w-100 position-absolute" style={{ bottom: 0 }}>
+                    <footer className="login-footer w-100 position-absolute" style={{ bottom: 0, background: theme.palette.header.background }}>
                         <Link to="/public/faq" className="link">{t("Frequently Asked Questions")}</Link>
                         <img className="login-leaf position-absolute" src="./menu-leaf.png" alt="Decorative leaf" />
                     </footer>
