@@ -20,6 +20,8 @@ import {
     ProblemManagementReportProps,
     TicketResolutionTimeReportProps,
     TicketSummaryReportProps,
+    SupportDashboardTimeRange,
+    SupportDashboardTimeScale,
 } from "../types/reports";
 import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
 import { useCategoryFilters } from "../hooks/useCategoryFilters";
@@ -85,8 +87,169 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
 };
 
 const ADMIN_ROLES = new Set(["Team Lead", "System Administrator", "Regional Nodal Officer"]);
+
 const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
 
+const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
+    { value: "DAILY", label: "Interval" },
+    { value: "WEEKLY", label: "Weekly" },
+    { value: "MONTHLY", label: "Monthly" },
+    { value: "YEARLY", label: "Yearly" },
+    { value: "CUSTOM", label: "Custom" },
+];
+
+const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
+    DAILY: [
+        { value: "LAST_7_DAYS", label: "Last 7 Days" },
+        { value: "LAST_30_DAYS", label: "Last 30 Days" },
+    ],
+    WEEKLY: [
+        { value: "LAST_4_WEEKS", label: "Last 4 Weeks" },
+    ],
+    MONTHLY: [
+        { value: "LAST_6_MONTHS", label: "Last 6 Months" },
+        { value: "CURRENT_YEAR", label: "Current Year" },
+        { value: "LAST_YEAR", label: "Previous Year" },
+        { value: "LAST_5_YEARS", label: "Last 5 Years" },
+        { value: "CUSTOM_MONTH_RANGE", label: "Custom Range" },
+        { value: "ALL_TIME", label: "All Time" },
+    ],
+    YEARLY: [
+        { value: "YEAR_TO_DATE", label: "Year To Date" },
+        { value: "LAST_YEAR", label: "Previous Year" },
+        { value: "LAST_5_YEARS", label: "Last 5 Years" },
+    ],
+    CUSTOM: [{ value: "CUSTOM_DATE_RANGE", label: "Custom Dates" }],
+};
+
+const startOfWeek = (date: Date) => {
+    const clone = new Date(date);
+    const day = clone.getDay();
+    const diff = (day + 6) % 7;
+    clone.setDate(clone.getDate() - diff);
+    return clone;
+};
+
+const endOfWeek = (date: Date) => {
+    const start = startOfWeek(date);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return end;
+};
+
+const startOfYear = (year: number) => new Date(year, 0, 1);
+const endOfYear = (year: number) => new Date(year, 11, 31);
+const endOfMonth = (year: number, monthIndex: number) => new Date(year, monthIndex + 1, 0);
+
+const calculateDateRange = (
+    timeScale: SupportDashboardTimeScale,
+    timeRange: SupportDashboardTimeRange,
+    customMonthRange: { start: number | null; end: number | null },
+) => {
+    const today = new Date();
+
+    const buildRange = (from: Date | null, to: Date | null) => ({
+        from: from ? formatDateInput(from) : "",
+        to: to ? formatDateInput(to) : "",
+    });
+
+    if (timeScale === "CUSTOM" || timeRange === "CUSTOM_DATE_RANGE") {
+        return buildRange(null, null);
+    }
+
+    switch (timeScale) {
+        case "DAILY": {
+            if (timeRange === "LAST_DAY") {
+                const from = new Date(today);
+                from.setDate(from.getDate() - 1);
+                return buildRange(from, today);
+            }
+
+            if (timeRange === "LAST_7_DAYS") {
+                const from = new Date(today);
+                from.setDate(from.getDate() - 6);
+                return buildRange(from, today);
+            }
+
+            const from = new Date(today);
+            from.setDate(from.getDate() - 29);
+            return buildRange(from, today);
+        }
+        case "WEEKLY": {
+            if (timeRange === "THIS_WEEK") {
+                return buildRange(startOfWeek(today), endOfWeek(today));
+            }
+
+            if (timeRange === "LAST_WEEK") {
+                const start = startOfWeek(today);
+                start.setDate(start.getDate() - 7);
+                const end = endOfWeek(start);
+                return buildRange(start, end);
+            }
+
+            const start = startOfWeek(today);
+            start.setDate(start.getDate() - 21);
+            const end = endOfWeek(today);
+            return buildRange(start, end);
+        }
+        case "MONTHLY": {
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+
+            if (timeRange === "LAST_6_MONTHS") {
+                const startMonth = new Date(today);
+                startMonth.setMonth(currentMonth - 5, 1);
+                const endMonth = endOfMonth(currentYear, currentMonth);
+                return buildRange(startMonth, endMonth);
+            }
+
+            if (timeRange === "CURRENT_YEAR") {
+                return buildRange(startOfYear(currentYear), today);
+            }
+
+            if (timeRange === "LAST_YEAR") {
+                return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+            }
+
+            if (timeRange === "LAST_5_YEARS") {
+                return buildRange(startOfYear(currentYear - 4), endOfMonth(currentYear, currentMonth));
+            }
+
+            if (timeRange === "ALL_TIME") {
+                return buildRange(null, null);
+            }
+
+            if (timeRange === "CUSTOM_MONTH_RANGE") {
+                const { start, end } = customMonthRange;
+
+                if (start === null || end === null) {
+                    return buildRange(null, null);
+                }
+
+                const safeStart = startOfYear(start);
+                const safeEnd = endOfYear(end);
+                return buildRange(safeStart, safeEnd);
+            }
+
+            return buildRange(null, null);
+        }
+        case "YEARLY": {
+            const currentYear = today.getFullYear();
+
+            if (timeRange === "YEAR_TO_DATE") {
+                return buildRange(startOfYear(currentYear), today);
+            }
+
+            if (timeRange === "LAST_YEAR") {
+                return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+            }
+
+            return buildRange(startOfYear(currentYear - 4), endOfYear(currentYear));
+        }
+        default:
+            return buildRange(null, null);
+    }
+};
 const MISReports: React.FC = () => {
     const [downloading, setDownloading] = useState(false);
     const { showMessage } = useSnackbar();
@@ -94,31 +257,62 @@ const MISReports: React.FC = () => {
     const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
-    const [dateRange, setDateRange] = useState<{ from: string; to: string }>(() => {
-        const today = new Date();
-        const start = new Date();
-        start.setDate(today.getDate() - 30);
-        return { from: formatDateInput(start), to: formatDateInput(today) };
-    });
+    const [timeScale, setTimeScale] = useState<SupportDashboardTimeScale>("DAILY");
+    const [timeRange, setTimeRange] = useState<SupportDashboardTimeRange>("LAST_30_DAYS");
+    const [customMonthRange, setCustomMonthRange] = useState<{ start: number | null; end: number | null }>(() => ({
+        start: null,
+        end: null,
+    }));
+    const [dateRange, setDateRange] = useState<{ from: string; to: string }>(() =>
+        calculateDateRange("DAILY", "LAST_30_DAYS", { start: null, end: null }),
+    );
+    const availableTimeRanges = useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
 
     const viewScope: MISReportRequestParams["scope"] = useMemo(() => {
         const roles = userDetails?.role ?? [];
         return roles.some((role) => ADMIN_ROLES.has(role)) ? "all" : "user";
     }, [userDetails?.role]);
 
+    const activeDateRange = useMemo(() => {
+        if (timeScale === "CUSTOM" || timeRange === "CUSTOM_DATE_RANGE") {
+            return dateRange;
+        }
+
+        return calculateDateRange(timeScale, timeRange, customMonthRange);
+    }, [customMonthRange, dateRange, timeRange, timeScale]);
+
     const requestParams = useMemo<MISReportRequestParams>(() => {
         const categoryId = selectedCategory === "All" ? undefined : selectedCategory;
         const subCategoryId = categoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
 
         return {
-            fromDate: dateRange.from,
-            toDate: dateRange.to,
+            fromDate: activeDateRange.from,
+            toDate: activeDateRange.to,
             scope: viewScope,
             userId: userDetails?.userId,
             categoryId,
             subCategoryId,
         };
-    }, [dateRange.from, dateRange.to, selectedCategory, selectedSubCategory, userDetails?.userId, viewScope]);
+    }, [activeDateRange.from, activeDateRange.to, selectedCategory, selectedSubCategory, userDetails?.userId, viewScope]);
+
+    const handleTimeScaleChange = (event: SelectChangeEvent<string>) => {
+        const newScale = event.target.value as SupportDashboardTimeScale;
+        setTimeScale(newScale);
+        const defaultRange = timeRangeOptions[newScale]?.[0]?.value ?? "CUSTOM_DATE_RANGE";
+        setTimeRange(defaultRange);
+    };
+
+    const handleTimeRangeChange = (event: SelectChangeEvent<string>) => {
+        setTimeRange(event.target.value as SupportDashboardTimeRange);
+    };
+
+    const handleCustomMonthRangeChange = (key: "start" | "end") =>
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const value = event.target.value ? Number(event.target.value) : null;
+            setCustomMonthRange((previous) => ({ ...previous, [key]: value }));
+            setTimeScale("MONTHLY");
+            setTimeRange("CUSTOM_MONTH_RANGE");
+        };
 
     const handleDateChange = (key: "from" | "to") => (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
@@ -134,6 +328,8 @@ const MISReports: React.FC = () => {
 
             return { ...previous, [key]: value };
         });
+        setTimeScale("CUSTOM");
+        setTimeRange("CUSTOM_DATE_RANGE");
     };
 
     const handleCategoryChange = (event: SelectChangeEvent<string>) => {
@@ -154,6 +350,14 @@ const MISReports: React.FC = () => {
         resetSubCategories();
         setSelectedSubCategory("All");
     }, [loadSubCategories, resetSubCategories, selectedCategory]);
+
+    React.useEffect(() => {
+        if (timeScale === "CUSTOM" || timeRange === "CUSTOM_DATE_RANGE") {
+            return;
+        }
+
+        setDateRange(calculateDateRange(timeScale, timeRange, customMonthRange));
+    }, [customMonthRange, timeRange, timeScale]);
 
     const downloadExcel = async (period: ReportPeriod, range: ReportRange) => {
         setDownloading(true);
@@ -470,48 +674,110 @@ const MISReports: React.FC = () => {
         <div className="d-flex flex-column flex-grow-1">
             <Title textKey="Management Information System Reports" rightContent={misReportGeneratorComponent} />
 
-            <Box display="flex" flexDirection="column" gap={1}>
+            <Box display="flex" flexDirection="column" gap={2}>
                 <Typography variant="subtitle2" color="text.secondary">
                     Viewing data for {viewScope === "all" ? "all tickets" : "your workload"}
                 </Typography>
-                <Box display="flex" gap={2} flexWrap="wrap">
-                    <TextField
-                        id="mis-report-from"
-                        label="From Date"
-                        type="date"
-                        value={dateRange.from}
-                        onChange={handleDateChange("from")}
-                        InputLabelProps={{ shrink: true }}
-                        size="small"
-                    />
-                    <TextField
-                        id="mis-report-to"
-                        label="To Date"
-                        type="date"
-                        value={dateRange.to}
-                        onChange={handleDateChange("to")}
-                        InputLabelProps={{ shrink: true }}
-                        size="small"
-                    />
+                <Box className="row g-3" alignItems="stretch">
+                    <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                        <GenericDropdown
+                            id="mis-report-interval"
+                            label="Interval"
+                            value={timeScale}
+                            onChange={handleTimeScaleChange}
+                            options={timeScaleOptions}
+                            fullWidth
+                            className="w-100"
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                        <GenericDropdown
+                            id="mis-report-range"
+                            label="Range"
+                            value={timeRange}
+                            onChange={handleTimeRangeChange}
+                            options={availableTimeRanges}
+                            fullWidth
+                            className="w-100"
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <TextField
+                            id="mis-report-from"
+                            label="From Date"
+                            type="date"
+                            value={activeDateRange.from}
+                            onChange={handleDateChange("from")}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            fullWidth
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <TextField
+                            id="mis-report-to"
+                            label="To Date"
+                            type="date"
+                            value={activeDateRange.to}
+                            onChange={handleDateChange("to")}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            fullWidth
+                        />
+                    </Box>
                 </Box>
-                <Box display="flex" gap={2} flexWrap="wrap">
-                    <GenericDropdown
-                        id="mis-report-category"
-                        label="Category"
-                        value={selectedCategory}
-                        onChange={handleCategoryChange}
-                        options={categoryOptions}
-                        fullWidth
-                    />
-                    <GenericDropdown
-                        id="mis-report-subcategory"
-                        label="Subcategory"
-                        value={selectedSubCategory}
-                        onChange={handleSubCategoryChange}
-                        options={subCategoryOptions}
-                        fullWidth
-                        disabled={selectedCategory === "All"}
-                    />
+
+                {timeScale === "MONTHLY" && timeRange === "CUSTOM_MONTH_RANGE" && (
+                    <Box className="row g-3">
+                        <Box className="col-12 col-md-6 col-lg-3">
+                            <TextField
+                                label="Start Year"
+                                type="number"
+                                size="small"
+                                value={customMonthRange.start ?? ""}
+                                onChange={handleCustomMonthRangeChange("start")}
+                                inputProps={{ min: 1970, max: new Date().getFullYear(), step: 1 }}
+                                fullWidth
+                            />
+                        </Box>
+                        <Box className="col-12 col-md-6 col-lg-3">
+                            <TextField
+                                label="End Year"
+                                type="number"
+                                size="small"
+                                value={customMonthRange.end ?? ""}
+                                onChange={handleCustomMonthRangeChange("end")}
+                                inputProps={{ min: 1970, max: new Date().getFullYear(), step: 1 }}
+                                fullWidth
+                            />
+                        </Box>
+                    </Box>
+                )}
+
+                <Box className="row g-3">
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown
+                            id="mis-report-category"
+                            label="Category"
+                            value={selectedCategory}
+                            onChange={handleCategoryChange}
+                            options={categoryOptions}
+                            fullWidth
+                            className="w-100"
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown
+                            id="mis-report-subcategory"
+                            label="Subcategory"
+                            value={selectedSubCategory}
+                            onChange={handleSubCategoryChange}
+                            options={subCategoryOptions}
+                            fullWidth
+                            className="w-100"
+                            disabled={selectedCategory === "All"}
+                        />
+                    </Box>
                 </Box>
             </Box>
 
