@@ -210,10 +210,13 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     // }, [stakeholder]);
 
     useEffect(() => {
-        // When mode changes and is not "Self", enable the form fields
+        // When mode changes and is not "Self", enable the form fields and clear any selected user
         if (mode && mode !== "Self") {
+            clearUserDetails();
+            setSelectedUser(null);
+            setSearchText("");
+            setVerified(false);
             setDisabled(false);
-            // clearRequestorDetailsForm()
         }
         // If mode is "Self", populate the logged in user details
         else if (mode === "Self") {
