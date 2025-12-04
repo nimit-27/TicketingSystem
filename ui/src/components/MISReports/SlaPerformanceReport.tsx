@@ -4,6 +4,8 @@ import {
     Button,
     Chip,
     CircularProgress,
+    Card,
+    CardContent,
     Grid,
     Paper,
     Table,
@@ -35,12 +37,12 @@ const formatNumber = (value: number | undefined | null, fractionDigits = 0) => {
     }).format(value);
 };
 
-const formatDuration = (minutes: number | undefined | null) => {
+const formatDuration = (minutes: number | undefined | null, fractionDigits = 0) => {
     if (!minutes || Number.isNaN(minutes) || minutes <= 0) {
         return "-";
     }
     if (minutes < 60) {
-        return `${formatNumber(minutes, 0)} mins`;
+        return `${formatNumber(minutes, fractionDigits)} mins`;
     }
     const hours = Math.floor(minutes / 60);
     const remaining = minutes % 60;
@@ -375,23 +377,29 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                 <Box display="flex" flexDirection="column" gap={3}>
                     <Grid container spacing={2}>
                         {summaryMetrics.map((metric) => (
-                            <Grid key={metric.label}>
-                                <Paper
-                                    elevation={metric.highlight ? 3 : 1}
+                            <Grid key={metric.label} item xs={12} sm={6} md={4} lg={2}>
+                                <Card
+                                    elevation={metric.highlight ? 4 : 1}
                                     sx={{
-                                        p: 2,
-                                        borderLeft: metric.highlight
+                                        height: "100%",
+                                        borderTop: metric.highlight
                                             ? `4px solid ${theme.palette.error.main}`
                                             : `4px solid ${theme.palette.divider}`,
                                     }}
                                 >
-                                    <Typography variant="caption" color="text.secondary">
-                                        {metric.label}
-                                    </Typography>
-                                    <Typography variant="h5" fontWeight={700} sx={{ mt: 0.5 }}>
-                                        {metric.value}
-                                    </Typography>
-                                </Paper>
+                                    <CardContent>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ textTransform: "uppercase", fontWeight: 600 }}
+                                        >
+                                            {metric.label}
+                                        </Typography>
+                                        <Typography variant="h5" fontWeight={700} sx={{ mt: 1 }}>
+                                            {metric.value}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
                             </Grid>
                         ))}
                     </Grid>
@@ -403,7 +411,7 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                         />
                         <Chip
                             color="info"
-                            label={`Average Breach: ${formatDuration(data.averageBreachMinutes)}`}
+                            label={`Average Breach: ${formatDuration(data.averageBreachMinutes, 1)}`}
                         />
                         <Typography variant="body2" color="text.secondary">
                             In-progress tickets on track: {formatNumber(data.inProgressOnTrackTickets)} | Breached:
