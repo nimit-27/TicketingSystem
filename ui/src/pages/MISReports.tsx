@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import * as XLSX from "xlsx";
 import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import Title from "../components/Title";
 import { useSnackbar } from "../context/SnackbarContext";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
+import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { getCurrentUserDetails } from "../config/config";
 import {
     fetchCustomerSatisfactionReport,
@@ -21,6 +22,7 @@ import {
     TicketSummaryReportProps,
 } from "../types/reports";
 import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
+import { useCategoryFilters } from "../hooks/useCategoryFilters";
 
 const extractApiPayload = <T,>(response: any): T | null => {
     const rawPayload = response?.data ?? response;
@@ -89,6 +91,9 @@ const MISReports: React.FC = () => {
     const [downloading, setDownloading] = useState(false);
     const { showMessage } = useSnackbar();
     const userDetails = useMemo(() => getCurrentUserDetails(), []);
+    const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
+    const [selectedCategory, setSelectedCategory] = useState<string>("All");
+    const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
     const [dateRange, setDateRange] = useState<{ from: string; to: string }>(() => {
         const today = new Date();
         const start = new Date();
@@ -102,13 +107,18 @@ const MISReports: React.FC = () => {
     }, [userDetails?.role]);
 
     const requestParams = useMemo<MISReportRequestParams>(() => {
+        const categoryId = selectedCategory === "All" ? undefined : selectedCategory;
+        const subCategoryId = categoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
+
         return {
             fromDate: dateRange.from,
             toDate: dateRange.to,
             scope: viewScope,
             userId: userDetails?.userId,
+            categoryId,
+            subCategoryId,
         };
-    }, [dateRange.from, dateRange.to, userDetails?.userId, viewScope]);
+    }, [dateRange.from, dateRange.to, selectedCategory, selectedSubCategory, userDetails?.userId, viewScope]);
 
     const handleDateChange = (key: "from" | "to") => (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
@@ -125,6 +135,25 @@ const MISReports: React.FC = () => {
             return { ...previous, [key]: value };
         });
     };
+
+    const handleCategoryChange = (event: SelectChangeEvent<string>) => {
+        setSelectedCategory(event.target.value as string);
+    };
+
+    const handleSubCategoryChange = (event: SelectChangeEvent<string>) => {
+        setSelectedSubCategory(event.target.value as string);
+    };
+
+    React.useEffect(() => {
+        if (selectedCategory && selectedCategory !== "All") {
+            loadSubCategories(selectedCategory);
+            setSelectedSubCategory("All");
+            return;
+        }
+
+        resetSubCategories();
+        setSelectedSubCategory("All");
+    }, [loadSubCategories, resetSubCategories, selectedCategory]);
 
     const downloadExcel = async (period: ReportPeriod, range: ReportRange) => {
         setDownloading(true);
@@ -457,6 +486,25 @@ const MISReports: React.FC = () => {
                         onChange={handleDateChange("to")}
                         InputLabelProps={{ shrink: true }}
                         size="small"
+                    />
+                </Box>
+                <Box display="flex" gap={2} flexWrap="wrap">
+                    <GenericDropdown
+                        id="mis-report-category"
+                        label="Category"
+                        value={selectedCategory}
+                        onChange={handleCategoryChange}
+                        options={categoryOptions}
+                        fullWidth
+                    />
+                    <GenericDropdown
+                        id="mis-report-subcategory"
+                        label="Subcategory"
+                        value={selectedSubCategory}
+                        onChange={handleSubCategoryChange}
+                        options={subCategoryOptions}
+                        fullWidth
+                        disabled={selectedCategory === "All"}
                     />
                 </Box>
             </Box>
