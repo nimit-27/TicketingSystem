@@ -116,7 +116,7 @@ const MISReportGenerator: React.FC<MISReportGeneratorProps> = ({
                 startIcon={<DownloadIcon />}
                 disabled={busy}
             >
-                {busy ? "Preparing..." : "Generate Report"}
+                {busy ? "Preparing..." : ""}
             </Button>
 
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">

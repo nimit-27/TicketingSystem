@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Card, CardContent, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -434,7 +434,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     apiHandler: getSummaryApiHandler,
   } = useApi<SupportDashboardSummaryResponse>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
 
     import("recharts")
@@ -498,11 +498,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setActiveScope((current) => (current !== preferredScope ? preferredScope : current));
   }, [preferredScope]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
       return;
     }
@@ -519,7 +519,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     });
   }, [currentYear, timeRange, timeScale]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedCategory && selectedCategory !== "All") {
       loadSubCategories(selectedCategory);
       setSelectedSubCategory("All");
@@ -528,7 +528,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
     resetSubCategories();
     setSelectedSubCategory("All");
-  }, [loadSubCategories, resetSubCategories, selectedCategory]);
+  }, []);
 
   const customRangeIsValid = React.useMemo(() => {
     if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
@@ -556,7 +556,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [customMonthRange, timeRange, timeScale],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (timeScale === "CUSTOM") {
       return;
     }
@@ -975,15 +975,13 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     setSelectedSubCategory(event.target.value as string);
   }, []);
 
-  React.useEffect(() => {
-    if (!requestParams) {
-      return;
-    }
+  useEffect(() => {
+    if (!requestParams) return;
 
     void getSummaryApiHandler(() => fetchSupportDashboardSummary(requestParams));
-  }, [getSummaryApiHandler, requestParams]);
+  }, [requestParams]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const resolvedSummary = createDefaultSummary();
     const availabilitySnapshot: SupportDashboardSummary = { allTickets: null, myWorkload: null };
 
@@ -1099,9 +1097,16 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Bar, LineChart, Line } =
     recharts;
 
+  const misReportGeneratorComponent = <MISReportGenerator
+    onDownload={handleReportDownload}
+    onEmail={handleReportEmail}
+    defaultPeriod="daily"
+    busy={isLoading || downloadingReport}
+  />
+
   return (
     <div className="d-flex flex-column flex-grow-1">
-      <Title textKey="Dashboard" />
+      <Title textKey="Dashboard" rightContent={misReportGeneratorComponent} />
       <div className="row -mb-4">
         <div className="d-flex flex-column gap-3 w-100">
           <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-3 flex-wrap">
@@ -1207,15 +1212,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               onChange={handleDateRangeChange("to")}
               InputLabelProps={{ shrink: true }}
               disabled={isLoading}
-            />
-          </Box>
-
-          <Box className="d-flex">
-            <MISReportGenerator
-              onDownload={handleReportDownload}
-              onEmail={handleReportEmail}
-              defaultPeriod="daily"
-              busy={isLoading || downloadingReport}
             />
           </Box>
 
