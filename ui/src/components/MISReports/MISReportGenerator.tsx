@@ -53,6 +53,12 @@ const formatRange = (range: ReportRange) => {
     return `${format(range.startDate)} — ${format(range.endDate)}`;
 };
 
+const normalizeDateInput = (value: string): Date | null => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const MISReportGenerator: React.FC<MISReportGeneratorProps> = ({
     defaultPeriod = "daily",
     downloadOptions = DEFAULT_DOWNLOAD_OPTIONS,
@@ -63,8 +69,23 @@ const MISReportGenerator: React.FC<MISReportGeneratorProps> = ({
     const [open, setOpen] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<ReportPeriod>(defaultPeriod);
     const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
+    const [customFromDate, setCustomFromDate] = useState("");
+    const [customToDate, setCustomToDate] = useState("");
 
-    const range = useMemo(() => calculatePeriodRange(selectedPeriod), [selectedPeriod]);
+    const presetRange = useMemo(() => calculatePeriodRange(selectedPeriod), [selectedPeriod]);
+
+    const customRange: ReportRange | null = useMemo(() => {
+        const start = normalizeDateInput(customFromDate);
+        const end = normalizeDateInput(customToDate);
+
+        if (!start || !end || start > end) {
+            return null;
+        }
+
+        return { startDate: start, endDate: end };
+    }, [customFromDate, customToDate]);
+
+    const range = customRange ?? presetRange;
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
@@ -117,12 +138,43 @@ const MISReportGenerator: React.FC<MISReportGeneratorProps> = ({
                             ))}
                         </TextField>
 
+                        <Box display="flex" gap={2} flexWrap="wrap">
+                            <TextField
+                                id="mis-report-custom-from"
+                                label="From Date"
+                                type="date"
+                                fullWidth
+                                value={customFromDate}
+                                onChange={(event) => setCustomFromDate(event.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                            />
+                            <TextField
+                                id="mis-report-custom-to"
+                                label="To Date"
+                                type="date"
+                                fullWidth
+                                value={customToDate}
+                                onChange={(event) => setCustomToDate(event.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                error={Boolean(customRange === null && customFromDate && customToDate)}
+                                helperText={
+                                    customRange === null && customFromDate && customToDate
+                                        ? "Please ensure From Date is not after To Date."
+                                        : undefined
+                                }
+                            />
+                        </Box>
+
                         <Box p={2} borderRadius={1} bgcolor="rgba(0,0,0,0.03)">
                             <Typography variant="subtitle2" gutterBottom>
                                 Selected range
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                {getPeriodLabel(selectedPeriod)} report will cover {formatRange(range)}.
+                                {customRange
+                                    ? `Custom range selected: ${formatRange(range)}`
+                                    : `${getPeriodLabel(selectedPeriod)} report will cover ${formatRange(range)}.`}
                             </Typography>
                         </Box>
                     </Stack>

@@ -25,6 +25,7 @@ import { getUserDetails } from "../utils/Utils";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import { useSnackbar } from "../context/SnackbarContext";
 import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
+import { useCategoryFilters } from "../hooks/useCategoryFilters";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -421,6 +422,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [dateRange, setDateRange] = React.useState<{ from: string; to: string }>(() =>
     calculateDateRange(initialTimeScale, initialTimeRange, { start: null, end: null }),
   );
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
+  const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -493,6 +496,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   );
 
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
+  const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
   React.useEffect(() => {
     setActiveScope((current) => (current !== preferredScope ? preferredScope : current));
@@ -514,6 +518,17 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       return { start, end };
     });
   }, [currentYear, timeRange, timeScale]);
+
+  React.useEffect(() => {
+    if (selectedCategory && selectedCategory !== "All") {
+      loadSubCategories(selectedCategory);
+      setSelectedSubCategory("All");
+      return;
+    }
+
+    resetSubCategories();
+    setSelectedSubCategory("All");
+  }, [loadSubCategories, resetSubCategories, selectedCategory]);
 
   const customRangeIsValid = React.useMemo(() => {
     if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
@@ -560,6 +575,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     }
 
     const params: SupportDashboardSummaryRequestParams = { timeScale, timeRange };
+    const normalizedCategoryId = selectedCategory === "All" ? undefined : selectedCategory;
+    const normalizedSubCategoryId =
+      normalizedCategoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
 
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
@@ -596,8 +614,16 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.customEndYear = end;
     }
 
+    if (normalizedCategoryId) {
+      params.categoryId = normalizedCategoryId;
+    }
+
+    if (normalizedSubCategoryId) {
+      params.subCategoryId = normalizedSubCategoryId;
+    }
+
     return params;
-  }, [activeDateRange, customMonthRange, customRangeIsValid, timeRange, timeScale]);
+  }, [activeDateRange, customMonthRange, customRangeIsValid, selectedCategory, selectedSubCategory, timeRange, timeScale]);
 
   const downloadDashboardReport = React.useCallback(
     async (period: ReportPeriod, range: ReportRange, format: "excel" | "pdf") => {
@@ -941,6 +967,14 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [],
   );
 
+  const handleCategoryFilterChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedCategory(event.target.value as string);
+  }, []);
+
+  const handleSubCategoryFilterChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedSubCategory(event.target.value as string);
+  }, []);
+
   React.useEffect(() => {
     if (!requestParams) {
       return;
@@ -1131,6 +1165,27 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               </Box>
             )}
           </div>
+
+          <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
+            <GenericDropdown
+              id="support-dashboard-category"
+              label="Category"
+              value={selectedCategory}
+              onChange={handleCategoryFilterChange}
+              options={categoryOptions}
+              fullWidth
+              disabled={isLoading}
+            />
+            <GenericDropdown
+              id="support-dashboard-subcategory"
+              label="Subcategory"
+              value={selectedSubCategory}
+              onChange={handleSubCategoryFilterChange}
+              options={subCategoryOptions}
+              fullWidth
+              disabled={isLoading || selectedCategory === "All"}
+            />
+          </Box>
 
           <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
             <TextField

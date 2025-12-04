@@ -138,6 +138,8 @@ export interface MISReportRequestParams {
     toDate?: string;
     scope?: "all" | "user";
     userId?: string;
+    categoryId?: string;
+    subCategoryId?: string;
 }
 
 export type SupportDashboardSeverityKey = "S1" | "S2" | "S3" | "S4";
@@ -218,4 +220,6 @@ export interface SupportDashboardSummaryRequestParams {
     customEndYear?: number;
     fromDate?: string;
     toDate?: string;
+    categoryId?: string;
+    subCategoryId?: string;
 }
