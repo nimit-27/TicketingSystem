@@ -27,6 +27,7 @@ const PublicFaq = lazy(() => import('./pages/PublicFaq'));
 const FaqForm = lazy(() => import('./pages/FaqForm'));
 const RootCauseAnalysis = lazy(() => import('./pages/RootCauseAnalysis'));
 const MISReports = lazy(() => import('./pages/MISReports'));
+const SlaReports = lazy(() => import('./pages/SlaReports'));
 const TicketSummaryReportPage = lazy(() => import('./pages/TicketSummaryReportPage'));
 const TicketResolutionTimeReportPage = lazy(() => import('./pages/TicketResolutionTimeReportPage'));
 const CustomerSatisfactionReportPage = lazy(() => import('./pages/CustomerSatisfactionReportPage'));
@@ -84,6 +85,7 @@ function App() {
           <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="mis-reports" element={<MISReports />} />
+          <Route path="sla-reports" element={<SlaReports />} />
           <Route path="mis-reports/ticket-summary" element={<TicketSummaryReportPage />} />
           <Route
             path="mis-reports/resolution-time"

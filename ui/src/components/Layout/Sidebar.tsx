@@ -66,6 +66,12 @@ const menuItems = [
     icon: "libraryBooks",
   },
   {
+    key: "slaReports",
+    label: "SLA Reports",
+    to: "/sla-reports",
+    icon: "schedule",
+  },
+  {
     key: "misReports",
     label: "MIS Reports",
     to: "/mis-reports",
