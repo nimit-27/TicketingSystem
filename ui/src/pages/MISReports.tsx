@@ -77,7 +77,7 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
                     left: borderStyle,
                     right: borderStyle,
                 },
-            // } as XLSX.CellStyle;
+                // } as XLSX.CellStyle;
             } as any;
             worksheet[cellAddress] = cell;
         }
@@ -378,18 +378,17 @@ const MISReports: React.FC = () => {
             })();
 
             const problemEntries = problemManagement.categoryStats ?? [];
-            console.log({problemEntries})
             const problemSection = problemEntries.length
                 ? [
-                      ["Problem Management"],
-                      ["Category > Subcategory", "Ticket Count", "Breached Tickets"],
-                      ...problemEntries.map((entry) => [
-                          formatCategoryLabel(entry),
-                          entry.ticketCount,
-                          entry.breachedTickets ?? 0,
-                      ]),
-                      [],
-                  ]
+                    ["Problem Management"],
+                    ["Category > Subcategory", "Ticket Count", "Breached Tickets"],
+                    ...problemEntries.map((entry) => [
+                        formatCategoryLabel(entry),
+                        entry.ticketCount,
+                        entry.breachedTickets ?? 0,
+                    ]),
+                    [],
+                ]
                 : [["Problem Management"], ["Category", "Ticket Count"], ["N/A", "N/A"], []];
 
             const workbook = XLSX.utils.book_new();
@@ -460,9 +459,16 @@ const MISReports: React.FC = () => {
         );
     };
 
+    let misReportGeneratorComponent = <MISReportGenerator
+        onDownload={handleDownload}
+        onEmail={handleEmail}
+        defaultPeriod="daily"
+        busy={downloading}
+    />
+
     return (
-        <Box display="flex" flexDirection="column" gap={3} p={2}>
-            <Title textKey="Management Information System Reports" />
+        <div className="d-flex flex-column flex-grow-1">
+            <Title textKey="Management Information System Reports" rightContent={misReportGeneratorComponent} />
 
             <Box display="flex" flexDirection="column" gap={1}>
                 <Typography variant="subtitle2" color="text.secondary">
@@ -509,13 +515,6 @@ const MISReports: React.FC = () => {
                 </Box>
             </Box>
 
-            <MISReportGenerator
-                onDownload={handleDownload}
-                onEmail={handleEmail}
-                defaultPeriod="daily"
-                busy={downloading}
-            />
-
             <SlaPerformanceReport params={requestParams} />
 
             <Box display="flex" flexDirection="column" gap={2}>
@@ -541,7 +540,7 @@ const MISReports: React.FC = () => {
                     </Button>
                 </Box>
             </Box>
-        </Box>
+        </div>
     );
 };
 

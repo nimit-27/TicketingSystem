@@ -54,11 +54,13 @@ export const useCategoryFilters = () => {
         }
     }, []);
 
+    let resetSubCategories = useCallback(() => setSubCategoryOptions([defaultAllOption]), [defaultAllOption])
+
     return {
         categoryOptions,
         subCategoryOptions,
         loadSubCategories,
-        resetSubCategories: () => setSubCategoryOptions([defaultAllOption]),
+        resetSubCategories,
     };
 };
 
