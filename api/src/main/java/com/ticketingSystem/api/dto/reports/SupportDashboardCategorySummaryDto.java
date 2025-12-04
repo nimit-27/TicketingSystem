@@ -14,6 +14,8 @@ import java.util.Map;
 public class SupportDashboardCategorySummaryDto {
     private String category;
     private String subcategory;
+    private String categoryName;
+    private String subcategoryName;
     private Map<String, Long> severityCounts;
     private long pendingForAcknowledgement;
     private long totalTickets;

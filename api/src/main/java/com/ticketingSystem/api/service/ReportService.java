@@ -143,8 +143,10 @@ public class ReportService {
                     severityCounts.put("S4", Optional.ofNullable(aggregation.getS4Count()).orElse(0L));
 
                     return SupportDashboardCategorySummaryDto.builder()
-                            .category(aggregation.getCategory())
-                            .subcategory(aggregation.getSubcategory())
+                            .category(Optional.ofNullable(aggregation.getCategoryId()).orElse(aggregation.getCategoryName()))
+                            .subcategory(Optional.ofNullable(aggregation.getSubcategoryId()).orElse(aggregation.getSubcategoryName()))
+                            .categoryName(aggregation.getCategoryName())
+                            .subcategoryName(aggregation.getSubcategoryName())
                             .pendingForAcknowledgement(Optional.ofNullable(aggregation.getPendingCount()).orElse(0L))
                             .totalTickets(Optional.ofNullable(aggregation.getTotalCount()).orElse(0L))
                             .severityCounts(severityCounts)
