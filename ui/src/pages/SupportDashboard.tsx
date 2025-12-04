@@ -8,6 +8,7 @@ import { fetchSupportDashboardSummary } from "../services/ReportService";
 import { useApi } from "../hooks/useApi";
 import {
   SupportDashboardScopeKey,
+  SupportDashboardCategorySummary,
   SupportDashboardSeverityKey,
   SupportDashboardSummary,
   SupportDashboardSummaryView,
@@ -113,18 +114,44 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
   }
 
   const typedView = view as Partial<SupportDashboardSummaryView> & {
+    pendingForAcknowledgement?: number;
     severityCounts?: Partial<Record<string, number>>;
+    totalTickets?: number;
   };
 
   return {
     pendingForAcknowledgement:
-      typeof typedView.pendingForAcknowledgement === "number"
-        ? typedView.pendingForAcknowledgement
-        : 0,
+      typeof typedView.pendingForAcknowledgement === "number" ? typedView.pendingForAcknowledgement : 0,
     severityCounts: normalizeSeverityCounts(typedView.severityCounts),
     totalTickets: typeof typedView.totalTickets === "number" ? typedView.totalTickets : 0,
   };
 };
+
+const normalizeCategorySummary = (entry: unknown): SupportDashboardCategorySummary => {
+  if (!entry || typeof entry !== "object") {
+    return {
+      category: undefined,
+      subcategory: undefined,
+      pendingForAcknowledgement: 0,
+      severityCounts: createDefaultSeverityCounts(),
+      totalTickets: 0,
+    };
+  }
+
+  const typedEntry = entry as Partial<SupportDashboardCategorySummary>;
+
+  return {
+    category: typedEntry.category,
+    subcategory: typedEntry.subcategory,
+    pendingForAcknowledgement:
+      typeof typedEntry.pendingForAcknowledgement === "number" ? typedEntry.pendingForAcknowledgement : 0,
+    severityCounts: normalizeSeverityCounts(typedEntry.severityCounts as Partial<Record<string, number>>),
+    totalTickets: typeof typedEntry.totalTickets === "number" ? typedEntry.totalTickets : 0,
+  };
+};
+
+const formatCategoryLabel = (item: { category?: string; subcategory?: string }) =>
+  `${item.category ?? "N/A"} > ${item.subcategory ?? "N/A"}`;
 
 const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
   { value: "DAILY", label: "supportDashboard.filters.interval.daily" },
@@ -608,6 +635,14 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           tickets: typeof entry?.tickets === "number" ? entry.tickets : 0,
         }));
 
+        const allTicketsByCategory = Array.isArray(dashboardData.allTicketsByCategory)
+          ? (dashboardData.allTicketsByCategory as unknown[]).map((entry) => normalizeCategorySummary(entry))
+          : [];
+
+        const myWorkloadByCategory = Array.isArray(dashboardData.myWorkloadByCategory)
+          ? (dashboardData.myWorkloadByCategory as unknown[]).map((entry) => normalizeCategorySummary(entry))
+          : [];
+
         const formatDisplayDate = (value: string | Date) =>
           new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
@@ -636,14 +671,50 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           [],
         ];
 
+        const buildCategorySection = (
+          label: string,
+          rows: SupportDashboardCategorySummary[],
+        ): (string | number)[][] => {
+          const headerRow = [
+            "Category > SubCategory",
+            "Total Tickets",
+            "Pending for Acknowledgement",
+            "S1 (Critical)",
+            "S2 (High)",
+            "S3 (Medium)",
+            "S4 (Low)",
+          ];
+
+          if (!rows.length) {
+            return [[`${label} by Category - SubCategory`], headerRow, ["No data", 0, 0, 0, 0, 0, 0], []];
+          }
+
+          return [
+            [`${label} by Category - SubCategory`],
+            headerRow,
+            ...rows.map((row) => [
+              formatCategoryLabel(row),
+              row.totalTickets,
+              row.pendingForAcknowledgement,
+              row.severityCounts.S1,
+              row.severityCounts.S2,
+              row.severityCounts.S3,
+              row.severityCounts.S4,
+            ]),
+            [],
+          ];
+        };
+
         const sheetData: (string | number)[][] = [...overviewSection];
 
         if (allTicketsView) {
           sheetData.push(...buildScopeSection("All Tickets", allTicketsView));
+          sheetData.push(...buildCategorySection("All Tickets", allTicketsByCategory));
         }
 
         if (myWorkloadView) {
           sheetData.push(...buildScopeSection("My Workload", myWorkloadView));
+          sheetData.push(...buildCategorySection("My Workload", myWorkloadByCategory));
         }
 
         sheetData.push(

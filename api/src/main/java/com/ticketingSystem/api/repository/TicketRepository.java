@@ -94,6 +94,23 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "FROM Ticket t WHERE t.category IS NOT NULL GROUP BY t.category, t.subCategory")
     List<CategoryCountProjection> countTicketsByCategory();
 
+    @Query("SELECT t.category AS category, " +
+            "t.subCategory AS subcategory, " +
+            "SUM(CASE WHEN t.ticketStatus = 'OPEN' THEN 1 ELSE 0 END) AS pendingCount, " +
+            "COUNT(t) AS totalCount, " +
+            "SUM(CASE WHEN LOWER(t.severity) = 's1' THEN 1 ELSE 0 END) AS s1Count, " +
+            "SUM(CASE WHEN LOWER(t.severity) = 's2' THEN 1 ELSE 0 END) AS s2Count, " +
+            "SUM(CASE WHEN LOWER(t.severity) = 's3' THEN 1 ELSE 0 END) AS s3Count, " +
+            "SUM(CASE WHEN LOWER(t.severity) = 's4' THEN 1 ELSE 0 END) AS s4Count " +
+            "FROM Ticket t " +
+            "WHERE (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
+            "GROUP BY t.category, t.subCategory")
+    List<DashboardCategoryAggregation> aggregateDashboardStatsByCategory(@Param("assignedTo") String assignedTo,
+                                                                         @Param("fromDate") LocalDateTime fromDate,
+                                                                         @Param("toDate") LocalDateTime toDate);
+
     @Query("SELECT LOWER(t.severity) AS severity, COUNT(t) AS count FROM Ticket t " +
             "WHERE t.severity IS NOT NULL " +
             "AND (:status IS NULL OR t.ticketStatus = :status) " +
@@ -260,6 +277,24 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
         Double getTimelinessAverage();
 
         Double getCompositeScore();
+    }
+
+    interface DashboardCategoryAggregation {
+        String getCategory();
+
+        String getSubcategory();
+
+        Long getPendingCount();
+
+        Long getTotalCount();
+
+        Long getS1Count();
+
+        Long getS2Count();
+
+        Long getS3Count();
+
+        Long getS4Count();
     }
 
     interface SeverityCountProjection {

@@ -151,6 +151,14 @@ export interface SupportDashboardSummaryView {
     totalTickets: number;
 }
 
+export interface SupportDashboardCategorySummary {
+    category?: string;
+    subcategory?: string;
+    severityCounts: Record<SupportDashboardSeverityKey, number>;
+    pendingForAcknowledgement: number;
+    totalTickets: number;
+}
+
 export type SupportDashboardSummary = Partial<Record<SupportDashboardScopeKey, SupportDashboardSummaryView | null>>;
 
 export interface SupportDashboardOpenResolvedStats {
@@ -172,6 +180,8 @@ export interface SupportDashboardTicketVolumePoint {
 export interface SupportDashboardSummaryResponse {
     allTickets?: SupportDashboardSummarySectionDto | null;
     myWorkload?: SupportDashboardSummarySectionDto | null;
+    allTicketsByCategory?: SupportDashboardCategorySummary[] | null;
+    myWorkloadByCategory?: SupportDashboardCategorySummary[] | null;
     openResolved?: SupportDashboardOpenResolvedStats | null;
     slaCompliance?: SupportDashboardSlaCompliancePoint[];
     ticketVolume?: SupportDashboardTicketVolumePoint[];

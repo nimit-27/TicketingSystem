@@ -6,6 +6,7 @@ import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.ResolutionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardCategorySummaryDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardOpenResolvedDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSlaCompliancePointDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
@@ -70,8 +71,12 @@ public class ReportService {
         DateRange dateRange = timeSeries.dateRange();
 
         SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange);
+        List<SupportDashboardCategorySummaryDto> allTicketsByCategory = buildCategorySummarySection(null, dateRange);
         SupportDashboardSummarySectionDto myWorkload = resolveUsername(userId)
                 .map(username -> buildSummarySection(username, dateRange))
+                .orElse(null);
+        List<SupportDashboardCategorySummaryDto> myWorkloadByCategory = resolveUsername(userId)
+                .map(username -> buildCategorySummarySection(username, dateRange))
                 .orElse(null);
 
         SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange);
@@ -81,6 +86,8 @@ public class ReportService {
         return SupportDashboardSummaryDto.builder()
                 .allTickets(allTickets)
                 .myWorkload(myWorkload)
+                .allTicketsByCategory(allTicketsByCategory)
+                .myWorkloadByCategory(myWorkloadByCategory)
                 .openResolved(openResolved)
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
@@ -121,6 +128,29 @@ public class ReportService {
                 .severityCounts(severityCounts)
                 .totalTickets(totalTickets)
                 .build();
+    }
+
+    private List<SupportDashboardCategorySummaryDto> buildCategorySummarySection(String assignedTo, DateRange dateRange) {
+        Map<String, Long> baseSeverityCounts = createEmptySeverityCounts();
+
+        return ticketRepository.aggregateDashboardStatsByCategory(assignedTo, dateRange.from(), dateRange.to())
+                .stream()
+                .map(aggregation -> {
+                    Map<String, Long> severityCounts = new LinkedHashMap<>(baseSeverityCounts);
+                    severityCounts.put("S1", Optional.ofNullable(aggregation.getS1Count()).orElse(0L));
+                    severityCounts.put("S2", Optional.ofNullable(aggregation.getS2Count()).orElse(0L));
+                    severityCounts.put("S3", Optional.ofNullable(aggregation.getS3Count()).orElse(0L));
+                    severityCounts.put("S4", Optional.ofNullable(aggregation.getS4Count()).orElse(0L));
+
+                    return SupportDashboardCategorySummaryDto.builder()
+                            .category(aggregation.getCategory())
+                            .subcategory(aggregation.getSubcategory())
+                            .pendingForAcknowledgement(Optional.ofNullable(aggregation.getPendingCount()).orElse(0L))
+                            .totalTickets(Optional.ofNullable(aggregation.getTotalCount()).orElse(0L))
+                            .severityCounts(severityCounts)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     private SupportDashboardOpenResolvedDto buildOpenResolvedSnapshot(DateRange dateRange) {
