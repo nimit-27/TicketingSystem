@@ -4,6 +4,8 @@ security:
     expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
     refreshExpirationMinutes: ${SECURITY_JWT_REFRESH_EXPIRATION_MINUTES:43200}
     bypass: ${SECURITY_JWT_BYPASS:false}
+  client-tokens:
+    access-expiration-minutes: ${SECURITY_CLIENT_TOKEN_EXPIRATION_MINUTES:60}
   cors:
     allowed-origins:
       - http://localhost:3000
@@ -27,6 +29,12 @@ security:
       - Authorization
     max-age: 3600
     allow-credentials: true
+
+mobile:
+  client:
+    id: ${MOBILE_CLIENT_ID:parent-mobile-app}
+    secret: ${MOBILE_CLIENT_SECRET:change-me}
+    description: ${MOBILE_CLIENT_DESCRIPTION:Parent mobile application client}
 
 calendar:
   ui:

@@ -21,13 +21,16 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtProperties jwtProperties;
     private final CorsProperties corsProperties;
+    private final ClientTokenAuthenticationFilter clientTokenAuthenticationFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           JwtProperties jwtProperties,
-                          CorsProperties corsProperties) {
+                          CorsProperties corsProperties,
+                          ClientTokenAuthenticationFilter clientTokenAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtProperties = jwtProperties;
         this.corsProperties = corsProperties;
+        this.clientTokenAuthenticationFilter = clientTokenAuthenticationFilter;
     }
 
     @Bean
@@ -43,11 +46,13 @@ public class SecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "helpdesk/auth/refresh",
-                        "/auth/logout", "/auth/login", "/auth/refresh").permitAll()
+                        "/auth/logout", "/auth/login", "/auth/refresh",
+                        "/m/auth/token", "/helpdesk/m/auth/token").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
         );
+        http.addFilterBefore(clientTokenAuthenticationFilter, JwtAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

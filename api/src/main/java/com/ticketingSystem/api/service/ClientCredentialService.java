@@ -30,6 +30,11 @@ public class ClientCredentialService {
         return clientCredentialRepository.save(credential);
     }
 
+    public Optional<ClientCredential> authenticate(String clientId, String providedSecret) {
+        return clientCredentialRepository.findByClientIdAndRevokedAtIsNull(clientId)
+                .filter(credential -> BCrypt.checkpw(providedSecret, credential.getClientSecretHash()));
+    }
+
     public boolean validateClientSecret(String clientId, String providedSecret) {
         return clientCredentialRepository.findByClientIdAndRevokedAtIsNull(clientId)
                 .map(credential -> BCrypt.checkpw(providedSecret, credential.getClientSecretHash()))

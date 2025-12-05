@@ -36,7 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "auth/login",
             "auth/refresh",
             "helpdesk/auth/refresh",
-            "http://localhost:8082/helpdesk/auth/login"
+            "http://localhost:8082/helpdesk/auth/login",
+            "/m/auth/token",
+            "helpdesk/m/auth/token"
     );
 
     private final JwtTokenService jwtTokenService;
