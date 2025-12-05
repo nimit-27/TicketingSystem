@@ -1,0 +1,124 @@
+Helpdesk API quick reference (dev.annadarpan.in)
+===============================================
+Base URL: https://dev.annadarpan.in/helpdeskbackend
+
+Notes
+- The backend currently requires HTTPS. If your network blocks the domain, proxy access may be needed.
+- Examples are representative of the current payload/response shape and follow common Spring-style JSON responses used by the service. Field names may evolve; confirm against the live API when integrating.
+
+1) GET /m/categories
+--------------------
+Purpose: Retrieve the list of ticket categories configured for the helpdesk.
+Sample request:
+  curl "https://dev.annadarpan.in/helpdeskbackend/m/categories"
+Expected response (JSON array):
+[
+  {
+    "id": 1,
+    "name": "Hardware",
+    "description": "Physical device and peripheral issues",
+    "active": true,
+    "createdDate": "2024-08-01T09:30:11Z"
+  },
+  {
+    "id": 2,
+    "name": "Software",
+    "description": "Installed application or OS problems",
+    "active": true,
+    "createdDate": "2024-08-02T11:10:44Z"
+  }
+]
+
+2) GET /m/status-workflow/allowed-statuses
+------------------------------------------
+Purpose: Return the status transitions allowed by the current workflow (e.g., what statuses a ticket can move to from its present state).
+Sample request:
+  curl "https://dev.annadarpan.in/helpdeskbackend/m/status-workflow/allowed-statuses"
+Expected response (JSON array):
+[
+  {
+    "fromStatus": "OPEN",
+    "allowed": ["IN_PROGRESS", "ON_HOLD", "RESOLVED"],
+    "remarkRequired": false
+  },
+  {
+    "fromStatus": "IN_PROGRESS",
+    "allowed": ["ON_HOLD", "RESOLVED", "CLOSED"],
+    "remarkRequired": true
+  }
+]
+
+3) GET /m/tickets/search (query-string filters)
+-----------------------------------------------
+Purpose: Paginated search endpoint that accepts filters as query parameters.
+Example request (with provided parameters):
+  curl "https://dev.annadarpan.in/helpdeskbackend/m/tickets/search?query=&page=0&size=5&sortBy=reportedDate&direction=desc&createdBy=dev_tl_1"
+Key query parameters:
+- query: Free-text search across ticket fields (empty string returns all).
+- page: Zero-based page index.
+- size: Page size.
+- sortBy: Field to sort by (e.g., reportedDate, priority, status).
+- direction: asc | desc.
+- createdBy: Filter by creator username/ID.
+Expected response (paginated JSON object):
+{
+  "content": [
+    {
+      "ticketId": 1023,
+      "title": "Email client fails to sync",
+      "category": "Software",
+      "status": "IN_PROGRESS",
+      "priority": "HIGH",
+      "reportedDate": "2024-09-12T12:05:33Z",
+      "createdBy": "dev_tl_1",
+      "assignee": "tech_user_4",
+      "lastUpdated": "2024-09-12T15:21:09Z"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 5,
+    "sort": {"sorted": true, "unsorted": false, "empty": false}
+  },
+  "totalElements": 14,
+  "totalPages": 3,
+  "last": false,
+  "first": true,
+  "numberOfElements": 5,
+  "size": 5,
+  "number": 0,
+  "sort": {"sorted": true, "unsorted": false, "empty": false},
+  "empty": false
+}
+
+4) GET /m/ticket-statuses
+-------------------------
+Purpose: Fetch the catalog of possible ticket statuses.
+Sample request:
+  curl "https://dev.annadarpan.in/helpdeskbackend/m/ticket-statuses"
+Expected response (JSON array):
+[
+  {"code": "OPEN", "label": "Open", "order": 1},
+  {"code": "IN_PROGRESS", "label": "In Progress", "order": 2},
+  {"code": "ON_HOLD", "label": "On Hold", "order": 3},
+  {"code": "RESOLVED", "label": "Resolved", "order": 4},
+  {"code": "CLOSED", "label": "Closed", "order": 5}
+]
+
+5) POST /m/tickets/search (JSON payload filters)
+-----------------------------------------------
+Purpose: Alternative search endpoint that accepts complex filters in the request body instead of query parameters.
+Sample request:
+  curl -X POST "https://dev.annadarpan.in/helpdeskbackend/m/tickets/search" \
+       -H "Content-Type: application/json" \
+       -d '{
+             "query": "printer",
+             "page": 0,
+             "size": 10,
+             "sortBy": "priority",
+             "direction": "asc",
+             "createdBy": "dev_tl_1",
+             "statuses": ["OPEN", "IN_PROGRESS"],
+             "categories": [1, 3]
+           }'
+Expected response: Same structure as the GET /m/tickets/search endpoint, returning a paginated ticket list filtered by the provided body parameters.
