@@ -4,7 +4,10 @@ import com.ticketingSystem.api.config.ClientTokenProperties;
 import com.ticketingSystem.api.config.JwtProperties;
 import com.ticketingSystem.api.models.ClientCredential;
 import com.ticketingSystem.api.models.ClientToken;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -46,6 +49,17 @@ public class ClientTokenService {
         return clientCredentialService.findActiveToken(hashToken(rawToken));
     }
 
+    public TokenVerificationResult verifyAccessToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return TokenVerificationResult.valid(buildPayload(claims));
+        } catch (ExpiredJwtException ex) {
+            return TokenVerificationResult.expired(buildPayload(ex.getClaims()));
+        } catch (JwtException | IllegalArgumentException ex) {
+            return TokenVerificationResult.invalid();
+        }
+    }
+
     private TokenWithExpiry generateToken(ClientCredential credential) {
         Instant now = Instant.now();
         Instant expiry = now.plus(properties.getAccessExpirationMinutes(), ChronoUnit.MINUTES);
@@ -59,6 +73,22 @@ public class ClientTokenService {
                 .compact();
 
         return new TokenWithExpiry(jwt, expiry);
+    }
+
+    private ClientTokenPayload buildPayload(Claims claims) {
+        return new ClientTokenPayload(
+                claims.get("clientId", String.class),
+                claims.getIssuedAt() != null ? claims.getIssuedAt().toInstant() : null,
+                claims.getExpiration() != null ? claims.getExpiration().toInstant() : null
+        );
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private String hashToken(String rawToken) {
@@ -80,6 +110,22 @@ public class ClientTokenService {
     }
 
     public record IssuedClientToken(String accessToken, long expiresInMinutes, String clientId) {}
+
+    public record ClientTokenPayload(String clientId, Instant issuedAt, Instant expiresAt) {}
+
+    public record TokenVerificationResult(boolean valid, boolean expired, ClientTokenPayload payload) {
+        public static TokenVerificationResult valid(ClientTokenPayload payload) {
+            return new TokenVerificationResult(true, false, payload);
+        }
+
+        public static TokenVerificationResult expired(ClientTokenPayload payload) {
+            return new TokenVerificationResult(false, true, payload);
+        }
+
+        public static TokenVerificationResult invalid() {
+            return new TokenVerificationResult(false, false, null);
+        }
+    }
 
     private record TokenWithExpiry(String value, Instant expiresAt) {}
 }

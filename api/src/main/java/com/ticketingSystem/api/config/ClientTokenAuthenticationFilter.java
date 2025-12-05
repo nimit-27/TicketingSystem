@@ -46,22 +46,31 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = resolveToken(request.getHeader(HttpHeaders.AUTHORIZATION));
-        Optional<ClientToken> activeToken = token == null ? Optional.empty() : clientTokenService.findActiveToken(token);
+        if (token != null) {
+            ClientTokenService.TokenVerificationResult verificationResult = clientTokenService.verifyAccessToken(token);
+            Optional<ClientToken> activeToken = verificationResult.valid()
+                    ? clientTokenService.findActiveToken(token)
+                    : Optional.empty();
 
-        if (activeToken.isPresent()) {
-            authenticate(activeToken.get(), request);
-            filterChain.doFilter(request, response);
-            return;
+            if (verificationResult.valid() && activeToken.isPresent()) {
+                authenticate(verificationResult.payload(), activeToken.get(), request);
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
 
         writeUnauthorizedResponse(response);
     }
 
-    private void authenticate(ClientToken token, HttpServletRequest request) {
+    private void authenticate(ClientTokenService.ClientTokenPayload payload, ClientToken token, HttpServletRequest request) {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             return;
         }
-        String clientId = token.getClientCredential() != null ? token.getClientCredential().getClientId() : "mobile-client";
+        String clientId = payload != null && payload.clientId() != null
+                ? payload.clientId()
+                : token.getClientCredential() != null
+                ? token.getClientCredential().getClientId()
+                : "mobile-client";
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 clientId,
                 null,
