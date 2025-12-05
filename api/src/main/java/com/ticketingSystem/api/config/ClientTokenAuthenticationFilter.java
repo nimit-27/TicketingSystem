@@ -48,12 +48,9 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request.getHeader(HttpHeaders.AUTHORIZATION));
         if (token != null) {
             ClientTokenService.TokenVerificationResult verificationResult = clientTokenService.verifyAccessToken(token);
-            Optional<ClientToken> activeToken = verificationResult.valid()
-                    ? clientTokenService.findActiveToken(token)
-                    : Optional.empty();
 
-            if (verificationResult.valid() && activeToken.isPresent()) {
-                authenticate(verificationResult.payload(), activeToken.get(), request);
+            if (verificationResult.valid()) {
+                authenticate(verificationResult.payload(), null, request);
                 filterChain.doFilter(request, response);
                 return;
             }
