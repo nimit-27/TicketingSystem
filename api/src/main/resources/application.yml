@@ -11,6 +11,8 @@ security:
       - http://localhost:3000
       - http://localhost:5173
       - https://dev.annadarpan.in
+      - https://qa.annadarpan.in
+      - https://uat.annadarpan.in
     allowed-methods:
       - GET
       - POST
