@@ -394,6 +394,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { showMessage } = useSnackbar();
   const userDetails = React.useMemo(() => getUserDetails(), []);
   const userRoles = React.useMemo(() => userDetails?.role ?? [], [userDetails]);
+  const isRequester = React.useMemo(() => userRoles.includes(REQUESTER_ROLE), [userRoles]);
   const preferredScope = React.useMemo<SupportDashboardScopeKey>(() => {
     const hasAdminRole = userRoles.some((role) => ADMIN_ROLES.has(role));
     const hasAssigneeRole = userRoles.some((role) => ASSIGNEE_ROLES.has(role));
@@ -579,6 +580,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const normalizedSubCategoryId =
       normalizedCategoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
 
+    if (isRequester && userDetails?.userId) {
+      params.createdBy = userDetails.userId;
+    }
+
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
         return null;
@@ -623,7 +628,17 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     }
 
     return params;
-  }, [activeDateRange, customMonthRange, customRangeIsValid, selectedCategory, selectedSubCategory, timeRange, timeScale]);
+  }, [
+    activeDateRange,
+    customMonthRange,
+    customRangeIsValid,
+    isRequester,
+    selectedCategory,
+    selectedSubCategory,
+    timeRange,
+    timeScale,
+    userDetails?.userId,
+  ]);
 
   const downloadDashboardReport = React.useCallback(
     async (period: ReportPeriod, range: ReportRange, format: "excel" | "pdf") => {

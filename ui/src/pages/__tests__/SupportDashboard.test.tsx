@@ -150,6 +150,21 @@ describe("SupportDashboard", () => {
     });
   });
 
+  it("adds the creator filter when the user is a requester", async () => {
+    mockGetUserDetails.mockReturnValue({ userId: "user-123", role: ["Requester"] });
+
+    renderWithTheme(<SupportDashboard />);
+
+    await waitFor(() => expect(mockApiHandler).toHaveBeenCalled());
+    expect(mockFetchSupportDashboardSummary).toHaveBeenCalledWith({
+      timeScale: "DAILY",
+      timeRange: "LAST_7_DAYS",
+      fromDate: "2024-01-02",
+      toDate: "2024-01-08",
+      createdBy: "user-123",
+    });
+  });
+
   it("updates the request parameters when the time scale changes", async () => {
     renderWithTheme(<SupportDashboard />);
 
