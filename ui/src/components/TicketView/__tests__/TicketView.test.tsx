@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, screen, within } from '@testing-library/react';
+import { render, waitFor, screen, within, fireEvent } from '@testing-library/react';
 import TicketView from '../TicketView';
 import { useApi } from '../../../hooks/useApi';
 import { getTicketSla } from '../../../services/TicketService';
@@ -11,6 +11,8 @@ import { getStatusWorkflowMappings } from '../../../services/StatusService';
 import Histories from '../../../pages/Histories';
 import ChildTicketsList from '../ChildTicketsList';
 import { getStatusNameById } from '../../../utils/Utils';
+import { checkAccessMaster, checkFieldAccess } from '../../../utils/permissions';
+import { getCurrentUserDetails } from '../../../config/config';
 
 const mockJsPdfSave = jest.fn();
 const mockJsPdfConstructor = jest.fn();
@@ -214,6 +216,12 @@ jest.mock('../../RaiseTicket/LinkToMasterTicketModal', () => ({ open }: any) => 
   open ? <div data-testid="link-master-modal" /> : null
 ));
 
+const mockAssignMasterTicketModal = jest.fn(() => <div data-testid="assign-master-modal" />);
+jest.mock('../../RaiseTicket/AssignMasterTicketModal', () => ({
+  __esModule: true,
+  default: (props: any) => mockAssignMasterTicketModal(props),
+}));
+
 const mockSlaProgressChart = jest.fn(() => <div data-testid="sla-chart" />);
 jest.mock('../SlaProgressChart', () => ({
   __esModule: true,
@@ -261,6 +269,9 @@ const getAllSubCategoriesByCategoryMock = getAllSubCategoriesByCategory as jest.
 const getFeedbackMock = getFeedback as jest.Mock;
 const getStatusWorkflowMappingsMock = getStatusWorkflowMappings as jest.Mock;
 const getTicketSlaMock = getTicketSla as jest.Mock;
+const checkAccessMasterMock = checkAccessMaster as jest.Mock;
+const checkFieldAccessMock = checkFieldAccess as jest.Mock;
+const getCurrentUserDetailsMock = getCurrentUserDetails as jest.Mock;
 
 describe('TicketView', () => {
   beforeEach(() => {
@@ -269,6 +280,15 @@ describe('TicketView', () => {
     getStatusNameByIdMock.mockReturnValue('Open');
     mockTicket.statusLabel = 'Open';
     mockTicket.statusId = '1';
+    mockTicket.isMaster = true;
+    mockTicket.masterId = 'T-1';
+    checkAccessMasterMock.mockReturnValue(true);
+    checkFieldAccessMock.mockReturnValue(true);
+    getCurrentUserDetailsMock.mockReturnValue({
+      username: 'test-user',
+      userId: 'user-1',
+      role: ['1'],
+    });
 
     getPrioritiesMock.mockResolvedValue({ data: { body: { data: [] } } });
     getSeveritiesMock.mockResolvedValue({ data: [] });
@@ -349,5 +369,21 @@ describe('TicketView', () => {
     await waitFor(() =>
       expect(screen.queryByRole('button', { name: 'Link to a Master Ticket' })).not.toBeInTheDocument()
     );
+  });
+
+  it('opens the assign master ticket modal when the button is clicked', async () => {
+    mockTicket.isMaster = false;
+    mockTicket.masterId = '';
+
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    const assignButton = await screen.findByRole('button', { name: 'Assign this ticket as Master' });
+    fireEvent.click(assignButton);
+
+    await waitFor(() => {
+      expect(mockAssignMasterTicketModal).toHaveBeenCalledWith(
+        expect.objectContaining({ open: true, ticketId: 'T-1' })
+      );
+    });
   });
 });

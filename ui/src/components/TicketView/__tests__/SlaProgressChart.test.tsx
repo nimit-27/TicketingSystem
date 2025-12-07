@@ -37,4 +37,25 @@ describe('SlaProgressChart', () => {
     expect(segmentNames).toContain('Idle Time');
     expect(segmentNames).toContain('Resolution Time');
   });
+
+  it('includes breached time segment when SLA is exceeded', () => {
+    const breachedSla = {
+      ...baseSla,
+      workingTimeLeftMinutes: -15,
+      elapsedTimeMinutes: 60,
+      idleTimeMinutes: 0,
+      responseTimeMinutes: 0,
+      resolutionTimeMinutes: 0,
+      totalSlaMinutes: 45,
+    } as any;
+
+    render(<SlaProgressChart sla={breachedSla} />);
+
+    const props = mockReactECharts.mock.calls[0][0];
+    const seriesNames = props.option.series.map((s: any) => s.name);
+    expect(seriesNames).toContain('Breached Time');
+    expect(seriesNames).not.toContain('Remaining Time');
+    const breachedSeries = props.option.series.find((s: any) => s.name === 'Breached Time');
+    expect(breachedSeries.data[0]).toBeGreaterThan(0);
+  });
 });
