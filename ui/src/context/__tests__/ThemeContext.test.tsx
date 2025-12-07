@@ -39,7 +39,7 @@ describe('ThemeContext', () => {
     expect(screen.getByTestId('theme-wrapper')).toBeInTheDocument();
     expect(screen.getByTestId('css-baseline')).toBeInTheDocument();
     expect(screen.getByTestId('mode').textContent).toBe('light');
-    expect(screen.getByTestId('layout').textContent).toBe('1');
+    expect(screen.getByTestId('layout').textContent).toBe('2');
   });
 
   it('toggles theme mode between light and dark', () => {
@@ -64,12 +64,12 @@ describe('ThemeContext', () => {
     );
 
     fireEvent.click(screen.getByText('toggle-layout'));
-    expect(screen.getByTestId('layout').textContent).toBe('2');
-
-    fireEvent.click(screen.getByText('toggle-layout'));
     expect(screen.getByTestId('layout').textContent).toBe('3');
 
     fireEvent.click(screen.getByText('toggle-layout'));
     expect(screen.getByTestId('layout').textContent).toBe('1');
+
+    fireEvent.click(screen.getByText('toggle-layout'));
+    expect(screen.getByTestId('layout').textContent).toBe('2');
   });
 });
