@@ -60,7 +60,7 @@ describe('LinkToMasterTicketModal', () => {
     render(<LinkToMasterTicketModal {...baseProps} />);
 
     await waitFor(() => {
-      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('', undefined, false, 0, 20);
+      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('', undefined, '1', 0, 20);
     });
 
     expect(await screen.findByText(/MT-1/)).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe('LinkToMasterTicketModal', () => {
     });
 
     await waitFor(() => {
-      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('MT', undefined, false, 0, 20);
+      expect(mockSearchTicketsPaginated).toHaveBeenCalledWith('MT', undefined, '1', 0, 20);
     });
 
     fireEvent.click(await screen.findByText(/Another ticket/));

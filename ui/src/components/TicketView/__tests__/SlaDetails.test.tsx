@@ -3,6 +3,22 @@ import { render, screen } from '@testing-library/react';
 import SlaDetails from '../SlaDetails';
 import { TicketSla } from '../../../types';
 
+jest.mock('../../UI/GenericTable', () => ({
+  __esModule: true,
+  default: ({ dataSource }: { dataSource: { key: string; metric: string; value: any }[] }) => (
+    <table>
+      <tbody>
+        {(dataSource || []).map(row => (
+          <tr key={row.key}>
+            <td>{row.metric}</td>
+            <td>{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ),
+}));
+
 describe('SlaDetails', () => {
   const baseSla: TicketSla = {
     id: '1',

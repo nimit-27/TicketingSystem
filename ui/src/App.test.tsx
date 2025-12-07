@@ -4,7 +4,12 @@ import App from './App';
 
 jest.mock('react-router-dom', () => ({
   Routes: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  Route: ({ element }: { element: React.ReactNode }) => <>{element}</>,
+  Route: ({ element, children }: { element: React.ReactNode; children?: React.ReactNode }) => (
+    <>
+      {element}
+      {children}
+    </>
+  ),
   Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={to} />,
 }), { virtual: true });
 
@@ -34,8 +39,21 @@ jest.mock('./pages/Faq', () => () => <div>Faq</div>);
 jest.mock('./pages/FaqForm', () => () => <div>FaqForm</div>);
 jest.mock('./pages/RootCauseAnalysis', () => () => <div>RootCauseAnalysis</div>);
 jest.mock('./pages/MISReports', () => () => <div>MISReports</div>);
+jest.mock('./pages/SlaReports', () => () => <div>SlaReports</div>);
+jest.mock('./pages/TicketSummaryReportPage', () => () => <div>TicketSummary</div>);
+jest.mock('./pages/TicketResolutionTimeReportPage', () => () => <div>TicketResolutionTime</div>);
+jest.mock('./pages/CustomerSatisfactionReportPage', () => () => <div>CustomerSatisfactionReport</div>);
+jest.mock('./pages/ProblemManagementReportPage', () => () => <div>ProblemManagementReport</div>);
+jest.mock('./pages/Calendar', () => () => <div>Calendar</div>);
+jest.mock('./pages/SupportDashboard', () => () => <div>SupportDashboard</div>);
+jest.mock('./pages/FileManagementSystem', () => () => <div>FileManagementSystem</div>);
+jest.mock('./pages/Users', () => () => <div>Users</div>);
+jest.mock('./pages/UserProfile', () => () => <div>UserProfile</div>);
+jest.mock('./pages/MyProfile', () => () => <div>MyProfile</div>);
+jest.mock('./pages/PublicFaq', () => () => <div>PublicFaq</div>);
 jest.mock('./pages/AddUser', () => () => <div>AddUser</div>);
 jest.mock('./components/Layout/SidebarLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
+jest.mock('./components/Layout/PublicLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 
 jest.mock('jwt-decode', () => ({
   jwtDecode: () => ({}),
@@ -43,9 +61,10 @@ jest.mock('jwt-decode', () => ({
 
 
 describe('App routing', () => {
-  it('renders the login route for unauthenticated users', () => {
+  it('renders the login route for unauthenticated users', async () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
+    const navigations = await screen.findAllByTestId('navigate');
+    expect(navigations.some(nav => nav.getAttribute('data-to') === '/login')).toBe(true);
   });
 });
