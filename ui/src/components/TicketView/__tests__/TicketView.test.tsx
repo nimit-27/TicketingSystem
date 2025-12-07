@@ -236,6 +236,21 @@ jest.mock('../ChildTicketsList', () => ({
 }));
 
 jest.mock('../RootCauseAnalysisModal', () => () => <div data-testid="rca-modal" />);
+jest.mock('../../UI/GenericTable', () => ({
+  __esModule: true,
+  default: ({ dataSource }: { dataSource: { key: string; metric: string; value: any }[] }) => (
+    <table>
+      <tbody>
+        {(dataSource || []).map(row => (
+          <tr key={row.key}>
+            <td>{row.metric}</td>
+            <td>{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ),
+}));
 
 const useApiMock = useApi as jest.MockedFunction<typeof useApi>;
 const getStatusNameByIdMock = getStatusNameById as jest.MockedFunction<typeof getStatusNameById>;
