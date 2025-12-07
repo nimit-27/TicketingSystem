@@ -60,7 +60,7 @@ const LinkToMasterTicketModal: React.FC<LinkToMasterTicketModalProps> = ({
     const fetchPaginatedTickets = useCallback((pageIndex: number, searchQuery: string = '') => {
         setIsPaginatedLoading(true);
         setPaginatedError(null);
-        searchTicketsPaginated(searchQuery, undefined, true, pageIndex, PAGE_SIZE)
+        searchTicketsPaginated(searchQuery, undefined, '1', pageIndex, PAGE_SIZE)
             .then((response) => {
                 const rawPayload = response?.data ?? response;
                 const payload = rawPayload?.body?.data ?? rawPayload;

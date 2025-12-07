@@ -88,7 +88,7 @@ export function deleteComment(commentId: string) {
 export function searchTicketsPaginated(
     query: string,
     statusName?: string,
-    master?: boolean,
+    master?: string,
     page: number = 0,
     size: number = 5,
     assignedTo?: string,

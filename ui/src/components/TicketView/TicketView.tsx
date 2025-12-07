@@ -85,7 +85,7 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
           left: borderStyle,
           right: borderStyle,
         },
-      // } as XLSX.CellStyle;
+        // } as XLSX.CellStyle;
       } as any;
       worksheet[cellAddress] = cell;
     }
@@ -246,11 +246,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   // const severityOptions: DropdownOption[] = severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level }));
   const severityOptions: DropdownOption[] = getDropdownOptions(severityList, 'level', 'id');
 
-  const allowAssigneeAssignment = useMemo(
-    () => checkAccessMaster(['ticketView', 'header', 'assignee', 'allowAssignment']),
-    [],
-  );
-
   // ACTIONS ACCORDING TO STATUS WORKFLOW
   const availableStatusActions = useMemo(() => {
     if (!ticket?.statusId) return [] as TicketStatusWorkflow[];
@@ -261,11 +256,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     (statusId: string) => statusWorkflows[statusId || ''] || [],
     [statusWorkflows],
   );
-
-  const allowAssigneeChange = useMemo(() => {
-    if (!ticket?.statusId) return false;
-    return Boolean(statusWorkflows[ticket.statusId] && allowAssigneeAssignment);
-  }, [statusWorkflows, ticket?.statusId, allowAssigneeAssignment]);
 
   const downloadSlaAsExcel = useCallback(() => {
     if (!sla && !masterSla) return;
@@ -349,6 +339,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   );
   const restoreAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Restore') || null,
+    [availableStatusActions]
+  );
+  const assignAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action.includes('Assign')) || null,
     [availableStatusActions]
   );
 
@@ -884,7 +878,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           mb: 2,
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+        <Box data-testid="ticket-status-header" sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
           <div className='d-flex'>
             <Typography className="me-1" variant="subtitle2" color="text.primary">
               {t('Ticket')}
@@ -970,7 +964,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         <Box className="d-flex flex-column col-6" >
           <div className='d-flex'>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {allowAssigneeChange ? (
+              {assignAction ? (
                 <AssigneeDropdown
                   ticketId={ticket.id}
                   assigneeName={ticket.assignedToName || ticket.assignedTo}
