@@ -38,7 +38,9 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
         String path = resolvePath(request);
-        return !path.startsWith("/m") || path.startsWith("/m/auth/token");
+        boolean isClientPath = path.startsWith("/m") || path.startsWith("/ext");
+        boolean isPublicClientPath = path.startsWith("/m/auth/token") || path.startsWith("/ext/auth/token");
+        return !isClientPath || isPublicClientPath;
     }
 
     @Override

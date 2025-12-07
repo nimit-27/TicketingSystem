@@ -47,7 +47,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "helpdesk/auth/refresh",
                         "/auth/logout", "/auth/login", "/auth/refresh",
-                        "/m/auth/token", "/helpdesk/m/auth/token").permitAll()
+                        "/m/auth/token", "/helpdesk/m/auth/token",
+                        "/ext/auth/token", "/helpdesk/ext/auth/token").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
