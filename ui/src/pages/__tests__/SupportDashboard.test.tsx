@@ -23,6 +23,68 @@ jest.mock("../../utils/permissions", () => ({
   checkSidebarAccess: jest.fn(() => true),
 }));
 
+jest.mock("../../services/CategoryService", () => ({
+  getCategories: jest.fn(() => Promise.resolve({ data: [] })),
+  getAllSubCategoriesByCategory: jest.fn(() => Promise.resolve({ data: [] })),
+}));
+
+jest.mock("../../hooks/useCategoryFilters", () => ({
+  useCategoryFilters: () => ({
+    categories: [],
+    subCategories: [],
+    loadSubCategories: jest.fn(),
+    resetSubCategories: jest.fn(),
+  }),
+}));
+
+jest.mock("../../components/UI/Dropdown/GenericDropdown", () => (props: any) => {
+  const { label, value, onChange, options, id } = props;
+  const optionList = Array.isArray(options) ? options : [];
+  return (
+    <label htmlFor={id}>
+      {label}
+      <select
+        id={id}
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange({ target: { value: event.target.value } })}
+      >
+        {optionList.map((option: any) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+});
+
+jest.mock(
+  "xlsx",
+  () => ({
+    utils: {
+      json_to_sheet: jest.fn(),
+      book_new: jest.fn(),
+      book_append_sheet: jest.fn(),
+    },
+    writeFile: jest.fn(),
+  }),
+  { virtual: true },
+);
+
+jest.mock(
+  "jspdf",
+  () =>
+    jest.fn(() => ({
+      text: jest.fn(),
+      setFontSize: jest.fn(),
+      save: jest.fn(),
+    })),
+  { virtual: true },
+);
+
+jest.mock("jspdf-autotable", () => jest.fn(), { virtual: true });
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -85,6 +147,24 @@ describe("SupportDashboard", () => {
       timeRange: "LAST_7_DAYS",
       fromDate: "2024-01-02",
       toDate: "2024-01-08",
+    });
+  });
+
+  it("updates the request parameters when the time scale changes", async () => {
+    renderWithTheme(<SupportDashboard />);
+
+    await waitFor(() => expect(mockFetchSupportDashboardSummary).toHaveBeenCalled());
+
+    const timeScaleDropdown = await screen.findByLabelText("supportDashboard.filters.interval.label");
+    fireEvent.change(timeScaleDropdown, { target: { value: "WEEKLY" } });
+
+    await waitFor(() => expect(mockFetchSupportDashboardSummary).toHaveBeenCalledTimes(2));
+
+    expect(mockFetchSupportDashboardSummary).toHaveBeenLastCalledWith({
+      timeScale: "WEEKLY",
+      timeRange: "LAST_4_WEEKS",
+      fromDate: "2023-12-18",
+      toDate: "2024-01-14",
     });
   });
 
