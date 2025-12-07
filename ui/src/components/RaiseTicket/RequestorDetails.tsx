@@ -77,10 +77,14 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             new Map(rawStakeholders.map((s: any) => [String(s.id), s])).values()
         );
 
-        return uniqueStakeholders.map((s: any) => ({
-            label: s.description || s.name || s.stakeholder || 'Stakeholder',
-            value: String(s.id)
-        }));
+        const excludedStakeholders = new Set(["Helpdesk Support", "Helpdesk Agent"]);
+
+        return uniqueStakeholders
+            .map((s: any) => ({
+                label: s.description || s.name || s.stakeholder || 'Stakeholder',
+                value: String(s.id)
+            }))
+            .filter((option) => option.label && !excludedStakeholders.has(option.label));
     }, [stakeholderData]);
 
     const fetchRequesterUsers = useCallback((pageToLoad: number = 0, append: boolean = false) => {
