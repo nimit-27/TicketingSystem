@@ -222,4 +222,5 @@ export interface SupportDashboardSummaryRequestParams {
     toDate?: string;
     categoryId?: string;
     subCategoryId?: string;
+    createdBy?: string;
 }
