@@ -55,6 +55,10 @@ jest.mock('../../../hooks/useApi', () => ({
     useApi: (...args: any[]) => mockUseApi(...args),
 }));
 
+jest.mock('@mui/icons-material/Visibility', () => (props: any) => (
+    <svg data-testid="visibility-icon" {...props} />
+));
+
 const mockUpdateTicket = jest.fn(() => Promise.resolve({}));
 jest.mock('../../../services/TicketService', () => ({
     updateTicket: (...args: any[]) => mockUpdateTicket(...args),
@@ -205,5 +209,23 @@ describe('TicketCard', () => {
         }));
         expect(searchCurrentTicketsPaginatedApi).toHaveBeenCalledWith('INC-100');
         expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Resolve' }));
+    });
+
+    it('navigates to ticket details when visibility icon is clicked', async () => {
+        const workflows: Record<string, TicketStatusWorkflow[]> = { open: [] };
+        const { container } = render(
+            <TicketCard
+                ticket={ticket}
+                priorityConfig={{}}
+                statusWorkflows={workflows}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+            />,
+        );
+
+        fireEvent.mouseEnter(container.firstChild as HTMLElement);
+        const visibilityButton = await screen.findByTestId('visibility-icon');
+        fireEvent.click(visibilityButton);
+
+        expect(mockUseNavigate).toHaveBeenCalledWith('/tickets/INC-100');
     });
 });

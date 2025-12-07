@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import * as XLSX from 'xlsx';
 import TicketsTable, { TicketRow } from '../TicketsTable';
 
 const mockJsPdfSave = jest.fn();
@@ -13,27 +15,44 @@ jest.mock('jspdf', () => ({
 
         save = mockJsPdfSave
     }
-}));
+}), { virtual: true });
 
 const mockAutoTable = jest.fn();
 jest.mock('jspdf-autotable', () => ({
     __esModule: true,
     default: (...args: any[]) => mockAutoTable(...args),
-}));
+}), { virtual: true });
 
-const mockJsonToSheet = jest.fn(() => ({}));
+const mockWorksheet = { '!ref': 'A1:B2' } as any;
+const mockAoaToSheet = jest.fn(() => mockWorksheet);
 const mockBookNew = jest.fn(() => ({}));
 const mockBookAppendSheet = jest.fn();
 const mockWriteFile = jest.fn();
+const mockDecodeRange = jest.fn(() => ({ s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }));
+const mockEncodeCell = jest.fn(({ r, c }: { r: number; c: number }) => `R${r}C${c}`);
 jest.mock('xlsx', () => ({
     __esModule: true,
     utils: {
-        json_to_sheet: (...args: any[]) => mockJsonToSheet(...args),
+        aoa_to_sheet: (...args: any[]) => mockAoaToSheet(...args),
+        json_to_sheet: (...args: any[]) => mockAoaToSheet(...args),
         book_new: (...args: any[]) => mockBookNew(...args),
         book_append_sheet: (...args: any[]) => mockBookAppendSheet(...args),
+        decode_range: (...args: any[]) => mockDecodeRange(...args),
+        encode_cell: (...args: any[]) => mockEncodeCell(...args),
     },
     writeFile: (...args: any[]) => mockWriteFile(...args),
-}));
+    default: {
+        utils: {
+            aoa_to_sheet: (...args: any[]) => mockAoaToSheet(...args),
+            json_to_sheet: (...args: any[]) => mockAoaToSheet(...args),
+            book_new: (...args: any[]) => mockBookNew(...args),
+            book_append_sheet: (...args: any[]) => mockBookAppendSheet(...args),
+            decode_range: (...args: any[]) => mockDecodeRange(...args),
+            encode_cell: (...args: any[]) => mockEncodeCell(...args),
+        },
+        writeFile: (...args: any[]) => mockWriteFile(...args),
+    },
+}), { virtual: true });
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -167,10 +186,12 @@ beforeEach(() => {
     mockJsPdfSave.mockClear();
     mockJsPdfConstructor.mockClear();
     mockAutoTable.mockClear();
-    mockJsonToSheet.mockClear();
+    mockAoaToSheet.mockReset();
+    mockAoaToSheet.mockImplementation(() => ({ '!ref': 'A1:A1' } as any));
     mockBookNew.mockClear();
     mockBookAppendSheet.mockClear();
     mockWriteFile.mockClear();
+    (XLSX as any).utils.aoa_to_sheet = mockAoaToSheet;
 });
 
 describe('TicketsTable', () => {
@@ -255,5 +276,30 @@ describe('TicketsTable', () => {
         expect(actionsColumn).toBeDefined();
         const rendered = render(<>{actionsColumn.render(null, rcaTickets[0])}</>);
         expect(rendered.getByRole('button', { name: 'Submit RCA' })).toBeInTheDocument();
+    });
+
+    it('offers pdf and excel downloads with data rows', async () => {
+        render(
+            <TicketsTable
+                tickets={tickets}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={{ OPEN: [] }}
+            />,
+        );
+
+        const downloadTrigger = screen.getByText('Download');
+        await userEvent.click(downloadTrigger);
+
+        await userEvent.click(screen.getByText('Download PDF'));
+        expect(mockJsPdfConstructor).toHaveBeenCalled();
+        expect(mockAutoTable).toHaveBeenCalled();
+
+        await userEvent.click(downloadTrigger);
+        await userEvent.click(screen.getByText('Download Excel'));
+        expect(mockBookAppendSheet).toHaveBeenCalled();
+        expect(mockWriteFile).toHaveBeenCalled();
+        expect(mockWriteFile.mock.calls[0][1]).toBe('tickets.xlsx');
     });
 });
