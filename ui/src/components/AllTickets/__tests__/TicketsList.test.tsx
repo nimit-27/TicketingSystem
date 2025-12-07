@@ -280,4 +280,20 @@ describe('TicketsList', () => {
             expect(lastCall[4]).toBe(5);
         });
     });
+
+    it('fetches the next page when pagination changes', async () => {
+        const { searchHandler } = arrangeUseApiMocks();
+
+        render(<TicketsList titleKey="tickets.title" />);
+
+        await waitFor(() => expect(searchHandler).toHaveBeenCalled());
+
+        const pagination = screen.getByTestId('pagination-controls');
+        fireEvent.click(pagination.querySelectorAll('button')[0]);
+
+        await waitFor(() => {
+            const lastCall = mockSearchTicketsPaginated.mock.calls[mockSearchTicketsPaginated.mock.calls.length - 1];
+            expect(lastCall[3]).toBe(1);
+        });
+    });
 });

@@ -157,4 +157,14 @@ describe('ViewTicket', () => {
 
         expect(mockNavigate).toHaveBeenCalledWith('/tickets/INC-1');
     });
+
+    it('does not attempt to fetch when ticketId is missing', async () => {
+        const handler = jest.fn();
+        mockUseApi.mockReturnValue({ data: null, apiHandler: handler });
+
+        render(<ViewTicket ticketId={null} open onClose={jest.fn()} />);
+
+        await flushPromises();
+        expect(mockGetTicket).not.toHaveBeenCalled();
+    });
 });
