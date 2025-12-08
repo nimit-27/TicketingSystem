@@ -98,6 +98,7 @@ describe('CreateRole', () => {
         roles={['Admin']}
         permissions={{}}
         statusActions={[]}
+        parameterOptions={[{ label: 'Param 1', value: '1' }]}
         onSubmit={mockSubmit}
         onCancel={mockCancel}
       />
@@ -130,7 +131,7 @@ describe('CreateRole', () => {
 
   it('triggers cancel handler on cancel click', () => {
     const { getByText } = renderWithTheme(
-      <CreateRole roles={[]} permissions={{}} statusActions={[]} onSubmit={mockSubmit} onCancel={mockCancel} />
+      <CreateRole roles={[]} permissions={{}} statusActions={[]} parameterOptions={[]} onSubmit={mockSubmit} onCancel={mockCancel} />
     );
     fireEvent.click(getByText('Cancel'));
     expect(mockCancel).toHaveBeenCalled();

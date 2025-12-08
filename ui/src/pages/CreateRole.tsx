@@ -9,17 +9,19 @@ interface CreateRoleProps {
     roles: string[];
     permissions: any;
     statusActions: any[];
+    parameterOptions: { label: string; value: string }[];
     onSubmit: (payload: any) => void;
     onCancel: () => void;
 }
 
-const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActions, onSubmit, onCancel }) => {
+const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActions, parameterOptions, onSubmit, onCancel }) => {
     const { register, handleSubmit, control, watch, setValue, formState: { errors }, reset } = useForm({
         defaultValues: {
             role: '',
             description: '',
             permissionsList: [] as string[],
-            actionIds: [] as string[]
+            actionIds: [] as string[],
+            parameterIds: [] as string[]
         }
     });
 
@@ -29,6 +31,7 @@ const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActio
 
     const selectedPerms = watch('permissionsList');
     const selectedActionIds = watch('actionIds');
+    const selectedParameterIds = watch('parameterIds');
 
     const handlePermChange = (val: any) => {
         const value = Array.isArray(val) ? val : [val];
@@ -55,12 +58,14 @@ const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActio
         const list = data.permissionsList.filter((p: string) => p !== 'Custom');
         const user = getCurrentUserDetails();
         const allowedStatusActionIds = selectedActionIds.join('|');
+        const parameterMaster = selectedParameterIds.join('|');
         const payload = {
             role: data.role,
             description: data.description,
             permissions: customPerm || null,
             permissionsList: list,
             allowedStatusActionIds,
+            parameterMaster,
             createdBy: user?.name,
             updatedBy: user?.name
         };
@@ -142,6 +147,27 @@ const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActio
                             ))
                         }
                         renderInput={(params) => <TextField {...params} label="Status Actions" />}
+                    />
+                )}
+            />
+            <Controller
+                name="parameterIds"
+                control={control}
+                render={({ field }) => (
+                    <Autocomplete
+                        multiple
+                        disableCloseOnSelect
+                        options={parameterOptions || []}
+                        value={(parameterOptions || []).filter((p: any) => field.value.includes(String(p.value)))}
+                        onChange={(_, val) => field.onChange(val.map((p: any) => String(p.value)))}
+                        className="w-50 mb-2"
+                        getOptionLabel={(option: any) => option.label}
+                        renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                                <Chip label={option.label} {...getTagProps({ index })} />
+                            ))
+                        }
+                        renderInput={(params) => <TextField {...params} label="Parameters" />}
                     />
                 )}
             />
