@@ -79,6 +79,25 @@ describe('UserMenu', () => {
     confirmSpy.mockRestore();
   });
 
+  it('shows alternate email and contact keys when present', () => {
+    mockGetCurrentUserDetails.mockReturnValue({
+      name: 'Alt User',
+      username: 'alt-user',
+      userId: 'user-alt',
+      emailId: 'alt@example.com',
+      mobileNo: '9990001111',
+      role: [],
+    });
+    mockGetRoleLookup.mockReturnValue([]);
+
+    renderWithTheme(
+      <UserMenu anchorEl={createAnchor()} open onClose={jest.fn()} />,
+    );
+
+    expect(screen.getByText('alt@example.com')).toBeInTheDocument();
+    expect(screen.getByText('9990001111')).toBeInTheDocument();
+  });
+
   it('shows fallback values when user information is incomplete', () => {
     mockGetCurrentUserDetails.mockReturnValue({ username: 'sample-user' });
     mockGetRoleLookup.mockReturnValue(undefined);

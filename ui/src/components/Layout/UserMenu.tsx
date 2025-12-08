@@ -100,6 +100,39 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
     return "";
   }, [user?.name, user?.username, user?.userId]);
 
+  const resolvedEmail = useMemo(() => {
+    if (!user) return undefined;
+
+    const candidates = [
+      (user as any)?.email,
+      (user as any)?.emailId,
+      (user as any)?.emailID,
+      (user as any)?.mail,
+      (user as any)?.userEmail,
+      (user as any)?.userMail,
+    ];
+
+    const selected = candidates.find((value) => typeof value === "string" && value.trim());
+    return selected ? String(selected).trim() : undefined;
+  }, [user]);
+
+  const resolvedContact = useMemo(() => {
+    if (!user) return undefined;
+
+    const candidates = [
+      (user as any)?.phone,
+      (user as any)?.contactNumber,
+      (user as any)?.contact,
+      (user as any)?.mobile,
+      (user as any)?.mobileNo,
+      (user as any)?.mobileNumber,
+      (user as any)?.contactNo,
+    ];
+
+    const selected = candidates.find((value) => typeof value === "string" && value.trim());
+    return selected ? String(selected).trim() : undefined;
+  }, [user]);
+
   const primaryName = user?.name || user?.username || user?.userId || "User";
   const secondaryName = user?.username && user?.username !== user?.name ? user.username : user?.userId;
 
@@ -184,17 +217,17 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
 
         <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 1.5 }}>
           {renderDetailRow(
-            <EmailOutlinedIcon fontSize="small" color="action" />, "EMAIL ID", user?.email || "Not available",
+            <EmailOutlinedIcon fontSize="small" color="action" />, "EMAIL ID", resolvedEmail || "Not available",
           )}
           {renderDetailRow(
-            <PhoneOutlinedIcon fontSize="small" color="action" />, "CONTACT", user?.phone || "Not available",
+            <PhoneOutlinedIcon fontSize="small" color="action" />, "CONTACT", resolvedContact || "Not available",
           )}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500, letterSpacing: 0.5 }}>
-              ROLES
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
-              <BadgeOutlinedIcon fontSize="small" color="action" />
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500, letterSpacing: 0.5 }}>
+            ROLES
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
+            <BadgeOutlinedIcon fontSize="small" color="action" />
               {displayRoles.length ? (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {displayRoles.map((role) => (
