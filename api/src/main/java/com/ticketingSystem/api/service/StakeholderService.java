@@ -17,7 +17,13 @@ public class StakeholderService {
     }
 
     public List<StakeholderDto> getAll() {
-        return repository.findByStakeholderGroupId(3).stream()
+        return repository.findAll().stream()
+                .map(DtoMapper::toStakeholderDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<StakeholderDto> getByStakeholderGroupId(Integer sgId) {
+        return repository.findByStakeholderGroupId(sgId).stream()
                 .map(DtoMapper::toStakeholderDto)
                 .collect(Collectors.toList());
     }

@@ -195,7 +195,7 @@ const formatSummaryValue = (value: number) => value?.toString().padStart(2, "0")
 
 const ADMIN_ROLES = new Set(["Team Lead", "System Administrator", "Regional Nodal Officer"]);
 const ASSIGNEE_ROLES = new Set(["Helpdesk Agent", "Technical Team"]);
-const REQUESTER_ROLE = "Requester";
+const REQUESTER_ROLE: string[] = ["Requester", "5"];
 
 const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
 
@@ -394,11 +394,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { showMessage } = useSnackbar();
   const userDetails = React.useMemo(() => getUserDetails(), []);
   const userRoles = React.useMemo(() => userDetails?.role ?? [], [userDetails]);
-  const isRequester = React.useMemo(() => userRoles.includes(REQUESTER_ROLE), [userRoles]);
+  const isRequester = React.useMemo(() => userRoles.some((role) => REQUESTER_ROLE.includes(role)), [userRoles]);
   const preferredScope = React.useMemo<SupportDashboardScopeKey>(() => {
     const hasAdminRole = userRoles.some((role) => ADMIN_ROLES.has(role));
     const hasAssigneeRole = userRoles.some((role) => ASSIGNEE_ROLES.has(role));
-    const isRequesterOnly = userRoles.length === 1 && userRoles[0] === REQUESTER_ROLE;
+    const isRequesterOnly = userRoles.length === 1 && REQUESTER_ROLE.includes(userRoles[0]);
 
     if (hasAdminRole) {
       return "allTickets";
@@ -580,8 +580,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const normalizedSubCategoryId =
       normalizedCategoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
 
-    if (isRequester && userDetails?.userId) {
-      params.createdBy = userDetails.userId;
+    if (isRequester && userDetails?.username) {
+      params.createdBy = userDetails.username;
     }
 
     if (timeScale === "CUSTOM") {

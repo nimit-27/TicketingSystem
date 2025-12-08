@@ -91,6 +91,12 @@ declare module '@mui/material/styles' {
   }
 
   interface GlobalComponentsPaletteOptions {
+    pageTitle: {
+      text: string;
+    };
+    icon: {
+      color: string;
+    };
     table?: Partial<TablePalette>;
     buttons?: ButtonsPaletteOptions;
     input?: Partial<FieldPalette>;

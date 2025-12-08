@@ -8,7 +8,7 @@ public class ClientTokenProperties {
      * Expiration window, in minutes, for client-issued access tokens that protect the
      * mobile application integration endpoints.
      */
-    private long accessExpirationMinutes = 60L;
+    private long accessExpirationMinutes = 600L;
 
     public long getAccessExpirationMinutes() {
         return accessExpirationMinutes;

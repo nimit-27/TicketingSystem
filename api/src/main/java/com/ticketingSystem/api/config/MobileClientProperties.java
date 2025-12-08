@@ -13,7 +13,7 @@ public class MobileClientProperties {
      * Secret that the parent mobile application presents when requesting its first
      * token.
      */
-    private String secret = "change-me";
+    private String secret = "qwertyuiopasdfghjklzxcvbnm";
 
     private String description = "Parent mobile application client";
 

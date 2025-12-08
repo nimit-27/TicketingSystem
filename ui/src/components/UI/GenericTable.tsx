@@ -12,9 +12,9 @@ const GenericTable = <T extends object = any>({ className, style, ...props }: Ta
     const tableTheme: ThemeConfig = {
         components: {
             Table: {
-                borderColor: theme.palette.global.table.border,
-                headerBg: theme.palette.global.table.headerBackground,
-                headerColor: theme.palette.global.table.headerText,
+                borderColor: theme.palette.global?.table.border,
+                headerBg: theme.palette.global?.table.headerBackground,
+                headerColor: theme.palette.global?.table.headerText,
             },
         },
         token: {

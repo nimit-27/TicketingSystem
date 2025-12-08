@@ -21,6 +21,7 @@ import { getStakeholders } from "../../services/StakeholderService";
 import UserAvatar from "../UI/UserAvatar/UserAvatar";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { RequesterUser } from "../../types/users";
+import { getDropdownOptions } from "../../utils/Utils";
 
 interface RequestorDetailsProps extends FormProps {
     disableAll?: boolean;
@@ -67,24 +68,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const PAGE_SIZE = 10;
 
     const stakeholderOptions: DropdownOption[] = useMemo(() => {
-        const rawStakeholders = Array.isArray(stakeholderData)
-            ? stakeholderData
-            : Array.isArray((stakeholderData as any)?.data)
-                ? (stakeholderData as any)?.data
-                : [];
-
-        const uniqueStakeholders = Array.from(
-            new Map(rawStakeholders.map((s: any) => [String(s.id), s])).values()
-        );
-
-        const excludedStakeholders = new Set(["Helpdesk Support", "Helpdesk Agent"]);
-
-        return uniqueStakeholders
-            .map((s: any) => ({
-                label: s.description || s.name || s.stakeholder || 'Stakeholder',
-                value: String(s.id)
-            }))
-            .filter((option) => option.label && !excludedStakeholders.has(option.label));
+        return getDropdownOptions(stakeholderData, 'description', 'id')
     }, [stakeholderData]);
 
     const fetchRequesterUsers = useCallback((pageToLoad: number = 0, append: boolean = false) => {
@@ -247,7 +231,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                 verifyUserById(user?.userId);
             }
         }
-      
+
         if (helpdesk && mode === 'Self' && createMode) {
             const user = getCurrentUserDetails();
             if (setValue && user?.userId) {
