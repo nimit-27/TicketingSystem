@@ -18,6 +18,8 @@ public class RoleDto {
     private RolePermission permissions;
     private String[] permissionsList;
     private String allowedStatusActionIds;
+    private String parameterMaster;
+    private String[] parameterMasterIds;
     private boolean isDeleted;
     private String description;
 }

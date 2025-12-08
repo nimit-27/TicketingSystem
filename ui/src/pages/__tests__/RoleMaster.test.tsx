@@ -9,6 +9,7 @@ const mockGetAllRoles = jest.fn(() => Promise.resolve([{ roleId: '1', role: 'Adm
 const mockDeleteRole = jest.fn(() => Promise.resolve());
 const mockDeleteRoles = jest.fn(() => Promise.resolve());
 const mockGetStatusActions = jest.fn(() => Promise.resolve([{ id: 1, action: 'Approve' }]));
+const mockGetParameters = jest.fn(() => Promise.resolve([{ parameterId: '1', label: 'Param 1' }]));
 const mockUseApi = jest.fn();
 
 jest.mock('../../hooks/useApi', () => ({
@@ -26,6 +27,10 @@ jest.mock('../../services/RoleService', () => ({
 
 jest.mock('../../services/StatusService', () => ({
   getStatusActions: () => mockGetStatusActions(),
+}));
+
+jest.mock('../../services/ParameterService', () => ({
+  getParameters: () => mockGetParameters(),
 }));
 
 jest.mock('../../components/UI/ViewToggle', () => ({
@@ -92,6 +97,7 @@ describe('RoleMaster', () => {
     mockDeleteRole.mockClear();
     mockDeleteRoles.mockClear();
     mockGetStatusActions.mockClear();
+    mockGetParameters.mockClear();
     capturedTableProps = null;
     navigateMock.mockClear();
     window.confirm = jest.fn(() => true);
@@ -104,6 +110,7 @@ describe('RoleMaster', () => {
     mockGetAllPermissions.mockResolvedValue({ roles: { Admin: {} } });
     mockGetAllRoles.mockResolvedValue([{ roleId: '1', role: 'Admin', description: 'Desc', createdOn: '2024-01-01' }]);
     mockGetStatusActions.mockResolvedValue([{ id: 1, action: 'Approve' }]);
+    mockGetParameters.mockResolvedValue([{ parameterId: '1', label: 'Param 1' }]);
 
     mockUseApi
       .mockImplementationOnce(() => ({
@@ -116,6 +123,10 @@ describe('RoleMaster', () => {
       }))
       .mockImplementationOnce(() => ({
         data: [{ id: 1, action: 'Approve' }],
+        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
+      }))
+      .mockImplementationOnce(() => ({
+        data: [{ parameterId: '1', label: 'Param 1' }],
         apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
       }))
       .mockImplementation(() => ({

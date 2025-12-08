@@ -4,6 +4,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useApi } from '../hooks/useApi';
 import { addRole, getAllPermissions, loadPermissions, getAllRoles, deleteRoles, deleteRole } from '../services/RoleService';
 import { getStatusActions } from '../services/StatusService';
+import { getParameters } from '../services/ParameterService';
 import ViewToggle from '../components/UI/ViewToggle';
 import GenericTable from '../components/UI/GenericTable';
 import Title from '../components/Title';
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { DevModeContext } from '../context/DevModeContext';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import CreateRole from './CreateRole';
+import { getDropdownOptions } from '../utils/Utils';
 
 const formatDate = (inputDate: string) => {
     const date = new Date(inputDate);
@@ -25,6 +27,7 @@ const RoleMaster: React.FC = () => {
     const { data: rolesData, apiHandler: getAllRolesApiHandler } = useApi<any>();
     const { data, apiHandler } = useApi<any>();
     const { data: statusActions, apiHandler: actionsApiHandler } = useApi<any>();
+    const { data: parameters, apiHandler: parametersApiHandler } = useApi<any>();
 
     const [view, setView] = useState<'table' | 'grid'>('table');
     const navigate = useNavigate();
@@ -39,9 +42,11 @@ const RoleMaster: React.FC = () => {
     useEffect(() => {
         apiHandler(() => getAllPermissions());
         actionsApiHandler(() => getStatusActions());
+        parametersApiHandler(() => getParameters());
     }, []);
 
     const roles = data?.roles ? Object.keys(data.roles) : [];
+    const parameterOptions = getDropdownOptions(parameters || [], 'label', 'parameterId');
 
     const handleCreate = () => {
         setCreating(true);
@@ -102,7 +107,14 @@ const RoleMaster: React.FC = () => {
                 <ViewToggle value={view} onChange={setView} options={[{ icon: 'grid', value: 'grid' }, { icon: 'table', value: 'table' }]} />
             </div>
             {creating && (
-                <CreateRole roles={roles} permissions={data?.roles || {}} statusActions={statusActions || []} onSubmit={handleCreateSubmit} onCancel={handleCancel} />
+                <CreateRole
+                    roles={roles}
+                    permissions={data?.roles || {}}
+                    statusActions={statusActions || []}
+                    parameterOptions={parameterOptions}
+                    onSubmit={handleCreateSubmit}
+                    onCancel={handleCancel}
+                />
             )}
             {view === 'table' ? (
                 <>

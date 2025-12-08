@@ -122,6 +122,14 @@ public class DtoMapper {
         dto.setUpdatedBy(role.getUpdatedBy());
         dto.setUpdatedOn(role.getUpdatedOn());
         dto.setAllowedStatusActionIds(role.getAllowedStatusActionIds());
+        dto.setParameterMaster(role.getParameterMaster());
+        if (role.getParameterMaster() != null && !role.getParameterMaster().isBlank()) {
+            List<String> parameterIds = Arrays.stream(role.getParameterMaster().split("\\|"))
+                    .map(String::trim)
+                    .filter(id -> !id.isEmpty())
+                    .toList();
+            dto.setParameterMasterIds(parameterIds.toArray(String[]::new));
+        }
         dto.setDeleted(role.isDeleted());
         dto.setDescription(role.getDescription());
         if (role.getPermissions() != null) {
