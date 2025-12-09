@@ -34,6 +34,26 @@ public class ReportsController {
         return ResponseEntity.ok(reportService.getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear));
     }
 
+    @GetMapping("/support-dashboard-summary/filtered")
+    public ResponseEntity<SupportDashboardSummaryDto> getFilteredSupportDashboardSummary(
+            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @RequestParam(value = "timeScale", required = false) String timeScale,
+            @RequestParam(value = "timeRange", required = false) String timeRange,
+            @RequestParam(value = "customStartYear", required = false) Integer customStartYear,
+            @RequestParam(value = "customEndYear", required = false) Integer customEndYear,
+            @RequestParam(value = "parameterKey", required = false) String parameterKey,
+            @RequestParam(value = "parameterValue", required = false) String parameterValue) {
+        return ResponseEntity.ok(reportService.getSupportDashboardSummaryFiltered(
+                userId,
+                timeScale,
+                timeRange,
+                customStartYear,
+                customEndYear,
+                parameterKey,
+                parameterValue
+        ));
+    }
+
     @GetMapping("/ticket-summary")
     public ResponseEntity<TicketSummaryReportDto> getTicketSummaryReport() {
         return ResponseEntity.ok(reportService.getTicketSummaryReport());

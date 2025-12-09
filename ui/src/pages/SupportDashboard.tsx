@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { fetchSupportDashboardSummary } from "../services/ReportService";
+import { fetchSupportDashboardSummary, fetchSupportDashboardSummaryFiltered } from "../services/ReportService";
 import { useApi } from "../hooks/useApi";
 import {
   SupportDashboardScopeKey,
@@ -427,6 +427,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   );
   const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
   const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
+  const [selectedRole, setSelectedRole] = React.useState<string>(() => userRoles[0] ?? "");
+  const [selectedParameter, setSelectedParameter] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -437,7 +439,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     apiHandler: getSummaryApiHandler,
   } = useApi<SupportDashboardSummaryResponse>();
 
-  const { apiHandler: getRoleParametersApiHandler } = useApi<ParameterMaster[]>();
+  const {
+    data: roleParameters,
+    apiHandler: getRoleParametersApiHandler,
+  } = useApi<ParameterMaster[]>();
 
   useEffect(() => {
     let isMounted = true;
@@ -460,8 +465,18 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   }, []);
 
   useEffect(() => {
-    void getRoleParametersApiHandler(() => getParametersByRoles(userRoles));
-  }, [getRoleParametersApiHandler, userRoles]);
+    if (!userRoles.length) {
+      setSelectedRole("");
+      return;
+    }
+
+    setSelectedRole((current) => (current && userRoles.includes(current) ? current : userRoles[0]));
+  }, [userRoles]);
+
+  useEffect(() => {
+    const rolesToQuery = selectedRole ? [selectedRole] : [];
+    void getRoleParametersApiHandler(() => getParametersByRoles(rolesToQuery));
+  }, [getRoleParametersApiHandler, selectedRole]);
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -505,11 +520,36 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   );
 
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
+  const roleOptions = React.useMemo(
+    () => userRoles.map((role) => ({ value: role, label: role })),
+    [userRoles],
+  );
+  const parameterDropdownOptions = React.useMemo(
+    () => [
+      { value: "All", label: "All" },
+      ...((roleParameters ?? []).map((parameter) => ({
+        value: parameter.code ?? parameter.parameterId,
+        label: parameter.label ?? parameter.code ?? parameter.parameterId ?? "Unknown",
+      })) ?? []),
+    ],
+    [roleParameters],
+  );
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
   useEffect(() => {
     setActiveScope((current) => (current !== preferredScope ? preferredScope : current));
   }, [preferredScope]);
+
+  useEffect(() => {
+    setSelectedParameter((current) => {
+      if (current === "All") {
+        return current;
+      }
+
+      const hasOption = parameterDropdownOptions.some((option) => option.value === current);
+      return hasOption ? current : "All";
+    });
+  }, [parameterDropdownOptions]);
 
   useEffect(() => {
     if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
@@ -578,6 +618,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [dateRange, derivedDateRange, timeScale],
   );
 
+  const parameterValue = React.useMemo(
+    () => userDetails?.username || userDetails?.userId || "",
+    [userDetails?.userId, userDetails?.username],
+  );
+
   const requestParams = React.useMemo(() => {
     if (!customRangeIsValid) {
       return null;
@@ -635,12 +680,19 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.subCategoryId = normalizedSubCategoryId;
     }
 
+    if (selectedParameter !== "All" && parameterValue) {
+      params.parameterKey = selectedParameter;
+      params.parameterValue = parameterValue;
+    }
+
     return params;
   }, [
     activeDateRange,
     customMonthRange,
     customRangeIsValid,
     isRequester,
+    parameterValue,
+    selectedParameter,
     selectedCategory,
     selectedSubCategory,
     timeRange,
@@ -658,7 +710,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       setDownloadingReport(true);
 
       try {
-        const response = await fetchSupportDashboardSummary(requestParams);
+        const fetcher = requestParams.parameterKey
+          ? fetchSupportDashboardSummaryFiltered
+          : fetchSupportDashboardSummary;
+        const response = await fetcher(requestParams);
         const dashboardData = extractApiPayload<SupportDashboardSummaryResponse>(response);
 
         if (!dashboardData) {
@@ -998,11 +1053,24 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     setSelectedSubCategory(event.target.value as string);
   }, []);
 
+  const handleRoleChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedRole(event.target.value as string);
+    setSelectedParameter("All");
+  }, []);
+
+  const handleParameterChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedParameter(event.target.value as string);
+  }, []);
+
   useEffect(() => {
     if (!requestParams) return;
 
-    void getSummaryApiHandler(() => fetchSupportDashboardSummary(requestParams));
-  }, [requestParams]);
+    const fetcher = requestParams.parameterKey
+      ? fetchSupportDashboardSummaryFiltered
+      : fetchSupportDashboardSummary;
+
+    void getSummaryApiHandler(() => fetcher(requestParams));
+  }, [getSummaryApiHandler, requestParams]);
 
   useEffect(() => {
     const resolvedSummary = createDefaultSummary();
@@ -1193,6 +1261,29 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               </Box>
             )}
           </div>
+
+          <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
+            {userRoles.length > 1 && (
+              <GenericDropdown
+                id="support-dashboard-role"
+                label="Role"
+                value={selectedRole}
+                onChange={handleRoleChange}
+                options={roleOptions}
+                fullWidth
+                disabled={isLoading}
+              />
+            )}
+            <GenericDropdown
+              id="support-dashboard-parameter"
+              label="Parameter"
+              value={selectedParameter}
+              onChange={handleParameterChange}
+              options={parameterDropdownOptions}
+              fullWidth
+              disabled={isLoading || parameterDropdownOptions.length <= 1}
+            />
+          </Box>
 
           <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
             <GenericDropdown

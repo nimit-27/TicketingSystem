@@ -223,4 +223,6 @@ export interface SupportDashboardSummaryRequestParams {
     categoryId?: string;
     subCategoryId?: string;
     createdBy?: string;
+    parameterKey?: string;
+    parameterValue?: string;
 }
