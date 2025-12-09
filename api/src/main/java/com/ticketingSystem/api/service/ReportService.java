@@ -199,7 +199,7 @@ public class ReportService {
                                                                   ParameterCriteria parameterCriteria) {
         Map<String, Long> severityCounts = createEmptySeverityCounts();
 
-        List<SeverityCountProjection> severityProjections;
+        List<TicketRepository.SeverityCountProjection> severityProjections;
         if (parameterCriteria != null && parameterCriteria.hasFilters()) {
             severityProjections = ticketRepository.countTicketsBySeverityWithParameter(
                     TicketStatus.OPEN,
@@ -288,7 +288,7 @@ public class ReportService {
                                                                                  ParameterCriteria parameterCriteria) {
         Map<String, Long> baseSeverityCounts = createEmptySeverityCounts();
 
-        List<DashboardCategoryAggregation> aggregations;
+        List<TicketRepository.DashboardCategoryAggregation> aggregations;
         if (parameterCriteria != null && parameterCriteria.hasFilters()) {
             aggregations = ticketRepository.aggregateDashboardStatsByCategoryWithParameter(
                     assignedTo,
