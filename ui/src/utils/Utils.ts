@@ -8,6 +8,8 @@ import {
   isJwtBypassEnabled,
 } from "./authToken";
 import { logoutUser } from "../services/AuthService";
+import { useMemo } from "react";
+import { getCurrentUserDetails } from "../config/config";
 
 export interface RoleLookupItem {
   roleId: number | string;
@@ -61,6 +63,41 @@ export function setRoleLookup(list: RoleLookupItem[]) {
 export function getRoleLookup(): RoleLookupItem[] | null {
   const data = sessionStorage.getItem(ROLE_LOOKUP_KEY);
   return data ? JSON.parse(data) : null;
+}
+
+const roleLookup = getRoleLookup() || []
+
+const roleMap = () => {
+  if (!roleLookup) {
+    return {} as Record<string, string>;
+  }
+
+  return roleLookup.reduce((acc: Record<string, string>, item: RoleLookupItem) => {
+    const roleId = item?.roleId;
+    const roleName = item?.role ?? (roleId != null ? String(roleId) : "");
+
+    if (roleId != null && roleName) {
+      acc[String(roleId)] = String(roleName);
+    }
+
+    if (typeof item?.role === "string" && roleName) {
+      acc[item.role] = String(roleName);
+      acc[item.role.toUpperCase()] = String(roleName);
+    }
+
+    return acc;
+  }, {});
+};
+
+export function getDisplayRoles(): RoleLookupItem[] {
+  const user = getCurrentUserDetails();
+
+  let rawRoles = user?.role ?? []
+
+  if (!rawRoles.length) return [] as RoleLookupItem[];
+
+  let res = roleLookup.filter((item) => rawRoles.includes(item.roleId.toString()))
+  return res
 }
 
 export function setStatusList(list: any[]) {
