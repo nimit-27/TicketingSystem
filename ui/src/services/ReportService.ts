@@ -6,6 +6,10 @@ export function fetchSupportDashboardSummary(params?: SupportDashboardSummaryReq
     return apiClient.get(`${BASE_URL}/reports/support-dashboard-summary`, { params });
 }
 
+export function fetchSupportDashboardSummaryFiltered(params?: SupportDashboardSummaryRequestParams) {
+    return apiClient.get(`${BASE_URL}/reports/support-dashboard-summary/filtered`, { params });
+}
+
 export function fetchTicketSummaryReport(params?: MISReportRequestParams) {
     return apiClient.get(`${BASE_URL}/reports/ticket-summary`, { params });
 }

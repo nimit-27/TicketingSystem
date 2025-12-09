@@ -62,6 +62,62 @@ public class ReportService {
     private static final DateTimeFormatter DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
+    private ParameterCriteria resolveParameterCriteria(String parameterKey, String parameterValue) {
+        if (!StringUtils.hasText(parameterKey) || !StringUtils.hasText(parameterValue)) {
+            return null;
+        }
+
+        String normalizedKey = parameterKey.trim().toLowerCase(Locale.ROOT);
+        String normalizedValue = parameterValue.trim();
+
+        return switch (normalizedKey) {
+            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null);
+            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null);
+            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null);
+            case "created_by", "createdby", "creator", "requester", "requestor", "user", "user_id" ->
+                    new ParameterCriteria(null, null, null, normalizedValue);
+            default -> null;
+        };
+    }
+
+    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy) {
+        boolean hasFilters() {
+            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy).anyMatch(StringUtils::hasText);
+        }
+
+        boolean matches(Ticket ticket) {
+            if (ticket == null) {
+                return false;
+            }
+
+            if (StringUtils.hasText(assignedTo) && !matchesValue(assignedTo, ticket.getAssignedTo())) {
+                return false;
+            }
+
+            if (StringUtils.hasText(assignedBy) && !matchesValue(assignedBy, ticket.getAssignedBy())) {
+                return false;
+            }
+
+            if (StringUtils.hasText(updatedBy) && !matchesValue(updatedBy, ticket.getUpdatedBy())) {
+                return false;
+            }
+
+            if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getUserId())) {
+                return false;
+            }
+
+            return true;
+        }
+
+        private boolean matchesValue(String expected, String actual) {
+            if (!StringUtils.hasText(expected)) {
+                return true;
+            }
+
+            return expected.equalsIgnoreCase(StringUtils.hasText(actual) ? actual : "");
+        }
+    }
+
     public SupportDashboardSummaryDto getSupportDashboardSummary(String userId,
                                                                  String timeScale,
                                                                  String timeRange,
@@ -94,34 +150,127 @@ public class ReportService {
                 .build();
     }
 
+    public SupportDashboardSummaryDto getSupportDashboardSummaryFiltered(String userId,
+                                                                          String timeScale,
+                                                                          String timeRange,
+                                                                          Integer customStartYear,
+                                                                          Integer customEndYear,
+                                                                          String parameterKey,
+                                                                          String parameterValue) {
+        ParameterCriteria parameterCriteria = resolveParameterCriteria(parameterKey, parameterValue);
+
+        if (parameterCriteria == null || !parameterCriteria.hasFilters()) {
+            return getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear);
+        }
+
+        TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear);
+        DateRange dateRange = timeSeries.dateRange();
+
+        SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange, parameterCriteria);
+        List<SupportDashboardCategorySummaryDto> allTicketsByCategory = buildCategorySummarySection(null, dateRange, parameterCriteria);
+        SupportDashboardSummarySectionDto myWorkload = resolveUsername(userId)
+                .map(username -> buildSummarySection(username, dateRange, parameterCriteria))
+                .orElse(null);
+        List<SupportDashboardCategorySummaryDto> myWorkloadByCategory = resolveUsername(userId)
+                .map(username -> buildCategorySummarySection(username, dateRange, parameterCriteria))
+                .orElse(null);
+
+        SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange, parameterCriteria);
+        List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries, parameterCriteria);
+        List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries, parameterCriteria);
+
+        return SupportDashboardSummaryDto.builder()
+                .allTickets(allTickets)
+                .myWorkload(myWorkload)
+                .allTicketsByCategory(allTicketsByCategory)
+                .myWorkloadByCategory(myWorkloadByCategory)
+                .openResolved(openResolved)
+                .slaCompliance(slaCompliance)
+                .ticketVolume(ticketVolume)
+                .build();
+    }
+
     private SupportDashboardSummarySectionDto buildSummarySection(String assignedTo, DateRange dateRange) {
+        return buildSummarySection(assignedTo, dateRange, null);
+    }
+
+    private SupportDashboardSummarySectionDto buildSummarySection(String assignedTo,
+                                                                  DateRange dateRange,
+                                                                  ParameterCriteria parameterCriteria) {
         Map<String, Long> severityCounts = createEmptySeverityCounts();
 
-        ticketRepository.countTicketsBySeverity(TicketStatus.OPEN, assignedTo, dateRange.from(), dateRange.to())
-                .forEach(projection -> {
-                    if (projection.getSeverity() == null) {
-                        return;
-                    }
+        List<SeverityCountProjection> severityProjections;
+        if (parameterCriteria != null && parameterCriteria.hasFilters()) {
+            severityProjections = ticketRepository.countTicketsBySeverityWithParameter(
+                    TicketStatus.OPEN,
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to(),
+                    parameterCriteria.assignedTo(),
+                    parameterCriteria.assignedBy(),
+                    parameterCriteria.updatedBy(),
+                    parameterCriteria.createdBy()
+            );
+        } else {
+            severityProjections = ticketRepository.countTicketsBySeverity(
+                    TicketStatus.OPEN,
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to()
+            );
+        }
 
-                    String severityKey = projection.getSeverity().toUpperCase(Locale.ROOT);
-                    if (severityCounts.containsKey(severityKey)) {
-                        severityCounts.put(severityKey, Optional.ofNullable(projection.getCount()).orElse(0L));
-                    }
-                });
+        severityProjections.forEach(projection -> {
+            if (projection.getSeverity() == null) {
+                return;
+            }
 
-        long pendingCount = ticketRepository.countTicketsByStatusAndFilters(
-                TicketStatus.OPEN,
-                assignedTo,
-                dateRange.from(),
-                dateRange.to()
-        );
+            String severityKey = projection.getSeverity().toUpperCase(Locale.ROOT);
+            if (severityCounts.containsKey(severityKey)) {
+                severityCounts.put(severityKey, Optional.ofNullable(projection.getCount()).orElse(0L));
+            }
+        });
 
-        long totalTickets = ticketRepository.countTicketsByStatusAndFilters(
-                null,
-                assignedTo,
-                dateRange.from(),
-                dateRange.to()
-        );
+        long pendingCount;
+        long totalTickets;
+
+        if (parameterCriteria != null && parameterCriteria.hasFilters()) {
+            pendingCount = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
+                    TicketStatus.OPEN,
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to(),
+                    parameterCriteria.assignedTo(),
+                    parameterCriteria.assignedBy(),
+                    parameterCriteria.updatedBy(),
+                    parameterCriteria.createdBy()
+            );
+
+            totalTickets = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
+                    null,
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to(),
+                    parameterCriteria.assignedTo(),
+                    parameterCriteria.assignedBy(),
+                    parameterCriteria.updatedBy(),
+                    parameterCriteria.createdBy()
+            );
+        } else {
+            pendingCount = ticketRepository.countTicketsByStatusAndFilters(
+                    TicketStatus.OPEN,
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to()
+            );
+
+            totalTickets = ticketRepository.countTicketsByStatusAndFilters(
+                    null,
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to()
+            );
+        }
 
         return SupportDashboardSummarySectionDto.builder()
                 .pendingForAcknowledgement(pendingCount)
@@ -131,10 +280,30 @@ public class ReportService {
     }
 
     private List<SupportDashboardCategorySummaryDto> buildCategorySummarySection(String assignedTo, DateRange dateRange) {
+        return buildCategorySummarySection(assignedTo, dateRange, null);
+    }
+
+    private List<SupportDashboardCategorySummaryDto> buildCategorySummarySection(String assignedTo,
+                                                                                 DateRange dateRange,
+                                                                                 ParameterCriteria parameterCriteria) {
         Map<String, Long> baseSeverityCounts = createEmptySeverityCounts();
 
-        return ticketRepository.aggregateDashboardStatsByCategory(assignedTo, dateRange.from(), dateRange.to())
-                .stream()
+        List<DashboardCategoryAggregation> aggregations;
+        if (parameterCriteria != null && parameterCriteria.hasFilters()) {
+            aggregations = ticketRepository.aggregateDashboardStatsByCategoryWithParameter(
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to(),
+                    parameterCriteria.assignedTo(),
+                    parameterCriteria.assignedBy(),
+                    parameterCriteria.updatedBy(),
+                    parameterCriteria.createdBy()
+            );
+        } else {
+            aggregations = ticketRepository.aggregateDashboardStatsByCategory(assignedTo, dateRange.from(), dateRange.to());
+        }
+
+        return aggregations.stream()
                 .map(aggregation -> {
                     Map<String, Long> severityCounts = new LinkedHashMap<>(baseSeverityCounts);
                     severityCounts.put("S1", Optional.ofNullable(aggregation.getS1Count()).orElse(0L));
@@ -156,7 +325,20 @@ public class ReportService {
     }
 
     private SupportDashboardOpenResolvedDto buildOpenResolvedSnapshot(DateRange dateRange) {
-        List<Ticket> reportedTickets = ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
+        return buildOpenResolvedSnapshot(dateRange, null);
+    }
+
+    private SupportDashboardOpenResolvedDto buildOpenResolvedSnapshot(DateRange dateRange, ParameterCriteria parameterCriteria) {
+        List<Ticket> reportedTickets = (parameterCriteria != null && parameterCriteria.hasFilters())
+                ? ticketRepository.findByReportedDateBetweenWithParameters(
+                dateRange.from(),
+                dateRange.to(),
+                parameterCriteria.assignedTo(),
+                parameterCriteria.assignedBy(),
+                parameterCriteria.updatedBy(),
+                parameterCriteria.createdBy()
+        ) : ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
+
         EnumSet<TicketStatus> openLikeStatuses = EnumSet.allOf(TicketStatus.class);
         openLikeStatuses.removeAll(RESOLVED_STATUSES);
 
@@ -168,7 +350,16 @@ public class ReportService {
                 })
                 .count();
 
-        List<Ticket> resolvedTickets = ticketRepository.findByResolvedAtBetween(dateRange.from(), dateRange.to());
+        List<Ticket> resolvedTickets = (parameterCriteria != null && parameterCriteria.hasFilters())
+                ? ticketRepository.findByResolvedAtBetweenWithParameters(
+                dateRange.from(),
+                dateRange.to(),
+                parameterCriteria.assignedTo(),
+                parameterCriteria.assignedBy(),
+                parameterCriteria.updatedBy(),
+                parameterCriteria.createdBy()
+        ) : ticketRepository.findByResolvedAtBetween(dateRange.from(), dateRange.to());
+
         long resolvedCount = resolvedTickets.stream()
                 .filter(ticket -> ticket != null && ticket.getTicketStatus() != null)
                 .filter(ticket -> RESOLVED_STATUSES.contains(ticket.getTicketStatus()))
@@ -181,6 +372,11 @@ public class ReportService {
     }
 
     private List<SupportDashboardSlaCompliancePointDto> buildSlaComplianceTrend(TimeSeriesDefinition timeSeries) {
+        return buildSlaComplianceTrend(timeSeries, null);
+    }
+
+    private List<SupportDashboardSlaCompliancePointDto> buildSlaComplianceTrend(TimeSeriesDefinition timeSeries,
+                                                                                ParameterCriteria parameterCriteria) {
         List<TimeBucket> buckets = timeSeries.buckets();
         if (buckets.isEmpty()) {
             return List.of();
@@ -193,6 +389,10 @@ public class ReportService {
 
         for (TicketSla sla : slaEntries) {
             if (sla == null) {
+                continue;
+            }
+
+            if (parameterCriteria != null && parameterCriteria.hasFilters() && !parameterCriteria.matches(sla.getTicket())) {
                 continue;
             }
 
@@ -235,6 +435,11 @@ public class ReportService {
     }
 
     private List<SupportDashboardTicketVolumePointDto> buildTicketVolumeTrend(TimeSeriesDefinition timeSeries) {
+        return buildTicketVolumeTrend(timeSeries, null);
+    }
+
+    private List<SupportDashboardTicketVolumePointDto> buildTicketVolumeTrend(TimeSeriesDefinition timeSeries,
+                                                                              ParameterCriteria parameterCriteria) {
         List<TimeBucket> buckets = timeSeries.buckets();
         if (buckets.isEmpty()) {
             return List.of();
@@ -243,7 +448,15 @@ public class ReportService {
         Map<String, Long> countsByLabel = new LinkedHashMap<>();
         buckets.forEach(bucket -> countsByLabel.put(bucket.label(), 0L));
 
-        List<Ticket> tickets = ticketRepository.findByReportedDateBetween(timeSeries.dateRange().from(), timeSeries.dateRange().to());
+        List<Ticket> tickets = (parameterCriteria != null && parameterCriteria.hasFilters())
+                ? ticketRepository.findByReportedDateBetweenWithParameters(
+                timeSeries.dateRange().from(),
+                timeSeries.dateRange().to(),
+                parameterCriteria.assignedTo(),
+                parameterCriteria.assignedBy(),
+                parameterCriteria.updatedBy(),
+                parameterCriteria.createdBy()
+        ) : ticketRepository.findByReportedDateBetween(timeSeries.dateRange().from(), timeSeries.dateRange().to());
 
         for (Ticket ticket : tickets) {
             if (ticket == null || ticket.getReportedDate() == null) {
