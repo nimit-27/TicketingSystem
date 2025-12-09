@@ -5,7 +5,8 @@ import { renderWithTheme } from "../../test/testUtils";
 import SupportDashboard from "../SupportDashboard";
 import { getUserDetails } from "../../utils/Utils";
 
-const mockApiHandler = jest.fn((fn: () => Promise<any>) => fn());
+const mockSummaryApiHandler = jest.fn((fn: () => Promise<any>) => fn());
+const mockParameterApiHandler = jest.fn((fn: () => Promise<any>) => fn());
 const mockUseApi = jest.fn();
 const mockGetUserDetails = getUserDetails as jest.Mock;
 
@@ -14,9 +15,14 @@ jest.mock("../../hooks/useApi", () => ({
 }));
 
 const mockFetchSupportDashboardSummary = jest.fn(() => Promise.resolve({}));
+const mockGetParametersByRoles = jest.fn(() => Promise.resolve({ data: [] }));
 
 jest.mock("../../services/ReportService", () => ({
   fetchSupportDashboardSummary: (...args: unknown[]) => mockFetchSupportDashboardSummary.apply(null, args),
+}));
+
+jest.mock("../../services/ParameterService", () => ({
+  getParametersByRoles: (...args: unknown[]) => mockGetParametersByRoles.apply(null, args),
 }));
 
 jest.mock("../../utils/permissions", () => ({
@@ -127,27 +133,37 @@ describe("SupportDashboard", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseApi.mockReturnValue({
-      data: null,
-      pending: false,
-      error: null,
-      success: false,
-      apiHandler: mockApiHandler,
-    });
-    mockApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
+    mockUseApi
+      .mockReturnValueOnce({
+        data: null,
+        pending: false,
+        error: null,
+        success: false,
+        apiHandler: mockSummaryApiHandler,
+      })
+      .mockReturnValue({
+        data: null,
+        pending: false,
+        error: null,
+        success: false,
+        apiHandler: mockParameterApiHandler,
+      });
+    mockSummaryApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
+    mockParameterApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
     mockGetUserDetails.mockReturnValue({ role: [] });
   });
 
   it("requests dashboard data on mount with default filters", async () => {
     renderWithTheme(<SupportDashboard />);
 
-    await waitFor(() => expect(mockApiHandler).toHaveBeenCalled());
+    await waitFor(() => expect(mockSummaryApiHandler).toHaveBeenCalled());
     expect(mockFetchSupportDashboardSummary).toHaveBeenCalledWith({
       timeScale: "DAILY",
       timeRange: "LAST_7_DAYS",
       fromDate: "2024-01-02",
       toDate: "2024-01-08",
     });
+    expect(mockGetParametersByRoles).toHaveBeenCalledWith([]);
   });
 
   it("adds the creator filter when the user is a requester", async () => {
@@ -155,7 +171,7 @@ describe("SupportDashboard", () => {
 
     renderWithTheme(<SupportDashboard />);
 
-    await waitFor(() => expect(mockApiHandler).toHaveBeenCalled());
+    await waitFor(() => expect(mockSummaryApiHandler).toHaveBeenCalled());
     expect(mockFetchSupportDashboardSummary).toHaveBeenCalledWith({
       timeScale: "DAILY",
       timeRange: "LAST_7_DAYS",
@@ -163,6 +179,7 @@ describe("SupportDashboard", () => {
       toDate: "2024-01-08",
       createdBy: "user-123",
     });
+    expect(mockGetParametersByRoles).toHaveBeenCalledWith(["Requester"]);
   });
 
   it("updates the request parameters when the time scale changes", async () => {
@@ -193,13 +210,21 @@ describe("SupportDashboard", () => {
       myWorkload: null,
     };
 
-    mockUseApi.mockReturnValue({
-      data: summaryResponse,
-      pending: false,
-      error: null,
-      success: true,
-      apiHandler: mockApiHandler,
-    });
+    mockUseApi
+      .mockReturnValueOnce({
+        data: summaryResponse,
+        pending: false,
+        error: null,
+        success: true,
+        apiHandler: mockSummaryApiHandler,
+      })
+      .mockReturnValue({
+        data: null,
+        pending: false,
+        error: null,
+        success: false,
+        apiHandler: mockParameterApiHandler,
+      });
 
     const { findByText } = renderWithTheme(<SupportDashboard />);
 

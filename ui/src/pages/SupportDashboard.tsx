@@ -17,6 +17,7 @@ import {
   SupportDashboardTimeRange,
   SupportDashboardTimeScale,
 } from "../types/reports";
+import { ParameterMaster } from "../types/parameters";
 import { checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
@@ -26,6 +27,7 @@ import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import { useSnackbar } from "../context/SnackbarContext";
 import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
 import { useCategoryFilters } from "../hooks/useCategoryFilters";
+import { getParametersByRoles } from "../services/ParameterService";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -435,6 +437,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     apiHandler: getSummaryApiHandler,
   } = useApi<SupportDashboardSummaryResponse>();
 
+  const { apiHandler: getRoleParametersApiHandler } = useApi<ParameterMaster[]>();
+
   useEffect(() => {
     let isMounted = true;
 
@@ -454,6 +458,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    void getRoleParametersApiHandler(() => getParametersByRoles(userRoles));
+  }, [getRoleParametersApiHandler, userRoles]);
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
