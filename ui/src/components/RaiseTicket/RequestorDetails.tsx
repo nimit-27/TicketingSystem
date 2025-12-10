@@ -157,9 +157,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
             setValue("zoneCode", data?.zoneCode ?? '');
             setValue("districtCode", data?.districtCode ?? '');
 
-            if (!fciUser) {
-                setValue("stakeholder", data.stakeholderId ?? data.stakeholder);
-            }
         }
     };
 
@@ -223,23 +220,13 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     }, [viewMode, onBehalfFciUser])
 
     useEffect(() => {
-        // Ticket creation by FCI user - SELF
-        if (fciUser && createMode) {
+        if (createMode) {
             const user = getCurrentUserDetails();
             if (setValue && user?.userId) {
                 setValue("userId", user?.userId);
-                verifyUserById(user?.userId);
             }
         }
-
-        if (helpdesk && mode === 'Self' && createMode) {
-            const user = getCurrentUserDetails();
-            if (setValue && user?.userId) {
-                setValue('userId', user?.userId);
-                verifyUserById(user?.userId);
-            }
-        }
-    }, [fciUser, helpdesk, mode, createMode]);
+    }, [mode, createMode]);
 
     const verifyUserById = (userId: string) => {
         // Logic to verify user by ID
@@ -283,19 +270,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     // && (viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk);
     const showOffice = checkFieldAccess('requestorDetails', 'office')
     // && (viewMode === FCI_User || fciUser || onBehalfFciUser) && !isSelfHelpdesk;
-
-    const isNonFci =
-        viewMode === NON_FCI_User && !fciUser && !onBehalfFciUser && !isSelfHelpdesk;
-    const isFciMode =
-        viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk;
-
-    const isUserIdDisabled =
-        disableAll || fciUser || isSelfHelpdesk || !createMode;
-    const isNameDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
-    const isEmailIdDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
-    const isMobileNoDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
-    const isRoleDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
-    const isOfficeDisabled = isDisabled || fciUser || isSelfHelpdesk || !createMode;
     const isStakeholderDisabled = false || !createMode;
 
     const isRequestorOrOnBehalfFci = !createMode && userId

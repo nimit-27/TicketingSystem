@@ -48,7 +48,6 @@ const RaiseTicket: React.FC<any> = () => {
         // Build JSON payload without attachments
         const payload: any = {
             ...rest,
-            requestorName: name,
             requestorEmailId: emailId,
             requestorMobileNo: mobileNo,
             stakeholder,
