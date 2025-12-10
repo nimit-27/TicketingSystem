@@ -1264,7 +1264,9 @@ public class TicketService {
         TicketComment tc = new TicketComment();
         tc.setTicket(ticket);
         tc.setComment(comment);
-        tc.setCreatedAt(java.time.LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        tc.setCreatedAt(now);
+        tc.setUpdatedAt(now);
         return commentRepository.save(tc);
     }
 
@@ -1282,6 +1284,7 @@ public class TicketService {
         TicketComment existing = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("TicketComment", commentId));
         existing.setComment(comment);
+        existing.setUpdatedAt(LocalDateTime.now());
         return commentRepository.save(existing);
     }
 
