@@ -133,8 +133,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                                 </div>
                                 {c.createdBy && currentUserId && c.createdBy.toLowerCase() === currentUserId.toLowerCase() && (
                                     <div className="ms-2">
-                                        <CustomIconButton icon="Edit" size="small" onClick={() => startEdit(c)} />
-                                        <CustomIconButton icon="Delete" size="small" onClick={() => removeComment(c.id)} color="error" />
+                                        <CustomIconButton icon="edit" size="small" onClick={() => startEdit(c)} />
+                                        <CustomIconButton icon="delete" size="small" onClick={() => removeComment(c.id)} color="error" />
                                     </div>
                                 )}
                             </div>
