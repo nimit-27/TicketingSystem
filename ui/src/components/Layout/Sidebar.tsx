@@ -157,15 +157,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         <img src="./menu-leaf.png" className="position-absolute" style={{ left: "0", bottom: "0", width: collapsed ? "80px" : "auto" }} />
         <List component="nav">
           {menuItems.map(({ key, label, to, icon }) => {
-            console.log(key === selectedKey);
             const alwaysVisible = key === 'myProfile';
             if (!alwaysVisible && !checkSidebarAccess(key)) {
               return null;
             }
             return (
               <ListItemButton
-
-
                 sx={{
                   backgroundColor: selectedKey === key ? 'rgba(168, 252, 213, 0.34)' : 'inherit',
                   color: selectedKey === key ? 'white' : textColor,
@@ -175,8 +172,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                       : 'rgba(255, 255, 255, 0.1)',
                   },
                 }}
-
-
                 component={Link}
                 to={to}
                 key={label}

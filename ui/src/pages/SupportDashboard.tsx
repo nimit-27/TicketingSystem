@@ -22,7 +22,7 @@ import { checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
-import { getUserDetails } from "../utils/Utils";
+import { getDisplayRoles, getDropdownOptions, getUserDetails } from "../utils/Utils";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import { useSnackbar } from "../context/SnackbarContext";
 import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
@@ -396,6 +396,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { showMessage } = useSnackbar();
   const userDetails = React.useMemo(() => getUserDetails(), []);
   const userRoles = React.useMemo(() => userDetails?.role ?? [], [userDetails]);
+  const rolesList = getDisplayRoles()
+  const roleOptions = getDropdownOptions(rolesList, 'role', 'roleId')
   const isRequester = React.useMemo(() => userRoles.some((role) => REQUESTER_ROLE.includes(role)), [userRoles]);
   const preferredScope = React.useMemo<SupportDashboardScopeKey>(() => {
     const hasAdminRole = userRoles.some((role) => ADMIN_ROLES.has(role));
@@ -520,10 +522,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   );
 
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
-  const roleOptions = React.useMemo(
-    () => userRoles.map((role) => ({ value: role, label: role })),
-    [userRoles],
-  );
+
   const parameterDropdownOptions = React.useMemo(
     () => [
       { value: "All", label: "All" },
