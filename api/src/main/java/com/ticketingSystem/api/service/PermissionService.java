@@ -320,7 +320,6 @@ public class PermissionService {
         Map<String, Object> pageChildren = getOrCreateChildMap(pages, "children");
 
         boolean allowUsers = isUserManagementRole(role);
-        setPagePermission(pageChildren, "Users", allowUsers);
         setPagePermission(pageChildren, "UserProfile", allowUsers);
 
         Map<String, Object> sidebar = permission.getSidebar();
@@ -328,9 +327,6 @@ public class PermissionService {
             sidebar = new LinkedHashMap<>();
             permission.setSidebar(sidebar);
         }
-        Map<String, Object> sidebarChildren = getOrCreateChildMap(sidebar, "children");
-//        setMenuPermission(sidebarChildren, "users", allowUsers, "Users");
-        setMenuPermission(sidebarChildren, "users", true, "Users");
     }
 
     private boolean isUserManagementRole(Role role) {
