@@ -181,7 +181,7 @@ public class TicketController {
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<TicketComment> addComment(@PathVariable String id, @RequestBody String comment) {
+    public ResponseEntity<TicketComment> addComment(@PathVariable String id, @RequestBody TicketComment comment) {
         logger.info("Request to add comment to ticket {}", id);
         TicketComment addedComment = ticketService.addComment(id, comment);
         logger.info("Comment added to ticket {}, returning {}", id, HttpStatus.OK);

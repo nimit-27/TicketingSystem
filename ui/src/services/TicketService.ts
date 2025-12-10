@@ -1,5 +1,6 @@
 import axios from "axios";
 import { BASE_URL } from "./api";
+import { CreateComment } from "../components/Comments/CommentsSection";
 
 export function searchTickets(payload: string) {
     return axios.post(`${BASE_URL}/tickets`, payload);
@@ -64,10 +65,8 @@ export function getChildTickets(masterId: string) {
     return axios.get(`${BASE_URL}/tickets/${masterId}/children`);
 }
 
-export function addComment(id: string, comment: string) {
-    return axios.post(`${BASE_URL}/tickets/${id}/comments`, comment, {
-        headers: { 'Content-Type': 'text/plain' }
-    });
+export function addComment(id: string, comment: CreateComment) {
+    return axios.post(`${BASE_URL}/tickets/${id}/comments`, comment);
 }
 
 export function getComments(id: string, count?: number) {

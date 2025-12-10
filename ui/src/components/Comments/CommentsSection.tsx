@@ -6,11 +6,20 @@ import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import { getCurrentUserDetails } from '../../config/config';
 
-interface Comment {
-    id: string;
+export interface CreateComment {
     comment: string;
+    createdBy: string;
+    updatedBy: string;
+}
+
+export interface Comment {
+    id: string
+    ticketId: string
+    comment: string;
+    createdBy: string;
+    updatedBy: string;
     createdAt: string;
-    userId?: string;
+    updatedAt: string;
 }
 
 interface CommentsSectionProps {
@@ -49,7 +58,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
 
     const loadComments = (count?: number) => {
         commentsApiHandler(() => getComments(ticketId)).then((all: any) => {
-            if (count && all.length > count) {
+            if (count && all?.length > count) {
                 setComments(all.slice(0, count));
                 setShowMore(true);
             } else {
@@ -60,8 +69,13 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
     };
 
     const postComment = () => {
-        if (!commentText) return;
-        addCommentApiHandler(() => addComment(ticketId, commentText)).then(() => {
+        if (!commentText || !currentUserId) return;
+        let payload: CreateComment = {
+            comment: commentText,
+            createdBy: currentUserId,
+            updatedBy: currentUserId
+        }
+        addCommentApiHandler(() => addComment(ticketId, payload)).then(() => {
             setCommentText('');
             loadComments();
         });
@@ -76,13 +90,13 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
         updateCommentApiHandler(() => updateComment(id, editText)).then(() => {
             setEditingCommentId(null);
             setEditText('');
-            loadComments(comments.length);
+            loadComments(comments?.length);
         });
     };
 
     const removeComment = (id: string) => {
         deleteCommentApiHandler(() => deleteComment(id)).then(() => {
-            loadComments(comments.length);
+            loadComments(comments?.length);
         });
     };
 
@@ -98,8 +112,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                 <button className="btn btn-primary" onClick={postComment}>{t('Post')}</button>
             </div>
             <div>
-                {comments.length === 0 && <p>{t('No comments')}</p>}
-                {comments.map((c) => (
+                {comments?.length === 0 && <p>{t('No comments')}</p>}
+                {comments?.map((c) => (
                     <div key={c.id} className="border p-2 mb-2">
                         {editingCommentId === c.id ? (
                             <>
@@ -117,7 +131,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                                     <div>{c.comment}</div>
                                     <small className="text-muted">{timeSince(c.createdAt)}</small>
                                 </div>
-                                {c.userId && currentUserId && c.userId.toLowerCase() === currentUserId.toLowerCase() && (
+                                {c.createdBy && currentUserId && c.createdBy.toLowerCase() === currentUserId.toLowerCase() && (
                                     <div className="ms-2">
                                         <CustomIconButton icon="Edit" size="small" onClick={() => startEdit(c)} />
                                         <CustomIconButton icon="Delete" size="small" onClick={() => removeComment(c.id)} color="error" />

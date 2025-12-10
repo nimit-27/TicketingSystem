@@ -1257,17 +1257,12 @@ public class TicketService {
         return mapWithStatusId(saved);
     }
 
-    public TicketComment addComment(String id, String comment) {
+    public TicketComment addComment(String id, TicketComment comment) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
-        TicketComment tc = new TicketComment();
-        tc.setTicket(ticket);
-        tc.setComment(comment);
-        LocalDateTime now = LocalDateTime.now();
-        tc.setCreatedAt(now);
-        tc.setUpdatedAt(now);
-        return commentRepository.save(tc);
+        comment.setTicket(ticket);
+        return commentRepository.save(comment);
     }
 
     public List<TicketComment> getComments(String id, Integer count) {
