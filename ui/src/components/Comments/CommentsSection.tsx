@@ -4,11 +4,13 @@ import { useApi } from '../../hooks/useApi';
 import { addComment, getComments, updateComment, deleteComment } from '../../services/TicketService';
 import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
+import { getCurrentUserDetails } from '../../config/config';
 
 interface Comment {
     id: string;
     comment: string;
     createdAt: string;
+    userId?: string;
 }
 
 interface CommentsSectionProps {
@@ -33,6 +35,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
     const { apiHandler: addCommentApiHandler } = useApi<any>();
     const { apiHandler: updateCommentApiHandler } = useApi<any>();
     const { apiHandler: deleteCommentApiHandler } = useApi<any>();
+    const currentUserId = getCurrentUserDetails()?.userId;
 
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState('');
@@ -114,10 +117,12 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                                     <div>{c.comment}</div>
                                     <small className="text-muted">{timeSince(c.createdAt)}</small>
                                 </div>
-                                <div className="ms-2">
-                                    <CustomIconButton icon="Edit" size="small" onClick={() => startEdit(c)} />
-                                    <CustomIconButton icon="Delete" size="small" onClick={() => removeComment(c.id)} color="error" />
-                                </div>
+                                {c.userId && currentUserId && c.userId.toLowerCase() === currentUserId.toLowerCase() && (
+                                    <div className="ms-2">
+                                        <CustomIconButton icon="Edit" size="small" onClick={() => startEdit(c)} />
+                                        <CustomIconButton icon="Delete" size="small" onClick={() => removeComment(c.id)} color="error" />
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
