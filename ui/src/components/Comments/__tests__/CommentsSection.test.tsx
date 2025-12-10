@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CommentsSection from '../CommentsSection';
 import { renderWithTheme } from '../../../test/testUtils';
+import { getCurrentUserDetails } from '../../../config/config';
 
 const mockUseApi = jest.fn();
 
@@ -19,6 +20,10 @@ jest.mock('../../../services/TicketService', () => ({
   addComment: (...args: unknown[]) => mockAddComment(...args),
   updateComment: (...args: unknown[]) => mockUpdateComment(...args),
   deleteComment: (...args: unknown[]) => mockDeleteComment(...args),
+}));
+
+jest.mock('../../../config/config', () => ({
+  getCurrentUserDetails: jest.fn(() => ({ userId: 'user-1', username: 'User One' })),
 }));
 
 jest.mock('../../UI/IconButton/CustomIconButton', () => ({
@@ -43,7 +48,9 @@ describe('CommentsSection', () => {
       id: `${index + 1}`,
       comment: `Comment ${index + 1}`,
       createdAt: new Date(2024, 0, index + 1).toISOString(),
+      userId: 'user-1',
     }));
+  const mockedGetCurrentUserDetails = getCurrentUserDetails as jest.Mock;
 
   let commentsApiHandler: jest.Mock;
   let addCommentApiHandler: jest.Mock;
@@ -53,6 +60,7 @@ describe('CommentsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseApi.mockReset();
+    mockedGetCurrentUserDetails.mockReturnValue({ userId: 'user-1', username: 'User One' });
 
     const createHandler = () => jest.fn((fn: () => Promise<unknown>) => Promise.resolve(fn()));
     commentsApiHandler = createHandler();
@@ -143,5 +151,20 @@ describe('CommentsSection', () => {
     await waitFor(() => expect(deleteCommentApiHandler).toHaveBeenCalledTimes(1));
     expect(mockDeleteComment).toHaveBeenCalledWith('1');
     await waitFor(() => expect(commentsApiHandler).toHaveBeenCalledTimes(3));
+  });
+
+  it('hides edit/delete actions for comments from other users', async () => {
+    const comments = [
+      { id: '1', comment: 'My comment', createdAt: new Date().toISOString(), userId: 'other-user' },
+    ];
+    mockGetComments.mockResolvedValue(comments);
+    setupUseApiMocks();
+
+    renderWithTheme(<CommentsSection ticketId={ticketId} />);
+
+    await screen.findByText('My comment');
+
+    expect(screen.queryByTestId('icon-Edit')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('icon-Delete')).not.toBeInTheDocument();
   });
 });
