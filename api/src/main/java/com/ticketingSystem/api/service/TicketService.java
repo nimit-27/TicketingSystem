@@ -1,9 +1,6 @@
 package com.ticketingSystem.api.service;
 
-import com.ticketingSystem.api.dto.TicketDto;
-import com.ticketingSystem.api.dto.TicketSearchResultDto;
-import com.ticketingSystem.api.dto.TypesenseTicketDto;
-import com.ticketingSystem.api.dto.TypesenseTicketPageResponse;
+import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
@@ -1257,30 +1254,32 @@ public class TicketService {
         return mapWithStatusId(saved);
     }
 
-    public TicketComment addComment(String id, TicketComment comment) {
+    public TicketCommentDto addComment(String id, TicketComment comment) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
         comment.setTicket(ticket);
-        return commentRepository.save(comment);
+        return DtoMapper.toTicketCommentDto(commentRepository.save(comment));
     }
 
-    public List<TicketComment> getComments(String id, Integer count) {
+    public List<TicketCommentDto> getComments(String id, Integer count) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        List<TicketComment> list = commentRepository.findByTicketOrderByCreatedAtDesc(ticket);
-        if (count == null || count >= list.size()) {
-            return list;
-        }
+        List<TicketCommentDto> list = commentRepository.findByTicketOrderByCreatedAtDesc(ticket)
+                .stream()
+                .map(DtoMapper::toTicketCommentDto)
+                .collect(Collectors.toList());
+        if (count == null || count >= list.size()) return list;
+
         return list.subList(0, count);
     }
 
-    public TicketComment updateComment(String commentId, String comment) {
+    public TicketCommentDto updateComment(String commentId, String comment) {
         TicketComment existing = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("TicketComment", commentId));
         existing.setComment(comment);
         existing.setUpdatedAt(LocalDateTime.now());
-        return commentRepository.save(existing);
+        return DtoMapper.toTicketCommentDto(commentRepository.save(existing));
     }
 
     public void deleteComment(String commentId) {

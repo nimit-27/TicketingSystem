@@ -349,4 +349,18 @@ public class DtoMapper {
 
         return dto;
     }
+
+    public static TicketCommentDto toTicketCommentDto(TicketComment ticketComment) {
+        if(ticketComment == null) return null;
+        TicketCommentDto dto = new TicketCommentDto();
+        dto.setId(ticketComment.getId());
+        dto.setTicketId(ticketComment.getTicket().getId());
+        dto.setComment(ticketComment.getComment());
+        dto.setCreatedBy(ticketComment.getCreatedBy());
+        dto.setCreatedAt(ticketComment.getCreatedAt());
+        dto.setUpdatedAt(ticketComment.getUpdatedAt());
+        dto.setUpdatedBy(ticketComment.getUpdatedBy());
+        return dto;
+    }
+
 }

@@ -1,21 +1,16 @@
 package com.ticketingSystem.api.controller;
 
-import com.ticketingSystem.api.dto.LoginPayload;
-import com.ticketingSystem.api.dto.PaginationResponse;
-import com.ticketingSystem.api.dto.TicketDto;
+import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
-import com.ticketingSystem.api.dto.TicketSearchResultDto;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
-import com.ticketingSystem.api.dto.TicketSlaDto;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.service.TicketAccessContext;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import com.ticketingSystem.api.service.UserService;
-import com.ticketingSystem.api.dto.UserDto;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,17 +176,17 @@ public class TicketController {
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<TicketComment> addComment(@PathVariable String id, @RequestBody TicketComment comment) {
+    public ResponseEntity<TicketCommentDto> addComment(@PathVariable String id, @RequestBody TicketComment comment) {
         logger.info("Request to add comment to ticket {}", id);
-        TicketComment addedComment = ticketService.addComment(id, comment);
+        TicketCommentDto addedComment = ticketService.addComment(id, comment);
         logger.info("Comment added to ticket {}, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(addedComment);
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<List<TicketComment>> getComments(@PathVariable String id, @RequestParam(required = false) Integer count) {
+    public ResponseEntity<List<TicketCommentDto>> getComments(@PathVariable String id, @RequestParam(required = false) Integer count) {
         logger.info("Request to get comments for ticket {} count={}", id, count);
-        List<TicketComment> comments = ticketService.getComments(id, count);
+        List<TicketCommentDto> comments = ticketService.getComments(id, count);
         logger.info("Returning {} comments for ticket {} with status {}", comments.size(), id, HttpStatus.OK);
         return ResponseEntity.ok(comments);
     }
@@ -241,9 +236,9 @@ public class TicketController {
     }
 
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<TicketComment> updateComment(@PathVariable String commentId, @RequestBody String comment) {
+    public ResponseEntity<TicketCommentDto> updateComment(@PathVariable String commentId, @RequestBody String comment) {
         logger.info("Request to update comment {}", commentId);
-        TicketComment updated = ticketService.updateComment(commentId, comment);
+        TicketCommentDto updated = ticketService.updateComment(commentId, comment);
         logger.info("Comment {} updated successfully, returning {}", commentId, HttpStatus.OK);
         return ResponseEntity.ok(updated);
     }
