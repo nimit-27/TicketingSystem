@@ -11,7 +11,7 @@ const toSxArray = (sx?: GenericButtonProps['sx']) => {
     return sx ? [sx] : [];
 };
 
-const GenericSubmitButton = forwardRef<HTMLButtonElement, GenericSubmitButtonProps>(({ textKey, children, sx, variant, type, ...props }, ref) => {
+const GenericSubmitButton = forwardRef<HTMLButtonElement, GenericSubmitButtonProps>(({ textKey, children, sx, size="large", variant, type, ...props }, ref) => {
     const theme = useTheme();
     const { save } = theme.palette.global.buttons;
     const resolvedTextKey = children ? undefined : (textKey ?? 'global.buttons.save');
@@ -36,7 +36,7 @@ const GenericSubmitButton = forwardRef<HTMLButtonElement, GenericSubmitButtonPro
         <GenericButton
             ref={ref}
             textKey={resolvedTextKey}
-            size="large"
+            size={size}
             variant={variant ?? 'contained'}
             type={type ?? 'submit'}
             sx={[styles, ...toSxArray(sx)]}

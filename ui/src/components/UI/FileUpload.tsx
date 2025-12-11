@@ -3,6 +3,7 @@ import { Box, Button, Typography, Modal, IconButton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import CloseIcon from '@mui/icons-material/Close';
+import GenericSubmitButton from './Button/GenericSubmitButton';
 
 interface FileUploadProps {
     maxSizeMB: number;
@@ -16,6 +17,8 @@ interface ThumbnailListProps {
     attachments: (File | string)[];
     thumbnailSize?: number;
     onRemove?: (index: number) => void;
+    unsavedAttachments?: Boolean;
+    onFilesChange?: (files: File[]) => void;
 }
 
 interface ThumbnailProps {
@@ -52,6 +55,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) 
     const isFile = file instanceof File;
     const url = isFile ? URL.createObjectURL(file) : file;
     const name = isFile ? file.name : file.split('/').pop() || '';
+    
     return (
         <Box
             onClick={onClick}
@@ -73,7 +77,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) 
                 },
             }}
         >
-            {/* <IconButton
+            {isFile && <IconButton
                 className="remove-icon"
                 size="small"
                 onClick={(e) => {
@@ -89,7 +93,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) 
                 }}
             >
                 <CloseIcon fontSize="small" />
-            </IconButton> */}
+            </IconButton>}
             <Box sx={{ p: 0.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img
@@ -104,9 +108,11 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) 
     );
 };
 
-const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSize = 100, onRemove }) => {
+const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSize = 100, onRemove, unsavedAttachments, onFilesChange }) => {
     const [open, setOpen] = useState(false);
     const [index, setIndex] = useState(0);
+
+    console.log({ attachments })
 
     const handleOpen = (i: number) => {
         setIndex(i);
@@ -125,6 +131,10 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
         setIndex((idx) => (idx + 1) % attachments.length);
     };
 
+    const uploadFiles = () => {
+        if(attachments?.length > 0) onFilesChange?.(attachments as File[])
+    }
+
     return (
         <>
             <Box display="flex" flexWrap="wrap">
@@ -138,6 +148,7 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
                     />
                 ))}
             </Box>
+            {unsavedAttachments && <GenericSubmitButton textKey='Upload' size='small' onClick={uploadFiles} />}
             <Modal open={open} onClose={handleClose}>
                 <Box
                     sx={{
@@ -180,6 +191,7 @@ const ThumbnailList: React.FC<ThumbnailListProps> = ({ attachments, thumbnailSiz
 const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFilesChange, attachments = [], hideUploadButton = false }) => {
     const [files, setFiles] = useState<File[]>(attachments);
     const [error, setError] = useState<string>('');
+    const [unsavedAttachments, setUnsavedAttachments] = useState<Boolean>(false)
 
     useEffect(() => {
         setFiles(attachments);
@@ -190,6 +202,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
 
     const handleRemove = (index: number) => {
         const updated = files.filter((_, i) => i !== index);
+        if(updated?.length < 1) setUnsavedAttachments(false);
         setFiles(updated);
         onFilesChange?.(updated);
     };
@@ -219,7 +232,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
         if (valid.length > 0) {
             const updated = [...files, ...valid];
             setFiles(updated);
-            onFilesChange?.(updated);
+            setUnsavedAttachments(true)
         }
 
         if (errors.length > 0) {
@@ -250,7 +263,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ maxSizeMB, thumbnailSize, onFil
                 </div>
             )}
             {error && (<Typography color="error" variant="body2">{error}</Typography>)}
-            <ThumbnailList attachments={files} thumbnailSize={thumbnailSize} onRemove={handleRemove} />
+            <ThumbnailList attachments={files} thumbnailSize={thumbnailSize} onRemove={handleRemove} unsavedAttachments={unsavedAttachments} onFilesChange={onFilesChange} />
         </Box>
     );
 };
