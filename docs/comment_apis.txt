@@ -1,0 +1,152 @@
+Comment APIS
+=========================================================
+=========================================================
+
+
+
+Post a comment for a ticket
+______________________________________________________
+
+Endpoint: m/tickets/TKT-1-202512-00021/comments
+Method: POST
+
+Payload:
+{
+    "comment": "Dummy text comment",
+    "createdBy": "user_id", // 100021
+    "updatedBy": "user_id"  // 100021
+}
+
+Response:
+{
+    "headers": {},
+    "body": {
+        "success": true,
+        "data": {
+            "id": "b0424cf8-6fc9-4592-b4cf-1d5fcb279b93",
+            "ticket": {
+                "id": "TKT-NA-202512-00064",
+                "reportedDate": "2025-12-10T18:09:20",
+                "mode": null,
+                "modeId": null,
+                "userId": "100021",
+                "user": null,
+                "requestorName": "SANTOSH",
+                "requestorEmailId": "santoshpatki.fci@gov.in",
+                "requestorMobileNo": "9423006633",
+                "office": "",
+                "officeCode": "WC18",
+                "regionCode": "WC",
+                "zoneCode": "W",
+                "districtCode": "WC18",
+                "regionName": null,
+                "districtName": null,
+                "stakeholder": "",
+                "subject": "Testing Dev",
+                "description": "Desc",
+                "category": "3",
+                "subCategory": "3001",
+                "priority": "P1",
+                "severity": "S4",
+                "recommendedSeverity": null,
+                "impact": null,
+                "severityRecommendedBy": null,
+                "ticketStatus": "OPEN",
+                "assignedToLevel": null,
+                "levelId": null,
+                "assignedTo": null,
+                "assignedBy": "100021",
+                "updatedBy": "100021",
+                "masterId": null,
+                "lastModified": "2025-12-10T23:39:20",
+                "resolvedAt": null,
+                "feedbackStatus": null,
+                "status": {
+                    "statusId": "1",
+                    "statusName": "Open (New)",
+                    "statusCode": "OPEN",
+                    "slaFlag": false,
+                    "description": "The ticket has been created but not yet assigned",
+                    "color": "#2196F3",
+                    "label": "Open"
+                },
+                "remark": null,
+                "isMaster": false
+            },
+            "comment": "Comment by Santosh",
+            "createdAt": "2025-12-10T18:09:40.073191",
+            "updatedAt": "2025-12-10T18:09:40.073199",
+            "createdBy": "100021",
+            "updatedBy": "100021"
+        },
+        "apiError": null,
+        "timestamp": "2025-12-10T23:39:40.079379751"
+    },
+    "statusCode": "OK",
+    "statusCodeValue": 200
+}
+
+====================================================
+
+Get comments for ticketId
+__________________________________________________
+
+Endpoint: m/tickets/{ticketId}/comments
+Method: GET
+
+Response: 
+{
+    "headers": {},
+    "body": {
+        "success": true,
+        "data": [
+            {
+                "id": "242c68d0-d468-460e-b10c-05841f14130b",
+                "ticket": {
+                    "id": "TKT-NA-202512-00064"
+                },
+                "comment": "Comment by Teaml1\n",
+                "createdAt": "2025-12-10T18:10:09",
+                "updatedAt": "2025-12-10T18:10:09",
+                "createdBy": "216",
+                "updatedBy": "216"
+            },
+            {
+                "id": "b0424cf8-6fc9-4592-b4cf-1d5fcb279b93",
+                "ticket": {
+                    "id": "TKT-NA-202512-00064"
+                },
+                "comment": "Comment by Santosh",
+                "createdAt": "2025-12-10T18:09:40",
+                "updatedAt": "2025-12-10T18:09:40",
+                "createdBy": "100021",
+                "updatedBy": "100021"
+            }
+        ],
+        "apiError": null,
+        "timestamp": "2025-12-10T23:40:15.394723789"
+    },
+    "statusCode": "OK",
+    "statusCodeValue": 200
+}
+
+====================================================
+
+Update comment
+__________________________________________________
+
+Endpoint: m/tickets/comments/{commentId}
+Method: PUT
+
+Payload:
+"Normal comment text"
+
+====================================================
+
+Delete comments
+__________________________________________________
+
+Endpoint: tickets/comments/{commentId}
+Method: DELETE
+
+

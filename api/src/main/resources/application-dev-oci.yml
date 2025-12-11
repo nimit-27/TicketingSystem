@@ -1,0 +1,59 @@
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET:h4g7d923@1!h4g7d923wd98wcj489f9438jf20293urf083rmv983j3jf}
+    expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
+    refreshExpirationMinutes: ${SECURITY_JWT_REFRESH_EXPIRATION_MINUTES:43200}
+    bypass: ${SECURITY_JWT_BYPASS:false}
+  mobile-client-tokens:
+    access-expiration-minutes: ${SECURITY_CLIENT_TOKEN_EXPIRATION_MINUTES:60}
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - https://dev.annadarpan.in
+      - https://qa.annadarpan.in
+      - https://uat.annadarpan.in
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - Accept
+      - X-Requested-With
+      - Origin
+      - X-user-ID
+    exposed-headers:
+      - Authorization
+    max-age: 3600
+    allow-credentials: true
+
+mobile:
+  client:
+    id: ${MOBILE_CLIENT_ID:parent-mobile-app}
+    secret: ${MOBILE_CLIENT_SECRET:qwertyuiopasdfghjklzxcvbnm}
+    description: ${MOBILE_CLIENT_DESCRIPTION:Parent mobile application client}
+    expirationMinutes: ${MOBILE_CLIENT_EXPIRATION_MINUTES:60}
+
+calendar:
+  ui:
+    provider-code: ${CALENDAR_PROVIDER_CODE:NAGER_DATE}
+    region: ${CALENDAR_REGION:IN-WB-Kolkata}
+    ensure-on-demand: ${CALENDAR_ENSURE_ON_DEMAND:true}
+    scheduler-enabled: ${CALENDAR_SCHEDULER_ENABLED:true}
+    scheduler-horizon-years: ${CALENDAR_SCHEDULER_HORIZON_YEARS:1}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+security:
+  jwt:
+    bypass: false
+    expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
+    refreshExpirationMinutes: ${SECURITY_JWT_REFRESH_EXPIRATION_MINUTES:43200}

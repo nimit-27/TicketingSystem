@@ -73,7 +73,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) 
                 },
             }}
         >
-            <IconButton
+            {/* <IconButton
                 className="remove-icon"
                 size="small"
                 onClick={(e) => {
@@ -89,7 +89,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({ file, size, onClick, onRemove }) 
                 }}
             >
                 <CloseIcon fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             <Box sx={{ p: 0.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img
