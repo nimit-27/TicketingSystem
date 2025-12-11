@@ -325,6 +325,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     doc.save(fileName);
   }, [sla, masterSla, buildSlaReportRows, ticket?.id]);
 
+  const resumeAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => {
+      if (action.action === 'Resume') {
+        if (ticket.assignedTo) return action.nextStatus == 2
+        else return action.nextStatus == 1
+      }
+    }) || null,
+    [availableStatusActions]
+  );
   const resolveAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Resolve') || null,
     [availableStatusActions]
@@ -763,6 +772,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, [ticket?.userId, currentUserId]);
 
   const shouldShowResolve = Boolean(resolveAction && isAssignedStatus && isAssignedToCurrentUser);
+  const shouldShowResume = Boolean(resumeAction);
   const shouldShowClose = Boolean(closeAction && isResolvedStatus && isRequester);
   const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
   const shouldShowRestore = Boolean(restoreAction && isCancelledStatus);
@@ -775,6 +785,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     && !isClosedStatus
     && !ticket?.isMaster;
   const shouldShowAssignMasterTicketButton = shouldShowLinkToMasterTicketButton && !ticket?.isMaster;
+
   const handleStatusActionClick = (action: TicketStatusWorkflow | null) => {
     if (!action) return;
     setSelectedStatusAction(action);
@@ -888,6 +899,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Typography>
           </div>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {shouldShowResume && (
+              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resumeAction)}>
+                {t('Assign Back')}
+              </Button>
+            )}
             {shouldShowResolve && (
               <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resolveAction)}>
                 {t('Resolve Ticket')}

@@ -102,9 +102,8 @@ Response:
         "data": [
             {
                 "id": "242c68d0-d468-460e-b10c-05841f14130b",
-                "ticket": {
-                    "id": "TKT-NA-202512-00064"
-                },
+		
+                "ticketId": "TKT-NA-202512-00064",
                 "comment": "Comment by Teaml1\n",
                 "createdAt": "2025-12-10T18:10:09",
                 "updatedAt": "2025-12-10T18:10:09",
@@ -113,9 +112,7 @@ Response:
             },
             {
                 "id": "b0424cf8-6fc9-4592-b4cf-1d5fcb279b93",
-                "ticket": {
-                    "id": "TKT-NA-202512-00064"
-                },
+		"ticketId": "TKT-NA-202512-00064",
                 "comment": "Comment by Santosh",
                 "createdAt": "2025-12-10T18:09:40",
                 "updatedAt": "2025-12-10T18:09:40",

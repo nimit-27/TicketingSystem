@@ -177,6 +177,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 return { icon: 'playArrow' };
             case 'Escalate':
                 return { icon: 'arrowUpward' };
+            case 'Resume':
+                return { icon: 'undo' };
             default:
                 return { icon: 'done', className: 'icon-green' };
         }
@@ -200,7 +202,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const openMenu = (event: React.MouseEvent, record: TicketRow) => {
         const statusName = getStatusNameById(record.statusId || '') || '';
         const list = getAvailableActions(record.statusId);
-        const resumeAction = list.find(a => a.action === 'Resume');
+        const resumeAction = list.filter(a => a.action === 'Resume')
         const isFciOnHold = statusName === FCI_STATUS_NAME;
         const allowAssignBack = Boolean(isFciOnHold && resumeAction && (canAssignBackByLevel || record.assignedBy?.toLowerCase() === currentUsername));
         const filteredActions = allowAssignBack ? list.filter(a => a.action !== 'Resume') : list;
@@ -540,13 +542,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     }
                     const recordActions = getAvailableActions(record.statusId);
                     const statusName = getStatusNameById(record.statusId || '') || '';
-                    const resumeAction = recordActions.find(a => a.action === 'Resume');
-                    // const isFciOnHold = statusName === FCI_STATUS_NAME;
+                    const resumeAction = recordActions.find(a => a.action === 'Resume')
                     const showSubmit = Boolean(resumeAction && statusName === 'On Hold (Pending with Requester)');
                     // const canAssignBack = Boolean(isFciOnHold && resumeAction && (canAssignBackByLevel || record.assignedBy?.toLowerCase() === currentUsername));
-                    const nonResumeActions = recordActions.filter(a => a.action !== 'Resume');
-                    const showInlineActions = !showSubmit && nonResumeActions.length > 0 && nonResumeActions.length <= 2;
-                    const showActionsMenu = !showSubmit && nonResumeActions.length > 2;
+                    const showActionsMenu = recordActions.length > 2;
+                    const seen = new Set()
                     return (
                         <>
                             <VisibilityIcon
@@ -554,22 +554,31 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                 fontSize="small"
                                 sx={{ color: 'grey.600', cursor: 'pointer' }}
                             />
-                            {showSubmit && resumeAction && (
-                                <Button size="small" onClick={() => handleActionClick(resumeAction, record.id)}>Submit</Button>
-                            )}
-                            {resumeAction && (
+                            {/* {resumeAction && (
                                 <Tooltip title="Assign Back" placement="top">
                                     <CustomIconButton
                                         size="small"
-                                        // onClick={() => handleActionClick(resumeAction, record.id)}
                                         onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
                                         icon="undo"
                                     />
                                 </Tooltip>
-                            )}
-                            {showInlineActions && nonResumeActions.map(a => {
+                            )} */}
+                            {recordActions
+                            .filter(item => !seen.has(item.action) && seen.add(item.action))
+                            .map(a => {
+                                // {showInlineActions && nonResumeActions.map(a => {
                                 const { icon, className } = getActionIcon(a.action);
-                                return (
+                                if (a.action === "Resume") {
+                                    return (
+                                        <Tooltip title="Assign Back" placement="top">
+                                            <CustomIconButton
+                                                size="small"
+                                                onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
+                                                icon="undo"
+                                            />
+                                        </Tooltip>
+                                    )
+                                } else return (
                                     <Tooltip key={a.id} title={a.action} placement="top">
                                         <CustomIconButton
                                             size="small"
@@ -630,7 +639,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 pagination={false}
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
                 expandable={{ expandedRowRender, expandedRowKeys, expandIcon: () => null, showExpandColumn: false }}
-                // scroll={{ y: '30vh' }}
+            // scroll={{ y: '30vh' }}
             />
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 {actions.map(a => {

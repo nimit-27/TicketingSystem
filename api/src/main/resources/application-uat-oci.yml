@@ -1,3 +1,5 @@
+
+
 security:
   jwt:
     secret: ${SECURITY_JWT_SECRET:h4g7d923@1!h4g7d923wd98wcj489f9438jf20293urf083rmv983j3jf}
