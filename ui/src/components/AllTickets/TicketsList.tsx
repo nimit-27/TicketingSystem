@@ -231,7 +231,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 statusParam = overrides.statusName;
             }
 
-            const masterParam = overrides?.master !== undefined ? overrides.master : masterOnly ? true : undefined;
+            const masterParam = overrides?.master !== undefined
+                ? overrides.master
+                : masterOnly
+                    ? true
+                    : undefined;
 
             const requestOverrides = buildSearchOverrides ? buildSearchOverrides({ ...filterState, page: effectivePage }) : {};
             const mergedOverrides: TicketsListSearchOverrides = {
