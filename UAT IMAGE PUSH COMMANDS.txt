@@ -3,13 +3,13 @@ UAT IMAGE PUSH COMMANDS
 https://uat.annadarpan.in/helpdesk/login
 
 Creating tag for UI to be pushed to ad_test_repo repository
-docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-ui_uat_v1.32
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-ui_uat_v1.35
 
 Creating tag for API to be pushed to ad_test_repo repository
-docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-api_uat_v1.32
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-api_uat_v1.35
 
 Pushing UI image to ad_test_repo
-docker push bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-ui_uat_v1.32
+docker push bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-ui_uat_v1.35
 
 Pushing API image ad_test_repo
-docker push bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-api_uat_v1.32
+docker push bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-api_uat_v1.35
