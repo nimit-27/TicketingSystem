@@ -35,6 +35,10 @@ public class NotificationService {
             model.put("supportEmail", properties.getSupportEmail());
         }
 
+        if (channel == ChannelType.IN_APP) {
+            enrichInAppPayload(model);
+        }
+
         String templateName = null;
         if (channel != ChannelType.IN_APP) {
             templateName = resolveTemplateName(notificationMaster, channel);
@@ -63,5 +67,16 @@ public class NotificationService {
         }
 
         return templateName;
+    }
+
+    private void enrichInAppPayload(Map<String, Object> model) {
+        if (model == null) {
+            return;
+        }
+
+        Object ticketId = model.get("ticketId");
+        if (ticketId != null && !model.containsKey("redirectUrl")) {
+            model.put("redirectUrl", "/tickets/" + ticketId.toString());
+        }
     }
 }

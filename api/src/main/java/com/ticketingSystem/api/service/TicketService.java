@@ -770,6 +770,9 @@ public class TicketService {
         data.put("ticketNumber", ticket.getId());
         data.put("oldStatus", resolveStatusDisplay(previousStatus, previousStatusEntity, previousStatusId));
         data.put("newStatus", resolveStatusDisplay(updatedStatus != null ? updatedStatus : ticket.getTicketStatus(), ticket.getStatus(), updatedStatusId));
+        if (remark != null && !remark.isBlank()) {
+            data.put("remark", remark);
+        }
 
         String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {

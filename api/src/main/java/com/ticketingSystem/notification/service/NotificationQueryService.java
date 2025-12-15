@@ -76,6 +76,13 @@ public class NotificationQueryService {
     private UserNotificationDto mapToDto(NotificationRecipient recipient) {
         Notification notification = recipient.getNotification();
         NotificationMaster type = notification != null ? notification.getType() : null;
+        Map<String, Object> data = parseData(notification != null ? notification.getData() : null);
+        String remark = extractString(data.get("remark"));
+        String ticketId = notification != null ? notification.getTicketId() : null;
+        String redirectUrl = extractString(data.get("redirectUrl"));
+        if (redirectUrl == null && ticketId != null && !ticketId.isBlank()) {
+            redirectUrl = "/tickets/" + ticketId;
+        }
 
         return new UserNotificationDto(
                 recipient.getId(),
@@ -83,8 +90,10 @@ public class NotificationQueryService {
                 type != null ? type.getCode() : null,
                 notification != null ? notification.getTitle() : null,
                 notification != null ? notification.getMessage() : null,
-                parseData(notification != null ? notification.getData() : null),
-                notification != null ? notification.getTicketId() : null,
+                remark,
+                data,
+                ticketId,
+                redirectUrl,
                 formatTimestamp(notification != null ? notification.getCreatedAt() : null),
                 recipient.isRead()
         );
@@ -107,5 +116,13 @@ public class NotificationQueryService {
             return null;
         }
         return timestamp.atZone(ZoneId.systemDefault()).toInstant().toString();
+    }
+
+    private String extractString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = value.toString().trim();
+        return text.isEmpty() ? null : text;
     }
 }

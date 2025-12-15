@@ -2,7 +2,9 @@ export interface InAppNotificationPayload {
   code?: string;
   title?: string;
   message?: string;
+  remark?: string;
   data?: Record<string, unknown>;
+  redirectUrl?: string;
   timestamp?: string;
 }
 
@@ -12,8 +14,10 @@ export interface NotificationApiResponse {
   code?: string;
   title?: string;
   message?: string;
+  remark?: string;
   data?: Record<string, unknown> | null;
   ticketId?: string;
+  redirectUrl?: string | null;
   createdAt?: string;
   read?: boolean;
 }
@@ -31,7 +35,9 @@ export interface NotificationItem {
   code?: string;
   title?: string;
   message?: string;
+  remark?: string;
   data?: Record<string, unknown>;
+  redirectUrl?: string;
   timestamp: string;
   read: boolean;
 }

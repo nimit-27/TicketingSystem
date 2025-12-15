@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 import { useNotificationContext } from '../../context/NotificationContext';
 import type { NotificationItem } from '../../types/notification';
@@ -28,7 +29,11 @@ const formatTimestamp = (value: string) => {
   return date.toLocaleString();
 };
 
-const renderNotification = (notification: NotificationItem, theme: Theme) => {
+const renderNotification = (
+  notification: NotificationItem,
+  theme: Theme,
+  onClick: (notification: NotificationItem) => void
+) => {
   const highlightColor =
     theme.palette.mode === 'dark'
       ? theme.palette.action.selected
@@ -45,7 +50,9 @@ const renderNotification = (notification: NotificationItem, theme: Theme) => {
         borderLeft: notification.read ? '4px solid transparent' : `4px solid ${theme.palette.primary.main}`,
         borderRadius: 1,
         transition: 'background-color 0.2s ease',
+        cursor: 'pointer',
       }}
+      onClick={() => onClick(notification)}
     >
       <ListItemText
         primary={
@@ -58,6 +65,11 @@ const renderNotification = (notification: NotificationItem, theme: Theme) => {
             {notification.message && (
               <Typography variant="body2" color="text.secondary">
                 {notification.message}
+              </Typography>
+            )}
+            {notification.remark && (
+              <Typography variant="body2" color="text.secondary">
+                {notification.remark}
               </Typography>
             )}
             <Typography variant="caption" color="text.secondary">
@@ -76,10 +88,12 @@ interface NotificationBellProps {
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
     markAllAsRead,
+    markAsRead,
     hasMore,
     loadMore,
     loading,
@@ -134,6 +148,21 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
     void loadMore();
   };
 
+  const handleNotificationClick = (notification: NotificationItem) => {
+    const redirectUrl =
+      notification.redirectUrl ||
+      (notification.data && typeof (notification.data as Record<string, unknown>)['ticketId'] === 'string'
+        ? `/tickets/${(notification.data as Record<string, unknown>)['ticketId']}`
+        : undefined);
+
+    markAsRead(notification.id);
+    handleClose();
+
+    if (redirectUrl) {
+      navigate(redirectUrl);
+    }
+  };
+
   return (
     <>
       <IconButton
@@ -185,7 +214,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
             >
               {sortedNotifications.map((notification, index) => (
                 <React.Fragment key={notification.id}>
-                  {renderNotification(notification, theme)}
+                  {renderNotification(notification, theme, handleNotificationClick)}
                   {index < sortedNotifications.length - 1 && <Divider component="li" />}
                 </React.Fragment>
               ))}
