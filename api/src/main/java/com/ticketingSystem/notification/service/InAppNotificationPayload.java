@@ -11,6 +11,8 @@ public class InAppNotificationPayload {
     private final String code;
     private final String title;
     private final String message;
+    private final String remark;
     private final Map<String, Object> data;
+    private final String redirectUrl;
     private final String timestamp;
 }

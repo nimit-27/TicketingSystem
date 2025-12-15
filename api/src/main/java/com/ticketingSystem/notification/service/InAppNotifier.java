@@ -31,6 +31,12 @@ public class InAppNotifier implements Notifier {
                 ? new HashMap<>()
                 : new HashMap<>(request.getDataModel());
 
+        String remark = extractString(payloadData.get("remark"));
+        String redirectUrl = resolveRedirectUrl(payloadData);
+        if (redirectUrl != null) {
+            payloadData.putIfAbsent("redirectUrl", redirectUrl);
+        }
+
         InAppNotificationPayload payload = InAppNotificationPayload.builder()
                 .code(master != null ? master.getCode() : null)
                 .title(resolveTemplate(master != null ? master.getDefaultTitleTpl() : null,
@@ -39,7 +45,9 @@ public class InAppNotifier implements Notifier {
                 .message(resolveTemplate(master != null ? master.getDefaultMessageTpl() : null,
                         master != null ? master.getDescription() : null,
                         payloadData))
+                .remark(remark)
                 .data(payloadData)
+                .redirectUrl(redirectUrl)
                 .timestamp(Instant.now().toString())
                 .build();
 
@@ -57,6 +65,31 @@ public class InAppNotifier implements Notifier {
             resolved = resolved.replace("{{" + entry.getKey() + "}}", value);
         }
         return resolved;
+    }
+
+    private String extractString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = Objects.toString(value, "").trim();
+        return text.isEmpty() ? null : text;
+    }
+
+    private String resolveRedirectUrl(Map<String, Object> payloadData) {
+        String explicitRedirect = extractString(payloadData.get("redirectUrl"));
+        if (explicitRedirect != null) {
+            return explicitRedirect;
+        }
+
+        Object ticketId = payloadData.get("ticketId");
+        if (ticketId != null) {
+            String ticket = Objects.toString(ticketId, "").trim();
+            if (!ticket.isEmpty()) {
+                return "/tickets/" + ticket;
+            }
+        }
+
+        return null;
     }
 }
 

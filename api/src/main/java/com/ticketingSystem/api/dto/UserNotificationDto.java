@@ -8,8 +8,10 @@ public record UserNotificationDto(
         String code,
         String title,
         String message,
+        String remark,
         Map<String, Object> data,
         String ticketId,
+        String redirectUrl,
         String createdAt,
         boolean read
 ) { }

@@ -18,12 +18,19 @@ const buildNotification = (payload: InAppNotificationPayload): NotificationItem 
   const timestamp = payload.timestamp || new Date().toISOString();
   const title = payload.title || payload.code || 'Notification';
   const message = payload.message || '';
+  const dataTicketId =
+    payload.data && typeof (payload.data as Record<string, unknown>)['ticketId'] === 'string'
+      ? String((payload.data as Record<string, unknown>)['ticketId'])
+      : undefined;
+  const redirectUrl = payload.redirectUrl || (dataTicketId ? `/tickets/${dataTicketId}` : undefined);
   return {
     id: `${payload.code || 'notification'}-${timestamp}-${Math.random().toString(36).slice(2, 8)}`,
     code: payload.code,
     title,
     message,
+    remark: payload.remark,
     data: payload.data || undefined,
+    redirectUrl,
     timestamp,
     read: false,
   };
@@ -32,6 +39,7 @@ const buildNotification = (payload: InAppNotificationPayload): NotificationItem 
 const mapApiNotification = (notification: NotificationApiResponse): NotificationItem => {
   const timestamp = notification.createdAt || new Date().toISOString();
   const baseId = notification.id ?? notification.notificationId;
+  const redirectUrl = notification.redirectUrl || (notification.ticketId ? `/tickets/${notification.ticketId}` : undefined);
   return {
     id:
       typeof baseId === 'number' || typeof baseId === 'string'
@@ -40,7 +48,9 @@ const mapApiNotification = (notification: NotificationApiResponse): Notification
     code: notification.code,
     title: notification.title || notification.code || 'Notification',
     message: notification.message || '',
+    remark: notification.remark,
     data: (notification.data ?? undefined) as Record<string, unknown> | undefined,
+    redirectUrl,
     timestamp,
     read: Boolean(notification.read),
   };
