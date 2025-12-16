@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,8 +41,12 @@ public class NotificationController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "7") int size,
             @AuthenticationPrincipal LoginPayload authenticatedUser,
+            @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader,
             HttpSession session) {
-        String userId = resolveUserId(authenticatedUser, session);
+        String userId = userIdHeader;
+        if (userId == null || userId.isBlank()) {
+            userId = resolveUserId(authenticatedUser, session);
+        }
         if (userId == null || userId.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
         }
