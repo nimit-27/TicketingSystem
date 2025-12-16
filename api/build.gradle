@@ -44,7 +44,7 @@ dependencies {
         implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
         implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 
-        implementation platform("org.springframework.cloud:spring-cloud-dependencies:2023.0.4") // BOM
+        implementation platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0") // BOM
         implementation "org.springframework.cloud:spring-cloud-starter-openfeign"
 
         implementation 'com.oracle.oci.sdk:oci-java-sdk-common-httpclient-jersey:3.13.0'
