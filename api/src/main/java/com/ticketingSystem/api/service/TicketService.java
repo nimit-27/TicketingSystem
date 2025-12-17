@@ -1170,6 +1170,16 @@ public class TicketService {
         return mapWithStatusId(ticket);
     }
 
+    public List<UploadedFileDto> getAttachments(String ticketId) {
+        ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        List<UploadedFile> attachments = uploadedFileRepository.findByTicket_IdAndIsActive(ticketId, "Y");
+        return attachments.stream()
+                .map(DtoMapper::toUploadedFileDto)
+                .toList();
+    }
+
     public TicketDto removeAttachment(String id, String path) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
