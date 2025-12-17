@@ -92,7 +92,8 @@ public class FileStorageService {
     }
 
     public byte[] download(String relativePath) {
-        String updatedRelativePath = "ticket/" + relativePath;
+        String objectKey = normalizeObjectKey(relativePath);
+        String updatedRelativePath = ensureTicketPrefix(objectKey);
         String host = "objectstorage." + region + ".oraclecloud.com";
         String encodedUpdatedRelativePath = OciPathEncoder.encodeObjectKey(updatedRelativePath);
         String path = "/n/" + namespace + "/b/" + bucket + "/o/" + encodedUpdatedRelativePath;
@@ -110,6 +111,35 @@ public class FileStorageService {
             log.error("Failed to download object {} from OCI", encodedUpdatedRelativePath, ex);
             throw new RuntimeException("Failed to download attachment from OCI", ex);
         }
+    }
+
+    private String normalizeObjectKey(String relativePath) {
+        String objectKey = relativePath;
+
+        int objectMarker = objectKey.lastIndexOf("/o/");
+        if (objectMarker >= 0 && objectMarker + 3 < objectKey.length()) {
+            objectKey = objectKey.substring(objectMarker + 3);
+        }
+
+        if (objectKey.startsWith("http")) {
+            int lastSlash = objectKey.lastIndexOf('/');
+            if (lastSlash >= 0 && lastSlash + 1 < objectKey.length()) {
+                objectKey = objectKey.substring(lastSlash + 1);
+            }
+        }
+
+        while (objectKey.startsWith("/")) {
+            objectKey = objectKey.substring(1);
+        }
+
+        return objectKey;
+    }
+
+    private String ensureTicketPrefix(String objectKey) {
+        if (objectKey.startsWith("ticket/")) {
+            return objectKey;
+        }
+        return "ticket/" + objectKey;
     }
 
     public void uploadFile(String objectName, byte[] fileBytes) throws Exception {
