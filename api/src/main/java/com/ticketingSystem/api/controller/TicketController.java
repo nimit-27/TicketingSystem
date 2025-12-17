@@ -150,15 +150,21 @@ public class TicketController {
         if (attachments != null) {
             for (MultipartFile file : attachments) {
                 if (file != null && !file.isEmpty()) {
-//                    paths.add(fileStorageService.save(file, id, null));
-                    String pathByTicketId = id + "/" + file.getOriginalFilename();
-                    fileStorageService.uploadFile(pathByTicketId, file.getBytes());
+                    paths.add(fileStorageService.save(file, id, null));
                 }
             }
         }
         TicketDto dto = ticketService.addAttachments(id, paths);
         logger.info("Attachments added to ticket {}, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{id}/attachments")
+    public ResponseEntity<List<UploadedFileDto>> getAttachments(@PathVariable String id) {
+        logger.info("Request to fetch attachments for ticket {}", id);
+        List<UploadedFileDto> attachments = ticketService.getAttachments(id);
+        logger.info("Fetched {} attachments for ticket {}", attachments.size(), id);
+        return ResponseEntity.ok(attachments);
     }
 
     @DeleteMapping("/{id}/attachments")

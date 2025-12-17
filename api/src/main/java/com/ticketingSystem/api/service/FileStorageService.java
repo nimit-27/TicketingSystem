@@ -25,7 +25,6 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class FileStorageService {
@@ -66,9 +65,6 @@ public class FileStorageService {
 
     public String save(MultipartFile file, String ticketId, String uploadedBy) throws IOException {
         String original = StringUtils.cleanPath(file.getOriginalFilename());
-        String filename = UUID.randomUUID() + "_" + original;
-        String relativePath = buildObjectKey(ticketId, filename);
-        ociObjectStorageService.upload(file, relativePath);
 
         UploadedFile uf = new UploadedFile();
         uf.setFileName(original);
@@ -76,12 +72,20 @@ public class FileStorageService {
         if (dot >= 0 && dot < original.length() - 1) {
             uf.setFileExtension(original.substring(dot + 1));
         }
-        uf.setRelativePath(relativePath);
         uf.setUploadedBy(uploadedBy);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         uf.setTicket(ticket);
-        uploadedFileRepository.save(uf);
+
+        // Persist first to obtain the generated id for building a stable filename.
+        UploadedFile savedFile = uploadedFileRepository.save(uf);
+
+        String filename = savedFile.getId() + "_" + original;
+        String relativePath = buildObjectKey(ticketId, filename);
+        savedFile.setRelativePath(relativePath);
+        uploadedFileRepository.save(savedFile);
+
+        ociObjectStorageService.upload(file, relativePath);
 
         return relativePath;
     }
