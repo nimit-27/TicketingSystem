@@ -29,6 +29,8 @@ import com.ticketingSystem.notification.service.NotificationService;
 import com.ticketingSystem.api.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Service;
 import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
@@ -69,6 +71,7 @@ public class TicketService {
     private final SubCategoryRepository subCategoryRepository;
     private final PriorityRepository priorityRepository;
     private final UploadedFileRepository uploadedFileRepository;
+    private final FileStorageService fileStorageService;
     private final StakeholderRepository stakeholderRepository;
     private final RoleRepository roleRepository;
     private final TicketSlaService ticketSlaService;
@@ -1178,6 +1181,22 @@ public class TicketService {
         return attachments.stream()
                 .map(DtoMapper::toUploadedFileDto)
                 .toList();
+    }
+
+    public AttachmentDownloadDto downloadAttachment(String ticketId, String attachmentId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        UploadedFile attachment = uploadedFileRepository.findByIdAndTicket_Id(attachmentId, ticket.getId())
+                .filter(file -> "Y".equalsIgnoreCase(file.getIsActive()))
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(
+                        "Attachment %s not found for ticket %s", attachmentId, ticketId)));
+
+        byte[] content = fileStorageService.download(attachment.getRelativePath());
+        MediaType mediaType = MediaTypeFactory.getMediaType(attachment.getFileName())
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+        return new AttachmentDownloadDto(attachment.getFileName(), mediaType, content);
     }
 
     public TicketDto removeAttachment(String id, String path) {

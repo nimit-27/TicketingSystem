@@ -11,13 +11,16 @@ import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.service.TicketAccessContext;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import com.ticketingSystem.api.service.UserService;
+import com.ticketingSystem.api.dto.AttachmentDownloadDto;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -165,6 +168,43 @@ public class TicketController {
         List<UploadedFileDto> attachments = ticketService.getAttachments(id);
         logger.info("Fetched {} attachments for ticket {}", attachments.size(), id);
         return ResponseEntity.ok(attachments);
+    }
+
+    @GetMapping("/{ticketId}/attachments/{attachmentId}")
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable String ticketId,
+                                                     @PathVariable String attachmentId,
+                                                     @AuthenticationPrincipal LoginPayload authenticatedUser,
+                                                     HttpSession session,
+                                                     @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
+        logger.info("Request to download attachment {} for ticket {}", attachmentId, ticketId);
+
+        TicketDto dto = ticketService.getTicket(ticketId);
+        if (dto == null) {
+            logger.warn("Ticket {} not found while downloading attachment {}, returning {}", ticketId, attachmentId, HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
+        }
+
+        LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
+        String ticketAssigneeUserId = resolveTicketAssigneeUserId(dto.getAssignedTo());
+        ticketAuthorizationService.assertCanAccessTicket(ticketId,
+                new TicketAccessContext(
+                        dto.getUserId(),
+                        ticketAssigneeUserId,
+                        dto.getStatus(),
+                        dto.getRecommendedSeverityStatus()
+                ),
+                resolvedUser,
+                session);
+
+        AttachmentDownloadDto attachment = ticketService.downloadAttachment(ticketId, attachmentId);
+        MediaType mediaType = attachment.mediaType() != null
+                ? attachment.mediaType()
+                : MediaTypeFactory.getMediaType(attachment.fileName()).orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.fileName() + "\"")
+                .body(attachment.content());
     }
 
     @DeleteMapping("/{id}/attachments")
