@@ -22,7 +22,7 @@ public interface OciFeignClient {
             @RequestHeader Map<String, String> headers,
             @PathVariable("namespace") String namespace,
             @PathVariable("bucket") String bucket,
-            @PathVariable(value = "objectName", encoded = true) String objectName,
+            @PathVariable(value = "objectName") String objectName,
             @RequestBody byte[] content
     );
 
@@ -34,7 +34,7 @@ public interface OciFeignClient {
             @RequestHeader Map<String, String> headers,
             @PathVariable("namespace") String namespace,
             @PathVariable("bucket") String bucket,
-            @PathVariable(value = "objectName", encoded = true) String objectName
+            @PathVariable(value = "objectName") String objectName
     );
 
     @PostMapping(

@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.common.OciPathEncoder;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.UploadedFile;
@@ -91,8 +92,10 @@ public class FileStorageService {
     }
 
     public byte[] download(String relativePath) {
+        String updatedRelativePath = "ticket/" + relativePath;
         String host = "objectstorage." + region + ".oraclecloud.com";
-        String path = "/n/" + namespace + "/b/" + bucket + "/o/" + relativePath;
+        String encodedUpdatedRelativePath = OciPathEncoder.encodeObjectKey(updatedRelativePath);
+        String path = "/n/" + namespace + "/b/" + bucket + "/o/" + encodedUpdatedRelativePath;
 
         try {
             PrivateKey privateKey = loadPrivateKey();
@@ -101,10 +104,10 @@ public class FileStorageService {
                     tenancyOcid, userOcid, fingerprint, privateKey, MediaType.APPLICATION_OCTET_STREAM_VALUE
             );
 
-            ResponseEntity<byte[]> response = ociFeignClient.downloadObject(headers, namespace, bucket, relativePath);
+            ResponseEntity<byte[]> response = ociFeignClient.downloadObject(headers, namespace, bucket, encodedUpdatedRelativePath);
             return response.getBody();
         } catch (Exception ex) {
-            log.error("Failed to download object {} from OCI", relativePath, ex);
+            log.error("Failed to download object {} from OCI", encodedUpdatedRelativePath, ex);
             throw new RuntimeException("Failed to download attachment from OCI", ex);
         }
     }
