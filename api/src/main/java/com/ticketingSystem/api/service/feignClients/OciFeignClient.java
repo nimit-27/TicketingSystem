@@ -22,8 +22,19 @@ public interface OciFeignClient {
             @RequestHeader Map<String, String> headers,
             @PathVariable("namespace") String namespace,
             @PathVariable("bucket") String bucket,
-            @PathVariable("objectName") String objectName,
+            @PathVariable(value = "objectName", encoded = true) String objectName,
             @RequestBody byte[] content
+    );
+
+    @GetMapping(
+            value = "/n/{namespace}/b/{bucket}/o/{objectName}",
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE
+    )
+    ResponseEntity<byte[]> downloadObject(
+            @RequestHeader Map<String, String> headers,
+            @PathVariable("namespace") String namespace,
+            @PathVariable("bucket") String bucket,
+            @PathVariable(value = "objectName", encoded = true) String objectName
     );
 
     @PostMapping(

@@ -8,11 +8,11 @@ import com.ticketingSystem.api.repository.UploadedFileRepository;
 import com.ticketingSystem.api.config.OciProperties;
 import com.ticketingSystem.api.service.feignClients.OciFeignClient;
 import com.ticketingSystem.api.util.OciRequestSigner;
-import com.ticketingSystem.notification.service.NotificationQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -88,6 +88,25 @@ public class FileStorageService {
         ociObjectStorageService.upload(file, relativePath);
 
         return relativePath;
+    }
+
+    public byte[] download(String relativePath) {
+        String host = "objectstorage." + region + ".oraclecloud.com";
+        String path = "/n/" + namespace + "/b/" + bucket + "/o/" + relativePath;
+
+        try {
+            PrivateKey privateKey = loadPrivateKey();
+            Map<String, String> headers = OciRequestSigner.generateHeaders(
+                    "GET", host, path, new byte[0],
+                    tenancyOcid, userOcid, fingerprint, privateKey, MediaType.APPLICATION_OCTET_STREAM_VALUE
+            );
+
+            ResponseEntity<byte[]> response = ociFeignClient.downloadObject(headers, namespace, bucket, relativePath);
+            return response.getBody();
+        } catch (Exception ex) {
+            log.error("Failed to download object {} from OCI", relativePath, ex);
+            throw new RuntimeException("Failed to download attachment from OCI", ex);
+        }
     }
 
     public void uploadFile(String objectName, byte[] fileBytes) throws Exception {
