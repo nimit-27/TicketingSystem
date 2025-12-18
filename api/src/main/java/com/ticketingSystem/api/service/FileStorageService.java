@@ -1,6 +1,9 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.common.OciPathEncoder;
+import com.ticketingSystem.api.constants.ErrorCodes;
+import com.ticketingSystem.api.dto.PreauthenticatedRequestAccessType;
+import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.UploadedFile;
@@ -11,6 +14,7 @@ import com.ticketingSystem.api.service.feignClients.OciFeignClient;
 import com.ticketingSystem.api.util.OciRequestSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -25,6 +29,7 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Map;
 
 @Service
@@ -35,6 +40,11 @@ public class FileStorageService {
     private final OciObjectStorageService ociObjectStorageService;
     private final OciProperties ociProperties;
     private final OciFeignClient ociFeignClient;
+
+
+    @Autowired
+    com.ticketingSystem.api.service.OciUploadService ociUploadService;
+
 
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
@@ -64,7 +74,7 @@ public class FileStorageService {
         this.ociFeignClient = ociFeignClient;
     }
 
-    public String save(MultipartFile file, String ticketId, String uploadedBy) throws IOException {
+    public String save(MultipartFile file, String ticketId, String uploadedBy) throws Exception {
         String original = StringUtils.cleanPath(file.getOriginalFilename());
 
         UploadedFile uf = new UploadedFile();
@@ -85,8 +95,8 @@ public class FileStorageService {
         String relativePath = buildObjectKey(ticketId, filename);
         savedFile.setRelativePath(relativePath);
         uploadedFileRepository.save(savedFile);
-
-        ociObjectStorageService.upload(file, relativePath);
+        uploadFile(relativePath, file.getBytes());
+//        ociObjectStorageService.upload(file, relativePath);
 
         return relativePath;
     }
@@ -112,6 +122,63 @@ public class FileStorageService {
             throw new RuntimeException("Failed to download attachment from OCI", ex);
         }
     }
+
+    public String generateDownloadUrl(String relativePath, String fileName) throws CustomGenericException {
+        try {
+            log.info("OCI Repository: Generating download URL - relativePath: {}, fileName: {}", relativePath, fileName);
+
+            String objectName = buildObjectName(relativePath, fileName);
+            log.info("OCI Repository: Built object name for download: {}", objectName);
+
+            String accessType = PreauthenticatedRequestAccessType.OBJECT_READ;
+            String name = "download_" + System.currentTimeMillis();
+            String timeExpires = getExpirationTime();
+
+            String preAuthUrl = ociUploadService.createPreauthenticatedRequest(objectName, accessType, name, timeExpires);
+            log.info("OCI Repository: Generated download URL successfully for object: {}", objectName);
+
+            return preAuthUrl;
+        } catch (Exception e) {
+            log.error("OCI Repository: Failed to generate download URL - relativePath: {}, fileName: {}", relativePath, fileName, e);
+            throw CustomGenericException.CreateUnformattedException(ErrorCodes.CREATE_DOCUMENT, e, "Failed to generate OCI download URL");
+        }
+    }
+
+    private String buildObjectName(String relativePath, String fileName) {
+        // Convert filesystem path to OCI object name
+        // Replace Windows path separators with forward slashes
+        String objectName = "ticket/" + relativePath.replace("\\", "/");
+//        String objectName = relativePath.replace("\\", "/") + "/" + fileName;
+
+        // Remove any leading/trailing slashes
+        objectName = objectName.replaceAll("^/+|/+$", "");
+
+        // Additional cleanup for OCI Object Storage
+        // Remove any double slashes and ensure proper formatting
+        objectName = objectName.replaceAll("/+", "/");
+
+        // Ensure the object name doesn't start with a slash
+        if (objectName.startsWith("/")) {
+            objectName = objectName.substring(1);
+        }
+
+        // Remove trailing slash from the final object name
+        if (objectName.endsWith("/")) {
+            objectName = objectName.substring(0, objectName.length() - 1);
+        }
+
+        log.debug("OCI Repository: Built object name - relativePath: {}, fileName: {}, objectName: {}", relativePath, fileName, objectName);
+        return objectName;
+    }
+
+    private String getExpirationTime() {
+        // Calculate expiration time based on configuration
+        long currentTime = System.currentTimeMillis();
+        long expirationTime = currentTime + (60 * 60 * 1000L);
+//        long expirationTime = currentTime + (preAuthUrlExpiryMinutes * 60 * 1000L);
+        return new Date(expirationTime).toInstant().toString();
+    }
+
 
     private String normalizeObjectKey(String relativePath) {
         String objectKey = relativePath;
@@ -142,7 +209,7 @@ public class FileStorageService {
         return "ticket/" + objectKey;
     }
 
-    public void uploadFile(String objectName, byte[] fileBytes) throws Exception {
+    public String uploadFile(String objectName, byte[] fileBytes) throws Exception {
         String updatedObjectName = "ticket/" + objectName;
         String host = "objectstorage." + region + ".oraclecloud.com";
         String path = "/n/" + namespace + "/b/" + bucket + "/o/" + updatedObjectName;
@@ -155,6 +222,7 @@ public class FileStorageService {
 
         ResponseEntity<String> res = ociFeignClient.uploadObject(headers, namespace, bucket, updatedObjectName, fileBytes);
         System.out.println(res);
+        return updatedObjectName;
     }
 
     private PrivateKey loadPrivateKey() throws Exception {

@@ -109,14 +109,14 @@ public class OciUploadServiceImpl implements OciUploadService {
             log.info("Curl command for testing:");
             log.info("{}", curlCommand);
             
-            String response = ociFeignClient.createPreauthenticatedRequest(headers, namespace, bucket, requestBody).getBody();
+            String response = ociFeignClient.createPreauthenticatedRequest(headers, namespace, bucket, requestBody);
             log.info("Pre-authenticated request created successfully. Response: {}", response);
             
             // Parse the JSON response to extract the accessUri
-//            String accessUri = parseAccessUriFromResponse(response);
+            String accessUri = parseAccessUriFromResponse(response);
 //            log.info("Extracted access URI: {}", accessUri);
 
-            return "accessUri";
+            return accessUri;
             
         } catch (Exception e) {
             log.error("Failed to create pre-authenticated request", e);
@@ -139,37 +139,37 @@ public class OciUploadServiceImpl implements OciUploadService {
             throw e;
         }
     }
-//
-//    private String parseAccessUriFromResponse(String response) throws Exception {
-//        try {
-//            log.info("Parsing JSON response to extract accessUri");
-//
-//            // Parse the JSON response
-//            net.minidev.json.JSONObject jsonResponse = net.minidev.json.JSONValue.parse(response, net.minidev.json.JSONObject.class);
-//
-//            if (jsonResponse == null) {
-//                throw new Exception("Failed to parse JSON response");
-//            }
-//
-//            // Extract the accessUri
-//            String accessUri = (String) jsonResponse.get("accessUri");
-//            if (accessUri == null || accessUri.isEmpty()) {
-//                throw new Exception("accessUri not found in response");
-//            }
-//
-//            // The accessUri already contains the full path, just need to add the base URL
-//            // accessUri format: /p/6y5G1BWV-XUg-fwSqJ0jWinZdw9xjnrFB8aqRD6-Q6dBBPaxhxs28lXN1b1h244Q/n/bmozxse0db74/b/dev_bucket/o/202509/HeadQuaters/DocumentType/MISCELLANEOUS/AD_DepotMasters.txt
-//            String fullUrl = "https://objectstorage." + region + ".oraclecloud.com" + accessUri;
-//            log.info("Constructed full URL: {}", fullUrl);
-//
-//            return fullUrl;
-//
-//        } catch (Exception e) {
-//            log.error("Failed to parse accessUri from response: {}", response, e);
-//            throw new Exception("Failed to parse accessUri from response: " + e.getMessage(), e);
-//        }
-//    }
-//
+
+    private String parseAccessUriFromResponse(String response) throws Exception {
+        try {
+            log.info("Parsing JSON response to extract accessUri");
+
+            // Parse the JSON response
+            net.minidev.json.JSONObject jsonResponse = net.minidev.json.JSONValue.parse(response, net.minidev.json.JSONObject.class);
+
+            if (jsonResponse == null) {
+                throw new Exception("Failed to parse JSON response");
+            }
+
+            // Extract the accessUri
+            String accessUri = jsonResponse.get("accessUri").toString();
+            if (accessUri == null || accessUri.isEmpty()) {
+                throw new Exception("accessUri not found in response");
+            }
+
+            // The accessUri already contains the full path, just need to add the base URL
+            // accessUri format: /p/6y5G1BWV-XUg-fwSqJ0jWinZdw9xjnrFB8aqRD6-Q6dBBPaxhxs28lXN1b1h244Q/n/bmozxse0db74/b/dev_bucket/o/202509/HeadQuaters/DocumentType/MISCELLANEOUS/AD_DepotMasters.txt
+            String fullUrl = "https://objectstorage." + region + ".oraclecloud.com" + accessUri;
+            log.info("Constructed full URL: {}", fullUrl);
+
+            return fullUrl;
+
+        } catch (Exception e) {
+            log.error("Failed to parse accessUri from response: {}", response, e);
+            throw new Exception("Failed to parse accessUri from response: " + e.getMessage(), e);
+        }
+    }
+
     private String getDefaultExpirationTime() {
         // Set expiration to 24 hours from now in ISO format
         java.util.Calendar cal = java.util.Calendar.getInstance();

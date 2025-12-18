@@ -17,6 +17,8 @@ public class Ticket {
     @Id
     @Column(name="ticket_id")
     private String id;
+    @Column(name = "created_by")
+    private String createdBy;
     @Column(name="reported_date")
     @CreationTimestamp
     private LocalDateTime reportedDate;

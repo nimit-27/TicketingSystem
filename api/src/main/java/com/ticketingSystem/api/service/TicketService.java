@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.*;
+import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.exception.ResourceNotFoundException;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
@@ -96,6 +97,8 @@ public class TicketService {
             subCategoryRepository.findById(ticket.getSubCategory())
                     .ifPresent(sub -> dto.setSubCategory(sub.getSubCategory()));
         }
+        if(ticket.getCreatedBy() != null) dto.setCreatedBy(ticket.getCreatedBy());
+
         // priority info
         if (ticket.getPriority() != null) {
             dto.setPriorityId(ticket.getPriority());
@@ -194,6 +197,9 @@ public class TicketService {
             ticket.setMasterId(null);
             ticket.setMaster(true);
         }
+        if(ticket.getMasterId() == null) ticket.setMasterId(null);
+        else if(ticket.getMasterId().isBlank()) ticket.setMasterId(null);
+
         if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
 
         if (ticket.getMode() == null && ticket.getModeId() != null) {
@@ -1183,7 +1189,7 @@ public class TicketService {
                 .toList();
     }
 
-    public AttachmentDownloadDto downloadAttachment(String ticketId, String attachmentId) {
+    public AttachmentDownloadDto downloadAttachment(String ticketId, String attachmentId) throws CustomGenericException {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
 
@@ -1193,12 +1199,24 @@ public class TicketService {
                         "Attachment %s not found for ticket %s", attachmentId, ticketId)));
 
         byte[] content = fileStorageService.download(attachment.getRelativePath());
+
         MediaType mediaType = MediaTypeFactory.getMediaType(attachment.getFileName())
                 .orElse(MediaType.APPLICATION_OCTET_STREAM);
 
         return new AttachmentDownloadDto(attachment.getFileName(), mediaType, content);
     }
 
+    public String getDownloadAttachmentUri(String ticketId, String attachmentId) throws CustomGenericException {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        UploadedFile attachment = uploadedFileRepository.findByIdAndTicket_Id(attachmentId, ticket.getId())
+                .filter(file -> "Y".equalsIgnoreCase(file.getIsActive()))
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(
+                        "Attachment %s not found for ticket %s", attachmentId, ticketId)));
+
+        return fileStorageService.generateDownloadUrl(attachment.getRelativePath(), attachment.getFileName());
+    }
     public TicketDto removeAttachment(String id, String path) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));

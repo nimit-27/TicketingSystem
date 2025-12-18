@@ -33,15 +33,15 @@ public class OciFeignConfig {
         };
     }
 
-    @Bean
-    public RequestInterceptor preserveEncodedUri() {
-        return new RequestInterceptor() {
-            @Override
-            public void apply(RequestTemplate template) {
-                // Mark current path as already-encoded (prevents Feign from decoding %2F to /)
-                template.uri(template.path(), true);
-            }
-        };
-    }
+//    @Bean
+//    public RequestInterceptor preserveEncodedUri() {
+//        return new RequestInterceptor() {
+//            @Override
+//            public void apply(RequestTemplate template) {
+//                // Mark current path as already-encoded (prevents Feign from decoding %2F to /)
+//                template.uri(template.path(), true);
+//            }
+//        };
+//    }
 
 }

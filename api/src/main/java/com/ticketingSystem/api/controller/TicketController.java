@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.*;
+import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
@@ -124,7 +125,7 @@ public class TicketController {
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<TicketDto> addTicket(
             @ModelAttribute Ticket ticket,
-            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws IOException {
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws Exception {
         logger.info("Request to add a new ticket");
         TicketDto addedTicket = ticketService.addTicket(ticket);
 
@@ -153,7 +154,11 @@ public class TicketController {
         if (attachments != null) {
             for (MultipartFile file : attachments) {
                 if (file != null && !file.isEmpty()) {
-                    paths.add(fileStorageService.save(file, id, null));
+
+                    String path = fileStorageService.save(file, id, null);
+                    paths.add(path);
+
+//                    paths.add(fileStorageService.uploadFile(file.getOriginalFilename(), file.getBytes()));
                 }
             }
         }
@@ -170,18 +175,56 @@ public class TicketController {
         return ResponseEntity.ok(attachments);
     }
 
+//    @GetMapping("/{ticketId}/attachments/{attachmentId}")
+//    public ResponseEntity<byte[]> downloadAttachment(@PathVariable String ticketId,
+//                                                     @PathVariable String attachmentId,
+//                                                     @AuthenticationPrincipal LoginPayload authenticatedUser,
+//                                                     HttpSession session,
+//                                                     @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) throws CustomGenericException {
+//        logger.info("Request to download attachment {} for ticket {}", attachmentId, ticketId);
+//
+//        TicketDto dto = ticketService.getTicket(ticketId);
+//        if (dto == null) {
+//            logger.warn("Ticket {} not found while downloading attachment {}, returning {}", ticketId, attachmentId, HttpStatus.NOT_FOUND);
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
+//        String ticketAssigneeUserId = resolveTicketAssigneeUserId(dto.getAssignedTo());
+//        ticketAuthorizationService.assertCanAccessTicket(ticketId,
+//                new TicketAccessContext(
+//                        dto.getUserId(),
+//                        ticketAssigneeUserId,
+//                        dto.getStatus(),
+//                        dto.getRecommendedSeverityStatus()
+//                ),
+//                resolvedUser,
+//                session);
+//
+//        AttachmentDownloadDto attachment = ticketService.downloadAttachment(ticketId, attachmentId);
+//        MediaType mediaType = attachment.mediaType() != null
+//                ? attachment.mediaType()
+//                : MediaTypeFactory.getMediaType(attachment.fileName()).orElse(MediaType.APPLICATION_OCTET_STREAM);
+//
+//        return ResponseEntity.ok()
+//                .contentType(mediaType)
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.fileName() + "\"")
+//                .body(attachment.content());
+//    }
+//
     @GetMapping("/{ticketId}/attachments/{attachmentId}")
-    public ResponseEntity<byte[]> downloadAttachment(@PathVariable String ticketId,
+    public String downloadAttachment(@PathVariable String ticketId,
                                                      @PathVariable String attachmentId,
                                                      @AuthenticationPrincipal LoginPayload authenticatedUser,
                                                      HttpSession session,
-                                                     @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
+                                                     @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) throws CustomGenericException {
         logger.info("Request to download attachment {} for ticket {}", attachmentId, ticketId);
 
         TicketDto dto = ticketService.getTicket(ticketId);
         if (dto == null) {
             logger.warn("Ticket {} not found while downloading attachment {}, returning {}", ticketId, attachmentId, HttpStatus.NOT_FOUND);
-            return ResponseEntity.notFound().build();
+            return "";
+//            return ResponseEntity.notFound().build();
         }
 
         LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
@@ -196,15 +239,19 @@ public class TicketController {
                 resolvedUser,
                 session);
 
-        AttachmentDownloadDto attachment = ticketService.downloadAttachment(ticketId, attachmentId);
-        MediaType mediaType = attachment.mediaType() != null
-                ? attachment.mediaType()
-                : MediaTypeFactory.getMediaType(attachment.fileName()).orElse(MediaType.APPLICATION_OCTET_STREAM);
+//        AttachmentDownloadDto attachment = ticketService.downloadAttachment(ticketId, attachmentId);
+        String downloadUri = ticketService.getDownloadAttachmentUri(ticketId, attachmentId);
+        return downloadUri;
+//        return ResponseEntity.ok().body("downloadUri");
 
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.fileName() + "\"")
-                .body(attachment.content());
+//        MediaType mediaType = attachment.mediaType() != null
+//                ? attachment.mediaType()
+//                : MediaTypeFactory.getMediaType(attachment.fileName()).orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+//        return ResponseEntity.ok()
+//                .contentType(mediaType)
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.fileName() + "\"")
+//                .body(attachment.content());
     }
 
     @DeleteMapping("/{id}/attachments")
