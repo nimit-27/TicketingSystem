@@ -441,7 +441,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, []);
 
   useEffect(() => {
-    debugger
     if (attachmentsByTicketIdData) {
       setUploadedAttachments(attachmentsByTicketIdData)
     }
@@ -1194,11 +1193,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               <ThumbnailList uploadedAttachments={attachmentsByTicketIdData} attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
             </Box>
           )} */}
-          {uploadedAttachments?.map((item: any, i: any) => {
-            return <a href={item.downloadFileUri} >
-              {item.fileName}
-            </a>
-          })}
+          {uploadedAttachments?.map((item: any, i: any) => <a href={item.downloadFileUri} >{item.fileName}</a>)}
           <Box className="d-flex justify-content-center" sx={{ mt: 1 }}>
             <FileUpload
               key={uploadKey}
