@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
-import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../../services/TicketService';
+import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster, getAttachmentsByTicketId } from '../../services/TicketService';
 import { getRootCauseAnalysisTicketById } from '../../services/RootCauseAnalysisService';
 import { BASE_URL } from '../../services/api';
 import { getCurrentUserDetails } from '../../config/config';
@@ -114,6 +114,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const { apiHandler: updateTicketHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
+  const { data: attachmentsByTicketIdData, apiHandler: getAttachmentsByTicketIdHandler, success: isAttachmentsByTicketIdSuccess } = useApi<any>();
 
   // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
@@ -131,6 +132,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploadedAttachments, setUploadedAttachments] = useState<any>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
   const [masterSla, setMasterSla] = useState<TicketSla | null>(null);
@@ -160,6 +162,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
 
+  if (attachmentsByTicketIdData?.length) {
+    console.log({ attachmentsByTicketIdData })
+  }
+
   const handleLinkToMasterTicketModalClose = useCallback(() => {
     setLinkToMasterTicketModalOpen(false);
   }, []);
@@ -180,6 +186,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const handleAssignMasterModalClose = useCallback(() => {
     setAssignMasterTicketModalOpen(false);
   }, []);
+
+  const getAttachmentsByTicketIdHandlerApi = (ticketId: string) => {
+    getAttachmentsByTicketIdHandler(() => getAttachmentsByTicketId(ticketId))
+  }
 
   const handleAssignMasterSuccess = useCallback(async () => {
     await getTicketHandler(() => getTicket(ticketId));
@@ -385,10 +395,22 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // PERMISSION BOOLEANS
   const ticketViewPermissions = checkAccessMaster(['ticketView']);
+  const showSubject = checkAccessMaster(['ticketView', 'subject'])
+  const allowSubjectEdit = checkAccessMaster(['ticketView', 'subject', 'allowEdit'])
+  const showDescription = checkAccessMaster(['ticketView', 'description'])
+  const allowDescriptionEdit = checkAccessMaster(['ticketView', 'description', 'allowEdit'])
+  const showCategory = checkAccessMaster(['ticketView', 'category'])
+  const allowCategoryEdit = checkAccessMaster(['ticketView', 'category', 'allowEdit'])
+  const showSubcategory = checkAccessMaster(['ticketView', 'subcategory'])
+  const allowSubcategoryEdit = checkAccessMaster(['ticketView', 'subcategory', 'allowEdit'])
+  const showSla = checkAccessMaster(['ticketView', 'sla'])
+  const showComments = checkAccessMaster(['ticketView', 'comments'])
+
+
   const showSubmitRCAButton = checkAccessMaster(['ticketView', 'submitRCAButton'])
   const showViewRCAButton = checkAccessMaster(['ticketView', 'viewRCAButton'])
   const showLinkToMasterTicketButton = checkAccessMaster(['ticketView', 'linkToMasterTicketButton']);
-  const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
+  const allowEdit = checkAccessMaster(['ticketView', 'viewEditIconButton']);
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
   const showSeverity = checkFieldAccess('ticketDetails', 'severity');
@@ -417,6 +439,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       return [];
     }
   }, []);
+
+  useEffect(() => {
+    debugger
+    if (attachmentsByTicketIdData) {
+      setUploadedAttachments(attachmentsByTicketIdData)
+    }
+  }, [isAttachmentsByTicketIdSuccess])
 
   useEffect(() => {
     if (ticketId) {
@@ -454,6 +483,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           setSla(normalised);
         })
         .catch(() => setSla(null));
+
+      getAttachmentsByTicketIdHandlerApi(ticketId)
     }
   }, [ticketId, pageType, getTicketHandler, workflowApiHandler]);
 
@@ -477,7 +508,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   useEffect(() => {
     workflowApiHandler(() => getStatusWorkflowMappings(roleList));
   }, [roleList])
-
 
   useEffect(() => {
     if (ticket) {
@@ -1034,11 +1064,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Box>
 
       {/* SUBJECT */}
-      {renderText(subject, setSubject)}
+      {showSubject && renderText(subject, setSubject, false, { editing: allowSubjectEdit && editing })}
       {/* DESCRIPTION */}
-      <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
-        {renderText(description, setDescription, true)}
-      </Box>
+      {showDescription && <Box sx={{ mt: 2 }} className={!(allowDescriptionEdit && editing) ? 'border rounded-2 p-2' : ''}>
+        {renderText(description, setDescription, true, { editing: allowDescriptionEdit && editing })}
+      </Box>}
 
       <div className='d-flex flex-wrap'>
         {/* CATEGORY, SUB-CATEGORY */}
@@ -1046,7 +1076,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           {editing && <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography color="text.secondary">{t('Category')}</Typography>
-              {renderSelect(
+              {showCategory && renderSelect(
                 selectedCategoryId,
                 (val: string) => {
                   setSelectedCategoryId(val);
@@ -1068,7 +1098,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography color="text.secondary">{t('Sub-Category')}</Typography>
-              {renderSelect(
+              {showSubcategory && renderSelect(
                 selectedSubCategoryId,
                 (val: string) => setSelectedSubCategoryId(val),
                 subCategoryOptions,
@@ -1081,6 +1111,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>
           </>}
         </Box>
+
         {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
           {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
@@ -1158,11 +1189,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </div>
         {/* ATTACHMENTS */}
         <div className="col-5 mt-4" style={{ minWidth: 'max-content' }}>
-          {attachments.length > 0 && (
+          {/* {attachments.length > 0 && (
             <Box className="d-flex justify-content-center" sx={{ mt: 2 }}>
-              <ThumbnailList attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
+              <ThumbnailList uploadedAttachments={attachmentsByTicketIdData} attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
             </Box>
-          )}
+          )} */}
+          {uploadedAttachments?.map((item: any, i: any) => {
+            return <a href={item.downloadFileUri} >
+              {item.fileName}
+            </a>
+          })}
           <Box className="d-flex justify-content-center" sx={{ mt: 1 }}>
             <FileUpload
               key={uploadKey}
@@ -1170,6 +1206,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               thumbnailSize={100}
               onFilesChange={handleAttachmentUpload}
               attachments={emptyFileList}
+              setAttachments={setAttachments}
               hideUploadButton={isClosedStatus || isResolvedStatus}
             />
           </Box>
@@ -1181,8 +1218,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           <Histories ticketId={ticketId} />
         </CustomFieldset>
       )}
+
       {/* SLA */}
-      {(sla || masterSla) && (
+      {showSla && (sla || masterSla) && (
         <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }} actionElement={slaActionElement}>
           {sla && (
             <>
@@ -1222,9 +1260,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       )}
 
       {/* COMMENTS */}
-      <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+      {showComments && <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
         <CommentsSection ticketId={ticketId} />
-      </CustomFieldset>
+      </CustomFieldset>}
 
       <LinkToMasterTicketModal
         open={linkToMasterTicketModalOpen}
