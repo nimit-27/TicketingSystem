@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton } from '@mui/material';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton, Chip } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster, getAttachmentsByTicketId } from '../../services/TicketService';
@@ -1193,7 +1193,23 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               <ThumbnailList uploadedAttachments={attachmentsByTicketIdData} attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
             </Box>
           )} */}
-          {uploadedAttachments?.map((item: any, i: any) => <a href={item.downloadFileUri} >{item.fileName}</a>)}
+          {uploadedAttachments?.length > 0 && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              {uploadedAttachments.map((item: any, i: any) => (
+                <Chip
+                  key={item.id ?? `${item.fileName}-${i}`}
+                  label={item.fileName}
+                  component="a"
+                  href={item.downloadFileUri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  icon={<DownloadIcon fontSize="small" />}
+                  clickable
+                  sx={{ maxWidth: '100%' }}
+                />
+              ))}
+            </Box>
+          )}
           <Box className="d-flex justify-content-center" sx={{ mt: 1 }}>
             <FileUpload
               key={uploadKey}
@@ -1453,4 +1469,3 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 };
 
 export default TicketView;
-
