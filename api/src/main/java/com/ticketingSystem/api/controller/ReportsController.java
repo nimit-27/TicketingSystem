@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
@@ -7,8 +8,12 @@ import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.service.ReportService;
+import com.ticketingSystem.api.service.TicketAuthorizationService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReportsController {
     private final ReportService reportService;
+    private final TicketAuthorizationService ticketAuthorizationService;
 
     @GetMapping("/support-dashboard-summary")
     public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary(
@@ -36,13 +42,18 @@ public class ReportsController {
 
     @GetMapping("/support-dashboard-summary/filtered")
     public ResponseEntity<SupportDashboardSummaryDto> getFilteredSupportDashboardSummary(
-            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @AuthenticationPrincipal LoginPayload authenticatedUser,
+            HttpSession session,
+//            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @RequestParam MultiValueMap<String, String> allParams,
             @RequestParam(value = "timeScale", required = false) String timeScale,
             @RequestParam(value = "timeRange", required = false) String timeRange,
             @RequestParam(value = "customStartYear", required = false) Integer customStartYear,
             @RequestParam(value = "customEndYear", required = false) Integer customEndYear,
             @RequestParam(value = "parameterKey", required = false) String parameterKey,
             @RequestParam(value = "parameterValue", required = false) String parameterValue) {
+        String userId = ticketAuthorizationService.resolveUserId(authenticatedUser, session);
+
         return ResponseEntity.ok(reportService.getSupportDashboardSummaryFiltered(
                 userId,
                 timeScale,
@@ -50,7 +61,8 @@ public class ReportsController {
                 customStartYear,
                 customEndYear,
                 parameterKey,
-                parameterValue
+                parameterValue,
+                allParams
         ));
     }
 

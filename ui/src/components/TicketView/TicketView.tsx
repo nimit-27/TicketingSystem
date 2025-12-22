@@ -162,10 +162,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
 
-  if (attachmentsByTicketIdData?.length) {
-    console.log({ attachmentsByTicketIdData })
-  }
-
   const handleLinkToMasterTicketModalClose = useCallback(() => {
     setLinkToMasterTicketModalOpen(false);
   }, []);
@@ -441,10 +437,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   }, []);
 
   useEffect(() => {
-    if (attachmentsByTicketIdData) {
-      setUploadedAttachments(attachmentsByTicketIdData)
-    }
-  }, [isAttachmentsByTicketIdSuccess])
+    if (attachmentsByTicketIdData) setUploadedAttachments(attachmentsByTicketIdData)
+  }, [isAttachmentsByTicketIdSuccess, attachmentsByTicketIdData?.length])
 
   useEffect(() => {
     if (ticketId) {
@@ -661,7 +655,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const handleAttachmentUpload = (files: File[]) => {
     if (!files.length || !ticketId) return;
     addAttachments(ticketId, files).then(() => {
-      getTicketHandler(() => getTicket(ticketId));
+      getAttachmentsByTicketIdHandlerApi(ticketId)
+      // getTicketHandler(() => getTicket(ticketId));
       setUploadKey(k => k + 1);
     });
   };

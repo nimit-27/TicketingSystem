@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.dto.RoleDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
@@ -15,6 +16,7 @@ import com.ticketingSystem.api.dto.reports.SupportDashboardTicketVolumePointDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
+import com.ticketingSystem.api.models.ParameterMaster;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
@@ -23,6 +25,7 @@ import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.time.DayOfWeek;
@@ -52,6 +55,9 @@ public class ReportService {
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final RoleService roleService;
+    private final ParameterMasterService parameterMasterService;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -151,13 +157,20 @@ public class ReportService {
     }
 
     public SupportDashboardSummaryDto getSupportDashboardSummaryFiltered(String userId,
-                                                                          String timeScale,
-                                                                          String timeRange,
-                                                                          Integer customStartYear,
-                                                                          Integer customEndYear,
-                                                                          String parameterKey,
-                                                                          String parameterValue) {
+                                                                         String timeScale,
+                                                                         String timeRange,
+                                                                         Integer customStartYear,
+                                                                         Integer customEndYear,
+                                                                         String parameterKey,
+                                                                         String parameterValue,
+                                                                         MultiValueMap<String, String> allParams) {
         ParameterCriteria parameterCriteria = resolveParameterCriteria(parameterKey, parameterValue);
+
+        List<ParameterMaster> parametersListByRoleId = parameterMasterService
+                .getParametersForRoles(userService.getHelpdeskUserDetails(userId).get().getRoleIds());
+
+        List<String> parameterKeysList = parametersListByRoleId.stream().map(ParameterMaster::getParameterKey).toList();
+        Boolean hasAll = parameterKeysList.contains("all");
 
         if (parameterCriteria == null || !parameterCriteria.hasFilters()) {
             return getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear);
