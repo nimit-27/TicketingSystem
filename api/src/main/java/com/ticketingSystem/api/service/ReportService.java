@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.time.temporal.TemporalAdjusters;
@@ -164,20 +165,18 @@ public class ReportService {
                                                                          String parameterKey,
                                                                          String parameterValue,
                                                                          MultiValueMap<String, String> allParams) {
-        ParameterCriteria parameterCriteria = resolveParameterCriteria(parameterKey, parameterValue);
-
         List<ParameterMaster> parametersListByRoleId = parameterMasterService
                 .getParametersForRoles(userService.getHelpdeskUserDetails(userId).get().getRoleIds());
 
-        List<String> parameterKeysList = parametersListByRoleId.stream().map(ParameterMaster::getParameterKey).toList();
-        Boolean hasAll = parameterKeysList.contains("all");
-
-        if (parameterCriteria == null || !parameterCriteria.hasFilters()) {
-            return getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear);
-        }
+        List<String> parameterKeysList = parametersListByRoleId.stream()
+                .map(ParameterMaster::getParameterKey)
+                .filter(StringUtils::hasText)
+                .toList();
 
         TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear);
         DateRange dateRange = timeSeries.dateRange();
+
+        ParameterCriteria parameterCriteria = resolveDashboardParameterCriteria(userId, allParams, parameterKeysList);
 
         SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange, parameterCriteria);
         List<SupportDashboardCategorySummaryDto> allTicketsByCategory = buildCategorySummarySection(null, dateRange, parameterCriteria);
@@ -201,6 +200,70 @@ public class ReportService {
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
                 .build();
+    }
+
+    private ParameterCriteria resolveDashboardParameterCriteria(String userId,
+                                                                MultiValueMap<String, String> allParams,
+                                                                List<String> parameterKeysList) {
+        if (!StringUtils.hasText(userId) || parameterKeysList == null || parameterKeysList.isEmpty()) {
+            return null;
+        }
+
+        List<String> normalizedParameters = parameterKeysList.stream()
+                .filter(StringUtils::hasText)
+                .map(param -> param.trim().toLowerCase(Locale.ROOT))
+                .toList();
+
+        if (normalizedParameters.isEmpty()) {
+            return null;
+        }
+
+        List<String> normalizedRequestParams = Optional.ofNullable(allParams)
+                .map(MultiValueMap::keySet)
+                .orElseGet(Set::of)
+                .stream()
+                .filter(StringUtils::hasText)
+                .map(param -> param.trim().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        List<String> matchingParameters = normalizedParameters.stream()
+                .filter(normalizedRequestParams::contains)
+                .toList();
+
+        List<String> effectiveParameters;
+        if (matchingParameters.isEmpty()) {
+            if (normalizedParameters.contains("all")) {
+                return null;
+            }
+            effectiveParameters = List.of(normalizedParameters.get(0));
+        } else {
+            effectiveParameters = matchingParameters;
+        }
+
+        String parameterAssignedTo = null;
+        String parameterAssignedBy = null;
+        String parameterUpdatedBy = null;
+        String parameterCreatedBy = null;
+
+        for (String parameter : effectiveParameters) {
+            switch (parameter) {
+                case "assignedto" -> parameterAssignedTo = userId;
+                case "assignedby" -> parameterAssignedBy = userId;
+                case "updatedby" -> parameterUpdatedBy = userId;
+                case "createdby", "requestedby" -> parameterCreatedBy = userId;
+                default -> {
+                }
+            }
+        }
+
+        ParameterCriteria parameterCriteria = new ParameterCriteria(
+                parameterAssignedTo,
+                parameterAssignedBy,
+                parameterUpdatedBy,
+                parameterCreatedBy
+        );
+
+        return parameterCriteria.hasFilters() ? parameterCriteria : null;
     }
 
     private SupportDashboardSummarySectionDto buildSummarySection(String assignedTo, DateRange dateRange) {
