@@ -112,3 +112,7 @@ export function updateUser(userId: string, payload: Partial<HelpdeskUser>) {
 export function changeUserPassword(userId: string, payload: { oldPassword: string; newPassword: string; }) {
     return apiClient.put(`${BASE_URL}/users/${userId}/password`, payload);
 }
+
+export function resetUserPassword(userId: string, payload: { newPassword: string; }) {
+    return apiClient.put(`${BASE_URL}/users/${userId}/password/reset`, payload);
+}

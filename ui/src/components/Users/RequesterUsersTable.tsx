@@ -11,9 +11,19 @@ interface RequesterUsersTableProps {
   onViewProfile: (user: RequesterUser) => void;
   onAppointRno?: (user: RequesterUser) => void;
   appointingUserId?: string | null;
+  onResetPassword?: (user: RequesterUser) => void;
+  resettingUserId?: string | null;
 }
 
-const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loading = false, onViewProfile, onAppointRno, appointingUserId }) => {
+const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({
+  users,
+  loading = false,
+  onViewProfile,
+  onAppointRno,
+  appointingUserId,
+  onResetPassword,
+  resettingUserId,
+}) => {
   const { t } = useTranslation();
 
   const columns: ColumnsType<RequesterUser> = useMemo(() => [
@@ -57,6 +67,13 @@ const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loadin
               icon="visibility"
               onClick={() => onViewProfile(record)}
             />
+            <CustomIconButton
+              size="small"
+              icon="lockReset"
+              title={t('Reset Password')}
+              onClick={() => onResetPassword?.(record)}
+              disabled={!onResetPassword || resettingUserId === record.requesterUserId}
+            />
             {isRoOffice && (
               <CustomIconButton
                 size="small"
@@ -70,7 +87,7 @@ const RequesterUsersTable: React.FC<RequesterUsersTableProps> = ({ users, loadin
         );
       },
     },
-  ], [appointingUserId, onAppointRno, onViewProfile, t]);
+  ], [appointingUserId, onAppointRno, onResetPassword, onViewProfile, resettingUserId, t]);
 
   return (
     <GenericTable

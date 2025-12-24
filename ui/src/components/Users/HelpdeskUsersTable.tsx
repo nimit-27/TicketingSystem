@@ -9,9 +9,17 @@ interface HelpdeskUsersTableProps {
   users: HelpdeskUser[];
   loading?: boolean;
   onViewProfile: (user: HelpdeskUser) => void;
+  onResetPassword?: (user: HelpdeskUser) => void;
+  resettingUserId?: string | null;
 }
 
-const HelpdeskUsersTable: React.FC<HelpdeskUsersTableProps> = ({ users, loading = false, onViewProfile }) => {
+const HelpdeskUsersTable: React.FC<HelpdeskUsersTableProps> = ({
+  users,
+  loading = false,
+  onViewProfile,
+  onResetPassword,
+  resettingUserId,
+}) => {
   const { t } = useTranslation();
 
   const columns: ColumnsType<HelpdeskUser> = useMemo(() => [
@@ -33,14 +41,23 @@ const HelpdeskUsersTable: React.FC<HelpdeskUsersTableProps> = ({ users, loading 
       title: t('Actions'),
       key: 'actions',
       render: (_, record) => (
-        <CustomIconButton
-          size="small"
-          icon="visibility"
-          onClick={() => onViewProfile(record)}
-        />
+        <div className="d-flex gap-2">
+          <CustomIconButton
+            size="small"
+            icon="visibility"
+            onClick={() => onViewProfile(record)}
+          />
+          <CustomIconButton
+            size="small"
+            icon="lockReset"
+            title={t('Reset Password')}
+            onClick={() => onResetPassword?.(record)}
+            disabled={!onResetPassword || resettingUserId === record.userId}
+          />
+        </div>
       ),
     },
-  ], [onViewProfile, t]);
+  ], [onResetPassword, onViewProfile, resettingUserId, t]);
 
   return (
     <GenericTable
