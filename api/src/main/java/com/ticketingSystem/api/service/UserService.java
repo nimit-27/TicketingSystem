@@ -1,11 +1,14 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.dto.ChangePasswordRequest;
 import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
 import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.UserDto;
+import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.Level;
+import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.models.Stakeholder;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.models.UserLevel;
@@ -22,6 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,11 +36,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private static final String DEFAULT_PASSWORD = "AnnaDarpan@123";
+    static final int MAX_PASSWORD_ATTEMPTS = 5;
+    static final Duration PASSWORD_ATTEMPT_WINDOW = Duration.ofMinutes(5);
+    static final Duration PASSWORD_LOCK_DURATION = Duration.ofMinutes(5);
+    private static final int BCRYPT_MAX_BYTES = 72;
+    private static final Set<String> COMMON_PASSWORDS = Set.of(
+            "password", "123456", "123456789", "qwerty", "letmein",
+            "welcome", "football", "monkey", "abc123", "admin",
+            "pass@123", "password1", "iloveyou", "111111"
+    );
 
     private final UserRepository userRepository;
     private final StakeholderRepository stakeholderRepository;
@@ -51,6 +70,8 @@ public class UserService {
         this.levelRepository = levelRepository;
         this.requesterUserRepository = requesterUserRepository;
     }
+
+    private final Map<String, PasswordAttempt> passwordAttempts = new ConcurrentHashMap<>();
 
     public Optional<UserDto> getUserDetails(String userId) {
         return userRepository.findById(userId).map(this::mapUserWithStakeholder);
@@ -162,6 +183,225 @@ public class UserService {
 
     public void deleteUser(String id) {
         userRepository.deleteById(id);
+    }
+
+    public void changePassword(String userId, ChangePasswordRequest request) {
+        if (userId == null || userId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required");
+        }
+
+        assertNotRateLimited(userId);
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<RequesterUser> requesterUserOptional = requesterUserRepository.findById(userId);
+
+        if (userOptional.isEmpty() && requesterUserOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        AccountTarget target = resolveAccountTarget(userOptional, requesterUserOptional);
+
+        String oldPassword = trimToNull(request.getOldPassword());
+        String newPassword = trimToNull(request.getNewPassword());
+
+        if (oldPassword == null || newPassword == null) {
+            recordFailedAttempt(userId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old and new password are required");
+        }
+
+        if (!passwordsMatch(target.currentPasswordSupplier().get(), oldPassword)) {
+            recordFailedAttempt(userId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The old password you entered is incorrect.");
+        }
+
+        if (passwordsMatch(target.currentPasswordSupplier().get(), newPassword)) {
+            recordFailedAttempt(userId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must not match your recent passwords.");
+        }
+
+        validatePasswordStrength(newPassword);
+
+        target.passwordUpdater().accept(encodePassword(newPassword));
+        target.persistAction().run();
+        passwordAttempts.remove(userId);
+    }
+
+    private AccountTarget resolveAccountTarget(Optional<User> userOptional, Optional<RequesterUser> requesterUserOptional) {
+        Integer stakeholderGroupId = userOptional
+                .map(User::getStakeholder)
+                .map(this::resolveStakeholderGroupId)
+                .orElse(null);
+
+        if (stakeholderGroupId == null && requesterUserOptional.isPresent()) {
+            stakeholderGroupId = resolveStakeholderGroupId(requesterUserOptional.get().getStakeholder());
+        }
+
+        if (Integer.valueOf(3).equals(stakeholderGroupId)) {
+            RequesterUser requesterUser = requesterUserOptional
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requester user not found"));
+            return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
+                    () -> requesterUserRepository.save(requesterUser));
+        }
+
+        if (Integer.valueOf(1).equals(stakeholderGroupId)) {
+            User user = userOptional
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+        }
+
+        if (stakeholderGroupId == null) {
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+            }
+            if (requesterUserOptional.isPresent()) {
+                RequesterUser requesterUser = requesterUserOptional.get();
+                return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
+                        () -> requesterUserRepository.save(requesterUser));
+            }
+        }
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+        }
+
+        RequesterUser requesterUser = requesterUserOptional
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
+                () -> requesterUserRepository.save(requesterUser));
+    }
+
+    private Integer resolveStakeholderGroupId(String stakeholderIds) {
+        List<Integer> numericIds = splitIds(stakeholderIds).stream()
+                .map(id -> {
+                    try {
+                        return Integer.valueOf(id);
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (numericIds.isEmpty()) {
+            return null;
+        }
+
+        Map<Integer, Integer> stakeholderGroupById = stakeholderRepository.findAllById(new HashSet<>(numericIds)).stream()
+                .collect(Collectors.toMap(
+                        Stakeholder::getId,
+                        stakeholder -> stakeholder.getStakeholderGroup() != null
+                                ? stakeholder.getStakeholderGroup().getId()
+                                : null,
+                        (existing, replacement) -> existing
+                ));
+
+        for (Integer id : numericIds) {
+            Integer groupId = stakeholderGroupById.get(id);
+            if (groupId != null) {
+                return groupId;
+            }
+        }
+
+        return null;
+    }
+
+    private void validatePasswordStrength(String password) {
+        if (password == null || password.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password is required");
+        }
+
+        String trimmed = password.trim();
+        if (trimmed.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is too long");
+        }
+
+        if (trimmed.length() < 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters (12+ recommended).");
+        }
+        if (!trimmed.matches(".*[A-Z].*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Include at least one uppercase letter.");
+        }
+        if (!trimmed.matches(".*[a-z].*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Include at least one lowercase letter.");
+        }
+        if (!trimmed.matches(".*\\d.*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Include at least one number.");
+        }
+        if (!trimmed.matches(".*[^A-Za-z0-9].*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Include at least one special character.");
+        }
+        if (COMMON_PASSWORDS.contains(trimmed.toLowerCase())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avoid commonly used or leaked passwords.");
+        }
+    }
+
+    private boolean passwordsMatch(String stored, String provided) {
+        if (stored == null || provided == null) {
+            return false;
+        }
+        if (isBcryptHash(stored)) {
+            if (isBcryptHash(provided)) {
+                return Objects.equals(stored, provided);
+            }
+            int providedLength = provided.getBytes(StandardCharsets.UTF_8).length;
+            if (providedLength > BCRYPT_MAX_BYTES) {
+                return false;
+            }
+            try {
+                return BCrypt.checkpw(provided, stored);
+            } catch (IllegalArgumentException ex) {
+                return false;
+            }
+        }
+        return Objects.equals(stored, provided);
+    }
+
+    private void assertNotRateLimited(String userId) {
+        PasswordAttempt attempt = passwordAttempts.computeIfAbsent(userId, key -> new PasswordAttempt());
+        synchronized (attempt) {
+            Instant now = Instant.now();
+            if (attempt.lockedUntil != null && attempt.lockedUntil.isAfter(now)) {
+                long retryAfter = Duration.between(now, attempt.lockedUntil).toSeconds();
+                throw new RateLimitExceededException("Too many attempts. Please try again later.", retryAfter);
+            }
+            if (attempt.windowStart == null || attempt.windowStart.plus(PASSWORD_ATTEMPT_WINDOW).isBefore(now)) {
+                attempt.windowStart = now;
+                attempt.attempts = 0;
+                attempt.lockedUntil = null;
+            }
+        }
+    }
+
+    private void recordFailedAttempt(String userId) {
+        PasswordAttempt attempt = passwordAttempts.computeIfAbsent(userId, key -> new PasswordAttempt());
+        synchronized (attempt) {
+            Instant now = Instant.now();
+            if (attempt.windowStart == null || attempt.windowStart.plus(PASSWORD_ATTEMPT_WINDOW).isBefore(now)) {
+                attempt.windowStart = now;
+                attempt.attempts = 0;
+                attempt.lockedUntil = null;
+            }
+            attempt.attempts++;
+            if (attempt.attempts >= MAX_PASSWORD_ATTEMPTS) {
+                attempt.lockedUntil = now.plus(PASSWORD_LOCK_DURATION);
+                attempt.attempts = 0;
+                throw new RateLimitExceededException("Too many attempts. Please try again later.",
+                        Duration.between(now, attempt.lockedUntil).toSeconds());
+            }
+        }
+    }
+
+    private record AccountTarget(Supplier<String> currentPasswordSupplier,
+                                 Consumer<String> passwordUpdater,
+                                 Runnable persistAction) {
+    }
+
+    private static class PasswordAttempt {
+        Instant windowStart;
+        int attempts;
+        Instant lockedUntil;
     }
 
     private HelpdeskUserDto mapHelpdeskUser(User user) {

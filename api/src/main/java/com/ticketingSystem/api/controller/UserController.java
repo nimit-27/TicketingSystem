@@ -1,15 +1,18 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.ChangePasswordRequest;
 import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
 import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.RequesterUserDto;
 import com.ticketingSystem.api.dto.UserDto;
+import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.service.RequesterUserService;
 import com.ticketingSystem.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -129,6 +132,19 @@ public class UserController {
         return userService.updateUser(userId, user)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<Map<String, String>> changePassword(@PathVariable String userId,
+                                                              @Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            userService.changePassword(userId, request);
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+        } catch (RateLimitExceededException ex) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                    .body(Map.of("message", ex.getMessage()));
+        }
     }
 
     @DeleteMapping("/{userId}")
