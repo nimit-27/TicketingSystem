@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.*;
+import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
@@ -124,7 +125,7 @@ public class TicketController {
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<TicketDto> addTicket(
             @ModelAttribute Ticket ticket,
-            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws IOException {
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws Exception {
         logger.info("Request to add a new ticket");
         TicketDto addedTicket = ticketService.addTicket(ticket);
 
@@ -146,14 +147,20 @@ public class TicketController {
     }
 
     @PostMapping(value = "/{id}/attachments", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<TicketDto> addAttachments(@PathVariable String id,
-            @RequestParam("attachments") MultipartFile[] attachments) throws Exception {
+    public ResponseEntity<TicketDto> addAttachments(
+            @PathVariable String id,
+            @RequestParam("attachments") MultipartFile[] attachments
+    ) throws Exception {
         logger.info("Request to add attachments to ticket {}", id);
         List<String> paths = new ArrayList<>();
         if (attachments != null) {
             for (MultipartFile file : attachments) {
                 if (file != null && !file.isEmpty()) {
-                    paths.add(fileStorageService.save(file, id, null));
+
+                    String path = fileStorageService.save(file, id, null);
+                    paths.add(path);
+
+//                    paths.add(fileStorageService.uploadFile(file.getOriginalFilename(), file.getBytes()));
                 }
             }
         }
@@ -163,48 +170,17 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/attachments")
-    public ResponseEntity<List<UploadedFileDto>> getAttachments(@PathVariable String id) {
+    public ResponseEntity<List<UploadedFileDto>> getAttachments(@PathVariable String id) throws CustomGenericException {
         logger.info("Request to fetch attachments for ticket {}", id);
         List<UploadedFileDto> attachments = ticketService.getAttachments(id);
         logger.info("Fetched {} attachments for ticket {}", attachments.size(), id);
         return ResponseEntity.ok(attachments);
     }
 
-    @GetMapping("/{ticketId}/attachments/{attachmentId}")
-    public ResponseEntity<byte[]> downloadAttachment(@PathVariable String ticketId,
-                                                     @PathVariable String attachmentId,
-                                                     @AuthenticationPrincipal LoginPayload authenticatedUser,
-                                                     HttpSession session,
-                                                     @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
-        logger.info("Request to download attachment {} for ticket {}", attachmentId, ticketId);
-
-        TicketDto dto = ticketService.getTicket(ticketId);
-        if (dto == null) {
-            logger.warn("Ticket {} not found while downloading attachment {}, returning {}", ticketId, attachmentId, HttpStatus.NOT_FOUND);
-            return ResponseEntity.notFound().build();
-        }
-
-        LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
-        String ticketAssigneeUserId = resolveTicketAssigneeUserId(dto.getAssignedTo());
-        ticketAuthorizationService.assertCanAccessTicket(ticketId,
-                new TicketAccessContext(
-                        dto.getUserId(),
-                        ticketAssigneeUserId,
-                        dto.getStatus(),
-                        dto.getRecommendedSeverityStatus()
-                ),
-                resolvedUser,
-                session);
-
-        AttachmentDownloadDto attachment = ticketService.downloadAttachment(ticketId, attachmentId);
-        MediaType mediaType = attachment.mediaType() != null
-                ? attachment.mediaType()
-                : MediaTypeFactory.getMediaType(attachment.fileName()).orElse(MediaType.APPLICATION_OCTET_STREAM);
-
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.fileName() + "\"")
-                .body(attachment.content());
+    @GetMapping("/attachment-path")
+    public String getAttachmentDownloadUri(@RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
+        String ret = "Hello";
+        return userIdHeader;
     }
 
     @DeleteMapping("/{id}/attachments")

@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.dto.RoleDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
@@ -15,6 +16,7 @@ import com.ticketingSystem.api.dto.reports.SupportDashboardTicketVolumePointDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.enums.TicketStatus;
+import com.ticketingSystem.api.models.ParameterMaster;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
@@ -23,6 +25,7 @@ import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.time.DayOfWeek;
@@ -40,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.time.temporal.TemporalAdjusters;
@@ -52,6 +56,9 @@ public class ReportService {
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final RoleService roleService;
+    private final ParameterMasterService parameterMasterService;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -71,18 +78,18 @@ public class ReportService {
         String normalizedValue = parameterValue.trim();
 
         return switch (normalizedKey) {
-            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null);
-            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null);
-            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null);
-            case "created_by", "createdby", "creator", "requester", "requestor", "user", "user_id" ->
-                    new ParameterCriteria(null, null, null, normalizedValue);
+            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null);
+            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null);
+            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null);
+            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null);
+            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue);
             default -> null;
         };
     }
 
-    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy) {
+    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId) {
         boolean hasFilters() {
-            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy).anyMatch(StringUtils::hasText);
+            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId).anyMatch(StringUtils::hasText);
         }
 
         boolean matches(Ticket ticket) {
@@ -102,11 +109,10 @@ public class ReportService {
                 return false;
             }
 
-            if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getUserId())) {
+            if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getCreatedBy())) {
                 return false;
             }
-
-            return true;
+            return !StringUtils.hasText(userId) || matchesValue(userId, ticket.getUserId());
         }
 
         private boolean matchesValue(String expected, String actual) {
@@ -151,20 +157,25 @@ public class ReportService {
     }
 
     public SupportDashboardSummaryDto getSupportDashboardSummaryFiltered(String userId,
-                                                                          String timeScale,
-                                                                          String timeRange,
-                                                                          Integer customStartYear,
-                                                                          Integer customEndYear,
-                                                                          String parameterKey,
-                                                                          String parameterValue) {
-        ParameterCriteria parameterCriteria = resolveParameterCriteria(parameterKey, parameterValue);
+                                                                         String timeScale,
+                                                                         String timeRange,
+                                                                         Integer customStartYear,
+                                                                         Integer customEndYear,
+                                                                         String parameterKey,
+                                                                         String parameterValue,
+                                                                         MultiValueMap<String, String> allParams) {
+        List<ParameterMaster> parametersListByRoleId = parameterMasterService
+                .getParametersForRoles(userService.getHelpdeskUserDetails(userId).get().getRoleIds());
 
-        if (parameterCriteria == null || !parameterCriteria.hasFilters()) {
-            return getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear);
-        }
+        List<String> parameterKeysList = parametersListByRoleId.stream()
+                .map(ParameterMaster::getParameterKey)
+                .filter(StringUtils::hasText)
+                .toList();
 
         TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear);
         DateRange dateRange = timeSeries.dateRange();
+
+        ParameterCriteria parameterCriteria = resolveDashboardParameterCriteria(userId, allParams, parameterKeysList);
 
         SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange, parameterCriteria);
         List<SupportDashboardCategorySummaryDto> allTicketsByCategory = buildCategorySummarySection(null, dateRange, parameterCriteria);
@@ -188,6 +199,73 @@ public class ReportService {
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
                 .build();
+    }
+
+    private ParameterCriteria resolveDashboardParameterCriteria(String userId,
+                                                                MultiValueMap<String, String> allParams,
+                                                                List<String> parameterKeysList) {
+        if (!StringUtils.hasText(userId) || parameterKeysList == null || parameterKeysList.isEmpty()) {
+            return null;
+        }
+
+        List<String> normalizedParameters = parameterKeysList.stream()
+                .filter(StringUtils::hasText)
+                .map(param -> param.trim().toLowerCase(Locale.ROOT))
+                .toList();
+
+        if (normalizedParameters.isEmpty()) {
+            return null;
+        }
+
+        List<String> normalizedRequestParams = Optional.ofNullable(allParams)
+                .map(MultiValueMap::keySet)
+                .orElseGet(Set::of)
+                .stream()
+                .filter(StringUtils::hasText)
+                .map(param -> param.trim().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        List<String> matchingParameters = normalizedParameters.stream()
+                .filter(normalizedRequestParams::contains)
+                .toList();
+
+        List<String> effectiveParameters;
+        if (matchingParameters.isEmpty()) {
+            if (normalizedParameters.contains("all")) {
+                return null;
+            }
+            effectiveParameters = List.of(normalizedParameters.get(0));
+        } else {
+            effectiveParameters = matchingParameters;
+        }
+
+        String parameterAssignedTo = null;
+        String parameterAssignedBy = null;
+        String parameterUpdatedBy = null;
+        String parameterCreatedBy = null;
+        String user_id = null;
+
+        for (String parameter : effectiveParameters) {
+            switch (parameter) {
+                case "assignedto" -> parameterAssignedTo = userId;
+                case "assignedby" -> parameterAssignedBy = userId;
+                case "updatedby" -> parameterUpdatedBy = userId;
+                case "createdby" -> parameterCreatedBy = userId;
+                case "requestedby" -> user_id = userId;
+                default -> {
+                }
+            }
+        }
+
+        ParameterCriteria parameterCriteria = new ParameterCriteria(
+                parameterAssignedTo,
+                parameterAssignedBy,
+                parameterUpdatedBy,
+                parameterCreatedBy,
+                user_id
+        );
+
+        return parameterCriteria.hasFilters() ? parameterCriteria : null;
     }
 
     private SupportDashboardSummarySectionDto buildSummarySection(String assignedTo, DateRange dateRange) {

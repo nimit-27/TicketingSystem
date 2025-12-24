@@ -1,5 +1,7 @@
 package com.ticketingSystem.api.service.feignClients;
 
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import feign.codec.Encoder;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
@@ -30,4 +32,16 @@ public class OciFeignConfig {
             // OCI uses its own signature-based authentication
         };
     }
+
+//    @Bean
+//    public RequestInterceptor preserveEncodedUri() {
+//        return new RequestInterceptor() {
+//            @Override
+//            public void apply(RequestTemplate template) {
+//                // Mark current path as already-encoded (prevents Feign from decoding %2F to /)
+//                template.uri(template.path(), true);
+//            }
+//        };
+//    }
+
 }

@@ -25,4 +25,7 @@ public class ParameterMaster {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "parameter_key")
+    private String parameterKey;
 }

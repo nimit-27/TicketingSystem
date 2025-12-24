@@ -145,7 +145,7 @@ export interface MISReportRequestParams {
 export type SupportDashboardSeverityKey = "S1" | "S2" | "S3" | "S4";
 // export type SupportDashboardSeverityKey = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
-export type SupportDashboardScopeKey = "allTickets" | "myWorkload";
+export type SupportDashboardScopeKey = "allTickets" | "myWorkload" | "myTickets";
 
 export interface SupportDashboardSummaryView {
     pendingForAcknowledgement: number;

@@ -399,6 +399,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey={titleKey} />
                 <div className="d-flex flex-wrap align-items-center mb-3">
+                    {/* -------- FILTERS --------- */}
+
+                    {/* SEARCH FILTER */}
                     {showSearchBar && (
                         <GenericInput
                             label="Search"
@@ -408,6 +411,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             placeholder="Search by Ticket Id, Requestor Name, Subject"
                         />
                     )}
+
+                    {/* STATUS DROPDOWN FILTER */}
                     {showStatusFilter && (
                         <DropdownController
                             label="Status"
@@ -417,6 +422,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             options={statusFilterOptions}
                         />
                     )}
+
+                    {/* CATEGORY DROPDOWN FILTER */}
                     <DropdownController
                         label="Category"
                         value={selectedCategory}
@@ -424,17 +431,22 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         onChange={handleCategoryChange}
                         options={categoryOptions}
                     />
-                    {selectedCategory !== "All" ? (
-                        <DropdownController
+
+                    {/* SUBCATEGORY DROPDOWN FILTER */}
+                    {selectedCategory !== "All"
+                        ? <DropdownController
                             label="Sub Category"
                             value={selectedSubCategory}
                             className="col-3 ps-1"
                             onChange={handleSubCategoryChange}
                             options={subCategoryOptions}
                         />
-                    )
                         : <div className="d-flex col-3"></div>}
+
+                    {/* DATE RANGE FILTER */}
                     <DateRangeFilter value={dateRange} onChange={setDateRange} />
+
+                    {/* LEVEL CHIP FILTER   --->   Switch to DROPDOWN*/}
                     {showLevelFilterToggle && levels.map(level => (
                         <Chip
                             key={level}
@@ -448,6 +460,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             sx={{ mr: 1 }}
                         />
                     ))}
+
+                    {/* MASTER CHIP TOGGLE FILTER */}
                     {showMasterFilterToggle && (
                         <Chip
                             label={t("Master")}
@@ -457,6 +471,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             sx={{ mr: 1 }}
                         />
                     )}
+                    {/* -------- FILTERS END --------- */}
+
+                    {/* VIEW TOGGLE - TABLE | GRID */}
                     {showGridTableViewToggle && showTablePermission && showGridPermission && (
                         <div className="d-flex ms-auto">
                             <ViewToggle
@@ -470,6 +487,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         </div>
                     )}
                 </div>
+
+
                 {(viewMode === "table" && showTablePermission) || (viewMode === "grid" && showGridPermission) ? (
                     <div className="d-flex justify-content-end mb-2 w-100">
                         <DropdownController
@@ -545,6 +564,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 onClose={() => handleTicketSelection(null, false)}
                 {...viewTicketProps}
             />
+            
             {/* MODAL - FEEDBACK */}
             {feedbackOpen && <FeedbackModal open={feedbackOpen} ticketId={selectedTicketIdForFeedback} onClose={handleFeedbackClose} feedbackStatus={selectedTicketFeedbackStatus} />}
         </div>

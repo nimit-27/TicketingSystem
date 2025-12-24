@@ -191,6 +191,7 @@ const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashbo
 const scopeLabels: Record<SupportDashboardScopeKey, string> = {
   allTickets: "All Tickets",
   myWorkload: "My Workload",
+  myTickets: "My Tickets",
 };
 
 const formatSummaryValue = (value: number) => value?.toString().padStart(2, "0");
@@ -408,8 +409,12 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       return "allTickets";
     }
 
-    if (hasAssigneeRole || isRequesterOnly) {
+    if (hasAssigneeRole) {
       return "myWorkload";
+    }
+
+    if (isRequesterOnly) {
+      return "myTickets"
     }
 
     return "allTickets";
@@ -430,7 +435,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
   const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
   const [selectedRole, setSelectedRole] = React.useState<string>(() => userRoles[0] ?? "");
-  const [selectedParameter, setSelectedParameter] = React.useState<string>("All");
+  const [selectedParameter, setSelectedParameter] = React.useState<string>("");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -524,15 +529,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
 
   const parameterDropdownOptions = React.useMemo(
-    () => [
-      { value: "All", label: "All" },
-      ...((roleParameters ?? []).map((parameter) => ({
-        value: parameter.code ?? parameter.parameterId,
-        label: parameter.label ?? parameter.code ?? parameter.parameterId ?? "Unknown",
-      })) ?? []),
-    ],
+    () => getDropdownOptions(roleParameters, "label", "parameterKey"),
     [roleParameters],
   );
+
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
   useEffect(() => {
@@ -545,8 +545,12 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
         return current;
       }
 
-      const hasOption = parameterDropdownOptions.some((option) => option.value === current);
-      return hasOption ? current : "All";
+      if (parameterDropdownOptions.length == 1) return parameterDropdownOptions[0].value;
+
+      return current
+
+      // const hasOption = parameterDropdownOptions.some((option) => option.value === current);
+      // return hasOption ? current : "All";
     });
   }, [parameterDropdownOptions]);
 
@@ -627,14 +631,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       return null;
     }
 
-    const params: SupportDashboardSummaryRequestParams = { timeScale, timeRange };
+    let params: SupportDashboardSummaryRequestParams = { timeScale, timeRange };
     const normalizedCategoryId = selectedCategory === "All" ? undefined : selectedCategory;
     const normalizedSubCategoryId =
       normalizedCategoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
-
-    if (isRequester && userDetails?.username) {
-      params.createdBy = userDetails.username;
-    }
 
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
@@ -679,9 +679,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.subCategoryId = normalizedSubCategoryId;
     }
 
-    if (selectedParameter !== "All" && parameterValue) {
-      params.parameterKey = selectedParameter;
-      params.parameterValue = parameterValue;
+    if (selectedParameter?.toLocaleLowerCase() !== "all" && parameterValue) {
+      params = { ...params, [selectedParameter]: parameterValue }
     }
 
     return params;
@@ -1063,12 +1062,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
   useEffect(() => {
     if (!requestParams) return;
+    // const fetcher = requestParams.parameterKey
+    //   ? fetchSupportDashboardSummaryFiltered
+    //   : fetchSupportDashboardSummary;
 
-    const fetcher = requestParams.parameterKey
-      ? fetchSupportDashboardSummaryFiltered
-      : fetchSupportDashboardSummary;
-
-    void getSummaryApiHandler(() => fetcher(requestParams));
+    void getSummaryApiHandler(() => fetchSupportDashboardSummaryFiltered(requestParams));
   }, [getSummaryApiHandler, requestParams]);
 
   useEffect(() => {
@@ -1273,15 +1271,15 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 disabled={isLoading}
               />
             )}
-            <GenericDropdown
+            {parameterDropdownOptions.length > 1 && <GenericDropdown
               id="support-dashboard-parameter"
               label="Parameter"
               value={selectedParameter}
               onChange={handleParameterChange}
               options={parameterDropdownOptions}
               fullWidth
-              disabled={isLoading || parameterDropdownOptions.length <= 1}
-            />
+              disabled={isLoading}
+            />}
           </Box>
 
           <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">

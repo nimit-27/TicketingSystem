@@ -14,6 +14,7 @@ import { DevModeContext } from "../context/DevModeContext";
 import CustomIconButton from "../components/UI/IconButton/CustomIconButton";
 import { checkAccessMaster } from "../utils/permissions";
 import GenericCancelButton from "../components/UI/Button/GenericCancelButton";
+import { getUserDetails } from "../utils/Utils";
 
 const RaiseTicket: React.FC<any> = () => {
     const { register, handleSubmit, control, setValue, getValues, formState: { errors, isValid }, resetField, trigger } = useForm({ mode: 'onChange' });
@@ -51,6 +52,7 @@ const RaiseTicket: React.FC<any> = () => {
             requestorEmailId: emailId,
             requestorMobileNo: mobileNo,
             stakeholder,
+            createdBy: getUserDetails()?.username
         };
 
         // Map assignment fields to backend expected keys
@@ -61,7 +63,7 @@ const RaiseTicket: React.FC<any> = () => {
 
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
-            if(key === 'isMaster') debugger
+            if (key === 'isMaster') debugger
             if (key === 'attachments' && Array.isArray(value) && value.length > 0) {
                 value.forEach(file => formData.append('attachments', file));
             } else if (value !== undefined && value !== null) {
@@ -83,6 +85,7 @@ const RaiseTicket: React.FC<any> = () => {
 
                 const files: File[] = Array.isArray(attachments) ? attachments : [];
                 // 2) If files selected, upload them against created ticket
+                console.log({ attachments })
                 if (ticketId && files.length > 0) {
                     return apiHandler(() => addAttachments(ticketId, files))
                         .then(() => {

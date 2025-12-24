@@ -19,6 +19,10 @@ export function addAttachments(id: string, files: File[] | FileList) {
     });
 }
 
+export function getAttachmentsByTicketId(ticketId: string) {
+    return axios.get(`${BASE_URL}/tickets/${ticketId}/attachments`);
+}
+
 export function deleteAttachment(id: string, path: string) {
     return axios.delete(`${BASE_URL}/tickets/${id}/attachments`, {
         params: { path }

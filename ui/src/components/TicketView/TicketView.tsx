@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton } from '@mui/material';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton, Chip } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
-import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster } from '../../services/TicketService';
+import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster, getAttachmentsByTicketId } from '../../services/TicketService';
 import { getRootCauseAnalysisTicketById } from '../../services/RootCauseAnalysisService';
 import { BASE_URL } from '../../services/api';
 import { getCurrentUserDetails } from '../../config/config';
@@ -41,6 +41,7 @@ import MasterIcon from '../UI/Icons/MasterIcon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { getStatusHistory } from '../../services/StatusHistoryService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -114,6 +115,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const { apiHandler: updateTicketHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
+  const { data: attachmentsByTicketIdData, apiHandler: getAttachmentsByTicketIdHandler, success: isAttachmentsByTicketIdSuccess } = useApi<any>();
+  const { data, apiHandler } = useApi<any>();
 
   // USESTATE INITIALIZATIONS
   const [editing, setEditing] = useState(false);
@@ -131,6 +134,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploadedAttachments, setUploadedAttachments] = useState<any>([]);
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
   const [masterSla, setMasterSla] = useState<TicketSla | null>(null);
@@ -160,6 +164,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isItManager = roleList.includes('9');
   const isRno = roleList.includes('4');
 
+  const latestStatusRemark = Array.isArray(data)
+    ? [...data]?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0].remark
+    : ""
+
   const handleLinkToMasterTicketModalClose = useCallback(() => {
     setLinkToMasterTicketModalOpen(false);
   }, []);
@@ -180,6 +188,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const handleAssignMasterModalClose = useCallback(() => {
     setAssignMasterTicketModalOpen(false);
   }, []);
+
+  const getAttachmentsByTicketIdHandlerApi = (ticketId: string) => {
+    getAttachmentsByTicketIdHandler(() => getAttachmentsByTicketId(ticketId))
+  }
 
   const handleAssignMasterSuccess = useCallback(async () => {
     await getTicketHandler(() => getTicket(ticketId));
@@ -385,10 +397,22 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // PERMISSION BOOLEANS
   const ticketViewPermissions = checkAccessMaster(['ticketView']);
+  const showSubject = checkAccessMaster(['ticketView', 'subject'])
+  const allowSubjectEdit = checkAccessMaster(['ticketView', 'subject', 'allowEdit'])
+  const showDescription = checkAccessMaster(['ticketView', 'description'])
+  const allowDescriptionEdit = checkAccessMaster(['ticketView', 'description', 'allowEdit'])
+  const showCategory = checkAccessMaster(['ticketView', 'category'])
+  const allowCategoryEdit = checkAccessMaster(['ticketView', 'category', 'allowEdit'])
+  const showSubcategory = checkAccessMaster(['ticketView', 'subcategory'])
+  const allowSubcategoryEdit = checkAccessMaster(['ticketView', 'subcategory', 'allowEdit'])
+  const showSla = checkAccessMaster(['ticketView', 'sla'])
+  const showComments = checkAccessMaster(['ticketView', 'comments'])
+
+
   const showSubmitRCAButton = checkAccessMaster(['ticketView', 'submitRCAButton'])
   const showViewRCAButton = checkAccessMaster(['ticketView', 'viewRCAButton'])
   const showLinkToMasterTicketButton = checkAccessMaster(['ticketView', 'linkToMasterTicketButton']);
-  const allowEdit = checkFieldAccess('ticketDetails', 'editMode');
+  const allowEdit = checkAccessMaster(['ticketView', 'viewEditIconButton']);
   const showRecommendedSeverity = checkFieldAccess('ticketDetails', 'recommendedSeverity') && ticket?.recommendedSeverity;
   const showRecommendSeverity = checkFieldAccess('ticketDetails', 'recommendSeverity');
   const showSeverity = checkFieldAccess('ticketDetails', 'severity');
@@ -417,6 +441,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       return [];
     }
   }, []);
+
+  useEffect(() => {
+    apiHandler(() => getStatusHistory(ticketId));
+  }, [ticketId]);
+
+  useEffect(() => {
+    if (attachmentsByTicketIdData) setUploadedAttachments(attachmentsByTicketIdData)
+  }, [isAttachmentsByTicketIdSuccess, attachmentsByTicketIdData?.length])
 
   useEffect(() => {
     if (ticketId) {
@@ -454,6 +486,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           setSla(normalised);
         })
         .catch(() => setSla(null));
+
+      getAttachmentsByTicketIdHandlerApi(ticketId)
     }
   }, [ticketId, pageType, getTicketHandler, workflowApiHandler]);
 
@@ -477,7 +511,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   useEffect(() => {
     workflowApiHandler(() => getStatusWorkflowMappings(roleList));
   }, [roleList])
-
 
   useEffect(() => {
     if (ticket) {
@@ -632,7 +665,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const handleAttachmentUpload = (files: File[]) => {
     if (!files.length || !ticketId) return;
     addAttachments(ticketId, files).then(() => {
-      getTicketHandler(() => getTicket(ticketId));
+      getAttachmentsByTicketIdHandlerApi(ticketId)
+      // getTicketHandler(() => getTicket(ticketId));
       setUploadKey(k => k + 1);
     });
   };
@@ -886,94 +920,139 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           border: '1px solid',
           borderColor: 'success.light',
           p: 1,
-          mb: 2,
+          mb: 1,
         }}
       >
-        <Box data-testid="ticket-status-header" sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-          <div className='d-flex'>
+        <Box data-testid="ticket-status-header" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <div className='d-flex justify-content-center w-100'>
             <Typography className="me-1" variant="subtitle2" color="text.primary">
               {t('Ticket')}
             </Typography>
-            <Typography variant="subtitle2" color="text.primary">
+            <Typography className='me-3' variant="subtitle2" color="text.primary">
               {currentStatusName ? t(currentStatusName) : '-'}
             </Typography>
           </div>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {shouldShowResume && (
-              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resumeAction)}>
-                {t('Assign Back')}
-              </Button>
-            )}
-            {shouldShowResolve && (
-              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resolveAction)}>
-                {t('Resolve Ticket')}
-              </Button>
-            )}
-            {shouldShowClose && (
-              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(closeAction)}>
-                {t('Close Ticket')}
-              </Button>
-            )}
-            {shouldShowReopen && (
-              <Button size="small" variant="outlined" color="success" onClick={() => handleStatusActionClick(reopenAction)}>
-                {t('Reopen Ticket')}
-              </Button>
-            )}
-            {shouldShowRestore && (
-              <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(restoreAction)}>
-                {t('Restore Ticket')}
-              </Button>
-            )}
-            {shouldShowFeedbackButton && (
-              <Button size="small" variant="contained" color="success" onClick={() => setFeedbackOpen(true)}>
-                {hasFeedback ? t('View Feedback') : t('Submit Feedback')}
-              </Button>
-            )}
-            {shouldShowSubmitRcaButton && (
-              <Button size="small" variant="contained" color="success" onClick={handleOpenSubmitRca}>
-                {t('Submit RCA')}
-              </Button>
-            )}
-            {shouldShowViewRcaButton && (
-              <Button size="small" variant="contained" color="success" onClick={handleOpenViewRca}>
-                {t('View RCA')}
-              </Button>
-            )}
-            {ticket?.isMaster ? (
-              <MasterIcon />
-            ) : shouldShowLinkToMasterTicketButton ? (
-              <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
-                {t('Link to a Master Ticket')}
-              </Button>
-            ) : null}
-            {shouldShowAssignMasterTicketButton && (
-              <Button size="small" variant="outlined" onClick={handleAssignMasterModalOpen}>
-                {t('Assign this ticket as Master')}
-              </Button>
-            )}
-          </Box>
         </Box>
-        {showStatusRemark && selectedStatusAction && (
-          <Box sx={{ mt: 2 }}>
-            <RemarkComponent
-              actionName={selectedStatusAction.action}
-              onSubmit={handleStatusRemarkSubmit}
-              onCancel={handleStatusRemarkCancel}
-              textFieldLabel={t('Remark')}
-            />
-          </Box>
-        )}
       </Box>
-
-      {!ticket.isMaster && ticket.masterId && ticket.masterId.trim() !== '' && ticket.masterId !== ticket.id && (
-        <Alert
-          severity="info"
-          sx={{ mb: 2, cursor: 'pointer' }}
-          onClick={() => navigate(`/tickets/${ticket.masterId}`)}
+      <Box
+        sx={{
+          backgroundColor: '#e8f5e9',
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'success.light',
+          p: 1,
+          mb: 1,
+        }}
+      >
+        <Box data-testid="ticket-status-header" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <div className='d-flex justify-content-center w-100'>
+            <Typography className="me-2" variant="subtitle2" color="text.primary">
+              {t('Remark')}:
+            </Typography>
+            <Typography variant="subtitle2" color="text.primary">
+              {latestStatusRemark}
+            </Typography>
+          </div>
+        </Box>
+      </Box>
+      {(shouldShowResume ||
+        shouldShowResolve ||
+        shouldShowClose ||
+        shouldShowReopen ||
+        shouldShowRestore ||
+        shouldShowFeedbackButton ||
+        shouldShowSubmitRcaButton ||
+        shouldShowViewRcaButton ||
+        (!ticket?.isMaster && shouldShowLinkToMasterTicketButton) ||
+        shouldShowAssignMasterTicketButton) && <Box
+          sx={{
+            backgroundColor: '#e8f5e9',
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: 'success.light',
+            justifyContent: 'center',
+            p: 1,
+            mb: 1,
+          }}
         >
-          Linked to master ticket ID {ticket.masterId}. Click to view master ticket.
-        </Alert>
-      )}
+          <Box data-testid="ticket-status-header" sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {shouldShowResume && (
+                <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resumeAction)}>
+                  {t('Assign Back')}
+                </Button>
+              )}
+              {shouldShowResolve && (
+                <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(resolveAction)}>
+                  {t('Resolve Ticket')}
+                </Button>
+              )}
+              {shouldShowClose && (
+                <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(closeAction)}>
+                  {t('Close Ticket')}
+                </Button>
+              )}
+              {shouldShowReopen && (
+                <Button size="small" variant="outlined" color="success" onClick={() => handleStatusActionClick(reopenAction)}>
+                  {t('Reopen Ticket')}
+                </Button>
+              )}
+              {shouldShowRestore && (
+                <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(restoreAction)}>
+                  {t('Restore Ticket')}
+                </Button>
+              )}
+              {shouldShowFeedbackButton && (
+                <Button size="small" variant="contained" color="success" onClick={() => setFeedbackOpen(true)}>
+                  {hasFeedback ? t('View Feedback') : t('Submit Feedback')}
+                </Button>
+              )}
+              {shouldShowSubmitRcaButton && (
+                <Button size="small" variant="contained" color="success" onClick={handleOpenSubmitRca}>
+                  {t('Submit RCA')}
+                </Button>
+              )}
+              {shouldShowViewRcaButton && (
+                <Button size="small" variant="contained" color="success" onClick={handleOpenViewRca}>
+                  {t('View RCA')}
+                </Button>
+              )}
+              {!ticket?.isMaster
+                && shouldShowLinkToMasterTicketButton
+                ? <Button size="small" variant="outlined" onClick={handleLinkToMasterTicketModalOpen}>
+                  {t('Link to a Master Ticket')}
+                </Button>
+                : null}
+              {shouldShowAssignMasterTicketButton && (
+                <Button size="small" variant="outlined" onClick={handleAssignMasterModalOpen}>
+                  {t('Assign this ticket as Master')}
+                </Button>
+              )}
+            </Box>
+          </Box>
+          {showStatusRemark && selectedStatusAction && (
+            <Box sx={{ mt: 2 }}>
+              <RemarkComponent
+                actionName={selectedStatusAction.action}
+                onSubmit={handleStatusRemarkSubmit}
+                onCancel={handleStatusRemarkCancel}
+                textFieldLabel={t('Remark')}
+              />
+            </Box>
+          )}
+        </Box>}
+
+      {
+        !ticket.isMaster && ticket.masterId && ticket.masterId.trim() !== '' && ticket.masterId !== ticket.id && (
+          <Alert
+            severity="info"
+            sx={{ mb: 2, cursor: 'pointer' }}
+            onClick={() => navigate(`/tickets/${ticket.masterId}`)}
+          >
+            Linked to master ticket ID {ticket.masterId}. Click to view master ticket.
+          </Alert>
+        )
+      }
 
       {/* HEADER */}
       <Box className="d-flex align-items-end">
@@ -996,6 +1075,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 </Tooltip>
               )}
               <Typography variant="subtitle1">{ticket.id}</Typography>
+              {ticket?.isMaster && <MasterIcon />}
             </Box>
 
             {/* Edit, Cancel, Save buttons */}
@@ -1034,11 +1114,13 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       </Box>
 
       {/* SUBJECT */}
-      {renderText(subject, setSubject)}
+      {showSubject && renderText(subject, setSubject, false, { editing: allowSubjectEdit && editing })}
       {/* DESCRIPTION */}
-      <Box sx={{ mt: 2 }} className={!editing ? 'border rounded-2 p-2' : ''}>
-        {renderText(description, setDescription, true)}
-      </Box>
+      {
+        showDescription && <Box sx={{ mt: 2 }} className={!(allowDescriptionEdit && editing) ? 'border rounded-2 p-2' : ''}>
+          {renderText(description, setDescription, true, { editing: allowDescriptionEdit && editing })}
+        </Box>
+      }
 
       <div className='d-flex flex-wrap'>
         {/* CATEGORY, SUB-CATEGORY */}
@@ -1046,7 +1128,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           {editing && <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography color="text.secondary">{t('Category')}</Typography>
-              {renderSelect(
+              {showCategory && renderSelect(
                 selectedCategoryId,
                 (val: string) => {
                   setSelectedCategoryId(val);
@@ -1068,7 +1150,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography color="text.secondary">{t('Sub-Category')}</Typography>
-              {renderSelect(
+              {showSubcategory && renderSelect(
                 selectedSubCategoryId,
                 (val: string) => setSelectedSubCategoryId(val),
                 subCategoryOptions,
@@ -1081,6 +1163,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>
           </>}
         </Box>
+
         {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
           {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
@@ -1158,9 +1241,26 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </div>
         {/* ATTACHMENTS */}
         <div className="col-5 mt-4" style={{ minWidth: 'max-content' }}>
-          {attachments.length > 0 && (
+          {/* {attachments.length > 0 && (
             <Box className="d-flex justify-content-center" sx={{ mt: 2 }}>
-              <ThumbnailList attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
+              <ThumbnailList uploadedAttachments={attachmentsByTicketIdData} attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />
+            </Box>
+          )} */}
+          {uploadedAttachments?.length > 0 && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              {uploadedAttachments.map((item: any, i: any) => (
+                <Chip
+                  key={item.id ?? `${item.fileName}-${i}`}
+                  label={item.fileName}
+                  component="a"
+                  href={item.downloadFileUri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  icon={<DownloadIcon fontSize="small" />}
+                  clickable
+                  sx={{ maxWidth: '100%' }}
+                />
+              ))}
             </Box>
           )}
           <Box className="d-flex justify-content-center" sx={{ mt: 1 }}>
@@ -1170,61 +1270,71 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               thumbnailSize={100}
               onFilesChange={handleAttachmentUpload}
               attachments={emptyFileList}
+              setAttachments={setAttachments}
               hideUploadButton={isClosedStatus || isResolvedStatus}
             />
           </Box>
         </div>
       </div>
 
-      {showHistory && (
-        <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
-          <Histories ticketId={ticketId} />
-        </CustomFieldset>
-      )}
+      {
+        showHistory && (
+          <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
+            <Histories ticketId={ticketId} />
+          </CustomFieldset>
+        )
+      }
+
       {/* SLA */}
-      {(sla || masterSla) && (
-        <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }} actionElement={slaActionElement}>
-          {sla && (
-            <>
-              <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
-                <SlaProgressChart sla={sla} className="w-100" />
+      {
+        showSla && (sla || masterSla) && (
+          <CustomFieldset title="SLA" className="mt-4" style={{ margin: 0, padding: 0 }} actionElement={slaActionElement}>
+            {sla && (
+              <>
+                <Box sx={{ mt: 4, width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+                  <SlaProgressChart sla={sla} className="w-100" />
+                </Box>
+                <SlaDetails sla={sla} />
+              </>
+            )}
+            {masterSla && (
+              <Box sx={{ mt: sla ? 6 : 4 }}>
+                <Typography variant="h6" align="center" sx={{ mb: 2 }}>
+                  SLA for master ticket ID{' '}
+                  <Button
+                    variant="text"
+                    size="small"
+                    sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
+                    onClick={() => navigate(`/tickets/${ticket?.masterId}`)}
+                  >
+                    {ticket?.masterId}
+                  </Button>
+                </Typography>
+                <Box sx={{ width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+                  <SlaProgressChart sla={masterSla} className="w-100" />
+                </Box>
+                <SlaDetails sla={masterSla} />
               </Box>
-              <SlaDetails sla={sla} />
-            </>
-          )}
-          {masterSla && (
-            <Box sx={{ mt: sla ? 6 : 4 }}>
-              <Typography variant="h6" align="center" sx={{ mb: 2 }}>
-                SLA for master ticket ID{' '}
-                <Button
-                  variant="text"
-                  size="small"
-                  sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
-                  onClick={() => navigate(`/tickets/${ticket?.masterId}`)}
-                >
-                  {ticket?.masterId}
-                </Button>
-              </Typography>
-              <Box sx={{ width: { xs: '100%', md: '70%' }, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
-                <SlaProgressChart sla={masterSla} className="w-100" />
-              </Box>
-              <SlaDetails sla={masterSla} />
-            </Box>
-          )}
-        </CustomFieldset>
-      )}
+            )}
+          </CustomFieldset>
+        )
+      }
 
       {/* CHILD TICKETS LIST */}
-      {ticket.isMaster && (
-        <CustomFieldset title={t('Child Tickets')} className="mt-4" style={{ margin: 0, padding: 0 }}>
-          <ChildTicketsList parentId={ticket.id} />
-        </CustomFieldset>
-      )}
+      {
+        ticket.isMaster && (
+          <CustomFieldset title={t('Child Tickets')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+            <ChildTicketsList parentId={ticket.id} />
+          </CustomFieldset>
+        )
+      }
 
       {/* COMMENTS */}
-      <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
-        <CommentsSection ticketId={ticketId} />
-      </CustomFieldset>
+      {
+        showComments && <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
+          <CommentsSection ticketId={ticketId} />
+        </CustomFieldset>
+      }
 
       <LinkToMasterTicketModal
         open={linkToMasterTicketModalOpen}
@@ -1265,7 +1375,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         onCancel={() => setShowRecommendRemark(false)}
         onSubmit={handleSubmitRecommendSeverity}
       />
-    </Box>
+    </Box >
   );
 
   // DESIGN 2
@@ -1420,4 +1530,3 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 };
 
 export default TicketView;
-

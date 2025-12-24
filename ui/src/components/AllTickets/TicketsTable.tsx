@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -106,7 +106,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
-    // const [tableScrollY, setTableScrollY] = useState(300);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -120,22 +119,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
 
     let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
-
-    // useEffect(() => {
-    //     const calculateScrollHeight = () => {
-    //         debugger
-    //         const fallbackHeight = 520;
-    //         if (typeof window === 'undefined') {
-    //             setTableScrollY(fallbackHeight);
-    //             return;
-    //         }
-    //         const availableHeight = window.innerHeight * 0.3;
-    //         setTableScrollY(availableHeight);
-    //     };
-    //     calculateScrollHeight();
-    //     window.addEventListener('resize', calculateScrollHeight);
-    //     return () => window.removeEventListener('resize', calculateScrollHeight);
-    // }, []);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -549,48 +532,51 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     const seen = new Set()
                     return (
                         <>
-                            <VisibilityIcon
-                                onClick={() => onRowClick(record.id)}
-                                fontSize="small"
-                                sx={{ color: 'grey.600', cursor: 'pointer' }}
-                            />
-                            {/* {resumeAction && (
-                                <Tooltip title="Assign Back" placement="top">
-                                    <CustomIconButton
-                                        size="small"
-                                        onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
-                                        icon="undo"
-                                    />
-                                </Tooltip>
-                            )} */}
+                            <Tooltip key="view-ticket" title="View Ticket" placement="top">
+                                <CustomIconButton
+                                    size="small"
+                                    onClick={() =>  onRowClick(record.id)}
+                                    icon="visibility"
+                                />
+                                {/* <VisibilityIcon
+                                    onClick={() => onRowClick(record.id)}
+                                    fontSize="small"
+                                    sx={{ color: 'grey.600', cursor: 'pointer' }}
+                                /> */}
+                            </Tooltip>
                             {recordActions
-                            .filter(item => !seen.has(item.action) && seen.add(item.action))
-                            .map(a => {
-                                // {showInlineActions && nonResumeActions.map(a => {
-                                const { icon, className } = getActionIcon(a.action);
-                                if (a.action === "Resume") {
-                                    return (
-                                        <Tooltip title="Assign Back" placement="top">
-                                            <CustomIconButton
-                                                size="small"
-                                                onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
-                                                icon="undo"
-                                            />
-                                        </Tooltip>
-                                    )
-                                } else return (
-                                    <Tooltip key={a.id} title={a.action} placement="top">
-                                        <CustomIconButton
-                                            size="small"
-                                            onClick={() => handleActionClick(a, record.id)}
-                                            icon={icon}
-                                            className={`${className}`}
-                                        />
-                                    </Tooltip>
-                                );
-                            })}
+                                .filter(item => !seen.has(item.action) && seen.add(item.action))
+                                .map(a => {
+                                    // {showInlineActions && nonResumeActions.map(a => {
+                                    const { icon, className } = getActionIcon(a.action);
+                                    if (a.action === "Resume") {
+                                        return (
+                                            <Tooltip title="Assign Back" placement="top">
+                                                <CustomIconButton
+                                                    size="small"
+                                                    onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
+                                                    icon="undo"
+                                                />
+                                            </Tooltip>
+                                        )
+                                    } else {
+                                        console.log({ a })
+                                        return (
+                                            <Tooltip key={a.id} title={a.action} placement="top">
+                                                <CustomIconButton
+                                                    size="small"
+                                                    onClick={() => handleActionClick(a, record.id)}
+                                                    icon={icon}
+                                                    className={`${className}`}
+                                                />
+                                            </Tooltip>
+                                        );
+                                    }
+                                })}
                             {showActionsMenu && (
-                                <CustomIconButton onClick={(event) => openMenu(event, record)} icon="moreVert" />
+                                <Tooltip key="more" title="More" placement="top">
+                                    <CustomIconButton onClick={(event) => openMenu(event, record)} icon="moreVert" />
+                                </Tooltip>
                             )}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
                                 <>

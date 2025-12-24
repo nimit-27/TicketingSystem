@@ -1,5 +1,9 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.common.OciPathEncoder;
+import com.ticketingSystem.api.constants.ErrorCodes;
+import com.ticketingSystem.api.dto.PreauthenticatedRequestAccessType;
+import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.UploadedFile;
@@ -10,6 +14,7 @@ import com.ticketingSystem.api.service.feignClients.OciFeignClient;
 import com.ticketingSystem.api.util.OciRequestSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -24,6 +29,7 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Map;
 
 @Service
@@ -34,6 +40,11 @@ public class FileStorageService {
     private final OciObjectStorageService ociObjectStorageService;
     private final OciProperties ociProperties;
     private final OciFeignClient ociFeignClient;
+
+
+    @Autowired
+    com.ticketingSystem.api.service.OciUploadService ociUploadService;
+
 
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
@@ -63,7 +74,7 @@ public class FileStorageService {
         this.ociFeignClient = ociFeignClient;
     }
 
-    public String save(MultipartFile file, String ticketId, String uploadedBy) throws IOException {
+    public String save(MultipartFile file, String ticketId, String uploadedBy) throws Exception {
         String original = StringUtils.cleanPath(file.getOriginalFilename());
 
         UploadedFile uf = new UploadedFile();
@@ -84,15 +95,18 @@ public class FileStorageService {
         String relativePath = buildObjectKey(ticketId, filename);
         savedFile.setRelativePath(relativePath);
         uploadedFileRepository.save(savedFile);
-
-        ociObjectStorageService.upload(file, relativePath);
+        uploadFile(relativePath, file.getBytes());
+//        ociObjectStorageService.upload(file, relativePath);
 
         return relativePath;
     }
 
     public byte[] download(String relativePath) {
+        String objectKey = normalizeObjectKey(relativePath);
+        String updatedRelativePath = ensureTicketPrefix(objectKey);
         String host = "objectstorage." + region + ".oraclecloud.com";
-        String path = "/n/" + namespace + "/b/" + bucket + "/o/" + relativePath;
+        String encodedUpdatedRelativePath = OciPathEncoder.encodeObjectKey(updatedRelativePath);
+        String path = "/n/" + namespace + "/b/" + bucket + "/o/" + encodedUpdatedRelativePath;
 
         try {
             PrivateKey privateKey = loadPrivateKey();
@@ -101,15 +115,102 @@ public class FileStorageService {
                     tenancyOcid, userOcid, fingerprint, privateKey, MediaType.APPLICATION_OCTET_STREAM_VALUE
             );
 
-            ResponseEntity<byte[]> response = ociFeignClient.downloadObject(headers, namespace, bucket, relativePath);
+            ResponseEntity<byte[]> response = ociFeignClient.downloadObject(headers, namespace, bucket, encodedUpdatedRelativePath);
             return response.getBody();
         } catch (Exception ex) {
-            log.error("Failed to download object {} from OCI", relativePath, ex);
+            log.error("Failed to download object {} from OCI", encodedUpdatedRelativePath, ex);
             throw new RuntimeException("Failed to download attachment from OCI", ex);
         }
     }
 
-    public void uploadFile(String objectName, byte[] fileBytes) throws Exception {
+    public String generateDownloadUrl(String relativePath, String fileName) {
+        try {
+            log.info("OCI Repository: Generating download URL - relativePath: {}, fileName: {}", relativePath, fileName);
+
+            String objectName = buildObjectName(relativePath, fileName);
+            log.info("OCI Repository: Built object name for download: {}", objectName);
+
+            String accessType = PreauthenticatedRequestAccessType.OBJECT_READ;
+            String name = "download_" + System.currentTimeMillis();
+            String timeExpires = getExpirationTime();
+
+            String preAuthUrl = ociUploadService.createPreauthenticatedRequest(objectName, accessType, name, timeExpires);
+            log.info("OCI Repository: Generated download URL successfully for object: {}", objectName);
+
+            return preAuthUrl;
+        } catch (Exception e) {
+            log.error("OCI Repository: Failed to generate download URL - relativePath: {}, fileName: {}", relativePath, fileName, e);
+            return e.getMessage();
+//            throw CustomGenericException.CreateUnformattedException(ErrorCodes.CREATE_DOCUMENT, e, "Failed to generate OCI download URL");
+        }
+    }
+
+    private String buildObjectName(String relativePath, String fileName) {
+        // Convert filesystem path to OCI object name
+        // Replace Windows path separators with forward slashes
+        String objectName = "ticket/" + relativePath.replace("\\", "/");
+//        String objectName = relativePath.replace("\\", "/") + "/" + fileName;
+
+        // Remove any leading/trailing slashes
+        objectName = objectName.replaceAll("^/+|/+$", "");
+
+        // Additional cleanup for OCI Object Storage
+        // Remove any double slashes and ensure proper formatting
+        objectName = objectName.replaceAll("/+", "/");
+
+        // Ensure the object name doesn't start with a slash
+        if (objectName.startsWith("/")) {
+            objectName = objectName.substring(1);
+        }
+
+        // Remove trailing slash from the final object name
+        if (objectName.endsWith("/")) {
+            objectName = objectName.substring(0, objectName.length() - 1);
+        }
+
+        log.debug("OCI Repository: Built object name - relativePath: {}, fileName: {}, objectName: {}", relativePath, fileName, objectName);
+        return objectName;
+    }
+
+    private String getExpirationTime() {
+        // Calculate expiration time based on configuration
+        long currentTime = System.currentTimeMillis();
+        long expirationTime = currentTime + (60 * 60 * 1000L);
+//        long expirationTime = currentTime + (preAuthUrlExpiryMinutes * 60 * 1000L);
+        return new Date(expirationTime).toInstant().toString();
+    }
+
+
+    private String normalizeObjectKey(String relativePath) {
+        String objectKey = relativePath;
+
+        int objectMarker = objectKey.lastIndexOf("/o/");
+        if (objectMarker >= 0 && objectMarker + 3 < objectKey.length()) {
+            objectKey = objectKey.substring(objectMarker + 3);
+        }
+
+        if (objectKey.startsWith("http")) {
+            int lastSlash = objectKey.lastIndexOf('/');
+            if (lastSlash >= 0 && lastSlash + 1 < objectKey.length()) {
+                objectKey = objectKey.substring(lastSlash + 1);
+            }
+        }
+
+        while (objectKey.startsWith("/")) {
+            objectKey = objectKey.substring(1);
+        }
+
+        return objectKey;
+    }
+
+    private String ensureTicketPrefix(String objectKey) {
+        if (objectKey.startsWith("ticket/")) {
+            return objectKey;
+        }
+        return "ticket/" + objectKey;
+    }
+
+    public String uploadFile(String objectName, byte[] fileBytes) throws Exception {
         String updatedObjectName = "ticket/" + objectName;
         String host = "objectstorage." + region + ".oraclecloud.com";
         String path = "/n/" + namespace + "/b/" + bucket + "/o/" + updatedObjectName;
@@ -122,43 +223,33 @@ public class FileStorageService {
 
         ResponseEntity<String> res = ociFeignClient.uploadObject(headers, namespace, bucket, updatedObjectName, fileBytes);
         System.out.println(res);
+        return updatedObjectName;
     }
 
     private PrivateKey loadPrivateKey() throws Exception {
         try {
-            log.info("Loading private key from classpath: oci_api_key.pem");
             ClassPathResource resource = new ClassPathResource("oci_api_key.pem");
 
             if (!resource.exists()) {
-                log.error("Private key file not found in classpath: oci_api_key.pem");
                 throw new Exception("Private key file not found in classpath: oci_api_key.pem");
             }
 
             String pemContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            log.info("Private key file loaded, size: {} bytes", pemContent.length());
 
-            // Extract the base64 encoded key content
             String keyContent = extractKeyContent(pemContent);
-            log.info("Extracted key content length: {} characters", keyContent.length());
 
-            // Decode and create private key
             byte[] decoded = Base64.getDecoder().decode(keyContent);
-            log.info("Base64 decoded key size: {} bytes", decoded.length);
 
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
             PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(spec);
-            log.info("Private key created successfully, format: {}", privateKey.getFormat());
 
             return privateKey;
 
         } catch (IOException e) {
-            log.error("Failed to read private key file", e);
-            throw new Exception("Failed to read private key file: " + e.getMessage(), e);
+            throw new Exception(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.error("Invalid private key format", e);
-            throw new Exception("Invalid private key format: " + e.getMessage(), e);
+            throw new Exception(e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error loading private key", e);
             throw e;
         }
     }
