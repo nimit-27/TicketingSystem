@@ -2,9 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
     Box,
     Chip,
-    Divider,
     InputAdornment,
-    Paper,
     Stack,
     Typography,
 } from '@mui/material';
@@ -14,6 +12,7 @@ import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import GenericInput from '../components/UI/Input/GenericInput';
 import GenericButton from '../components/UI/Button';
 import SuccessModal from '../components/UI/SuccessModal';
+import Title from '../components/Title';
 import { changeUserPassword } from '../services/UserService';
 import { getCurrentUserDetails } from '../config/config';
 import { logout } from '../utils/Utils';
@@ -312,7 +311,6 @@ const ChangePasswordPage: React.FC = () => {
     ]), [t, validation]);
 
     const containerBg = theme.palette.background.default;
-    const cardBg = theme.palette.background.paper;
     const accentColor = theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.main;
     const strengthColors = [
         theme.palette.grey[400],
@@ -331,52 +329,40 @@ const ChangePasswordPage: React.FC = () => {
         && !isRateLimited,
     );
 
+    const headerActions = (
+        <Stack direction="row" spacing={1} alignItems="center">
+            <CustomIconButton
+                icon={mode === 'light' ? 'darkmode' : 'lightmode'}
+                aria-label={t('Toggle theme')}
+                onClick={toggleTheme}
+                style={{ color: accentColor }}
+            />
+            <CustomIconButton
+                icon="translate"
+                aria-label={t('Toggle language')}
+                onClick={toggleLanguage}
+                style={{ color: accentColor }}
+            />
+            <Chip
+                size="small"
+                label={mode === 'light' ? t('Light mode') : t('Dark mode')}
+                sx={{ fontWeight: 600 }}
+            />
+            <Chip
+                size="small"
+                label={language?.toUpperCase?.() ?? 'EN'}
+                sx={{ fontWeight: 600 }}
+            />
+        </Stack>
+    );
+
     return (
         <Box className="change-password-page" sx={{ backgroundColor: containerBg }}>
-            <Paper
-                className="change-password-card"
-                elevation={3}
-                sx={{
-                    backgroundColor: cardBg,
-                    borderColor: theme.palette.divider,
-                }}
-            >
-                <div className="change-password-card__header">
-                    <div>
-                        <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-                            {t('Change Password')}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            {t('Keep your account secure by updating your password regularly.')}
-                        </Typography>
-                    </div>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <CustomIconButton
-                            icon={mode === 'light' ? 'darkmode' : 'lightmode'}
-                            aria-label={t('Toggle theme')}
-                            onClick={toggleTheme}
-                            style={{ color: accentColor }}
-                        />
-                        <CustomIconButton
-                            icon="translate"
-                            aria-label={t('Toggle language')}
-                            onClick={toggleLanguage}
-                            style={{ color: accentColor }}
-                        />
-                        <Chip
-                            size="small"
-                            label={mode === 'light' ? t('Light mode') : t('Dark mode')}
-                            sx={{ fontWeight: 600 }}
-                        />
-                        <Chip
-                            size="small"
-                            label={language?.toUpperCase?.() ?? 'EN'}
-                            sx={{ fontWeight: 600 }}
-                        />
-                    </Stack>
-                </div>
-
-                <Divider sx={{ my: 2 }} />
+            <div className="change-password-content">
+                <Title textKey="Change Password" rightContent={headerActions} />
+                <Typography variant="body2" color="text.secondary" className="change-password-subtitle">
+                    {t('Keep your account secure by updating your password regularly.')}
+                </Typography>
 
                 <form onSubmit={handleSubmit} className="change-password-form">
                     <GenericInput
@@ -538,7 +524,7 @@ const ChangePasswordPage: React.FC = () => {
                         {submitting ? t('Submitting...') : t('Update Password')}
                     </GenericButton>
                 </form>
-            </Paper>
+            </div>
 
             <SuccessModal
                 open={successModalOpen}
