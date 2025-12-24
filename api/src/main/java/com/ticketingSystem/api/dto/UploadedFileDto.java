@@ -15,4 +15,5 @@ public class UploadedFileDto {
     private String ticketId;
     private LocalDateTime uploadedOn;
     private String isActive;
+    private String downloadFileUri;
 }

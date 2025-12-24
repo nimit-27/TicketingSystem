@@ -123,7 +123,7 @@ public class FileStorageService {
         }
     }
 
-    public String generateDownloadUrl(String relativePath, String fileName) throws CustomGenericException {
+    public String generateDownloadUrl(String relativePath, String fileName) {
         try {
             log.info("OCI Repository: Generating download URL - relativePath: {}, fileName: {}", relativePath, fileName);
 
@@ -140,7 +140,8 @@ public class FileStorageService {
             return preAuthUrl;
         } catch (Exception e) {
             log.error("OCI Repository: Failed to generate download URL - relativePath: {}, fileName: {}", relativePath, fileName, e);
-            throw CustomGenericException.CreateUnformattedException(ErrorCodes.CREATE_DOCUMENT, e, "Failed to generate OCI download URL");
+            return e.getMessage();
+//            throw CustomGenericException.CreateUnformattedException(ErrorCodes.CREATE_DOCUMENT, e, "Failed to generate OCI download URL");
         }
     }
 
@@ -227,39 +228,28 @@ public class FileStorageService {
 
     private PrivateKey loadPrivateKey() throws Exception {
         try {
-            log.info("Loading private key from classpath: oci_api_key.pem");
             ClassPathResource resource = new ClassPathResource("oci_api_key.pem");
 
             if (!resource.exists()) {
-                log.error("Private key file not found in classpath: oci_api_key.pem");
                 throw new Exception("Private key file not found in classpath: oci_api_key.pem");
             }
 
             String pemContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            log.info("Private key file loaded, size: {} bytes", pemContent.length());
 
-            // Extract the base64 encoded key content
             String keyContent = extractKeyContent(pemContent);
-            log.info("Extracted key content length: {} characters", keyContent.length());
 
-            // Decode and create private key
             byte[] decoded = Base64.getDecoder().decode(keyContent);
-            log.info("Base64 decoded key size: {} bytes", decoded.length);
 
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
             PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(spec);
-            log.info("Private key created successfully, format: {}", privateKey.getFormat());
 
             return privateKey;
 
         } catch (IOException e) {
-            log.error("Failed to read private key file", e);
-            throw new Exception("Failed to read private key file: " + e.getMessage(), e);
+            throw new Exception(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.error("Invalid private key format", e);
-            throw new Exception("Invalid private key format: " + e.getMessage(), e);
+            throw new Exception(e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error loading private key", e);
             throw e;
         }
     }

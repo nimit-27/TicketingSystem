@@ -1179,14 +1179,28 @@ public class TicketService {
         return mapWithStatusId(ticket);
     }
 
-    public List<UploadedFileDto> getAttachments(String ticketId) {
+    public List<UploadedFileDto> getAttachments(String ticketId) throws CustomGenericException {
         ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
 
         List<UploadedFile> attachments = uploadedFileRepository.findByTicket_IdAndIsActive(ticketId, "Y");
+
         return attachments.stream()
-                .map(DtoMapper::toUploadedFileDto)
-                .toList();
+                .map(file -> {
+                    UploadedFileDto dto = DtoMapper.toUploadedFileDto(file);
+                    // Populate the download URI
+                    String downloadUrl = null;
+                    try {
+                        downloadUrl = getDownloadAttachmentUri(
+//                        downloadUrl = fileStorageService.generateDownloadUrl(
+                                file.getTicket().getId(), file.getId());
+                    } catch (RuntimeException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    dto.setDownloadFileUri(downloadUrl);
+                    return dto;
+                }).toList();
     }
 
     public AttachmentDownloadDto downloadAttachment(String ticketId, String attachmentId) throws CustomGenericException {
@@ -1206,7 +1220,7 @@ public class TicketService {
         return new AttachmentDownloadDto(attachment.getFileName(), mediaType, content);
     }
 
-    public String getDownloadAttachmentUri(String ticketId, String attachmentId) throws CustomGenericException {
+    public String getDownloadAttachmentUri(String ticketId, String attachmentId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
 

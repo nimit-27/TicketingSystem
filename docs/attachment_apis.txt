@@ -1,0 +1,135 @@
+Attachment Apis
+======================================================
+======================================================
+
+
+Add Attachments to a Ticket
+______________________________________________________
+
+Endpoint: m/tickets/{ticketId}/attachments
+Method: POST
+Content-type: multipart/form-data
+Produces: application/json
+
+Payload: Formdata
+Form-Data:
+  attachments: <binary file>
+  attachments: <binary file>   (optional additional file)
+
+Response:
+{
+    "headers": {},
+    "body": {
+        "success": true,
+        "data": {
+            "id": "TKT-1-202512-00069",
+            "shortId": "TKT-1-20",
+            "reportedDate": "2025-12-22T06:15:52",
+            "mode": "Self",
+            "modeId": "1",
+            "userId": "100021",
+            "requestorName": "SANTOSH",
+            "requestorEmailId": "santoshpatki.fci@gov.in",
+            "requestorMobileNo": "9423006633",
+            "office": "",
+            "officeCode": "WC18",
+            "regionCode": "WC",
+            "zoneCode": "W",
+            "districtCode": "WC18",
+            "regionName": null,
+            "districtName": null,
+            "stakeholder": null,
+            "stakeholderId": null,
+            "subject": "Test",
+            "description": "Desc",
+            "category": "Single User Access",
+            "categoryId": "2",
+            "subCategory": "OTP not received during login",
+            "subCategoryId": "2003",
+            "priority": "P1 | Urgent (Impacting 100% users)",
+            "priorityId": "P1",
+            "severity": "S4",
+            "severityId": "S4",
+            "severityLabel": "S4",
+            "recommendedSeverity": null,
+            "impact": null,
+            "severityRecommendedBy": null,
+            "recommendedSeverityStatus": null,
+            "severityApprovedBy": null,
+            "status": "OPEN",
+            "statusId": "1",
+            "statusLabel": "Open",
+            "statusName": "Open (New)",
+            "attachmentPaths": [
+                "TKT-1-202512-00069/a18abb80-e422-4699-afa1-4ea2b639318c_ss.png",
+                "TKT-1-202512-00069/c714bb8b-f73f-4d0e-92d1-16863f6bd561_ss.png"
+            ],
+            "assignToLevel": null,
+            "assignTo": null,
+            "assignedToLevel": null,
+            "assignedTo": null,
+            "assignedToName": null,
+            "assignedBy": "100021",
+            "levelId": null,
+            "updatedBy": "100021",
+            "masterId": null,
+            "lastModified": "2025-12-22T14:09:52.585929185",
+            "resolvedAt": null,
+            "feedbackStatus": null,
+            "rcaStatus": null,
+            "createdBy": "100021",
+            "isMaster": false
+        },
+        "apiError": null,
+        "timestamp": "2025-12-22T14:09:52.600250271"
+    },
+    "statusCode": "OK",
+    "statusCodeValue": 200
+}
+
+======================================================
+
+
+
+2. Get Attachments of a Ticket
+_______________________________
+
+Endpoint: m/tickets/{ticketId}/attachments
+Method: POST
+
+Response:
+{
+    "headers": {},
+    "body": {
+        "success": true,
+        "data": [
+            {
+                "id": "a18abb80-e422-4699-afa1-4ea2b639318c",
+                "fileName": "ss.png",
+                "fileExtension": "png",
+                "relativePath": "TKT-1-202512-00069/a18abb80-e422-4699-afa1-4ea2b639318c_ss.png",
+                "uploadedBy": null,
+                "ticketId": "TKT-1-202512-00069",
+                "uploadedOn": "2025-12-22T14:09:52",
+                "isActive": "Y",
+                "downloadFileUri": "https://objectstorage.ap-mumbai-1.oraclecloud.com/p/oJ52Bb7PuDRSMFJU6seW_4UDu08hIcawX83jM_e8NBOju0Yus8GgAVH49alP-H10/n/bmozxse0db74/b/dev_bucket/o/ticket/TKT-1-202512-00069/a18abb80-e422-4699-afa1-4ea2b639318c_ss.png"
+            },
+            {
+                "id": "c714bb8b-f73f-4d0e-92d1-16863f6bd561",
+                "fileName": "ss.png",
+                "fileExtension": "png",
+                "relativePath": "TKT-1-202512-00069/c714bb8b-f73f-4d0e-92d1-16863f6bd561_ss.png",
+                "uploadedBy": null,
+                "ticketId": "TKT-1-202512-00069",
+                "uploadedOn": "2025-12-22T11:45:52",
+                "isActive": "Y",
+                "downloadFileUri": "https://objectstorage.ap-mumbai-1.oraclecloud.com/p/peBJhu-k-qWF_mqLnlLF14wtEmcJsBgAGhlZTRERa9RP1IfGr-RUqieu-l8Uucho/n/bmozxse0db74/b/dev_bucket/o/ticket/TKT-1-202512-00069/c714bb8b-f73f-4d0e-92d1-16863f6bd561_ss.png"
+            }
+        ],
+        "apiError": null,
+        "timestamp": "2025-12-22T14:17:36.612381296"
+    },
+    "statusCode": "OK",
+    "statusCodeValue": 200
+}
+

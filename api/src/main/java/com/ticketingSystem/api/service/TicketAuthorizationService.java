@@ -71,7 +71,7 @@ public class TicketAuthorizationService {
         return Collections.emptyList();
     }
 
-    private String resolveUserId(LoginPayload authenticatedUser, HttpSession session) {
+    public String resolveUserId(LoginPayload authenticatedUser, HttpSession session) {
         if (authenticatedUser != null && authenticatedUser.getUserId() != null && !authenticatedUser.getUserId().isBlank()) {
             return authenticatedUser.getUserId();
         }

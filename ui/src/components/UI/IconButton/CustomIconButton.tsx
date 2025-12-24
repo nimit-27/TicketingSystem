@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import TableRowsIcon from "@mui/icons-material/TableRows";
@@ -153,12 +153,16 @@ interface CustomIconButtonProps extends IconButtonProps {
     className?: string;
 }
 
-const CustomIconButton: React.FC<CustomIconButtonProps> = ({ icon, className, ...props }) => {
-    return (
-        <IconButton {...props} className={className}>
-            <IconComponent icon={icon} className={className} style={props.style} />
-        </IconButton>
-    );
-};
+
+const CustomIconButton = forwardRef<HTMLButtonElement, CustomIconButtonProps>(
+    ({ icon, className, ...props }, ref) => {
+        return (
+            <IconButton ref={ref} {...props} className={className}>
+                <IconComponent icon={icon} className={className} style={props.style} />
+            </IconButton>
+        );
+    }
+);
+
 
 export default CustomIconButton;

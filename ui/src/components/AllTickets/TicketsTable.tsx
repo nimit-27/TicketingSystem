@@ -532,20 +532,18 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     const seen = new Set()
                     return (
                         <>
-                            <VisibilityIcon
-                                onClick={() => onRowClick(record.id)}
-                                fontSize="small"
-                                sx={{ color: 'grey.600', cursor: 'pointer' }}
-                            />
-                            {/* {resumeAction && (
-                                <Tooltip title="Assign Back" placement="top">
-                                    <CustomIconButton
-                                        size="small"
-                                        onClick={() => handleAssignBack(record.id, record.statusId, record.assignedTo)}
-                                        icon="undo"
-                                    />
-                                </Tooltip>
-                            )} */}
+                            <Tooltip key="view-ticket" title="View Ticket" placement="top">
+                                <CustomIconButton
+                                    size="small"
+                                    onClick={() =>  onRowClick(record.id)}
+                                    icon="visibility"
+                                />
+                                {/* <VisibilityIcon
+                                    onClick={() => onRowClick(record.id)}
+                                    fontSize="small"
+                                    sx={{ color: 'grey.600', cursor: 'pointer' }}
+                                /> */}
+                            </Tooltip>
                             {recordActions
                                 .filter(item => !seen.has(item.action) && seen.add(item.action))
                                 .map(a => {
@@ -561,19 +559,24 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                                 />
                                             </Tooltip>
                                         )
-                                    } else return (
-                                        <Tooltip key={a.id} title={a.action} placement="top">
-                                            <CustomIconButton
-                                                size="small"
-                                                onClick={() => handleActionClick(a, record.id)}
-                                                icon={icon}
-                                                className={`${className}`}
-                                            />
-                                        </Tooltip>
-                                    );
+                                    } else {
+                                        console.log({ a })
+                                        return (
+                                            <Tooltip key={a.id} title={a.action} placement="top">
+                                                <CustomIconButton
+                                                    size="small"
+                                                    onClick={() => handleActionClick(a, record.id)}
+                                                    icon={icon}
+                                                    className={`${className}`}
+                                                />
+                                            </Tooltip>
+                                        );
+                                    }
                                 })}
                             {showActionsMenu && (
-                                <CustomIconButton onClick={(event) => openMenu(event, record)} icon="moreVert" />
+                                <Tooltip key="more" title="More" placement="top">
+                                    <CustomIconButton onClick={(event) => openMenu(event, record)} icon="moreVert" />
+                                </Tooltip>
                             )}
                             {record.statusLabel?.toLowerCase() === 'closed' && record.feedbackStatus !== 'NOT_PROVIDED' && (
                                 <>

@@ -7,6 +7,7 @@ import com.ticketingSystem.api.util.OciRequestSigner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -109,11 +110,11 @@ public class OciUploadServiceImpl implements OciUploadService {
             log.info("Curl command for testing:");
             log.info("{}", curlCommand);
             
-            String response = ociFeignClient.createPreauthenticatedRequest(headers, namespace, bucket, requestBody);
+            ResponseEntity<String> response = ociFeignClient.createPreauthenticatedRequest(headers, namespace, bucket, requestBody);
             log.info("Pre-authenticated request created successfully. Response: {}", response);
             
             // Parse the JSON response to extract the accessUri
-            String accessUri = parseAccessUriFromResponse(response);
+            String accessUri = parseAccessUriFromResponse(response.getBody());
 //            log.info("Extracted access URI: {}", accessUri);
 
             return accessUri;

@@ -35,6 +35,14 @@ public class ApiResponseBodyAdvice implements ResponseBodyAdvice {
                 return null;
             }
         }
+
+        // Special handling for String: ensure JSON content type when wrapping
+        if (body instanceof String) {
+            // We are returning an ApiResponse (JSON). Make content-type explicit.
+            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            return ApiResponse.success(body);
+        }
+
         return ApiResponse.success(body);
     }
 }

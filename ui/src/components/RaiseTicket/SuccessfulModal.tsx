@@ -2,6 +2,7 @@ import { Box, Modal } from "@mui/material";
 import './SuccessfulModal.scss'
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import CustomIconButton from "../UI/IconButton/CustomIconButton";
 
 interface SuccessfulModalProps {
     open: boolean;
@@ -14,14 +15,24 @@ const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClo
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const handleGoToMyTickets = () => {
+    const redirectToMyTickets = () => {
         onClose();
         navigate('/my-tickets');
     };
 
+    const redirectToDashboard = () => {
+        onClose();
+        navigate('/dashboard');
+    }
+
     return (
         <Modal open={open} onClose={onClose}>
             <Box className="modal-box ticket-success p-3">
+                <CustomIconButton
+                    onClick={redirectToDashboard}
+                    icon='close'
+                    style={{ position: 'absolute', top: 4, right: 4 }}
+                />
                 <div className="bg-light-green p-2 rounded-2">
                     <h4 className="text-success fw-bold text-center mb-3">
                         {t('Thank you! Your ticket has been submitted successfully.')}
@@ -50,7 +61,7 @@ const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClo
                         <button className="btn btn-outline-primary px-4" onClick={onClose}>
                             {t('Raise New Ticket')}
                         </button>
-                        <button className="btn btn-outline-secondary px-4" onClick={handleGoToMyTickets}>
+                        <button className="btn btn-outline-secondary px-4" onClick={redirectToMyTickets}>
                             {t('Go to My Tickets')}
                         </button>
                     </div>

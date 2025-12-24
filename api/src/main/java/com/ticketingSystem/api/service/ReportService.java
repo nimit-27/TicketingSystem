@@ -78,18 +78,18 @@ public class ReportService {
         String normalizedValue = parameterValue.trim();
 
         return switch (normalizedKey) {
-            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null);
-            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null);
-            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null);
-            case "created_by", "createdby", "creator", "requester", "requestor", "user", "user_id" ->
-                    new ParameterCriteria(null, null, null, normalizedValue);
+            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null);
+            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null);
+            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null);
+            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null);
+            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue);
             default -> null;
         };
     }
 
-    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy) {
+    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId) {
         boolean hasFilters() {
-            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy).anyMatch(StringUtils::hasText);
+            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId).anyMatch(StringUtils::hasText);
         }
 
         boolean matches(Ticket ticket) {
@@ -109,11 +109,10 @@ public class ReportService {
                 return false;
             }
 
-            if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getUserId())) {
+            if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getCreatedBy())) {
                 return false;
             }
-
-            return true;
+            return !StringUtils.hasText(userId) || matchesValue(userId, ticket.getUserId());
         }
 
         private boolean matchesValue(String expected, String actual) {
@@ -244,13 +243,15 @@ public class ReportService {
         String parameterAssignedBy = null;
         String parameterUpdatedBy = null;
         String parameterCreatedBy = null;
+        String user_id = null;
 
         for (String parameter : effectiveParameters) {
             switch (parameter) {
                 case "assignedto" -> parameterAssignedTo = userId;
                 case "assignedby" -> parameterAssignedBy = userId;
                 case "updatedby" -> parameterUpdatedBy = userId;
-                case "createdby", "requestedby" -> parameterCreatedBy = userId;
+                case "createdby" -> parameterCreatedBy = userId;
+                case "requestedby" -> user_id = userId;
                 default -> {
                 }
             }
@@ -260,7 +261,8 @@ public class ReportService {
                 parameterAssignedTo,
                 parameterAssignedBy,
                 parameterUpdatedBy,
-                parameterCreatedBy
+                parameterCreatedBy,
+                user_id
         );
 
         return parameterCriteria.hasFilters() ? parameterCriteria : null;
