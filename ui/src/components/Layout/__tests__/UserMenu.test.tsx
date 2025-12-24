@@ -6,7 +6,9 @@ import { renderWithTheme } from '../../../test/testUtils';
 
 const mockGetCurrentUserDetails = jest.fn();
 const mockGetRoleLookup = jest.fn();
+const mockGetDisplayRoles = jest.fn();
 const mockLogout = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('../../../config/config', () => ({
   getCurrentUserDetails: () => mockGetCurrentUserDetails(),
@@ -15,14 +17,22 @@ jest.mock('../../../config/config', () => ({
 jest.mock('../../../utils/Utils', () => ({
   ...jest.requireActual('../../../utils/Utils'),
   getRoleLookup: () => mockGetRoleLookup(),
+  getDisplayRoles: () => mockGetDisplayRoles(),
   logout: () => mockLogout(),
+}));
+
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
 }));
 
 describe('UserMenu', () => {
   beforeEach(() => {
     mockGetCurrentUserDetails.mockReset();
     mockGetRoleLookup.mockReset();
+    mockGetDisplayRoles.mockReset();
     mockLogout.mockReset();
+    mockNavigate.mockReset();
+    mockGetDisplayRoles.mockReturnValue([]);
   });
 
   const createAnchor = () => {
@@ -30,6 +40,10 @@ describe('UserMenu', () => {
     document.body.appendChild(anchor);
     return anchor;
   };
+
+  const renderMenu = (onClose = jest.fn()) => renderWithTheme(
+    <UserMenu anchorEl={createAnchor()} open onClose={onClose} />,
+  );
 
   it('renders user information and resolved role names', () => {
     mockGetCurrentUserDetails.mockReturnValue({
@@ -44,10 +58,12 @@ describe('UserMenu', () => {
       { roleId: 1, role: 'Manager' },
       { roleId: 'CUSTOM', role: 'Custom Role' },
     ]);
+    mockGetDisplayRoles.mockReturnValue([
+      { roleId: 1, role: 'Manager' },
+      { roleId: 'CUSTOM', role: 'Custom Role' },
+    ]);
 
-    renderWithTheme(
-      <UserMenu anchorEl={createAnchor()} open onClose={jest.fn()} />,
-    );
+    renderMenu();
 
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
     expect(screen.getByText('jane')).toBeInTheDocument();
@@ -66,9 +82,7 @@ describe('UserMenu', () => {
     const onClose = jest.fn();
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
 
-    renderWithTheme(
-      <UserMenu anchorEl={createAnchor()} open onClose={onClose} />,
-    );
+    renderMenu(onClose);
 
     await userEvent.click(screen.getByRole('menuitem', { name: /logout/i }));
 
@@ -90,9 +104,7 @@ describe('UserMenu', () => {
     });
     mockGetRoleLookup.mockReturnValue([]);
 
-    renderWithTheme(
-      <UserMenu anchorEl={createAnchor()} open onClose={jest.fn()} />,
-    );
+    renderMenu();
 
     expect(screen.getByText('alt@example.com')).toBeInTheDocument();
     expect(screen.getByText('9990001111')).toBeInTheDocument();
@@ -102,12 +114,23 @@ describe('UserMenu', () => {
     mockGetCurrentUserDetails.mockReturnValue({ username: 'sample-user' });
     mockGetRoleLookup.mockReturnValue(undefined);
 
-    renderWithTheme(
-      <UserMenu anchorEl={createAnchor()} open onClose={jest.fn()} />,
-    );
+    renderMenu();
 
     const occurrences = screen.getAllByText('sample-user');
     expect(occurrences.length).toBeGreaterThan(0);
     expect(screen.getAllByText('Not available')).toHaveLength(3);
+  });
+
+  it('navigates to change password and closes the menu', async () => {
+    mockGetCurrentUserDetails.mockReturnValue({ username: 'user', userId: 'user-1' });
+    mockGetRoleLookup.mockReturnValue([]);
+    const onClose = jest.fn();
+
+    renderMenu(onClose);
+
+    await userEvent.click(screen.getByRole('menuitem', { name: /change password/i }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('/account/change-password');
   });
 });

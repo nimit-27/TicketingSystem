@@ -52,6 +52,7 @@ import LinkOffIcon from '@mui/icons-material/LinkOff';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import RestoreIcon from '@mui/icons-material/Restore';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useTheme } from '@mui/material';
 
 // Define the icon map
@@ -106,6 +107,7 @@ const iconMap = {
     rateReview: RateReviewIcon,
     workOutline: WorkOutlineIcon,
     visibility: VisibilityIcon,
+    visibilityOff: VisibilityOffIcon,
     linkOff: LinkOffIcon,
     undo: UndoIcon,
     dashboard: DashboardIcon,
