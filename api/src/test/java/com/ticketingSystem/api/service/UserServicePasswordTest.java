@@ -2,6 +2,9 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.ChangePasswordRequest;
 import com.ticketingSystem.api.exception.RateLimitExceededException;
+import com.ticketingSystem.api.models.RequesterUser;
+import com.ticketingSystem.api.models.Stakeholder;
+import com.ticketingSystem.api.models.StakeholderGroup;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.repository.LevelRepository;
 import com.ticketingSystem.api.repository.RequesterUserRepository;
@@ -17,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +70,40 @@ class UserServicePasswordTest {
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
+        assertThat(BCrypt.checkpw("NewPass@1!", saved.getPassword())).isTrue();
+        assertThat(BCrypt.checkpw("OldPass@1", saved.getPassword())).isFalse();
+    }
+
+    @Test
+    void changePasswordRoutesToRequesterRepositoryWhenStakeholderGroupIsThree() {
+        StakeholderGroup stakeholderGroup = new StakeholderGroup();
+        stakeholderGroup.setId(3);
+
+        Stakeholder stakeholder = new Stakeholder();
+        stakeholder.setId(200);
+        stakeholder.setStakeholderGroup(stakeholderGroup);
+
+        RequesterUser requesterUser = new RequesterUser();
+        requesterUser.setRequesterUserId("req-1");
+        requesterUser.setUsername("demo-req");
+        requesterUser.setStakeholder("200");
+        requesterUser.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
+
+        when(userRepository.findById("req-1")).thenReturn(Optional.empty());
+        when(requesterUserRepository.findById("req-1")).thenReturn(Optional.of(requesterUser));
+        when(stakeholderRepository.findAllById(any())).thenReturn(List.of(stakeholder));
+        when(requesterUserRepository.save(any(RequesterUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ChangePasswordRequest request = new ChangePasswordRequest();
+        request.setOldPassword("OldPass@1");
+        request.setNewPassword("NewPass@1!");
+
+        userService.changePassword("req-1", request);
+
+        ArgumentCaptor<RequesterUser> captor = ArgumentCaptor.forClass(RequesterUser.class);
+        verify(requesterUserRepository).save(captor.capture());
+        verify(userRepository, never()).save(any());
+        RequesterUser saved = captor.getValue();
         assertThat(BCrypt.checkpw("NewPass@1!", saved.getPassword())).isTrue();
         assertThat(BCrypt.checkpw("OldPass@1", saved.getPassword())).isFalse();
     }

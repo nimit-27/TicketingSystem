@@ -8,6 +8,7 @@ import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.Level;
+import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.models.Stakeholder;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.models.UserLevel;
@@ -37,6 +38,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -189,8 +192,14 @@ public class UserService {
 
         assertNotRateLimited(userId);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<RequesterUser> requesterUserOptional = requesterUserRepository.findById(userId);
+
+        if (userOptional.isEmpty() && requesterUserOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        AccountTarget target = resolveAccountTarget(userOptional, requesterUserOptional);
 
         String oldPassword = trimToNull(request.getOldPassword());
         String newPassword = trimToNull(request.getNewPassword());
@@ -200,21 +209,102 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old and new password are required");
         }
 
-        if (!passwordsMatch(user.getPassword(), oldPassword)) {
+        if (!passwordsMatch(target.currentPasswordSupplier().get(), oldPassword)) {
             recordFailedAttempt(userId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The old password you entered is incorrect.");
         }
 
-        if (passwordsMatch(user.getPassword(), newPassword)) {
+        if (passwordsMatch(target.currentPasswordSupplier().get(), newPassword)) {
             recordFailedAttempt(userId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must not match your recent passwords.");
         }
 
         validatePasswordStrength(newPassword);
 
-        user.setPassword(encodePassword(newPassword));
-        userRepository.save(user);
+        target.passwordUpdater().accept(encodePassword(newPassword));
+        target.persistAction().run();
         passwordAttempts.remove(userId);
+    }
+
+    private AccountTarget resolveAccountTarget(Optional<User> userOptional, Optional<RequesterUser> requesterUserOptional) {
+        Integer stakeholderGroupId = userOptional
+                .map(User::getStakeholder)
+                .map(this::resolveStakeholderGroupId)
+                .orElse(null);
+
+        if (stakeholderGroupId == null && requesterUserOptional.isPresent()) {
+            stakeholderGroupId = resolveStakeholderGroupId(requesterUserOptional.get().getStakeholder());
+        }
+
+        if (Integer.valueOf(3).equals(stakeholderGroupId)) {
+            RequesterUser requesterUser = requesterUserOptional
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requester user not found"));
+            return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
+                    () -> requesterUserRepository.save(requesterUser));
+        }
+
+        if (Integer.valueOf(1).equals(stakeholderGroupId)) {
+            User user = userOptional
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+        }
+
+        if (stakeholderGroupId == null) {
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+            }
+            if (requesterUserOptional.isPresent()) {
+                RequesterUser requesterUser = requesterUserOptional.get();
+                return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
+                        () -> requesterUserRepository.save(requesterUser));
+            }
+        }
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+        }
+
+        RequesterUser requesterUser = requesterUserOptional
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
+                () -> requesterUserRepository.save(requesterUser));
+    }
+
+    private Integer resolveStakeholderGroupId(String stakeholderIds) {
+        List<Integer> numericIds = splitIds(stakeholderIds).stream()
+                .map(id -> {
+                    try {
+                        return Integer.valueOf(id);
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (numericIds.isEmpty()) {
+            return null;
+        }
+
+        Map<Integer, Integer> stakeholderGroupById = stakeholderRepository.findAllById(new HashSet<>(numericIds)).stream()
+                .collect(Collectors.toMap(
+                        Stakeholder::getId,
+                        stakeholder -> stakeholder.getStakeholderGroup() != null
+                                ? stakeholder.getStakeholderGroup().getId()
+                                : null,
+                        (existing, replacement) -> existing
+                ));
+
+        for (Integer id : numericIds) {
+            Integer groupId = stakeholderGroupById.get(id);
+            if (groupId != null) {
+                return groupId;
+            }
+        }
+
+        return null;
     }
 
     private void validatePasswordStrength(String password) {
@@ -301,6 +391,11 @@ public class UserService {
                         Duration.between(now, attempt.lockedUntil).toSeconds());
             }
         }
+    }
+
+    private record AccountTarget(Supplier<String> currentPasswordSupplier,
+                                 Consumer<String> passwordUpdater,
+                                 Runnable persistAction) {
     }
 
     private static class PasswordAttempt {
