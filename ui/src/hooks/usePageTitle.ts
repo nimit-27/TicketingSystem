@@ -28,6 +28,7 @@ const ROUTE_TITLES: RouteTitle[] = [
   { path: '/role-master/:roleId', title: 'Role Details' },
   { path: '/role-master', title: 'Role Master' },
   { path: '/users/new', title: 'Add New User' },
+  { path: '/account/change-password', title: 'Change Password' },
 ];
 
 const deriveTitle = (pathname: string): string => {

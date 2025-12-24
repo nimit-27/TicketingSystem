@@ -13,9 +13,10 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import LockResetIcon from "@mui/icons-material/LockReset";
 import { getDisplayRoles, logout } from "../../utils/Utils";
 import { getCurrentUserDetails } from "../../config/config";
-import { getRoleLookup, RoleLookupItem } from "../../utils/Utils";
+import { RoleLookupItem } from "../../utils/Utils";
 import { useNavigate } from "react-router-dom";
 
 interface UserMenuProps {
@@ -105,6 +106,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
   const handleOpenProfile = () => {
     onClose();
     navigate('/my-profile');
+  };
+
+  const handleChangePassword = () => {
+    onClose();
+    navigate('/account/change-password');
   };
 
   const renderDetailRow = (
@@ -201,6 +207,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ anchorEl, open, onClose }) => {
         </Box>
       </Box>
       <Divider />
+      <MenuItem onClick={handleChangePassword}>
+        <ListItemIcon>
+          <LockResetIcon fontSize="small" />
+        </ListItemIcon>
+        Change Password
+      </MenuItem>
       <MenuItem onClick={handleLogout}>
         <ListItemIcon>
           <LogoutIcon fontSize="small" />
