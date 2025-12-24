@@ -18,6 +18,9 @@ import { getStakeholders } from '../services/StakeholderService';
 import { PaginatedResponse } from '../types/pagination';
 import { useSnackbar } from '../context/SnackbarContext';
 import { getDistricts, getRegions, getZones } from '../services/LocationService';
+import { resetUserPassword } from '../services/UserService';
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import SuccessModal from '../components/UI/SuccessModal';
 
 const Users: React.FC = () => {
   const { t } = useTranslation();
@@ -38,6 +41,11 @@ const Users: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [activeAppointmentUserId, setActiveAppointmentUserId] = useState<string | null>(null);
+  const [passwordResetTarget, setPasswordResetTarget] = useState<{ id: string; name?: string } | null>(null);
+  const [passwordResetConfirmed, setPasswordResetConfirmed] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [resetSuccessModalOpen, setResetSuccessModalOpen] = useState(false);
+  const [resettingUserId, setResettingUserId] = useState<string | null>(null);
 
   const { showMessage } = useSnackbar();
   const { data: requesterUsers = { items: [] } as any, apiHandler: requesterHandler, pending: requesterPending } = useApi<PaginatedResponse<RequesterUser>>();
@@ -51,6 +59,7 @@ const Users: React.FC = () => {
   const { data: regionsResponse = [], apiHandler: regionsHandler } = useApi<any>();
   const { data: districtsResponse = [], apiHandler: districtsHandler } = useApi<any>();
   const { apiHandler: appointmentHandler } = useApi<any>();
+  const { apiHandler: resetPasswordHandler, pending: resettingPassword } = useApi<any>();
 
   const canViewUsers = useMemo(() => checkAccessMaster(['Users']), []);
 
@@ -133,6 +142,40 @@ const Users: React.FC = () => {
       setActiveAppointmentUserId(null);
     }
   }, [appointmentHandler, loadRequesterUsers, showMessage, t]);
+
+  const openResetPasswordModal = useCallback((userId: string, name?: string) => {
+    setPasswordResetTarget({ id: userId, name });
+    setPasswordResetConfirmed(false);
+    setPasswordInput('');
+  }, []);
+
+  const closeResetPasswordModal = useCallback(() => {
+    setPasswordResetTarget(null);
+    setPasswordResetConfirmed(false);
+    setPasswordInput('');
+  }, []);
+
+  const handleConfirmReset = useCallback(() => {
+    setPasswordResetConfirmed(true);
+  }, []);
+
+  const handleSubmitPasswordReset = useCallback(async () => {
+    if (!passwordResetTarget?.id || !passwordInput.trim()) {
+      return;
+    }
+
+    setResettingUserId(passwordResetTarget.id);
+    try {
+      const response = await resetPasswordHandler(() => resetUserPassword(passwordResetTarget.id, { newPassword: passwordInput.trim() }));
+      if (response !== null) {
+        showMessage(t('Password reset successfully'), 'success');
+        setResetSuccessModalOpen(true);
+        closeResetPasswordModal();
+      }
+    } finally {
+      setResettingUserId(null);
+    }
+  }, [closeResetPasswordModal, passwordInput, passwordResetTarget, resetPasswordHandler, showMessage, t]);
 
   const roleOptions: DropdownOption[] = useMemo(
     () => [{ label: t('All'), value: 'All' }, ...((rolesResponse?.data ?? rolesResponse ?? []).map((r: any) => ({
@@ -282,12 +325,16 @@ const Users: React.FC = () => {
           appointingUserId={activeAppointmentUserId}
           onAppointRno={handleAppointRno}
           onViewProfile={user => handleViewProfile('requester', user.requesterUserId)}
+          onResetPassword={(user) => openResetPasswordModal(user.requesterUserId, user.name)}
+          resettingUserId={resettingUserId}
         />
       ) : (
         <HelpdeskUsersTable
           users={helpdeskUsers?.items ?? []}
           loading={helpdeskPending}
           onViewProfile={user => handleViewProfile('helpdesk', user.userId)}
+          onResetPassword={(user) => openResetPasswordModal(user.userId, user.name)}
+          resettingUserId={resettingUserId}
         />
       )}
 
@@ -304,6 +351,48 @@ const Users: React.FC = () => {
           totalCount={totalCount}
         />
       </div>
+
+      <Dialog open={Boolean(passwordResetTarget)} onClose={closeResetPasswordModal} fullWidth maxWidth="xs">
+        <DialogTitle>{t('Reset Password')}</DialogTitle>
+        <DialogContent className="pt-2">
+          <p className="mb-2">
+            {t('Are you sure you want to reset the password for {{name}}?', { name: passwordResetTarget?.name || t('this user') })}
+          </p>
+          {passwordResetConfirmed && (
+            <TextField
+              fullWidth
+              type="password"
+              label={t('New Password')}
+              value={passwordInput}
+              onChange={(event) => setPasswordInput(event.target.value)}
+              margin="dense"
+              autoFocus
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeResetPasswordModal} disabled={resettingPassword}>{t('Cancel')}</Button>
+          {!passwordResetConfirmed ? (
+            <Button variant="contained" onClick={handleConfirmReset}>{t('Yes')}</Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleSubmitPasswordReset}
+              disabled={resettingPassword || passwordInput.trim() === ''}
+              startIcon={resettingPassword ? <CircularProgress size={16} /> : null}
+            >
+              {resettingPassword ? t('Submitting...') : t('Submit')}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      <SuccessModal
+        open={resetSuccessModalOpen}
+        title={t('Password reset successfully')}
+        subtext={t('The password has been updated for the selected user.')}
+        onClose={() => setResetSuccessModalOpen(false)}
+      />
     </div>
   );
 };
