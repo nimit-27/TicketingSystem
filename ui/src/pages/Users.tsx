@@ -61,7 +61,7 @@ const Users: React.FC = () => {
   const { apiHandler: appointmentHandler } = useApi<any>();
   const { apiHandler: resetPasswordHandler, pending: resettingPassword } = useApi<any>();
 
-  const canViewUsers = useMemo(() => checkAccessMaster(['Users']), []);
+  const canViewUsers = useMemo(() => checkAccessMaster(['users']), []);
 
   const normalizedRole = roleFilter === 'All' ? undefined : roleFilter;
   const normalizedStakeholder = stakeholderFilter === 'All' ? undefined : stakeholderFilter;

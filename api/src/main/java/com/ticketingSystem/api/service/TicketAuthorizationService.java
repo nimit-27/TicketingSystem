@@ -46,8 +46,9 @@ public class TicketAuthorizationService {
         String requesterId = resolveUserId(authenticatedUser, session);
         boolean ownsTicket = context.ticketOwnerId() != null && context.ticketOwnerId().equalsIgnoreCase(requesterId);
         boolean assignedToTicket = context.ticketAssigneeUserId() != null && context.ticketAssigneeUserId().equalsIgnoreCase(requesterId);
+        boolean creatorOfTicket = context.ticketCreatedBy() != null && context.ticketCreatedBy().equals(requesterId);
 
-        if (requesterId == null || (!ownsTicket && !assignedToTicket)) {
+        if (requesterId == null || (!ownsTicket && !assignedToTicket && !creatorOfTicket)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     String.format("Access to ticket %s is not allowed", ticketId)

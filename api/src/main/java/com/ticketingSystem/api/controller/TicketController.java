@@ -79,13 +79,16 @@ public class TicketController {
         }
         LoginPayload resolvedUser = resolveAuthenticatedUser(authenticatedUser, userIdHeader);
         String ticketAssigneeUserId = resolveTicketAssigneeUserId(dto.getAssignedTo());
+        String ticketCreatorUserId = resolveTicketCreatorUserId(dto.getCreatedBy());
+
         ticketAuthorizationService.assertCanAccessTicket(
                 id,
                 new TicketAccessContext(
                         dto.getUserId(),
                         ticketAssigneeUserId,
                         dto.getStatus(),
-                        dto.getRecommendedSeverityStatus()
+                        dto.getRecommendedSeverityStatus(),
+                        ticketCreatorUserId
                 ),
                 resolvedUser,
                 session);
@@ -114,6 +117,7 @@ public class TicketController {
                         slaTicketOwnerId,
                         slaTicketAssigneeUserId,
                         sla.getTicket() != null ? sla.getTicket().getTicketStatus() : null,
+                        null,
                         null
                 ),
                 resolvedUser,
@@ -343,6 +347,22 @@ public class TicketController {
                 .map(UserDto::getUserId)
                 .orElse(null);
     }
+
+    private String resolveTicketCreatorUserId(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return null;
+        }
+
+        Optional<UserDto> userById = userService.getUserDetails(identifier);
+        if (userById.isPresent()) {
+            return userById.get().getUserId();
+        }
+
+        return userService.getUserDetailsByUsername(identifier)
+                .map(UserDto::getUserId)
+                .orElse(null);
+    }
+
 
     private LoginPayload toLoginPayload(UserDto user) {
         List<String> roles = user.getRoleNames() != null && !user.getRoleNames().isEmpty()

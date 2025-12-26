@@ -6,10 +6,11 @@ import com.ticketingSystem.api.enums.TicketStatus;
 public record TicketAccessContext(String ticketOwnerId,
                                   String ticketAssigneeUserId,
                                   TicketStatus ticketStatus,
-                                  String recommendedSeverityStatus) {
+                                  String recommendedSeverityStatus,
+                                  String ticketCreatedBy) {
 
     public static TicketAccessContext basic(String ticketOwnerId, String ticketAssigneeUserId) {
-        return new TicketAccessContext(ticketOwnerId, ticketAssigneeUserId, null, null);
+        return new TicketAccessContext(ticketOwnerId, ticketAssigneeUserId, null, null, null);
     }
 
     public boolean hasStatus(TicketStatus status) {

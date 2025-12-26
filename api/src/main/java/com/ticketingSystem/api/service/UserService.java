@@ -191,9 +191,16 @@ public class UserService {
         }
 
         assertNotRateLimited(userId);
+        Optional<User> userOptional = Optional.empty();
+        Optional<RequesterUser> requesterUserOptional = Optional.empty();
 
-        Optional<User> userOptional = userRepository.findById(userId);
-        Optional<RequesterUser> requesterUserOptional = requesterUserRepository.findById(userId);
+        String stakeholderId = getUserDetails(userId).get().getStakeholderId();
+        if("1".equals(stakeholderId)) {
+            userOptional = userRepository.findById(userId);
+        } else {
+            requesterUserOptional = requesterUserRepository.findById(userId);
+        }
+
 
         if (userOptional.isEmpty() && requesterUserOptional.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
