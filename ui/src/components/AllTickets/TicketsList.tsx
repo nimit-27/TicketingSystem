@@ -224,9 +224,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const effectiveSize = options?.sizeOverride ?? pageSize;
 
             let statusParam: string | undefined = statusFilter === "All" ? undefined : statusFilter;
-            if (!statusParam && allowedStatuses.length > 0) {
-                statusParam = allowedStatuses.join(",");
-            }
+            // if (!statusParam && allowedStatuses.length > 0) {
+            //     statusParam = allowedStatuses.join(",");
+            // }
             if (overrides?.statusName !== undefined) {
                 statusParam = overrides.statusName;
             }
@@ -286,7 +286,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
             normalizedSubCategory,
             page,
             pageSize,
-            searchTicketsPaginatedApiHandler,
             sortBy,
             sortDirection,
             statusFilter,
@@ -355,7 +354,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
     useEffect(() => {
         callSearch();
     }, [
-        callSearch,
         debouncedSearch,
         statusFilter,
         masterOnly,
@@ -378,7 +376,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             setTotalPages(resp.totalPages || 1);
             setTickets(transformed);
         }
-    }, [data, filterState, transformTickets]);
+    }, [data, filterState]);
 
     useEffect(() => {
         if (showTablePermission && !showGridPermission) {
@@ -564,7 +562,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 onClose={() => handleTicketSelection(null, false)}
                 {...viewTicketProps}
             />
-            
+
             {/* MODAL - FEEDBACK */}
             {feedbackOpen && <FeedbackModal open={feedbackOpen} ticketId={selectedTicketIdForFeedback} onClose={handleFeedbackClose} feedbackStatus={selectedTicketFeedbackStatus} />}
         </div>

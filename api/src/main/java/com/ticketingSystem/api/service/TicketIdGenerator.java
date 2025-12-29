@@ -30,10 +30,10 @@ public class TicketIdGenerator {
         LocalDate monthStart = currentMonth.atDay(1);
 
         TicketSequence sequence = ticketSequenceRepository
-                .findByModeIdAndSequenceDate(SEQUENCE_SCOPE_MODE_ID, monthStart)
+                .findByModeIdAndSequenceDate(modeId, monthStart)
                 .orElseGet(() -> {
                     TicketSequence created = new TicketSequence();
-                    created.setModeId(SEQUENCE_SCOPE_MODE_ID);
+                    created.setModeId(modeId);
                     created.setSequenceDate(monthStart);
                     created.setLastValue(0);
                     return created;
