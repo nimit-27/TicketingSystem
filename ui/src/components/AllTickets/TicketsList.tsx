@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Chip } from "@mui/material";
+import { Button, Chip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -149,7 +149,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [dateRange, setDateRange] = useState<DateRangeState>({ preset: "ALL" });
     const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
 
-    const { categoryOptions, subCategoryOptions, loadSubCategories } = useCategoryFilters();
+    const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
 
@@ -178,6 +178,20 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedTicketIdForFeedback(ticketId);
         setSelectedTicketFeedbackStatus(feedbackStatus)
     }
+
+    const resetFilters = () => {
+        setSearch("");
+        setStatusFilter("All");
+        setMasterOnly(false);
+        setLevelFilter(undefined);
+        setSortBy("reportedDate");
+        setDateRange({ preset: "ALL" });
+        setSelectedCategory("All");
+        setSelectedSubCategory("All");
+        setPage(1);
+        resetSubCategories();
+        loadSubCategories();
+    };
 
     const normalizedCategory = selectedCategory !== "All" ? selectedCategory : undefined;
     const normalizedSubCategory = selectedSubCategory !== "All" ? selectedSubCategory : undefined;
@@ -472,18 +486,23 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     {/* -------- FILTERS END --------- */}
 
                     {/* VIEW TOGGLE - TABLE | GRID */}
-                    {showGridTableViewToggle && showTablePermission && showGridPermission && (
-                        <div className="d-flex ms-auto">
-                            <ViewToggle
-                                value={viewMode}
-                                onChange={(value: any) => setViewMode(value)}
-                                options={[
-                                    { icon: "grid", value: "grid" },
-                                    { icon: "table", value: "table" },
-                                ]}
-                            />
-                        </div>
-                    )}
+                    <div className="d-flex align-items-center ms-auto">
+                        <Button variant="outlined" onClick={resetFilters} className="me-2">
+                            {t("Reset Filters")}
+                        </Button>
+                        {showGridTableViewToggle && showTablePermission && showGridPermission && (
+                            <div className="d-flex">
+                                <ViewToggle
+                                    value={viewMode}
+                                    onChange={(value: any) => setViewMode(value)}
+                                    options={[
+                                        { icon: "grid", value: "grid" },
+                                        { icon: "table", value: "table" },
+                                    ]}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
 
