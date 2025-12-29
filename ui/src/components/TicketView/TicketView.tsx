@@ -790,10 +790,19 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isAssignedStatus = normalisedStatusName.includes('assigned');
   const isResolvedStatus = normalisedStatusName === 'resolved';
   const isClosedStatus = normalisedStatusName === 'closed';
+  const isClosedOrResolvedStatus = isClosedStatus || isResolvedStatus;
   const isCancelledStatus = normalisedStatusName === 'cancelled';
   const isTeamLeadRole = normalizedRoles.some(role => role === 'TEAM_LEAD' || role === 'TL' || role === 'TEAMLEAD');
   const isLevelAgent = normalizedRoles.some(role => role === 'L1' || role === 'L2');
   // const showRCAButton = isClosedStatus && (isTeamLeadRole || isLevelAgent);
+
+  useEffect(() => {
+    if (isClosedOrResolvedStatus && editing) {
+      setEditing(false);
+      setShowRecommendRemark(false);
+      setSeverityToRecommendSeverity(false);
+    }
+  }, [editing, isClosedOrResolvedStatus]);
 
   const isAssignedToCurrentUser = useMemo(() => {
     if (!ticket?.assignedTo || !currentUsername) return false;
@@ -1080,7 +1089,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
             {/* Edit, Cancel, Save buttons */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {allowEdit && (
+              {allowEdit && !isClosedOrResolvedStatus && (
                 editing ? (
                   <>
                     <CustomIconButton icon="close" onClick={cancelEditing} />
@@ -1332,7 +1341,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       {/* COMMENTS */}
       {
         showComments && <CustomFieldset title={t('Comment')} className="mt-4" style={{ margin: 0, padding: 0 }}>
-          <CommentsSection ticketId={ticketId} />
+          <CommentsSection ticketId={ticketId} allowCommenting={!isClosedOrResolvedStatus} />
         </CustomFieldset>
       }
 

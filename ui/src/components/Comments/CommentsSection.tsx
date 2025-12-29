@@ -24,6 +24,7 @@ export interface Comment {
 
 interface CommentsSectionProps {
     ticketId: string;
+    allowCommenting?: boolean;
 }
 
 const timeSince = (dateStr: string) => {
@@ -39,7 +40,7 @@ const timeSince = (dateStr: string) => {
     return `${weeks}w ago`;
 };
 
-const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
+const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId, allowCommenting = true }) => {
     const { apiHandler: commentsApiHandler } = useApi<any>();
     const { apiHandler: addCommentApiHandler } = useApi<any>();
     const { apiHandler: updateCommentApiHandler } = useApi<any>();
@@ -103,14 +104,16 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
     const { t } = useTranslation();
     return (
         <>
-            <div className="border p-3 mb-3">
-                <textarea
-                    className="form-control mb-2"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                />
-                <button className="btn btn-primary" onClick={postComment}>{t('Post')}</button>
-            </div>
+            {allowCommenting && (
+                <div className="border p-3 mb-3">
+                    <textarea
+                        className="form-control mb-2"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                    />
+                    <button className="btn btn-primary" onClick={postComment}>{t('Post')}</button>
+                </div>
+            )}
             <div>
                 {comments?.length === 0 && <p>{t('No comments')}</p>}
                 {comments?.map((c) => (
@@ -131,7 +134,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
                                     <div>{c.comment}</div>
                                     <small className="text-muted">{timeSince(c.createdAt)}</small>
                                 </div>
-                                {c.createdBy && currentUserId && c.createdBy.toLowerCase() === currentUserId.toLowerCase() && (
+                                {allowCommenting && c.createdBy && currentUserId && c.createdBy.toLowerCase() === currentUserId.toLowerCase() && (
                                     <div className="ms-2">
                                         <CustomIconButton icon="edit" size="small" onClick={() => startEdit(c)} />
                                         <CustomIconButton icon="delete" size="small" onClick={() => removeComment(c.id)} color="error" />
@@ -150,4 +153,3 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId }) => {
 };
 
 export default CommentsSection;
-
