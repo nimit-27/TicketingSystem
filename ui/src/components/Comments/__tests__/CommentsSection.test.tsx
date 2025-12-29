@@ -49,6 +49,7 @@ describe('CommentsSection', () => {
       comment: `Comment ${index + 1}`,
       createdAt: new Date(2024, 0, index + 1).toISOString(),
       userId: 'user-1',
+      createdBy: 'user-1',
     }));
   const mockedGetCurrentUserDetails = getCurrentUserDetails as jest.Mock;
 
@@ -115,7 +116,11 @@ describe('CommentsSection', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Post' }));
 
     await waitFor(() => expect(addCommentApiHandler).toHaveBeenCalledTimes(1));
-    expect(mockAddComment).toHaveBeenCalledWith(ticketId, 'New comment');
+    expect(mockAddComment).toHaveBeenCalledWith(ticketId, {
+      comment: 'New comment',
+      createdBy: 'user-1',
+      updatedBy: 'user-1',
+    });
     await waitFor(() => expect(commentsApiHandler).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(textarea).toHaveValue(''));
   });
@@ -131,7 +136,7 @@ describe('CommentsSection', () => {
 
     await screen.findByText('Comment 1');
 
-    const editButtons = screen.getAllByTestId('icon-Edit');
+    const editButtons = screen.getAllByTestId('icon-edit');
     await userEvent.click(editButtons[0]);
 
     const editTextarea = screen.getByDisplayValue('Comment 1');
@@ -145,7 +150,7 @@ describe('CommentsSection', () => {
     await waitFor(() => expect(commentsApiHandler).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument());
 
-    const deleteButtons = screen.getAllByTestId('icon-Delete');
+    const deleteButtons = screen.getAllByTestId('icon-delete');
     await userEvent.click(deleteButtons[0]);
 
     await waitFor(() => expect(deleteCommentApiHandler).toHaveBeenCalledTimes(1));
@@ -154,9 +159,13 @@ describe('CommentsSection', () => {
   });
 
   it('hides edit/delete actions for comments from other users', async () => {
-    const comments = [
-      { id: '1', comment: 'My comment', createdAt: new Date().toISOString(), userId: 'other-user' },
-    ];
+    const comments = [{
+      id: '1',
+      comment: 'My comment',
+      createdAt: new Date().toISOString(),
+      userId: 'other-user',
+      createdBy: 'other-user',
+    }];
     mockGetComments.mockResolvedValue(comments);
     setupUseApiMocks();
 
@@ -164,7 +173,21 @@ describe('CommentsSection', () => {
 
     await screen.findByText('My comment');
 
-    expect(screen.queryByTestId('icon-Edit')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('icon-Delete')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('icon-edit')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('icon-delete')).not.toBeInTheDocument();
+  });
+
+  it('hides commenting controls when commenting is disabled', async () => {
+    const comments = buildComments(2);
+    mockGetComments.mockResolvedValue(comments);
+    setupUseApiMocks();
+
+    renderWithTheme(<CommentsSection ticketId={ticketId} allowCommenting={false} />);
+
+    await screen.findByText('Comment 1');
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Post' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('icon-edit')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('icon-delete')).not.toBeInTheDocument();
   });
 });
