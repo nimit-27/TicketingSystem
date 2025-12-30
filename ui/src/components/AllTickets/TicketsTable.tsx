@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import AssigneeDropdown from './AssigneeDropdown';
 import { checkAccessMaster, checkMyTicketsColumnAccess } from '../../utils/permissions';
@@ -130,8 +129,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         return statusWorkflows[statusId || ''] || []
     }
 
-    const allowAssigneeChange = (statusId?: string) => {
-        return Boolean(statusWorkflows[statusId || ''] && allowAssignment);
+    // Allows assignment based on:
+    // 1. Role's permission
+    // 2. If atleast one of the status' nextStatus is '2' (Assign)
+    const allowAssigneeChange = (statusId?: string): boolean => {
+        let isAtleastOneNextStatusAssign: boolean = !!statusWorkflows[statusId || '']?.some(item => item.nextStatus == 2)
+        return isAtleastOneNextStatusAssign && allowAssignment;
     };
 
     const getActionIcon = (action: string) => {
@@ -535,7 +538,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             <Tooltip key="view-ticket" title="View Ticket" placement="top">
                                 <CustomIconButton
                                     size="small"
-                                    onClick={() =>  onRowClick(record.id)}
+                                    onClick={() => onRowClick(record.id)}
                                     icon="visibility"
                                 />
                                 {/* <VisibilityIcon
