@@ -23,3 +23,15 @@ export interface UserDetails {
 export interface DecodedAuthDetails {
   user: UserDetails;
 }
+
+export interface LoginPayload {
+  username: string;
+  password: string;
+  portal?: string;
+}
+
+export interface ExternalApplicationTokenPayload {
+  authCode: string;
+  username: string;
+  clientId: string;
+}

@@ -42,7 +42,6 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     const allowedActions = getCurrentUserDetails()?.allowedStatusActionIds || [];
     const canRequester = allowedActions.includes('4');
     const canAssignToFci = allowedActions.includes('16');
-    const REQUESTER_STATUS_ID = '3';
 
     // Fetch levels, users and roles on mount
     useEffect(() => {
@@ -79,19 +78,6 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
         payload.levelId = selectedUser.levelId;
         updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
             handleSuccess(selectedUser.name);
-        });
-    };
-
-    const handleAssignRequester = (remark: string) => {
-        const payload = {
-            assignedTo: requestorId,
-            status: { statusId: REQUESTER_STATUS_ID },
-            remark,
-            assignedBy: getCurrentUserDetails()?.username,
-            updatedBy: getCurrentUserDetails()?.username
-        };
-        updateTicketApiHandler(() => updateTicket(ticketId, payload)).then(() => {
-            handleSuccess();
         });
     };
 

@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
+import ExternalCallback from './pages/ExternalCallback';
 
 const SidebarLayout = lazy(() => import('./components/Layout/SidebarLayout'));
 const RaiseTicket = lazy(() => import('./pages/RaiseTicket'));
@@ -107,6 +108,7 @@ function App() {
           <Route path="users/new" element={<AddUser />} />
           <Route path="my-profile" element={<MyProfile />} />
           <Route path="account/change-password" element={<ChangePasswordPage />} />
+          <Route path="auth/callback" element={<ExternalCallback />} />
         </Route>
       </Routes>
     </Suspense>
