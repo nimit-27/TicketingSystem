@@ -21,7 +21,7 @@ public class NotificationService {
     public void sendNotification(ChannelType channel, String notificationCode, Map<String, Object> dataModel, String recipient) throws Exception {
         if(!properties.isEnabled()) return; //Notification Globally disabled
 
-        Notifier  notifier = notifiers.stream()
+        Notifier notifier = notifiers.stream()
                 .filter(n -> n.getChannel() == channel)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported channel " + channel));

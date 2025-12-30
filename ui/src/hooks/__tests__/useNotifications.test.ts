@@ -7,7 +7,7 @@ jest.mock('../../config/config', () => ({
 }));
 
 jest.mock('../../services/NotificationService', () => ({
-  fetchNotifications: jest.fn(),
+  getNotifications: jest.fn(),
   markNotificationsAsRead: jest.fn(),
 }));
 
@@ -15,7 +15,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useNotifications } from '../useNotifications';
 import { getCurrentUserDetails } from '../../config/config';
-import { fetchNotifications, markNotificationsAsRead } from '../../services/NotificationService';
+import { getNotifications, markNotificationsAsRead } from '../../services/NotificationService';
 
 describe('useNotifications', () => {
   class MockEventSource {
@@ -63,7 +63,7 @@ describe('useNotifications', () => {
       email: 'user@example.com',
       username: 'tester',
     });
-    (fetchNotifications as jest.Mock).mockImplementation(async (page: number) => ({
+    (getNotifications as jest.Mock).mockImplementation(async (page: number) => ({
       data: {
         data: {
           items: [
@@ -101,7 +101,7 @@ describe('useNotifications', () => {
   it('loads notifications on mount and computes the unread count', async () => {
     const { result } = renderHook(() => useNotifications());
 
-    await waitFor(() => expect(fetchNotifications).toHaveBeenCalledWith(0, 7));
+    await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(0, 7));
     await waitFor(() => expect(result.current.notifications).toHaveLength(1));
 
     expect(result.current.unreadCount).toBe(1);
@@ -119,7 +119,7 @@ describe('useNotifications', () => {
       await result.current.loadMore();
     });
 
-    await waitFor(() => expect(fetchNotifications).toHaveBeenCalledWith(1, 7));
+    await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(1, 7));
     expect(result.current.notifications).toHaveLength(2);
     expect(result.current.hasMore).toBe(false);
   });

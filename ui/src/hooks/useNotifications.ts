@@ -3,13 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BASE_URL } from '../services/api';
 import { getCurrentUserDetails } from '../config/config';
 import { getActiveToken } from '../utils/authToken';
-import { fetchNotifications, markNotificationsAsRead } from '../services/NotificationService';
+import { getNotifications, markNotificationsAsRead } from '../services/NotificationService';
 import {
   InAppNotificationPayload,
   NotificationApiResponse,
   NotificationItem,
   NotificationPageApiResponse,
 } from '../types/notification';
+import { useApi } from './useApi';
 
 const SSE_ENDPOINT = `${BASE_URL}/notifications/stream`;
 const PAGE_SIZE = 7;
@@ -104,6 +105,59 @@ export const useNotifications = () => {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestNotificationRef = useRef<NotificationItem | null>(null);
 
+  const { data: getNotificationsData, success: getNotificationsSuccess, apiHandler: getNotificationsApiHandler } = useApi()
+
+  const getNotificationsApi = (pageToLoad: number, size: number) => {
+    return getNotificationsApiHandler(() => getNotifications(pageToLoad, size))
+  }
+
+  useEffect(() => {
+    getNotificationsApi(0, 7)
+  }, [])
+
+  useEffect(() => {
+    setNotificationsHandler(getNotificationsData, 0, false)
+  }, [getNotificationsSuccess])
+
+  const setNotificationsHandler = (payload: any, pageToLoad: number, append: boolean) => {
+    const pagePayload = normalizePagePayload(payload, pageToLoad);
+    const mapped = pagePayload.items.map(mapApiNotification);
+
+    if (append) {
+      setNotifications(prev => {
+        const indexById = new Map(prev.map((item, index) => [item.id, index]));
+        const merged = [...prev];
+        mapped.forEach(item => {
+          const existingIndex = indexById.get(item.id);
+          if (existingIndex !== undefined) {
+            merged[existingIndex] = item;
+          } else {
+            merged.push(item);
+          }
+        });
+        return merged;
+      });
+    } else {
+      setNotifications(prev => {
+        const newIds = new Set(mapped.map(item => item.id));
+        const merged = [...mapped];
+        prev.forEach(item => {
+          if (!newIds.has(item.id)) {
+            merged.push(item);
+          }
+        });
+        return merged;
+      });
+    }
+
+    const currentPage = pagePayload.page ?? pageToLoad;
+    const pageSize = pagePayload.size ?? PAGE_SIZE;
+    const computedHasMore = pagePayload.hasMore ?? (mapped.length === pageSize);
+
+    setHasMore(Boolean(computedHasMore));
+    nextPageRef.current = currentPage + 1;
+  }
+
   const recipientIds = useMemo(() => {
     const user = getCurrentUserDetails();
     if (!user) return [] as string[];
@@ -138,8 +192,13 @@ export const useNotifications = () => {
         setLoading(true);
       }
 
+      getNotificationsApi(pageToLoad, PAGE_SIZE)
+        .then((res) => {
+          console.log(res)
+        })
+
       try {
-        const response = await fetchNotifications(pageToLoad, PAGE_SIZE);
+        const response = await getNotifications(pageToLoad, PAGE_SIZE);
         const payload =
           response?.data?.data ??
           response?.data?.body?.data ??
@@ -151,33 +210,6 @@ export const useNotifications = () => {
 
         if (!isMountedRef.current) {
           return;
-        }
-
-        if (append) {
-          setNotifications(prev => {
-            const indexById = new Map(prev.map((item, index) => [item.id, index]));
-            const merged = [...prev];
-            mapped.forEach(item => {
-              const existingIndex = indexById.get(item.id);
-              if (existingIndex !== undefined) {
-                merged[existingIndex] = item;
-              } else {
-                merged.push(item);
-              }
-            });
-            return merged;
-          });
-        } else {
-          setNotifications(prev => {
-            const newIds = new Set(mapped.map(item => item.id));
-            const merged = [...mapped];
-            prev.forEach(item => {
-              if (!newIds.has(item.id)) {
-                merged.push(item);
-              }
-            });
-            return merged;
-          });
         }
 
         const currentPage = pagePayload.page ?? pageToLoad;
@@ -207,7 +239,8 @@ export const useNotifications = () => {
       setHasMore(false);
     }
 
-    void loadPage(0, false);
+    getNotificationsApi(0, 7)
+    // void loadPage(0, false);
   }, [recipientIds, loadPage]);
 
   useEffect(() => {

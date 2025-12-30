@@ -32,14 +32,14 @@ public class NotificationQueryService {
 
     public NotificationPageResponse getNotificationsForUser(String userId, int page, int size) {
         if (userId == null || userId.isBlank()) {
-            return new NotificationPageResponse(List.of(), false, 0, 0, size > 0 ? size : 0);
+            return new NotificationPageResponse(List.of(), false, 0, 0, Math.max(size, 0));
         }
 
         int pageNumber = Math.max(page, 0);
         int pageSize = size <= 0 ? 7 : Math.min(size, 50);
 
         Page<NotificationRecipient> recipients = notificationRecipientRepository
-                .findInbox(userId, false, null, PageRequest.of(pageNumber, pageSize));
+                .findInbox(userId, true, null, PageRequest.of(pageNumber, pageSize));
 
         List<UserNotificationDto> items = recipients
                 .stream()

@@ -217,7 +217,7 @@ describe("LevelService", () => {
 describe("NotificationService", () => {
   it("fetches and marks notifications", async () => {
     const service = await import("../NotificationService");
-    await service.fetchNotifications(2, 15);
+    await service.getNotifications(2, 15);
     await service.markNotificationsAsRead();
 
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/notifications"), { params: { page: 2, size: 15 } });
