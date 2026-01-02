@@ -126,12 +126,12 @@ export const useMisReportDownloader = (
             const resolutionSection = (() => {
                 const entries = resolutionTime.categoryStats ?? [];
                 if (!entries.length) {
-                    return [["Ticket Resolution Time"], ["Category", "Subcategory", "Average Time (mins)", "Median Time (mins)"], ["N/A", "N/A", "N/A", "N/A"], []];
+                    return [["Ticket Resolution Time"], ["Module", "Sub Module", "Average Time (mins)", "Median Time (mins)"], ["N/A", "N/A", "N/A", "N/A"], []];
                 }
 
                 return [
                     ["Ticket Resolution Time"],
-                    ["Category", "Subcategory", "Average Time (mins)", "Median Time (mins)", "Closed Tickets"],
+                    ["Module", "Sub Module", "Average Time (mins)", "Median Time (mins)", "Closed Tickets"],
                     ...entries.map((entry) => [
                         entry.categoryName ?? "N/A",
                         entry.subcategoryName ?? "N/A",
@@ -146,12 +146,12 @@ export const useMisReportDownloader = (
             const resolutionCategorySection = (() => {
                 const entries = resolutionTime.categoryPriorityStats ?? [];
                 if (!entries.length) {
-                    return [["Resolution Time by Category & Priority"], ["Category", "Priority", "Average Time (mins)"], ["N/A", "N/A", "N/A"], []];
+                    return [["Resolution Time by Category & Priority"], ["Module", "Priority", "Average Time (mins)"], ["N/A", "N/A", "N/A"], []];
                 }
 
                 return [
                     ["Resolution Time by Category & Priority"],
-                    ["Category", "Priority", "Average Time (mins)", "Median Time (mins)", "Closed Tickets"],
+                    ["Module", "Priority", "Average Time (mins)", "Median Time (mins)", "Closed Tickets"],
                     ...entries.map((entry) => [
                         entry.categoryName ?? "N/A",
                         entry.priority ?? "N/A",
@@ -199,12 +199,12 @@ export const useMisReportDownloader = (
             const satisfactionCategorySection = (() => {
                 const entries = satisfaction.categoryStats ?? [];
                 if (!entries.length) {
-                    return [["Customer Satisfaction by Category"], ["Category", "Subcategory", "Average Rating"], ["N/A", "N/A", "N/A"], []];
+                    return [["Customer Satisfaction by Category"], ["Module", "Sub Module", "Average Rating"], ["N/A", "N/A", "N/A"], []];
                 }
 
                 return [
                     ["Customer Satisfaction by Category"],
-                    ["Category", "Subcategory", "Average Rating", "Responses"],
+                    ["Module", "Sub Module", "Average Rating", "Responses"],
                     ...entries.map((entry) => [
                         entry.categoryName ?? "N/A",
                         entry.subcategoryName ?? "N/A",
@@ -240,7 +240,7 @@ export const useMisReportDownloader = (
             const problemSection = problemEntries.length
                 ? [
                     ["Problem Management"],
-                    ["Category > Subcategory", "Ticket Count", "Breached Tickets"],
+                    ["Module > Sub Module", "Ticket Count", "Breached Tickets"],
                     ...problemEntries.map((entry) => [
                         formatCategoryLabel(entry),
                         entry.ticketCount,
@@ -248,7 +248,7 @@ export const useMisReportDownloader = (
                     ]),
                     [],
                 ]
-                : [["Problem Management"], ["Category", "Ticket Count"], ["N/A", "N/A"], []];
+                : [["Problem Management"], ["Module", "Ticket Count"], ["N/A", "N/A"], []];
 
             const workbook = XLSX.utils.book_new();
 

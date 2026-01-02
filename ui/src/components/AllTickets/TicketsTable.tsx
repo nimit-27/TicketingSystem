@@ -236,12 +236,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 key: 'category',
-                label: t('Category'),
+                label: t('Module'),
                 getValue: (record: TicketRow) => record.category || '-',
             },
             {
                 key: 'subCategory',
-                label: t('Sub-Category'),
+                label: t('Sub Module'),
                 getValue: (record: TicketRow) => record.subCategory || '-',
             },
             showSeverityColumn && {
@@ -401,7 +401,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     ) : '-' as any,
             },
             {
-                title: t('Category'),
+                title: t('Module'),
                 dataIndex: 'category',
                 key: 'category',
                 width: '15%',
@@ -416,7 +416,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 }
             },
             {
-                title: t('Sub-Category'),
+                title: t('Sub Module'),
                 dataIndex: 'subCategory',
                 key: 'subCategory',
                 width: '17%',

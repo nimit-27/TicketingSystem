@@ -155,7 +155,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, priorityConfig, onClick
                     <span style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ticket.subject}>{ticket.subject}</span>
                 </Typography>
                 <Tooltip
-                    title={<React.Fragment><div>Category: {ticket.category}</div><div>Sub-Category: {ticket.subCategory}</div></React.Fragment>}
+                    title={<React.Fragment><div>Module: {ticket.category}</div><div>Sub Module: {ticket.subCategory}</div></React.Fragment>}
                 >
                     <Typography
                         color="text.secondary"

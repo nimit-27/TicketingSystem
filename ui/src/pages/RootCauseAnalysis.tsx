@@ -160,7 +160,7 @@ const RootCauseAnalysis: React.FC = () => {
       <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
         <DropdownController
-          label="Category"
+          label="Module"
           value={selectedCategory}
           onChange={handleCategoryChange}
           options={categoryOptions}
@@ -168,7 +168,7 @@ const RootCauseAnalysis: React.FC = () => {
         />
         {selectedCategory !== 'All' && (
           <DropdownController
-            label="Sub Category"
+            label="Sub Module"
             value={selectedSubCategory}
             onChange={handleSubCategoryChange}
             options={subCategoryOptions}

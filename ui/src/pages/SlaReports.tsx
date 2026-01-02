@@ -128,7 +128,7 @@ const SlaReports: React.FC = () => {
                     <Box className="col-12 col-md-6">
                         <GenericDropdown
                             id="sla-report-category"
-                            label="Category"
+                            label="Module"
                             value={selectedCategory}
                             onChange={handleCategoryChange}
                             options={categoryOptions}
@@ -139,7 +139,7 @@ const SlaReports: React.FC = () => {
                     <Box className="col-12 col-md-6">
                         <GenericDropdown
                             id="sla-report-subcategory"
-                            label="Subcategory"
+                            label="Sub Module"
                             value={selectedSubCategory}
                             onChange={handleSubCategoryChange}
                             options={subCategoryOptions}

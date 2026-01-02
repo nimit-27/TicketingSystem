@@ -778,7 +778,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           rows: SupportDashboardCategorySummary[],
         ): (string | number)[][] => {
           const headerRow = [
-            "Category > SubCategory",
+            "Module > Sub Module",
             "Total Tickets",
             "Pending for Acknowledgement",
             "S1 (Critical)",
@@ -788,11 +788,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           ];
 
           if (!rows.length) {
-            return [[`${label} by Category - SubCategory`], headerRow, ["No data", 0, 0, 0, 0, 0, 0], []];
+            return [[`${label} by Module - Sub Module`], headerRow, ["No data", 0, 0, 0, 0, 0, 0], []];
           }
 
           return [
-            [`${label} by Category - SubCategory`],
+            [`${label} by Module - Sub Module`],
             headerRow,
             ...rows.map((row) => [
               formatCategoryLabel(row),
@@ -1285,7 +1285,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
             <GenericDropdown
               id="support-dashboard-category"
-              label="Category"
+              label="Module"
               value={selectedCategory}
               onChange={handleCategoryFilterChange}
               options={categoryOptions}
@@ -1294,7 +1294,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             />
             <GenericDropdown
               id="support-dashboard-subcategory"
-              label="Subcategory"
+              label="Sub Module"
               value={selectedSubCategory}
               onChange={handleSubCategoryFilterChange}
               options={subCategoryOptions}

@@ -192,11 +192,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <GenericDropdownController
                             name="category"
                             control={control}
-                            label="Category of Ticket"
+                            label="Module"
                             options={categoryOptions}
                             className="form-select"
                             disabled={disableAll}
-                            rules={{ required: 'Please select Category' }}
+                            rules={{ required: 'Please select Module' }}
                         />
                     </div>
                 )}
@@ -205,11 +205,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         <GenericDropdownController
                             name="subCategory"
                             control={control}
-                            label="Sub-Category"
+                            label="Sub Module"
                             options={subCategoryOptions}
                             className="form-select"
                             disabled={disableAll || !category}
-                            rules={{ required: 'Please select Sub Category' }}
+                            rules={{ required: 'Please select Sub Module' }}
                         />
                     </div>
                 )}

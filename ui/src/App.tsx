@@ -99,7 +99,7 @@ function App() {
           />
           <Route path="mis-reports/problem-management" element={<ProblemManagementReportPage />} />
           <Route path="calendar" element={<CalendarPage />} />
-          <Route path="categories-master" element={<CategoriesMaster />} />
+          <Route path="modules-master" element={<CategoriesMaster />} />
           <Route path="escalation-master" element={<EscalationMaster />} />
           <Route path="role-master" element={<RoleMaster />} />
           <Route path="role-master/:roleId" element={<RoleDetails />} />

@@ -114,14 +114,14 @@ const CategoriesMaster: React.FC = () => {
     }
 
     const handleEditCategory = (cat: Category) => {
-        const newName = prompt('Edit Category', cat.category);
+        const newName = prompt('Edit Module', cat.category);
         if (newName && newName.trim() && newName !== cat.category) {
             updateCategory(cat.categoryId, { category: newName.trim() }).then(() => fetchCategories());
         }
     };
 
     const handleDeleteCategory = (id: string) => {
-        if (window.confirm('Delete this category?')) {
+        if (window.confirm('Delete this module?')) {
             const currentSelectedCategoryId = selectedCategory?.categoryId;
             deleteCategory(id).then(() => {
                 if (currentSelectedCategoryId === id) setSelectedCategory(null);
@@ -156,7 +156,7 @@ const CategoriesMaster: React.FC = () => {
     };
 
     const handleEditSubCategory = (sc: SubCategory) => {
-        const newName = prompt('Edit Sub-Category', sc.subCategory);
+        const newName = prompt('Edit Sub Module', sc.subCategory);
         if (newName && newName.trim() && newName !== sc.subCategory) {
             updateSubCategory(sc.subCategoryId, { subCategory: newName.trim() }).then(() => {
                 fetchAllSubCategories();
@@ -166,7 +166,7 @@ const CategoriesMaster: React.FC = () => {
     };
 
     const handleDeleteSubCategory = (id: string) => {
-        if (window.confirm('Delete this sub-category?')) {
+        if (window.confirm('Delete this sub module?')) {
             deleteSubCategory(id).then(() => {
                 if (selectedSubCategoryId === id) {
                     setSelectedSubCategoryId(null);
@@ -234,7 +234,7 @@ const CategoriesMaster: React.FC = () => {
             <div className="row mb-4">
                 <div className="col-md-6 mb-3">
                     <GenericInput
-                        label="Category"
+                        label="Module"
                         fullWidth
                         value={categoryInput}
                         onChange={e => {
@@ -250,7 +250,7 @@ const CategoriesMaster: React.FC = () => {
                         }}
                     />
                     {categoryInput && !categories.find(c => c.category.toLowerCase() === categoryInput.toLowerCase()) && (
-                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>{t('Add Category')}</Button>
+                        <Button className="mt-2" size="small" variant="outlined" onClick={handleAddCategory}>{t('Add Module')}</Button>
                     )}
                     <ul className="list-group mt-2 gap-1">
                         {categories
@@ -297,7 +297,7 @@ const CategoriesMaster: React.FC = () => {
                 </div>
                 <div className="col-md-6 mb-3">
                     <GenericInput
-                        label="Sub-Category"
+                        label="Sub Module"
                         fullWidth
                         value={subCategoryInput}
                         onChange={e => {
@@ -315,7 +315,7 @@ const CategoriesMaster: React.FC = () => {
                     />
                     {canAddSubCategory && (
                         <Button className="mt-2" size="small" variant="outlined" onClick={handleAddSubCategory}>
-                            {t('Add Sub-Category')}
+                            {t('Add Sub Module')}
                         </Button>
                     )}
                     <TextField

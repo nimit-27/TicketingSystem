@@ -125,7 +125,7 @@ const MISReports: React.FC = () => {
                     <Box className="col-12 col-md-6">
                         <GenericDropdown
                             id="mis-report-category"
-                            label="Category"
+                            label="Module"
                             value={selectedCategory}
                             onChange={handleCategoryChange}
                             options={categoryOptions}
@@ -136,7 +136,7 @@ const MISReports: React.FC = () => {
                     <Box className="col-12 col-md-6">
                         <GenericDropdown
                             id="mis-report-subcategory"
-                            label="Subcategory"
+                            label="Sub Module"
                             value={selectedSubCategory}
                             onChange={handleSubCategoryChange}
                             options={subCategoryOptions}

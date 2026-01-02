@@ -437,7 +437,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
                     {/* CATEGORY DROPDOWN FILTER */}
                     <DropdownController
-                        label="Category"
+                        label="Module"
                         value={selectedCategory}
                         className="col-3 px-1"
                         onChange={handleCategoryChange}
@@ -447,7 +447,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     {/* SUBCATEGORY DROPDOWN FILTER */}
                     {selectedCategory !== "All"
                         ? <DropdownController
-                            label="Sub Category"
+                            label="Sub Module"
                             value={selectedSubCategory}
                             className="col-3 ps-1"
                             onChange={handleSubCategoryChange}

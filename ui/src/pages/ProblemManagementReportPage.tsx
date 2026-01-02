@@ -6,7 +6,7 @@ const ProblemManagementReportPage: React.FC = () => {
     return (
         <ReportPageLayout
             title="Problem Management Report"
-            description="Track recurring issues with ticket and breach counts for each category and subcategory."
+            description="Track recurring issues with ticket and breach counts for each Module and Sub Module."
         >
             {(params) => <ProblemManagementReport params={params} />}
         </ReportPageLayout>

@@ -1136,7 +1136,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         <Box sx={{ mt: 1, display: 'flex', flexWrap: '', gap: 2 }}>
           {editing && <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography color="text.secondary">{t('Category')}</Typography>
+              <Typography color="text.secondary">{t('Module')}</Typography>
               {showCategory && renderSelect(
                 selectedCategoryId,
                 (val: string) => {
@@ -1158,7 +1158,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               )}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography color="text.secondary">{t('Sub-Category')}</Typography>
+              <Typography color="text.secondary">{t('Sub Module')}</Typography>
               {showSubcategory && renderSelect(
                 selectedSubCategoryId,
                 (val: string) => setSelectedSubCategoryId(val),

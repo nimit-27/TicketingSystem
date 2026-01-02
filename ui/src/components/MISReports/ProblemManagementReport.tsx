@@ -98,7 +98,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
                     {topCategory && (
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Most Reported Category/Subcategory
+                                Most Reported Module/Sub Module
                             </Typography>
                             <Typography variant="h6" fontWeight={700}>
                                 {topCategory.categoryName ?? topCategory.category} &gt; {(topCategory.subcategoryName ?? topCategory.subcategory) || "N/A"} ({topCategory.ticketCount}
@@ -122,7 +122,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
 
                     <Box>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                            Category/Subcategory Ticket Volume (with Breaches)
+                            Module/Sub Module Ticket Volume (with Breaches)
                         </Typography>
                         <ReactECharts option={chartOptions} style={{ height: 320 }} />
                     </Box>

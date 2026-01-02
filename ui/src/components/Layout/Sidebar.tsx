@@ -79,8 +79,8 @@ const menuItems = [
   },
   {
     key: "categoriesMaster",
-    label: "Categories Master",
-    to: "/categories-master",
+    label: "Modules Master",
+    to: "/modules-master",
     icon: "category",
   },
   {

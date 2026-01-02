@@ -61,7 +61,7 @@ const ChildTicketsTable: React.FC<ChildTicketsTableProps> = ({
         ),
       },
       {
-        title: t('Category'),
+        title: t('Module'),
         dataIndex: 'category',
         key: 'category',
         ellipsis: true,
