@@ -7,16 +7,18 @@ import { TicketRow } from "../components/AllTickets/TicketsTable";
 const MyTickets: React.FC = () => {
     const navigate = useNavigate();
 
-    const buildSearchOverrides = useCallback((_: TicketsListFilterState): TicketsListSearchOverrides => {
+    const buildSearchOverrides = useCallback((filters: TicketsListFilterState): TicketsListSearchOverrides => {
         const user = getCurrentUserDetails();
         const roles = (user?.role || []).map(String);
         const username = user?.username || user?.userId || "";
         const userId = user?.userId || "";
         const isRequestor = roles.includes("5");
 
+        const shouldForceAllStatus = isRequestor && filters.statusFilter === "All";
+
         return {
             ...(isRequestor ? { requestorId: userId || undefined } : {}),
-            ...(isRequestor ? { statusName: "All" } : {}),
+            ...(shouldForceAllStatus ? { statusName: "All" } : {}),
             createdBy: username || undefined,
         };
     }, []);
