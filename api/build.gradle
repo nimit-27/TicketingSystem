@@ -50,6 +50,9 @@ dependencies {
 
         implementation 'com.oracle.oci.sdk:oci-java-sdk-common-httpclient-jersey:3.13.0'
 //      implementation 'org.springframework.ai:spring-ai-starter-vector-store-typesense'
+
+        implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
+
         runtimeOnly 'ch.qos.logback:logback-classic:1.5.13'
         runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
         runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
