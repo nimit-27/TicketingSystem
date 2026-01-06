@@ -270,11 +270,15 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND t.severity IS NOT NULL " +
             "AND LOWER(t.severity) IN (:severityTokens) " +
             "AND (:updatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:updatedBy)) " +
+            "AND (:categoryId IS NULL OR t.category = :categoryId) " +
+            "AND (:subCategoryId IS NULL OR t.subCategory = :subCategoryId) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     Page<Ticket> findClosedTicketsForRootCauseAnalysis(@Param("status") TicketStatus status,
                                                        @Param("severityTokens") Collection<String> severityTokens,
                                                        @Param("updatedBy") String updatedBy,
+                                                       @Param("categoryId") String categoryId,
+                                                       @Param("subCategoryId") String subCategoryId,
                                                        @Param("fromDate") LocalDateTime fromDate,
                                                        @Param("toDate") LocalDateTime toDate,
                                                        Pageable pageable);

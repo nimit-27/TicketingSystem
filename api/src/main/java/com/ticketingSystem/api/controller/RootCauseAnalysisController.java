@@ -32,14 +32,18 @@ public class RootCauseAnalysisController {
             @RequestParam String username,
             @RequestParam(required = false) List<String> roles,
             @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String toDate) {
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String subCategoryId) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "lastModified"));
         PaginationResponse<TicketDto> response = rootCauseAnalysisService.getTicketsForRootCauseAnalysis(
                 username,
                 roles,
                 pageable,
                 DateTimeUtils.parseToLocalDateTime(fromDate),
-                DateTimeUtils.parseToLocalDateTime(toDate)
+                DateTimeUtils.parseToLocalDateTime(toDate),
+                categoryId,
+                subCategoryId
         );
         return ResponseEntity.ok(response);
     }
