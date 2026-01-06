@@ -123,14 +123,21 @@ public class RootCauseAnalysisService {
         return level;
     }
 
-    public PaginationResponse<TicketDto> getTicketsForRootCauseAnalysis(String username, List<String> roles, Pageable pageable,
-                                                                       LocalDateTime fromDate, LocalDateTime toDate) {
+    public PaginationResponse<TicketDto> getTicketsForRootCauseAnalysis(String username,
+                                                                       List<String> roles,
+                                                                       Pageable pageable,
+                                                                       LocalDateTime fromDate,
+                                                                       LocalDateTime toDate,
+                                                                       String categoryId,
+                                                                       String subCategoryId) {
         boolean isTeamLead = isTeamLead(roles);
         String updatedBy = isTeamLead ? null : normalize(username);
         Page<Ticket> tickets = ticketRepository.findClosedTicketsForRootCauseAnalysis(
                 TicketStatus.CLOSED,
                 severityTokens,
                 updatedBy,
+                categoryId,
+                subCategoryId,
                 fromDate,
                 toDate,
                 pageable
