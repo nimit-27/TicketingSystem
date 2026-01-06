@@ -87,6 +87,30 @@ public class JwtTokenService {
         return parseToken(token, TokenType.ACCESS);
     }
 
+    /**
+     * Decode an existing access token and generate a new one using the same payload structure.
+     *
+     * @param token existing access token
+     * @return a newly generated access token or {@link Optional#empty()} if the input token is invalid
+     */
+    public Optional<String> regenerateAccessToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            if (resolveTokenType(claims.get(CLAIM_TOKEN_TYPE, String.class)) != TokenType.ACCESS) {
+                return Optional.empty();
+            }
+            return Optional.of(generateAccessToken(buildPayload(claims)));
+        } catch (ExpiredJwtException ex) {
+            Claims claims = ex.getClaims();
+            if (resolveTokenType(claims.get(CLAIM_TOKEN_TYPE, String.class)) != TokenType.ACCESS) {
+                return Optional.empty();
+            }
+            return Optional.of(generateAccessToken(buildPayload(claims)));
+        } catch (JwtException | IllegalArgumentException ex) {
+            return Optional.empty();
+        }
+    }
+
     public TokenVerificationResult verifyAccessToken(String token) {
         try {
             Claims claims = parseClaims(token);
