@@ -32,9 +32,9 @@ security:
     max-age: 3600
     allow-credentials: true
   keycloak:
-    issuer:
-    jwks-uri:
-    audience:
+    issuer: https://devkeycloak.annadarpan.in/realms/AnnaDarpan
+#    jwks-uri:
+    audience: account
 
 mobile:
   client:
