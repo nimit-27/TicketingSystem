@@ -16,17 +16,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
     private final ClientTokenService clientTokenService;
     private final JwtProperties jwtProperties;
+    private final KeycloakTokenVerifier keycloakTokenVerifier;
 
     public ClientTokenAuthenticationFilter(ClientTokenService clientTokenService,
-                                           JwtProperties jwtProperties) {
+                                           JwtProperties jwtProperties,
+                                           KeycloakTokenVerifier keycloakTokenVerifier) {
         this.clientTokenService = clientTokenService;
         this.jwtProperties = jwtProperties;
+        this.keycloakTokenVerifier = keycloakTokenVerifier;
     }
 
     @Override
@@ -39,7 +41,7 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
         }
         String path = resolvePath(request);
         boolean isClientPath = path.startsWith("/m") || path.startsWith("/ext");
-        boolean isPublicClientPath = path.startsWith("/m/auth/token") || path.startsWith("/ext/auth/token");
+        boolean isPublicClientPath = path.startsWith("/ext/auth/token");
         return !isClientPath || isPublicClientPath;
     }
 
@@ -48,6 +50,17 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = resolveToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+        if (token != null && isKeycloakAuthTokenRequest(request)) {
+            try {
+                keycloakTokenVerifier.verify(token);
+                authenticateKeycloak(request);
+                filterChain.doFilter(request, response);
+                return;
+            } catch (Exception ex) {
+                writeUnauthorizedResponse(response);
+                return;
+            }
+        }
         if (token != null) {
             ClientTokenService.TokenVerificationResult verificationResult = clientTokenService.verifyAccessToken(token);
 
@@ -79,6 +92,19 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
+    private void authenticateKeycloak(HttpServletRequest request) {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return;
+        }
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                "keycloak-client",
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_MOBILE_CLIENT"))
+        );
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
     private String resolvePath(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String contextPath = request.getContextPath();
@@ -94,6 +120,10 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
         }
         String token = authorizationHeader.substring(7).trim();
         return token.isBlank() ? null : token;
+    }
+
+    private boolean isKeycloakAuthTokenRequest(HttpServletRequest request) {
+        return resolvePath(request).startsWith("/m/auth/token");
     }
 
     private void writeUnauthorizedResponse(HttpServletResponse response) throws IOException {
