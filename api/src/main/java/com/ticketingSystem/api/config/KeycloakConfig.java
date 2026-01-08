@@ -28,6 +28,8 @@ public class KeycloakConfig {
                     "Invalid Keycloak JWKS URI for security.keycloak.jwks-uri (must include http/https): " + jwksUri,
                     ex
             );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
