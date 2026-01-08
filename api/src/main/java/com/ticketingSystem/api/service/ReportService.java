@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.dto.HelpdeskUserDto;
 import com.ticketingSystem.api.dto.RoleDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
@@ -164,8 +165,12 @@ public class ReportService {
                                                                          String parameterKey,
                                                                          String parameterValue,
                                                                          MultiValueMap<String, String> allParams) {
+        List<String> roleIds = userService.getHelpdeskUserDetails(userId)
+                .map(HelpdeskUserDto::getRoleIds)
+                .orElseGet(List::of);
+
         List<ParameterMaster> parametersListByRoleId = parameterMasterService
-                .getParametersForRoles(userService.getHelpdeskUserDetails(userId).get().getRoleIds());
+                .getParametersForRoles(roleIds);
 
         List<String> parameterKeysList = parametersListByRoleId.stream()
                 .map(ParameterMaster::getParameterKey)
