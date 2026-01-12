@@ -30,7 +30,7 @@ export interface LoginPayload {
   portal?: string;
 }
 
-export interface ExternalApplicationTokenPayload {
+export interface SsoLoginPayload {
   authCode: string;
   username: string;
   clientId: string;

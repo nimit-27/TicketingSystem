@@ -6,6 +6,7 @@ import com.ticketingSystem.api.dto.LoginRequest;
 import com.ticketingSystem.api.dto.RefreshTokenRequest;
 import com.ticketingSystem.api.dto.TokenPair;
 import com.ticketingSystem.api.enums.ClientType;
+import com.ticketingSystem.api.models.SsoLoginPayload;
 import com.ticketingSystem.api.permissions.RolePermission;
 import com.ticketingSystem.api.service.AuthService;
 import com.ticketingSystem.api.service.JwtTokenService;
@@ -125,6 +126,11 @@ public class AuthController {
             session.invalidate();
         }
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/sso")
+    public ResponseEntity<?> sso(@RequestBody SsoLoginPayload ssoLoginPayload) {
+        return ResponseEntity.ok("token");
     }
 
     @PostMapping("/refresh")

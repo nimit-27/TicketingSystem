@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ExternalApplicationTokenPayload } from "../types/auth";
+import { SsoLoginPayload } from "../types/auth";
 import { useApi } from "../hooks/useApi";
-import { getExternalApplicationToken } from "../services/AuthService";
+import { loginSso } from "../services/AuthService";
 
 
-function extractParamsFromUrl(location: Location): ExternalApplicationTokenPayload {
+function extractParamsFromUrl(location: Location): SsoLoginPayload {
     // Handles both query (?a=1&b=2) and fragment/hash (#access_token=...)
     const queryParams = new URLSearchParams(location.search);
     const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -26,20 +26,27 @@ const ExternalCallback = () => {
     const location: any = useLocation();
     const navigate = useNavigate();
 
-    const { data: getExternalApplicationTokenData, apiHandler: getExternalApplicationTokenHandler } = useApi()
+    const { data: loginSsoData, success: loginSsoSuccess,  apiHandler: loginSsoHandler } = useApi()
 
-    console.log({ getExternalApplicationTokenData })
+    console.log({ loginSsoData })  // Should have new access token in response
 
-    const getExternalApplicationTokenApiHandler = () => {
-        let payload: ExternalApplicationTokenPayload = extractParamsFromUrl(location)
+    const loginSsoApiHandler = () => {
+        let payload: SsoLoginPayload = extractParamsFromUrl(location)
 
-        getExternalApplicationTokenHandler(() => getExternalApplicationToken(payload))
+        loginSsoHandler(() => loginSso(payload))
     }
 
     useEffect(() => {
         // Extract params & call API
-        getExternalApplicationTokenApiHandler()
+        loginSsoApiHandler()
     }, [])
+    
+    useEffect(() => {
+        if(loginSsoSuccess) {
+        // Save the token in session storage
+        }
+    }, [loginSsoSuccess])
+    
 
     return ""
 }
