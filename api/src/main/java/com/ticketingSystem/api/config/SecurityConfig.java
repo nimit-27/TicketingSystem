@@ -45,8 +45,10 @@ public class SecurityConfig {
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "helpdesk/auth/refresh", "helpdesk/auth/login/sso",
-                        "/auth/logout", "/auth/login", "/auth/refresh", "auth/login/sso",
+                .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "helpdesk/auth/refresh",
+                        "helpdesk/auth/login/sso", "helpdesk/auth/sso",
+                        "/auth/logout", "/auth/login", "/auth/refresh", "/auth/sso",
+                        "auth/login/sso", "auth/sso",
                         "/m/auth/token", "/helpdesk/m/auth/token",
                         "/ext/auth/token", "/helpdesk/ext/auth/token").permitAll()
                 .requestMatchers("/public/**").permitAll()

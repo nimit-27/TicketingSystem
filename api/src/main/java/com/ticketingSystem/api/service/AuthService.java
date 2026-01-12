@@ -33,6 +33,10 @@ public class AuthService {
                 .filter(user -> passwordsMatch(user.getPassword(), password));
     }
 
+    public Optional<AuthenticatedUser> findUserByUsername(String username, String portal) {
+        return findUser(portal, username);
+    }
+
     private boolean isBcryptHash(String str) {
         return str.startsWith("$2a$") || str.startsWith("$2b$") || str.startsWith("$2y$");
     }
