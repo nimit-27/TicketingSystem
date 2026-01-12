@@ -2,6 +2,7 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
 import com.ticketingSystem.api.dto.RoleDto;
+import com.ticketingSystem.api.dto.RequesterUserDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
@@ -58,6 +59,7 @@ public class ReportService {
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final RequesterUserService requesterUserService;
     private final RoleService roleService;
     private final ParameterMasterService parameterMasterService;
 
@@ -168,6 +170,11 @@ public class ReportService {
         List<String> roleIds = userService.getHelpdeskUserDetails(userId)
                 .map(HelpdeskUserDto::getRoleIds)
                 .orElseGet(List::of);
+        if (roleIds.isEmpty()) {
+            roleIds = requesterUserService.getRequesterUser(userId)
+                    .map(RequesterUserDto::getRoleIds)
+                    .orElseGet(List::of);
+        }
 
         List<ParameterMaster> parametersListByRoleId = parameterMasterService
                 .getParametersForRoles(roleIds);
