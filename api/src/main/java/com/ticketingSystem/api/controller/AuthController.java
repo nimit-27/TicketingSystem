@@ -129,7 +129,7 @@ public class AuthController {
     }
 
     @PostMapping("/sso")
-    public ResponseEntity<?> sso(@RequestBody SsoLoginPayload ssoLoginPayload) {
+    public ResponseEntity<?> ssoLogin(@RequestBody SsoLoginPayload ssoLoginPayload) {
         return ResponseEntity.ok("token");
     }
 
