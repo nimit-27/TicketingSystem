@@ -150,6 +150,7 @@ export type SupportDashboardScopeKey = "allTickets" | "myWorkload" | "myTickets"
 export interface SupportDashboardSummaryView {
     pendingForAcknowledgement: number;
     severityCounts: Record<SupportDashboardSeverityKey, number>;
+    statusCounts: Record<string, number>;
     totalTickets: number;
 }
 
@@ -192,6 +193,7 @@ export interface SupportDashboardSummaryResponse {
 export interface SupportDashboardSummarySectionDto {
     pendingForAcknowledgement: number;
     severityCounts: Record<string, number>;
+    statusCounts?: Record<string, number>;
     totalTickets: number;
 }
 

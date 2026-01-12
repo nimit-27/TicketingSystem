@@ -288,6 +288,7 @@ public class ReportService {
                                                                   DateRange dateRange,
                                                                   ParameterCriteria parameterCriteria) {
         Map<String, Long> severityCounts = createEmptySeverityCounts();
+        Map<String, Long> statusCounts = createEmptyStatusCounts();
 
         List<TicketRepository.SeverityCountProjection> severityProjections;
         if (parameterCriteria != null && parameterCriteria.hasFilters()) {
@@ -318,6 +319,36 @@ public class ReportService {
             String severityKey = projection.getSeverity().toUpperCase(Locale.ROOT);
             if (severityCounts.containsKey(severityKey)) {
                 severityCounts.put(severityKey, Optional.ofNullable(projection.getCount()).orElse(0L));
+            }
+        });
+
+        List<TicketRepository.StatusCountProjection> statusProjections;
+        if (parameterCriteria != null && parameterCriteria.hasFilters()) {
+            statusProjections = ticketRepository.countTicketsByStatusWithFiltersAndParameters(
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to(),
+                    parameterCriteria.assignedTo(),
+                    parameterCriteria.assignedBy(),
+                    parameterCriteria.updatedBy(),
+                    parameterCriteria.createdBy()
+            );
+        } else {
+            statusProjections = ticketRepository.countTicketsByStatusWithFilters(
+                    assignedTo,
+                    dateRange.from(),
+                    dateRange.to()
+            );
+        }
+
+        statusProjections.forEach(projection -> {
+            if (projection.getStatus() == null) {
+                return;
+            }
+
+            String statusKey = projection.getStatus().name();
+            if (statusCounts.containsKey(statusKey)) {
+                statusCounts.put(statusKey, Optional.ofNullable(projection.getCount()).orElse(0L));
             }
         });
 
@@ -365,6 +396,7 @@ public class ReportService {
         return SupportDashboardSummarySectionDto.builder()
                 .pendingForAcknowledgement(pendingCount)
                 .severityCounts(severityCounts)
+                .statusCounts(statusCounts)
                 .totalTickets(totalTickets)
                 .build();
     }
@@ -623,6 +655,14 @@ public class ReportService {
         severityCounts.put("S3", 0L);
         severityCounts.put("S4", 0L);
         return severityCounts;
+    }
+
+    private Map<String, Long> createEmptyStatusCounts() {
+        Map<String, Long> statusCounts = new LinkedHashMap<>();
+        for (TicketStatus status : TicketStatus.values()) {
+            statusCounts.put(status.name(), 0L);
+        }
+        return statusCounts;
     }
 
     private Optional<String> resolveUsername(String userId) {
