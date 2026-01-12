@@ -84,6 +84,7 @@ const createDefaultSeverityCounts = (): Record<SupportDashboardSeverityKey, numb
 const createDefaultSummaryView = (): SupportDashboardSummaryView => ({
   pendingForAcknowledgement: 0,
   severityCounts: createDefaultSeverityCounts(),
+  statusCounts: {},
   totalTickets: 0,
 });
 
@@ -119,6 +120,7 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
   const typedView = view as Partial<SupportDashboardSummaryView> & {
     pendingForAcknowledgement?: number;
     severityCounts?: Partial<Record<string, number>>;
+    statusCounts?: Record<string, number>;
     totalTickets?: number;
   };
 
@@ -126,6 +128,7 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
     pendingForAcknowledgement:
       typeof typedView.pendingForAcknowledgement === "number" ? typedView.pendingForAcknowledgement : 0,
     severityCounts: normalizeSeverityCounts(typedView.severityCounts),
+    statusCounts: typedView.statusCounts ?? {},
     totalTickets: typeof typedView.totalTickets === "number" ? typedView.totalTickets : 0,
   };
 };
@@ -1136,19 +1139,37 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [activeSummaryView, t],
   );
 
-  const openResolvedData = React.useMemo(
-    () => {
-      const openCount = typeof summaryData?.openResolved?.openTickets === "number" ? summaryData.openResolved.openTickets : 0;
-      const resolvedCount =
-        typeof summaryData?.openResolved?.resolvedTickets === "number" ? summaryData.openResolved.resolvedTickets : 0;
+  const statusColorPalette = [
+    "#1976d2",
+    "#64d4a2",
+    "#ff7043",
+    "#ffb74d",
+    "#90a4ae",
+    "#8e24aa",
+    "#26c6da",
+    "#f06292",
+    "#7cb342",
+    "#ffa726",
+    "#6d4c41",
+    "#5c6bc0",
+    "#26a69a",
+    "#78909c",
+  ];
 
-      return [
-        { name: t("Open"), value: openCount, color: "#ff7043" },
-        { name: t("Resolved"), value: resolvedCount, color: "#64d4a2" },
-      ];
-    },
-    [summaryData, t],
-  );
+  const statusData = React.useMemo(() => {
+    const entries = Object.entries(activeSummaryView.statusCounts ?? {});
+    const formatStatusLabel = (value: string) =>
+      value
+        .replace(/_/g, " ")
+        .toLowerCase()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+
+    return entries.map(([status, value], index) => ({
+      name: t(formatStatusLabel(status)),
+      value: typeof value === "number" ? value : 0,
+      color: statusColorPalette[index % statusColorPalette.length],
+    }));
+  }, [activeSummaryView.statusCounts, t]);
 
   const slaData = React.useMemo(
     () =>
@@ -1402,12 +1423,12 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.openVsResolved")}
+                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Tickets by Status" })}
                   </Typography>
                   <ResponsiveContainer width="100%" height="90%">
                     <PieChart>
                       <Pie
-                        data={openResolvedData}
+                        data={statusData}
                         dataKey="value"
                         nameKey="name"
                         innerRadius={50}
@@ -1415,10 +1436,28 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                         paddingAngle={5}
                         labelLine={false}
                       >
-                        {openResolvedData.map((entry) => (
+                        {statusData.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} />
                         ))}
                       </Pie>
+                      <text
+                        x="50%"
+                        y="45%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ fontSize: 20, fontWeight: 700, fill: "#37474f" }}
+                      >
+                        {overallTickets.toLocaleString()}
+                      </text>
+                      <text
+                        x="50%"
+                        y="55%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ fontSize: 12, fill: "#78909c" }}
+                      >
+                        {t("Total")}
+                      </text>
                       <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
                       <Tooltip contentStyle={{ fontSize: 12 }} />
                     </PieChart>

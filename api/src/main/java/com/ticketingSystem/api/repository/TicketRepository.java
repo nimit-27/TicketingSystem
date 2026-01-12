@@ -29,6 +29,33 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("SELECT t.ticketStatus AS status, COUNT(t) AS count FROM Ticket t GROUP BY t.ticketStatus")
     List<StatusCountProjection> countTicketsByStatus();
 
+    @Query("SELECT t.ticketStatus AS status, COUNT(t) AS count FROM Ticket t " +
+            "WHERE (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
+            "GROUP BY t.ticketStatus")
+    List<StatusCountProjection> countTicketsByStatusWithFilters(@Param("assignedTo") String assignedTo,
+                                                                @Param("fromDate") LocalDateTime fromDate,
+                                                                @Param("toDate") LocalDateTime toDate);
+
+    @Query("SELECT t.ticketStatus AS status, COUNT(t) AS count FROM Ticket t " +
+            "WHERE (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
+            "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
+            "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
+            "AND (:parameterCreatedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterCreatedBy)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
+            "GROUP BY t.ticketStatus")
+    List<StatusCountProjection> countTicketsByStatusWithFiltersAndParameters(
+            @Param("assignedTo") String assignedTo,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            @Param("parameterAssignedTo") String parameterAssignedTo,
+            @Param("parameterAssignedBy") String parameterAssignedBy,
+            @Param("parameterUpdatedBy") String parameterUpdatedBy,
+            @Param("parameterCreatedBy") String parameterCreatedBy);
+
     @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
     List<ModeCountProjection> countTicketsByMode();
 
