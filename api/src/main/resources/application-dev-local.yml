@@ -35,6 +35,12 @@ security:
     issuer: https://devkeycloak.annadarpan.in/realms/AnnaDarpan
 #    jwks-uri:
     audience: account
+  altcha:
+    enabled: ${SECURITY_ALTCHA_ENABLED:false}
+    challenge-url: ${SECURITY_ALTCHA_CHALLENGE_URL:}
+    verify-url: ${SECURITY_ALTCHA_VERIFY_URL:}
+    api-key: ${SECURITY_ALTCHA_API_KEY:}
+    secret: ${SECURITY_ALTCHA_SECRET:}
 
 mobile:
   client:

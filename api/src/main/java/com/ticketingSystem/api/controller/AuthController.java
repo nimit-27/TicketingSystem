@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.config.JwtProperties;
+import com.ticketingSystem.api.config.AltchaProperties;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.LoginRequest;
 import com.ticketingSystem.api.dto.RefreshTokenRequest;
@@ -11,7 +12,9 @@ import com.ticketingSystem.api.service.AuthService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
 import com.ticketingSystem.api.service.PermissionService;
+import com.ticketingSystem.api.service.AltchaService;
 import com.ticketingSystem.api.repository.RoleRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,10 +35,12 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
+    private final AltchaProperties altchaProperties;
     private final TokenPairService tokenPairService;
+    private final AltchaService altchaService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session, HttpServletRequest servletRequest) {
         try {
             // Reload permissions on each login so that any changes in the database
             // are reflected in the login response.
@@ -43,6 +48,18 @@ public class AuthController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Failed to load permissions"));
+        }
+
+        if (altchaProperties.isEnabled()) {
+            if (!StringUtils.hasText(request.getAltchaToken())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Altcha verification is required"));
+            }
+            boolean verified = altchaService.verifyToken(request.getAltchaToken(), resolveClientIp(servletRequest));
+            if (!verified) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Altcha verification failed"));
+            }
         }
 
         return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
@@ -152,6 +169,14 @@ public class AuthController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid or expired refresh token")));
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (StringUtils.hasText(forwardedFor)) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
 }

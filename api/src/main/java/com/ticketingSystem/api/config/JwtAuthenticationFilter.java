@@ -40,7 +40,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/m/auth/token",
             "helpdesk/m/auth/token",
             "/ext/auth/token",
-            "helpdesk/ext/auth/token"
+            "helpdesk/ext/auth/token",
+            "/altcha/challenge",
+            "helpdesk/altcha/challenge"
     );
 
     private final JwtTokenService jwtTokenService;

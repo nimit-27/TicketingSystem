@@ -1,4 +1,4 @@
-import { FC, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { FC, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
@@ -20,9 +20,11 @@ import colors from "../themes/colors";
 import { ThemeModeContext } from "../context/ThemeContext";
 import { LanguageContext } from "../context/LanguageContext";
 import { DevModeContext } from "../context/DevModeContext";
-import { devMode as envDevMode } from "../config/config";
+import { altchaConfig, devMode as envDevMode } from "../config/config";
 import GenericInput from "../components/UI/Input/GenericInput";
 import GenericButton from "../components/UI/Button";
+import AltchaWidget from "../components/UI/AltchaWidget";
+import { BASE_URL } from "../services/api";
 import "./LoginPage.scss";
 
 type PortalType = "requestor" | "helpdesk";
@@ -57,7 +59,11 @@ const LoginPage: FC = () => {
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
     const [selectedPortal, setSelectedPortal] = useState<PortalType>("requestor");
+    const [altchaToken, setAltchaToken] = useState("");
+    const [pendingPayload, setPendingPayload] = useState<LoginPayload | null>(null);
     const navigate = useNavigate();
+    const formRef = useRef<HTMLFormElement | null>(null);
+    const altchaWidgetRef = useRef<HTMLElement | null>(null);
 
     const { t } = useTranslation();
     const { devMode, jwtBypass, toggleJwtBypass, toggleDevMode } = useContext(DevModeContext);
@@ -145,7 +151,17 @@ const LoginPage: FC = () => {
         void persistLoginData();
     }, [loginData, navigate, userId, jwtBypass]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const resolveAltchaToken = () => {
+        const form = formRef.current;
+        if (!form) {
+            return "";
+        }
+        const data = new FormData(form);
+        const token = data.get("altchaToken");
+        return typeof token === "string" ? token : "";
+    };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const payload: LoginPayload = {
@@ -154,13 +170,40 @@ const LoginPage: FC = () => {
             portal: selectedPortal,
         };
 
+        if (altchaConfig.enabled) {
+            const token = resolveAltchaToken();
+            if (!token) {
+                setPendingPayload(payload);
+                (altchaWidgetRef.current as any)?.verify?.();
+                return;
+            }
+            payload.altchaToken = token;
+        }
+
         loginApiHandler(() => loginUser(payload));
     };
 
     const errorMessage = useMemo(() => (loginError ? String(loginError) : undefined), [loginError]);
+    const altchaChallengeUrl = useMemo(
+        () => altchaConfig.challengeUrl || `${BASE_URL}/altcha/challenge`,
+        [altchaConfig.challengeUrl]
+    );
+
+    useEffect(() => {
+        if (!pendingPayload || !altchaToken) {
+            return;
+        }
+        const payload: LoginPayload = { ...pendingPayload, altchaToken };
+        setPendingPayload(null);
+        loginApiHandler(() => loginUser(payload));
+    }, [altchaToken, loginApiHandler, pendingPayload]);
+
+    const handleAltchaVerified = () => {
+        setAltchaToken(resolveAltchaToken());
+    };
 
     const renderLoginForm = (portal: PortalType): ReactNode => (
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit} ref={formRef}>
             <GenericInput
                 id={`${portal}-username`}
                 label={t("Username / Employee Id")}
@@ -208,6 +251,14 @@ const LoginPage: FC = () => {
                 <div className="login-error" role="alert">
                     {errorMessage}
                 </div>
+            )}
+
+            {altchaConfig.enabled && (
+                <AltchaWidget
+                    challengeUrl={altchaChallengeUrl}
+                    onVerified={handleAltchaVerified}
+                    ref={altchaWidgetRef}
+                />
             )}
 
             <GenericButton type="submit" variant="contained" color="success" fullWidth sx={{ borderRadius: 2, fontWeight: 800 }}>

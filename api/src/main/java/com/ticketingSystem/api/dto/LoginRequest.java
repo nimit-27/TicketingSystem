@@ -4,6 +4,7 @@ public class LoginRequest {
     private String username;
     private String password;
     private String portal;
+    private String altchaToken;
 //    private List<String> roles;
 
     public String getUsername() {
@@ -28,6 +29,14 @@ public class LoginRequest {
 
     public void setPortal(String portal) {
         this.portal = portal;
+    }
+
+    public String getAltchaToken() {
+        return altchaToken;
+    }
+
+    public void setAltchaToken(String altchaToken) {
+        this.altchaToken = altchaToken;
     }
 
 //    public List<String> getRoles() {

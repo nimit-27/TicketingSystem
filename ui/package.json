@@ -24,6 +24,7 @@
     "@types/node": "^20.17.6",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
+    "altcha": "^2.3.0",
     "antd": "^5.25.4",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
