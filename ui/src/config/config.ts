@@ -7,6 +7,7 @@ export const Roles = envConfig.Roles;
 export const devMode = envConfig.devMode;
 export const FciTheme = envConfig.FciTheme;
 export const filegatorEnabled = envConfig.filegatorEnabled;
+export const altchaConfig = envConfig.altcha;
 
 export function getCurrentUserDetails() {
   return getUserDetails();
@@ -20,4 +21,3 @@ export function isHelpdesk() {
   const roles = getCurrentUserDetails()?.role ?? [];
   return Array.isArray(roles) && roles.some((role) => role?.toUpperCase?.().includes('HELPDESK'));
 }
-

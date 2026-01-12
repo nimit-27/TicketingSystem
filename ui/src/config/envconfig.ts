@@ -3,6 +3,10 @@ export const envConfig = {
     devMode: true,
     FciTheme: true,
     filegatorEnabled: false,
+    altcha: {
+        enabled: false,
+        challengeUrl: "",
+    },
     Users: {
         helpdesk: {
             userId: 'helpdesk.user',
@@ -35,4 +39,3 @@ export const envConfig = {
         }
     }
 };
-

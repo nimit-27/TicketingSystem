@@ -48,7 +48,8 @@ public class SecurityConfig {
                 .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "helpdesk/auth/refresh",
                         "/auth/logout", "/auth/login", "/auth/refresh",
                         "/m/auth/token", "/helpdesk/m/auth/token",
-                        "/ext/auth/token", "/helpdesk/ext/auth/token").permitAll()
+                        "/ext/auth/token", "/helpdesk/ext/auth/token",
+                        "/altcha/challenge", "helpdesk/altcha/challenge").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()

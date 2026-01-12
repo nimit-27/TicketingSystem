@@ -28,6 +28,7 @@ export interface LoginPayload {
   username: string;
   password: string;
   portal?: string;
+  altchaToken?: string;
 }
 
 export interface ExternalApplicationTokenPayload {
