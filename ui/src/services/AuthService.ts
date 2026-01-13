@@ -11,7 +11,7 @@ export function logoutUser() {
 }
 
 export function loginSso(payload: SsoLoginPayload) {
-    return axios.post(`${BASE_URL}/auth/sso`, payload);
+    return axios.post(`${BASE_URL}/auth/sso`, payload, { withCredentials: true });
 }
 
 // export function getExternalApplicationToken(payload: SsoLoginPayload) {

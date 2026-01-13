@@ -2,6 +2,7 @@ package com.ticketingSystem.api.config;
 
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.TokenPair;
+import com.ticketingSystem.api.service.TokenCookieService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
 import jakarta.servlet.FilterChain;
@@ -13,8 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -51,13 +50,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
+    private final TokenCookieService tokenCookieService;
 
     public JwtAuthenticationFilter(JwtTokenService jwtTokenService,
                                    JwtProperties jwtProperties,
-                                   TokenPairService tokenPairService) {
+                                   TokenPairService tokenPairService,
+                                   TokenCookieService tokenCookieService) {
         this.jwtTokenService = jwtTokenService;
         this.jwtProperties = jwtProperties;
         this.tokenPairService = tokenPairService;
+        this.tokenCookieService = tokenCookieService;
     }
 
     @Override
@@ -70,7 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = resolveToken(header, request.getParameter("token"));
+        String token = resolveToken(header, request.getParameter("token"), request);
 
         if (token != null) {
             JwtTokenService.TokenVerificationResult result = jwtTokenService.verifyAccessToken(token);
@@ -94,6 +96,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         tokenPairService.rotateUsingStoredToken(payload).ifPresent(tokenPair -> {
             authenticate(payload, request);
             writeTokenHeaders(response, tokenPair);
+            tokenCookieService.addTokenCookies(response, tokenPair);
         });
     }
 
@@ -115,7 +118,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setHeader("X-Refresh-Token-Expires-In-Minutes", String.valueOf(tokenPair.refreshExpiresInMinutes()));
     }
 
-    private String resolveToken(String authorizationHeader, String tokenParam) {
+    private String resolveToken(String authorizationHeader, String tokenParam, HttpServletRequest request) {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
@@ -124,7 +127,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return tokenParam.trim();
         }
 
-        return null;
+        return tokenCookieService.readAccessToken(request).orElse(null);
     }
 
     private boolean shouldBypass(HttpServletRequest request) {
