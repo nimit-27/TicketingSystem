@@ -25,17 +25,19 @@ interface ExtendedJwtPayload extends JwtPayload {
 let decodedCache: DecodedAuthDetails | null = null;
 
 export function storeToken(token: string) {
-  sessionStorage.setItem(TOKEN_KEY, token);
-  decodedCache = null;
+  // sessionStorage.setItem(TOKEN_KEY, token);
+  // decodedCache = null;
+  void token;
 }
 
 export function getActiveToken(): string | null {
-  return sessionStorage.getItem(TOKEN_KEY);
+  // return sessionStorage.getItem(TOKEN_KEY);
+  return null;
 }
 
 export function clearStoredToken() {
-  sessionStorage.removeItem(TOKEN_KEY);
-  decodedCache = null;
+  // sessionStorage.removeItem(TOKEN_KEY);
+  // decodedCache = null;
 }
 
 export function isJwtBypassEnabled(): boolean {
@@ -53,39 +55,40 @@ export function toggleJwtBypass(): boolean {
 }
 
 export function getDecodedAuthDetails(): DecodedAuthDetails | null {
-  if (decodedCache) {
-    return decodedCache;
-  }
-
-  const token = getActiveToken();
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const claims = jwtDecode<ExtendedJwtPayload>(token);
-    if (claims.exp && claims.exp * 1000 < Date.now()) {
-      clearStoredToken();
-      return null;
-    }
-
-    const user: UserDetails = {
-      userId: claims.userId ?? "",
-      username: claims.username ?? claims.sub ?? undefined,
-      role: claims.roles ?? undefined,
-      levels: claims.levels ?? undefined,
-      name: claims.name ?? undefined,
-      email: claims.email ?? claims.emailId ?? claims.emailID ?? claims.mail ?? undefined,
-      phone: claims.phone ?? claims.contactNumber ?? claims.contact ?? claims.mobile ?? claims.mobileNo ?? undefined,
-      allowedStatusActionIds: claims.allowedStatusActionIds ?? undefined,
-    };
-
-    decodedCache = { user };
-    return decodedCache;
-  } catch (error) {
-    clearStoredToken();
-    return null;
-  }
+  // if (decodedCache) {
+  //   return decodedCache;
+  // }
+  //
+  // const token = getActiveToken();
+  // if (!token) {
+  //   return null;
+  // }
+  //
+  // try {
+  //   const claims = jwtDecode<ExtendedJwtPayload>(token);
+  //   if (claims.exp && claims.exp * 1000 < Date.now()) {
+  //     clearStoredToken();
+  //     return null;
+  //   }
+  //
+  //   const user: UserDetails = {
+  //     userId: claims.userId ?? "",
+  //     username: claims.username ?? claims.sub ?? undefined,
+  //     role: claims.roles ?? undefined,
+  //     levels: claims.levels ?? undefined,
+  //     name: claims.name ?? undefined,
+  //     email: claims.email ?? claims.emailId ?? claims.emailID ?? claims.mail ?? undefined,
+  //     phone: claims.phone ?? claims.contactNumber ?? claims.contact ?? claims.mobile ?? claims.mobileNo ?? undefined,
+  //     allowedStatusActionIds: claims.allowedStatusActionIds ?? undefined,
+  //   };
+  //
+  //   decodedCache = { user };
+  //   return decodedCache;
+  // } catch (error) {
+  //   clearStoredToken();
+  //   return null;
+  // }
+  return null;
 }
 
 export function clearDecodedCache() {

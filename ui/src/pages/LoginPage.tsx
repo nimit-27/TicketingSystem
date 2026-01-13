@@ -76,20 +76,21 @@ const LoginPage: FC = () => {
                 return;
             }
 
-            if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
-                storeToken(loginData.token);
-            }
+            // if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
+            //     storeToken(loginData.token);
+            // }
 
-            const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+            // const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+            const decoded = null;
             const permissions: RolePermission | undefined = loginData.permissions;
             if (permissions) {
                 setPermissions(permissions);
             }
 
             const submittedUserId = userId.trim();
-            const decodedUser = decoded?.user;
-            const emailFromResponse = decodedUser?.email
-                ?? loginData.email
+            // const decodedUser = decoded?.user;
+            const decodedUser = null;
+            const emailFromResponse = loginData.email
                 ?? loginData.emailId
                 ?? loginData.emailID
                 ?? loginData.mail
@@ -97,8 +98,7 @@ const LoginPage: FC = () => {
                 ?? loginData.userMail
                 ?? loginData.user?.email
                 ?? undefined;
-            const phoneFromResponse = decodedUser?.phone
-                ?? loginData.phone
+            const phoneFromResponse = loginData.phone
                 ?? loginData.contactNumber
                 ?? loginData.contact
                 ?? loginData.mobile
@@ -107,14 +107,14 @@ const LoginPage: FC = () => {
                 ?? loginData.user?.phone
                 ?? undefined;
             const details: UserDetails = {
-                userId: decodedUser?.userId || loginData.userId || submittedUserId,
-                username: decodedUser?.username || loginData.username || submittedUserId,
-                role: decodedUser?.role ?? loginData.roles ?? [],
-                levels: decodedUser?.levels ?? loginData.levels ?? [],
-                name: decodedUser?.name || loginData.name,
+                userId: loginData.userId || submittedUserId,
+                username: loginData.username || submittedUserId,
+                role: loginData.roles ?? [],
+                levels: loginData.levels ?? [],
+                name: loginData.name,
                 email: emailFromResponse,
                 phone: phoneFromResponse,
-                allowedStatusActionIds: decodedUser?.allowedStatusActionIds ?? loginData.allowedStatusActionIds ?? [],
+                allowedStatusActionIds: loginData.allowedStatusActionIds ?? [],
             };
             setUserDetails(details);
 

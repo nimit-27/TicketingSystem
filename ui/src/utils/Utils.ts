@@ -28,12 +28,12 @@ export function setUserDetails(details: UserDetails) {
 }
 
 export function getUserDetails(): UserDetails | null {
-  if (!isJwtBypassEnabled()) {
-    const decoded = getDecodedAuthDetails();
-    if (decoded?.user) {
-      return decoded.user;
-    }
-  }
+  // if (!isJwtBypassEnabled()) {
+  //   const decoded = getDecodedAuthDetails();
+  //   if (decoded?.user) {
+  //     return decoded.user;
+  //   }
+  // }
 
   const data = sessionStorage.getItem(USER_KEY);
   return data ? JSON.parse(data) : null;
@@ -173,7 +173,7 @@ export function logout() {
   void logoutUser().catch((error) => {
     console.warn("Logout request failed", error);
   });
-  clearStoredToken();
+  // clearStoredToken();
   clearSession();
   const basePath = process.env.PUBLIC_URL || '';
   const loginPath = `${basePath}/login`;

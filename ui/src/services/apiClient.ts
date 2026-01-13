@@ -9,12 +9,12 @@ axios.defaults.withCredentials = true;
 axios.interceptors.request.use((config) => {
     const headers = config.headers ?? {};
     const bypass = isJwtBypassEnabled();
-    if (!bypass) {
-        const token = getActiveToken();
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
-    }
+    // if (!bypass) {
+    //     const token = getActiveToken();
+    //     if (token) {
+    //         headers["Authorization"] = `Bearer ${token}`;
+    //     }
+    // }
 
     const userId = getUserDetails()?.userId || "";
     headers["X-User-ID"] = userId;
@@ -26,7 +26,7 @@ axios.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error?.response?.status === 401) {
-            clearStoredToken();
+            // clearStoredToken();
             clearSession();
         }
         return Promise.reject(error);
