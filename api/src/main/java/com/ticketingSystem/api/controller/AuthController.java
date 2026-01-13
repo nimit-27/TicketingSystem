@@ -42,7 +42,10 @@ public class AuthController {
     private final TokenCookieService tokenCookieService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request,
+                                   HttpSession session,
+                                   HttpServletRequest httpRequest,
+                                   HttpServletResponse response) {
         try {
             // Reload permissions on each login so that any changes in the database
             // are reflected in the login response.
@@ -50,6 +53,11 @@ public class AuthController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Failed to load permissions"));
+        }
+
+        if (isDuplicateLogin(request, httpRequest)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "User is already logged in"));
         }
 
         return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
@@ -206,6 +214,19 @@ public class AuthController {
                 ? number.longValue()
                 : jwtProperties.getRefreshExpirationMinutes();
         return Optional.of(new TokenPair(token, refreshToken, expiresIn, refreshExpiresIn));
+    }
+
+    private boolean isDuplicateLogin(LoginRequest request, HttpServletRequest httpRequest) {
+        if (request == null || !StringUtils.hasText(request.getUsername())) {
+            return false;
+        }
+        return tokenCookieService.readAccessToken(httpRequest)
+                .map(jwtTokenService::verifyAccessToken)
+                .filter(JwtTokenService.TokenVerificationResult::valid)
+                .map(JwtTokenService.TokenVerificationResult::payload)
+                .map(LoginPayload::getUsername)
+                .filter(username -> username != null && username.equalsIgnoreCase(request.getUsername()))
+                .isPresent();
     }
 
 }
