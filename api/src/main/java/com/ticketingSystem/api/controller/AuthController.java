@@ -13,7 +13,10 @@ import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
 import com.ticketingSystem.api.service.PermissionService;
 import com.ticketingSystem.api.service.SsoAuthService;
+import com.ticketingSystem.api.service.TokenCookieService;
 import com.ticketingSystem.api.repository.RoleRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,9 +39,10 @@ public class AuthController {
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
     private final SsoAuthService ssoAuthService;
+    private final TokenCookieService tokenCookieService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session, HttpServletResponse response) {
         try {
             // Reload permissions on each login so that any changes in the database
             // are reflected in the login response.
@@ -97,24 +101,25 @@ public class AuthController {
                             .build();
 
                     TokenPair tokenPair = tokenPairService.issueTokens(payload);
+                    tokenCookieService.addTokenCookies(response, tokenPair);
 
-                    Map<String, Object> response = new LinkedHashMap<>();
-                    response.put("token", tokenPair.token());
-                    response.put("refreshToken", tokenPair.refreshToken());
-                    response.put("expiresInMinutes", tokenPair.expiresInMinutes());
-                    response.put("refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes());
-                    response.put("userId", user.getUserId());
-                    response.put("name", user.getName());
-                    response.put("username", user.getUsername());
-                    response.put("firstName", user.getFirstName());
-                    response.put("lastName", user.getLastName());
-                    response.put("roles", roles);
-                    response.put("permissions", permissions);
-                    response.put("levels", levels);
-                    response.put("allowedStatusActionIds", allowedStatusActionIds);
-                    response.put("clientType", clientType.name());
+                    Map<String, Object> responseBody = new LinkedHashMap<>();
+                    responseBody.put("token", tokenPair.token());
+                    responseBody.put("refreshToken", tokenPair.refreshToken());
+                    responseBody.put("expiresInMinutes", tokenPair.expiresInMinutes());
+                    responseBody.put("refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes());
+                    responseBody.put("userId", user.getUserId());
+                    responseBody.put("name", user.getName());
+                    responseBody.put("username", user.getUsername());
+                    responseBody.put("firstName", user.getFirstName());
+                    responseBody.put("lastName", user.getLastName());
+                    responseBody.put("roles", roles);
+                    responseBody.put("permissions", permissions);
+                    responseBody.put("levels", levels);
+                    responseBody.put("allowedStatusActionIds", allowedStatusActionIds);
+                    responseBody.put("clientType", clientType.name());
 
-                    return ResponseEntity.ok(response);
+                    return ResponseEntity.ok(responseBody);
 //                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
 //                            .body(response);
                 })
@@ -123,15 +128,18 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpSession session) {
+    public ResponseEntity<Void> logout(HttpSession session, HttpServletResponse response) {
         if (jwtProperties.isBypassEnabled()) {
             session.invalidate();
         }
+        tokenCookieService.clearTokenCookies(response);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/sso")
-    public ResponseEntity<?> ssoLogin(@RequestBody SsoLoginPayload ssoLoginPayload, HttpSession session) {
+    public ResponseEntity<?> ssoLogin(@RequestBody SsoLoginPayload ssoLoginPayload,
+                                      HttpSession session,
+                                      HttpServletResponse response) {
         try {
             permissionService.loadPermissions();
         } catch (IOException e) {
@@ -140,7 +148,10 @@ public class AuthController {
         }
 
         return ssoAuthService.login(ssoLoginPayload, session)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .map(loginResponse -> {
+                    buildTokenPair(loginResponse).ifPresent(tokenPair -> tokenCookieService.addTokenCookies(response, tokenPair));
+                    return ResponseEntity.ok(loginResponse);
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid SSO credentials")));
     }
@@ -153,23 +164,48 @@ public class AuthController {
      * immediate use, and returns a new refresh token so the client can continue the session without
      * re-entering credentials.
      */
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
-        if (!StringUtils.hasText(request.getRefreshToken())) {
+    public ResponseEntity<?> refreshToken(@RequestBody(required = false) RefreshTokenRequest request,
+                                          HttpServletRequest httpRequest,
+                                          HttpServletResponse response) {
+        String refreshToken = request != null ? request.getRefreshToken() : null;
+        if (!StringUtils.hasText(refreshToken)) {
+            refreshToken = tokenCookieService.readRefreshToken(httpRequest).orElse(null);
+        }
+        if (!StringUtils.hasText(refreshToken)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "Refresh token is required"));
         }
 
-        return jwtTokenService.parseRefreshToken(request.getRefreshToken())
-                .flatMap(payload -> tokenPairService.rotateUsingProvidedRefreshToken(payload, request.getRefreshToken())
+        String finalRefreshToken = refreshToken;
+        return jwtTokenService.parseRefreshToken(refreshToken)
+                .flatMap(payload -> tokenPairService.rotateUsingProvidedRefreshToken(payload, finalRefreshToken)
                         .map(tokenPair -> Map.<String, Object>of(
                                 "token", tokenPair.token(),
                                 "refreshToken", tokenPair.refreshToken(),
                                 "expiresInMinutes", tokenPair.expiresInMinutes(),
                                 "refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes()
                         )))
-                .map(ResponseEntity::ok)
+                .map(body -> {
+                    buildTokenPair(body).ifPresent(tokenPair -> tokenCookieService.addTokenCookies(response, tokenPair));
+                    return ResponseEntity.ok(body);
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid or expired refresh token")));
+    }
+
+    private Optional<TokenPair> buildTokenPair(Map<String, Object> body) {
+        Object tokenValue = body.get("token");
+        Object refreshValue = body.get("refreshToken");
+        Object expiresValue = body.get("expiresInMinutes");
+        Object refreshExpiresValue = body.get("refreshExpiresInMinutes");
+        if (!(tokenValue instanceof String token) || !(refreshValue instanceof String refreshToken)) {
+            return Optional.empty();
+        }
+        long expiresIn = expiresValue instanceof Number number ? number.longValue() : jwtProperties.getExpirationMinutes();
+        long refreshExpiresIn = refreshExpiresValue instanceof Number number
+                ? number.longValue()
+                : jwtProperties.getRefreshExpirationMinutes();
+        return Optional.of(new TokenPair(token, refreshToken, expiresIn, refreshExpiresIn));
     }
 
 }
