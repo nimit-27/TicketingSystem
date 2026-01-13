@@ -42,7 +42,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/ext/auth/token",
             "helpdesk/ext/auth/token",
             "helpdesk/auth/login/sso",
-            "auth/login/sso"
+            "auth/login/sso",
+            "/auth/sso",
+            "auth/sso",
+            "helpdesk/auth/sso"
     );
 
     private final JwtTokenService jwtTokenService;

@@ -12,6 +12,7 @@ import com.ticketingSystem.api.service.AuthService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
 import com.ticketingSystem.api.service.PermissionService;
+import com.ticketingSystem.api.service.SsoAuthService;
 import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,7 @@ public class AuthController {
     private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
+    private final SsoAuthService ssoAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
@@ -129,8 +131,18 @@ public class AuthController {
     }
 
     @PostMapping("/sso")
-    public ResponseEntity<?> ssoLogin(@RequestBody SsoLoginPayload ssoLoginPayload) {
-        return ResponseEntity.ok("token");
+    public ResponseEntity<?> ssoLogin(@RequestBody SsoLoginPayload ssoLoginPayload, HttpSession session) {
+        try {
+            permissionService.loadPermissions();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to load permissions"));
+        }
+
+        return ssoAuthService.login(ssoLoginPayload, session)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Invalid SSO credentials")));
     }
 
     @PostMapping("/refresh")
