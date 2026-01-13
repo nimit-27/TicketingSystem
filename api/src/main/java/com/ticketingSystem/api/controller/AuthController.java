@@ -176,8 +176,9 @@ public class AuthController {
                     .body(Map.of("message", "Refresh token is required"));
         }
 
+        String finalRefreshToken = refreshToken;
         return jwtTokenService.parseRefreshToken(refreshToken)
-                .flatMap(payload -> tokenPairService.rotateUsingProvidedRefreshToken(payload, refreshToken)
+                .flatMap(payload -> tokenPairService.rotateUsingProvidedRefreshToken(payload, finalRefreshToken)
                         .map(tokenPair -> Map.<String, Object>of(
                                 "token", tokenPair.token(),
                                 "refreshToken", tokenPair.refreshToken(),
