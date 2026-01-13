@@ -300,7 +300,8 @@ public class ReportService {
                     parameterCriteria.assignedTo(),
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
-                    parameterCriteria.createdBy()
+                    parameterCriteria.createdBy(),
+                    parameterCriteria.userId()
             );
         } else {
             severityProjections = ticketRepository.countTicketsBySeverity(
@@ -331,7 +332,8 @@ public class ReportService {
                     parameterCriteria.assignedTo(),
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
-                    parameterCriteria.createdBy()
+                    parameterCriteria.createdBy(),
+                    parameterCriteria.userId
             );
         } else {
             statusProjections = ticketRepository.countTicketsByStatusWithFilters(
@@ -364,7 +366,8 @@ public class ReportService {
                     parameterCriteria.assignedTo(),
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
-                    parameterCriteria.createdBy()
+                    parameterCriteria.createdBy(),
+                    parameterCriteria.userId
             );
 
             totalTickets = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
@@ -375,7 +378,8 @@ public class ReportService {
                     parameterCriteria.assignedTo(),
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
-                    parameterCriteria.createdBy()
+                    parameterCriteria.createdBy(),
+                    parameterCriteria.userId
             );
         } else {
             pendingCount = ticketRepository.countTicketsByStatusAndFilters(

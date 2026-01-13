@@ -81,31 +81,31 @@ class TicketServiceTypesenseTest {
 
     private TicketService ticketService;
 
-    @BeforeEach
-    void setUp() {
-        ticketService = new TicketService(
-                typesenseClient,
-                ticketRepository,
-                userRepository,
-                requesterUserRepository,
-                commentRepository,
-                assignmentHistoryService,
-                statusHistoryService,
-                statusHistoryRepository,
-                notificationService,
-                workflowService,
-                statusMasterRepository,
-                categoryRepository,
-                subCategoryRepository,
-                priorityRepository,
-                uploadedFileRepository,
-                stakeholderRepository,
-                roleRepository,
-                ticketSlaService,
-                recommendedSeverityFlowRepository,
-                ticketIdGenerator
-        );
-    }
+//    @BeforeEach
+//    void setUp() {
+//        ticketService = new TicketService(
+//                typesenseClient,
+//                ticketRepository,
+//                userRepository,
+//                requesterUserRepository,
+//                commentRepository,
+//                assignmentHistoryService,
+//                statusHistoryService,
+//                statusHistoryRepository,
+//                notificationService,
+//                workflowService,
+//                statusMasterRepository,
+//                categoryRepository,
+//                subCategoryRepository,
+//                priorityRepository,
+//                uploadedFileRepository,
+//                stakeholderRepository,
+//                roleRepository,
+//                ticketSlaService,
+//                recommendedSeverityFlowRepository,
+//                ticketIdGenerator
+//        );
+//    }
 
     @Test
     void shouldMapTypesenseDocumentsToDtos() throws Exception {

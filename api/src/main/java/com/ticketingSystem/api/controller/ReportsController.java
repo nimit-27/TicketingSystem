@@ -44,7 +44,7 @@ public class ReportsController {
     public ResponseEntity<SupportDashboardSummaryDto> getFilteredSupportDashboardSummary(
             @AuthenticationPrincipal LoginPayload authenticatedUser,
             HttpSession session,
-//            @RequestHeader(value = "X-USER-ID", required = false) String userId,
+            @RequestHeader(value = "X-USER-ID", required = false) String xUserId,
             @RequestParam MultiValueMap<String, String> allParams,
             @RequestParam(value = "timeScale", required = false) String timeScale,
             @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -53,6 +53,7 @@ public class ReportsController {
             @RequestParam(value = "parameterKey", required = false) String parameterKey,
             @RequestParam(value = "parameterValue", required = false) String parameterValue) {
         String userId = ticketAuthorizationService.resolveUserId(authenticatedUser, session);
+        if(userId == null || userId.isBlank()) userId = xUserId;
 
         return ResponseEntity.ok(reportService.getSupportDashboardSummaryFiltered(
                 userId,

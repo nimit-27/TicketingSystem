@@ -1112,7 +1112,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const summaryCards = React.useMemo(
     () => [
       {
-        label: "Pending for Acknowledgement",
+        label: "",
         value: formatSummaryValue(activeSummaryView.pendingForAcknowledgement),
         background: "#ff5252",
         color: "#fff",
@@ -1347,40 +1347,89 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             />
           </Box>
 
-          {/* Summary Cards */}
-          <div className="row g-3">
-            <div className="position-relative d-flex flex-column align-items-center col-12 col-sm-6 col-xl-2">
-              <Typography variant="subtitle2" color="text.secondary" className="fw-semibold text-uppercase mb-2">
-                {t("supportDashboard.metrics.overallTickets")}
-              </Typography>
-              <Box
-                className="rounded-circle d-flex align-items-center justify-content-center bg-white"
-                sx={{
-                  width: 110,
-                  height: 110,
-                  border: "10px solid",
-                  borderColor: "var(--bs-primary)",
-                }}
-              >
-                <Typography sx={{ fontWeight: 700, fontSize: 28 }}>
-                  {overallTickets.toLocaleString()}
-                </Typography>
-              </Box>
+          <div className="d-flex flex-wrap">
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })}
+                  </Typography>
+                  <ResponsiveContainer width="100%" height="90%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={50}
+                        outerRadius={90}
+                        paddingAngle={5}
+                        labelLine={false}
+                      >
+                        {statusData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <text
+                        x="50%"
+                        y="45%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ fontSize: 20, fontWeight: 700, fill: "#37474f" }}
+                      >
+                        {overallTickets.toLocaleString()}
+                      </text>
+                      <text
+                        x="50%"
+                        y="55%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ fontSize: 12, fill: "#78909c" }}
+                      >
+                        {t("Total")}
+                      </text>
+                      <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
             </div>
-            {summaryCards.map((card) => (
-              <div className="col-12 col-sm-6 col-xl-2" key={card.label}>
-                <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
-                  <CardContent className="py-3">
-                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
-                      {t(card.label)}
-                    </Typography>
-                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
-                      {card.value.toString()}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
+
+            {/* Summary Cards */}
+            <div className="row g-3 col-12 col-xl-6">
+              <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
+                {t("supportDashboard.metrics.pendingForAcknowledgement", { defaultValue: "Pending for Acknowledgement (Open)" })}
+              </Typography>
+              {summaryCards.map((card, i) => {
+                if (i == 0) {
+                  return <div className="col-12 col-sm-12 col-xl-12 m-0" key={card.label}>
+                    <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
+                      <CardContent className="py-3">
+                        <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                          {t(card.label)}
+                        </Typography>
+                        <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                          {card.value.toString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </div>
+                }
+                return <div className="col-3 col-sm-3 col-xl-3" key={card.label}>
+                  <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
+                    <CardContent className="py-3">
+                      <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                        {t(card.label)}
+                      </Typography>
+                      <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                        {card.value.toString()}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </div>
+              }
+              )}
+            </div>
           </div>
 
           {!isLoading && error && (
@@ -1391,7 +1440,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
           {/* Charts Section */}
           <div className="row g-3">
-            <div className="col-12 col-xl-6">
+            {/* <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
@@ -1418,8 +1467,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </div>
-            <div className="col-12 col-xl-6">
+            </div> */}
+            {/* <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
@@ -1464,7 +1513,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
             <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>

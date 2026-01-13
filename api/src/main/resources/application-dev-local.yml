@@ -33,7 +33,6 @@ security:
     allow-credentials: true
   keycloak:
     issuer: https://devkeycloak.annadarpan.in/realms/AnnaDarpan
-#    jwks-uri:
     audience: account
 
 mobile:

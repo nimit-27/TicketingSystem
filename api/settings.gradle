@@ -1,1 +1,27 @@
-rootProject.name = 'api'
+//
+//// MUST be first
+//pluginManagement {
+//    repositories {
+//        // Needed for plugin transitive libraries (e.g., spring-core, jackson)
+//        mavenCentral()
+//        // Needed to fetch the plugin artifacts (e.g., org.springframework.boot)
+//        gradlePluginPortal()
+//        // Optional: if you ever use Spring milestone/snapshot repos
+//        // maven { url "https://repo.spring.io/release" }
+//        // maven { url "https://repo.spring.io/milestone" }
+//        // maven { url "https://repo.spring.io/snapshot" }
+//    }
+//}
+//
+//// Next: global dependency repositories for all projects
+//dependencyResolutionManagement {
+//    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // or PREFER_PROJECT if you want build.gradle to override
+//    repositories {
+//        mavenCentral()
+//        // add others if needed
+//        // maven { url "https://repo.spring.io/release" }
+//    }
+//}
+
+// Finally: project naming
+rootProject.name = "api"

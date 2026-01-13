@@ -43,7 +43,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
-            "AND (:parameterCreatedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY t.ticketStatus")
@@ -54,7 +55,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             @Param("parameterAssignedTo") String parameterAssignedTo,
             @Param("parameterAssignedBy") String parameterAssignedBy,
             @Param("parameterUpdatedBy") String parameterUpdatedBy,
-            @Param("parameterCreatedBy") String parameterCreatedBy);
+            @Param("parameterCreatedBy") String parameterCreatedBy,
+            @Param("parameterRequestedBy") String userId);
 
     @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
     List<ModeCountProjection> countTicketsByMode();
@@ -199,7 +201,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
-            "AND (:parameterCreatedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY LOWER(t.severity)")
@@ -210,7 +213,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                                       @Param("parameterAssignedTo") String parameterAssignedTo,
                                                                       @Param("parameterAssignedBy") String parameterAssignedBy,
                                                                       @Param("parameterUpdatedBy") String parameterUpdatedBy,
-                                                                      @Param("parameterCreatedBy") String parameterCreatedBy);
+                                                                      @Param("parameterCreatedBy") String parameterCreatedBy,
+                                                                      @Param("parameterRequestedBy") String userId);
 
     @Query("SELECT COUNT(t) FROM Ticket t " +
             "WHERE (:status IS NULL OR t.ticketStatus = :status) " +
@@ -228,7 +232,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
-            "AND (:parameterCreatedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     long countTicketsByStatusAndFiltersWithParameter(@Param("status") TicketStatus status,
@@ -238,7 +243,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                      @Param("parameterAssignedTo") String parameterAssignedTo,
                                                      @Param("parameterAssignedBy") String parameterAssignedBy,
                                                      @Param("parameterUpdatedBy") String parameterUpdatedBy,
-                                                     @Param("parameterCreatedBy") String parameterCreatedBy);
+                                                     @Param("parameterCreatedBy") String parameterCreatedBy,
+                                                     @Param("parameterRequestedBy") String userId);
 
     @Query("SELECT t FROM Ticket t WHERE t.reportedDate IS NOT NULL AND t.resolvedAt IS NOT NULL")
     List<Ticket> findResolvedTickets();

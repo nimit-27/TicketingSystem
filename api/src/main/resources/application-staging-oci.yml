@@ -28,6 +28,9 @@ security:
       - Authorization
     max-age: 3600
     allow-credentials: true
+  keycloak:
+    issuer: https://stgkeycloak.annadarpan.in/realms/ADStagingEnvironment
+    audience: account
 
 mobile:
   client:
