@@ -274,10 +274,10 @@ export const useNotifications = () => {
       const params = new URLSearchParams();
       recipientIds.forEach(id => params.append('recipientId', id));
 
-      const token = getActiveToken();
-      if (token) {
-        params.set('token', token);
-      }
+      // const token = getActiveToken();
+      // if (token) {
+      //   params.set('token', token);
+      // }
 
       const source = new EventSource(`${SSE_ENDPOINT}?${params.toString()}`, {
         withCredentials: true,
@@ -378,4 +378,3 @@ export const useNotifications = () => {
     acknowledgeLatestNotification,
   };
 };
-

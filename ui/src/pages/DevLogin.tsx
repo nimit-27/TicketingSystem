@@ -172,11 +172,12 @@ const DevLogin: FC = () => {
                 const loginData = normalizeResponse<LoginResponse | null>(loginResponse, null);
 
                 if (loginData) {
-                    if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
-                        storeToken(loginData.token);
-                    }
+                    // if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
+                    //     storeToken(loginData.token);
+                    // }
 
-                    const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+                    // const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+                    const decoded = null;
                     const responseUser = loginData.user ?? {};
                     const resolvedUserId = responseUser.userId ?? loginData.userId ?? username;
                     const resolvedUsername = responseUser.username ?? loginData.username ?? username;
@@ -184,16 +185,14 @@ const DevLogin: FC = () => {
                     const responseLevels = responseUser.levels ?? loginData.levels;
                     const responseAllowed = responseUser.allowedStatusActionIds ?? loginData.allowedStatusActionIds;
 
-                    const emailFromResponse = decoded?.user?.email
-                        ?? responseUser.email
+                    const emailFromResponse = responseUser.email
                         ?? loginData.email
                         ?? loginData.emailId
                         ?? loginData.emailID
                         ?? loginData.mail
                         ?? undefined;
 
-                    const phoneFromResponse = decoded?.user?.phone
-                        ?? responseUser.phone
+                    const phoneFromResponse = responseUser.phone
                         ?? loginData.phone
                         ?? loginData.contactNumber
                         ?? loginData.contact
@@ -202,17 +201,14 @@ const DevLogin: FC = () => {
                         ?? undefined;
 
                     loginDetails = {
-                        userId: decoded?.user?.userId || resolvedUserId,
-                        username: decoded?.user?.username || resolvedUsername,
-                        role: decoded?.user?.role
-                            ?? (Array.isArray(responseRoles) ? responseRoles.map(String) : []),
-                        levels: decoded?.user?.levels
-                            ?? (Array.isArray(responseLevels) ? responseLevels.map(String) : []),
-                        name: decoded?.user?.name ?? responseUser.name ?? loginData.name ?? undefined,
+                        userId: resolvedUserId,
+                        username: resolvedUsername,
+                        role: Array.isArray(responseRoles) ? responseRoles.map(String) : [],
+                        levels: Array.isArray(responseLevels) ? responseLevels.map(String) : [],
+                        name: responseUser.name ?? loginData.name ?? undefined,
                         email: emailFromResponse,
                         phone: phoneFromResponse,
-                        allowedStatusActionIds: decoded?.user?.allowedStatusActionIds
-                            ?? (Array.isArray(responseAllowed) ? responseAllowed.map(String) : []),
+                        allowedStatusActionIds: Array.isArray(responseAllowed) ? responseAllowed.map(String) : [],
                     };
 
                     if (loginData.permissions) {
