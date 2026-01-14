@@ -74,7 +74,7 @@ const renderWithForm = (defaultValues: Record<string, any>) => {
 
   const Wrapper = () => {
     methods = useForm({ defaultValues });
-    return <RequestorDetails {...methods} control={methods.control} createMode />;
+    return <RequestorDetails errors={{}} {...methods} control={methods.control} createMode />;
   };
 
   const view = render(<Wrapper />);
@@ -128,9 +128,9 @@ describe('RequestorDetails', () => {
   it('auto-fills current user details in Self mode', async () => {
     const { form } = renderWithForm({ mode: 'Self' });
 
-    await act(async () => {
-      form.setValue('userId', 'self-1');
-    });
+    // await act(async () => {
+    //   form.setValue('userId', 'self-1');
+    // });
 
     await waitFor(() => {
       expect(mockGetUserDetailsWithFallback).toHaveBeenCalledWith('self-1', false);
@@ -147,10 +147,10 @@ describe('RequestorDetails', () => {
     expect(screen.getByLabelText('Search User')).toBeInTheDocument();
     expect(screen.getByText('Stakeholder')).toBeInTheDocument();
 
-    await act(async () => {
-      form.setValue('mode', 'Self');
-      form.setValue('userId', 'self-1');
-    });
+    // await act(async () => {
+    //   form.setValue('mode', 'Self');
+    //   form.setValue('userId', 'self-1');
+    // });
 
     await waitFor(() => {
       expect(mockGetUserDetailsWithFallback).toHaveBeenCalledWith('self-1', false);

@@ -1,20 +1,15 @@
-import { Checkbox, FormControlLabel, InputAdornment, ToggleButton, ToggleButtonGroup, Autocomplete, TextField, Card, IconButton, CircularProgress } from "@mui/material";
-import { formFieldValue, inputColStyling } from "../../constants/bootstrapClasses";
+import { Autocomplete, TextField, IconButton, CircularProgress } from "@mui/material";
+import { formFieldValue } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
-import CustomFormInput from "../UI/Input/CustomFormInput";
-import VerifyIconButton from "../UI/IconButton/VerifyIconButton";
 import { getUserDetailsWithFallback, searchRequesterUsers } from "../../services/UserService";
-import { FieldValues, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import CustomIconButton from "../UI/IconButton/CustomIconButton";
 import CustomFieldset from "../CustomFieldset";
-import { getCurrentUserDetails, FciTheme, isFciUser, isHelpdesk } from "../../config/config";
-import DropdownController from "../UI/Dropdown/DropdownController";
+import { getCurrentUserDetails, isHelpdesk } from "../../config/config";
 import GenericDropdownController from "../UI/Dropdown/GenericDropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
-import ViewToggle from "../UI/ViewToggle";
 import { useTranslation } from "react-i18next";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getStakeholders } from "../../services/StakeholderService";
@@ -44,7 +39,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const [loadingUsers, setLoadingUsers] = useState(false);
     const { t } = useTranslation();
 
-    const fciUser = isFciUser();
     const helpdesk = isHelpdesk();
 
     const isDisabled = disableAll || disabled;
@@ -209,7 +203,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     useEffect(() => {
         if (debouncedUserId) {
             setDisabled(true);
-            if (disableAll || fciUser) verifyUserById(debouncedUserId);
+            if (disableAll) verifyUserById(debouncedUserId);
         } else clearRequestorDetailsForm();
 
         setVerified(false);
@@ -256,7 +250,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const showSearchUserAutocomplete = mode !== 'Self' && createMode
     const showRequestorDetailsCard = selectedUser && Object.keys(selectedUser).length > 0;
-    const isSelfHelpdesk = helpdesk && mode === 'Self';
 
     const showOnBehalfCheckbox = checkFieldAccess('requestorDetails', 'onBehalfOfFciUser') && createMode && mode !== 'Self';
 
@@ -267,13 +260,8 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
     const showStakeholder = checkFieldAccess('requestorDetails', 'stakeholder') && mode !== 'Self'
 
     const showRole = checkFieldAccess('requestorDetails', 'role')
-    // && (viewMode === FCI_User || fciUser || onBehalfFciUser || isSelfHelpdesk);
     const showOffice = checkFieldAccess('requestorDetails', 'office')
-    // && (viewMode === FCI_User || fciUser || onBehalfFciUser) && !isSelfHelpdesk;
     const isStakeholderDisabled = false || !createMode;
-
-    const isRequestorOrOnBehalfFci = !createMode && userId
-    const isRequestorOnBehalfNonFci = !createMode && !userId && stakeholder
 
     const isLoadMoreOption = (option: any): option is { loadMore: true } => option?.loadMore;
 
