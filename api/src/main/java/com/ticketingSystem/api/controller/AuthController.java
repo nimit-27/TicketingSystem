@@ -55,9 +55,14 @@ public class AuthController {
                     .body(Map.of("message", "Failed to load permissions"));
         }
 
-        if (isDuplicateLogin(request, httpRequest)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "User is already logged in"));
+        Optional<LoginPayload> activeLogin = resolveActiveLogin(httpRequest);
+        if (activeLogin.isPresent() && isDuplicateLogin(request, activeLogin.get())) {
+            LoginPayload payload = activeLogin.get();
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("message", "User is already logged in");
+            response.put("username", payload.getUsername());
+            response.put("userId", payload.getUserId());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
         return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
@@ -216,17 +221,19 @@ public class AuthController {
         return Optional.of(new TokenPair(token, refreshToken, expiresIn, refreshExpiresIn));
     }
 
-    private boolean isDuplicateLogin(LoginRequest request, HttpServletRequest httpRequest) {
-        if (request == null || !StringUtils.hasText(request.getUsername())) {
-            return false;
-        }
+    private Optional<LoginPayload> resolveActiveLogin(HttpServletRequest httpRequest) {
         return tokenCookieService.readAccessToken(httpRequest)
                 .map(jwtTokenService::verifyAccessToken)
                 .filter(JwtTokenService.TokenVerificationResult::valid)
-                .map(JwtTokenService.TokenVerificationResult::payload)
-                .map(LoginPayload::getUsername)
-                .filter(username -> username != null && username.equalsIgnoreCase(request.getUsername()))
-                .isPresent();
+                .map(JwtTokenService.TokenVerificationResult::payload);
+    }
+
+    private boolean isDuplicateLogin(LoginRequest request, LoginPayload activeLogin) {
+        if (request == null || !StringUtils.hasText(request.getUsername())) {
+            return false;
+        }
+        String activeUsername = activeLogin != null ? activeLogin.getUsername() : null;
+        return activeUsername != null && activeUsername.equalsIgnoreCase(request.getUsername());
     }
 
 }
