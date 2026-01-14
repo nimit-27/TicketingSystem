@@ -27,6 +27,9 @@ const RaiseTicket: React.FC<any> = () => {
     const isMaster = useWatch({ control, name: 'isMaster' });
     const masterId = useWatch({ control, name: 'masterId' });
     const subject = useWatch({ control, name: 'subject' });
+    const subjectCharLimit = 250;
+    const subjectLength = subject?.length ?? 0;
+    const isSubjectOverLimit = subjectLength > subjectCharLimit;
 
     let showLinkToMasterTicket = checkAccessMaster(["ticketForm", "linkToMasterTicketButton"]);
 
@@ -173,7 +176,7 @@ const RaiseTicket: React.FC<any> = () => {
                 {/* Submit Button */}
                 <div className="text-end mt-3 d-flex justify-content-center gap-2">
                     <GenericCancelButton textKey="Clear Form" type="button" onClick={handleClearForm} style={{ width: '220px' }} />
-                    <GenericSubmitButton textKey="Submit Ticket" disabled={!isValid} style={{ width: '220px' }} />
+                    <GenericSubmitButton textKey="Submit Ticket" disabled={!isValid || isSubjectOverLimit} style={{ width: '220px' }} />
                 </div>
             </form>
 

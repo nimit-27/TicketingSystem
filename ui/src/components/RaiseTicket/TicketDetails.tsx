@@ -88,6 +88,9 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const category = useWatch({ control, name: 'category' });
     const subjectValue = useWatch({ control, name: 'subject' });
     const descriptionValue = useWatch({ control, name: 'description' });
+    const subjectCharLimit = 250;
+    const subjectLength = subjectValue?.length ?? 0;
+    const isSubjectOverLimit = subjectLength > subjectCharLimit;
     const currentStatus = useWatch({ control, name: 'statusId' });
 
     let showAssignedToLevel = checkFieldAccess('ticketDetails', 'assignedToLevel') && !createMode;
@@ -302,7 +305,19 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             type="text"
                             disabled={disableAll || subjectDisabled}
                             required
+                            validations={{
+                                maxLength: {
+                                    value: subjectCharLimit,
+                                    message: `Subject must be ${subjectCharLimit} characters or fewer.`
+                                }
+                            }}
+                            inputProps={{ maxLength: subjectCharLimit }}
                         />
+                        <small
+                            className={`d-block mt-1 ${isSubjectOverLimit ? 'text-danger' : 'text-muted'}`}
+                        >
+                            {subjectLength}/{subjectCharLimit}
+                        </small>
                     </div>
                 )}
                 {showDescription && (
