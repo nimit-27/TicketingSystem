@@ -49,6 +49,7 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        // Only use the Authorization header access token; do not inspect the request body.
         String token = resolveToken(request.getHeader(HttpHeaders.AUTHORIZATION));
         if (token != null && isKeycloakAuthTokenRequest(request)) {
             try {

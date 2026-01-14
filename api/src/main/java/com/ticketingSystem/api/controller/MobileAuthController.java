@@ -1,13 +1,10 @@
 package com.ticketingSystem.api.controller;
 
-import com.ticketingSystem.api.dto.ClientCredentialRequest;
 import com.ticketingSystem.api.dto.ClientTokenResponse;
 import com.ticketingSystem.api.service.MobileClientAuthService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,8 +20,10 @@ public class MobileAuthController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<?> issueClientToken(@RequestBody @Valid ClientCredentialRequest request) {
-        return mobileClientAuthService.exchangeCredentials(request)
+    public ResponseEntity<?> issueClientToken() {
+        // Previously accepted client credentials in the request body; remove once unused.
+        // return mobileClientAuthService.exchangeCredentials(request)
+        return mobileClientAuthService.issueMobileClientToken()
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Invalid client credentials")));
