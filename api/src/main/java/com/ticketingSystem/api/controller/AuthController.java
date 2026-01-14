@@ -42,7 +42,10 @@ public class AuthController {
     private final TokenCookieService tokenCookieService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request,
+                                   HttpSession session,
+                                   HttpServletRequest httpRequest,
+                                   HttpServletResponse response) {
         try {
             // Reload permissions on each login so that any changes in the database
             // are reflected in the login response.
@@ -50,6 +53,16 @@ public class AuthController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Failed to load permissions"));
+        }
+
+        Optional<LoginPayload> activeLogin = resolveActiveLogin(httpRequest);
+        if (activeLogin.isPresent() && isDuplicateLogin(request, activeLogin.get())) {
+            LoginPayload payload = activeLogin.get();
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("message", "User is already logged in");
+            response.put("username", payload.getUsername());
+            response.put("userId", payload.getUserId());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
         return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
@@ -206,6 +219,21 @@ public class AuthController {
                 ? number.longValue()
                 : jwtProperties.getRefreshExpirationMinutes();
         return Optional.of(new TokenPair(token, refreshToken, expiresIn, refreshExpiresIn));
+    }
+
+    private Optional<LoginPayload> resolveActiveLogin(HttpServletRequest httpRequest) {
+        return tokenCookieService.readAccessToken(httpRequest)
+                .map(jwtTokenService::verifyAccessToken)
+                .filter(JwtTokenService.TokenVerificationResult::valid)
+                .map(JwtTokenService.TokenVerificationResult::payload);
+    }
+
+    private boolean isDuplicateLogin(LoginRequest request, LoginPayload activeLogin) {
+        if (request == null || !StringUtils.hasText(request.getUsername())) {
+            return false;
+        }
+        String activeUsername = activeLogin != null ? activeLogin.getUsername() : null;
+        return activeUsername != null && activeUsername.equalsIgnoreCase(request.getUsername());
     }
 
 }
