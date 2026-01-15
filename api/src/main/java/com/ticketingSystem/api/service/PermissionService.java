@@ -109,9 +109,11 @@ public class PermissionService {
                 continue;
             }
 
-            RolePermission existing = config.getRoles().get(role.getRoleId());
-            if (existing == null) {
+            RolePermission existing;
+            if (role.getPermissions() != null && !role.getPermissions().isBlank()) {
                 existing = objectMapper.readValue(role.getPermissions(), RolePermission.class);
+            } else {
+                existing = new RolePermission();
             }
 
             RolePermission synchronizedPermission = applyTemplate(masterPermissions, existing);
