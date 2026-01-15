@@ -58,11 +58,11 @@ public class AuthController {
         Optional<LoginPayload> activeLogin = resolveActiveLogin(httpRequest);
         if (activeLogin.isPresent() && isDuplicateLogin(request, activeLogin.get())) {
             LoginPayload payload = activeLogin.get();
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("message", "User is already logged in");
-            response.put("username", payload.getUsername());
-            response.put("userId", payload.getUserId());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            Map<String, Object> res = new LinkedHashMap<>();
+            res.put("message", "User is already logged in");
+            res.put("username", payload.getUsername());
+            res.put("userId", payload.getUserId());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
         }
 
         return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
