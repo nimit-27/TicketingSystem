@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { loginUser } from "../services/AuthService";
 import { useApi } from "../hooks/useApi";
 import { setPermissions } from "../utils/permissions";
-import { RoleLookupItem, setRoleLookup, setUserDetails } from "../utils/Utils";
+import { RoleLookupItem, getUserDetails, getUserPermissions, setRoleLookup, setUserDetails } from "../utils/Utils";
 import { getRoleSummaries } from "../services/RoleService";
 import { storeToken, getDecodedAuthDetails } from "../utils/authToken";
 import { LoginPayload, RolePermission, UserDetails } from "../types/auth";
@@ -57,6 +57,7 @@ const LoginPage: FC = () => {
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
     const [selectedPortal, setSelectedPortal] = useState<PortalType>("requestor");
+    const [sessionError, setSessionError] = useState<string | undefined>(undefined);
     const navigate = useNavigate();
 
     const { t } = useTranslation();
@@ -69,6 +70,23 @@ const LoginPage: FC = () => {
     useEffect(() => {
         document.title = t("Login");
     }, [t]);
+
+    useEffect(() => {
+        const check = () => {
+            const user = getUserDetails();
+            const perms = getUserPermissions();
+            if (user?.userId && perms) {
+                navigate("/", { replace: true });
+            }
+        };
+        check();
+        const id = setInterval(check, 1000);
+        window.addEventListener("storage", check);
+        return () => {
+            clearInterval(id);
+            window.removeEventListener("storage", check);
+        };
+    }, [navigate]);
 
     useEffect(() => {
         const persistLoginData = async () => {
@@ -147,6 +165,14 @@ const LoginPage: FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const activeUser = getUserDetails();
+        const activePermissions = getUserPermissions();
+        if (activeUser?.userId && activePermissions) {
+            setSessionError(t("You are already logged in. Please logout to switch accounts."));
+            return;
+        }
+
+        setSessionError(undefined);
 
         const payload: LoginPayload = {
             username: userId.trim(),
@@ -157,7 +183,7 @@ const LoginPage: FC = () => {
         loginApiHandler(() => loginUser(payload));
     };
 
-    const errorMessage = useMemo(() => (loginError ? String(loginError) : undefined), [loginError]);
+    const errorMessage = useMemo(() => (sessionError ?? (loginError ? String(loginError) : undefined)), [loginError, sessionError]);
 
     const renderLoginForm = (portal: PortalType): ReactNode => (
         <form className="login-form" onSubmit={handleSubmit}>
