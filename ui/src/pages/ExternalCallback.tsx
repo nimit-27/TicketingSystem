@@ -26,7 +26,12 @@ const ExternalCallback = () => {
     const location: any = useLocation();
     const navigate = useNavigate();
 
-    const { data: loginSsoData, success: loginSsoSuccess,  apiHandler: loginSsoHandler } = useApi()
+    const {
+        data: loginSsoData,
+        success: loginSsoSuccess,
+        error: loginSsoError,
+        apiHandler: loginSsoHandler
+    } = useApi()
 
     console.log({ loginSsoData })  // Should have new access token in response
 
@@ -46,6 +51,12 @@ const ExternalCallback = () => {
         // Save the token in session storage
         }
     }, [loginSsoSuccess])
+
+    useEffect(() => {
+        if (loginSsoError) {
+            navigate("/login", { replace: true })
+        }
+    }, [loginSsoError, navigate])
     
 
     return ""
