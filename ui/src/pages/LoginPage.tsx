@@ -83,7 +83,7 @@ const LoginPage: FC = () => {
         const permissions: RolePermission | undefined = data.permissions;
         if (permissions) {
             setPermissions(permissions);
-        }
+        } else return
 
         const submittedUserId = fallbackUserId?.trim() ?? "";
         // const decodedUser = decoded?.user;

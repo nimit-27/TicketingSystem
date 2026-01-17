@@ -61,6 +61,7 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/login" element={<LoginRoute />} />
           <Route path="/public/faq" element={<PublicFaq />} />
+          <Route path="auth/callback" element={<ExternalCallback />} />
         </Route>
         <Route
           path="/"
@@ -108,7 +109,6 @@ function App() {
           <Route path="users/new" element={<AddUser />} />
           <Route path="my-profile" element={<MyProfile />} />
           <Route path="account/change-password" element={<ChangePasswordPage />} />
-          <Route path="auth/callback" element={<ExternalCallback />} />
         </Route>
       </Routes>
     </Suspense>
