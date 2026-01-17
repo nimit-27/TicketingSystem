@@ -56,7 +56,6 @@ const LoginPage: FC = () => {
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
     const [selectedPortal, setSelectedPortal] = useState<PortalType>("requestor");
-    const [sessionError, setSessionError] = useState<string | undefined>(undefined);
     const navigate = useNavigate();
 
     const { t } = useTranslation();
@@ -70,27 +69,70 @@ const LoginPage: FC = () => {
         document.title = t("Login");
     }, [t]);
 
-    useEffect(() => {
-        const check = () => {
-            const user = getUserDetails();
-            const perms = getUserPermissions();
-            if (user?.userId && perms) {
-                navigate("/", { replace: true });
-            }
-        };
-        check();
-        const id = setInterval(check, 1000);
-        window.addEventListener("storage", check);
-        return () => {
-            clearInterval(id);
-            window.removeEventListener("storage", check);
-        };
-    }, [navigate]);
+    const persistLoginData = async (data: LoginResponse, fallbackUserId?: string) => {
+        if (!data) {
+            return;
+        }
 
-    useEffect(() => {
-        const persistLoginData = async () => {
-            if (!loginData) {
-                return;
+        // if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
+        //     storeToken(loginData.token);
+        // }
+
+        // const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+        const decoded = null;
+        const permissions: RolePermission | undefined = data.permissions;
+        if (permissions) {
+            setPermissions(permissions);
+        }
+
+        const submittedUserId = fallbackUserId?.trim() ?? "";
+        // const decodedUser = decoded?.user;
+        const decodedUser = null;
+        const emailFromResponse = data.email
+            ?? data.emailId
+            ?? data.emailID
+            ?? data.mail
+            ?? data.userEmail
+            ?? data.userMail
+            ?? data.user?.email
+            ?? undefined;
+        const phoneFromResponse = data.phone
+            ?? data.contactNumber
+            ?? data.contact
+            ?? data.mobile
+            ?? data.mobileNo
+            ?? data.userPhone
+            ?? data.user?.phone
+            ?? undefined;
+        const resolvedUserId = data.userId || submittedUserId;
+        const details: UserDetails = {
+            userId: resolvedUserId,
+            username: data.username || resolvedUserId,
+            role: data.roles ?? [],
+            levels: data.levels ?? [],
+            name: data.name,
+            email: emailFromResponse,
+            phone: phoneFromResponse,
+            allowedStatusActionIds: data.allowedStatusActionIds ?? [],
+        };
+        setUserDetails(details);
+
+        try {
+            const response = await getRoleSummaries();
+            const payload = Array.isArray(response.data)
+                ? response.data
+                : Array.isArray(response.data?.body?.data)
+                    ? response.data.body.data
+                    : [];
+
+            if (Array.isArray(payload)) {
+                const normalized: RoleLookupItem[] = payload
+                    .map((item: any) => ({
+                        roleId: item?.roleId ?? item?.role_id ?? item?.id,
+                        role: item?.role ?? item?.roleName ?? item?.name ?? "",
+                    }))
+                    .filter((item) => item.roleId != null && item.role);
+                setRoleLookup(normalized);
             }
         } catch (error) {
             console.error("Failed to load role summaries", error);
@@ -146,15 +188,6 @@ const LoginPage: FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const activeUser = getUserDetails();
-        const activePermissions = getUserPermissions();
-        if (activeUser?.userId && activePermissions) {
-            setSessionError(t("You are already logged in. Please logout to switch accounts."));
-            return;
-        }
-
-        setSessionError(undefined);
-
         const payload: LoginPayload = {
             username: userId.trim(),
             password,
@@ -164,7 +197,7 @@ const LoginPage: FC = () => {
         loginApiHandler(() => loginUser(payload));
     };
 
-    const errorMessage = useMemo(() => (sessionError ?? (loginError ? String(loginError) : undefined)), [loginError, sessionError]);
+    const errorMessage = useMemo(() => (loginError ? String(loginError) : undefined), [loginError]);
 
     const renderLoginForm = (portal: PortalType): ReactNode => (
         <form className="login-form" onSubmit={handleSubmit}>
