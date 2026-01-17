@@ -6,6 +6,13 @@ export function loginUser(payload: LoginPayload) {
     return axios.post(`${BASE_URL}/auth/login`, payload, { withCredentials: true });
 }
 
+export function getActiveSession() {
+    return axios.get(`${BASE_URL}/auth/session`, {
+        withCredentials: true,
+        validateStatus: (status) => status === 200 || status === 204 || status === 401,
+    });
+}
+
 export function logoutUser() {
     return axios.post(`${BASE_URL}/auth/logout`, null, { withCredentials: true });
 }

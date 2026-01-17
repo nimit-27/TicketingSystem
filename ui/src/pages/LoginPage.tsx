@@ -9,12 +9,11 @@ import DeveloperModeIcon from "@mui/icons-material/DeveloperMode";
 import { InputAdornment, useTheme } from "@mui/material";
 import CustomTabsComponent, { TabItem } from "../components/UI/CustomTabsComponent";
 import { useTranslation } from "react-i18next";
-import { loginUser } from "../services/AuthService";
+import { getActiveSession, loginUser } from "../services/AuthService";
 import { useApi } from "../hooks/useApi";
 import { setPermissions } from "../utils/permissions";
-import { RoleLookupItem, setRoleLookup, setUserDetails } from "../utils/Utils";
+import { RoleLookupItem, getUserDetails, getUserPermissions, setRoleLookup, setUserDetails } from "../utils/Utils";
 import { getRoleSummaries } from "../services/RoleService";
-import { storeToken, getDecodedAuthDetails } from "../utils/authToken";
 import { LoginPayload, RolePermission, UserDetails } from "../types/auth";
 import colors from "../themes/colors";
 import { ThemeModeContext } from "../context/ThemeContext";
@@ -70,84 +69,125 @@ const LoginPage: FC = () => {
         document.title = t("Login");
     }, [t]);
 
+    const persistLoginData = async (data: LoginResponse, fallbackUserId?: string) => {
+        if (!data) {
+            return;
+        }
+
+        // if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
+        //     storeToken(loginData.token);
+        // }
+
+        // const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
+        const decoded = null;
+        const permissions: RolePermission | undefined = data.permissions;
+        if (permissions) {
+            setPermissions(permissions);
+        }
+
+        const submittedUserId = fallbackUserId?.trim() ?? "";
+        // const decodedUser = decoded?.user;
+        const decodedUser = null;
+        const emailFromResponse = data.email
+            ?? data.emailId
+            ?? data.emailID
+            ?? data.mail
+            ?? data.userEmail
+            ?? data.userMail
+            ?? data.user?.email
+            ?? undefined;
+        const phoneFromResponse = data.phone
+            ?? data.contactNumber
+            ?? data.contact
+            ?? data.mobile
+            ?? data.mobileNo
+            ?? data.userPhone
+            ?? data.user?.phone
+            ?? undefined;
+        const resolvedUserId = data.userId || submittedUserId;
+        const details: UserDetails = {
+            userId: resolvedUserId,
+            username: data.username || resolvedUserId,
+            role: data.roles ?? [],
+            levels: data.levels ?? [],
+            name: data.name,
+            email: emailFromResponse,
+            phone: phoneFromResponse,
+            allowedStatusActionIds: data.allowedStatusActionIds ?? [],
+        };
+        setUserDetails(details);
+
+        try {
+            const response = await getRoleSummaries();
+            const payload = Array.isArray(response.data)
+                ? response.data
+                : Array.isArray(response.data?.body?.data)
+                    ? response.data.body.data
+                    : [];
+
+            if (Array.isArray(payload)) {
+                const normalized: RoleLookupItem[] = payload
+                    .map((item: any) => ({
+                        roleId: item?.roleId ?? item?.role_id ?? item?.id,
+                        role: item?.role ?? item?.roleName ?? item?.name ?? "",
+                    }))
+                    .filter((item) => item.roleId != null && item.role);
+                setRoleLookup(normalized);
+            }
+        } catch (error) {
+            console.error("Failed to load role summaries", error);
+        }
+
+        navigate("/");
+    };
+
     useEffect(() => {
-        const persistLoginData = async () => {
-            if (!loginData) {
-                return;
+        if (!loginData) {
+            return;
+        }
+        void persistLoginData(loginData, userId.trim());
+    }, [loginData, userId]);
+
+    useEffect(() => {
+        const checkStoredSession = () => {
+            const user = getUserDetails();
+            const perms = getUserPermissions();
+            if (user?.userId && perms) {
+                navigate("/", { replace: true });
             }
+        };
+        checkStoredSession();
+        const id = setInterval(checkStoredSession, 1000);
+        window.addEventListener("storage", checkStoredSession);
+        return () => {
+            clearInterval(id);
+            window.removeEventListener("storage", checkStoredSession);
+        };
+    }, [navigate]);
 
-            // if (!jwtBypass && typeof loginData.token === "string" && loginData.token) {
-            //     storeToken(loginData.token);
-            // }
-
-            // const decoded = !jwtBypass ? getDecodedAuthDetails() : null;
-            const decoded = null;
-            const permissions: RolePermission | undefined = loginData.permissions;
-            if (permissions) {
-                setPermissions(permissions);
-            }
-
-            const submittedUserId = userId.trim();
-            // const decodedUser = decoded?.user;
-            const decodedUser = null;
-            const emailFromResponse = loginData.email
-                ?? loginData.emailId
-                ?? loginData.emailID
-                ?? loginData.mail
-                ?? loginData.userEmail
-                ?? loginData.userMail
-                ?? loginData.user?.email
-                ?? undefined;
-            const phoneFromResponse = loginData.phone
-                ?? loginData.contactNumber
-                ?? loginData.contact
-                ?? loginData.mobile
-                ?? loginData.mobileNo
-                ?? loginData.userPhone
-                ?? loginData.user?.phone
-                ?? undefined;
-            const details: UserDetails = {
-                userId: loginData.userId || submittedUserId,
-                username: loginData.username || submittedUserId,
-                role: loginData.roles ?? [],
-                levels: loginData.levels ?? [],
-                name: loginData.name,
-                email: emailFromResponse,
-                phone: phoneFromResponse,
-                allowedStatusActionIds: loginData.allowedStatusActionIds ?? [],
-            };
-            setUserDetails(details);
-
+    useEffect(() => {
+        let mounted = true;
+        const fetchSession = async () => {
             try {
-                const response = await getRoleSummaries();
-                const payload = Array.isArray(response.data)
-                    ? response.data
-                    : Array.isArray(response.data?.body?.data)
-                        ? response.data.body.data
-                        : [];
-
-                if (Array.isArray(payload)) {
-                    const normalized: RoleLookupItem[] = payload
-                        .map((item: any) => ({
-                            roleId: item?.roleId ?? item?.role_id ?? item?.id,
-                            role: item?.role ?? item?.roleName ?? item?.name ?? "",
-                        }))
-                        .filter((item) => item.roleId != null && item.role);
-                    setRoleLookup(normalized);
+                const response = await getActiveSession();
+                if (!mounted) {
+                    return;
+                }
+                if (response.status === 200 && response.data) {
+                    await persistLoginData(response.data);
                 }
             } catch (error) {
-                console.error("Failed to load role summaries", error);
+                console.error("Failed to check active session", error);
             }
-
-            navigate("/");
         };
-
-        void persistLoginData();
-    }, [loginData, navigate, userId, jwtBypass]);
+        void fetchSession();
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         const payload: LoginPayload = {
             username: userId.trim(),
             password,
