@@ -56,7 +56,7 @@ public class AuthController {
         }
 
         Optional<LoginPayload> activeLogin = resolveActiveLogin(httpRequest);
-        if (activeLogin.isPresent() && isDuplicateLogin(request, activeLogin.get())) {
+        if (activeLogin.isPresent()) {
             LoginPayload payload = activeLogin.get();
             Map<String, Object> res = new LinkedHashMap<>();
             res.put("message", "User is already logged in");
@@ -221,19 +221,32 @@ public class AuthController {
         return Optional.of(new TokenPair(token, refreshToken, expiresIn, refreshExpiresIn));
     }
 
+    @GetMapping("/session")
+    public ResponseEntity<?> session(HttpServletRequest httpRequest) {
+        Optional<LoginPayload> activeLogin = resolveActiveLogin(httpRequest);
+        if (activeLogin.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        LoginPayload payload = activeLogin.get();
+        Map<String, Object> responseBody = new LinkedHashMap<>();
+        responseBody.put("userId", payload.getUserId());
+        responseBody.put("name", payload.getName());
+        responseBody.put("firstName", payload.getFirstName());
+        responseBody.put("lastName", payload.getLastName());
+        responseBody.put("username", payload.getUsername());
+        responseBody.put("roles", payload.getRoles());
+        responseBody.put("permissions", payload.getPermissions());
+        responseBody.put("levels", payload.getLevels());
+        responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+        responseBody.put("clientType", payload.getClientType() != null ? payload.getClientType().name() : null);
+        return ResponseEntity.ok(responseBody);
+    }
+
     private Optional<LoginPayload> resolveActiveLogin(HttpServletRequest httpRequest) {
         return tokenCookieService.readAccessToken(httpRequest)
                 .map(jwtTokenService::verifyAccessToken)
                 .filter(JwtTokenService.TokenVerificationResult::valid)
                 .map(JwtTokenService.TokenVerificationResult::payload);
     }
-
-    private boolean isDuplicateLogin(LoginRequest request, LoginPayload activeLogin) {
-        if (request == null || !StringUtils.hasText(request.getUsername())) {
-            return false;
-        }
-        String activeUsername = activeLogin != null ? activeLogin.getUsername() : null;
-        return activeUsername != null && activeUsername.equalsIgnoreCase(request.getUsername());
-    }
-
 }
