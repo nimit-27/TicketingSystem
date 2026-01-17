@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { SsoLoginPayload } from "../types/auth";
+import { LoginResponse, SsoLoginPayload } from "../types/auth";
 import { useApi } from "../hooks/useApi";
 import { loginSso } from "../services/AuthService";
+import { persistLoginData, startSessionDetection } from "../utils/session";
 
 
 function extractParamsFromUrl(location: Location): SsoLoginPayload {
@@ -30,27 +31,36 @@ const ExternalCallback = () => {
         data: loginSsoData,
         success: loginSsoSuccess,
         error: loginSsoError,
-        apiHandler: loginSsoHandler
-    } = useApi()
+        apiHandler: loginSsoHandler,
+    } = useApi<LoginResponse>();
 
-    console.log({ loginSsoData })  // Should have new access token in response
-
-    const loginSsoApiHandler = () => {
-        let payload: SsoLoginPayload = extractParamsFromUrl(location)
-
-        loginSsoHandler(() => loginSso(payload))
-    }
+    const loginSsoApiHandler = useCallback(() => {
+        const payload: SsoLoginPayload = extractParamsFromUrl(location);
+        const hasParams = Boolean(payload.authCode || payload.username || payload.clientId);
+        if (!hasParams) {
+            return;
+        }
+        loginSsoHandler(() => loginSso(payload));
+    }, [location, loginSsoHandler]);
 
     useEffect(() => {
-        // Extract params & call API
-        loginSsoApiHandler()
-    }, [])
+        const cleanup = startSessionDetection({
+            navigate,
+            redirectPath: "/dashboard",
+            onActiveSession: (data) => persistLoginData(data, { navigate, redirectPath: "/dashboard" }),
+            onSessionAbsent: () => {
+                loginSsoApiHandler();
+            },
+        });
+
+        return cleanup;
+    }, [loginSsoApiHandler, navigate]);
     
     useEffect(() => {
-        if(loginSsoSuccess) {
-        // Save the token in session storage
+        if (loginSsoSuccess && loginSsoData) {
+            void persistLoginData(loginSsoData, { navigate, redirectPath: "/dashboard" });
         }
-    }, [loginSsoSuccess])
+    }, [loginSsoSuccess, loginSsoData, navigate]);
 
     useEffect(() => {
         if (loginSsoError) {
