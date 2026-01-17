@@ -14,7 +14,7 @@ import { useApi } from "../hooks/useApi";
 import { setPermissions } from "../utils/permissions";
 import { RoleLookupItem, getUserDetails, getUserPermissions, setRoleLookup, setUserDetails } from "../utils/Utils";
 import { getRoleSummaries } from "../services/RoleService";
-import { LoginPayload, RolePermission, UserDetails } from "../types/auth";
+import { LoginPayload, LoginResponse, RolePermission, UserDetails } from "../types/auth";
 import colors from "../themes/colors";
 import { ThemeModeContext } from "../context/ThemeContext";
 import { LanguageContext } from "../context/LanguageContext";
@@ -25,30 +25,6 @@ import GenericButton from "../components/UI/Button";
 import "./LoginPage.scss";
 
 type PortalType = "requestor" | "helpdesk";
-
-interface LoginResponse {
-    token?: string;
-    permissions?: RolePermission;
-    userId?: string;
-    username?: string;
-    roles?: string[];
-    levels?: string[];
-    name?: string;
-    allowedStatusActionIds?: string[];
-    email?: string;
-    emailId?: string;
-    emailID?: string;
-    mail?: string;
-    contactNumber?: string;
-    contact?: string;
-    phone?: string;
-    mobile?: string;
-    mobileNo?: string;
-    userEmail?: string;
-    userMail?: string;
-    userPhone?: string;
-    [key: string]: any;
-}
 
 const LoginPage: FC = () => {
     const theme = useTheme();
