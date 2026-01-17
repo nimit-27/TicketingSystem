@@ -24,7 +24,7 @@ const ROLE_LOOKUP_KEY = 'roleLookup';
 let statusCache: any[] | null = null;
 
 export function setUserDetails(details: UserDetails) {
-  sessionStorage.setItem(USER_KEY, JSON.stringify(details));
+  localStorage.setItem(USER_KEY, JSON.stringify(details));
 }
 
 export function getUserDetails(): UserDetails | null {
@@ -35,33 +35,33 @@ export function getUserDetails(): UserDetails | null {
   //   }
   // }
 
-  const data = sessionStorage.getItem(USER_KEY);
+  const data = localStorage.getItem(USER_KEY);
   return data ? JSON.parse(data) : null;
 }
 
 export function setUserPermissions(perm: any) {
-  sessionStorage.setItem(PERM_KEY, JSON.stringify(perm));
+  localStorage.setItem(PERM_KEY, JSON.stringify(perm));
 }
 
 export function getUserPermissions(): any {
-  const data = sessionStorage.getItem(PERM_KEY);
+  const data = localStorage.getItem(PERM_KEY);
   return data ? JSON.parse(data) : null;
 }
 
 export function clearSession() {
-  sessionStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(PERM_KEY);
-  sessionStorage.removeItem(ROLE_LOOKUP_KEY);
-  sessionStorage.removeItem(STATUS_LIST_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(PERM_KEY);
+  localStorage.removeItem(ROLE_LOOKUP_KEY);
+  localStorage.removeItem(STATUS_LIST_KEY);
   statusCache = null;
 }
 
 export function setRoleLookup(list: RoleLookupItem[]) {
-  sessionStorage.setItem(ROLE_LOOKUP_KEY, JSON.stringify(list));
+  localStorage.setItem(ROLE_LOOKUP_KEY, JSON.stringify(list));
 }
 
 export function getRoleLookup(): RoleLookupItem[] | null {
-  const data = sessionStorage.getItem(ROLE_LOOKUP_KEY);
+  const data = localStorage.getItem(ROLE_LOOKUP_KEY);
   return data ? JSON.parse(data) : null;
 }
 
@@ -101,11 +101,11 @@ export function getDisplayRoles(): RoleLookupItem[] {
 }
 
 export function setStatusList(list: any[]) {
-  sessionStorage.setItem(STATUS_LIST_KEY, JSON.stringify(list));
+  localStorage.setItem(STATUS_LIST_KEY, JSON.stringify(list));
 }
 
 export function getStatusList(): any[] | null {
-  const data = sessionStorage.getItem(STATUS_LIST_KEY);
+  const data = localStorage.getItem(STATUS_LIST_KEY);
   return data ? JSON.parse(data) : null;
 }
 
