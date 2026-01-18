@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { ANNADARPAN_AUTHORIZE_URL, ANNADARPAN_CLIENT_ID } from "../services/api";
 import { LoginResponse, SsoLoginPayload } from "../types/auth";
 import { useApi } from "../hooks/useApi";
 import { loginSso } from "../services/AuthService";
@@ -38,6 +39,12 @@ const ExternalCallback = () => {
         const payload: SsoLoginPayload = extractParamsFromUrl(location);
         const hasParams = Boolean(payload.authCode || payload.username || payload.clientId);
         if (!hasParams) {
+            const redirectUri = `${window.location.origin}/helpdesk/auth/callback`;
+            const params = new URLSearchParams({
+                client_id: ANNADARPAN_CLIENT_ID,
+                redirect_uri: redirectUri,
+            });
+            window.location.href = `${ANNADARPAN_AUTHORIZE_URL}?${params.toString()}`;
             return;
         }
         loginSsoHandler(() => loginSso(payload));

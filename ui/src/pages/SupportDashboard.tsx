@@ -583,7 +583,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
     resetSubCategories();
     setSelectedSubCategory("All");
-  }, []);
+  }, [loadSubCategories, resetSubCategories, selectedCategory]);
 
   const customRangeIsValid = React.useMemo(() => {
     if (timeScale !== "MONTHLY" || timeRange !== "CUSTOM_MONTH_RANGE") {
