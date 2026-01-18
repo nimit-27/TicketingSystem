@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,35 +25,46 @@ public class ExternalSsoTokenService {
             "https://devkeycloak.annadarpan.in/realms/AnnaDarpan/protocol/openid-connect/token";
 
     private final RestTemplate restTemplate;
-    private final String tokenUrl;
+    private final String tokenUri;
+    private final String clientId;
     private final String clientSecret;
 
     public ExternalSsoTokenService(
-            @Value("${security.keycloak.external-token-url:" + DEFAULT_TOKEN_URL + "}") String tokenUrl,
-            @Value("${security.keycloak.secret:}") String clientSecret) {
+            @Value("${spring.security.oauth2.resourceserver.jwt.token-uri:${security.keycloak.external-token-url:"
+                    + DEFAULT_TOKEN_URL + "}}") String tokenUri,
+            @Value("${spring.security.oauth2.client.registration.keycloak.client-id:}") String clientId,
+            @Value("${spring.security.oauth2.client.registration.keycloak.client-secret:${security.keycloak.secret:}}")
+            String clientSecret) {
         this.restTemplate = new RestTemplate();
-        this.tokenUrl = tokenUrl;
+        this.tokenUri = tokenUri;
+        this.clientId = clientId;
         this.clientSecret = clientSecret;
     }
 
     public Optional<ExternalSsoTokenResponse> requestToken(SsoLoginPayload payload) {
+        String resolvedClientId = clientId == null || clientId.isBlank()
+                ? payload.getClientId()
+                : clientId;
+        if (resolvedClientId == null || resolvedClientId.isBlank() || clientSecret == null || clientSecret.isBlank()) {
+            log.warn("Missing external SSO client credentials; unable to request token from {}", tokenUri);
+            return Optional.empty();
+        }
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setBasicAuth(resolvedClientId, clientSecret);
         MultiValueMap<String, String> requestPayload = new LinkedMultiValueMap<>();
-        requestPayload.add("grant_type", "authorization_code");
-        requestPayload.add("client_id", payload.getClientId());
-        requestPayload.add("client_secret", clientSecret);
-        requestPayload.add("code", payload.getAuthCode());
+        requestPayload.add("grant_type", "client_credentials");
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestPayload, headers);
 
         try {
             ResponseEntity<ExternalSsoTokenResponse> response =
-                    restTemplate.postForEntity(tokenUrl, request, ExternalSsoTokenResponse.class);
+                    restTemplate.exchange(tokenUri, HttpMethod.POST, request, ExternalSsoTokenResponse.class);
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return Optional.of(response.getBody());
             }
         } catch (RestClientException ex) {
-            log.warn("Failed to fetch external SSO token from {}", tokenUrl, ex);
+            log.warn("Failed to fetch external SSO token from {}", tokenUri, ex);
         }
         return Optional.empty();
     }
