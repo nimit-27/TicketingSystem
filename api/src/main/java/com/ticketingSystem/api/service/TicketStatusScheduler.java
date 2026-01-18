@@ -27,7 +27,7 @@ public class TicketStatusScheduler {
 
     @Scheduled(cron = "0 0 * * * *")
     public void closeResolvedTickets() {
-        LocalDateTime cutoff = LocalDateTime.now().minusHours(48);
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(72);
         List<Ticket> tickets = ticketRepository.findByTicketStatusAndLastModifiedBefore(TicketStatus.RESOLVED, cutoff);
         String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
         for (Ticket t : tickets) {
