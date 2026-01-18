@@ -1,6 +1,5 @@
 package com.ticketingSystem.api.service;
 
-import com.ticketingSystem.api.dto.ExternalSsoTokenRequest;
 import com.ticketingSystem.api.dto.ExternalSsoTokenResponse;
 import com.ticketingSystem.api.models.SsoLoginPayload;
 import org.slf4j.Logger;
@@ -13,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Optional;
 
@@ -20,7 +21,7 @@ import java.util.Optional;
 public class ExternalSsoTokenService {
     private static final Logger log = LoggerFactory.getLogger(ExternalSsoTokenService.class);
     private static final String DEFAULT_TOKEN_URL =
-            "https://devkeycloak.annadarpan.in/realms/AnnaDarpan/AnnaDarpan/getAccessToken";
+            "https://devkeycloak.annadarpan.in/realms/AnnaDarpan/protocol/openid-connect/token";
 
     private final RestTemplate restTemplate;
     private final String tokenUrl;
@@ -36,14 +37,13 @@ public class ExternalSsoTokenService {
 
     public Optional<ExternalSsoTokenResponse> requestToken(SsoLoginPayload payload) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        ExternalSsoTokenRequest requestPayload = ExternalSsoTokenRequest.builder()
-                .username(payload.getUsername())
-                .clientId(payload.getClientId())
-                .authCode(payload.getAuthCode())
-                .secret(clientSecret)
-                .build();
-        HttpEntity<ExternalSsoTokenRequest> request = new HttpEntity<>(requestPayload, headers);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> requestPayload = new LinkedMultiValueMap<>();
+        requestPayload.add("grant_type", "authorization_code");
+        requestPayload.add("client_id", payload.getClientId());
+        requestPayload.add("client_secret", clientSecret);
+        requestPayload.add("code", payload.getAuthCode());
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestPayload, headers);
 
         try {
             ResponseEntity<ExternalSsoTokenResponse> response =
