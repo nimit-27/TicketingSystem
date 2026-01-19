@@ -462,7 +462,8 @@ public class ReportService {
                 parameterCriteria.assignedTo(),
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
-                parameterCriteria.createdBy()
+                parameterCriteria.createdBy(),
+                parameterCriteria.userId()
         ) : ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
 
         EnumSet<TicketStatus> openLikeStatuses = EnumSet.allOf(TicketStatus.class);
@@ -581,7 +582,8 @@ public class ReportService {
                 parameterCriteria.assignedTo(),
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
-                parameterCriteria.createdBy()
+                parameterCriteria.createdBy(),
+                parameterCriteria.userId
         ) : ticketRepository.findByReportedDateBetween(timeSeries.dateRange().from(), timeSeries.dateRange().to());
 
         for (Ticket ticket : tickets) {

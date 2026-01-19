@@ -32,6 +32,7 @@ security:
     max-age: 3600
     allow-credentials: true
   keycloak:
+    secret: Zc0Gqu2uVcUXAzULxajYHpQYXDT0h4cM
     issuer: https://devkeycloak.annadarpan.in/realms/AnnaDarpan
     audience: account
 
