@@ -31,7 +31,6 @@ Thumbs.db
 # Node or Python wrapper stuff (if applicable)
 node_modules/
 .env
-.env.local
 
 # Docker files not to track (if generated)
 docker-compose.override.yml
