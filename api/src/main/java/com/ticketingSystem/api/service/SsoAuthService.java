@@ -42,7 +42,7 @@ public class SsoAuthService {
     public Optional<Map<String, Object>> login(SsoLoginPayload ssoLoginPayload, HttpSession session) {
         return externalSsoTokenService.requestToken(ssoLoginPayload)
                 .filter(response -> response.getAccessToken() != null && !response.getAccessToken().isBlank())
-                .flatMap(response -> authService.findUserByUsername(ssoLoginPayload.getUsername(), null)
+                .flatMap(response -> authService.findUserByUsername(ssoLoginPayload.getUsername(), "requestor")
                         .map(user -> buildLoginResponse(user, session, response.getAccessToken())));
     }
 
