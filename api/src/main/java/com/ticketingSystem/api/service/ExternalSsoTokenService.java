@@ -1,5 +1,7 @@
 package com.ticketingSystem.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ticketingSystem.api.dto.ExternalSsoTokenResponse;
 import com.ticketingSystem.api.models.SsoLoginPayload;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.management.ObjectName;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,10 +29,12 @@ public class ExternalSsoTokenService {
     private final RestTemplate restTemplate;
     private final String tokenUrl;
     private final String clientSecret;
+    private final ObjectMapper objectMapper;
 
     public ExternalSsoTokenService(
             @Value("${security.keycloak.external-token-url:" + DEFAULT_TOKEN_URL + "}") String tokenUrl,
-            @Value("${security.keycloak.secret:}") String clientSecret) {
+            @Value("${security.keycloak.secret:}") String clientSecret, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
         this.tokenUrl = tokenUrl;
         this.clientSecret = clientSecret;
@@ -38,12 +43,13 @@ public class ExternalSsoTokenService {
     public Optional<ExternalSsoTokenResponse> requestToken(SsoLoginPayload payload) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, String> requestPayload = new HashMap<>();
+        ObjectNode requestPayload = objectMapper.createObjectNode();
         requestPayload.put("username", payload.getUsername());
         requestPayload.put("clientId", payload.getClientId());
         requestPayload.put("authCode", payload.getAuthCode());
         requestPayload.put("secret", clientSecret);
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(requestPayload, headers);
+        HttpEntity<ObjectNode> request = new HttpEntity<>(requestPayload, headers);
+
 
         try {
             ResponseEntity<ExternalSsoTokenResponse> response =
