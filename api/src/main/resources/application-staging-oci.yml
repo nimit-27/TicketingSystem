@@ -31,6 +31,8 @@ security:
   keycloak:
     issuer: https://stgkeycloak.annadarpan.in/realms/ADStagingEnvironment
     audience: account
+  cookie:
+    path: /helpdeskbackend
 
 mobile:
   client:
