@@ -1,0 +1,4 @@
+mode_id,mode_label,mode_code
+1,Self,SELF
+2,Call,CALL
+3,Email,EMAIL

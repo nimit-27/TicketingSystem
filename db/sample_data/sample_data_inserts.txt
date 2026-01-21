@@ -1,0 +1,93 @@
+-- Sample master data
+INSERT INTO mode_master (mode_id, mode_label, mode_code) VALUES
+  ('1','Self','SELF'),
+  ('2','Call','CALL'),
+  ('3','Email','EMAIL');
+
+INSERT INTO priority_master (tp_id, tp_level, tp_description, tp_weightage, tp_active_flg) VALUES
+  ('P1','P1 | Urgent (100% users impacted)','Business operations halted',4,'Y'),
+  ('P2','P2 | High (50%+ users impacted)','Major workflow impact',3,'Y'),
+  ('P3','P3 | Medium (25-50% users impacted)','Degraded performance',2,'Y'),
+  ('P4','P4 | Low (single user impacted)','Minor inconvenience',1,'Y');
+
+INSERT INTO severity_master (ts_id, ts_level, ts_description, ts_weightage, ts_active_flg) VALUES
+  ('S1','Critical - S1','Complete outage or major failure',4,'Y'),
+  ('S2','High - S2','Major functionality impacted',3,'Y'),
+  ('S3','Medium - S3','Partial functionality impacted',2,'Y'),
+  ('S4','Low - S4','Minor issue or cosmetic',1,'Y');
+
+INSERT INTO status_master (status_id, status_name, label, status_code, sla_flag, description, color) VALUES
+  (1,'Open (New)','Open','OPEN',0,'Ticket created but not assigned','#2196F3'),
+  (2,'Assigned (In Progress)','Assigned','ASSIGNED',1,'Ticket assigned to support','#9C27B0'),
+  (3,'On Hold (Pending with Requester)','On Hold','PENDING_WITH_REQUESTER',0,'Waiting for requester input','#FFC107'),
+  (4,'On Hold (Pending with Service Provider)','On Hold','PENDING_WITH_SERVICE_PROVIDER',1,'Waiting on third-party','#FF9800'),
+  (5,'On Hold (Pending with FCI)','On Hold','PENDING_WITH_FCI',0,'Waiting on internal team','#FFB74D'),
+  (6,'Awaiting Escalation Approval','Awaiting Approval','AWAITING_ESCALATION_APPROVAL',0,'Needs manager approval','#E91E63'),
+  (7,'Resolved','Resolved','RESOLVED',0,'Issue fixed pending confirmation','#4CAF50'),
+  (8,'Closed','Closed','CLOSED',0,'Ticket closed','#607D8B'),
+  (9,'Cancelled','Cancelled','CANCELLED',0,'Ticket withdrawn','#F44336'),
+  (10,'Reopened','Reopened','REOPENED',0,'Issue reopened','#3F51B5'),
+  (11,'Escalated','Escalated','ESCALATED',0,'Severity escalated','#FF5722');
+
+INSERT INTO sla_config (sla_id, severity_level, response_minutes, resolution_minutes) VALUES
+  ('SLA-S1','S1',30,240),
+  ('SLA-S2','S2',60,480),
+  ('SLA-S3','S3',120,960),
+  ('SLA-S4','S4',240,1440);
+
+INSERT INTO stakeholder_group (sg_id, description, is_active) VALUES
+  (1,'Internal','Y'),
+  (2,'External','Y'),
+  (3,'Helpdesk','Y');
+
+INSERT INTO stakeholder (stakeholder_id, description, sg_id, is_active) VALUES
+  (1,'FCI Users',1,'Y'),
+  (2,'Contractors',2,'Y'),
+  (3,'Millers',2,'Y'),
+  (4,'State Agencies',2,'Y'),
+  (5,'Helpdesk Support',3,'Y');
+
+INSERT INTO categories (category_id, category, created_by, timestamp, last_updated, updated_by, is_active) VALUES
+  ('CAT-100','Access & Auth','system','2025-01-02 09:10:00','2025-01-02 09:10:00','system','Y'),
+  ('CAT-200','Data Management','system','2025-01-02 09:12:00','2025-01-02 09:12:00','system','Y'),
+  ('CAT-300','Integrations','system','2025-01-02 09:14:00','2025-01-02 09:14:00','system','Y'),
+  ('CAT-400','Reporting & Analytics','system','2025-01-02 09:16:00','2025-01-02 09:16:00','system','Y'),
+  ('CAT-500','UI/UX','system','2025-01-02 09:18:00','2025-01-02 09:18:00','system','Y'),
+  ('CAT-600','Infrastructure','system','2025-01-02 09:20:00','2025-01-02 09:20:00','system','Y');
+
+INSERT INTO sub_categories (sub_category_id, sub_category, description, created_by, timestamp, category_id, severity_id, is_active, last_updated, updated_by) VALUES
+  ('SUB-101','Password reset fails','Reset link expired or OTP missing','system','2025-01-02 10:00:00','CAT-100','S3','Y','2025-01-02 10:00:00','system'),
+  ('SUB-102','Account locked','Too many failed attempts','system','2025-01-02 10:05:00','CAT-100','S2','Y','2025-01-02 10:05:00','system'),
+  ('SUB-201','Data import errors','Validation failures in batch import','system','2025-01-02 10:10:00','CAT-200','S3','Y','2025-01-02 10:10:00','system'),
+  ('SUB-202','Missing records','Reports show missing rows','system','2025-01-02 10:12:00','CAT-200','S2','Y','2025-01-02 10:12:00','system'),
+  ('SUB-301','API timeouts','Upstream API latency','system','2025-01-02 10:15:00','CAT-300','S2','Y','2025-01-02 10:15:00','system'),
+  ('SUB-302','Webhook failures','Callbacks not delivered','system','2025-01-02 10:18:00','CAT-300','S3','Y','2025-01-02 10:18:00','system'),
+  ('SUB-401','KPI mismatch','Dashboard KPI does not match raw data','system','2025-01-02 10:20:00','CAT-400','S1','Y','2025-01-02 10:20:00','system'),
+  ('SUB-402','Report scheduling fails','Recurring report not emailed','system','2025-01-02 10:22:00','CAT-400','S3','Y','2025-01-02 10:22:00','system'),
+  ('SUB-501','Button misaligned','UI alignment issue on ticket form','system','2025-01-02 10:25:00','CAT-500','S4','Y','2025-01-02 10:25:00','system'),
+  ('SUB-601','Service outage','Service unavailable in one region','system','2025-01-02 10:30:00','CAT-600','S1','Y','2025-01-02 10:30:00','system');
+
+-- Sample ticket data
+INSERT INTO tickets (
+  ticket_id, reported_date, mode, mode_id, user_id, requestor_name, requestor_email_id,
+  requestor_mobile_no, office, office_code, district_code, zone_code, region_code,
+  region_name, district_name, subject, description, category, sub_category, priority,
+  is_master, master_id, last_modified, status, assigned_to_level, level_id, assigned_to,
+  assigned_by, severity, recommended_severity, severity_recommended_by, impact, stakeholder,
+  status_id, resolved_at, feedback_status, updated_by
+) VALUES
+  ('TKT-2025-0001','2025-01-03 09:15:00','Email','3','USR-001','Aditi Sharma','aditi.sharma@example.com','9123000001','New Delhi','OFF-DEL-01','DST-DEL-01','ZN-N','RG-N','North Region','Delhi','Password reset email not received','User cannot reset password','Access & Auth','Password reset fails','P3',0,NULL,'2025-01-03 09:30:00','Open','L1','L1','Arjun Mehta','teaml1','S3','S3','teaml1','Medium','FCI Users','1',NULL,'PENDING','teaml1'),
+  ('TKT-2025-0002','2025-01-03 10:05:00','Call','2','USR-002','Bharat Kumar','bharat.kumar@example.com','9123000002','Lucknow','OFF-LKO-02','DST-LKO-02','ZN-N','RG-N','North Region','Lucknow','Account locked after failed login','Account locked in last 24 hours','Access & Auth','Account locked','P2',0,NULL,'2025-01-03 12:00:00','Assigned','L2','L2','Divya Kapoor','teaml1','S2','S2','teaml1','High','FCI Users','2',NULL,'PENDING','Divya Kapoor'),
+  ('TKT-2025-0003','2025-01-03 11:20:00','Self','1','USR-003','Charu Patel','charu.patel@example.com','9123000003','Chandigarh','OFF-CHD-01','DST-CHD-01','ZN-N','RG-N','North Region','Chandigarh','CSV import rejected','Multiple validation errors','Data Management','Data import errors','P3',0,NULL,'2025-01-03 15:40:00','Assigned','L1','L1','Farhan Ali','teaml1','S3','S3','teaml1','Medium','State Agencies','2',NULL,'PENDING','Farhan Ali'),
+  ('TKT-2025-0004','2025-01-04 09:00:00','Email','3','USR-004','Deepak Verma','deepak.verma@example.com','9123000004','Hyderabad','OFF-HYD-03','DST-HYD-03','ZN-S','RG-S','South Region','Hyderabad','Data missing in report','Report missing last week records','Data Management','Missing records','P2',0,NULL,'2025-01-05 09:30:00','On Hold','L2','L2','Esha Singh','teaml1','S2','S2','teaml1','High','Contractors','3',NULL,'PENDING','Esha Singh'),
+  ('TKT-2025-0005','2025-01-04 10:45:00','Call','2','USR-005','Meera Nair','meera.nair@example.com','9123000005','Kolkata','OFF-KOL-01','DST-KOL-01','ZN-E','RG-E','East Region','Kolkata','Integration API timeout','API requests failing intermittently','Integrations','API timeouts','P1',0,NULL,'2025-01-04 12:15:00','Assigned','L3','L3','RNO Harsh Verma','teaml1','S1','S1','teaml1','Critical','Helpdesk Support','2',NULL,'PENDING','RNO Harsh Verma'),
+  ('TKT-2025-0006','2025-01-04 14:10:00','Self','1','USR-006','Ishaan Malhotra','ishaan.m@example.com','9123000006','Mumbai','OFF-MUM-04','DST-MUM-04','ZN-W','RG-W','West Region','Mumbai','Webhook not delivered','No callback received','Integrations','Webhook failures','P3',0,NULL,'2025-01-06 09:00:00','Resolved','L2','L2','Garima Jain','teaml1','S3','S3','teaml1','Medium','Contractors','7','2025-01-06 08:55:00','PROVIDED','Garima Jain'),
+  ('TKT-2025-0007','2025-01-05 08:30:00','Email','3','USR-007','Om Prakash','om.prakash@example.com','9123000007','Jaipur','OFF-JAI-02','DST-JAI-02','ZN-N','RG-N','North Region','Jaipur','KPI mismatch with ledger','KPI off by 8%','Reporting & Analytics','KPI mismatch','P1',0,NULL,'2025-01-06 14:40:00','Escalated','L3','L3','Kevin Brooks','teaml1','S1','S1','teaml1','Critical','State Agencies','11',NULL,'PENDING','Kevin Brooks'),
+  ('TKT-2025-0008','2025-01-05 09:10:00','Self','1','USR-008','Priya Singh','priya.singh@example.com','9123000008','Bhopal','OFF-BPL-01','DST-BPL-01','ZN-C','RG-C','Central Region','Bhopal','Report scheduling failed','Daily report not emailed','Reporting & Analytics','Report scheduling fails','P3',0,NULL,'2025-01-07 11:00:00','Assigned','L1','L1','Arjun Mehta','teaml1','S3','S3','teaml1','Medium','FCI Users','2',NULL,'PENDING','Arjun Mehta'),
+  ('TKT-2025-0009','2025-01-05 12:40:00','Email','3','USR-009','Vikram Rao','vikram.rao@example.com','9123000009','Pune','OFF-PUN-02','DST-PUN-02','ZN-W','RG-W','West Region','Pune','Button overlaps field','Layout breaks on small screens','UI/UX','Button misaligned','P4',0,NULL,'2025-01-05 15:00:00','Closed','L1','L1','Bhavya Rao','teaml1','S4','S4','teaml1','Low','Helpdesk Support','8','2025-01-05 14:20:00','PROVIDED','Bhavya Rao'),
+  ('TKT-2025-0010','2025-01-06 07:50:00','Call','2','USR-010','Sana Qureshi','sana.qureshi@example.com','9123000010','Patna','OFF-PTN-01','DST-PTN-01','ZN-E','RG-E','East Region','Patna','Regional outage','Service unavailable in East region','Infrastructure','Service outage','P1',1,NULL,'2025-01-06 12:20:00','Assigned','L3','L3','ITM John Doe','teaml1','S1','S1','teaml1','Critical','State Agencies','2',NULL,'PENDING','ITM John Doe'),
+  ('TKT-2025-0011','2025-01-06 13:20:00','Self','1','USR-011','Kunal Das','kunal.das@example.com','9123000011','Ahmedabad','OFF-AHD-01','DST-AHD-01','ZN-W','RG-W','West Region','Ahmedabad','Import file stuck at 90%','Job hangs during processing','Data Management','Data import errors','P2',0,NULL,'2025-01-06 16:20:00','Assigned','L2','L2','Esha Singh','teaml1','S2','S2','teaml1','High','FCI Users','2',NULL,'PENDING','Esha Singh'),
+  ('TKT-2025-0012','2025-01-07 09:05:00','Email','3','USR-012','Nikita Roy','nikita.roy@example.com','9123000012','Shillong','OFF-SHL-01','DST-SHL-01','ZN-E','RG-E','East Region','Shillong','Report totals wrong','Totals differ from raw data','Reporting & Analytics','KPI mismatch','P1',0,NULL,'2025-01-08 10:20:00','Resolved','L3','L3','Kevin Brooks','teaml1','S1','S1','teaml1','Critical','Helpdesk Support','7','2025-01-08 10:05:00','PROVIDED','Kevin Brooks'),
+  ('TKT-2025-0013','2025-01-08 10:25:00','Call','2','USR-013','Rohit Sen','rohit.sen@example.com','9123000013','Indore','OFF-IND-02','DST-IND-02','ZN-C','RG-C','Central Region','Indore','Webhook retries spike','Delivery delays during peak','Integrations','Webhook failures','P3',0,NULL,'2025-01-09 09:10:00','On Hold','L2','L2','Farhan Ali','teaml1','S3','S3','teaml1','Medium','Contractors','4',NULL,'PENDING','Farhan Ali'),
+  ('TKT-2025-0014','2025-01-09 11:35:00','Email','3','USR-014','Simran Kaur','simran.kaur@example.com','9123000014','Noida','OFF-NOI-01','DST-NOI-01','ZN-N','RG-N','North Region','Noida','Login blocked after MFA','OTP not delivered','Access & Auth','Password reset fails','P2',0,NULL,'2025-01-10 09:45:00','Assigned','L2','L2','Divya Kapoor','teaml1','S2','S2','teaml1','High','FCI Users','2',NULL,'PENDING','Divya Kapoor'),
+  ('TKT-2025-0015','2025-01-10 08:10:00','Self','1','USR-015','Aman Gupta','aman.gupta@example.com','9123000015','Surat','OFF-SRT-01','DST-SRT-01','ZN-W','RG-W','West Region','Surat','Master outage follow-up','Child ticket linked to outage','Infrastructure','Service outage','P1',0,'TKT-2025-0010','2025-01-10 11:15:00','Open','L3','L3','ITM John Doe','teaml1','S1','S1','teaml1','Critical','State Agencies','1',NULL,'PENDING','ITM John Doe');

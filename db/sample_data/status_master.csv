@@ -1,0 +1,12 @@
+status_id,status_name,label,status_code,sla_flag,description,color
+1,Open (New),Open,OPEN,0,Ticket created but not assigned,#2196F3
+2,Assigned (In Progress),Assigned,ASSIGNED,1,Ticket assigned to support,#9C27B0
+3,On Hold (Pending with Requester),On Hold,PENDING_WITH_REQUESTER,0,Waiting for requester input,#FFC107
+4,On Hold (Pending with Service Provider),On Hold,PENDING_WITH_SERVICE_PROVIDER,1,Waiting on third-party,#FF9800
+5,On Hold (Pending with FCI),On Hold,PENDING_WITH_FCI,0,Waiting on internal team,#FFB74D
+6,Awaiting Escalation Approval,Awaiting Approval,AWAITING_ESCALATION_APPROVAL,0,Needs manager approval,#E91E63
+7,Resolved,Resolved,RESOLVED,0,Issue fixed pending confirmation,#4CAF50
+8,Closed,Closed,CLOSED,0,Ticket closed,#607D8B
+9,Cancelled,Cancelled,CANCELLED,0,Ticket withdrawn,#F44336
+10,Reopened,Reopened,REOPENED,0,Issue reopened,#3F51B5
+11,Escalated,Escalated,ESCALATED,0,Severity escalated,#FF5722
