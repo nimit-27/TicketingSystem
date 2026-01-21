@@ -169,15 +169,18 @@ export function formatDateWithSuffix(date: string | Date): string {
   return `${day}${suffix} ${month}, ${year}`;
 }
 
-export function logout() {
-  void logoutUser().catch((error) => {
+export async function logout() {
+  try {
+    await logoutUser();
+  } catch (error) {
     console.warn("Logout request failed", error);
-  });
-  // clearStoredToken();
-  clearSession();
-  const basePath = process.env.PUBLIC_URL || '';
-  const loginPath = `${basePath}/login`;
-  window.location.assign(loginPath);
+  } finally {
+    clearStoredToken();
+    clearSession();
+    const basePath = process.env.PUBLIC_URL || '';
+    const loginPath = `${basePath}/login`;
+    window.location.assign(loginPath);
+  }
 }
 
 export function getDropdownOptions<T>(arr: T[] | any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] {
