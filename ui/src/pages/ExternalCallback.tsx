@@ -41,7 +41,7 @@ const ExternalCallback = () => {
         if (!hasParams) {
             const redirectUri = `${window.location.origin}/helpdesk/auth/callback`;
             const params = new URLSearchParams({
-                client_id: ANNADARPAN_CLIENT_ID,
+                client_id: ANNADARPAN_CLIENT_ID ?? "",
                 redirect_uri: redirectUri,
             });
             window.location.href = `${ANNADARPAN_AUTHORIZE_URL}?${params.toString()}`;

@@ -3,13 +3,13 @@ STAGING IMAGE PUSH COMMANDS
 https://stg.annadarpan.in/helpdesk/login
 
 Creating tag for UI to be pushed to stg_ticketing_system repository
-docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-ui_stg_v1.06.02
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-ui_stg_v1.08
 
 Creating tag for API to be pushed to stg_ticketing_system repository
-docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-api_stg_v1.06
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-api_stg_v1.08.02
 
 Pushing UI image to stg_ticketing_system
-docker push bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-ui_stg_v1.06.02
+docker push bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-ui_stg_v1.08
 
 Pushing API image stg_ticketing_system
-docker push bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-api_stg_v1.06
+docker push bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-api_stg_v1.08.02

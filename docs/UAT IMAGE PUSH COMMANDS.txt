@@ -1,0 +1,24 @@
+UAT IMAGE PUSH COMMANDS
+
+https://uat.annadarpan.in/helpdesk/login
+
+Creating tag for UI to be pushed to uat_ticketing_system repository
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-ui_uat_v1.41
+
+Creating tag for API to be pushed to uat_ticketing_system repository
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-api_uat_v1.41.02
+
+Pushing UI image to uat_ticketing_system
+docker push bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-ui_uat_v1.41
+
+Pushing API image uat_ticketing_system
+docker push bom.ocir.io/bmozxse0db74/uat_ticketing_system:ticketing-api_uat_v1.41.02
+
+
+https://uat.annadarpan.in/authorize?client_id=ad-ticketing-service&redirect_uri=https://uat.annadarpan.in/helpdesk/auth/callback
+
+Can you check why below api call is Bad request.
+POST https://devkeycloak.annadarpan.in/realms/AnnaDarpanUATEnvironment/AnnaDarpan/auth-code 400 (Bad Request)
+
+
+https://dev.annadarpan.in/authorize?client_id=ad-ticketing-service&redirect_uri=https://dev.annadarpan.in/helpdesk/auth/callback

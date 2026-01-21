@@ -23,8 +23,8 @@ import java.util.Optional;
 @Service
 public class ExternalSsoTokenService {
     private static final Logger log = LoggerFactory.getLogger(ExternalSsoTokenService.class);
-    private static final String DEFAULT_TOKEN_URL =
-            "https://devkeycloak.annadarpan.in/realms/AnnaDarpan/AnnaDarpan/getAccessToken";
+    private static final String KEYCLOAK_GET_TOKEN_ENDPOINT =
+            "/AnnaDarpan/getAccessToken";
 
     private final RestTemplate restTemplate;
     private final String tokenUrl;
@@ -32,7 +32,7 @@ public class ExternalSsoTokenService {
     private final ObjectMapper objectMapper;
 
     public ExternalSsoTokenService(
-            @Value("${security.keycloak.external-token-url:" + DEFAULT_TOKEN_URL + "}") String tokenUrl,
+            @Value("${security.keycloak.issuer:}" + KEYCLOAK_GET_TOKEN_ENDPOINT) String tokenUrl,
             @Value("${security.keycloak.secret:}") String clientSecret, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();

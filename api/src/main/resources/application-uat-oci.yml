@@ -35,6 +35,10 @@ security:
     allow-credentials: true
   cookie:
     path: /helpdeskbackend
+  keycloak:
+    secret: fLuN68aSXpGJqfOzxjjF9tt9Aqe4nv3Q
+    issuer: https://devkeycloak.annadarpan.in/realms/AnnaDarpanUATEnvironment
+    audience: account
 
 mobile:
   client:
