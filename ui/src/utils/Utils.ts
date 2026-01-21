@@ -170,14 +170,21 @@ export function formatDateWithSuffix(date: string | Date): string {
 }
 
 export function logout() {
-  void logoutUser().catch((error) => {
-    console.warn("Logout request failed", error);
-  });
-  // clearStoredToken();
-  clearSession();
-  const basePath = process.env.PUBLIC_URL || '';
-  const loginPath = `${basePath}/login`;
-  window.location.assign(loginPath);
+  void logoutUser()
+    .then((res) => {
+      if (res.data.body.success) {
+        clearStoredToken();
+        clearSession();
+        const basePath = process.env.PUBLIC_URL || '';
+        const loginPath = `${basePath}/login`;
+        window.location.assign(loginPath);
+      } else {
+        throw new Error("Something went wrong")
+      }
+    })
+    .catch((error) => {
+      console.warn("Logout request failed", error);
+    });
 }
 
 export function getDropdownOptions<T>(arr: T[] | any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] {

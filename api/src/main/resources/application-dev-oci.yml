@@ -35,6 +35,8 @@ security:
     secret: Zc0Gqu2uVcUXAzULxajYHpQYXDT0h4cM
     issuer: https://devkeycloak.annadarpan.in/realms/AnnaDarpan
     audience: account
+  cookie:
+    path: /helpdeskbackend
 
 mobile:
   client:

@@ -4,6 +4,7 @@ import com.ticketingSystem.api.dto.TokenPair;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,11 @@ import java.util.Optional;
 public class TokenCookieService {
     public static final String ACCESS_TOKEN_COOKIE = "access_token";
     public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+    private final String cookiePath;
+
+    public TokenCookieService(@Value("${security.cookie.path:/}") String cookiePath) {
+        this.cookiePath = cookiePath;
+    }
 
     public void addTokenCookies(HttpServletResponse response, TokenPair tokenPair) {
         response.addHeader(HttpHeaders.SET_COOKIE, buildAccessCookie(tokenPair.token(), tokenPair.expiresInMinutes()).toString());
@@ -60,7 +66,7 @@ public class TokenCookieService {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path("/")
+                .path(cookiePath)
                 .maxAge(Duration.ofMinutes(expiresInMinutes))
                 .build();
     }
@@ -70,7 +76,7 @@ public class TokenCookieService {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path("/")
+                .path(cookiePath)
                 .maxAge(Duration.ZERO)
                 .build();
     }

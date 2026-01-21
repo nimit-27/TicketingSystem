@@ -36,6 +36,8 @@ security:
   keycloak:
     issuer: https://prdkeycloak.annadarpan.in/realms/prod
     audience: account
+  cookie:
+    path: /helpdeskbackend
 
 mobile:
   client:

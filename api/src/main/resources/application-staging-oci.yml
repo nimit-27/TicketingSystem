@@ -29,8 +29,11 @@ security:
     max-age: 3600
     allow-credentials: true
   keycloak:
+    secret: LvvvSjPRqYArfhfT8ia5qO1iA0jQXp4G
     issuer: https://stgkeycloak.annadarpan.in/realms/ADStagingEnvironment
     audience: account
+  cookie:
+    path: /helpdeskbackend
 
 mobile:
   client:
