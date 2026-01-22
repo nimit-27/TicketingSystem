@@ -1,0 +1,10 @@
+Script: RNO Severity Recommendation
+
+Steps
+1. Open **Tickets Assigned to Me** from the dashboard.
+2. Select the ticket that needs a severity recommendation.
+3. Review the subject, description, category, and any attachments.
+4. Click **Recommend Severity**.
+5. Choose the recommended severity level and add a brief justification.
+6. Click **Submit** to save the recommendation.
+7. Confirm the ticket shows your recommended severity and notes.

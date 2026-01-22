@@ -1,0 +1,9 @@
+Script: Reopening a Ticket (Requestor)
+
+Steps
+1. Open **My Tickets** (or **All Tickets**) from the menu.
+2. Find the ticket with status **Resolved/Closed** and open it.
+3. Click **Reopen**.
+4. Enter the reason for reopening (include the issue still observed).
+5. Click **Submit/Confirm** to reopen.
+6. Verify the status changes to **Reopened** and your comment is visible.
