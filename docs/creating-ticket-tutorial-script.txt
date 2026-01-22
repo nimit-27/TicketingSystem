@@ -1,0 +1,32 @@
+Video Tutorial Script: Creating a Ticket (Requestor)
+
+Scene 1: Intro
+“Hello! In this video, I’ll show you how to create a new ticket as a requestor in the Ticketing System. We’ll start from the login screen and finish with a submitted ticket.”
+
+Scene 2: Log in as a Requestor
+“On the login page, enter your requestor username and password, then click ‘Sign In’. After signing in, you’ll land on your requestor dashboard.”
+
+Scene 3: Navigate to Create Ticket
+“From the dashboard, select ‘Create Ticket’ in the main menu. This opens the new ticket form.”
+
+Scene 4: Fill in Ticket Details
+“First, enter a clear and specific subject so the support team understands the issue at a glance.”
+
+“In the description field, add full details. Include what you were trying to do, what happened, and any error messages you saw.”
+
+“If your organization uses categories or types, choose the option that best matches your request.”
+
+“Next, set the priority. Use high priority only for urgent issues that block work. Otherwise, select normal or low.”
+
+“If there’s an attachments section, click ‘Add Attachment’ and upload any screenshots or files that help explain the problem.”
+
+Scene 5: Review and Submit
+“Before submitting, quickly review the fields to make sure everything is accurate and complete.”
+
+“When you’re ready, click ‘Submit’ to create the ticket.”
+
+Scene 6: Confirmation
+“You should see a confirmation message and a ticket number. This number is your reference for future updates.”
+
+Scene 7: Wrap-up
+“That’s it! You’ve successfully created a ticket as a requestor. Thanks for watching, and I’ll see you in the next tutorial.”
