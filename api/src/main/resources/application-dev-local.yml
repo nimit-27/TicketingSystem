@@ -53,6 +53,9 @@ calendar:
     scheduler-enabled: ${CALENDAR_SCHEDULER_ENABLED:true}
     scheduler-horizon-years: ${CALENDAR_SCHEDULER_HORIZON_YEARS:1}
 
+typesense:
+  enabled: ${TYPESENSE_ENABLED:true}
+
 ---
 spring:
   config:

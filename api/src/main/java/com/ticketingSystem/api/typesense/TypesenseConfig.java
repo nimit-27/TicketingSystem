@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.typesense;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.typesense.api.Client;
 import org.typesense.api.Configuration;
@@ -10,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @org.springframework.context.annotation.Configuration
+@ConditionalOnProperty(prefix = "typesense", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TypesenseConfig {
 
     @Bean
