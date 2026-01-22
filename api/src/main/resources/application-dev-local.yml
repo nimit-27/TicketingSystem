@@ -54,7 +54,7 @@ calendar:
     scheduler-horizon-years: ${CALENDAR_SCHEDULER_HORIZON_YEARS:1}
 
 typesense:
-  enabled: ${TYPESENSE_ENABLED:true}
+  enabled: ${TYPESENSE_ENABLED:false}
 
 ---
 spring:

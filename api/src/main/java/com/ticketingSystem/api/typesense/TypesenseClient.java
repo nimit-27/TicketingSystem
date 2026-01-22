@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@ConditionalOnProperty(prefix = "typesense", name = "enabled", havingValue = "true", matchIfMissing = true)
+//@ConditionalOnProperty(prefix = "typesense", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TypesenseClient {
     private static final String TICKETS_COLLECTION = "tickets";
 
@@ -92,7 +92,7 @@ public class TypesenseClient {
         }
     }
 
-    @Scheduled(fixedRate = 30000)
+//    @Scheduled(fixedRate = 30000)
     public void syncUpdatedOrNewMasterTickets() throws Exception {
         System.out.println("Syncing only updated or new Master Tickets....");
 
@@ -109,7 +109,7 @@ public class TypesenseClient {
         System.out.println("✅ Updated or New Master tickets synced to Typesense.");
     }
 
-    @Scheduled(fixedRate = 60000)
+//    @Scheduled(fixedRate = 60000)
     public void syncMasterTickets() throws Exception {
         System.out.println("Syncing all Master Tickets Typesense....");
 

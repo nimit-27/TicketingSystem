@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @org.springframework.context.annotation.Configuration
-@ConditionalOnProperty(prefix = "typesense", name = "enabled", havingValue = "true", matchIfMissing = true)
+//@ConditionalOnProperty(prefix = "typesense", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TypesenseConfig {
 
     @Bean
