@@ -5,6 +5,7 @@ import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.service.SyncMetadataService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.typesense.api.Client;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@ConditionalOnProperty(prefix = "typesense", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TypesenseClient {
     private static final String TICKETS_COLLECTION = "tickets";
 
