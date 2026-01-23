@@ -8,6 +8,7 @@ import { BASE_URL } from '../../services/api';
 import { getCurrentUserDetails } from '../../config/config';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
+import { getIssueTypes } from '../../services/IssueTypeService';
 import InfoIcon from '../UI/Icons/InfoIcon';
 import GenericButton from '../UI/Button';
 import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow, RootCauseAnalysis } from '../../types';
@@ -126,9 +127,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [priorityId, setPriorityId] = useState('');
   const [severity, setSeverity] = useState('');
   const [recommendedSeverity, setRecommendedSeverity] = useState('');
+  const [issueTypeId, setIssueTypeId] = useState('');
   const [priorityOptions, setPriorityOptions] = useState<string[]>([]);
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityList, setSeverityList] = useState<SeverityInfo[]>([]);
+  const [issueTypeOptions, setIssueTypeOptions] = useState<DropdownOption[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<DropdownOption[]>([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState<DropdownOption[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
@@ -468,6 +471,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         const severityData = Array.isArray(res?.data) ? res.data : [];
         setSeverityList(severityData);
       });
+      getIssueTypes().then(res => {
+        const issueTypeData = Array.isArray(res?.data) ? res.data : [];
+        setIssueTypeOptions(getDropdownOptions(issueTypeData, 'issueTypeLabel', 'issueTypeId'));
+      });
       getCategories()
         .then(res => {
           const rawPayload = res?.data ?? res;
@@ -521,6 +528,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setPriorityId(ticket.priorityId || '');
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
+      setIssueTypeId(ticket.issueTypeId || '');
       setSelectedCategoryId('');
       setSelectedSubCategoryId('');
       setSubCategoryOptions([]);
@@ -599,6 +607,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       recommendedSeverity,
       updatedBy: currentUsername
     };
+    if (issueTypeId) {
+      payload.issueTypeId = issueTypeId;
+    }
     if (selectedCategoryId) {
       payload.category = selectedCategoryId;
     }
@@ -660,6 +671,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setPriorityId(ticket.priorityId || '');
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
+      setIssueTypeId(ticket.issueTypeId || '');
     }
   };
 
@@ -1180,9 +1192,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           {showIssueType && (
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
               <Typography color="text.secondary">{t('Issue Type')}</Typography>
-              <Typography sx={{ mt: 1 }}>
-                {ticket?.issueTypeLabel || ticket?.issueTypeId || ' - '}
-              </Typography>
+              {renderSelect(issueTypeId, setIssueTypeId, issueTypeOptions, {
+                displayValue: ticket?.issueTypeLabel || ticket?.issueTypeId,
+                translate: false,
+                disabled: !issueTypeOptions.length
+              })}
             </Box>
           )}
           {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
