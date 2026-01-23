@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "issue_type_master")
 @Getter
@@ -17,6 +19,16 @@ public class IssueType {
     @Column(name = "issue_type_id")
     private String issueTypeId;
 
-    @Column(name = "issue_type_label")
+    @Column(name = "name")
     private String issueTypeLabel;
+
+    private String description;
+
+    private String isActive;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+
 }

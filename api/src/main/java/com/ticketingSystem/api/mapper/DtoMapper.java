@@ -68,6 +68,10 @@ public class DtoMapper {
         IssueTypeDto dto = new IssueTypeDto();
         dto.setIssueTypeId(issueType.getIssueTypeId());
         dto.setIssueTypeLabel(issueType.getIssueTypeLabel());
+        dto.setDescription(issueType.getDescription());
+        dto.setIsActive(issueType.getIsActive());
+        dto.setCreatedAt(issueType.getCreatedAt());
+        dto.setUpdatedAt(issueType.getUpdatedAt());
         return dto;
     }
 

@@ -23,7 +23,7 @@ public class IssueTypeController {
 
     @GetMapping
     public ResponseEntity<List<IssueTypeDto>> getIssueTypes() {
-        List<IssueTypeDto> issueTypes = issueTypeService.getAll().stream()
+        List<IssueTypeDto> issueTypes = issueTypeService.getAllActive().stream()
                 .map(DtoMapper::toIssueTypeDto)
                 .toList();
         return ResponseEntity.ok(issueTypes);

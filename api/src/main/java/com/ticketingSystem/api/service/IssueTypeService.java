@@ -14,7 +14,7 @@ public class IssueTypeService {
         this.repository = repository;
     }
 
-    public List<IssueType> getAll() {
-        return repository.findAll();
+    public List<IssueType> getAllActive() {
+        return repository.findByIsActiveTrue();
     }
 }
