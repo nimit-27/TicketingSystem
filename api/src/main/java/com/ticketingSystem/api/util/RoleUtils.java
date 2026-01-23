@@ -32,7 +32,8 @@ public final class RoleUtils {
     private static final Set<String> ADMIN_ROLE_IDENTIFIERS = Set.of(
             "admin",
             "administrator",
-            "role_admin"
+            "role_admin",
+            "6"
     );
 
     private RoleUtils() {
