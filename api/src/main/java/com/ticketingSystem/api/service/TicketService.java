@@ -14,6 +14,7 @@ import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.CategoryRepository;
 import com.ticketingSystem.api.repository.SubCategoryRepository;
 import com.ticketingSystem.api.repository.PriorityRepository;
+import com.ticketingSystem.api.repository.IssueTypeRepository;
 import com.ticketingSystem.api.repository.UploadedFileRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.UserRepository;
@@ -71,6 +72,7 @@ public class TicketService {
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
     private final PriorityRepository priorityRepository;
+    private final IssueTypeRepository issueTypeRepository;
     private final UploadedFileRepository uploadedFileRepository;
     private final FileStorageService fileStorageService;
     private final StakeholderRepository stakeholderRepository;
@@ -96,6 +98,11 @@ public class TicketService {
             dto.setSubCategoryId(ticket.getSubCategory());
             subCategoryRepository.findById(ticket.getSubCategory())
                     .ifPresent(sub -> dto.setSubCategory(sub.getSubCategory()));
+        }
+        if (ticket.getIssueTypeId() != null) {
+            dto.setIssueTypeId(ticket.getIssueTypeId());
+            issueTypeRepository.findById(ticket.getIssueTypeId())
+                    .ifPresent(issueType -> dto.setIssueTypeLabel(issueType.getIssueTypeLabel()));
         }
         if(ticket.getCreatedBy() != null) dto.setCreatedBy(ticket.getCreatedBy());
 
@@ -479,6 +486,7 @@ public class TicketService {
                         .ifPresent(existing::setSeverity);
             }
         }
+        if (updated.getIssueTypeId() != null) existing.setIssueTypeId(updated.getIssueTypeId());
         if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
         if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
         if (updated.getRecommendedSeverity() != null) existing.setRecommendedSeverity(updated.getRecommendedSeverity());
@@ -1405,4 +1413,3 @@ public class TicketService {
         return ticketRepository.findByIsMasterTrue();
     }
 }
-

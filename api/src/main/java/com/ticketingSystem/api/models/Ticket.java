@@ -59,6 +59,11 @@ public class Ticket {
     private String category;
     @Column(name="sub_category")
     private String subCategory;
+    @Column(name = "issue_type_id")
+    private String issueTypeId;
+    @ManyToOne
+    @JoinColumn(name = "issue_type_id", referencedColumnName = "issue_type_id", insertable = false, updatable = false)
+    private IssueType issueType;
     private String priority;
     private String severity;
     @Column(name = "recommended_severity")

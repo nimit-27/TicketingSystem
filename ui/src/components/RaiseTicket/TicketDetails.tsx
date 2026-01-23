@@ -15,8 +15,9 @@ import { getCurrentUserDetails } from "../../config/config";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
+import { getIssueTypes } from "../../services/IssueTypeService";
 import InfoIcon from "../UI/Icons/InfoIcon";
-import { PriorityInfo, SeverityInfo } from "../../types";
+import { IssueTypeInfo, PriorityInfo, SeverityInfo } from "../../types";
 import FileUpload from "../UI/FileUpload";
 import { getDropdownOptions } from "../../utils/Utils";
 
@@ -45,6 +46,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const { data: nextStatusListByStatusIdData, apiHandler: getNextStatusListByStatusIdApiHandler } = useApi<any>();
     const { data: priorityList, apiHandler: getPriorityApiHandler } = useApi<any>();
     const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
+    const { data: issueTypeList, apiHandler: getIssueTypeApiHandler } = useApi<any>();
 
     // USESTATE INITIALIZATIONS
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
@@ -66,6 +68,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const statusOptions: DropdownOption[] = getDropdownOptions(nextStatusListByStatusIdData, 'action', 'nextStatus');
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: PriorityInfo) => ({ label: p.level, value: p.id })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level })) : [];
+    const issueTypeOptions: DropdownOption[] = getDropdownOptions(issueTypeList, 'issueTypeLabel', 'issueTypeId');
 
     const priorityContent = Array.isArray(priorityList) ? (
         <div>
@@ -100,6 +103,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     let showAssignToDropdown = checkFieldAccess('ticketDetails', 'assignToDropdown');
     let showCategory = checkFieldAccess('ticketDetails', 'category');
     let showSubCategory = checkFieldAccess('ticketDetails', 'subCategory');
+    let showIssueType = checkFieldAccess('ticketDetails', 'issueType');
     let showPriority = checkFieldAccess('ticketDetails', 'priority');
     let showSeverityFields = checkFieldAccess('ticketDetails', 'severity');
     let showSeverity = checkFieldAccess('ticketDetails', 'severity');
@@ -140,6 +144,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     useEffect(() => {
         getPriorityApiHandler(() => getPriorities())
         getSeverityApiHandler(() => getSeverities())
+        getIssueTypeApiHandler(() => getIssueTypes())
     }, [])
 
     useEffect(() => {
@@ -191,7 +196,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showCategory && (
-                    <div className="col-md-4">
+                    <div className="col-md-6">
                         <GenericDropdownController
                             name="category"
                             control={control}
@@ -204,7 +209,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                     </div>
                 )}
                 {showSubCategory && (
-                    <div className="col-md-4">
+                    <div className="col-md-6">
                         <GenericDropdownController
                             name="subCategory"
                             control={control}
@@ -216,8 +221,21 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                         />
                     </div>
                 )}
+                {showIssueType && (
+                    <div className="col-md-6">
+                        <GenericDropdownController
+                            name="issueTypeId"
+                            control={control}
+                            label="Issue Type"
+                            options={issueTypeOptions}
+                            className="form-select"
+                            disabled={disableAll}
+                            rules={{ required: 'Please select Issue Type' }}
+                        />
+                    </div>
+                )}
                 {showPriority && (
-                    <div className="col-md-4 d-flex align-items-center">
+                    <div className="col-md-6 d-flex align-items-center">
                         <GenericDropdownController
                             name="priority"
                             control={control}
