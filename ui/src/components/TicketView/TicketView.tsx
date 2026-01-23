@@ -1174,17 +1174,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           </>}
         </Box>
 
-        {showIssueType && (
-          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography color="text.secondary">{t('Issue Type')}</Typography>
-            <Typography sx={{ mt: 1 }}>
-              {ticket?.issueTypeLabel || ticket?.issueTypeId || ' - '}
-            </Typography>
-          </Box>
-        )}
 
         {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
+          {showIssueType && (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+              <Typography color="text.secondary">{t('Issue Type')}</Typography>
+              <Typography sx={{ mt: 1 }}>
+                {ticket?.issueTypeLabel || ticket?.issueTypeId || ' - '}
+              </Typography>
+            </Box>
+          )}
           {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
             <Typography className="me-2" color="text.secondary">{t('Priority')}</Typography>
             {renderSelect(priority, (val: string) => {
