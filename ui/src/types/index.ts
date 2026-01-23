@@ -40,12 +40,19 @@ export interface SeverityInfo {
     weightage: number;
 }
 
+export interface IssueTypeInfo {
+    issueTypeId: string;
+    issueTypeLabel: string;
+}
+
 export interface Ticket {
     id: string;
     subject: string;
     description?: string;
     category: string;
     subCategory: string;
+    issueTypeId?: string;
+    issueTypeLabel?: string;
     priority: string;
     priorityId?: string;
     isMaster: boolean;

@@ -108,6 +108,7 @@ const RaiseTicket: React.FC<any> = () => {
         resetField('assignTo');
         resetField('category');
         resetField('subCategory');
+        resetField('issueTypeId');
         resetField('priority');
         resetField('severity');
         resetField('impact');

@@ -37,6 +37,8 @@ public class TicketDto {
     private String categoryId;
     private String subCategory;
     private String subCategoryId;
+    private String issueTypeId;
+    private String issueTypeLabel;
     private String priority;
     private String priorityId;
     private String severity;

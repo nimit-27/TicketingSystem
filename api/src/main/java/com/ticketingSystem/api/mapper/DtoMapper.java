@@ -63,6 +63,18 @@ public class DtoMapper {
         return dto;
     }
 
+    public static IssueTypeDto toIssueTypeDto(IssueType issueType) {
+        if (issueType == null) return null;
+        IssueTypeDto dto = new IssueTypeDto();
+        dto.setIssueTypeId(issueType.getIssueTypeId());
+        dto.setIssueTypeLabel(issueType.getIssueTypeLabel());
+        dto.setDescription(issueType.getDescription());
+        dto.setIsActive(issueType.getIsActive());
+        dto.setCreatedAt(issueType.getCreatedAt());
+        dto.setUpdatedAt(issueType.getUpdatedAt());
+        return dto;
+    }
+
     public static TicketDto toTicketDto(Ticket ticket) {
         if (ticket == null) return null;
         TicketDto dto = new TicketDto();
@@ -87,6 +99,10 @@ public class DtoMapper {
         dto.setReportedDate(ticket.getReportedDate());
         dto.setCategory(ticket.getCategory());
         dto.setSubCategory(ticket.getSubCategory());
+        dto.setIssueTypeId(ticket.getIssueTypeId());
+        if (ticket.getIssueType() != null) {
+            dto.setIssueTypeLabel(ticket.getIssueType().getIssueTypeLabel());
+        }
         dto.setPriority(ticket.getPriority());
         dto.setPriorityId(ticket.getPriority());
         dto.setSeverity(ticket.getSeverity());

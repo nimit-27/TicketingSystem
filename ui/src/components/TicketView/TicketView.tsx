@@ -405,6 +405,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const allowCategoryEdit = checkAccessMaster(['ticketView', 'category', 'allowEdit'])
   const showSubcategory = checkAccessMaster(['ticketView', 'subcategory'])
   const allowSubcategoryEdit = checkAccessMaster(['ticketView', 'subcategory', 'allowEdit'])
+  const showIssueType = checkAccessMaster(['ticketView', 'issueType'])
   const showSla = checkAccessMaster(['ticketView', 'sla'])
   const showComments = checkAccessMaster(['ticketView', 'comments'])
 
@@ -1172,6 +1173,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             </Box>
           </>}
         </Box>
+
+        {showIssueType && (
+          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography color="text.secondary">{t('Issue Type')}</Typography>
+            <Typography sx={{ mt: 1 }}>
+              {ticket?.issueTypeLabel || ticket?.issueTypeId || ' - '}
+            </Typography>
+          </Box>
+        )}
 
         {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
