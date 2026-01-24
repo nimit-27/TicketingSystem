@@ -8,10 +8,15 @@ jest.mock("../../utils/authToken", () => ({
   isJwtBypassEnabled: jest.fn(() => false),
   clearStoredToken: jest.fn(),
 }));
+jest.mock("../../utils/sessionExpired", () => ({
+  isSessionExpiredMessage: jest.fn(() => false),
+  triggerSessionExpired: jest.fn(),
+}));
 
 let axiosMock: any;
 let utilsMock: any;
 let authTokenMock: any;
+let sessionExpiredMock: any;
 
 const resetAxios = () => {
   axiosMock.get.mockReset();
@@ -33,10 +38,12 @@ beforeEach(() => {
   axiosMock = jest.requireMock("axios");
   utilsMock = jest.requireMock("../../utils/Utils");
   authTokenMock = jest.requireMock("../../utils/authToken");
+  sessionExpiredMock = jest.requireMock("../../utils/sessionExpired");
   resetAxios();
   utilsMock.getUserDetails.mockReturnValue({ userId: "user-123" });
   authTokenMock.isJwtBypassEnabled.mockReturnValue(false);
   authTokenMock.getActiveToken.mockReturnValue("token-123");
+  sessionExpiredMock.isSessionExpiredMessage.mockReturnValue(false);
 });
 
 describe("apiClient", () => {
@@ -78,7 +85,17 @@ describe("apiClient", () => {
 
     expect(authTokenMock.clearStoredToken).not.toHaveBeenCalled();
     expect(utilsMock.clearSession).not.toHaveBeenCalled();
+    expect(sessionExpiredMock.triggerSessionExpired).not.toHaveBeenCalled();
     expect(result).toBe(error);
+  });
+
+  it("triggers the session expired modal when the backend signals expiry", async () => {
+    sessionExpiredMock.isSessionExpiredMessage.mockReturnValue(true);
+    await import("../apiClient");
+    const error = { response: { status: 403, data: { apiError: { message: "Session has expired. Please login again." } } } };
+    await axiosMock.__runResponseRejected(error).catch(() => undefined);
+
+    expect(sessionExpiredMock.triggerSessionExpired).toHaveBeenCalledWith("Session has expired. Please login again.");
   });
 });
 
