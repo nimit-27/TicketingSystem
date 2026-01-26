@@ -26,16 +26,19 @@ axios.interceptors.request.use((config) => {
 axios.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error?.response?.status === 403) {
-            const data = error?.response?.data;
-            const message = data?.apiError?.message
-                ?? data?.error?.message
-                ?? data?.message;
+        const status = error?.response?.status;
+        const data = error?.response?.data;
+        const message = data?.apiError?.message
+            ?? data?.error?.message
+            ?? data?.message;
+        if (status === 403) {
             if (isSessionExpiredMessage(message)) {
                 triggerSessionExpired(message);
             }
         }
-        if (error?.response?.status === 401) {
+        if (status === 401) {
+            const fallbackMessage = message ?? "Session has expired. Please login again.";
+            triggerSessionExpired(fallbackMessage);
             // clearStoredToken();
             clearSession();
         }

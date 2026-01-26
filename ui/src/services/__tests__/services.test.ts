@@ -69,13 +69,14 @@ describe("apiClient", () => {
     expect(config.headers["X-User-ID"]).toBe("user-999");
   });
 
-  it("clears session information when a 401 is returned", async () => {
+  it("clears session information and opens the session expired flow when a 401 is returned", async () => {
     await import("../apiClient");
     const error = { response: { status: 401 } };
     await axiosMock.__runResponseRejected(error).catch(() => undefined);
 
     expect(authTokenMock.clearStoredToken).toHaveBeenCalled();
     expect(utilsMock.clearSession).toHaveBeenCalled();
+    expect(sessionExpiredMock.triggerSessionExpired).toHaveBeenCalledWith("Session has expired. Please login again.");
   });
 
   it("passes through non-401 errors", async () => {
