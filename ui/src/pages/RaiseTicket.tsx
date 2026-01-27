@@ -37,8 +37,12 @@ const RaiseTicket: React.FC<any> = () => {
     const [linkToMasterTicketModalOpen, setLinkToMasterTicketModalOpen] = useState(false);
     const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
     const [attachments, setAttachments] = useState<File[]>([]);
+    const [attachmentError, setAttachmentError] = useState<string | null>(null);
+    const [attachmentUploadFailed, setAttachmentUploadFailed] = useState(false);
 
-    const onSubmit = (formValues: any) => {
+    const onSubmit = async (formValues: any) => {
+        setAttachmentError(null);
+        setAttachmentUploadFailed(false);
         const {
             name,
             emailId,
@@ -81,23 +85,38 @@ const RaiseTicket: React.FC<any> = () => {
         console.table(formData);
 
         // 1) Create ticket (no files)
-        apiHandler(() => addTicket(formData))
-            .then((resp: any) => {
-                const ticketId = resp?.id;
-                setCreatedTicketId(ticketId);
+        const resp: any = await apiHandler(() => addTicket(formData));
+        const ticketId = resp?.id;
+        if (!ticketId) {
+            return;
+        }
+        setCreatedTicketId(ticketId);
 
-                const files: File[] = Array.isArray(attachments) ? attachments : [];
-                // 2) If files selected, upload them against created ticket
-                console.log({ attachments })
-                if (ticketId && files.length > 0) {
-                    return apiHandler(() => addAttachments(ticketId, files))
-                        .then(() => {
-                            setSuccessfulModalOpen(true);
-                        });
+        const files: File[] = Array.isArray(attachments) ? attachments : [];
+        // 2) If files selected, upload them against created ticket
+        console.log({ attachments })
+        if (files.length > 0) {
+            try {
+                const uploadResp: any = await addAttachments(ticketId, files);
+                const rawPayload = uploadResp?.data ?? uploadResp;
+                const successFlag = typeof rawPayload?.success === 'boolean' ? rawPayload.success : true;
+                if (!successFlag) {
+                    const message = rawPayload?.error?.message || null;
+                    setAttachmentUploadFailed(true);
+                    setAttachmentError(message);
                 }
-                // No attachments to upload
-                setSuccessfulModalOpen(true);
-            })
+            } catch (err: any) {
+                const message = err?.response?.data?.apiError?.message
+                    || err?.response?.data?.body?.data?.message
+                    || err?.response?.data?.message
+                    || err?.message
+                    || 'Something went wrong';
+                setAttachmentUploadFailed(true);
+                setAttachmentError(message);
+            }
+        }
+        // Show success modal regardless of attachment outcome
+        setSuccessfulModalOpen(true);
     };
 
     const clearTicketDetailsFields = () => {
@@ -131,6 +150,8 @@ const RaiseTicket: React.FC<any> = () => {
         setSuccessfulModalOpen(false);
         setAttachments([]);
         setCreatedTicketId(null);
+        setAttachmentError(null);
+        setAttachmentUploadFailed(false);
         clearTicketDetailsFields();
     };
     const onLinkToMasterTicketModalClose = () => setLinkToMasterTicketModalOpen(false);
@@ -192,7 +213,13 @@ const RaiseTicket: React.FC<any> = () => {
                 isCurrentTicketMaster={isMaster}
             />
             {/* Successful Modal */}
-            <SuccessfulModal ticketId={createdTicketId ?? ''} open={successfullModalOpen} onClose={onClose} />
+            <SuccessfulModal
+                ticketId={createdTicketId ?? ''}
+                open={successfullModalOpen}
+                attachmentUploadFailed={attachmentUploadFailed}
+                attachmentError={attachmentError}
+                onClose={onClose}
+            />
         </div>
     )
 }

@@ -13,7 +13,13 @@ export function addTicket(payload: any) {
 
 export function addAttachments(id: string, files: File[] | FileList) {
     const formData = new FormData();
-    Array.from<File>(files).forEach(file => formData.append('attachments', file));
+    Array.from<File>(files).forEach(file => {
+        const normalizedName = file.name.replace(/\s+/g, '_');
+        const normalizedFile = normalizedName === file.name
+            ? file
+            : new File([file], normalizedName, { type: file.type, lastModified: file.lastModified });
+        formData.append('attachments', normalizedFile);
+    });
     return axios.post(`${BASE_URL}/tickets/${id}/attachments`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
     });

@@ -7,10 +7,18 @@ import CustomIconButton from "../UI/IconButton/CustomIconButton";
 interface SuccessfulModalProps {
     open: boolean;
     ticketId: string;
+    attachmentUploadFailed?: boolean;
+    attachmentError?: string | null;
     onClose: () => void;
 }
 
-const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClose }) => {
+const SuccessfulModal: React.FC<SuccessfulModalProps> = ({
+    open,
+    ticketId,
+    attachmentUploadFailed = false,
+    attachmentError,
+    onClose
+}) => {
     const encodedTicketId = encodeURIComponent(ticketId);
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -37,6 +45,13 @@ const SuccessfulModal: React.FC<SuccessfulModalProps> = ({ open, ticketId, onClo
                     <h4 className="text-success fw-bold text-center mb-3">
                         {t('Thank you! Your ticket has been submitted successfully.')}
                     </h4>
+
+                    {attachmentUploadFailed && (
+                        <p className="text-danger fw-bold text-center mb-3">
+                            {t('Attachments were not added.')}
+                            {attachmentError && <span> {attachmentError}</span>}
+                        </p>
+                    )}
 
                     <h5 className="text-center fw-bold mb-4">
                         {t('Ticket ID')}: <span className="ticket-id">{ticketId}</span>
