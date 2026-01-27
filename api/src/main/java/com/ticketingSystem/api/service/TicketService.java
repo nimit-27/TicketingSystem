@@ -639,28 +639,8 @@ public class TicketService {
             return;
         }
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("ticketId", ticket.getId());
-
         Optional<User> assignee = findUserByIdOrUsername(assignedTo);
-        assignee.ifPresent(user -> {
-            if (user.getName() != null && !user.getName().isBlank()) {
-                data.put("assigneeName", user.getName());
-            } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
-                data.put("assigneeName", user.getUsername());
-            }
-        });
-        if (!data.containsKey("assigneeName")) {
-            data.put("assigneeName", assignedTo);
-        }
-
-        String assignedByValue = assignedBy;
-        if (assignedByValue == null || assignedByValue.isBlank()) {
-            assignedByValue = ticket.getUpdatedBy();
-        }
-        if (assignedByValue != null && !assignedByValue.isBlank()) {
-            data.put("assignedBy", assignedByValue);
-        }
+        Map<String, Object> data = buildAssignmentNotificationDataModel(ticket, assignedTo, assignedBy, assignee);
 
         try {
             String recipient = resolveRecipientIdentifier(
@@ -682,6 +662,36 @@ public class TicketService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private Map<String, Object> buildAssignmentNotificationDataModel(Ticket ticket,
+                                                                     String assignedTo,
+                                                                     String assignedBy,
+                                                                     Optional<User> assignee) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("ticketId", ticket.getId());
+
+        String assigneeName = resolveUserName(assignee.orElse(null), assignedTo);
+        data.put("assigneeName", assigneeName != null ? assigneeName : "");
+        data.put("userName", assigneeName != null ? assigneeName : "");
+
+        String priority = ticket.getPriority();
+        data.put("priority", priority != null ? priority : "");
+
+        LocalDateTime dateAssigned = ticket.getLastModified() != null
+                ? ticket.getLastModified()
+                : ticket.getReportedDate();
+        data.put("dateAssigned", dateAssigned != null ? dateAssigned : "");
+
+        String assignedByValue = assignedBy;
+        if (assignedByValue == null || assignedByValue.isBlank()) {
+            assignedByValue = ticket.getUpdatedBy();
+        }
+        if (assignedByValue != null && !assignedByValue.isBlank()) {
+            data.put("assignedBy", assignedByValue);
+        }
+
+        return data;
     }
 
     private void sendRequestorAssignmentNotification(Ticket ticket,
