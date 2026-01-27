@@ -4,7 +4,7 @@ Dear ${userName},
 
 Your ticket has been assigned to our support team for resolution.
 
-Assigned To: ${assignedTo}
+Assigned To: ${assigneeName}
 Priority: ${priority}
 Date Assigned: ${dateAssigned}
 

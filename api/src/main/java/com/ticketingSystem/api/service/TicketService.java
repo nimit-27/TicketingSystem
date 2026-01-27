@@ -53,6 +53,8 @@ public class TicketService {
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
+    private static final String TICKET_RESOLVED_NOTIFICATION_CODE = "TICKET_RESOLVED";
+    private static final String TICKET_LINKED_TO_MASTER_NOTIFICATION_CODE = "TICKET_LINKED_TO_MASTER";
     private static final String IT_MANAGER_ROLE_NAME = "IT Manager";
     private static final String TEAM_LEAD_ROLE_NAME = "Team Lead";
     private static final String RECOMMENDED_SEVERITY_APPROVED_UPDATE_TYPE = "RECOMMENDED_SEVERITY_APPROVED";
@@ -667,6 +669,12 @@ public class TicketService {
             );
             notificationService.sendNotification(
                     ChannelType.IN_APP,
+                    TICKET_ASSIGNED_NOTIFICATION_CODE,
+                    data,
+                    recipient
+            );
+            notificationService.sendNotification(
+                    ChannelType.EMAIL,
                     TICKET_ASSIGNED_NOTIFICATION_CODE,
                     data,
                     recipient

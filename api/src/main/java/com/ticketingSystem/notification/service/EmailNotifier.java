@@ -30,7 +30,7 @@ public class EmailNotifier implements Notifier {
 
     @Override
     public void send(NotificationRequest request) throws Exception {
-        Template template = freemarker.getTemplate(request.getTemplateName() + ".ftl");
+        Template template = freemarker.getTemplate(request.getTemplateName());
         StringWriter out = new StringWriter();
         template.process(request.getDataModel(), out);
         String body = out.toString();
