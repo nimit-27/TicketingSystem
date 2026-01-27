@@ -263,6 +263,44 @@ public class TicketController {
         return ResponseEntity.ok(resp);
     }
 
+    @GetMapping("/search/export")
+    public ResponseEntity<List<TicketDto>> searchTicketsForExport(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false, name = "status") String statusId,
+            @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String assignedBy,
+            @RequestParam(required = false) String requestorId,
+            @RequestParam(required = false) String levelId,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subCategory,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) {
+        logger.info("Request to export tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} fromDate={} toDate={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, fromDate, toDate);
+        List<TicketDto> results = ticketService.searchTicketsList(
+                query,
+                statusId,
+                master,
+                assignedTo,
+                assignedBy,
+                requestorId,
+                levelId,
+                priority,
+                severity,
+                createdBy,
+                category,
+                subCategory,
+                fromDate,
+                toDate
+        );
+        logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
+        return ResponseEntity.ok(results);
+    }
+
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<TicketCommentDto> updateComment(@PathVariable String commentId, @RequestBody String comment) {
         logger.info("Request to update comment {}", commentId);

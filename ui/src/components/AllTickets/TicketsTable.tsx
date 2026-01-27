@@ -29,7 +29,7 @@ import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
 import InfoIcon from '../UI/Icons/InfoIcon';
-import { searchTicketsByDateRange, updateTicket } from '../../services/TicketService';
+import { searchTicketsForExport, updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
@@ -401,7 +401,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             showMessage(t('Please select a valid date range.'), 'warning');
             return;
         }
-        const payload = await downloadTicketsApiHandler(() => searchTicketsByDateRange(downloadFromDate, downloadToDate));
+        const payload = await downloadTicketsApiHandler(() => searchTicketsForExport(downloadFromDate, downloadToDate));
         const ticketsToExport = normalizeDownloadTickets(payload);
         if (!ticketsToExport.length) {
             showMessage(t('No data available'), 'info');

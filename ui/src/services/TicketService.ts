@@ -125,9 +125,9 @@ export function searchTicketsPaginated(
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 
-export function searchTicketsByDateRange(fromDate?: string, toDate?: string) {
+export function searchTicketsForExport(fromDate?: string, toDate?: string) {
     const params = new URLSearchParams();
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
-    return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
+    return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`);
 }
