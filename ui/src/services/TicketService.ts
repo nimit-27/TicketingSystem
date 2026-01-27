@@ -124,3 +124,10 @@ export function searchTicketsPaginated(
     if (subCategoryId) params.append('subCategory', subCategoryId);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
+
+export function searchTicketsByDateRange(fromDate?: string, toDate?: string) {
+    const params = new URLSearchParams();
+    if (fromDate) params.append('fromDate', fromDate);
+    if (toDate) params.append('toDate', toDate);
+    return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
+}
