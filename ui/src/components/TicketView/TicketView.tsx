@@ -1152,9 +1152,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
       <Box className="d-flex flex-column col-6" >
           <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-            Created by{' '}
+            Created by {' '}
             <Typography
               component="span"
+              className='mx-1'
               variant="caption"
               color={canOpenRequestorModal ? 'primary' : 'text.secondary'}
               sx={{ cursor: canOpenRequestorModal ? 'pointer' : 'default', textDecoration: canOpenRequestorModal ? 'underline' : 'none' }}
@@ -1162,7 +1163,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             >
               {requestorDisplayName}
             </Typography>
-            {' '}on {createdDateText}
+            {' '} on {createdDateText}
           </Typography>
           <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 0 }}>
             {updatedInfo}
