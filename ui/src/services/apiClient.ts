@@ -31,14 +31,12 @@ axios.interceptors.response.use(
         const message = data?.apiError?.message
             ?? data?.error?.message
             ?? data?.message;
-        if (status === 403) {
-            if (isSessionExpiredMessage(message)) {
-                triggerSessionExpired(message);
-            }
+        const shouldTriggerSessionExpired = isSessionExpiredMessage(message);
+        if (status === 403 && shouldTriggerSessionExpired) {
+            triggerSessionExpired(message);
         }
-        if (status === 401) {
-            const fallbackMessage = message ?? "Session has expired. Please login again.";
-            triggerSessionExpired(fallbackMessage);
+        if (status === 401 && shouldTriggerSessionExpired) {
+            triggerSessionExpired(message);
             // clearStoredToken();
             clearSession();
         }

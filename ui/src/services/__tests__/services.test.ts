@@ -69,14 +69,26 @@ describe("apiClient", () => {
     expect(config.headers["X-User-ID"]).toBe("user-999");
   });
 
-  it("clears session information and opens the session expired flow when a 401 is returned", async () => {
+  it("opens the session expired flow when a 401 includes the explicit session expired message", async () => {
+    sessionExpiredMock.isSessionExpiredMessage.mockReturnValue(true);
     await import("../apiClient");
-    const error = { response: { status: 401 } };
+    const error = { response: { status: 401, data: { apiError: { message: "Session has expired. Please login again." } } } };
     await axiosMock.__runResponseRejected(error).catch(() => undefined);
 
     expect(authTokenMock.clearStoredToken).toHaveBeenCalled();
     expect(utilsMock.clearSession).toHaveBeenCalled();
     expect(sessionExpiredMock.triggerSessionExpired).toHaveBeenCalledWith("Session has expired. Please login again.");
+  });
+
+  it("does not open the session expired flow for non-expired 401 responses", async () => {
+    sessionExpiredMock.isSessionExpiredMessage.mockReturnValue(false);
+    await import("../apiClient");
+    const error = { response: { status: 401, data: { message: "Invalid credentials" } } };
+    const result = await axiosMock.__runResponseRejected(error).catch((err: any) => err);
+
+    expect(utilsMock.clearSession).not.toHaveBeenCalled();
+    expect(sessionExpiredMock.triggerSessionExpired).not.toHaveBeenCalled();
+    expect(result).toBe(error);
   });
 
   it("passes through non-401 errors", async () => {

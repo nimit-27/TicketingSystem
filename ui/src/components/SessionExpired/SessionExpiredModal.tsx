@@ -1,6 +1,6 @@
 import { Box, Modal, Typography } from "@mui/material";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import GenericInput from "../UI/Input/GenericInput";
@@ -24,6 +24,8 @@ const SessionExpiredModal = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [secondsRemaining, setSecondsRemaining] = useState(60);
+  const timerRef = useRef<number | null>(null);
 
   const user = getUserDetails();
   const username = user?.username || user?.userId || "";
@@ -34,13 +36,39 @@ const SessionExpiredModal = () => {
       const detail = (event as CustomEvent<SessionExpiredDetail>)?.detail;
       setMessage(detail?.message || SESSION_EXPIRED_MESSAGE);
       setOpen(true);
+      setSecondsRemaining(60);
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+      }
+      timerRef.current = window.setInterval(() => {
+        setSecondsRemaining((prev) => {
+          if (prev <= 1) {
+            if (timerRef.current) {
+              window.clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     };
 
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
-    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
   }, []);
 
   const handleReauth = async () => {
+    if (secondsRemaining <= 0) {
+      setError(t("Re-login window expired. Please logout and login again."));
+      return;
+    }
     if (!username || !password) {
       setError(t("Password is required"));
       return;
@@ -82,6 +110,11 @@ const SessionExpiredModal = () => {
         <Typography variant="body1" className="mb-3">
           {t(message)}
         </Typography>
+        <Typography variant="body2" className="mb-3 session-expired-modal__countdown">
+          {secondsRemaining > 0
+            ? t("You can re-login within {{seconds}} seconds.", { seconds: secondsRemaining })
+            : t("Re-login window expired. Please logout and login again.")}
+        </Typography>
         <Typography variant="body2" className="mb-3 session-expired-modal__user">
           {t("Signed in as")} <strong>{username || t("Unknown user")}</strong>
         </Typography>
@@ -115,7 +148,7 @@ const SessionExpiredModal = () => {
             type="button"
             variant="contained"
             color="success"
-            disabled={submitting || !username}
+            disabled={submitting || !username || secondsRemaining <= 0}
             onClick={handleReauth}
           >
             {submitting ? t("Signing in...") : t("Login again")}

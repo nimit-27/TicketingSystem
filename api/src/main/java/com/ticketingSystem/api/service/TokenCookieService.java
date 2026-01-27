@@ -17,6 +17,7 @@ import java.util.Optional;
 public class TokenCookieService {
     public static final String ACCESS_TOKEN_COOKIE = "access_token";
     public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+    private static final long ACCESS_TOKEN_GRACE_MINUTES = 1;
     private final String cookiePath;
 
     public TokenCookieService(@Value("${security.cookie.path:/}") String cookiePath) {
@@ -54,7 +55,7 @@ public class TokenCookieService {
     }
 
     private ResponseCookie buildAccessCookie(String token, long expiresInMinutes) {
-        return buildCookie(ACCESS_TOKEN_COOKIE, token, expiresInMinutes);
+        return buildCookie(ACCESS_TOKEN_COOKIE, token, expiresInMinutes + ACCESS_TOKEN_GRACE_MINUTES);
     }
 
     private ResponseCookie buildRefreshCookie(String token, long expiresInMinutes) {

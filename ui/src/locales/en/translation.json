@@ -197,6 +197,8 @@
   "Login again": "Login again",
   "Signing in...": "Signing in...",
   "Logout": "Logout",
+  "You can re-login within {{seconds}} seconds.": "You can re-login within {{seconds}} seconds.",
+  "Re-login window expired. Please logout and login again.": "Re-login window expired. Please logout and login again.",
   "Too many attempts. Please wait and try again.": "Too many attempts. Please wait and try again.",
   "The old password you entered is incorrect.": "The old password you entered is incorrect.",
   "The new password does not meet the security policy.": "The new password does not meet the security policy.",
