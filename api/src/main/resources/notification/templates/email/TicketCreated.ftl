@@ -1,6 +1,15 @@
-Hello ${username},
+Subject: Anna Darpan: Ticket Submitted Successfully – ${ticketId}
 
-Your ticket with ID ${ticketId} has been created.
+Dear ${userName},
+
+Your ticket has been successfully submitted in the Anna Darpan system.
+
+Ticket Details:
+- Ticket ID: ${ticketId}
+- Title: ${ticketTitle}
+- Submitted On: ${submittedOn}
+
+You can track the status in the "My Tickets/Ticket History" section.
 
 Regards,
-${supportEmail}
+Anna Darpan Support Team
