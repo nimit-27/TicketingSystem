@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import MasterIcon from '../UI/Icons/MasterIcon';
@@ -6,14 +6,30 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { checkAccessMaster, checkMyTicketsColumnAccess } from '../../utils/permissions';
 import { getStatusNameById, truncateWithLeadingEllipsis } from '../../utils/Utils';
 import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButton';
-import { Menu, MenuItem, ListItemIcon, Tooltip, Button, Divider } from '@mui/material';
+import {
+    Menu,
+    MenuItem,
+    ListItemIcon,
+    Tooltip,
+    Button,
+    Divider,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    InputLabel,
+    Select,
+    Stack,
+    TextField,
+} from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
 import RemarkComponent from '../UI/Remark/RemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
 import InfoIcon from '../UI/Icons/InfoIcon';
-import { updateTicket } from '../../services/TicketService';
+import { searchTicketsForExport, updateTicket } from '../../services/TicketService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +39,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useSnackbar } from '../../context/SnackbarContext';
 
 export interface TicketRow {
     id: string;
@@ -92,19 +109,55 @@ const formatDisplayDate = (value: string | number | Date | null | undefined) => 
     return new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+const formatInputDate = (value: Date) => {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getDateRangeForSelection = (year: number, month?: number) => {
+    if (month) {
+        const from = new Date(year, month - 1, 1);
+        const to = new Date(year, month, 0);
+        return { from: formatInputDate(from), to: formatInputDate(to) };
+    }
+    const from = new Date(year, 0, 1);
+    const to = new Date(year, 12, 0);
+    return { from: formatInputDate(from), to: formatInputDate(to) };
+};
+
+const normalizeDownloadTickets = (payload: any): TicketRow[] => {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload as TicketRow[];
+    if (Array.isArray(payload.items)) return payload.items as TicketRow[];
+    if (Array.isArray(payload.content)) return payload.content as TicketRow[];
+    if (Array.isArray(payload.data)) return payload.data as TicketRow[];
+    return [];
+};
+
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
 
+    const { showMessage } = useSnackbar();
+
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { apiHandler: downloadTicketsApiHandler, pending: downloadingTickets } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
+    const [generateMenuAnchor, setGenerateMenuAnchor] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
+    const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+    const today = new Date();
+    const [downloadYear, setDownloadYear] = useState<number | ''>(today.getFullYear());
+    const [downloadMonth, setDownloadMonth] = useState<number | ''>(today.getMonth() + 1);
+    const [downloadFromDate, setDownloadFromDate] = useState('');
+    const [downloadToDate, setDownloadToDate] = useState('');
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -116,8 +169,40 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const FCI_STATUS_NAME = 'On Hold (Pending with FCI)';
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
+    const yearOptions = useMemo(() => {
+        const currentYear = new Date().getFullYear() + 1;
+        return Array.from({ length: 12 }, (_, index) => currentYear - index);
+    }, []);
+    const monthOptions = useMemo(
+        () => ([
+            { value: 1, label: t('January') },
+            { value: 2, label: t('February') },
+            { value: 3, label: t('March') },
+            { value: 4, label: t('April') },
+            { value: 5, label: t('May') },
+            { value: 6, label: t('June') },
+            { value: 7, label: t('July') },
+            { value: 8, label: t('August') },
+            { value: 9, label: t('September') },
+            { value: 10, label: t('October') },
+            { value: 11, label: t('November') },
+            { value: 12, label: t('December') },
+        ]),
+        [t],
+    );
 
     let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
+
+    useEffect(() => {
+        if (!downloadYear) {
+            setDownloadFromDate('');
+            setDownloadToDate('');
+            return;
+        }
+        const range = getDateRangeForSelection(downloadYear, downloadMonth || undefined);
+        setDownloadFromDate(range.from);
+        setDownloadToDate(range.to);
+    }, [downloadYear, downloadMonth]);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -202,7 +287,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setCurrentTicketId('');
     };
 
-    const handleDownloadMenuClose = () => setDownloadMenuAnchor(null);
+    const handleGenerateMenuClose = () => setGenerateMenuAnchor(null);
+    const handleDownloadDialogOpen = () => setDownloadDialogOpen(true);
+    const handleDownloadDialogClose = () => {
+        setDownloadDialogOpen(false);
+        setGenerateMenuAnchor(null);
+    };
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
         if (wf.action === 'Recommend Escalation') {
@@ -268,13 +358,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         return columns;
     }, [t, showSeverityColumn]);
 
-    const buildExportMatrix = () => tickets.map(ticket => exportColumns.map(col => col.getValue(ticket)));
+    const buildExportMatrix = (ticketsToExport: TicketRow[]) =>
+        ticketsToExport.map(ticket => exportColumns.map(col => col.getValue(ticket)));
 
-    const downloadAsExcel = () => {
-        const exportRows = buildExportMatrix();
+    const downloadAsExcel = (ticketsToExport: TicketRow[], range?: { from?: string; to?: string }) => {
+        const exportRows = buildExportMatrix(ticketsToExport);
         const headers = exportColumns.map(col => col.label);
-        const dateRangeFrom = tickets[0]?.reportedDate || tickets[0]?.createdOn || null;
-        const dateRangeTo = tickets[tickets.length - 1]?.reportedDate || tickets[tickets.length - 1]?.createdOn || dateRangeFrom;
+        const dateRangeFrom = range?.from || ticketsToExport[0]?.reportedDate || ticketsToExport[0]?.createdOn || null;
+        const dateRangeTo = range?.to || ticketsToExport[ticketsToExport.length - 1]?.reportedDate || ticketsToExport[ticketsToExport.length - 1]?.createdOn || dateRangeFrom;
         const metadata: (string | number)[][] = [
             ['Tickets Report'],
             ['Report Type', 'Ticket List'],
@@ -294,28 +385,34 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         XLSX.writeFile(workbook, 'tickets.xlsx');
     };
 
-    const downloadAsPdf = () => {
+    const downloadAsPdf = (ticketsToExport: TicketRow[]) => {
         const doc = new jsPDF('l', 'pt');
         autoTable(doc, {
             head: [exportColumns.map(col => col.label)],
-            body: buildExportMatrix(),
+            body: buildExportMatrix(ticketsToExport),
             styles: { fontSize: 8 },
             headStyles: { fillColor: [52, 71, 103] },
         });
         doc.save('tickets.pdf');
     };
 
-    const handleDownloadSelection = (format: 'pdf' | 'excel') => {
-        if (!tickets.length) {
-            handleDownloadMenuClose();
+    const handleGenerateSelection = async (format: 'pdf' | 'excel') => {
+        if (!downloadFromDate || !downloadToDate) {
+            showMessage(t('Please select a valid date range.'), 'warning');
+            return;
+        }
+        const payload = await downloadTicketsApiHandler(() => searchTicketsForExport(downloadFromDate, downloadToDate));
+        const ticketsToExport = normalizeDownloadTickets(payload);
+        if (!ticketsToExport.length) {
+            showMessage(t('No data available'), 'info');
             return;
         }
         if (format === 'excel') {
-            downloadAsExcel();
+            downloadAsExcel(ticketsToExport, { from: downloadFromDate, to: downloadToDate });
         } else {
-            downloadAsPdf();
+            downloadAsPdf(ticketsToExport);
         }
-        handleDownloadMenuClose();
+        handleDownloadDialogClose();
     };
 
 
@@ -615,7 +712,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     size="small"
                     variant="outlined"
                     startIcon={<DownloadIcon fontSize="small" />}
-                    onClick={(event) => setDownloadMenuAnchor(event.currentTarget)}
+                    onClick={handleDownloadDialogOpen}
                 >
                     {t('Download')}
                 </Button>
@@ -643,25 +740,98 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 })}
             </Menu>
-            <Menu anchorEl={downloadMenuAnchor} open={Boolean(downloadMenuAnchor)} onClose={handleDownloadMenuClose}>
-                <MenuItem onClick={() => handleDownloadSelection('pdf')}>
+            <Dialog open={downloadDialogOpen} onClose={handleDownloadDialogClose} fullWidth maxWidth="sm">
+                <DialogTitle>{t('Download Tickets')}</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-year-label">{t('Year')}</InputLabel>
+                                <Select
+                                    labelId="download-year-label"
+                                    label={t('Year')}
+                                    value={downloadYear}
+                                    onChange={(event) => setDownloadYear(event.target.value === '' ? '' : Number(event.target.value))}
+                                >
+                                    {yearOptions.map(year => (
+                                        <MenuItem key={year} value={year}>
+                                            {year}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-month-label">{t('Month')}</InputLabel>
+                                <Select
+                                    labelId="download-month-label"
+                                    label={t('Month')}
+                                    value={downloadMonth}
+                                    onChange={(event) => setDownloadMonth(event.target.value === '' ? '' : Number(event.target.value))}
+                                >
+                                    <MenuItem value="">
+                                        {t('All')}
+                                    </MenuItem>
+                                    {monthOptions.map(month => (
+                                        <MenuItem key={month.value} value={month.value}>
+                                            {month.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Stack>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                                label={t('From Date')}
+                                type="date"
+                                size="small"
+                                fullWidth
+                                value={downloadFromDate}
+                                InputLabelProps={{ shrink: true }}
+                                onChange={(event) => setDownloadFromDate(event.target.value)}
+                            />
+                            <TextField
+                                label={t('To Date')}
+                                type="date"
+                                size="small"
+                                fullWidth
+                                value={downloadToDate}
+                                InputLabelProps={{ shrink: true }}
+                                onChange={(event) => setDownloadToDate(event.target.value)}
+                            />
+                        </Stack>
+                        <Button
+                            variant="contained"
+                            onClick={(event) => setGenerateMenuAnchor(event.currentTarget)}
+                            disabled={downloadingTickets}
+                            startIcon={<DownloadIcon fontSize="small" />}
+                        >
+                            {t('Generate')}
+                        </Button>
+                    </Stack>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDownloadDialogClose}>{t('Cancel')}</Button>
+                </DialogActions>
+            </Dialog>
+            <Menu anchorEl={generateMenuAnchor} open={Boolean(generateMenuAnchor)} onClose={handleGenerateMenuClose}>
+                <MenuItem onClick={() => handleGenerateSelection('pdf')}>
                     <ListItemIcon>
                         <PictureAsPdfIcon fontSize="small" />
                     </ListItemIcon>
-                    {t('Download PDF')}
+                    {t('As PDF')}
                 </MenuItem>
-                <MenuItem onClick={() => handleDownloadSelection('excel')}>
+                <MenuItem onClick={() => handleGenerateSelection('excel')}>
                     <ListItemIcon>
                         <GridOnIcon fontSize="small" />
                     </ListItemIcon>
-                    {t('Download Excel')}
+                    {t('As Excel')}
                 </MenuItem>
-                {!tickets.length && (
+                {!downloadFromDate || !downloadToDate ? (
                     <>
                         <Divider />
-                        <MenuItem disabled>{t('No data available')}</MenuItem>
+                        <MenuItem disabled>{t('Select a date range')}</MenuItem>
                     </>
-                )}
+                ) : null}
             </Menu>
         </>
     );

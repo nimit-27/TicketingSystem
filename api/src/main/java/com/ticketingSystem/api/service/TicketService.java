@@ -432,6 +432,28 @@ public class TicketService {
         return page.map(this::mapWithStatusId);
     }
 
+    public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master,
+                                             String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
+                                             String severity, String createdBy, String category, String subCategory, String fromDate, String toDate) {
+        ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
+                ? null
+                : Arrays.stream(statusId.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        List<String> severityFilters = (severity == null || severity.isBlank())
+                ? null
+                : Arrays.stream(severity.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+        LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
+        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
+        return ticketRepository.searchTicketsList(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, createdBy, category, subCategory, from, to)
+                .stream()
+                .map(this::mapWithStatusId)
+                .toList();
+    }
+
     public TicketDto updateTicket(String id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));

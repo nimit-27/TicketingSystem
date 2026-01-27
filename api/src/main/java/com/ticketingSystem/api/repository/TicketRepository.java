@@ -352,6 +352,37 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
 
+    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
+            "WHERE (:statusIds IS NULL OR s.statusId IN (:statusIds))" +
+            "AND (:master IS NULL OR t.isMaster = :master) " +
+            "AND (:levelId IS NULL OR t.levelId = :levelId) " +
+            "AND (:priority IS NULL OR t.priority = :priority) " +
+            "AND (:severities IS NULL OR t.severity IN (:severities)) " +
+            "AND (:category IS NULL OR t.category = :category) " +
+            "AND (:subCategory IS NULL OR t.subCategory = :subCategory)" +
+            "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
+            "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
+            "OR (:requestorId IS NOT NULL AND t.userId = :requestorId) " +
+            "OR (:createdBy IS NOT NULL AND LOWER(t.createdBy) = LOWER(:createdBy))) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
+            "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
+    List<Ticket> searchTicketsList(@Param("query") String query, @Param("statusIds") ArrayList<String> statusName,
+                                   @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
+                                   @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
+                                   @Param("levelId") String levelId, @Param("priority") String priority,
+                                   @Param("severities") List<String> severities,
+                                   @Param("createdBy") String createdBy,
+                                   @Param("category") String category,
+                                   @Param("subCategory") String subCategory,
+                                   @Param("fromDate") LocalDateTime fromDate,
+                                   @Param("toDate") LocalDateTime toDate);
+
     interface StatusCountProjection {
         TicketStatus getStatus();
 
