@@ -93,9 +93,14 @@ public class FileStorageService {
 
         String filename = savedFile.getId() + "_" + original;
         String relativePath = buildObjectKey(ticketId, filename);
-        savedFile.setRelativePath(relativePath);
-        uploadedFileRepository.save(savedFile);
-        uploadFile(relativePath, file.getBytes());
+        try {
+            uploadFile(relativePath, file.getBytes());
+            savedFile.setRelativePath(relativePath);
+            uploadedFileRepository.save(savedFile);
+        } catch (Exception ex) {
+            uploadedFileRepository.delete(savedFile);
+            throw ex;
+        }
 //        ociObjectStorageService.upload(file, relativePath);
 
         return relativePath;
