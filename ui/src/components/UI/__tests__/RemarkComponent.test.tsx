@@ -25,7 +25,7 @@ describe('RemarkComponent', () => {
     );
 
     const input = screen.getByRole('textbox');
-    await userEvent.type(input, 'All done');
+    await userEvent.type(input, '  All done  ');
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
@@ -63,5 +63,22 @@ describe('RemarkComponent', () => {
 
     expect(screen.getByText('Add Remark')).toBeInTheDocument();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('blocks empty remarks', async () => {
+    const onSubmit = jest.fn();
+    const onCancel = jest.fn();
+
+    renderWithTheme(
+      <RemarkComponent actionName="Close" onSubmit={onSubmit} onCancel={onCancel} />,
+    );
+
+    const input = screen.getByRole('textbox');
+    await userEvent.type(input, '   ');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Remark cannot be empty.')).toBeInTheDocument();
   });
 });
