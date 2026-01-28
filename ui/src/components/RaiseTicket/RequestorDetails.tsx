@@ -1,5 +1,4 @@
 import { Autocomplete, TextField, IconButton, CircularProgress } from "@mui/material";
-import { formFieldValue } from "../../constants/bootstrapClasses";
 import { FormProps } from "../../types";
 import { getUserDetailsWithFallback, searchRequesterUsers } from "../../services/UserService";
 import { useWatch } from "react-hook-form";
@@ -13,7 +12,7 @@ import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
 import { checkFieldAccess } from "../../utils/permissions";
 import { getStakeholders } from "../../services/StakeholderService";
-import UserAvatar from "../UI/UserAvatar/UserAvatar";
+import UserDetailsCard from "../UserDetailsCard";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { RequesterUser } from "../../types/users";
 import { getDropdownOptions } from "../../utils/Utils";
@@ -282,13 +281,6 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
 
     const handleFilterOptions = (options: any[]) => options;
 
-    const renderReadOnlyField = (label: string, value: string) => (
-        <div className={`${formFieldValue} justify-content-center text-center flex-column flex-md-row`}>
-            <p className="mb-0 text-muted ts-13">{label}</p>
-            <p className="mb-0 ts-13">{value}</p>
-        </div>
-    );
-
     const renderUserOption = (props: React.HTMLAttributes<HTMLLIElement>, option: any) => {
         if (isLoadMoreOption(option)) {
             return (
@@ -389,30 +381,24 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ register, errors, s
                         </div>
                     )}
                     {showRequestorDetailsCard && (
-                        <div className="p-3 bg-light border rounded shadow-sm flex-grow-1 flex-lg-grow-0" style={{ minWidth: '280px', maxWidth: '360px' }}>
-                            <div className="d-flex align-items-center justify-content-center mb-2">
-                                <UserAvatar name={requestorName} />
-                                {/* <span className="ms-2 fs-5">{requestorName}</span> */}
-                            </div>
-                            <div className="d-flex flex-column align-items-center mb-2 justify-content-center">
-                                {showRequestorName && requestorName && (
-                                    <div className="fw-semibold">{requestorName}</div>
-                                )}
-                                {(showEmailId && emailId) || (showMobileNo && mobileNo) ? (
-                                    <div className="text-muted">
-                                        {showEmailId && emailId && <span className="ts-14">{emailId}</span>}
-                                        {showEmailId && emailId && showMobileNo && mobileNo && <span> | </span>}
-                                        {showMobileNo && mobileNo && <span className="ts-13">{mobileNo}</span>}
-                                    </div>
-                                ) : null}
-                            </div>
-                            <div className="w-100">
-                                {/* {showRole && role && renderReadOnlyField("Role", role)} */}
-                                {showOffice && office && renderReadOnlyField("Office", office)}
-                                {selectedUser?.officeType && renderReadOnlyField("Office Type", selectedUser.officeType)}
-                                {selectedUser?.officeCode && renderReadOnlyField("Office Code", selectedUser.officeCode)}
-                                {selectedUser?.stakeholder && renderReadOnlyField("Stakeholder", selectedUser.stakeholder)}
-                            </div>
+                        <div className="flex-grow-1 flex-lg-grow-0" style={{ minWidth: '280px', maxWidth: '360px' }}>
+                            <UserDetailsCard
+                                name={requestorName}
+                                username={selectedUser?.username || userId}
+                                email={emailId}
+                                phone={mobileNo}
+                                showName={showRequestorName}
+                                showUsername={showUserId}
+                                showEmail={showEmailId}
+                                showPhone={showMobileNo}
+                                details={[
+                                    showRole && role ? { label: 'Role', value: role } : null,
+                                    showOffice && office ? { label: 'Office', value: office } : null,
+                                    selectedUser?.officeType ? { label: 'Office Type', value: selectedUser.officeType } : null,
+                                    selectedUser?.officeCode ? { label: 'Office Code', value: selectedUser.officeCode } : null,
+                                    selectedUser?.stakeholder ? { label: 'Stakeholder', value: selectedUser.stakeholder } : null,
+                                ].filter(Boolean) as Array<{ label: string; value?: string | null }>}
+                            />
                         </div>
                     )}
                 </div>

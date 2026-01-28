@@ -488,7 +488,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 render: (_: any, record: TicketRow) =>
                     record.requestorName ? (
                         <Tooltip
-                            title={<RequestorDetails email={record.requestorEmailId} phone={record.requestorMobileNo} />}
+                            title={<RequestorDetails email={record.requestorEmailId} phone={record.requestorMobileNo} username={record.userId} />}
                             placement="top"
                             arrow
                             componentsProps={{ tooltip: { sx: { pointerEvents: 'auto' } } }}

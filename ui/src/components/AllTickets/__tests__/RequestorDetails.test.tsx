@@ -23,35 +23,36 @@ describe('RequestorDetails', () => {
         jest.useRealTimers();
     });
 
-    it('renders provided email and phone values', () => {
-        render(<RequestorDetails email="john@example.com" phone="1234567890" />);
+    it('renders provided username, email, and phone values', () => {
+        render(<RequestorDetails username="johndoe" email="john@example.com" phone="1234567890" />);
 
+        expect(screen.getByText('johndoe')).toBeInTheDocument();
         expect(screen.getByText('john@example.com')).toBeInTheDocument();
         expect(screen.getByText('1234567890')).toBeInTheDocument();
     });
 
-    it('copies email to clipboard and shows confirmation', async () => {
-        render(<RequestorDetails email="john@example.com" phone="1234567890" />);
+    it('copies username to clipboard and shows confirmation', async () => {
+        render(<RequestorDetails username="johndoe" email="john@example.com" phone="1234567890" />);
 
-        const [emailCopyIcon] = screen.getAllByTestId('ContentCopyIcon');
-        fireEvent.click(emailCopyIcon);
+        const [usernameCopyIcon] = screen.getAllByTestId('ContentCopyIcon');
+        fireEvent.click(usernameCopyIcon);
 
-        expect(writeTextMock).toHaveBeenCalledWith('john@example.com');
-        expect(screen.getByText('Email copied')).toBeInTheDocument();
+        expect(writeTextMock).toHaveBeenCalledWith('johndoe');
+        expect(screen.getByText('Username copied')).toBeInTheDocument();
 
         await act(async () => {
             jest.runAllTimers();
         });
         await waitFor(() => {
-            expect(screen.queryByText('Email copied')).not.toBeInTheDocument();
+            expect(screen.queryByText('Username copied')).not.toBeInTheDocument();
         });
     });
 
     it('does not attempt to copy when value is missing', () => {
         render(<RequestorDetails phone="1234567890" />);
 
-        const [emailCopyIcon] = screen.getAllByTestId('ContentCopyIcon');
-        fireEvent.click(emailCopyIcon);
+        const [usernameCopyIcon] = screen.getAllByTestId('ContentCopyIcon');
+        fireEvent.click(usernameCopyIcon);
 
         expect(writeTextMock).not.toHaveBeenCalled();
         expect(screen.getByText('-')).toBeInTheDocument();

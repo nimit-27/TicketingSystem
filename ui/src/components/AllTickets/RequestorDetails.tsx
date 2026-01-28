@@ -5,19 +5,20 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 interface RequestorDetailsProps {
     email?: string;
     phone?: string;
+    username?: string;
 }
 
-const RequestorDetails: React.FC<RequestorDetailsProps> = ({ email, phone }) => {
+const RequestorDetails: React.FC<RequestorDetailsProps> = ({ email, phone, username }) => {
     const [copied, setCopied] = useState<string | null>(null);
 
-    const handleCopy = (type: 'email' | 'phone', value?: string) => {
+    const handleCopy = (type: 'email' | 'phone' | 'username', value?: string) => {
         if (!value) return;
         navigator.clipboard.writeText(value);
         setCopied(type);
         setTimeout(() => setCopied(null), 2000);
     };
 
-    const renderRow = (label: string, value: string | undefined, type: 'email' | 'phone') => (
+    const renderRow = (label: string, value: string | undefined, type: 'email' | 'phone' | 'username') => (
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
             <ContentCopyIcon
                 fontSize="small"
@@ -35,6 +36,7 @@ const RequestorDetails: React.FC<RequestorDetailsProps> = ({ email, phone }) => 
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {renderRow('Username', username, 'username')}
             {renderRow('Email', email, 'email')}
             {renderRow('Phone number', phone, 'phone')}
         </Box>
