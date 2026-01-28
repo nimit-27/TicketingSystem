@@ -701,7 +701,26 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             }
             return checkMyTicketsColumnAccess(String(col.key), permissionPathPrefix);
         }),
-        [t, statusWorkflows, showSeverityColumn, priorityInfoContent]
+        [
+            allowAssignment,
+            canAssignBackByLevel,
+            currentUsername,
+            getAllAvailableActionsByCurrentStatus,
+            getAvailableActions,
+            handleActionClick,
+            handleAssignBack,
+            handleFeedback,
+            onIdClick,
+            onRecommendEscalation,
+            onRcaClick,
+            onRowClick,
+            permissionPathPrefix,
+            priorityInfoContent,
+            searchCurrentTicketsPaginatedApi,
+            showSeverityColumn,
+            statusWorkflows,
+            t,
+        ]
     );
 
     return (
