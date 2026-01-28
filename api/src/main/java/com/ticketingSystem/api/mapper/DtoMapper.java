@@ -33,6 +33,23 @@ public class DtoMapper {
         return dto;
     }
 
+    public static PageMasterDto toPageMasterDto(PageMaster pageMaster) {
+        if (pageMaster == null) return null;
+        PageMasterDto dto = new PageMasterDto();
+        dto.setPageId(pageMaster.getPageId());
+        dto.setPageName(pageMaster.getPageName());
+        dto.setPageCode(pageMaster.getPageCode());
+        dto.setPageDescription(pageMaster.getPageDescription());
+        dto.setParentId(pageMaster.getParentId());
+        dto.setIsActive(pageMaster.getIsActive());
+        dto.setIsOnSidebar(pageMaster.getIsOnSidebar());
+        dto.setCreatedOn(pageMaster.getCreatedOn());
+        dto.setCreatedBy(pageMaster.getCreatedBy());
+        dto.setUpdatedOn(pageMaster.getUpdatedOn());
+        dto.setUpdatedBy(pageMaster.getUpdatedBy());
+        return dto;
+    }
+
     public static UploadedFileDto toUploadedFileDto(UploadedFile uf) {
         if (uf == null) return null;
         UploadedFileDto dto = new UploadedFileDto();
