@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton, Chip, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton, Chip } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster, getAttachmentsByTicketId } from '../../services/TicketService';
@@ -37,6 +37,7 @@ import ChildTicketsList from './ChildTicketsList';
 import LinkToMasterTicketModal from '../RaiseTicket/LinkToMasterTicketModal';
 import AssignMasterTicketModal from '../RaiseTicket/AssignMasterTicketModal';
 import AssigneeDropdown from '../AllTickets/AssigneeDropdown';
+import RequestorModal from './RequestorModal';
 import DownloadIcon from '@mui/icons-material/Download';
 import MasterIcon from '../UI/Icons/MasterIcon';
 import jsPDF from 'jspdf';
@@ -156,7 +157,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [slaDownloadAnchor, setSlaDownloadAnchor] = useState<null | HTMLElement>(null);
   const [assignMasterTicketModalOpen, setAssignMasterTicketModalOpen] = useState(false);
   const [isRequestorModalOpen, setIsRequestorModalOpen] = useState(false);
-  const [copiedRequestorField, setCopiedRequestorField] = useState<'name' | 'email' | 'phone' | null>(null);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const { showMessage } = useSnackbar();
@@ -781,6 +781,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   };
 
   const requestorDisplayName = ticket?.requestorName || ticket?.userId || ' - ';
+  const requestorUsername = ticket?.userId;
   const requestorEmail = ticket?.requestorEmailId;
   const requestorPhone = ticket?.requestorMobileNo;
   const requestorRole = ticket?.role || ticket?.requestorRole;
@@ -794,7 +795,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   const handleRequestorModalClose = useCallback(() => {
     setIsRequestorModalOpen(false);
-    setCopiedRequestorField(null);
   }, []);
 
   const handleRequestorModalOpen = useCallback(() => {
@@ -802,13 +802,6 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setIsRequestorModalOpen(true);
     }
   }, [canOpenRequestorModal]);
-
-  const handleRequestorCopy = useCallback((field: 'name' | 'email' | 'phone', value?: string) => {
-    if (!value) return;
-    navigator.clipboard.writeText(value);
-    setCopiedRequestorField(field);
-    setTimeout(() => setCopiedRequestorField(null), 2000);
-  }, []);
 
   const handleOpenViewRca = useCallback(() => {
     setIsRcaModalOpen(true);
@@ -1346,107 +1339,21 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </div>
       </div>
 
-      <Dialog open={isRequestorModalOpen} onClose={handleRequestorModalClose} maxWidth="xs" fullWidth>
-        <DialogTitle>Requestor Details</DialogTitle>
-        <DialogContent>
-          <Box className="p-3 bg-light border rounded shadow-sm">
-            <Box className="d-flex align-items-center justify-content-center mb-2">
-              <UserAvatar name={requestorDisplayName} />
-            </Box>
-            <Box className="d-flex flex-column align-items-center mb-3 justify-content-center">
-              <Typography
-                className="fw-semibold"
-                sx={{ cursor: requestorDisplayName !== ' - ' ? 'pointer' : 'default' }}
-                onClick={() => handleRequestorCopy('name', requestorDisplayName !== ' - ' ? requestorDisplayName : undefined)}
-              >
-                {requestorDisplayName}
-              </Typography>
-              {copiedRequestorField === 'name' && (
-                <Typography variant="caption" color="success.main">
-                  Name copied
-                </Typography>
-              )}
-              {(requestorEmail || requestorPhone) && (
-                <Typography className="text-muted">
-                  {requestorEmail && (
-                    <span
-                      className="ts-14"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => handleRequestorCopy('email', requestorEmail)}
-                    >
-                      {requestorEmail}
-                    </span>
-                  )}
-                  {requestorEmail && requestorPhone && <span> | </span>}
-                  {requestorPhone && (
-                    <span
-                      className="ts-13"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => handleRequestorCopy('phone', requestorPhone)}
-                    >
-                      {requestorPhone}
-                    </span>
-                  )}
-                </Typography>
-              )}
-              {copiedRequestorField === 'email' && (
-                <Typography variant="caption" color="success.main">
-                  Email copied
-                </Typography>
-              )}
-              {copiedRequestorField === 'phone' && (
-                <Typography variant="caption" color="success.main">
-                  Contact copied
-                </Typography>
-              )}
-            </Box>
-            <Box className="w-100">
-              {requestorRole && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">Role</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{requestorRole}</Typography>
-                </Box>
-              )}
-              {ticket?.office && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">Office</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{ticket.office}</Typography>
-                </Box>
-              )}
-              {ticket?.officeCode && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">Office Code</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{ticket.officeCode}</Typography>
-                </Box>
-              )}
-              {ticket?.regionCode && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">Region Code</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{ticket.regionCode}</Typography>
-                </Box>
-              )}
-              {ticket?.zoneCode && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">Zone Code</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{ticket.zoneCode}</Typography>
-                </Box>
-              )}
-              {ticket?.districtCode && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">District Code</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{ticket.districtCode}</Typography>
-                </Box>
-              )}
-              {ticket?.stakeholder && (
-                <Box className="d-flex justify-content-center text-center flex-column flex-md-row">
-                  <Typography className="mb-0 text-muted ts-13">Stakeholder</Typography>
-                  <Typography className="mb-0 ts-13 ms-md-2">{ticket.stakeholder}</Typography>
-                </Box>
-              )}
-            </Box>
-          </Box>
-        </DialogContent>
-      </Dialog>
+      <RequestorModal
+        open={isRequestorModalOpen}
+        onClose={handleRequestorModalClose}
+        name={ticket?.requestorName}
+        username={requestorUsername}
+        email={requestorEmail}
+        phone={requestorPhone}
+        role={requestorRole}
+        office={ticket?.office}
+        officeCode={ticket?.officeCode}
+        regionCode={ticket?.regionCode}
+        zoneCode={ticket?.zoneCode}
+        districtCode={ticket?.districtCode}
+        stakeholder={ticket?.stakeholder}
+      />
 
       {
         showHistory && (
