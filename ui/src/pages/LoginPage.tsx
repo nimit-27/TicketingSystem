@@ -20,6 +20,7 @@ import { DevModeContext } from "../context/DevModeContext";
 import { devMode as envDevMode } from "../config/config";
 import GenericInput from "../components/UI/Input/GenericInput";
 import GenericButton from "../components/UI/Button";
+import { IconComponent } from "../components/UI/IconButton/CustomIconButton";
 import "./LoginPage.scss";
 
 type PortalType = "requestor" | "helpdesk";
@@ -29,6 +30,7 @@ const LoginPage: FC = () => {
 
     const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [selectedPortal, setSelectedPortal] = useState<PortalType>("requestor");
     const navigate = useNavigate();
 
@@ -92,7 +94,7 @@ const LoginPage: FC = () => {
             <GenericInput
                 id={`${portal}-password`}
                 label={t("Password")}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -101,6 +103,22 @@ const LoginPage: FC = () => {
                     startAdornment: (
                         <InputAdornment position="start">
                             <LockIcon className="login-input__icon" />
+                        </InputAdornment>
+                    ),
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <button
+                                type="button"
+                                className="login-input__toggle"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? t("Hide Password") : t("Show Password")}
+                            >
+                                <IconComponent
+                                    icon={showPassword ? "visibilityOff" : "visibility"}
+                                    className="login-input__icon"
+                                    style={{ color: "currentColor" }}
+                                />
+                            </button>
                         </InputAdornment>
                     ),
                 }}

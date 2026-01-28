@@ -219,6 +219,24 @@ $dark-text: #231f20cc;
   color: $green;
 }
 
+.login-input__toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: $green;
+
+  &:hover {
+    color: $orange;
+  }
+}
+
+.login-page.dark .login-input__toggle {
+  color: $green-light;
+}
+
 .login-row {
   display: flex;
   align-items: center;
