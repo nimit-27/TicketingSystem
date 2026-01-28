@@ -70,21 +70,30 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
   minRows,
 }) => {
   const [remark, setRemark] = useState(defaultRemark);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (isModal) {
       if (open) {
         setRemark(defaultRemark);
+        setErrorMessage('');
       }
     } else {
       setRemark(defaultRemark);
+      setErrorMessage('');
     }
   }, [defaultRemark, open, isModal]);
 
   const confirmationMessage = useMemo(() => message ?? getConfirmationText(actionName), [message, actionName]);
 
   const handleSubmit = () => {
-    onSubmit(remark);
+    const trimmedRemark = remark.trim();
+    if (!trimmedRemark) {
+      setErrorMessage('Remark cannot be empty.');
+      return;
+    }
+    setErrorMessage('');
+    onSubmit(trimmedRemark);
     if (!isModal) {
       setRemark(defaultRemark);
     }
@@ -103,12 +112,20 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
       <TextField
         size="small"
         value={remark}
-        onChange={(e) => setRemark(e.target.value)}
+        onChange={(e) => {
+          const nextValue = e.target.value;
+          setRemark(nextValue);
+          if (errorMessage && nextValue.trim()) {
+            setErrorMessage('');
+          }
+        }}
         label={textFieldLabel}
         placeholder={placeholder}
         multiline={multiline}
         minRows={multiline ? minRows ?? 3 : undefined}
         autoFocus
+        error={Boolean(errorMessage)}
+        helperText={errorMessage}
       />
     </Box>
   );
@@ -146,4 +163,3 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
 };
 
 export default RemarkComponent;
-
