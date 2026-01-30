@@ -348,10 +348,7 @@ public class EmailNotificationDispatcher {
     }
 
     private Executor unwrapExecutor(TaskExecutor executor) {
-        if (executor instanceof Executor exec) {
-            return exec;
-        }
-        return Runnable::run;
+        return executor;
     }
 
     private String resolveInstanceId() {

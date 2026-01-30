@@ -1,6 +1,7 @@
 package com.ticketingSystem.notification.service;
 
 import com.ticketingSystem.notification.config.NotificationProperties;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,7 +20,7 @@ public class EmailMessageSender {
         this.properties = properties;
     }
 
-    public void send(EmailMessage message) throws MailException {
+    public void send(EmailMessage message) throws MailException, MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setFrom(properties.getSenderEmail());
