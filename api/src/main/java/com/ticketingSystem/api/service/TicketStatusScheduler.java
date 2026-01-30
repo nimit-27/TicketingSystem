@@ -32,6 +32,7 @@ public class TicketStatusScheduler {
         String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
         for (Ticket t : tickets) {
             t.setTicketStatus(TicketStatus.CLOSED);
+            t.setUpdatedBy("SYSTEM");
             if (t.getResolvedAt() == null) {
                 t.setResolvedAt(LocalDateTime.now());
             }
