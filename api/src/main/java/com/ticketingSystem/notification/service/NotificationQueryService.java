@@ -2,6 +2,7 @@ package com.ticketingSystem.notification.service;
 
 import com.ticketingSystem.api.dto.NotificationPageResponse;
 import com.ticketingSystem.api.dto.UserNotificationDto;
+import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.Notification;
 import com.ticketingSystem.notification.models.NotificationMaster;
 import com.ticketingSystem.notification.models.NotificationRecipient;
@@ -39,7 +40,7 @@ public class NotificationQueryService {
         int pageSize = size <= 0 ? 7 : Math.min(size, 50);
 
         Page<NotificationRecipient> recipients = notificationRecipientRepository
-                .findInbox(userId, true, null, PageRequest.of(pageNumber, pageSize));
+                .findInbox(userId, ChannelType.IN_APP, true, null, PageRequest.of(pageNumber, pageSize));
 
         List<UserNotificationDto> items = recipients
                 .stream()
@@ -62,7 +63,7 @@ public class NotificationQueryService {
         }
 
         List<NotificationRecipient> unreadRecipients = notificationRecipientRepository
-                .findByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalse(userId);
+                .findByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalseAndChannel(userId, ChannelType.IN_APP);
 
         if (unreadRecipients.isEmpty()) {
             return 0;

@@ -3,6 +3,7 @@ package com.ticketingSystem.notification.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
+import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
 import com.ticketingSystem.notification.models.Notification;
 import com.ticketingSystem.notification.models.NotificationMaster;
 import com.ticketingSystem.notification.models.NotificationRecipient;
@@ -13,65 +14,71 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationPersistenceService {
-    private static final Logger log = LoggerFactory.getLogger(NotificationPersistenceService.class);
+public class EmailNotificationPersistenceService {
+    private static final Logger log = LoggerFactory.getLogger(EmailNotificationPersistenceService.class);
 
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final NotificationRecipientResolver recipientResolver;
-    private final InAppNotificationPayloadFactory payloadFactory;
     private final ObjectMapper objectMapper;
 
-    public InAppNotificationPayload persistInAppNotification(NotificationRequest request) {
-        InAppNotificationPayload payload = payloadFactory.buildPayload(request);
-        persistNotification(request, payload);
-        return payload;
-    }
-
-    private void persistNotification(NotificationRequest request, InAppNotificationPayload payload) {
-        if (request == null || payload == null) {
+    public void queueEmailNotification(NotificationRequest request) {
+        if (request == null) {
             return;
         }
 
         NotificationMaster master = request.getNotificationMaster();
         if (master == null) {
-            log.warn("Unable to persist notification without notification master");
+            log.warn("Unable to persist email notification without notification master");
             return;
         }
 
         List<User> recipients = recipientResolver.resolveRecipients(request.getRecipient());
         if (recipients.isEmpty()) {
-            log.warn("Unable to resolve recipients for in-app notification: {}", request.getRecipient());
+            log.warn("Unable to resolve recipients for email notification: {}", request.getRecipient());
             return;
         }
 
         Notification notification = new Notification();
         notification.setType(master);
-        notification.setTitle(firstNonBlank(payload.getTitle(), master.getName(), master.getCode(), "Notification"));
-        notification.setMessage(payload.getMessage());
-        notification.setData(serializeData(payload.getData()));
-        notification.setTicketId(resolveTicketId(payload.getData()));
+        notification.setTitle(firstNonBlank(master.getName(), master.getCode(), "Notification"));
+        notification.setMessage(null);
+        notification.setData(serializeData(request.getDataModel()));
+        notification.setTicketId(resolveTicketId(request.getDataModel()));
 
         Notification savedNotification = notificationRepository.save(notification);
 
+        String cc = extractEmailList(request.getDataModel().get("cc"));
+        String bcc = extractEmailList(request.getDataModel().get("bcc"));
+        LocalDateTime now = LocalDateTime.now();
+
         List<NotificationRecipient> recipientEntities = recipients.stream()
-                .map(user -> createRecipient(savedNotification, user))
+                .map(user -> createRecipient(savedNotification, user, cc, bcc, now))
                 .toList();
 
         notificationRecipientRepository.saveAll(recipientEntities);
     }
 
-    private NotificationRecipient createRecipient(Notification notification, User recipient) {
+    private NotificationRecipient createRecipient(Notification notification,
+                                                  User recipient,
+                                                  String cc,
+                                                  String bcc,
+                                                  LocalDateTime now) {
         NotificationRecipient recipientEntity = new NotificationRecipient();
         recipientEntity.setNotification(notification);
         recipientEntity.setRecipient(recipient);
-        recipientEntity.setChannel(ChannelType.IN_APP);
+        recipientEntity.setChannel(ChannelType.EMAIL);
+        recipientEntity.setStatus(NotificationDeliveryStatus.PENDING);
+        recipientEntity.setNextRetryAt(now);
+        recipientEntity.setEmailCc(cc);
+        recipientEntity.setEmailBcc(bcc);
         return recipientEntity;
     }
 
@@ -82,7 +89,7 @@ public class NotificationPersistenceService {
         try {
             return objectMapper.writeValueAsString(data);
         } catch (Exception ex) {
-            log.warn("Failed to serialize notification data", ex);
+            log.warn("Failed to serialize email notification data", ex);
             return null;
         }
     }
@@ -109,5 +116,21 @@ public class NotificationPersistenceService {
             }
         }
         return null;
+    }
+
+    private String extractEmailList(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .map(item -> item == null ? "" : item.toString().trim())
+                    .filter(item -> !item.isBlank())
+                    .distinct()
+                    .reduce((left, right) -> left + "," + right)
+                    .orElse(null);
+        }
+        String text = value.toString().trim();
+        return text.isEmpty() ? null : text;
     }
 }

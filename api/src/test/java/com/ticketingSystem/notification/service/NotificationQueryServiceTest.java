@@ -3,6 +3,7 @@ package com.ticketingSystem.notification.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketingSystem.api.dto.NotificationPageResponse;
 import com.ticketingSystem.api.dto.UserNotificationDto;
+import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.Notification;
 import com.ticketingSystem.notification.models.NotificationMaster;
 import com.ticketingSystem.notification.models.NotificationRecipient;
@@ -56,7 +57,7 @@ class NotificationQueryServiceTest {
         recipient.setId(99L);
         recipient.setNotification(notification);
 
-        when(notificationRecipientRepository.findInbox(eq("user-1"), eq(true), isNull(), any()))
+        when(notificationRecipientRepository.findInbox(eq("user-1"), eq(ChannelType.IN_APP), eq(true), isNull(), any()))
                 .thenReturn(new PageImpl<>(List.of(recipient), PageRequest.of(0, 7), 1));
 
         NotificationPageResponse response = notificationQueryService.getNotificationsForUser("user-1", 0, 7);
