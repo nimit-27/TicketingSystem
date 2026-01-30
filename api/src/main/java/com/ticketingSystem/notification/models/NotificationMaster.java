@@ -39,6 +39,9 @@ public class NotificationMaster {
     @Column(name = "email_template")
     private String emailTemplate;
 
+    @Column(name = "email_personalized", nullable = false)
+    private Boolean emailPersonalized = Boolean.TRUE;
+
     @Column(name = "sms_template")
     private String smsTemplate;
 

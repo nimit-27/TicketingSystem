@@ -1,6 +1,8 @@
 package com.ticketingSystem.notification.models;
 
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.notification.enums.ChannelType;
+import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,6 +48,38 @@ public class NotificationRecipient {
     // Soft delete (for inbox archive)
     @Column(name = "soft_deleted", nullable = false)
     private boolean softDeleted = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "channel", nullable = false, length = 20)
+    private ChannelType channel = ChannelType.IN_APP;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20)
+    private NotificationDeliveryStatus status;
+
+    @Column(name = "retry_count", nullable = false)
+    private int retryCount = 0;
+
+    @Column(name = "next_retry_at")
+    private LocalDateTime nextRetryAt;
+
+    @Column(name = "last_error", length = 2000)
+    private String lastError;
+
+    @Column(name = "locked_by", length = 100)
+    private String lockedBy;
+
+    @Column(name = "locked_at")
+    private LocalDateTime lockedAt;
+
+    @Column(name = "sent_at")
+    private LocalDateTime sentAt;
+
+    @Column(name = "email_cc")
+    private String emailCc;
+
+    @Column(name = "email_bcc")
+    private String emailBcc;
 
     // ---- Auditing (LocalDateTime) ----
     // Set once on INSERT

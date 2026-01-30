@@ -13,7 +13,8 @@ class FreemarkerConfigTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        configuration = new FreemarkerConfig().freemarkerConfiguration();
+        NotificationProperties properties = new NotificationProperties();
+        configuration = new FreemarkerConfig().freemarkerConfiguration(properties);
     }
 
     @Test
