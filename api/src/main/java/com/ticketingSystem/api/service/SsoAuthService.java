@@ -21,32 +21,29 @@ public class SsoAuthService {
     private final RoleRepository roleRepository;
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
-    private final JwtTokenService jwtTokenService;
 
     public SsoAuthService(AuthService authService,
                           ExternalSsoTokenService externalSsoTokenService,
                           PermissionService permissionService,
                           RoleRepository roleRepository,
                           JwtProperties jwtProperties,
-                          TokenPairService tokenPairService,
-                          JwtTokenService jwtTokenService) {
+                          TokenPairService tokenPairService) {
         this.authService = authService;
         this.externalSsoTokenService = externalSsoTokenService;
         this.permissionService = permissionService;
         this.roleRepository = roleRepository;
         this.jwtProperties = jwtProperties;
         this.tokenPairService = tokenPairService;
-        this.jwtTokenService = jwtTokenService;
     }
 
     public Optional<Map<String, Object>> login(SsoLoginPayload ssoLoginPayload, HttpSession session) {
         return externalSsoTokenService.requestToken(ssoLoginPayload)
                 .filter(response -> response.getAccessToken() != null && !response.getAccessToken().isBlank())
                 .flatMap(response -> authService.findUserByUsername(ssoLoginPayload.getUsername(), "requestor")
-                        .map(user -> buildLoginResponse(user, session, response.getAccessToken())));
+                        .map(user -> buildLoginResponse(user, session)));
     }
 
-    private Map<String, Object> buildLoginResponse(AuthenticatedUser user, HttpSession session, String externalToken) {
+    private Map<String, Object> buildLoginResponse(AuthenticatedUser user, HttpSession session) {
         List<String> roles = user.getRoles() == null ? List.of()
                 : Arrays.asList(user.getRoles().split("\\|"));
         List<Integer> roleIds = roles.stream()
@@ -94,11 +91,9 @@ public class SsoAuthService {
                 .build();
 
         TokenPair tokenPair = tokenPairService.issueTokens(payload);
-        String accessToken = jwtTokenService.regenerateAccessToken(externalToken)
-                .orElse(tokenPair.token());
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("token", accessToken);
+        response.put("token", tokenPair.token());
         response.put("refreshToken", tokenPair.refreshToken());
         response.put("expiresInMinutes", tokenPair.expiresInMinutes());
         response.put("refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes());
