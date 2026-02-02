@@ -188,6 +188,7 @@ export interface SupportDashboardSummaryResponse {
     openResolved?: SupportDashboardOpenResolvedStats | null;
     slaCompliance?: SupportDashboardSlaCompliancePoint[];
     ticketVolume?: SupportDashboardTicketVolumePoint[];
+    unresolvedBreachedTickets?: number;
 }
 
 export interface SupportDashboardSummarySectionDto {

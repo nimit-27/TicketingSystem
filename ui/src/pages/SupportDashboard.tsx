@@ -827,8 +827,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           ["Open Tickets", openTickets],
           ["Resolved Tickets", resolvedTickets],
           [],
+          ["Unresolved SLA Breaches"],
+          ["Unresolved SLA Breaches", unresolvedBreachedTickets],
+          [],
           ["SLA Compliance"],
-          ["Period", "Within SLA", "Overdue"],
+          ["Period", "Resolved within SLA", "Breached (Resolved/Closed)"],
           ...(slaCompliance.length ? slaCompliance.map((row) => [row.label, row.within, row.overdue]) : [["No data", 0, 0]]),
           [],
           ["Ticket Volume"],
@@ -909,8 +912,14 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           });
 
           sections.push({
+            title: "Unresolved SLA Breaches",
+            head: ["Metric", "Count"],
+            rows: [["Unresolved SLA Breaches", unresolvedBreachedTickets]],
+          });
+
+          sections.push({
             title: "SLA Compliance",
-            head: ["Period", "Within SLA", "Overdue"],
+            head: ["Period", "Resolved within SLA", "Breached (Resolved/Closed)"],
             rows: slaCompliance.length
               ? slaCompliance.map((row) => [row.label, row.within, row.overdue])
               : [["No data", 0, 0]],
@@ -1109,21 +1118,21 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     return view ?? createDefaultSummaryView();
   }, [activeScope, summary]);
 
+  const unresolvedBreachedTickets = React.useMemo(() => {
+    if (typeof summaryData?.unresolvedBreachedTickets === "number") {
+      return summaryData.unresolvedBreachedTickets;
+    }
+    return 0;
+  }, [summaryData]);
+
   const summaryCards = React.useMemo(
-    () => [
-      {
-        label: "",
-        value: formatSummaryValue(activeSummaryView.pendingForAcknowledgement),
-        background: "#ff5252",
-        color: "#fff",
-      },
-      ...severityLevels.map((level) => ({
+    () =>
+      severityLevels.map((level) => ({
         label: severityCardStyles[level].label,
         value: formatSummaryValue(activeSummaryView.severityCounts[level]),
         background: severityCardStyles[level].background,
         color: severityCardStyles[level].color,
       })),
-    ],
     [activeSummaryView],
   );
 
@@ -1398,24 +1407,34 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             {/* Summary Cards */}
             <div className="row g-3 col-12 col-xl-6">
               <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
-                {t("supportDashboard.metrics.pendingForAcknowledgement", { defaultValue: "Pending for Acknowledgement (Open)" })}
+                {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
               </Typography>
-              {summaryCards.map((card, i) => {
-                if (i == 0) {
-                  return <div className="col-12 col-sm-12 col-xl-12 m-0" key={card.label}>
-                    <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
-                      <CardContent className="py-3">
-                        <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
-                          {t(card.label)}
-                        </Typography>
-                        <Typography className="fw-bold" sx={{ fontSize: 24 }}>
-                          {card.value.toString()}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </div>
-                }
-                return <div className="col-3 col-sm-3 col-xl-3" key={card.label}>
+              <div className="col-12 col-sm-12 col-xl-12 m-0">
+                <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff5252", color: "#fff" }}>
+                  <CardContent className="py-3">
+                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                      {t("supportDashboard.metrics.pendingForAcknowledgement")}
+                    </Typography>
+                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                      {formatSummaryValue(activeSummaryView.pendingForAcknowledgement).toString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="col-12 col-sm-12 col-xl-12 m-0">
+                <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff7043", color: "#fff" }}>
+                  <CardContent className="py-3">
+                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                      {t("supportDashboard.metrics.unresolvedBreached")}
+                    </Typography>
+                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                      {formatSummaryValue(unresolvedBreachedTickets).toString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </div>
+              {summaryCards.map((card) => (
+                <div className="col-3 col-sm-3 col-xl-3" key={card.label}>
                   <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
                     <CardContent className="py-3">
                       <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
@@ -1427,8 +1446,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                     </CardContent>
                   </Card>
                 </div>
-              }
-              )}
+              ))}
             </div>
           </div>
 
@@ -1524,11 +1542,23 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                     <BarChart data={slaData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
-                      <YAxis unit="%" domain={[0, 100]} tick={{ fontSize: 12 }} tickLine={false} />
-                      <Tooltip formatter={(value: number) => `${value}%`} contentStyle={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} tickLine={false} allowDecimals={false} />
+                      <Tooltip formatter={(value: number) => `${value}`} contentStyle={{ fontSize: 12 }} />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
-                      <Bar dataKey="within" fill="#64d4a2" name={t("supportDashboard.metrics.withinSla")} radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="overdue" fill="#ff7043" name={t("supportDashboard.metrics.slaOverdue")} radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="within"
+                        fill="#64d4a2"
+                        name={t("supportDashboard.metrics.resolvedWithinSla")}
+                        stackId="sla"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="overdue"
+                        fill="#ff7043"
+                        name={t("supportDashboard.metrics.breachedResolved")}
+                        stackId="sla"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
