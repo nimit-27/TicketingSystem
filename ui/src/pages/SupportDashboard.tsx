@@ -1409,26 +1409,26 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
                 {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
               </Typography>
-              <div className="col-12 col-sm-12 col-xl-12 m-0">
+              <div className="col-12 col-sm-12 col-xl-12">
                 <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff5252", color: "#fff" }}>
-                  <CardContent className="py-3">
-                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
-                      {t("supportDashboard.metrics.pendingForAcknowledgement")}
-                    </Typography>
-                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
-                      {formatSummaryValue(activeSummaryView.pendingForAcknowledgement).toString()}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="col-12 col-sm-12 col-xl-12 m-0">
-                <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff7043", color: "#fff" }}>
                   <CardContent className="py-3">
                     <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
                       {t("supportDashboard.metrics.unresolvedBreached")}
                     </Typography>
                     <Typography className="fw-bold" sx={{ fontSize: 24 }}>
                       {formatSummaryValue(unresolvedBreachedTickets).toString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="col-12 col-sm-12 col-xl-12">
+                <Card className="h-100 border-0 shadow-sm" style={{ background: "#1976d2", color: "#fff" }}>
+                  <CardContent className="py-3">
+                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                      {t("supportDashboard.metrics.pendingForAcknowledgement")}
+                    </Typography>
+                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                      {formatSummaryValue(activeSummaryView.pendingForAcknowledgement).toString()}
                     </Typography>
                   </CardContent>
                 </Card>
