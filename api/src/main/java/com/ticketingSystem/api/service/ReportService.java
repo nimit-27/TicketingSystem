@@ -147,6 +147,7 @@ public class ReportService {
         SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange);
         List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries);
         List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries);
+        long unresolvedBreachedTickets = buildUnresolvedBreachedCount(dateRange, null);
 
         return SupportDashboardSummaryDto.builder()
                 .allTickets(allTickets)
@@ -156,6 +157,7 @@ public class ReportService {
                 .openResolved(openResolved)
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
+                .unresolvedBreachedTickets(unresolvedBreachedTickets)
                 .build();
     }
 
@@ -201,6 +203,7 @@ public class ReportService {
         SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange, parameterCriteria);
         List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries, parameterCriteria);
         List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries, parameterCriteria);
+        long unresolvedBreachedTickets = buildUnresolvedBreachedCount(dateRange, parameterCriteria);
 
         return SupportDashboardSummaryDto.builder()
                 .allTickets(allTickets)
@@ -210,6 +213,7 @@ public class ReportService {
                 .openResolved(openResolved)
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
+                .unresolvedBreachedTickets(unresolvedBreachedTickets)
                 .build();
     }
 
@@ -519,16 +523,25 @@ public class ReportService {
                 continue;
             }
 
-            if (parameterCriteria != null && parameterCriteria.hasFilters() && !parameterCriteria.matches(sla.getTicket())) {
+            Ticket ticket = sla.getTicket();
+            if (ticket == null || ticket.getTicketStatus() == null) {
                 continue;
             }
 
-            LocalDateTime reference = resolveSlaReferenceTimestamp(sla);
-            if (reference == null || !isWithinRange(reference, timeSeries.dateRange())) {
+            if (!RESOLVED_STATUSES.contains(ticket.getTicketStatus())) {
                 continue;
             }
 
-            TimeBucket bucket = findBucketForTimestamp(buckets, reference);
+            if (parameterCriteria != null && parameterCriteria.hasFilters() && !parameterCriteria.matches(ticket)) {
+                continue;
+            }
+
+            LocalDateTime resolvedAt = ticket.getResolvedAt();
+            if (resolvedAt == null || !isWithinRange(resolvedAt, timeSeries.dateRange())) {
+                continue;
+            }
+
+            TimeBucket bucket = findBucketForTimestamp(buckets, resolvedAt);
             if (bucket == null) {
                 continue;
             }
@@ -611,6 +624,26 @@ public class ReportService {
                         .tickets(countsByLabel.getOrDefault(bucket.label(), 0L))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    private long buildUnresolvedBreachedCount(DateRange dateRange, ParameterCriteria parameterCriteria) {
+        List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
+
+        EnumSet<TicketStatus> resolvedStatuses = EnumSet.copyOf(RESOLVED_STATUSES);
+
+        return slaEntries.stream()
+                .filter(Objects::nonNull)
+                .filter(sla -> Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L) > 0L)
+                .map(TicketSla::getTicket)
+                .filter(Objects::nonNull)
+                .filter(ticket -> ticket.getTicketStatus() == null || !resolvedStatuses.contains(ticket.getTicketStatus()))
+                .filter(ticket -> {
+                    if (parameterCriteria != null && parameterCriteria.hasFilters() && !parameterCriteria.matches(ticket)) {
+                        return false;
+                    }
+                    return isWithinRange(ticket.getReportedDate(), dateRange);
+                })
+                .count();
     }
 
     private LocalDateTime resolveSlaReferenceTimestamp(TicketSla sla) {
