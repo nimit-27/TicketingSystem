@@ -1363,7 +1363,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })}
                   </Typography>
-                  <ResponsiveContainer width="100%" height="90%">
+                  <ResponsiveContainer width="100%" height="75%">
                     <PieChart>
                       <Pie
                         data={statusData}
