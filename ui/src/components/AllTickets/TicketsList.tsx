@@ -166,6 +166,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         const options = getDropdownOptions(statusList, "statusName", "statusId");
         return includeAllStatusOption ? [{ label: "All", value: "All" }, ...options] : options;
     }, [includeAllStatusOption, statusList]);
+    const showStatusFilterDropdown = showStatusFilter && statusList.length > 1;
 
     const sortOptions: DropdownOption[] = useMemo(
         () => [
@@ -240,9 +241,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const effectiveSize = options?.sizeOverride ?? pageSize;
 
             let statusParam: string | undefined = statusFilter === "All" ? undefined : statusFilter;
-            // if (!statusParam && allowedStatuses.length > 0) {
-            //     statusParam = allowedStatuses.join(",");
-            // }
+            if (!statusParam && includeAllStatusOption && statusList.length > 0) {
+                statusParam = statusList.map((status: any) => status.statusId).join(",");
+            }
             if (overrides?.statusName !== undefined) {
                 statusParam = overrides.statusName;
             }
@@ -433,7 +434,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
 
                     {/* STATUS DROPDOWN FILTER */}
-                    {showStatusFilter && (
+                    {showStatusFilterDropdown && (
                         <DropdownController
                             label="Status"
                             className="col-3 px-1"
