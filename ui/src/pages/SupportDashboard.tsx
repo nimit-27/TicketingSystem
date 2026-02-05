@@ -438,7 +438,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
   const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
   const [selectedRole, setSelectedRole] = React.useState<string>(() => userRoles[0] ?? "");
-  const [selectedParameter, setSelectedParameter] = React.useState<string>("");
+  const [selectedParameter, setSelectedParameter] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -548,7 +548,13 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
         return current;
       }
 
-      if (parameterDropdownOptions.length == 1) return parameterDropdownOptions[0].value;
+      if (parameterDropdownOptions.length === 0) {
+        return "All";
+      }
+
+      if (parameterDropdownOptions.length === 1) {
+        return parameterDropdownOptions[0].value;
+      }
 
       return current
 
@@ -682,8 +688,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.subCategoryId = normalizedSubCategoryId;
     }
 
-    if (selectedParameter?.toLocaleLowerCase() !== "all" && parameterValue) {
-      params = { ...params, [selectedParameter]: parameterValue }
+    if (selectedParameter?.toLocaleLowerCase() !== "all" && selectedParameter && parameterValue) {
+      params.parameterKey = selectedParameter;
+      params.parameterValue = parameterValue;
     }
 
     return params;
