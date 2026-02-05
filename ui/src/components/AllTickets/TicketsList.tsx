@@ -70,6 +70,7 @@ interface TicketsListProps {
     onRowClick?: (id: string) => void;
     onTicketSelectChange?: (ticketId: string | null) => void;
     restrictStatusesToAllowed?: boolean;
+    includeAllStatusOption?: boolean;
     allowGrid?: boolean;
     allowTable?: boolean;
     tableOptions?: {
@@ -104,6 +105,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     onRowClick,
     onTicketSelectChange,
     restrictStatusesToAllowed = true,
+    includeAllStatusOption = true,
     allowGrid = true,
     allowTable = true,
     tableOptions,
@@ -160,10 +162,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const showMasterFilterToggle = checkMyTicketsAccess("masterFilterToggle", permissionPathPrefix);
     const showGridTableViewToggle = checkMyTicketsAccess("gridTableViewToggle", permissionPathPrefix);
 
-    const statusFilterOptions: DropdownOption[] = useMemo(
-        () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
-        [statusList],
-    );
+    const statusFilterOptions: DropdownOption[] = useMemo(() => {
+        const options = getDropdownOptions(statusList, "statusName", "statusId");
+        return includeAllStatusOption ? [{ label: "All", value: "All" }, ...options] : options;
+    }, [includeAllStatusOption, statusList]);
 
     const sortOptions: DropdownOption[] = useMemo(
         () => [
@@ -358,6 +360,12 @@ const TicketsList: React.FC<TicketsListProps> = ({
             });
         }
     }, [allowedStatusData, restrictStatusesToAllowed]);
+
+    useEffect(() => {
+        if (!includeAllStatusOption && statusFilter === "All" && statusList.length > 0) {
+            setStatusFilter(String(statusList[0].statusId));
+        }
+    }, [includeAllStatusOption, statusFilter, statusList]);
 
     useEffect(() => {
         if (workflowData) {
