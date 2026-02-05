@@ -25,6 +25,7 @@ import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
+import com.ticketingSystem.api.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -35,6 +36,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
@@ -131,8 +133,10 @@ public class ReportService {
                                                                  String timeScale,
                                                                  String timeRange,
                                                                  Integer customStartYear,
-                                                                 Integer customEndYear) {
-        TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear);
+                                                                 Integer customEndYear,
+                                                                 String fromDate,
+                                                                 String toDate) {
+        TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear, fromDate, toDate);
         DateRange dateRange = timeSeries.dateRange();
 
         SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange);
@@ -166,6 +170,8 @@ public class ReportService {
                                                                          String timeRange,
                                                                          Integer customStartYear,
                                                                          Integer customEndYear,
+                                                                         String fromDate,
+                                                                         String toDate,
                                                                          String parameterKey,
                                                                          String parameterValue,
                                                                          MultiValueMap<String, String> allParams) {
@@ -186,7 +192,7 @@ public class ReportService {
                 .filter(StringUtils::hasText)
                 .toList();
 
-        TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear);
+        TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear, fromDate, toDate);
         DateRange dateRange = timeSeries.dateRange();
 
         ParameterCriteria parameterCriteria = resolveDashboardParameterCriteria(userId, allParams, parameterKeysList);
@@ -731,13 +737,22 @@ public class ReportService {
     private TimeSeriesDefinition resolveTimeSeries(String timeScale,
                                                    String timeRange,
                                                    Integer customStartYear,
-                                                   Integer customEndYear) {
+                                                   Integer customEndYear,
+                                                   String fromDate,
+                                                   String toDate) {
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
         String normalizedScale = StringUtils.hasText(timeScale) ? timeScale.trim().toUpperCase(Locale.ROOT) : "";
         String normalizedRange = StringUtils.hasText(timeRange) ? timeRange.trim().toUpperCase(Locale.ROOT) : "";
 
         List<TimeBucket> buckets = new ArrayList<>();
+
+        if ("CUSTOM".equals(normalizedScale) || "CUSTOM_DATE_RANGE".equals(normalizedRange)) {
+            TimeSeriesDefinition customDefinition = buildCustomDateRangeSeries(fromDate, toDate, now);
+            if (customDefinition != null) {
+                return customDefinition;
+            }
+        }
 
         switch (normalizedScale) {
             case "DAILY" -> {
@@ -929,6 +944,81 @@ public class ReportService {
         }
 
         return new TimeSeriesDefinition(new DateRange(from, to), buckets);
+    }
+
+    private TimeSeriesDefinition buildCustomDateRangeSeries(String fromDate, String toDate, LocalDateTime fallbackNow) {
+        LocalDateTime parsedFrom = parseStartDate(fromDate);
+        LocalDateTime parsedTo = parseEndDate(toDate);
+
+        if (parsedFrom == null && parsedTo == null) {
+            return null;
+        }
+
+        if (parsedFrom == null) {
+            parsedFrom = parsedTo;
+        }
+
+        if (parsedTo == null) {
+            parsedTo = parsedFrom;
+        }
+
+        if (parsedTo.isBefore(parsedFrom)) {
+            LocalDateTime temp = parsedFrom;
+            parsedFrom = parsedTo;
+            parsedTo = temp;
+        }
+
+        if (parsedFrom.isAfter(fallbackNow)) {
+            parsedFrom = fallbackNow;
+        }
+
+        if (parsedTo.isAfter(fallbackNow)) {
+            parsedTo = fallbackNow;
+        }
+
+        List<TimeBucket> buckets = new ArrayList<>();
+        LocalDate startDate = parsedFrom.toLocalDate();
+        LocalDate endDate = parsedTo.toLocalDate();
+        LocalDate cursor = startDate;
+
+        while (!cursor.isAfter(endDate)) {
+            LocalDateTime bucketStart = cursor.equals(startDate) ? parsedFrom : cursor.atStartOfDay();
+            LocalDateTime bucketEnd = cursor.equals(endDate)
+                    ? parsedTo
+                    : cursor.plusDays(1).atStartOfDay().minusNanos(1);
+            buckets.add(new TimeBucket(bucketStart, bucketEnd, cursor.format(DAY_FORMATTER)));
+            cursor = cursor.plusDays(1);
+        }
+
+        if (buckets.isEmpty()) {
+            buckets.add(new TimeBucket(parsedFrom, parsedTo, parsedFrom.toLocalDate().format(DAY_FORMATTER)));
+        }
+
+        return new TimeSeriesDefinition(new DateRange(parsedFrom, parsedTo), buckets);
+    }
+
+    private LocalDateTime parseStartDate(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(value.trim());
+            return date.atStartOfDay();
+        } catch (DateTimeParseException ignored) {
+        }
+        return DateTimeUtils.parseToLocalDateTime(value);
+    }
+
+    private LocalDateTime parseEndDate(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(value.trim());
+            return date.atTime(23, 59, 59, 999_999_999);
+        } catch (DateTimeParseException ignored) {
+        }
+        return DateTimeUtils.parseToLocalDateTime(value);
     }
 
     private TimeBucket findBucketForTimestamp(List<TimeBucket> buckets, LocalDateTime timestamp) {

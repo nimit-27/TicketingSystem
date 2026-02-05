@@ -36,8 +36,18 @@ public class ReportsController {
             @RequestParam(value = "timeScale", required = false) String timeScale,
             @RequestParam(value = "timeRange", required = false) String timeRange,
             @RequestParam(value = "customStartYear", required = false) Integer customStartYear,
-            @RequestParam(value = "customEndYear", required = false) Integer customEndYear) {
-        return ResponseEntity.ok(reportService.getSupportDashboardSummary(userId, timeScale, timeRange, customStartYear, customEndYear));
+            @RequestParam(value = "customEndYear", required = false) Integer customEndYear,
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate) {
+        return ResponseEntity.ok(reportService.getSupportDashboardSummary(
+                userId,
+                timeScale,
+                timeRange,
+                customStartYear,
+                customEndYear,
+                fromDate,
+                toDate
+        ));
     }
 
     @GetMapping("/support-dashboard-summary/filtered")
@@ -50,6 +60,8 @@ public class ReportsController {
             @RequestParam(value = "timeRange", required = false) String timeRange,
             @RequestParam(value = "customStartYear", required = false) Integer customStartYear,
             @RequestParam(value = "customEndYear", required = false) Integer customEndYear,
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
             @RequestParam(value = "parameterKey", required = false) String parameterKey,
             @RequestParam(value = "parameterValue", required = false) String parameterValue) {
         String userId = ticketAuthorizationService.resolveUserId(authenticatedUser, session);
@@ -61,6 +73,8 @@ public class ReportsController {
                 timeRange,
                 customStartYear,
                 customEndYear,
+                fromDate,
+                toDate,
                 parameterKey,
                 parameterValue,
                 allParams
