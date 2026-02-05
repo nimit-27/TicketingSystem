@@ -166,7 +166,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
         const options = getDropdownOptions(statusList, "statusName", "statusId");
         return includeAllStatusOption ? [{ label: "All", value: "All" }, ...options] : options;
     }, [includeAllStatusOption, statusList]);
-    const showStatusFilterDropdown = showStatusFilter && statusList.length > 1;
     const statusLabelByValue = useMemo(
         () => new Map(statusFilterOptions.map(option => [String(option.value), option.label])),
         [statusFilterOptions],
@@ -452,7 +451,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
 
                     {/* STATUS DROPDOWN FILTER */}
-                    {showStatusFilterDropdown && (
+                    {showStatusFilter && (
                         <DropdownController
                             label="Status"
                             className="col-3 px-1"
