@@ -321,7 +321,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 key: 'requester',
-                label: t('Requester'),
+                label: t('Requestor'),
                 getValue: (record: TicketRow) => record.requestorName || '-',
             },
             {
@@ -481,7 +481,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 ),
             },
             {
-                title: t('Requester'),
+                title: t('Requestor'),
                 key: 'requestorName',
                 width: '15%',
                 ellipsis: true,

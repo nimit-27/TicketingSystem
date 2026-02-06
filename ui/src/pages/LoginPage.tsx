@@ -166,7 +166,7 @@ const LoginPage: FC = () => {
     );
 
     const portalLabels: Record<PortalType, string> = useMemo(() => ({
-        requestor: t("Requester"),
+        requestor: t("Requestor"),
         helpdesk: t("Helpdesk"),
     }), [t]);
 

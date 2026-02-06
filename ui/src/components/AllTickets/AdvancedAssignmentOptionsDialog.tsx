@@ -267,7 +267,7 @@ const AdvancedAssignmentOptionsDialog: React.FC<AdvancedAssignmentOptionsDialogP
             ? [
                 {
                     key: 'requester',
-                    tabTitle: 'Requester',
+                    tabTitle: 'Requestor',
                     tabComponent: (
                         <RequesterTab
                             onCancel={onClose}
