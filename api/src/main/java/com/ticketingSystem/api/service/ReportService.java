@@ -83,18 +83,18 @@ public class ReportService {
         String normalizedValue = parameterValue.trim();
 
         return switch (normalizedKey) {
-            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null);
-            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null);
-            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null);
-            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null);
-            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue);
+            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null, null, null, null);
+            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null, null, null, null);
+            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null, null, null, null);
+            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null, null, null, null);
+            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue, null, null, null);
             default -> null;
         };
     }
 
-    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId) {
+    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId, String zoneCode, String regionCode, String districtCode) {
         boolean hasFilters() {
-            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId).anyMatch(StringUtils::hasText);
+            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId, zoneCode, regionCode, districtCode).anyMatch(StringUtils::hasText);
         }
 
         boolean matches(Ticket ticket) {
@@ -117,7 +117,20 @@ public class ReportService {
             if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getCreatedBy())) {
                 return false;
             }
-            return !StringUtils.hasText(userId) || matchesValue(userId, ticket.getUserId());
+
+            if (StringUtils.hasText(userId) && !matchesValue(userId, ticket.getUserId())) {
+                return false;
+            }
+
+            if (StringUtils.hasText(zoneCode) && !matchesValue(zoneCode, ticket.getZoneCode())) {
+                return false;
+            }
+
+            if (StringUtils.hasText(regionCode) && !matchesValue(regionCode, ticket.getRegionCode())) {
+                return false;
+            }
+
+            return !StringUtils.hasText(districtCode) || matchesValue(districtCode, ticket.getDistrictCode());
         }
 
         private boolean matchesValue(String expected, String actual) {
@@ -279,12 +292,19 @@ public class ReportService {
             }
         }
 
+        String zoneCode = StringUtils.hasText(allParams.getFirst("zoneCode")) ? allParams.getFirst("zoneCode") : null;
+        String regionCode = StringUtils.hasText(allParams.getFirst("regionCode")) ? allParams.getFirst("regionCode") : null;
+        String districtCode = StringUtils.hasText(allParams.getFirst("districtCode")) ? allParams.getFirst("districtCode") : null;
+
         ParameterCriteria parameterCriteria = new ParameterCriteria(
                 parameterAssignedTo,
                 parameterAssignedBy,
                 parameterUpdatedBy,
                 parameterCreatedBy,
-                user_id
+                user_id,
+                zoneCode,
+                regionCode,
+                districtCode
         );
 
         return parameterCriteria.hasFilters() ? parameterCriteria : null;
@@ -311,7 +331,10 @@ public class ReportService {
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
                     parameterCriteria.createdBy(),
-                    parameterCriteria.userId()
+                    parameterCriteria.userId(),
+                    parameterCriteria.zoneCode(),
+                    parameterCriteria.regionCode(),
+                    parameterCriteria.districtCode()
             );
         } else {
             severityProjections = ticketRepository.countTicketsBySeverity(
@@ -343,7 +366,10 @@ public class ReportService {
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
                     parameterCriteria.createdBy(),
-                    parameterCriteria.userId
+                    parameterCriteria.userId,
+                    parameterCriteria.zoneCode(),
+                    parameterCriteria.regionCode(),
+                    parameterCriteria.districtCode()
             );
         } else {
             statusProjections = ticketRepository.countTicketsByStatusWithFilters(
@@ -377,7 +403,10 @@ public class ReportService {
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
                     parameterCriteria.createdBy(),
-                    parameterCriteria.userId
+                    parameterCriteria.userId,
+                    parameterCriteria.zoneCode(),
+                    parameterCriteria.regionCode(),
+                    parameterCriteria.districtCode()
             );
 
             totalTickets = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
@@ -389,7 +418,10 @@ public class ReportService {
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
                     parameterCriteria.createdBy(),
-                    parameterCriteria.userId
+                    parameterCriteria.userId,
+                    parameterCriteria.zoneCode(),
+                    parameterCriteria.regionCode(),
+                    parameterCriteria.districtCode()
             );
         } else {
             pendingCount = ticketRepository.countTicketsByStatusAndFilters(
@@ -433,7 +465,10 @@ public class ReportService {
                     parameterCriteria.assignedTo(),
                     parameterCriteria.assignedBy(),
                     parameterCriteria.updatedBy(),
-                    parameterCriteria.createdBy()
+                    parameterCriteria.createdBy(),
+                    parameterCriteria.zoneCode(),
+                    parameterCriteria.regionCode(),
+                    parameterCriteria.districtCode()
             );
         } else {
             aggregations = ticketRepository.aggregateDashboardStatsByCategory(assignedTo, dateRange.from(), dateRange.to());
@@ -473,7 +508,10 @@ public class ReportService {
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
                 parameterCriteria.createdBy(),
-                parameterCriteria.userId()
+                parameterCriteria.userId(),
+                parameterCriteria.zoneCode(),
+                parameterCriteria.regionCode(),
+                parameterCriteria.districtCode()
         ) : ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
 
         EnumSet<TicketStatus> openLikeStatuses = EnumSet.allOf(TicketStatus.class);
@@ -494,7 +532,10 @@ public class ReportService {
                 parameterCriteria.assignedTo(),
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
-                parameterCriteria.createdBy()
+                parameterCriteria.createdBy(),
+                parameterCriteria.zoneCode(),
+                parameterCriteria.regionCode(),
+                parameterCriteria.districtCode()
         ) : ticketRepository.findByResolvedAtBetween(dateRange.from(), dateRange.to());
 
         long resolvedCount = resolvedTickets.stream()
@@ -602,7 +643,10 @@ public class ReportService {
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
                 parameterCriteria.createdBy(),
-                parameterCriteria.userId
+                parameterCriteria.userId,
+                parameterCriteria.zoneCode(),
+                parameterCriteria.regionCode(),
+                parameterCriteria.districtCode()
         ) : ticketRepository.findByReportedDateBetween(timeSeries.dateRange().from(), timeSeries.dateRange().to());
 
         for (Ticket ticket : tickets) {

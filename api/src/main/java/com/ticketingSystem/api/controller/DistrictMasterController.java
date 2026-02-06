@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -20,7 +21,11 @@ public class DistrictMasterController {
     private final DistrictMasterService districtMasterService;
 
     @GetMapping
-    public ResponseEntity<List<DistrictMaster>> getDistricts() {
-        return ResponseEntity.ok(districtMasterService.getAll());
+    public ResponseEntity<List<DistrictMaster>> getDistricts(@RequestParam(value = "hrmsRegCode", required = false) String hrmsRegCode) {
+        if (hrmsRegCode == null || hrmsRegCode.isBlank()) {
+            return ResponseEntity.ok(districtMasterService.getAll());
+        }
+
+        return ResponseEntity.ok(districtMasterService.getByHrmsRegCode(hrmsRegCode));
     }
 }

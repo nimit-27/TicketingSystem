@@ -45,6 +45,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
             "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
+            "AND (:zoneCode IS NULL OR LOWER(t.zoneCode) = LOWER(:zoneCode)) " +
+            "AND (:regionCode IS NULL OR LOWER(t.regionCode) = LOWER(:regionCode)) " +
+            "AND (:districtCode IS NULL OR LOWER(t.districtCode) = LOWER(:districtCode)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY t.ticketStatus")
@@ -56,7 +59,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             @Param("parameterAssignedBy") String parameterAssignedBy,
             @Param("parameterUpdatedBy") String parameterUpdatedBy,
             @Param("parameterCreatedBy") String parameterCreatedBy,
-            @Param("parameterRequestedBy") String userId);
+            @Param("parameterRequestedBy") String userId,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode);
 
     @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
     List<ModeCountProjection> countTicketsByMode();
@@ -168,6 +174,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                   AND (:parameterAssignedBy IS NULL OR LOWER(t.assigned_by) = LOWER(:parameterAssignedBy))
                   AND (:parameterUpdatedBy IS NULL OR LOWER(t.updated_by) = LOWER(:parameterUpdatedBy))
                   AND (:parameterCreatedBy IS NULL OR LOWER(t.user_id) = LOWER(:parameterCreatedBy))
+                  AND (:zoneCode IS NULL OR LOWER(t.zone_code) = LOWER(:zoneCode))
+                  AND (:regionCode IS NULL OR LOWER(t.region_code) = LOWER(:regionCode))
+                  AND (:districtCode IS NULL OR LOWER(t.district_code) = LOWER(:districtCode))
                   AND (:fromDate IS NULL OR t.reported_date >= :fromDate)
                   AND (:toDate IS NULL OR t.reported_date <= :toDate)
                 GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
@@ -180,7 +189,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             @Param("parameterAssignedTo") String parameterAssignedTo,
             @Param("parameterAssignedBy") String parameterAssignedBy,
             @Param("parameterUpdatedBy") String parameterUpdatedBy,
-            @Param("parameterCreatedBy") String parameterCreatedBy);
+            @Param("parameterCreatedBy") String parameterCreatedBy,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode);
 
     @Query("SELECT LOWER(t.severity) AS severity, COUNT(t) AS count FROM Ticket t " +
             "WHERE t.severity IS NOT NULL " +
@@ -203,6 +215,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
             "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
+            "AND (:zoneCode IS NULL OR LOWER(t.zoneCode) = LOWER(:zoneCode)) " +
+            "AND (:regionCode IS NULL OR LOWER(t.regionCode) = LOWER(:regionCode)) " +
+            "AND (:districtCode IS NULL OR LOWER(t.districtCode) = LOWER(:districtCode)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY LOWER(t.severity)")
@@ -214,7 +229,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                                       @Param("parameterAssignedBy") String parameterAssignedBy,
                                                                       @Param("parameterUpdatedBy") String parameterUpdatedBy,
                                                                       @Param("parameterCreatedBy") String parameterCreatedBy,
-                                                                      @Param("parameterRequestedBy") String userId);
+                                                                      @Param("parameterRequestedBy") String userId,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode);
 
     @Query("SELECT COUNT(t) FROM Ticket t " +
             "WHERE (:status IS NULL OR t.ticketStatus = :status) " +
@@ -234,6 +252,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
             "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
+            "AND (:zoneCode IS NULL OR LOWER(t.zoneCode) = LOWER(:zoneCode)) " +
+            "AND (:regionCode IS NULL OR LOWER(t.regionCode) = LOWER(:regionCode)) " +
+            "AND (:districtCode IS NULL OR LOWER(t.districtCode) = LOWER(:districtCode)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     long countTicketsByStatusAndFiltersWithParameter(@Param("status") TicketStatus status,
@@ -244,7 +265,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                      @Param("parameterAssignedBy") String parameterAssignedBy,
                                                      @Param("parameterUpdatedBy") String parameterUpdatedBy,
                                                      @Param("parameterCreatedBy") String parameterCreatedBy,
-                                                     @Param("parameterRequestedBy") String userId);
+                                                     @Param("parameterRequestedBy") String userId,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode);
 
     @Query("SELECT t FROM Ticket t WHERE t.reportedDate IS NOT NULL AND t.resolvedAt IS NOT NULL")
     List<Ticket> findResolvedTickets();
@@ -263,6 +287,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
             "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
+            "AND (:zoneCode IS NULL OR LOWER(t.zoneCode) = LOWER(:zoneCode)) " +
+            "AND (:regionCode IS NULL OR LOWER(t.regionCode) = LOWER(:regionCode)) " +
+            "AND (:districtCode IS NULL OR LOWER(t.districtCode) = LOWER(:districtCode)) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     List<Ticket> findByReportedDateBetweenWithParameters(@Param("fromDate") LocalDateTime fromDate,
@@ -271,13 +298,19 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                          @Param("parameterAssignedBy") String parameterAssignedBy,
                                                          @Param("parameterUpdatedBy") String parameterUpdatedBy,
                                                          @Param("parameterCreatedBy") String parameterCreatedBy,
-                                                         @Param("parameterRequestedBy") String userId);
+                                                         @Param("parameterRequestedBy") String userId,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode);
 
     @Query("SELECT t FROM Ticket t " +
             "WHERE (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterCreatedBy)) " +
+            "AND (:zoneCode IS NULL OR LOWER(t.zoneCode) = LOWER(:zoneCode)) " +
+            "AND (:regionCode IS NULL OR LOWER(t.regionCode) = LOWER(:regionCode)) " +
+            "AND (:districtCode IS NULL OR LOWER(t.districtCode) = LOWER(:districtCode)) " +
             "AND (:fromDate IS NULL OR t.resolvedAt >= :fromDate) " +
             "AND (:toDate IS NULL OR t.resolvedAt <= :toDate)")
     List<Ticket> findByResolvedAtBetweenWithParameters(@Param("fromDate") LocalDateTime fromDate,
@@ -285,7 +318,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                        @Param("parameterAssignedTo") String parameterAssignedTo,
                                                        @Param("parameterAssignedBy") String parameterAssignedBy,
                                                        @Param("parameterUpdatedBy") String parameterUpdatedBy,
-                                                       @Param("parameterCreatedBy") String parameterCreatedBy);
+                                                       @Param("parameterCreatedBy") String parameterCreatedBy,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode);
 
     Optional<Ticket> findFirstByReportedDateNotNullOrderByReportedDateAsc();
 

@@ -5,10 +5,18 @@ export function getZones() {
   return axios.get(`${BASE_URL}/zones`);
 }
 
-export function getRegions() {
-  return axios.get(`${BASE_URL}/regions`);
+export function getRegions(zoneCode?: string) {
+  return axios.get(`${BASE_URL}/regions`, {
+    params: {
+      zoneCode,
+    },
+  });
 }
 
-export function getDistricts() {
-  return axios.get(`${BASE_URL}/districts`);
+export function getDistricts(hrmsRegCode?: string) {
+  return axios.get(`${BASE_URL}/districts`, {
+    params: {
+      hrmsRegCode,
+    },
+  });
 }
