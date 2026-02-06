@@ -28,7 +28,7 @@ import FeedbackModal from "../Feedback/FeedbackModal";
 
 export interface TicketsListFilterState {
     search: string;
-    statusFilter: string;
+    statusFilter: string[];
     masterOnly: boolean;
     levelFilter?: string;
     sortBy: "reportedDate" | "lastModified";
@@ -70,6 +70,7 @@ interface TicketsListProps {
     onRowClick?: (id: string) => void;
     onTicketSelectChange?: (ticketId: string | null) => void;
     restrictStatusesToAllowed?: boolean;
+    includeAllStatusOption?: boolean;
     allowGrid?: boolean;
     allowTable?: boolean;
     tableOptions?: {
@@ -104,6 +105,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     onRowClick,
     onTicketSelectChange,
     restrictStatusesToAllowed = true,
+    includeAllStatusOption = true,
     allowGrid = true,
     allowTable = true,
     tableOptions,
@@ -137,7 +139,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [gridPageSize, setGridPageSize] = useState(5);
     const pageSize = viewMode === "grid" ? gridPageSize : tablePageSize;
     const [totalPages, setTotalPages] = useState(1);
-    const [statusFilter, setStatusFilter] = useState("All");
+    const [statusFilter, setStatusFilter] = useState<string[]>(["All"]);
     const [masterOnly, setMasterOnly] = useState(false);
     const levels = getCurrentUserDetails()?.levels || [];
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
@@ -160,9 +162,13 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const showMasterFilterToggle = checkMyTicketsAccess("masterFilterToggle", permissionPathPrefix);
     const showGridTableViewToggle = checkMyTicketsAccess("gridTableViewToggle", permissionPathPrefix);
 
-    const statusFilterOptions: DropdownOption[] = useMemo(
-        () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
-        [statusList],
+    const statusFilterOptions: DropdownOption[] = useMemo(() => {
+        const options = getDropdownOptions(statusList, "statusName", "statusId");
+        return includeAllStatusOption ? [{ label: "All", value: "All" }, ...options] : options;
+    }, [includeAllStatusOption, statusList]);
+    const statusLabelByValue = useMemo(
+        () => new Map(statusFilterOptions.map(option => [String(option.value), option.label])),
+        [statusFilterOptions],
     );
 
     const sortOptions: DropdownOption[] = useMemo(
@@ -181,7 +187,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
     const resetFilters = () => {
         setSearch("");
-        setStatusFilter("All");
+        setStatusFilter(["All"]);
         setMasterOnly(false);
         setLevelFilter(undefined);
         setSortBy("reportedDate");
@@ -237,12 +243,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const effectivePage = options?.pageOverride ?? page;
             const effectiveSize = options?.sizeOverride ?? pageSize;
 
-            let statusParam: string | undefined = statusFilter === "All" ? undefined : statusFilter;
-            // if (!statusParam && allowedStatuses.length > 0) {
-            //     statusParam = allowedStatuses.join(",");
-            // }
-            if (overrides?.statusName !== undefined) {
-                statusParam = overrides.statusName;
+            const normalizedStatusFilter = statusFilter.length > 0 ? statusFilter : ["All"];
+            const hasAllSelected = normalizedStatusFilter.includes("All");
+            let statusParam: string | undefined;
+
+            if (hasAllSelected && includeAllStatusOption && statusList.length > 0) {
+                statusParam = statusList.map((status: any) => status.statusId).join(",");
+            } else if (!hasAllSelected) {
+                statusParam = normalizedStatusFilter.join(",");
             }
 
             const masterParam = overrides?.master !== undefined ? overrides.master : masterOnly ? true : undefined;
@@ -253,8 +261,18 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 ...overrides,
             };
 
+            if (mergedOverrides.statusName !== undefined) {
+                if (mergedOverrides.statusName === "All") {
+                    statusParam = includeAllStatusOption && statusList.length > 0
+                        ? statusList.map((status: any) => status.statusId).join(",")
+                        : undefined;
+                } else {
+                    statusParam = mergedOverrides.statusName;
+                }
+            }
+
             const queryParam = mergedOverrides.query !== undefined ? mergedOverrides.query : debouncedSearch;
-            const statusParamU = mergedOverrides.statusName === "All" ? undefined : statusParam;
+            const statusParamU = statusParam;
             const pageParam = mergedOverrides.page ?? effectivePage - 1;
             const sizeParam = mergedOverrides.size ?? effectiveSize;
             const levelParam = mergedOverrides.levelId ?? levelFilter;
@@ -294,6 +312,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             dateRangeParams.toDate,
             debouncedSearch,
             filterState,
+            includeAllStatusOption,
             levelFilter,
             masterOnly,
             normalizedCategory,
@@ -302,6 +321,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             pageSize,
             sortBy,
             sortDirection,
+            statusList,
             statusFilter,
         ],
     );
@@ -358,6 +378,12 @@ const TicketsList: React.FC<TicketsListProps> = ({
             });
         }
     }, [allowedStatusData, restrictStatusesToAllowed]);
+
+    useEffect(() => {
+        if (!includeAllStatusOption && statusFilter.includes("All") && statusList.length > 0) {
+            setStatusFilter([String(statusList[0].statusId)]);
+        }
+    }, [includeAllStatusOption, statusFilter, statusList]);
 
     useEffect(() => {
         if (workflowData) {
@@ -430,8 +456,28 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             label="Status"
                             className="col-3 px-1"
                             value={statusFilter}
-                            onChange={(value) => { setStatusFilter(value); setPage(1); }}
+                            multiple
+                            onChange={(value) => {
+                                const nextValue = Array.isArray(value) ? value : [value];
+                                if (nextValue.includes("All") && nextValue.length > 1) {
+                                    setStatusFilter(["All"]);
+                                } else if (nextValue.length === 0) {
+                                    setStatusFilter(["All"]);
+                                } else {
+                                    setStatusFilter(nextValue);
+                                }
+                                setPage(1);
+                            }}
                             options={statusFilterOptions}
+                            renderValue={(selected) => {
+                                const selections = Array.isArray(selected) ? selected : [selected];
+                                if (selections.includes("All")) {
+                                    return "All";
+                                }
+                                return selections
+                                    .map((value) => statusLabelByValue.get(String(value)) ?? String(value))
+                                    .join(", ");
+                            }}
                         />
                     )}
 

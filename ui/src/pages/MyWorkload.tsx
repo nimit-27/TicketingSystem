@@ -86,6 +86,7 @@ const MyWorkload: React.FC = () => {
             transformTickets={transformTickets}
             onRowClick={(id) => navigate(`/tickets/${id}`)}
             tableOptions={{ permissionPathPrefix: "myWorkload" }}
+            includeAllStatusOption
         />
     );
 };

@@ -419,7 +419,12 @@ public class TicketService {
                 ? null
                 : Arrays.stream(statusId.split(","))
                     .map(String::trim)
+                    .filter(value -> !value.isEmpty())
+                    .filter(value -> !"ALL".equalsIgnoreCase(value))
                     .collect(Collectors.toCollection(ArrayList::new));
+        if (statusIds != null && statusIds.isEmpty()) {
+            statusIds = null;
+        }
         List<String> severityFilters = (severity == null || severity.isBlank())
                 ? null
                 : Arrays.stream(severity.split(","))
@@ -439,7 +444,12 @@ public class TicketService {
                 ? null
                 : Arrays.stream(statusId.split(","))
                     .map(String::trim)
+                    .filter(value -> !value.isEmpty())
+                    .filter(value -> !"ALL".equalsIgnoreCase(value))
                     .collect(Collectors.toCollection(ArrayList::new));
+        if (statusIds != null && statusIds.isEmpty()) {
+            statusIds = null;
+        }
         List<String> severityFilters = (severity == null || severity.isBlank())
                 ? null
                 : Arrays.stream(severity.split(","))

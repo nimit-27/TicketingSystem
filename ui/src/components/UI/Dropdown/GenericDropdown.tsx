@@ -15,8 +15,8 @@ export interface DropdownOption {
 
 export interface GenericDropdownProps {
     label?: string;
-    value?: string;
-    onChange: (event: SelectChangeEvent) => void;
+    value?: string | string[];
+    onChange: (event: SelectChangeEvent<string | string[]>) => void;
     onBlur?: () => void;
     options?: DropdownOption[];
     fullWidth?: boolean;

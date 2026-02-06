@@ -14,7 +14,7 @@ const MyTickets: React.FC = () => {
         const userId = user?.userId || "";
         const isRequestor = roles.includes("5");
 
-        const shouldForceAllStatus = isRequestor && filters.statusFilter === "All";
+        const shouldForceAllStatus = isRequestor && filters.statusFilter.includes("All");
 
         return {
             ...(isRequestor ? { requestorId: userId || undefined } : {}),
