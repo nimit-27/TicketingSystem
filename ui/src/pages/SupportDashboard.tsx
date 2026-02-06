@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Box, Card, CardContent, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, MenuItem, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -28,6 +28,7 @@ import { useSnackbar } from "../context/SnackbarContext";
 import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriods";
 import { useCategoryFilters } from "../hooks/useCategoryFilters";
 import { getParametersByRoles } from "../services/ParameterService";
+import { getDistricts, getRegions, getZones } from "../services/LocationService";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -391,6 +392,21 @@ interface SupportDashboardProps {
   initialTimeRange?: SupportDashboardTimeRange;
 }
 
+interface ZoneOptionItem {
+  zoneCode?: string;
+  zoneName?: string;
+}
+
+interface RegionOptionItem {
+  regionName?: string;
+  hrmsRegCode?: string;
+}
+
+interface DistrictOptionItem {
+  districtName?: string;
+  districtCode?: string;
+}
+
 const SupportDashboard: React.FC<SupportDashboardProps> = ({
   initialTimeScale = "DAILY",
   initialTimeRange = "LAST_7_DAYS",
@@ -439,6 +455,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
   const [selectedRole, setSelectedRole] = React.useState<string>(() => userRoles[0] ?? "");
   const [selectedParameter, setSelectedParameter] = React.useState<string>("All");
+  const [selectedZone, setSelectedZone] = React.useState<string>("All");
+  const [selectedRegion, setSelectedRegion] = React.useState<string>("All");
+  const [selectedDistrict, setSelectedDistrict] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -453,6 +472,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     data: roleParameters,
     apiHandler: getRoleParametersApiHandler,
   } = useApi<ParameterMaster[]>();
+
+  const { data: zonesResponse = [], apiHandler: getZonesApiHandler } = useApi<ZoneOptionItem[]>();
+  const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<RegionOptionItem[]>();
+  const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<DistrictOptionItem[]>();
 
   useEffect(() => {
     let isMounted = true;
@@ -487,6 +510,32 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const rolesToQuery = selectedRole ? [selectedRole] : [];
     void getRoleParametersApiHandler(() => getParametersByRoles(rolesToQuery));
   }, [getRoleParametersApiHandler, selectedRole]);
+
+  useEffect(() => {
+    void getZonesApiHandler(() => getZones());
+  }, [getZonesApiHandler]);
+
+  useEffect(() => {
+    if (selectedZone === "All") {
+      setSelectedRegion("All");
+      setSelectedDistrict("All");
+      return;
+    }
+
+    setSelectedRegion("All");
+    setSelectedDistrict("All");
+    void getRegionsApiHandler(() => getRegions(selectedZone));
+  }, [getRegionsApiHandler, selectedZone]);
+
+  useEffect(() => {
+    if (selectedRegion === "All") {
+      setSelectedDistrict("All");
+      return;
+    }
+
+    setSelectedDistrict("All");
+    void getDistrictsApiHandler(() => getDistricts(selectedRegion));
+  }, [getDistrictsApiHandler, selectedRegion]);
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -534,6 +583,31 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const parameterDropdownOptions = React.useMemo(
     () => getDropdownOptions(roleParameters, "label", "parameterKey"),
     [roleParameters],
+  );
+
+  const zoneOptions = React.useMemo(
+    () => [{ label: "All", value: "All" }, ...((zonesResponse?.data ?? zonesResponse ?? []).map((zone: ZoneOptionItem) => ({
+      label: zone.zoneName ? `${zone.zoneName} (${zone.zoneCode})` : String(zone.zoneCode ?? ""),
+      value: String(zone.zoneCode ?? ""),
+    })))],
+    [zonesResponse],
+  );
+
+  const regionOptions = React.useMemo(
+    () => [{ label: "All", value: "All" }, ...((regionsResponse?.data ?? regionsResponse ?? []).map((region: RegionOptionItem) => ({
+      label: region.regionName ?? "",
+      value: String(region.hrmsRegCode ?? ""),
+      hrmsRegCode: region.hrmsRegCode ?? "",
+    })))],
+    [regionsResponse],
+  );
+
+  const districtOptions = React.useMemo(
+    () => [{ label: "All", value: "All" }, ...((districtsResponse?.data ?? districtsResponse ?? []).map((district: DistrictOptionItem) => ({
+      label: district.districtName ? `${district.districtName} (${district.districtCode})` : String(district.districtCode ?? ""),
+      value: String(district.districtCode ?? ""),
+    })))],
+    [districtsResponse],
   );
 
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
@@ -644,6 +718,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const normalizedCategoryId = selectedCategory === "All" ? undefined : selectedCategory;
     const normalizedSubCategoryId =
       normalizedCategoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
+    const normalizedZoneCode = selectedZone === "All" ? undefined : selectedZone;
+    const normalizedRegionCode = normalizedZoneCode && selectedRegion !== "All" ? selectedRegion : undefined;
+    const normalizedDistrictCode = normalizedRegionCode && selectedDistrict !== "All" ? selectedDistrict : undefined;
 
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
@@ -693,6 +770,18 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.parameterValue = parameterValue;
     }
 
+    if (normalizedZoneCode) {
+      params.zoneCode = normalizedZoneCode;
+    }
+
+    if (normalizedRegionCode) {
+      params.regionCode = normalizedRegionCode;
+    }
+
+    if (normalizedDistrictCode) {
+      params.districtCode = normalizedDistrictCode;
+    }
+
     return params;
   }, [
     activeDateRange,
@@ -703,6 +792,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     selectedParameter,
     selectedCategory,
     selectedSubCategory,
+    selectedZone,
+    selectedRegion,
+    selectedDistrict,
     timeRange,
     timeScale,
     userDetails?.userId,
@@ -1079,6 +1171,18 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     setSelectedParameter(event.target.value as string);
   }, []);
 
+  const handleZoneChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedZone(event.target.value as string);
+  }, []);
+
+  const handleRegionChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedRegion(event.target.value as string);
+  }, []);
+
+  const handleDistrictChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedDistrict(event.target.value as string);
+  }, []);
+
   useEffect(() => {
     if (!requestParams) return;
     // const fetcher = requestParams.parameterKey
@@ -1317,6 +1421,47 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               fullWidth
               disabled={isLoading}
             />}
+            <GenericDropdown
+              id="support-dashboard-zone"
+              label="Zone"
+              value={selectedZone}
+              onChange={handleZoneChange}
+              options={zoneOptions}
+              fullWidth
+              disabled={isLoading}
+            />
+            {selectedZone !== "All" && (
+              <GenericDropdown
+                id="support-dashboard-region"
+                label="Region"
+                value={selectedRegion}
+                onChange={handleRegionChange}
+                fullWidth
+                disabled={isLoading}
+                menuItemsList={regionOptions.map((option: any) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.value === "All" ? (
+                      t(option.label)
+                    ) : (
+                      <span>
+                        {option.label} <span className="text-muted"> | {option.hrmsRegCode}</span>
+                      </span>
+                    )}
+                  </MenuItem>
+                ))}
+              />
+            )}
+            {selectedRegion !== "All" && (
+              <GenericDropdown
+                id="support-dashboard-district"
+                label="District"
+                value={selectedDistrict}
+                onChange={handleDistrictChange}
+                options={districtOptions}
+                fullWidth
+                disabled={isLoading}
+              />
+            )}
           </Box>
 
           <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">

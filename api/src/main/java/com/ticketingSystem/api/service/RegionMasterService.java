@@ -18,4 +18,8 @@ public class RegionMasterService {
     public List<RegionMaster> getAll() {
         return repository.findAll();
     }
+
+    public List<RegionMaster> getByZoneCode(String zoneCode) {
+        return repository.findByZoneCodeOrderByRegionNameAsc(zoneCode);
+    }
 }

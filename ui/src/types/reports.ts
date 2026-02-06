@@ -228,4 +228,7 @@ export interface SupportDashboardSummaryRequestParams {
     createdBy?: string;
     parameterKey?: string;
     parameterValue?: string;
+    zoneCode?: string;
+    regionCode?: string;
+    districtCode?: string;
 }

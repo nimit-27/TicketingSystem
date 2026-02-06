@@ -18,4 +18,8 @@ public class DistrictMasterService {
     public List<DistrictMaster> getAll() {
         return repository.findAll();
     }
+
+    public List<DistrictMaster> getByHrmsRegCode(String hrmsRegCode) {
+        return repository.findByHrmsRegCodeOrderByDistrictNameAsc(hrmsRegCode);
+    }
 }
