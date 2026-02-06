@@ -448,6 +448,9 @@ public class ReportService {
                     severityCounts.put("S4", Optional.ofNullable(aggregation.getS4Count()).orElse(0L));
 
                     return SupportDashboardCategorySummaryDto.builder()
+                            .zone(aggregation.getZone())
+                            .regionName(aggregation.getRegionName())
+                            .districtName(aggregation.getDistrictName())
                             .category(Optional.ofNullable(aggregation.getCategoryId()).orElse(aggregation.getCategoryName()))
                             .subcategory(Optional.ofNullable(aggregation.getSubcategoryId()).orElse(aggregation.getSubcategoryName()))
                             .categoryName(aggregation.getCategoryName())

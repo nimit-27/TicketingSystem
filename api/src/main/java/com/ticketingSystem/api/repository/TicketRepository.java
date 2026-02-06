@@ -129,6 +129,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                     c.category AS categoryName,
                     sc.sub_category_id AS subcategoryId,
                     sc.sub_category AS subcategoryName,
+                    t.zone_code AS zone,
+                    t.region_name AS regionName,
+                    t.district_name AS districtName,
                     SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS pendingCount,
                     COUNT(*) AS totalCount,
                     SUM(CASE WHEN LOWER(t.severity) = 's1' THEN 1 ELSE 0 END) AS s1Count,
@@ -141,7 +144,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                 WHERE (:assignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:assignedTo))
                   AND (:fromDate IS NULL OR t.reported_date >= :fromDate)
                   AND (:toDate IS NULL OR t.reported_date <= :toDate)
-                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
+                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category, t.zone_code, t.region_name, t.district_name
                 ORDER BY categoryName, subcategoryName
             """, nativeQuery = true)
     List<DashboardCategoryAggregation> aggregateDashboardStatsByCategory(@Param("assignedTo") String assignedTo,
@@ -154,6 +157,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                     c.category AS categoryName,
                     sc.sub_category_id AS subcategoryId,
                     sc.sub_category AS subcategoryName,
+                    t.zone_code AS zone,
+                    t.region_name AS regionName,
+                    t.district_name AS districtName,
                     SUM(CASE WHEN t.status = 'OPEN' THEN 1 ELSE 0 END) AS pendingCount,
                     COUNT(*) AS totalCount,
                     SUM(CASE WHEN LOWER(t.severity) = 's1' THEN 1 ELSE 0 END) AS s1Count,
@@ -170,7 +176,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                   AND (:parameterCreatedBy IS NULL OR LOWER(t.user_id) = LOWER(:parameterCreatedBy))
                   AND (:fromDate IS NULL OR t.reported_date >= :fromDate)
                   AND (:toDate IS NULL OR t.reported_date <= :toDate)
-                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
+                GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category, t.zone_code, t.region_name, t.district_name
                 ORDER BY categoryName, subcategoryName
             """, nativeQuery = true)
     List<DashboardCategoryAggregation> aggregateDashboardStatsByCategoryWithParameter(
@@ -465,6 +471,12 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
         String getSubcategoryId();
 
         String getSubcategoryName();
+
+        String getZone();
+
+        String getRegionName();
+
+        String getDistrictName();
 
         Long getPendingCount();
 

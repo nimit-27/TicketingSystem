@@ -12,6 +12,9 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupportDashboardCategorySummaryDto {
+    private String zone;
+    private String regionName;
+    private String districtName;
     private String category;
     private String subcategory;
     private String categoryName;
@@ -20,4 +23,3 @@ public class SupportDashboardCategorySummaryDto {
     private long pendingForAcknowledgement;
     private long totalTickets;
 }
-

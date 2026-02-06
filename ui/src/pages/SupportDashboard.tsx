@@ -136,6 +136,9 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
 const normalizeCategorySummary = (entry: unknown): SupportDashboardCategorySummary => {
   if (!entry || typeof entry !== "object") {
     return {
+      zone: undefined,
+      regionName: undefined,
+      districtName: undefined,
       category: undefined,
       subcategory: undefined,
       pendingForAcknowledgement: 0,
@@ -147,6 +150,9 @@ const normalizeCategorySummary = (entry: unknown): SupportDashboardCategorySumma
   const typedEntry = entry as Partial<SupportDashboardCategorySummary>;
 
   return {
+    zone: typedEntry.zone,
+    regionName: typedEntry.regionName,
+    districtName: typedEntry.districtName,
     category: typedEntry.category,
     subcategory: typedEntry.subcategory,
     pendingForAcknowledgement:
@@ -788,6 +794,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           rows: SupportDashboardCategorySummary[],
         ): (string | number)[][] => {
           const headerRow = [
+            "Zone",
+            "Region Name",
+            "District Name",
             "Module > Sub Module",
             "Total Tickets",
             "Pending for Acknowledgement",
@@ -798,13 +807,16 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           ];
 
           if (!rows.length) {
-            return [[`${label} by Module - Sub Module`], headerRow, ["No data", 0, 0, 0, 0, 0, 0], []];
+            return [[`${label} by Module - Sub Module`], headerRow, ["N/A", "N/A", "N/A", "No data", 0, 0, 0, 0, 0, 0], []];
           }
 
           return [
             [`${label} by Module - Sub Module`],
             headerRow,
             ...rows.map((row) => [
+              row.zone ?? "N/A",
+              row.regionName ?? "N/A",
+              row.districtName ?? "N/A",
               formatCategoryLabel(row),
               row.totalTickets,
               row.pendingForAcknowledgement,
