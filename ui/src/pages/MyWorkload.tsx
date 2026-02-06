@@ -31,19 +31,28 @@ const MyWorkload: React.FC = () => {
             const username = user?.username || user?.userId || "";
             const { isTeamLeadRole, isItManagerRole, isHelpdeskAgent } = getRoleFlags();
 
+
+            const params: Record<string, string> = {};
+
             if (isItManagerRole) {
-                return { statusName: "AWAITING_ESCALATION_APPROVAL" };
+                params.statusName = "AWAITING_ESCALATION_APPROVAL";
             }
-
             if (isTeamLeadRole) {
-                return { statusName: "OPEN" };
+                params.statusName = "OPEN";
             }
-
             if (isHelpdeskAgent) {
-                return { assignedTo: username };
+                params.assignedTo = username;
             }
 
-            return {};
+            if(!_.allowedStatuses || !_.allowedStatuses.length || _.allowedStatuses.length == 0) {
+                params.statusParam = ""
+            };
+            if (_.statusFilter === "All"
+                && Array.isArray(_.allowedStatuses)
+                && _.allowedStatuses.length > 0) params.statusParam = _.allowedStatuses.join(",");
+
+            return params;
+
         },
         [getRoleFlags]
     );
@@ -86,6 +95,7 @@ const MyWorkload: React.FC = () => {
             transformTickets={transformTickets}
             onRowClick={(id) => navigate(`/tickets/${id}`)}
             tableOptions={{ permissionPathPrefix: "myWorkload" }}
+            allowAll={false}
         />
     );
 };

@@ -71,6 +71,7 @@ const MyTickets: React.FC = () => {
             buildSearchOverrides={buildSearchOverrides}
             transformTickets={transformTickets}
             onRowClick={(id) => navigate(`/tickets/${id}`)}
+            allowAll={true}
         />
     );
 };

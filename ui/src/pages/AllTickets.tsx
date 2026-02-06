@@ -33,6 +33,7 @@ const AllTickets: React.FC = () => {
             }}
             getViewTicketProps={getViewTicketProps}
             onTicketSelectChange={handleTicketSelectChange}
+            allowAll={true}
         />
     );
 };

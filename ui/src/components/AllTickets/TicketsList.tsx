@@ -40,6 +40,7 @@ export interface TicketsListFilterState {
     dateRange: DateRangeState;
     selectedCategory: string;
     selectedSubCategory: string;
+    allowedStatuses?: string[];
 }
 
 export interface TicketsListSearchOverrides {
@@ -60,6 +61,7 @@ export interface TicketsListSearchOverrides {
     toDate?: string;
     categoryId?: string;
     subCategoryId?: string;
+    statusParam?: string;
 }
 
 interface TicketsListProps {
@@ -79,6 +81,7 @@ interface TicketsListProps {
         permissionPathPrefix?: string;
     };
     getViewTicketProps?: (selectedTicketId: string | null) => Partial<React.ComponentProps<typeof ViewTicket>>;
+    allowAll: boolean;
 }
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
@@ -108,11 +111,12 @@ const TicketsList: React.FC<TicketsListProps> = ({
     allowTable = true,
     tableOptions,
     getViewTicketProps,
+    allowAll
 }) => {
     const { t } = useTranslation();
+    const { data: allowedStatusData, pending: allowedStatusPending, success: allowedStatusSuccess, apiHandler: allowedStatusApiHandler } = useApi<any>();
     const { data, pending, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
-    const { data: allowedStatusData, apiHandler: allowedStatusApiHandler } = useApi<any>();
 
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -237,24 +241,27 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const effectivePage = options?.pageOverride ?? page;
             const effectiveSize = options?.sizeOverride ?? pageSize;
 
+            if(!allowAll) {
+                if(!allowedStatusSuccess) return
+            }
+
             let statusParam: string | undefined = statusFilter === "All" ? undefined : statusFilter;
-            // if (!statusParam && allowedStatuses.length > 0) {
-            //     statusParam = allowedStatuses.join(",");
-            // }
+
             if (overrides?.statusName !== undefined) {
                 statusParam = overrides.statusName;
             }
 
             const masterParam = overrides?.master !== undefined ? overrides.master : masterOnly ? true : undefined;
 
-            const requestOverrides = buildSearchOverrides ? buildSearchOverrides({ ...filterState, page: effectivePage }) : {};
+            const requestOverrides = buildSearchOverrides ? buildSearchOverrides({ ...filterState, page: effectivePage, allowedStatuses: allowedStatusData }) : {};
             const mergedOverrides: TicketsListSearchOverrides = {
                 ...requestOverrides,
                 ...overrides,
             };
 
             const queryParam = mergedOverrides.query !== undefined ? mergedOverrides.query : debouncedSearch;
-            const statusParamU = mergedOverrides.statusName === "All" ? undefined : statusParam;
+            const statusParamU = mergedOverrides.statusParam ?? statusParam;
+            // const statusParamU = mergedOverrides.statusName === "All" ? undefined : statusParam;
             const pageParam = mergedOverrides.page ?? effectivePage - 1;
             const sizeParam = mergedOverrides.size ?? effectiveSize;
             const levelParam = mergedOverrides.levelId ?? levelFilter;
@@ -265,8 +272,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const categoryParam = mergedOverrides.categoryId ?? normalizedCategory;
             const subCategoryParam = mergedOverrides.subCategoryId ?? normalizedSubCategory;
 
-            return searchTicketsPaginatedApiHandler(() =>
-                searchTicketsPaginated(
+            return searchTicketsPaginatedApiHandler(() => {
+                console.log({ allowedStatusSuccess })
+                return searchTicketsPaginated(
                     queryParam,
                     statusParamU,
                     masterParam,
@@ -284,11 +292,13 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     toDateParam,
                     categoryParam,
                     subCategoryParam,
-                ),
+                )
+            }
             );
         },
         [
             allowedStatuses,
+            allowedStatusSuccess,
             buildSearchOverrides,
             dateRangeParams.fromDate,
             dateRangeParams.toDate,
@@ -380,6 +390,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         dateRangeParams.toDate,
         selectedCategory,
         selectedSubCategory,
+        allowedStatusSuccess,
     ]);
 
     useEffect(() => {
