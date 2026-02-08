@@ -413,7 +413,7 @@ describe("TicketService", () => {
 
   it("constructs search query parameters", async () => {
     const service = await import("../TicketService");
-    await service.searchTicketsPaginated("query", "OPEN", true, 2, 10, "assignee", "level1", "assigner", "requestor", "createdAt", "desc", "HIGH", "creator", "2024-01-01", "2024-02-01", "cat", "sub");
+    await service.searchTicketsPaginated("query", "OPEN", true, 2, 10, "assignee", "level1", "assigner", "requestor", "createdAt", "desc", "HIGH", "creator", "2024-01-01", "2024-02-01", "cat", "sub", "issueType1");
     const url = axiosMock.get.mock.calls.find((call: any[]) => String(call[0]).includes("/tickets/search"))[0] as string;
     expect(url).toContain("query=query");
     expect(url).toContain("status=OPEN");
@@ -432,6 +432,7 @@ describe("TicketService", () => {
     expect(url).toContain("toDate=2024-02-01");
     expect(url).toContain("category=cat");
     expect(url).toContain("subCategory=sub");
+    expect(url).toContain("issueTypeId=issueType1");
   });
 });
 

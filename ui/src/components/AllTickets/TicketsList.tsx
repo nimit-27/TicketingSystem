@@ -25,12 +25,14 @@ import { DateRangeState } from "../../utils/dateUtils";
 import { useCategoryFilters } from "../../hooks/useCategoryFilters";
 import GenericInput from "../UI/Input/GenericInput";
 import FeedbackModal from "../Feedback/FeedbackModal";
+import { getIssueTypes } from "../../services/IssueTypeService";
 
 export interface TicketsListFilterState {
     search: string;
     statusFilter: string;
     masterOnly: boolean;
     levelFilter?: string;
+    issueTypeFilter: string;
     sortBy: "reportedDate" | "lastModified";
     sortDirection: "asc" | "desc";
     viewMode: "grid" | "table";
@@ -60,6 +62,7 @@ export interface TicketsListSearchOverrides {
     toDate?: string;
     categoryId?: string;
     subCategoryId?: string;
+    issueTypeId?: string;
 }
 
 interface TicketsListProps {
@@ -113,6 +116,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const { data, pending, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
     const { data: allowedStatusData, apiHandler: allowedStatusApiHandler } = useApi<any>();
+    const { data: issueTypesData, apiHandler: issueTypesApiHandler } = useApi<any>();
 
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -139,6 +143,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
+    const [issueTypeFilter, setIssueTypeFilter] = useState("All");
     const levels = getCurrentUserDetails()?.levels || [];
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
@@ -165,6 +170,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
         [statusList],
     );
 
+    const issueTypeOptions: DropdownOption[] = useMemo(
+        () => [{ label: "All", value: "All" }, ...getDropdownOptions(issueTypesData, "issueTypeLabel", "issueTypeId")],
+        [issueTypesData],
+    );
+
     const sortOptions: DropdownOption[] = useMemo(
         () => [
             { label: t("Created Date"), value: "reportedDate" },
@@ -184,6 +194,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setStatusFilter("All");
         setMasterOnly(false);
         setLevelFilter(undefined);
+        setIssueTypeFilter("All");
         setSortBy("reportedDate");
         setDateRange({ preset: "ALL" });
         setSelectedCategory("All");
@@ -202,6 +213,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             statusFilter,
             masterOnly,
             levelFilter,
+            issueTypeFilter,
             sortBy,
             sortDirection,
             viewMode,
@@ -217,6 +229,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             statusFilter,
             masterOnly,
             levelFilter,
+            issueTypeFilter,
             sortBy,
             sortDirection,
             viewMode,
@@ -264,6 +277,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const toDateParam = mergedOverrides.toDate ?? dateRangeParams.toDate;
             const categoryParam = mergedOverrides.categoryId ?? normalizedCategory;
             const subCategoryParam = mergedOverrides.subCategoryId ?? normalizedSubCategory;
+            const issueTypeParam =
+                mergedOverrides.issueTypeId ?? (issueTypeFilter === "All" ? undefined : issueTypeFilter);
 
             return searchTicketsPaginatedApiHandler(() =>
                 searchTicketsPaginated(
@@ -284,6 +299,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     toDateParam,
                     categoryParam,
                     subCategoryParam,
+                    issueTypeParam,
                 ),
             );
         },
@@ -303,6 +319,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             sortBy,
             sortDirection,
             statusFilter,
+            issueTypeFilter,
         ],
     );
 
@@ -346,7 +363,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         } else {
             getStatuses().then(setStatusList);
         }
-    }, [allowedStatusApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
+        issueTypesApiHandler(() => getIssueTypes());
+    }, [allowedStatusApiHandler, issueTypesApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
 
     useEffect(() => {
         if (restrictStatusesToAllowed && allowedStatusData) {
@@ -380,6 +398,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         dateRangeParams.toDate,
         selectedCategory,
         selectedSubCategory,
+        issueTypeFilter,
     ]);
 
     useEffect(() => {
@@ -454,6 +473,15 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             options={subCategoryOptions}
                         />
                         : <div className="d-flex col-3"></div>}
+
+                    {/* ISSUE TYPE DROPDOWN FILTER */}
+                    <DropdownController
+                        label="Issue Type"
+                        className="col-3 px-1"
+                        value={issueTypeFilter}
+                        onChange={(value) => { setIssueTypeFilter(value); setPage(1); }}
+                        options={issueTypeOptions}
+                    />
 
                     {/* DATE RANGE FILTER */}
                     <DateRangeFilter value={dateRange} onChange={setDateRange} />

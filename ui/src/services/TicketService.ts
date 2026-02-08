@@ -112,6 +112,7 @@ export function searchTicketsPaginated(
     toDate?: string,
     categoryId?: string,
     subCategoryId?: string,
+    issueTypeId?: string,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -128,6 +129,7 @@ export function searchTicketsPaginated(
     if (toDate) params.append('toDate', toDate);
     if (categoryId) params.append('category', categoryId);
     if (subCategoryId) params.append('subCategory', subCategoryId);
+    if (issueTypeId) params.append('issueTypeId', issueTypeId);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 

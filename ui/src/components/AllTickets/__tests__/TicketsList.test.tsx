@@ -34,6 +34,11 @@ jest.mock('../../../utils/Utils', () => ({
     setStatusList: (...args: any[]) => mockSetStatusListInSession(...args),
 }));
 
+const mockGetIssueTypes = jest.fn();
+jest.mock('../../../services/IssueTypeService', () => ({
+    getIssueTypes: (...args: any[]) => mockGetIssueTypes(...args),
+}));
+
 const mockCheckMyTicketsAccess = jest.fn(() => true);
 jest.mock('../../../utils/permissions', () => ({
     checkMyTicketsAccess: (...args: any[]) => mockCheckMyTicketsAccess(...args),
@@ -155,6 +160,7 @@ describe('TicketsList', () => {
                 { label: 'Hardware', value: 'Hardware' },
             ],
             loadSubCategories: jest.fn(),
+            resetSubCategories: jest.fn(),
         });
 
         mockGetCurrentUserDetails.mockReturnValue({
@@ -175,14 +181,16 @@ describe('TicketsList', () => {
         mockGetAllowedStatusListByRoles.mockResolvedValue(['OPEN', 'CLOSED']);
 
         mockSearchTicketsPaginated.mockResolvedValue({ items: mockTickets, totalPages: 2 });
+        mockGetIssueTypes.mockResolvedValue([]);
 
         mockUseDebounce.mockImplementation((value) => value);
     });
 
-    const arrangeUseApiMocks = (overrides?: { data?: any; workflowData?: any; allowedData?: any }) => {
+    const arrangeUseApiMocks = (overrides?: { data?: any; workflowData?: any; allowedData?: any; issueTypes?: any }) => {
         const searchHandler = jest.fn(async (fn) => fn());
         const workflowHandler = jest.fn(async (fn) => fn());
         const allowedHandler = jest.fn(async (fn) => fn());
+        const issueTypesHandler = jest.fn(async (fn) => fn());
 
         const searchResponse = {
             data: overrides?.data ?? { items: mockTickets, totalPages: 2 },
@@ -199,8 +207,13 @@ describe('TicketsList', () => {
             pending: false,
             apiHandler: allowedHandler,
         };
+        const issueTypesResponse = {
+            data: overrides?.issueTypes ?? [],
+            pending: false,
+            apiHandler: issueTypesHandler,
+        };
 
-        const responses = [searchResponse, workflowResponse, allowedResponse];
+        const responses = [searchResponse, workflowResponse, allowedResponse, issueTypesResponse];
         let callCount = 0;
         mockUseApi.mockImplementation(() => {
             const response = responses[callCount % responses.length];
@@ -208,7 +221,7 @@ describe('TicketsList', () => {
             return response;
         });
 
-        return { searchHandler, workflowHandler, allowedHandler };
+        return { searchHandler, workflowHandler, allowedHandler, issueTypesHandler };
     };
 
     it('renders table view with fetched tickets and triggers initial search', async () => {
@@ -237,6 +250,7 @@ describe('TicketsList', () => {
             undefined,
             'reportedDate',
             'desc',
+            undefined,
             undefined,
             undefined,
             undefined,

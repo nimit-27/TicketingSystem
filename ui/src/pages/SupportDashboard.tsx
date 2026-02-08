@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { fetchSupportDashboardSummary, fetchSupportDashboardSummaryFiltered } from "../services/ReportService";
+import { getIssueTypes } from "../services/IssueTypeService";
 import { useApi } from "../hooks/useApi";
 import {
   SupportDashboardScopeKey,
@@ -437,6 +438,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   );
   const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
   const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
+  const [selectedIssueType, setSelectedIssueType] = React.useState<string>("All");
   const [selectedRole, setSelectedRole] = React.useState<string>(() => userRoles[0] ?? "");
   const [selectedParameter, setSelectedParameter] = React.useState<string>("");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
@@ -453,6 +455,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     data: roleParameters,
     apiHandler: getRoleParametersApiHandler,
   } = useApi<ParameterMaster[]>();
+
+  const { data: issueTypes, apiHandler: getIssueTypesApiHandler } = useApi<any>();
 
   useEffect(() => {
     let isMounted = true;
@@ -487,6 +491,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const rolesToQuery = selectedRole ? [selectedRole] : [];
     void getRoleParametersApiHandler(() => getParametersByRoles(rolesToQuery));
   }, [getRoleParametersApiHandler, selectedRole]);
+
+  useEffect(() => {
+    void getIssueTypesApiHandler(() => getIssueTypes());
+  }, [getIssueTypesApiHandler]);
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -534,6 +542,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const parameterDropdownOptions = React.useMemo(
     () => getDropdownOptions(roleParameters, "label", "parameterKey"),
     [roleParameters],
+  );
+  const issueTypeOptions = React.useMemo(
+    () => [{ label: "All", value: "All" }, ...getDropdownOptions(issueTypes, "issueTypeLabel", "issueTypeId")],
+    [issueTypes],
   );
 
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
@@ -638,6 +650,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const normalizedCategoryId = selectedCategory === "All" ? undefined : selectedCategory;
     const normalizedSubCategoryId =
       normalizedCategoryId && selectedSubCategory !== "All" ? selectedSubCategory : undefined;
+    const normalizedIssueTypeId = selectedIssueType === "All" ? undefined : selectedIssueType;
 
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
@@ -682,6 +695,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.subCategoryId = normalizedSubCategoryId;
     }
 
+    if (normalizedIssueTypeId) {
+      params.issueTypeId = normalizedIssueTypeId;
+    }
+
     if (selectedParameter?.toLocaleLowerCase() !== "all" && parameterValue) {
       params = { ...params, [selectedParameter]: parameterValue }
     }
@@ -696,6 +713,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     selectedParameter,
     selectedCategory,
     selectedSubCategory,
+    selectedIssueType,
     timeRange,
     timeScale,
     userDetails?.userId,
@@ -1063,6 +1081,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     setSelectedSubCategory(event.target.value as string);
   }, []);
 
+  const handleIssueTypeFilterChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedIssueType(event.target.value as string);
+  }, []);
+
   const handleRoleChange = React.useCallback((event: SelectChangeEvent) => {
     setSelectedRole(event.target.value as string);
     setSelectedParameter("All");
@@ -1330,6 +1352,15 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               options={subCategoryOptions}
               fullWidth
               disabled={isLoading || selectedCategory === "All"}
+            />
+            <GenericDropdown
+              id="support-dashboard-issue-type"
+              label="Issue Type"
+              value={selectedIssueType}
+              onChange={handleIssueTypeFilterChange}
+              options={issueTypeOptions}
+              fullWidth
+              disabled={isLoading}
             />
           </Box>
 

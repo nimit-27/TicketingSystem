@@ -17,6 +17,7 @@ jest.mock("../../hooks/useApi", () => ({
 const mockFetchSupportDashboardSummary = jest.fn(() => Promise.resolve({}));
 const mockFetchSupportDashboardSummaryFiltered = jest.fn(() => Promise.resolve({}));
 const mockGetParametersByRoles = jest.fn(() => Promise.resolve({ data: [] }));
+const mockGetIssueTypes = jest.fn(() => Promise.resolve({ data: [] }));
 
 jest.mock("../../services/ReportService", () => ({
   fetchSupportDashboardSummary: (...args: unknown[]) => mockFetchSupportDashboardSummary.apply(null, args),
@@ -26,6 +27,10 @@ jest.mock("../../services/ReportService", () => ({
 
 jest.mock("../../services/ParameterService", () => ({
   getParametersByRoles: (...args: unknown[]) => mockGetParametersByRoles.apply(null, args),
+}));
+
+jest.mock("../../services/IssueTypeService", () => ({
+  getIssueTypes: (...args: unknown[]) => mockGetIssueTypes.apply(null, args),
 }));
 
 jest.mock("../../utils/permissions", () => ({
@@ -144,12 +149,19 @@ describe("SupportDashboard", () => {
         success: false,
         apiHandler: mockSummaryApiHandler,
       })
-      .mockReturnValue({
+      .mockReturnValueOnce({
         data: null,
         pending: false,
         error: null,
         success: false,
         apiHandler: mockParameterApiHandler,
+      })
+      .mockReturnValue({
+        data: [],
+        pending: false,
+        error: null,
+        success: false,
+        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
       });
     mockSummaryApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
     mockParameterApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
@@ -217,12 +229,19 @@ describe("SupportDashboard", () => {
         success: false,
         apiHandler: mockSummaryApiHandler,
       })
-      .mockReturnValue({
+      .mockReturnValueOnce({
         data: [{ parameterId: "1", code: "assigned_to", label: "Assigned To" }],
         pending: false,
         error: null,
         success: false,
         apiHandler: mockParameterApiHandler,
+      })
+      .mockReturnValue({
+        data: [],
+        pending: false,
+        error: null,
+        success: false,
+        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
       });
 
     renderWithTheme(<SupportDashboard />);
@@ -262,12 +281,19 @@ describe("SupportDashboard", () => {
         success: true,
         apiHandler: mockSummaryApiHandler,
       })
-      .mockReturnValue({
+      .mockReturnValueOnce({
         data: null,
         pending: false,
         error: null,
         success: false,
         apiHandler: mockParameterApiHandler,
+      })
+      .mockReturnValue({
+        data: [],
+        pending: false,
+        error: null,
+        success: false,
+        apiHandler: jest.fn((fn: () => Promise<any>) => fn()),
       });
 
     const { findByText } = renderWithTheme(<SupportDashboard />);

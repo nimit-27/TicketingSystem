@@ -225,6 +225,7 @@ export interface SupportDashboardSummaryRequestParams {
     toDate?: string;
     categoryId?: string;
     subCategoryId?: string;
+    issueTypeId?: string;
     createdBy?: string;
     parameterKey?: string;
     parameterValue?: string;
