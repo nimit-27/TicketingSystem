@@ -47,9 +47,10 @@ public class TicketAuthorizationService {
         boolean ownsTicket = context.ticketOwnerId() != null && context.ticketOwnerId().equalsIgnoreCase(requesterId);
         boolean assignedToTicket = context.ticketAssigneeUserId() != null && context.ticketAssigneeUserId().equalsIgnoreCase(requesterId);
         boolean creatorOfTicket = context.ticketCreatedBy() != null && context.ticketCreatedBy().equals(requesterId);
-        boolean isAccessibleByStatus = roles.contains("9") &&
+        boolean isAccessibleByStatus = ((roles.contains("9")) &&
                 (context.ticketStatus() == TicketStatus.AWAITING_ESCALATION_APPROVAL
-                || context.ticketStatus() == TicketStatus.ESCALATED);
+                || context.ticketStatus() == TicketStatus.ESCALATED)
+                || (roles.contains("13")) && (context.ticketStatus() == TicketStatus.PENDING_WITH_FCI));
         if (requesterId == null || (!ownsTicket && !assignedToTicket && !creatorOfTicket && !isAccessibleByStatus)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
