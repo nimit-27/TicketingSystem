@@ -29,6 +29,8 @@ import { getPeriodLabel, ReportPeriod, ReportRange } from "../utils/reportPeriod
 import { useCategoryFilters } from "../hooks/useCategoryFilters";
 import { getParametersByRoles } from "../services/ParameterService";
 import { getDistricts, getRegions, getZones } from "../services/LocationService";
+import { getIssueTypes } from "../services/IssueTypeService";
+import { IssueTypeInfo } from "../types";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -413,6 +415,11 @@ interface DistrictOptionItem {
   districtCode?: string;
 }
 
+interface IssueTypeOptionItem {
+  issueTypeId?: string;
+  issueTypeLabel?: string;
+}
+
 const SupportDashboard: React.FC<SupportDashboardProps> = ({
   initialTimeScale = "DAILY",
   initialTimeRange = "LAST_7_DAYS",
@@ -464,6 +471,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [selectedZone, setSelectedZone] = React.useState<string>("All");
   const [selectedRegion, setSelectedRegion] = React.useState<string>("All");
   const [selectedDistrict, setSelectedDistrict] = React.useState<string>("All");
+  const [selectedIssueType, setSelectedIssueType] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -482,6 +490,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { data: zonesResponse = [], apiHandler: getZonesApiHandler } = useApi<ZoneOptionItem[]>();
   const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<RegionOptionItem[]>();
   const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<DistrictOptionItem[]>();
+  const { data: issueTypesResponse = [], apiHandler: getIssueTypesApiHandler } = useApi<IssueTypeInfo[]>();
 
   useEffect(() => {
     let isMounted = true;
@@ -520,6 +529,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   useEffect(() => {
     void getZonesApiHandler(() => getZones());
   }, [getZonesApiHandler]);
+
+  useEffect(() => {
+    void getIssueTypesApiHandler(() => getIssueTypes());
+  }, [getIssueTypesApiHandler]);
 
   useEffect(() => {
     if (selectedZone === "All") {
@@ -614,6 +627,14 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       value: String(district.districtCode ?? ""),
     })))],
     [districtsResponse],
+  );
+
+  const issueTypeOptions = React.useMemo(
+    () => [{ label: "All", value: "All" }, ...((issueTypesResponse?.data ?? issueTypesResponse ?? []).map((issueType: IssueTypeOptionItem) => ({
+      label: issueType.issueTypeLabel ?? "",
+      value: String(issueType.issueTypeId ?? ""),
+    })))],
+    [issueTypesResponse],
   );
 
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
@@ -727,6 +748,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const normalizedZoneCode = selectedZone === "All" ? undefined : selectedZone;
     const normalizedRegionCode = normalizedZoneCode && selectedRegion !== "All" ? selectedRegion : undefined;
     const normalizedDistrictCode = normalizedRegionCode && selectedDistrict !== "All" ? selectedDistrict : undefined;
+    const normalizedIssueTypeId = selectedIssueType === "All" ? undefined : selectedIssueType;
 
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
@@ -788,6 +810,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.districtCode = normalizedDistrictCode;
     }
 
+    if (normalizedIssueTypeId) {
+      params.issueTypeId = normalizedIssueTypeId;
+    }
+
     return params;
   }, [
     activeDateRange,
@@ -801,6 +827,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     selectedZone,
     selectedRegion,
     selectedDistrict,
+    selectedIssueType,
     timeRange,
     timeScale,
     userDetails?.userId,
@@ -1242,6 +1269,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     setSelectedDistrict(event.target.value as string);
   }, []);
 
+  const handleIssueTypeChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedIssueType(event.target.value as string);
+  }, []);
+
   useEffect(() => {
     if (!requestParams) return;
     // const fetcher = requestParams.parameterKey
@@ -1471,7 +1502,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 disabled={isLoading}
               />
             )}
-            {parameterDropdownOptions.length > 1 && <GenericDropdown
+            {(parameterDropdownOptions?.length ?? 0) > 1 && <GenericDropdown
               id="support-dashboard-parameter"
               label="Parameter"
               value={selectedParameter}
@@ -1521,6 +1552,18 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 disabled={isLoading}
               />
             )}
+          </Box>
+
+          <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">
+            <GenericDropdown
+              id="support-dashboard-issue-type"
+              label="Issue Type"
+              value={selectedIssueType}
+              onChange={handleIssueTypeChange}
+              options={issueTypeOptions}
+              fullWidth
+              disabled={isLoading}
+            />
           </Box>
 
           <Box className="d-flex flex-column flex-sm-row align-items-start gap-2">

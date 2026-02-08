@@ -62,6 +62,7 @@ public class ReportsController {
             @RequestParam(value = "customEndYear", required = false) Integer customEndYear,
             @RequestParam(value = "fromDate", required = false) String fromDate,
             @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
             @RequestParam(value = "parameterKey", required = false) String parameterKey,
             @RequestParam(value = "parameterValue", required = false) String parameterValue) {
         String userId = ticketAuthorizationService.resolveUserId(authenticatedUser, session);
@@ -77,6 +78,7 @@ public class ReportsController {
                 toDate,
                 parameterKey,
                 parameterValue,
+                issueTypeId,
                 allParams
         ));
     }

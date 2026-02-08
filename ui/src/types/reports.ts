@@ -234,4 +234,5 @@ export interface SupportDashboardSummaryRequestParams {
     zoneCode?: string;
     regionCode?: string;
     districtCode?: string;
+    issueTypeId?: string;
 }
