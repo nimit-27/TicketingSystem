@@ -31,15 +31,18 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     @Query("SELECT t.ticketStatus AS status, COUNT(t) AS count FROM Ticket t " +
             "WHERE (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY t.ticketStatus")
     List<StatusCountProjection> countTicketsByStatusWithFilters(@Param("assignedTo") String assignedTo,
+                                                                @Param("issueTypeId") String issueTypeId,
                                                                 @Param("fromDate") LocalDateTime fromDate,
                                                                 @Param("toDate") LocalDateTime toDate);
 
     @Query("SELECT t.ticketStatus AS status, COUNT(t) AS count FROM Ticket t " +
             "WHERE (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
@@ -50,6 +53,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "GROUP BY t.ticketStatus")
     List<StatusCountProjection> countTicketsByStatusWithFiltersAndParameters(
             @Param("assignedTo") String assignedTo,
+            @Param("issueTypeId") String issueTypeId,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
             @Param("parameterAssignedTo") String parameterAssignedTo,
@@ -139,12 +143,14 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                 LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
                 LEFT JOIN categories c ON c.category_id = sc.category_id
                 WHERE (:assignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:assignedTo))
+                  AND (:issueTypeId IS NULL OR t.issue_type_id = :issueTypeId)
                   AND (:fromDate IS NULL OR t.reported_date >= :fromDate)
                   AND (:toDate IS NULL OR t.reported_date <= :toDate)
                 GROUP BY c.category_id, c.category, sc.sub_category_id, sc.sub_category
                 ORDER BY categoryName, subcategoryName
             """, nativeQuery = true)
     List<DashboardCategoryAggregation> aggregateDashboardStatsByCategory(@Param("assignedTo") String assignedTo,
+                                                                         @Param("issueTypeId") String issueTypeId,
                                                                          @Param("fromDate") LocalDateTime fromDate,
                                                                          @Param("toDate") LocalDateTime toDate);
 
@@ -164,6 +170,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                 LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
                 LEFT JOIN categories c ON c.category_id = sc.category_id
                 WHERE (:assignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:assignedTo))
+                  AND (:issueTypeId IS NULL OR t.issue_type_id = :issueTypeId)
                   AND (:parameterAssignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:parameterAssignedTo))
                   AND (:parameterAssignedBy IS NULL OR LOWER(t.assigned_by) = LOWER(:parameterAssignedBy))
                   AND (:parameterUpdatedBy IS NULL OR LOWER(t.updated_by) = LOWER(:parameterUpdatedBy))
@@ -175,6 +182,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             """, nativeQuery = true)
     List<DashboardCategoryAggregation> aggregateDashboardStatsByCategoryWithParameter(
             @Param("assignedTo") String assignedTo,
+            @Param("issueTypeId") String issueTypeId,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
             @Param("parameterAssignedTo") String parameterAssignedTo,
@@ -186,11 +194,13 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "WHERE t.severity IS NOT NULL " +
             "AND (:status IS NULL OR t.ticketStatus = :status) " +
             "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
             "GROUP BY LOWER(t.severity)")
     List<SeverityCountProjection> countTicketsBySeverity(@Param("status") TicketStatus status,
                                                          @Param("assignedTo") String assignedTo,
+                                                         @Param("issueTypeId") String issueTypeId,
                                                          @Param("fromDate") LocalDateTime fromDate,
                                                          @Param("toDate") LocalDateTime toDate);
 
@@ -198,6 +208,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "WHERE t.severity IS NOT NULL " +
             "AND (:status IS NULL OR t.ticketStatus = :status) " +
             "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
@@ -208,6 +219,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "GROUP BY LOWER(t.severity)")
     List<SeverityCountProjection> countTicketsBySeverityWithParameter(@Param("status") TicketStatus status,
                                                                       @Param("assignedTo") String assignedTo,
+                                                                      @Param("issueTypeId") String issueTypeId,
                                                                       @Param("fromDate") LocalDateTime fromDate,
                                                                       @Param("toDate") LocalDateTime toDate,
                                                                       @Param("parameterAssignedTo") String parameterAssignedTo,
@@ -219,16 +231,19 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("SELECT COUNT(t) FROM Ticket t " +
             "WHERE (:status IS NULL OR t.ticketStatus = :status) " +
             "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     long countTicketsByStatusAndFilters(@Param("status") TicketStatus status,
                                         @Param("assignedTo") String assignedTo,
+                                        @Param("issueTypeId") String issueTypeId,
                                         @Param("fromDate") LocalDateTime fromDate,
                                         @Param("toDate") LocalDateTime toDate);
 
     @Query("SELECT COUNT(t) FROM Ticket t " +
             "WHERE (:status IS NULL OR t.ticketStatus = :status) " +
             "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
@@ -238,6 +253,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     long countTicketsByStatusAndFiltersWithParameter(@Param("status") TicketStatus status,
                                                      @Param("assignedTo") String assignedTo,
+                                                     @Param("issueTypeId") String issueTypeId,
                                                      @Param("fromDate") LocalDateTime fromDate,
                                                      @Param("toDate") LocalDateTime toDate,
                                                      @Param("parameterAssignedTo") String parameterAssignedTo,
@@ -259,6 +275,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     @Query("SELECT t FROM Ticket t " +
             "WHERE (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
@@ -267,6 +284,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:toDate IS NULL OR t.reportedDate <= :toDate)")
     List<Ticket> findByReportedDateBetweenWithParameters(@Param("fromDate") LocalDateTime fromDate,
                                                          @Param("toDate") LocalDateTime toDate,
+                                                         @Param("issueTypeId") String issueTypeId,
                                                          @Param("parameterAssignedTo") String parameterAssignedTo,
                                                          @Param("parameterAssignedBy") String parameterAssignedBy,
                                                          @Param("parameterUpdatedBy") String parameterUpdatedBy,
@@ -275,6 +293,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     @Query("SELECT t FROM Ticket t " +
             "WHERE (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
             "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
             "AND (:parameterCreatedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterCreatedBy)) " +
@@ -282,6 +301,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:toDate IS NULL OR t.resolvedAt <= :toDate)")
     List<Ticket> findByResolvedAtBetweenWithParameters(@Param("fromDate") LocalDateTime fromDate,
                                                        @Param("toDate") LocalDateTime toDate,
+                                                       @Param("issueTypeId") String issueTypeId,
                                                        @Param("parameterAssignedTo") String parameterAssignedTo,
                                                        @Param("parameterAssignedBy") String parameterAssignedBy,
                                                        @Param("parameterUpdatedBy") String parameterUpdatedBy,
@@ -328,6 +348,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
             "AND (:category IS NULL OR t.category = :category) " +
             "AND (:subCategory IS NULL OR t.subCategory = :subCategory)" +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -348,6 +369,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("createdBy") String createdBy,
                                @Param("category") String category,
                                @Param("subCategory") String subCategory,
+                               @Param("issueTypeId") String issueTypeId,
                                @Param("fromDate") LocalDateTime fromDate,
                                @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
@@ -360,6 +382,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
             "AND (:category IS NULL OR t.category = :category) " +
             "AND (:subCategory IS NULL OR t.subCategory = :subCategory)" +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -380,6 +403,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                    @Param("createdBy") String createdBy,
                                    @Param("category") String category,
                                    @Param("subCategory") String subCategory,
+                                   @Param("issueTypeId") String issueTypeId,
                                    @Param("fromDate") LocalDateTime fromDate,
                                    @Param("toDate") LocalDateTime toDate);
 

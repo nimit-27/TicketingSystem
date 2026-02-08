@@ -81,18 +81,20 @@ public class ReportService {
         String normalizedValue = parameterValue.trim();
 
         return switch (normalizedKey) {
-            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null);
-            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null);
-            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null);
-            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null);
-            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue);
+            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null, null);
+            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null, null);
+            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null, null);
+            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null, null);
+            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue, null);
             default -> null;
         };
     }
 
-    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId) {
+    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy,
+                                     String userId, String issueTypeId) {
         boolean hasFilters() {
-            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId).anyMatch(StringUtils::hasText);
+            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId, issueTypeId)
+                    .anyMatch(StringUtils::hasText);
         }
 
         boolean matches(Ticket ticket) {
@@ -115,7 +117,11 @@ public class ReportService {
             if (StringUtils.hasText(createdBy) && !matchesValue(createdBy, ticket.getCreatedBy())) {
                 return false;
             }
-            return !StringUtils.hasText(userId) || matchesValue(userId, ticket.getUserId());
+            if (StringUtils.hasText(userId) && !matchesValue(userId, ticket.getUserId())) {
+                return false;
+            }
+
+            return !StringUtils.hasText(issueTypeId) || matchesValue(issueTypeId, ticket.getIssueTypeId());
         }
 
         private boolean matchesValue(String expected, String actual) {
@@ -220,8 +226,19 @@ public class ReportService {
     private ParameterCriteria resolveDashboardParameterCriteria(String userId,
                                                                 MultiValueMap<String, String> allParams,
                                                                 List<String> parameterKeysList) {
-        if (!StringUtils.hasText(userId) || parameterKeysList == null || parameterKeysList.isEmpty()) {
+        String issueTypeId = Optional.ofNullable(allParams)
+                .map(params -> params.getFirst("issueTypeId"))
+                .filter(StringUtils::hasText)
+                .orElse(null);
+
+        if (!StringUtils.hasText(userId) && !StringUtils.hasText(issueTypeId)) {
             return null;
+        }
+
+        if (parameterKeysList == null || parameterKeysList.isEmpty()) {
+            return StringUtils.hasText(issueTypeId)
+                    ? new ParameterCriteria(null, null, null, null, null, issueTypeId)
+                    : null;
         }
 
         List<String> normalizedParameters = parameterKeysList.stream()
@@ -278,7 +295,8 @@ public class ReportService {
                 parameterAssignedBy,
                 parameterUpdatedBy,
                 parameterCreatedBy,
-                user_id
+                user_id,
+                issueTypeId
         );
 
         return parameterCriteria.hasFilters() ? parameterCriteria : null;
@@ -299,6 +317,7 @@ public class ReportService {
             severityProjections = ticketRepository.countTicketsBySeverityWithParameter(
                     TicketStatus.OPEN,
                     assignedTo,
+                    parameterCriteria.issueTypeId(),
                     dateRange.from(),
                     dateRange.to(),
                     parameterCriteria.assignedTo(),
@@ -311,6 +330,7 @@ public class ReportService {
             severityProjections = ticketRepository.countTicketsBySeverity(
                     TicketStatus.OPEN,
                     assignedTo,
+                    null,
                     dateRange.from(),
                     dateRange.to()
             );
@@ -331,6 +351,7 @@ public class ReportService {
         if (parameterCriteria != null && parameterCriteria.hasFilters()) {
             statusProjections = ticketRepository.countTicketsByStatusWithFiltersAndParameters(
                     assignedTo,
+                    parameterCriteria.issueTypeId(),
                     dateRange.from(),
                     dateRange.to(),
                     parameterCriteria.assignedTo(),
@@ -342,6 +363,7 @@ public class ReportService {
         } else {
             statusProjections = ticketRepository.countTicketsByStatusWithFilters(
                     assignedTo,
+                    null,
                     dateRange.from(),
                     dateRange.to()
             );
@@ -365,6 +387,7 @@ public class ReportService {
             pendingCount = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
                     TicketStatus.OPEN,
                     assignedTo,
+                    parameterCriteria.issueTypeId(),
                     dateRange.from(),
                     dateRange.to(),
                     parameterCriteria.assignedTo(),
@@ -377,6 +400,7 @@ public class ReportService {
             totalTickets = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
                     null,
                     assignedTo,
+                    parameterCriteria.issueTypeId(),
                     dateRange.from(),
                     dateRange.to(),
                     parameterCriteria.assignedTo(),
@@ -389,6 +413,7 @@ public class ReportService {
             pendingCount = ticketRepository.countTicketsByStatusAndFilters(
                     TicketStatus.OPEN,
                     assignedTo,
+                    null,
                     dateRange.from(),
                     dateRange.to()
             );
@@ -396,6 +421,7 @@ public class ReportService {
             totalTickets = ticketRepository.countTicketsByStatusAndFilters(
                     null,
                     assignedTo,
+                    null,
                     dateRange.from(),
                     dateRange.to()
             );
@@ -422,6 +448,7 @@ public class ReportService {
         if (parameterCriteria != null && parameterCriteria.hasFilters()) {
             aggregations = ticketRepository.aggregateDashboardStatsByCategoryWithParameter(
                     assignedTo,
+                    parameterCriteria.issueTypeId(),
                     dateRange.from(),
                     dateRange.to(),
                     parameterCriteria.assignedTo(),
@@ -430,7 +457,7 @@ public class ReportService {
                     parameterCriteria.createdBy()
             );
         } else {
-            aggregations = ticketRepository.aggregateDashboardStatsByCategory(assignedTo, dateRange.from(), dateRange.to());
+            aggregations = ticketRepository.aggregateDashboardStatsByCategory(assignedTo, null, dateRange.from(), dateRange.to());
         }
 
         return aggregations.stream()
@@ -463,6 +490,7 @@ public class ReportService {
                 ? ticketRepository.findByReportedDateBetweenWithParameters(
                 dateRange.from(),
                 dateRange.to(),
+                parameterCriteria.issueTypeId(),
                 parameterCriteria.assignedTo(),
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
@@ -485,6 +513,7 @@ public class ReportService {
                 ? ticketRepository.findByResolvedAtBetweenWithParameters(
                 dateRange.from(),
                 dateRange.to(),
+                parameterCriteria.issueTypeId(),
                 parameterCriteria.assignedTo(),
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
@@ -592,6 +621,7 @@ public class ReportService {
                 ? ticketRepository.findByReportedDateBetweenWithParameters(
                 timeSeries.dateRange().from(),
                 timeSeries.dateRange().to(),
+                parameterCriteria.issueTypeId(),
                 parameterCriteria.assignedTo(),
                 parameterCriteria.assignedBy(),
                 parameterCriteria.updatedBy(),
