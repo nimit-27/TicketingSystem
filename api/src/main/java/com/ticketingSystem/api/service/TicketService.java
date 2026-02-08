@@ -21,6 +21,8 @@ import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.RecommendedSeverityFlowRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
+import com.ticketingSystem.api.repository.RegionMasterRepository;
+import com.ticketingSystem.api.repository.DistrictMasterRepository;
 import com.ticketingSystem.api.enums.Mode;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.enums.FeedbackStatus;
@@ -79,6 +81,8 @@ public class TicketService {
     private final FileStorageService fileStorageService;
     private final StakeholderRepository stakeholderRepository;
     private final RoleRepository roleRepository;
+    private final RegionMasterRepository regionMasterRepository;
+    private final DistrictMasterRepository districtMasterRepository;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
@@ -90,6 +94,7 @@ public class TicketService {
 
     public TicketDto mapWithStatusId(Ticket ticket) {
         TicketDto dto = DtoMapper.toTicketDto(ticket);
+        populateLocationNames(dto, ticket);
         // category names
         if (ticket.getCategory() != null) {
             dto.setCategoryId(ticket.getCategory());
@@ -163,6 +168,28 @@ public class TicketService {
             dto.setAssignedToName(null);
         }
         return dto;
+    }
+
+    private void populateLocationNames(TicketDto dto, Ticket ticket) {
+        if (dto == null || ticket == null) {
+            return;
+        }
+
+        if ((dto.getRegionName() == null || dto.getRegionName().isBlank())
+                && ticket.getRegionCode() != null && !ticket.getRegionCode().isBlank()) {
+            regionMasterRepository.findById(ticket.getRegionCode())
+                    .map(RegionMaster::getRegionName)
+                    .filter(name -> name != null && !name.isBlank())
+                    .ifPresent(dto::setRegionName);
+        }
+
+        if ((dto.getDistrictName() == null || dto.getDistrictName().isBlank())
+                && ticket.getDistrictCode() != null && !ticket.getDistrictCode().isBlank()) {
+            districtMasterRepository.findById(ticket.getDistrictCode())
+                    .map(DistrictMaster::getDistrictName)
+                    .filter(name -> name != null && !name.isBlank())
+                    .ifPresent(dto::setDistrictName);
+        }
     }
 
     private String resolveStakeholderName(String stakeholderId) {
