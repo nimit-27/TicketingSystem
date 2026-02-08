@@ -155,6 +155,9 @@ export interface SupportDashboardSummaryView {
 }
 
 export interface SupportDashboardCategorySummary {
+    zone?: string;
+    regionName?: string;
+    districtName?: string;
     category?: string;
     subcategory?: string;
     severityCounts: Record<SupportDashboardSeverityKey, number>;
