@@ -83,18 +83,18 @@ public class ReportService {
         String normalizedValue = parameterValue.trim();
 
         return switch (normalizedKey) {
-            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null, null, null, null);
-            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null, null, null, null);
-            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null, null, null, null);
-            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null, null, null, null);
-            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue, null, null, null);
+            case "assigned_to", "assignee", "assignto" -> new ParameterCriteria(normalizedValue, null, null, null, null, null, null, null, null);
+            case "assigned_by", "assigner" -> new ParameterCriteria(null, normalizedValue, null, null, null, null, null, null, null);
+            case "updated_by", "updatedby", "modifier" -> new ParameterCriteria(null, null, normalizedValue, null, null, null, null, null, null);
+            case "created_by", "createdby", "creator"-> new ParameterCriteria(null, null, null, normalizedValue, null, null, null, null, null);
+            case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue, null, null, null, null);
             default -> null;
         };
     }
 
-    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId, String zoneCode, String regionCode, String districtCode) {
+    private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId, String zoneCode, String regionCode, String districtCode, String issueTypeId) {
         boolean hasFilters() {
-            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId, zoneCode, regionCode, districtCode).anyMatch(StringUtils::hasText);
+            return Stream.of(assignedTo, assignedBy, updatedBy, createdBy, userId, zoneCode, regionCode, districtCode, issueTypeId).anyMatch(StringUtils::hasText);
         }
 
         boolean matches(Ticket ticket) {
@@ -130,7 +130,11 @@ public class ReportService {
                 return false;
             }
 
-            return !StringUtils.hasText(districtCode) || matchesValue(districtCode, ticket.getDistrictCode());
+            if (StringUtils.hasText(districtCode) && !matchesValue(districtCode, ticket.getDistrictCode())) {
+                return false;
+            }
+
+            return !StringUtils.hasText(issueTypeId) || matchesValue(issueTypeId, ticket.getIssueTypeId());
         }
 
         private boolean matchesValue(String expected, String actual) {
@@ -187,6 +191,7 @@ public class ReportService {
                                                                          String toDate,
                                                                          String parameterKey,
                                                                          String parameterValue,
+                                                                         String issueTypeId,
                                                                          MultiValueMap<String, String> allParams) {
         List<String> roleIds = userService.getHelpdeskUserDetails(userId)
                 .map(HelpdeskUserDto::getRoleIds)
@@ -208,7 +213,7 @@ public class ReportService {
         TimeSeriesDefinition timeSeries = resolveTimeSeries(timeScale, timeRange, customStartYear, customEndYear, fromDate, toDate);
         DateRange dateRange = timeSeries.dateRange();
 
-        ParameterCriteria parameterCriteria = resolveDashboardParameterCriteria(userId, allParams, parameterKeysList);
+        ParameterCriteria parameterCriteria = resolveDashboardParameterCriteria(userId, allParams, parameterKeysList, issueTypeId);
 
         SupportDashboardSummarySectionDto allTickets = buildSummarySection(null, dateRange, parameterCriteria);
         List<SupportDashboardCategorySummaryDto> allTicketsByCategory = buildCategorySummarySection(null, dateRange, parameterCriteria);
@@ -238,7 +243,8 @@ public class ReportService {
 
     private ParameterCriteria resolveDashboardParameterCriteria(String userId,
                                                                 MultiValueMap<String, String> allParams,
-                                                                List<String> parameterKeysList) {
+                                                                List<String> parameterKeysList,
+                                                                String issueTypeId) {
         if (!StringUtils.hasText(userId) || parameterKeysList == null || parameterKeysList.isEmpty()) {
             return null;
         }
@@ -295,6 +301,7 @@ public class ReportService {
         String zoneCode = StringUtils.hasText(allParams.getFirst("zoneCode")) ? allParams.getFirst("zoneCode") : null;
         String regionCode = StringUtils.hasText(allParams.getFirst("regionCode")) ? allParams.getFirst("regionCode") : null;
         String districtCode = StringUtils.hasText(allParams.getFirst("districtCode")) ? allParams.getFirst("districtCode") : null;
+        String normalizedIssueTypeId = StringUtils.hasText(issueTypeId) ? issueTypeId : null;
 
         ParameterCriteria parameterCriteria = new ParameterCriteria(
                 parameterAssignedTo,
@@ -304,7 +311,8 @@ public class ReportService {
                 user_id,
                 zoneCode,
                 regionCode,
-                districtCode
+                districtCode,
+                normalizedIssueTypeId
         );
 
         return parameterCriteria.hasFilters() ? parameterCriteria : null;
@@ -334,7 +342,8 @@ public class ReportService {
                     parameterCriteria.userId(),
                     parameterCriteria.zoneCode(),
                     parameterCriteria.regionCode(),
-                    parameterCriteria.districtCode()
+                    parameterCriteria.districtCode(),
+                    parameterCriteria.issueTypeId()
             );
         } else {
             severityProjections = ticketRepository.countTicketsBySeverity(
@@ -369,7 +378,8 @@ public class ReportService {
                     parameterCriteria.userId,
                     parameterCriteria.zoneCode(),
                     parameterCriteria.regionCode(),
-                    parameterCriteria.districtCode()
+                    parameterCriteria.districtCode(),
+                    parameterCriteria.issueTypeId()
             );
         } else {
             statusProjections = ticketRepository.countTicketsByStatusWithFilters(
@@ -406,7 +416,8 @@ public class ReportService {
                     parameterCriteria.userId,
                     parameterCriteria.zoneCode(),
                     parameterCriteria.regionCode(),
-                    parameterCriteria.districtCode()
+                    parameterCriteria.districtCode(),
+                    parameterCriteria.issueTypeId()
             );
 
             totalTickets = ticketRepository.countTicketsByStatusAndFiltersWithParameter(
@@ -421,7 +432,8 @@ public class ReportService {
                     parameterCriteria.userId,
                     parameterCriteria.zoneCode(),
                     parameterCriteria.regionCode(),
-                    parameterCriteria.districtCode()
+                    parameterCriteria.districtCode(),
+                    parameterCriteria.issueTypeId()
             );
         } else {
             pendingCount = ticketRepository.countTicketsByStatusAndFilters(
@@ -468,7 +480,8 @@ public class ReportService {
                     parameterCriteria.createdBy(),
                     parameterCriteria.zoneCode(),
                     parameterCriteria.regionCode(),
-                    parameterCriteria.districtCode()
+                    parameterCriteria.districtCode(),
+                    parameterCriteria.issueTypeId()
             );
         } else {
             aggregations = ticketRepository.aggregateDashboardStatsByCategory(assignedTo, dateRange.from(), dateRange.to());
@@ -514,7 +527,8 @@ public class ReportService {
                 parameterCriteria.userId(),
                 parameterCriteria.zoneCode(),
                 parameterCriteria.regionCode(),
-                parameterCriteria.districtCode()
+                parameterCriteria.districtCode(),
+                parameterCriteria.issueTypeId()
         ) : ticketRepository.findByReportedDateBetween(dateRange.from(), dateRange.to());
 
         EnumSet<TicketStatus> openLikeStatuses = EnumSet.allOf(TicketStatus.class);
@@ -538,7 +552,8 @@ public class ReportService {
                 parameterCriteria.createdBy(),
                 parameterCriteria.zoneCode(),
                 parameterCriteria.regionCode(),
-                parameterCriteria.districtCode()
+                parameterCriteria.districtCode(),
+                parameterCriteria.issueTypeId()
         ) : ticketRepository.findByResolvedAtBetween(dateRange.from(), dateRange.to());
 
         long resolvedCount = resolvedTickets.stream()
@@ -649,7 +664,8 @@ public class ReportService {
                 parameterCriteria.userId,
                 parameterCriteria.zoneCode(),
                 parameterCriteria.regionCode(),
-                parameterCriteria.districtCode()
+                parameterCriteria.districtCode(),
+                parameterCriteria.issueTypeId()
         ) : ticketRepository.findByReportedDateBetween(timeSeries.dateRange().from(), timeSeries.dateRange().to());
 
         for (Ticket ticket : tickets) {

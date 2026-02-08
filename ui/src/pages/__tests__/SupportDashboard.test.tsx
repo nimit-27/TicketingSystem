@@ -3,12 +3,13 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { renderWithTheme } from "../../test/testUtils";
 
 import SupportDashboard from "../SupportDashboard";
-import { getUserDetails } from "../../utils/Utils";
+import { getDropdownOptions, getUserDetails } from "../../utils/Utils";
 
 const mockSummaryApiHandler = jest.fn((fn: () => Promise<any>) => fn());
 const mockParameterApiHandler = jest.fn((fn: () => Promise<any>) => fn());
 const mockUseApi = jest.fn();
 const mockGetUserDetails = getUserDetails as jest.Mock;
+const mockGetDropdownOptions = getDropdownOptions as jest.Mock;
 
 jest.mock("../../hooks/useApi", () => ({
   useApi: (...args: unknown[]) => mockUseApi(...args),
@@ -26,6 +27,10 @@ jest.mock("../../services/ReportService", () => ({
 
 jest.mock("../../services/ParameterService", () => ({
   getParametersByRoles: (...args: unknown[]) => mockGetParametersByRoles.apply(null, args),
+}));
+
+jest.mock("../../services/IssueTypeService", () => ({
+  getIssueTypes: jest.fn(() => Promise.resolve({ data: [] })),
 }));
 
 jest.mock("../../utils/permissions", () => ({
@@ -100,6 +105,8 @@ jest.mock("react-i18next", () => ({
 
 jest.mock("../../utils/Utils", () => ({
   getUserDetails: jest.fn(() => ({ role: [] })),
+  getDisplayRoles: jest.fn(() => []),
+  getDropdownOptions: jest.fn(() => []),
 }));
 
 jest.mock(
@@ -154,13 +161,24 @@ describe("SupportDashboard", () => {
     mockSummaryApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
     mockParameterApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
     mockGetUserDetails.mockReturnValue({ role: [] });
+    mockGetDropdownOptions.mockReturnValue([]);
   });
 
   it("requests dashboard data on mount with default filters", async () => {
+    mockGetDropdownOptions.mockImplementation((data: any) => {
+      if (Array.isArray(data) && data[0]?.code === "assigned_to") {
+        return [
+          { label: "All", value: "All" },
+          { label: "Assigned To", value: "assigned_to" },
+        ];
+      }
+      return [];
+    });
+
     renderWithTheme(<SupportDashboard />);
 
     await waitFor(() => expect(mockSummaryApiHandler).toHaveBeenCalled());
-    expect(mockFetchSupportDashboardSummary).toHaveBeenCalledWith({
+    expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenCalledWith({
       timeScale: "DAILY",
       timeRange: "LAST_7_DAYS",
       fromDate: "2024-01-02",
@@ -175,12 +193,11 @@ describe("SupportDashboard", () => {
     renderWithTheme(<SupportDashboard />);
 
     await waitFor(() => expect(mockSummaryApiHandler).toHaveBeenCalled());
-    expect(mockFetchSupportDashboardSummary).toHaveBeenLastCalledWith({
+    expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenLastCalledWith({
       timeScale: "DAILY",
       timeRange: "LAST_7_DAYS",
       fromDate: "2024-01-02",
       toDate: "2024-01-08",
-      createdBy: "user-123",
     });
     expect(mockGetParametersByRoles).toHaveBeenCalledWith(["Requester"]);
   });
@@ -188,14 +205,14 @@ describe("SupportDashboard", () => {
   it("updates the request parameters when the time scale changes", async () => {
     renderWithTheme(<SupportDashboard />);
 
-    await waitFor(() => expect(mockFetchSupportDashboardSummary).toHaveBeenCalled());
+    await waitFor(() => expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenCalled());
 
     const timeScaleDropdown = await screen.findByLabelText("supportDashboard.filters.interval.label");
     fireEvent.change(timeScaleDropdown, { target: { value: "WEEKLY" } });
 
-    await waitFor(() => expect(mockFetchSupportDashboardSummary).toHaveBeenCalled());
+    await waitFor(() => expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenCalled());
 
-    expect(mockFetchSupportDashboardSummary).toHaveBeenLastCalledWith({
+    expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenLastCalledWith({
       timeScale: "WEEKLY",
       timeRange: "LAST_4_WEEKS",
       fromDate: "2023-12-18",
@@ -224,6 +241,16 @@ describe("SupportDashboard", () => {
         success: false,
         apiHandler: mockParameterApiHandler,
       });
+
+    mockGetDropdownOptions.mockImplementation((data: any) => {
+      if (Array.isArray(data) && data[0]?.code === "assigned_to") {
+        return [
+          { label: "All", value: "All" },
+          { label: "Assigned To", value: "assigned_to" },
+        ];
+      }
+      return [];
+    });
 
     renderWithTheme(<SupportDashboard />);
 
@@ -284,6 +311,6 @@ describe("SupportDashboard", () => {
     });
 
     expect(await screen.findByText("supportDashboard.filters.range.customRangeError")).toBeInTheDocument();
-    expect(mockFetchSupportDashboardSummary).toHaveBeenCalled();
+    expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenCalled();
   });
 });
