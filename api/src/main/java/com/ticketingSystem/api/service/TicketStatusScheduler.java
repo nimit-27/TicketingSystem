@@ -5,6 +5,7 @@ import com.ticketingSystem.api.enums.FeedbackStatus;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,17 +17,24 @@ public class TicketStatusScheduler {
     private final TicketRepository ticketRepository;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
+    private final boolean autoClosureEnabled;
 
     public TicketStatusScheduler(TicketRepository ticketRepository,
                                  TicketStatusWorkflowService workflowService,
-                                 StatusMasterRepository statusMasterRepository) {
+                                 StatusMasterRepository statusMasterRepository,
+                                 @Value("${app.ticket.auto-close-resolved.enabled:true}") boolean autoClosureEnabled) {
         this.ticketRepository = ticketRepository;
         this.workflowService = workflowService;
         this.statusMasterRepository = statusMasterRepository;
+        this.autoClosureEnabled = autoClosureEnabled;
     }
 
     @Scheduled(cron = "0 0 * * * *")
     public void closeResolvedTickets() {
+        if (!autoClosureEnabled) {
+            return;
+        }
+
         LocalDateTime cutoff = LocalDateTime.now().minusHours(72);
         List<Ticket> tickets = ticketRepository.findByTicketStatusAndLastModifiedBefore(TicketStatus.RESOLVED, cutoff);
         String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
