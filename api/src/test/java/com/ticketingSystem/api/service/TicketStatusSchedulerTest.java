@@ -7,9 +7,11 @@ import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +39,8 @@ class TicketStatusSchedulerTest {
                 ticketRepository,
                 workflowService,
                 statusMasterRepository,
-                false
+                false,
+                72
         );
 
         scheduler.closeResolvedTickets();
@@ -47,7 +50,7 @@ class TicketStatusSchedulerTest {
     }
 
     @Test
-    void closeResolvedTickets_closesResolvedTicketsWhenEnabled() {
+    void closeResolvedTickets_usesConfiguredClosureWindowInHours() {
         Ticket ticket = new Ticket();
         ticket.setId("T-1");
         ticket.setTicketStatus(TicketStatus.RESOLVED);
@@ -62,17 +65,26 @@ class TicketStatusSchedulerTest {
         when(workflowService.getStatusIdByCode(TicketStatus.CLOSED.name())).thenReturn("CLOSED_ID");
         when(statusMasterRepository.findById("CLOSED_ID")).thenReturn(Optional.of(closedStatus));
 
+        long configuredHours = 48;
         TicketStatusScheduler scheduler = new TicketStatusScheduler(
                 ticketRepository,
                 workflowService,
                 statusMasterRepository,
-                true
+                true,
+                configuredHours
         );
 
+        LocalDateTime beforeRun = LocalDateTime.now();
         scheduler.closeResolvedTickets();
 
-        verify(ticketRepository).findByTicketStatusAndLastModifiedBefore(eq(TicketStatus.RESOLVED), any());
+        ArgumentCaptor<LocalDateTime> cutoffCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(ticketRepository).findByTicketStatusAndLastModifiedBefore(eq(TicketStatus.RESOLVED), cutoffCaptor.capture());
         verify(ticketRepository).saveAll(eq(List.of(ticket)));
+
+        LocalDateTime expectedCutoff = beforeRun.minusHours(configuredHours);
+        long diffSeconds = Math.abs(Duration.between(expectedCutoff, cutoffCaptor.getValue()).getSeconds());
+        assertThat(diffSeconds).isLessThanOrEqualTo(2);
+
         assertThat(ticket.getTicketStatus()).isEqualTo(TicketStatus.CLOSED);
         assertThat(ticket.getUpdatedBy()).isEqualTo("SYSTEM");
         assertThat(ticket.getFeedbackStatus()).isNotNull();
