@@ -406,6 +406,7 @@ interface ZoneOptionItem {
 }
 
 interface RegionOptionItem {
+  regionCode?: string;
   regionName?: string;
   hrmsRegCode?: string;
 }
@@ -470,6 +471,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [selectedParameter, setSelectedParameter] = React.useState<string>("All");
   const [selectedZone, setSelectedZone] = React.useState<string>("All");
   const [selectedRegion, setSelectedRegion] = React.useState<string>("All");
+  const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = React.useState<string>("All");
   const [selectedDistrict, setSelectedDistrict] = React.useState<string>("All");
   const [selectedIssueType, setSelectedIssueType] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
@@ -537,24 +539,26 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   useEffect(() => {
     if (selectedZone === "All") {
       setSelectedRegion("All");
+      setSelectedRegionHrmsCode("All");
       setSelectedDistrict("All");
       return;
     }
 
     setSelectedRegion("All");
+    setSelectedRegionHrmsCode("All");
     setSelectedDistrict("All");
     void getRegionsApiHandler(() => getRegions(selectedZone));
   }, [getRegionsApiHandler, selectedZone]);
 
   useEffect(() => {
-    if (selectedRegion === "All") {
+    if (selectedRegionHrmsCode === "All") {
       setSelectedDistrict("All");
       return;
     }
 
     setSelectedDistrict("All");
-    void getDistrictsApiHandler(() => getDistricts(selectedRegion));
-  }, [getDistrictsApiHandler, selectedRegion]);
+    void getDistrictsApiHandler(() => getDistricts(selectedRegionHrmsCode));
+  }, [getDistrictsApiHandler, selectedRegionHrmsCode]);
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
@@ -615,7 +619,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const regionOptions = React.useMemo(
     () => [{ label: "All", value: "All" }, ...((regionsResponse?.data ?? regionsResponse ?? []).map((region: RegionOptionItem) => ({
       label: region.regionName ?? "",
-      value: String(region.hrmsRegCode ?? ""),
+      value: String(region.regionCode ?? ""),
+      regionCode: region.regionCode ?? "",
       hrmsRegCode: region.hrmsRegCode ?? "",
     })))],
     [regionsResponse],
@@ -1262,8 +1267,17 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   }, []);
 
   const handleRegionChange = React.useCallback((event: SelectChangeEvent) => {
-    setSelectedRegion(event.target.value as string);
-  }, []);
+    const nextRegionCode = event.target.value as string;
+    setSelectedRegion(nextRegionCode);
+
+    if (nextRegionCode === "All") {
+      setSelectedRegionHrmsCode("All");
+      return;
+    }
+
+    const matchingOption = regionOptions.find((option) => option.value === nextRegionCode);
+    setSelectedRegionHrmsCode(matchingOption?.hrmsRegCode || "All");
+  }, [regionOptions]);
 
   const handleDistrictChange = React.useCallback((event: SelectChangeEvent) => {
     setSelectedDistrict(event.target.value as string);
