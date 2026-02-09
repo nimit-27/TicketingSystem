@@ -395,6 +395,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     handleSlaDownloadMenuClose();
   }, [downloadSlaAsExcel, downloadSlaAsPdf, handleSlaDownloadMenuClose, masterSla, sla]);
 
+  const refreshTicketAndStatusHistory = useCallback(async () => {
+    if (!ticketId) return;
+
+    await Promise.all([
+      getTicketHandler(() => getTicket(ticketId)),
+      apiHandler(() => getStatusHistory(ticketId)),
+    ]);
+  }, [apiHandler, getTicketHandler, ticketId]);
+
   const recommendSeverityAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => action.action === 'Recommend Escalation') || null,
     [availableStatusActions]
@@ -630,7 +639,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setEditing(false);
       setShowRecommendRemark(false);
       setSeverityToRecommendSeverity(false);
-      await getTicketHandler(() => getTicket(ticketId));
+      await refreshTicketAndStatusHistory();
     } catch {
       // no-op: errors handled within useApi
     }
@@ -658,7 +667,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       status: { statusId: '11' }
     };
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
-      getTicketHandler(() => getTicket(ticketId));
+      refreshTicketAndStatusHistory();
     });
   };
 
@@ -776,7 +785,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       status: { statusId: String(wf.nextStatus) }
     };
     updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
-      getTicketHandler(() => getTicket(ticketId));
+      refreshTicketAndStatusHistory();
     });
   };
 
@@ -884,7 +893,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       await updateTicketHandler(() => updateTicket(ticketId, payload));
       setShowStatusRemark(false);
       setSelectedStatusAction(null);
-      await getTicketHandler(() => getTicket(ticketId));
+      await refreshTicketAndStatusHistory();
     } catch {
       // no-op handled by useApi
     }
