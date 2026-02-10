@@ -382,6 +382,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
             "AND (:category IS NULL OR t.category = :category) " +
             "AND (:subCategory IS NULL OR t.subCategory = :subCategory)" +
+            "AND (:zoneCode IS NULL OR t.zoneCode = :zoneCode) " +
+            "AND (:regionCode IS NULL OR t.regionCode = :regionCode) " +
+            "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -402,6 +406,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("createdBy") String createdBy,
                                @Param("category") String category,
                                @Param("subCategory") String subCategory,
+                               @Param("zoneCode") String zoneCode,
+                               @Param("regionCode") String regionCode,
+                               @Param("districtCode") String districtCode,
+                               @Param("issueTypeId") String issueTypeId,
                                @Param("fromDate") LocalDateTime fromDate,
                                @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
@@ -414,6 +422,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
             "AND (:category IS NULL OR t.category = :category) " +
             "AND (:subCategory IS NULL OR t.subCategory = :subCategory)" +
+            "AND (:zoneCode IS NULL OR t.zoneCode = :zoneCode) " +
+            "AND (:regionCode IS NULL OR t.regionCode = :regionCode) " +
+            "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
+            "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -434,6 +446,10 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                    @Param("createdBy") String createdBy,
                                    @Param("category") String category,
                                    @Param("subCategory") String subCategory,
+                                   @Param("zoneCode") String zoneCode,
+                                   @Param("regionCode") String regionCode,
+                                   @Param("districtCode") String districtCode,
+                                   @Param("issueTypeId") String issueTypeId,
                                    @Param("fromDate") LocalDateTime fromDate,
                                    @Param("toDate") LocalDateTime toDate);
 

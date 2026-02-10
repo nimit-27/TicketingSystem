@@ -441,7 +441,9 @@ public class TicketService {
 
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
-                                         String severity, String createdBy, String category, String subCategory, String fromDate, String toDate, Pageable pageable) {
+                                         String severity, String createdBy, String category, String subCategory,
+                                         String zoneCode, String regionCode, String districtCode, String issueTypeId,
+                                         String fromDate, String toDate, Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -455,13 +457,35 @@ public class TicketService {
                     .toList();
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, createdBy, category, subCategory, from, to, pageable);
+        Page<Ticket> page = ticketRepository.searchTickets(
+                query,
+                statusIds,
+                master,
+                assignedTo,
+                assignedBy,
+                requestorId,
+                levelId,
+                priority,
+                severityFilters,
+                createdBy,
+                category,
+                subCategory,
+                zoneCode,
+                regionCode,
+                districtCode,
+                issueTypeId,
+                from,
+                to,
+                pageable
+        );
         return page.map(this::mapWithStatusId);
     }
 
     public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master,
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
-                                             String severity, String createdBy, String category, String subCategory, String fromDate, String toDate) {
+                                             String severity, String createdBy, String category, String subCategory,
+                                             String zoneCode, String regionCode, String districtCode, String issueTypeId,
+                                             String fromDate, String toDate) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -475,7 +499,25 @@ public class TicketService {
                     .toList();
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
-        return ticketRepository.searchTicketsList(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, createdBy, category, subCategory, from, to)
+        return ticketRepository.searchTicketsList(
+                        query,
+                        statusIds,
+                        master,
+                        assignedTo,
+                        assignedBy,
+                        requestorId,
+                        levelId,
+                        priority,
+                        severityFilters,
+                        createdBy,
+                        category,
+                        subCategory,
+                        zoneCode,
+                        regionCode,
+                        districtCode,
+                        issueTypeId,
+                        from,
+                        to)
                 .stream()
                 .map(this::mapWithStatusId)
                 .toList();

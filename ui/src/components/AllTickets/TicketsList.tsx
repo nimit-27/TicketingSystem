@@ -25,6 +25,8 @@ import { DateRangeState } from "../../utils/dateUtils";
 import { useCategoryFilters } from "../../hooks/useCategoryFilters";
 import GenericInput from "../UI/Input/GenericInput";
 import FeedbackModal from "../Feedback/FeedbackModal";
+import { getDistricts, getRegions, getZones } from "../../services/LocationService";
+import { getIssueTypes } from "../../services/IssueTypeService";
 
 export interface TicketsListFilterState {
     search: string;
@@ -62,6 +64,10 @@ export interface TicketsListSearchOverrides {
     categoryId?: string;
     subCategoryId?: string;
     statusParam?: string;
+    zoneCode?: string;
+    regionCode?: string;
+    districtCode?: string;
+    issueTypeId?: string;
 }
 
 interface TicketsListProps {
@@ -117,6 +123,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const { data: allowedStatusData, pending: allowedStatusPending, success: allowedStatusSuccess, apiHandler: allowedStatusApiHandler } = useApi<any>();
     const { data, pending, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
+    const { data: zonesResponse = [], apiHandler: getZonesApiHandler } = useApi<any[]>();
+    const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<any[]>();
+    const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<any[]>();
+    const { data: issueTypesResponse = [], apiHandler: getIssueTypesApiHandler } = useApi<any[]>();
 
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -156,6 +166,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
+    const [selectedZone, setSelectedZone] = useState<string>("All");
+    const [selectedRegion, setSelectedRegion] = useState<string>("All");
+    const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = useState<string>("All");
+    const [selectedDistrict, setSelectedDistrict] = useState<string>("All");
+    const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -177,6 +192,39 @@ const TicketsList: React.FC<TicketsListProps> = ({
         [t],
     );
 
+    const zoneOptions: DropdownOption[] = useMemo(
+        () => [{ label: "All", value: "All" }, ...((zonesResponse as any)?.data ?? zonesResponse ?? []).map((zone: any) => ({
+            label: zone.zoneName ? `${zone.zoneName} (${zone.zoneCode})` : String(zone.zoneCode ?? ""),
+            value: String(zone.zoneCode ?? ""),
+        }))],
+        [zonesResponse],
+    );
+
+    const regionOptions = useMemo(
+        () => [{ label: "All", value: "All" }, ...((regionsResponse as any)?.data ?? regionsResponse ?? []).map((region: any) => ({
+            label: region.regionName ?? "",
+            value: String(region.regionCode ?? ""),
+            hrmsRegCode: region.hrmsRegCode ?? "",
+        }))],
+        [regionsResponse],
+    );
+
+    const districtOptions: DropdownOption[] = useMemo(
+        () => [{ label: "All", value: "All" }, ...((districtsResponse as any)?.data ?? districtsResponse ?? []).map((district: any) => ({
+            label: district.districtName ? `${district.districtName} (${district.districtCode})` : String(district.districtCode ?? ""),
+            value: String(district.districtCode ?? ""),
+        }))],
+        [districtsResponse],
+    );
+
+    const issueTypeOptions: DropdownOption[] = useMemo(
+        () => [{ label: "All", value: "All" }, ...((issueTypesResponse as any)?.data ?? issueTypesResponse ?? []).map((issueType: any) => ({
+            label: issueType.issueTypeLabel ?? "",
+            value: String(issueType.issueTypeId ?? ""),
+        }))],
+        [issueTypesResponse],
+    );
+
     const handleFeedback = (ticketId: string, feedbackStatus: string) => {
         setFeedbackOpen(true)
         setSelectedTicketIdForFeedback(ticketId);
@@ -192,6 +240,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setDateRange({ preset: "ALL" });
         setSelectedCategory("All");
         setSelectedSubCategory("All");
+        setSelectedZone("All");
+        setSelectedRegion("All");
+        setSelectedRegionHrmsCode("All");
+        setSelectedDistrict("All");
+        setSelectedIssueType("All");
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -199,6 +252,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
     const normalizedCategory = selectedCategory !== "All" ? selectedCategory : undefined;
     const normalizedSubCategory = selectedSubCategory !== "All" ? selectedSubCategory : undefined;
+    const normalizedZone = selectedZone !== "All" ? selectedZone : undefined;
+    const normalizedRegion = selectedRegion !== "All" ? selectedRegion : undefined;
+    const normalizedDistrict = selectedDistrict !== "All" ? selectedDistrict : undefined;
+    const normalizedIssueType = selectedIssueType !== "All" ? selectedIssueType : undefined;
 
     const filterState: TicketsListFilterState = useMemo(
         () => ({
@@ -271,6 +328,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const toDateParam = mergedOverrides.toDate ?? dateRangeParams.toDate;
             const categoryParam = mergedOverrides.categoryId ?? normalizedCategory;
             const subCategoryParam = mergedOverrides.subCategoryId ?? normalizedSubCategory;
+            const zoneParam = mergedOverrides.zoneCode ?? normalizedZone;
+            const regionParam = mergedOverrides.regionCode ?? normalizedRegion;
+            const districtParam = mergedOverrides.districtCode ?? normalizedDistrict;
+            const issueTypeParam = mergedOverrides.issueTypeId ?? normalizedIssueType;
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -292,6 +353,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     toDateParam,
                     categoryParam,
                     subCategoryParam,
+                    zoneParam,
+                    regionParam,
+                    districtParam,
+                    issueTypeParam,
                 )
             }
             );
@@ -308,6 +373,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
             masterOnly,
             normalizedCategory,
             normalizedSubCategory,
+            normalizedZone,
+            normalizedRegion,
+            normalizedDistrict,
+            normalizedIssueType,
             page,
             pageSize,
             sortBy,
@@ -338,6 +407,28 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setPage(1);
     };
 
+    const handleZoneChange = (value: string) => {
+        setSelectedZone(value);
+        setPage(1);
+    };
+
+    const handleRegionChange = (value: string) => {
+        setSelectedRegion(value);
+        const matchingOption = (regionOptions as Array<{ value: string; hrmsRegCode?: string }>).find((option) => option.value === value);
+        setSelectedRegionHrmsCode(matchingOption?.hrmsRegCode ?? "All");
+        setPage(1);
+    };
+
+    const handleDistrictChange = (value: string) => {
+        setSelectedDistrict(value);
+        setPage(1);
+    };
+
+    const handleIssueTypeChange = (value: string) => {
+        setSelectedIssueType(value);
+        setPage(1);
+    };
+
     const handleFeedbackClose = () => {
         setFeedbackOpen(false);
     };
@@ -351,12 +442,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
     useEffect(() => {
         const roles = getCurrentUserDetails()?.role || [];
         workflowApiHandler(() => getStatusWorkflowMappings(roles));
+        getZonesApiHandler(() => getZones());
+        getIssueTypesApiHandler(() => getIssueTypes());
         if (restrictStatusesToAllowed) {
             allowedStatusApiHandler(() => getAllowedStatusListByRoles(roles));
         } else {
             getStatuses().then(setStatusList);
         }
-    }, [allowedStatusApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
+    }, [allowedStatusApiHandler, getIssueTypesApiHandler, getZonesApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
 
     useEffect(() => {
         if (restrictStatusesToAllowed && allowedStatusData) {
@@ -368,6 +461,30 @@ const TicketsList: React.FC<TicketsListProps> = ({
             });
         }
     }, [allowedStatusData, restrictStatusesToAllowed]);
+
+    useEffect(() => {
+        if (selectedZone === "All") {
+            setSelectedRegion("All");
+            setSelectedRegionHrmsCode("All");
+            setSelectedDistrict("All");
+            return;
+        }
+
+        setSelectedRegion("All");
+        setSelectedRegionHrmsCode("All");
+        setSelectedDistrict("All");
+        getRegionsApiHandler(() => getRegions(selectedZone));
+    }, [getRegionsApiHandler, selectedZone]);
+
+    useEffect(() => {
+        if (selectedRegionHrmsCode === "All") {
+            setSelectedDistrict("All");
+            return;
+        }
+
+        setSelectedDistrict("All");
+        getDistrictsApiHandler(() => getDistricts(selectedRegionHrmsCode));
+    }, [getDistrictsApiHandler, selectedRegionHrmsCode]);
 
     useEffect(() => {
         if (workflowData) {
@@ -390,6 +507,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
         dateRangeParams.toDate,
         selectedCategory,
         selectedSubCategory,
+        selectedZone,
+        selectedRegion,
+        selectedDistrict,
+        selectedIssueType,
         allowedStatusSuccess,
     ]);
 
@@ -465,6 +586,42 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             options={subCategoryOptions}
                         />
                         : <div className="d-flex col-3"></div>}
+
+                    <DropdownController
+                        label="Zone"
+                        value={selectedZone}
+                        className="col-3 px-1"
+                        onChange={handleZoneChange}
+                        options={zoneOptions}
+                    />
+
+                    {selectedZone !== "All"
+                        ? <DropdownController
+                            label="Region"
+                            value={selectedRegion}
+                            className="col-3 px-1"
+                            onChange={handleRegionChange}
+                            options={regionOptions}
+                        />
+                        : <div className="d-flex col-3"></div>}
+
+                    {selectedRegion !== "All"
+                        ? <DropdownController
+                            label="District"
+                            value={selectedDistrict}
+                            className="col-3 px-1"
+                            onChange={handleDistrictChange}
+                            options={districtOptions}
+                        />
+                        : <div className="d-flex col-3"></div>}
+
+                    <DropdownController
+                        label="Issue Type"
+                        value={selectedIssueType}
+                        className="col-3 px-1"
+                        onChange={handleIssueTypeChange}
+                        options={issueTypeOptions}
+                    />
 
                     {/* DATE RANGE FILTER */}
                     <DateRangeFilter value={dateRange} onChange={setDateRange} />
