@@ -65,6 +65,8 @@ export interface TicketRow {
     severityLabel?: string;
     issueTypeId?: string;
     issueTypeLabel?: string;
+    createdOn?: string;
+    reportedDate?: string;
     zoneName?: string;
     zoneCode?: string;
     districtName?: string;
@@ -114,6 +116,13 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
 const formatDisplayDate = (value: string | number | Date | null | undefined) => {
     if (!value) return 'N/A';
     return new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+const formatExportCreatedDate = (value: string | number | Date | null | undefined) => {
+    if (!value) return '-';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsed);
 };
 
 const formatInputDate = (value: Date) => {
@@ -330,6 +339,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 key: 'requester',
                 label: t('Requestor'),
                 getValue: (record: TicketRow) => record.requestorName || '-',
+            },
+            {
+                key: 'createdDate',
+                label: t('Created Date'),
+                getValue: (record: TicketRow) => formatExportCreatedDate(record.createdOn || record.reportedDate),
             },
             {
                 key: 'category',
