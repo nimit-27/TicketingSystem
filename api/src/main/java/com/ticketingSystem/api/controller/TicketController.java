@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -235,6 +236,7 @@ public class TicketController {
             @RequestParam(required = false) String subCategory,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam MultiValueMap<String, String> allParams,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -256,6 +258,7 @@ public class TicketController {
                 subCategory,
                 fromDate,
                 toDate,
+                allParams,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
         );
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
@@ -278,7 +281,8 @@ public class TicketController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String subCategory,
             @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String toDate) {
+            @RequestParam(required = false) String toDate,
+            @RequestParam MultiValueMap<String, String> allParams) {
         logger.info("Request to export tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} fromDate={} toDate={}",
                 query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, fromDate, toDate);
         List<TicketDto> results = ticketService.searchTicketsList(
@@ -295,7 +299,8 @@ public class TicketController {
                 category,
                 subCategory,
                 fromDate,
-                toDate
+                toDate,
+                allParams
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);
