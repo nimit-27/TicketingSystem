@@ -37,7 +37,7 @@ const Users: React.FC = () => {
   const [regionFilter, setRegionFilter] = useState<string>('All');
   const [districtFilter, setDistrictFilter] = useState<string>('All');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [activeAppointmentUserId, setActiveAppointmentUserId] = useState<string | null>(null);
