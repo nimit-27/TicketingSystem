@@ -39,7 +39,7 @@ const RootCauseAnalysis: React.FC = () => {
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(20);
   const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
   const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
   const [isRcaModalOpen, setIsRcaModalOpen] = useState(false);

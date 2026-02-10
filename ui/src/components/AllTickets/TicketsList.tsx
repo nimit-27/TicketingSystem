@@ -147,8 +147,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
     const [tickets, setTickets] = useState<TicketRow[]>([]);
     const [page, setPage] = useState(1);
-    const [tablePageSize, setTablePageSize] = useState(5);
-    const [gridPageSize, setGridPageSize] = useState(5);
+    const [tablePageSize, setTablePageSize] = useState(20);
+    const [gridPageSize, setGridPageSize] = useState(20);
     const pageSize = viewMode === "grid" ? gridPageSize : tablePageSize;
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState("All");

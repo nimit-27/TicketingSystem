@@ -26,7 +26,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
     onPageSizeChange,
     pageSizeLabel = "Rows per page",
     totalCount,
-    pageSizeOptions = [5, 10, 20],
+    pageSizeOptions = [20, 40, 60],
 }) => {
     const safePage = Math.max(page, 1);
     const safeTotalPages = Math.max(totalPages, 0);
