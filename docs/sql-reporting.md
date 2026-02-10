@@ -76,3 +76,69 @@ public interface TicketRepository extends Repository<Ticket, Long> {
 ```
 
 Spring Data will map the aliased columns to the projection getters. You can expose `fetchTicketCategoryCounts()` through a service/controller and return the results directly to the frontend. If you later normalize the schema, update only the SQL string; the repository signature and projection stay the same.
+
+## Query for resolved/closed tickets with latest resolved + closed details
+
+Use this query when you need all tickets currently in **Resolved (7)** or **Closed (8)** status, plus these six extra columns:
+
+- `closed_remark`
+- `resolved_remark`
+- `closed_on`
+- `resolved_on`
+- `closed_by`
+- `resolved_by`
+
+It also ensures that if a ticket has multiple resolved transitions (even more than two), only the **latest** resolved record is returned.
+
+```sql
+WITH latest_resolved AS (
+  SELECT
+    sh.ticket_id,
+    sh.remark AS resolved_remark,
+    sh.`timestamp` AS resolved_on,
+    sh.updated_by AS resolved_by,
+    ROW_NUMBER() OVER (
+      PARTITION BY sh.ticket_id
+      ORDER BY sh.`timestamp` DESC, sh.status_history_id DESC
+    ) AS rn
+  FROM status_history sh
+  WHERE sh.current_status = '7'
+),
+latest_closed AS (
+  SELECT
+    sh.ticket_id,
+    sh.remark AS closed_remark,
+    sh.`timestamp` AS closed_on,
+    sh.updated_by AS closed_by,
+    ROW_NUMBER() OVER (
+      PARTITION BY sh.ticket_id
+      ORDER BY sh.`timestamp` DESC, sh.status_history_id DESC
+    ) AS rn
+  FROM status_history sh
+  WHERE sh.current_status = '8'
+)
+SELECT
+  t.ticket_id,
+  t.subject,
+  t.status_id,
+  lc.closed_remark,
+  lr.resolved_remark,
+  lc.closed_on,
+  lr.resolved_on,
+  lc.closed_by,
+  lr.resolved_by
+FROM tickets t
+LEFT JOIN latest_resolved lr
+  ON lr.ticket_id = t.ticket_id
+ AND lr.rn = 1
+LEFT JOIN latest_closed lc
+  ON lc.ticket_id = t.ticket_id
+ AND lc.rn = 1
+WHERE t.status_id IN ('7', '8')
+ORDER BY t.ticket_id;
+```
+
+Notes:
+
+- For tickets in status `7` (Resolved), `closed_*` columns may be `NULL` until they are closed.
+- For tickets in status `8` (Closed), both resolved and closed details are returned when present in `status_history`.
