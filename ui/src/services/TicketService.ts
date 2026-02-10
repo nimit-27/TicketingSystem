@@ -139,9 +139,29 @@ export function searchTicketsPaginated(
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 
-export function searchTicketsForExport(fromDate?: string, toDate?: string) {
+interface SearchTicketsForExportParams {
+    fromDate?: string;
+    toDate?: string;
+    zoneCode?: string;
+    regionCode?: string;
+    districtCode?: string;
+    issueTypeId?: string;
+}
+
+export function searchTicketsForExport({
+    fromDate,
+    toDate,
+    zoneCode,
+    regionCode,
+    districtCode,
+    issueTypeId,
+}: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
+    if (zoneCode) params.append('zoneCode', zoneCode);
+    if (regionCode) params.append('regionCode', regionCode);
+    if (districtCode) params.append('districtCode', districtCode);
+    if (issueTypeId) params.append('issueTypeId', issueTypeId);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`);
 }
