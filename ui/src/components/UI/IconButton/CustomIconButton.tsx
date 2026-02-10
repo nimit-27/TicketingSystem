@@ -55,6 +55,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useTheme } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
+import DownloadIcon from '@mui/icons-material/Download';
 
 // Define the icon map
 const iconMap = {
@@ -114,7 +115,8 @@ const iconMap = {
     dashboard: DashboardIcon,
     restore: RestoreIcon,
     accountCircle: AccountCircleIcon,
-    lockReset: LockResetIcon
+    lockReset: LockResetIcon,
+    download: DownloadIcon
 };
 
 // Valid keys for the icon map

@@ -15,6 +15,29 @@ jest.mock('../../../services/AssignmentHistoryService', () => ({
   getAssignmentHistory: (...args: unknown[]) => mockGetAssignmentHistory(...args),
 }));
 
+jest.mock('jspdf', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    setFontSize: jest.fn(),
+    text: jest.fn(),
+    save: jest.fn(),
+  })),
+}), { virtual: true });
+
+jest.mock('jspdf-autotable', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}), { virtual: true });
+
+jest.mock('xlsx', () => ({
+  utils: {
+    json_to_sheet: jest.fn(() => ({})),
+    book_new: jest.fn(() => ({})),
+    book_append_sheet: jest.fn(),
+  },
+  writeFile: jest.fn(),
+}), { virtual: true });
+
 jest.mock('@mui/lab', () => ({
   Timeline: ({ children }: any) => <div data-testid="timeline">{children}</div>,
   TimelineItem: ({ children }: any) => <div data-testid="timeline-item">{children}</div>,
