@@ -47,6 +47,13 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import java.lang.reflect.Field;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +90,7 @@ public class TicketService {
     private final RoleRepository roleRepository;
     private final RegionMasterRepository regionMasterRepository;
     private final DistrictMasterRepository districtMasterRepository;
+    private final ParameterMasterService parameterMasterService;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
@@ -441,7 +449,9 @@ public class TicketService {
 
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
-                                         String severity, String createdBy, String category, String subCategory, String fromDate, String toDate, Pageable pageable) {
+                                         String severity, String createdBy, String category, String subCategory, String fromDate, String toDate,
+                                         MultiValueMap<String, String> allParams,
+                                         Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -455,13 +465,18 @@ public class TicketService {
                     .toList();
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
-        Page<Ticket> page = ticketRepository.searchTickets(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, createdBy, category, subCategory, from, to, pageable);
+        Specification<Ticket> specification = buildSearchSpecification(
+                query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority,
+                severityFilters, createdBy, category, subCategory, from, to, allParams
+        );
+        Page<Ticket> page = ticketRepository.findAll(specification, pageable);
         return page.map(this::mapWithStatusId);
     }
 
     public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master,
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
-                                             String severity, String createdBy, String category, String subCategory, String fromDate, String toDate) {
+                                             String severity, String createdBy, String category, String subCategory, String fromDate, String toDate,
+                                             MultiValueMap<String, String> allParams) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -475,10 +490,98 @@ public class TicketService {
                     .toList();
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
-        return ticketRepository.searchTicketsList(query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority, severityFilters, createdBy, category, subCategory, from, to)
+        Specification<Ticket> specification = buildSearchSpecification(
+                query, statusIds, master, assignedTo, assignedBy, requestorId, levelId, priority,
+                severityFilters, createdBy, category, subCategory, from, to, allParams
+        );
+        return ticketRepository.findAll(specification)
                 .stream()
                 .map(this::mapWithStatusId)
                 .toList();
+    }
+
+    private Specification<Ticket> buildSearchSpecification(String query,
+                                                            List<String> statusIds,
+                                                            Boolean master,
+                                                            String assignedTo,
+                                                            String assignedBy,
+                                                            String requestorId,
+                                                            String levelId,
+                                                            String priority,
+                                                            List<String> severityFilters,
+                                                            String createdBy,
+                                                            String category,
+                                                            String subCategory,
+                                                            LocalDateTime from,
+                                                            LocalDateTime to,
+                                                            MultiValueMap<String, String> allParams) {
+        return (root, cq, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (statusIds != null && !statusIds.isEmpty()) {
+                predicates.add(root.join("status", JoinType.LEFT).get("statusId").in(statusIds));
+            }
+            if (master != null) predicates.add(cb.equal(root.get("isMaster"), master));
+            if (StringUtils.hasText(levelId)) predicates.add(cb.equal(root.get("levelId"), levelId));
+            if (StringUtils.hasText(priority)) predicates.add(cb.equal(root.get("priority"), priority));
+            if (severityFilters != null && !severityFilters.isEmpty()) predicates.add(root.get("severity").in(severityFilters));
+            if (StringUtils.hasText(category)) predicates.add(cb.equal(root.get("category"), category));
+            if (StringUtils.hasText(subCategory)) predicates.add(cb.equal(root.get("subCategory"), subCategory));
+
+            List<Predicate> actorPredicates = new ArrayList<>();
+            if (StringUtils.hasText(assignedTo)) actorPredicates.add(cb.equal(cb.lower(root.get("assignedTo")), assignedTo.toLowerCase(Locale.ROOT)));
+            if (StringUtils.hasText(assignedBy)) actorPredicates.add(cb.equal(cb.lower(root.get("assignedBy")), assignedBy.toLowerCase(Locale.ROOT)));
+            if (StringUtils.hasText(requestorId)) actorPredicates.add(cb.equal(root.get("userId"), requestorId));
+            if (StringUtils.hasText(createdBy)) actorPredicates.add(cb.equal(cb.lower(root.get("createdBy")), createdBy.toLowerCase(Locale.ROOT)));
+            if (!actorPredicates.isEmpty()) predicates.add(cb.or(actorPredicates.toArray(new Predicate[0])));
+
+            if (from != null) predicates.add(cb.greaterThanOrEqualTo(root.get("reportedDate"), from));
+            if (to != null) predicates.add(cb.lessThanOrEqualTo(root.get("reportedDate"), to));
+
+            String safeQuery = StringUtils.hasText(query) ? query : "";
+            String likeValue = "%" + safeQuery.toLowerCase(Locale.ROOT) + "%";
+            predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("requestorName")), likeValue),
+                    cb.like(cb.lower(root.get("category")), likeValue),
+                    cb.like(cb.lower(root.get("subCategory")), likeValue),
+                    cb.like(cb.lower(root.get("subject")), likeValue),
+                    cb.like(cb.lower(root.get("id")), likeValue)
+            ));
+
+            Map<String, String> ticketFields = resolveTicketFieldMap();
+            Set<String> reserved = Set.of("query", "status", "master", "assignedto", "assignedby", "requestorid", "levelid", "priority", "severity", "createdby", "category", "subcategory", "fromdate", "todate", "page", "size", "sortby", "direction");
+            Set<String> allowedDynamic = parameterMasterService.getAll().stream()
+                    .map(ParameterMaster::getParameterKey)
+                    .filter(StringUtils::hasText)
+                    .map(this::normalizeFilterKey)
+                    .collect(Collectors.toSet());
+
+            if (allParams != null) {
+                for (Map.Entry<String, List<String>> entry : allParams.entrySet()) {
+                    String normalized = normalizeFilterKey(entry.getKey());
+                    if (!StringUtils.hasText(normalized) || reserved.contains(normalized) || !allowedDynamic.contains(normalized)) continue;
+                    String fieldName = ticketFields.get(normalized);
+                    String value = entry.getValue() == null || entry.getValue().isEmpty() ? null : entry.getValue().get(0);
+                    if (!StringUtils.hasText(fieldName) || !StringUtils.hasText(value)) continue;
+                    predicates.add(cb.equal(cb.lower(root.get(fieldName).as(String.class)), value.toLowerCase(Locale.ROOT)));
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private Map<String, String> resolveTicketFieldMap() {
+        Map<String, String> map = new HashMap<>();
+        for (Field field : Ticket.class.getDeclaredFields()) {
+            map.put(normalizeFilterKey(field.getName()), field.getName());
+        }
+        map.put("status", "status");
+        return map;
+    }
+
+    private String normalizeFilterKey(String key) {
+        return key == null ? "" : key.trim().toLowerCase(Locale.ROOT).replace("_", "").replace("-", "");
     }
 
     public TicketDto updateTicket(String id, Ticket updated) {
