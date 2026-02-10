@@ -32,7 +32,7 @@ public class TicketStatusScheduler {
         this.autoClosureAfterHours = autoClosureAfterHours;
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Kolkata")
     public void closeResolvedTickets() {
         if (!autoClosureEnabled) {
             return;

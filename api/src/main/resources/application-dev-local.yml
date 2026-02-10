@@ -1,7 +1,7 @@
 security:
   jwt:
     secret: ${SECURITY_JWT_SECRET:h4g7d923@1!h4g7d923wd98wcj489f9438jf20293urf083rmv983j3jf}
-    expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
+    expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:120}
     refreshExpirationMinutes: ${SECURITY_JWT_REFRESH_EXPIRATION_MINUTES:43200}
     bypass: ${SECURITY_JWT_BYPASS:false}
   mobile-client-tokens:
@@ -64,5 +64,5 @@ spring:
 security:
   jwt:
     bypass: false
-    expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:60}
+    expirationMinutes: ${SECURITY_JWT_EXPIRATION_MINUTES:120}
     refreshExpirationMinutes: ${SECURITY_JWT_REFRESH_EXPIRATION_MINUTES:43200}
