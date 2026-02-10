@@ -225,6 +225,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
         [issueTypesResponse],
     );
 
+    const selectedIssueTypeLabel = useMemo(
+        () => issueTypeOptions.find((option) => option.value === selectedIssueType)?.label,
+        [issueTypeOptions, selectedIssueType],
+    );
+
     const handleFeedback = (ticketId: string, feedbackStatus: string) => {
         setFeedbackOpen(true)
         setSelectedTicketIdForFeedback(ticketId);
@@ -705,6 +710,15 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             onRcaClick={tableOptions?.onRcaClick}
                             permissionPathPrefix={tableOptions?.permissionPathPrefix ?? permissionPathPrefix}
                             handleFeedback={handleFeedback}
+                            zoneOptions={zoneOptions}
+                            regionOptions={regionOptions as DropdownOption[]}
+                            districtOptions={districtOptions}
+                            issueTypeOptions={issueTypeOptions}
+                            selectedZone={selectedZone}
+                            selectedRegion={selectedRegion}
+                            selectedDistrict={selectedDistrict}
+                            selectedIssueType={selectedIssueType}
+                            issueTypeFilterLabel={selectedIssueTypeLabel}
                         />
                         <PaginationControls
                             className="justify-content-between align-items-center mt-3 w-100"

@@ -40,6 +40,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useSnackbar } from '../../context/SnackbarContext';
+import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 
 export interface TicketRow {
     id: string;
@@ -87,6 +88,14 @@ interface TicketsTableProps {
     permissionPathPrefix?: string;
     handleFeedback?: (ticketId: string, feedbackStatus: string) => void;
     issueTypeFilterLabel?: string;
+    zoneOptions?: DropdownOption[];
+    regionOptions?: DropdownOption[];
+    districtOptions?: DropdownOption[];
+    issueTypeOptions?: DropdownOption[];
+    selectedZone?: string;
+    selectedRegion?: string;
+    selectedDistrict?: string;
+    selectedIssueType?: string;
 }
 
 const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
@@ -152,7 +161,7 @@ const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     return [];
 };
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], regionOptions = [], districtOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All' }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -174,6 +183,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [downloadMonth, setDownloadMonth] = useState<number | ''>(today.getMonth() + 1);
     const [downloadFromDate, setDownloadFromDate] = useState('');
     const [downloadToDate, setDownloadToDate] = useState('');
+    const [downloadZone, setDownloadZone] = useState<string>(selectedZone);
+    const [downloadRegion, setDownloadRegion] = useState<string>(selectedRegion);
+    const [downloadDistrict, setDownloadDistrict] = useState<string>(selectedDistrict);
+    const [downloadIssueType, setDownloadIssueType] = useState<string>(selectedIssueType);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -219,6 +232,13 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setDownloadFromDate(range.from);
         setDownloadToDate(range.to);
     }, [downloadYear, downloadMonth]);
+
+    useEffect(() => {
+        setDownloadZone(selectedZone);
+        setDownloadRegion(selectedRegion);
+        setDownloadDistrict(selectedDistrict);
+        setDownloadIssueType(selectedIssueType);
+    }, [selectedZone, selectedRegion, selectedDistrict, selectedIssueType]);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -457,7 +477,14 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             showMessage(t('Please select a valid date range.'), 'warning');
             return;
         }
-        const payload = await downloadTicketsApiHandler(() => searchTicketsForExport(downloadFromDate, downloadToDate));
+        const payload = await downloadTicketsApiHandler(() => searchTicketsForExport({
+            fromDate: downloadFromDate,
+            toDate: downloadToDate,
+            zoneCode: downloadZone !== 'All' ? downloadZone : undefined,
+            regionCode: downloadRegion !== 'All' ? downloadRegion : undefined,
+            districtCode: downloadDistrict !== 'All' ? downloadDistrict : undefined,
+            issueTypeId: downloadIssueType !== 'All' ? downloadIssueType : undefined,
+        }));
         const ticketsToExport = normalizeDownloadTickets(payload);
         if (!ticketsToExport.length) {
             showMessage(t('No data available'), 'info');
@@ -849,6 +876,70 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                                     {monthOptions.map(month => (
                                         <MenuItem key={month.value} value={month.value}>
                                             {month.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Stack>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-zone-label">{t('Zone')}</InputLabel>
+                                <Select
+                                    labelId="download-zone-label"
+                                    label={t('Zone')}
+                                    value={downloadZone}
+                                    onChange={(event) => setDownloadZone(String(event.target.value))}
+                                >
+                                    {zoneOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-region-label">{t('Region')}</InputLabel>
+                                <Select
+                                    labelId="download-region-label"
+                                    label={t('Region')}
+                                    value={downloadRegion}
+                                    onChange={(event) => setDownloadRegion(String(event.target.value))}
+                                >
+                                    {regionOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Stack>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-district-label">{t('District')}</InputLabel>
+                                <Select
+                                    labelId="download-district-label"
+                                    label={t('District')}
+                                    value={downloadDistrict}
+                                    onChange={(event) => setDownloadDistrict(String(event.target.value))}
+                                >
+                                    {districtOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-issue-type-label">{t('Issue Type')}</InputLabel>
+                                <Select
+                                    labelId="download-issue-type-label"
+                                    label={t('Issue Type')}
+                                    value={downloadIssueType}
+                                    onChange={(event) => setDownloadIssueType(String(event.target.value))}
+                                >
+                                    {issueTypeOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>
+                                            {option.label}
                                         </MenuItem>
                                     ))}
                                 </Select>
