@@ -387,7 +387,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
-            "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
             "OR (:requestorId IS NOT NULL AND t.userId = :requestorId) " +
             "OR (:createdBy IS NOT NULL AND LOWER(t.createdBy) = LOWER(:createdBy))) " +
@@ -400,6 +400,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
     Page<Ticket> searchTickets(@Param("query") String query, @Param("statusIds") ArrayList<String> statusName,
                                @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
+                               @Param("alternateAssignedTo") String alternateAssignedTo,
                                @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
                                @Param("levelId") String levelId, @Param("priority") String priority,
                                @Param("severities") List<String> severities,
@@ -427,7 +428,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
-            "OR (:assignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
             "OR (:requestorId IS NOT NULL AND t.userId = :requestorId) " +
             "OR (:createdBy IS NOT NULL AND LOWER(t.createdBy) = LOWER(:createdBy))) " +
@@ -440,6 +441,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
     List<Ticket> searchTicketsList(@Param("query") String query, @Param("statusIds") ArrayList<String> statusName,
                                    @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
+                                   @Param("alternateAssignedTo") String alternateAssignedTo,
                                    @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
                                    @Param("levelId") String levelId, @Param("priority") String priority,
                                    @Param("severities") List<String> severities,

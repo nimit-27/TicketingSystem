@@ -439,6 +439,30 @@ public class TicketService {
         return new TypesenseTicketDto(id, subject);
     }
 
+    private String resolveAlternateAssignedTo(String assignedTo) {
+        if (assignedTo == null || assignedTo.isBlank()) {
+            return null;
+        }
+
+        Optional<User> userById = userRepository.findById(assignedTo);
+        if (userById.isPresent()) {
+            String username = userById.get().getUsername();
+            if (username != null && !username.isBlank() && !username.equalsIgnoreCase(assignedTo)) {
+                return username;
+            }
+        }
+
+        Optional<User> userByUsername = userRepository.findByUsername(assignedTo);
+        if (userByUsername.isPresent()) {
+            String userId = userByUsername.get().getUserId();
+            if (userId != null && !userId.isBlank() && !userId.equalsIgnoreCase(assignedTo)) {
+                return userId;
+            }
+        }
+
+        return null;
+    }
+
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
@@ -457,11 +481,13 @@ public class TicketService {
                     .toList();
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
+        String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         Page<Ticket> page = ticketRepository.searchTickets(
                 query,
                 statusIds,
                 master,
                 assignedTo,
+                alternateAssignedTo,
                 assignedBy,
                 requestorId,
                 levelId,
@@ -500,12 +526,14 @@ public class TicketService {
 
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
+        String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
 
         return ticketRepository.searchTicketsList(
                         query,
                         statusIds,
                         master,
                         assignedTo,
+                        alternateAssignedTo,
                         assignedBy,
                         requestorId,
                         levelId,

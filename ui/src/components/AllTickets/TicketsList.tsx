@@ -27,6 +27,7 @@ import GenericInput from "../UI/Input/GenericInput";
 import FeedbackModal from "../Feedback/FeedbackModal";
 import { getDistricts, getRegions, getZones } from "../../services/LocationService";
 import { getIssueTypes } from "../../services/IssueTypeService";
+import AssigneeFilterDropdown from "./AssigneeFilterDropdown";
 
 export interface TicketsListFilterState {
     search: string;
@@ -42,6 +43,7 @@ export interface TicketsListFilterState {
     dateRange: DateRangeState;
     selectedCategory: string;
     selectedSubCategory: string;
+    selectedAssignee: string;
     allowedStatuses?: string[];
 }
 
@@ -171,6 +173,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = useState<string>("All");
     const [selectedDistrict, setSelectedDistrict] = useState<string>("All");
     const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
+    const [selectedAssignee, setSelectedAssignee] = useState<string>("All");
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -250,6 +253,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedRegionHrmsCode("All");
         setSelectedDistrict("All");
         setSelectedIssueType("All");
+        setSelectedAssignee("All");
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -261,6 +265,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const normalizedRegion = selectedRegion !== "All" ? selectedRegion : undefined;
     const normalizedDistrict = selectedDistrict !== "All" ? selectedDistrict : undefined;
     const normalizedIssueType = selectedIssueType !== "All" ? selectedIssueType : undefined;
+    const normalizedAssignee = selectedAssignee !== "All" ? selectedAssignee : undefined;
 
     const filterState: TicketsListFilterState = useMemo(
         () => ({
@@ -277,6 +282,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             dateRange,
             selectedCategory,
             selectedSubCategory,
+            selectedAssignee,
         }),
         [
             search,
@@ -292,6 +298,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             dateRange,
             selectedCategory,
             selectedSubCategory,
+            selectedAssignee,
         ],
     );
 
@@ -337,6 +344,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const regionParam = mergedOverrides.regionCode ?? normalizedRegion;
             const districtParam = mergedOverrides.districtCode ?? normalizedDistrict;
             const issueTypeParam = mergedOverrides.issueTypeId ?? normalizedIssueType;
+            const assignedToParam = mergedOverrides.assignedTo ?? normalizedAssignee;
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -346,7 +354,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     masterParam,
                     pageParam,
                     sizeParam,
-                    mergedOverrides.assignedTo,
+                    assignedToParam,
                     levelParam,
                     mergedOverrides.assignedBy,
                     mergedOverrides.requestorId,
@@ -382,6 +390,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             normalizedRegion,
             normalizedDistrict,
             normalizedIssueType,
+            normalizedAssignee,
             page,
             pageSize,
             sortBy,
@@ -431,6 +440,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
     const handleIssueTypeChange = (value: string) => {
         setSelectedIssueType(value);
+        setPage(1);
+    };
+
+    const handleAssigneeChange = (value: string) => {
+        setSelectedAssignee(value);
         setPage(1);
     };
 
@@ -516,6 +530,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         selectedRegion,
         selectedDistrict,
         selectedIssueType,
+        selectedAssignee,
         allowedStatusSuccess,
     ]);
 
@@ -626,6 +641,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         className="col-3 px-1"
                         onChange={handleIssueTypeChange}
                         options={issueTypeOptions}
+                    />
+
+                    <AssigneeFilterDropdown
+                        value={selectedAssignee}
+                        onChange={handleAssigneeChange}
                     />
 
                     {/* DATE RANGE FILTER */}
