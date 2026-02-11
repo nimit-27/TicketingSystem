@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { getDistricts, getRegions } from '../../services/LocationService';
 import { useApi } from '../../hooks/useApi';
-import { getDropdownOptions, getDropdownOptionsWithExtraOption } from '../../utils/Utils';
+import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
 
 interface DownloadFilters {
     fromDate: string;
@@ -68,30 +68,6 @@ const getDateRangeForSelection = (year: number, month?: number) => {
     return { from: formatInputDate(from), to: formatInputDate(to) };
 };
 
-const extractLocationRecords = (response: any): any[] => {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.data?.data)) return response.data.data;
-    return [];
-};
-
-const mapRegionOptions = (response: any): Array<DropdownOption & { hrmsRegCode?: string }> => [
-    { label: 'All', value: 'All' },
-    ...extractLocationRecords(response).map((region: any) => ({
-        label: region.regionName ?? '',
-        value: String(region.regionCode ?? ''),
-        hrmsRegCode: region.hrmsRegCode ?? '',
-    })),
-];
-
-const mapDistrictOptions = (response: any): DropdownOption[] => [
-    { label: 'All', value: 'All' },
-    ...extractLocationRecords(response).map((district: any) => ({
-        label: district.districtName ? `${district.districtName} (${district.districtCode})` : String(district.districtCode ?? ''),
-        value: String(district.districtCode ?? ''),
-    })),
-];
-
 const allOptionObject: DropdownOption = { label: 'All', value: 'All' }
 
 const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
@@ -120,9 +96,14 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [generateMenuAnchor, setGenerateMenuAnchor] = useState<null | HTMLElement>(null);
 
     const { data: getRegionsApiData, pending: getRegionsApiPending, success: getRegionsApiSuccess, apiHandler: getRegionsApiHandler } = useApi()
+    const { data: getDistrictsApiData, pending: getDistrictsApiPending, success: getDistrictsApiSuccess, apiHandler: getDistrictsApiHandler } = useApi()
 
     const getRegionsHandler = async (zone: any) => {
         return await getRegionsApiHandler(() => getRegions(zone))
+    }
+
+    const getDistrictsHandler = async (regionHrmsCode: any) => {
+        return await getDistrictsApiHandler(() => getDistricts(regionHrmsCode))
     }
 
     // Setting Region dropdown options post getRegions API success
@@ -138,6 +119,16 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }
 
     }, [getRegionsApiSuccess, getRegionsApiPending])
+
+    // Setting District dropdown options post getDistricts API success
+    useEffect(() => {
+        if (getDistrictsApiSuccess && !getDistrictsApiPending) {
+            const nextDistrictOptions = getDropdownOptionsWithExtraOption(getDistrictsApiData, 'districtName', 'districtCode', allOptionObject)
+            setDistrictOptions(nextDistrictOptions);
+            const shouldRetainDistrict = nextDistrictOptions.some((option) => option.value === district);
+            setDistrict(shouldRetainDistrict ? district : 'All');
+        }
+    }, [getDistrictsApiSuccess, getDistrictsApiPending])
 
     const yearOptions = useMemo(() => {
         const currentYear = new Date().getFullYear() + 1;
@@ -215,23 +206,12 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }
 
         // District list in modal is always loaded from modal's region selection.
-        getDistricts(regionHrmsCode)
-            .then((response) => {
-                const nextDistrictOptions = mapDistrictOptions(response);
-                setDistrictOptions(nextDistrictOptions);
-                const shouldRetainDistrict = nextDistrictOptions.some((option) => option.value === district);
-                setDistrict(shouldRetainDistrict ? district : 'All');
-            })
-            .catch(() => {
-                setDistrict('All');
-                setDistrictOptions([{ label: 'All', value: 'All' }]);
-            });
+        getDistrictsHandler(regionHrmsCode)
     }, [district, open, regionHrmsCode]);
 
     const handleRegionChange = (nextRegion: string) => {
         setRegion(nextRegion);
-        const selectedRegionOption = regionOptions.find((option) => option.value === nextRegion);
-        setRegionHrmsCode(selectedRegionOption?.hrmsRegCode || 'All');
+        setRegionHrmsCode(nextRegion !== 'All' ? `${nextRegion}11` : 'All');
         setDistrict('All');
     };
 
