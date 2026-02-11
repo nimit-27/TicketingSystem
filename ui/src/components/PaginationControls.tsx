@@ -15,6 +15,7 @@ interface PaginationControlsProps {
     pageSizeLabel?: string;
     totalCount?: number;
     pageSizeOptions?: number[];
+    displayPagePosition?: boolean;
 }
 
 const PaginationControls: React.FC<PaginationControlsProps> = ({
@@ -27,6 +28,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
     pageSizeLabel = "Rows per page",
     totalCount,
     pageSizeOptions = [5, 10, 20, 40, 60],
+    displayPagePosition = false,
 }) => {
     const safePage = Math.max(page, 1);
     const safeTotalPages = Math.max(totalPages, 0);
@@ -141,7 +143,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
                 </div>
             )}
             <div className="me-3">
-                {hasPageSize && startItem > 0 ? (
+                {hasPageSize && startItem > 0 && !displayPagePosition ? (
                     <span>{`${startItem}–${endItem} of ${totalItems || endItem}`}</span>
                 ) : (
                     <span>{`Page ${safePage} of ${Math.max(safeTotalPages, 1)}`}</span>

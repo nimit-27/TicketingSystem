@@ -3,5 +3,6 @@ export interface PaginatedResponse<T> {
   page: number;
   size: number;
   totalElements: number;
+  filteredTotalElements?: number;
   totalPages: number;
 }

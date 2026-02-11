@@ -153,6 +153,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [gridPageSize, setGridPageSize] = useState(20);
     const pageSize = viewMode === "grid" ? gridPageSize : tablePageSize;
     const [totalPages, setTotalPages] = useState(1);
+    const [filteredTicketCount, setFilteredTicketCount] = useState(0);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
     const levels = getCurrentUserDetails()?.levels || [];
@@ -540,6 +541,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const items: TicketRow[] = resp.items || resp;
             const transformed = transformTickets ? transformTickets(items, filterState, resp) : items;
             setTotalPages(resp.totalPages || 1);
+            setFilteredTicketCount(resp.filteredTotalElements ?? resp.totalElements ?? transformed.length ?? 0);
             setTickets(transformed);
         }
     }, [data, filterState]);
@@ -700,7 +702,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
 
                 {(viewMode === "table" && showTablePermission) || (viewMode === "grid" && showGridPermission) ? (
-                    <div className="d-flex justify-content-end mb-2 w-100">
+                    <div className="d-flex justify-content-between align-items-center mb-2 w-100">
+                        <div className="fw-semibold">{`${t("Total Tickets")}: ${filteredTicketCount}`}</div>
                         <DropdownController
                             label={t("Sort By")}
                             value={sortBy}
@@ -745,6 +748,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             onChange={(_, val) => setPage(val)}
                             pageSize={tablePageSize}
                             onPageSizeChange={(value) => setTablePageSize(value)}
+                            displayPagePosition
                         />
                     </div>
                 )}
@@ -771,6 +775,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             onChange={(_, val) => setPage(val)}
                             pageSize={gridPageSize}
                             onPageSizeChange={(value) => setGridPageSize(value)}
+                            displayPagePosition
                         />
                     </div>
                 )}

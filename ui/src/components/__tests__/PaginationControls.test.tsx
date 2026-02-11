@@ -103,6 +103,23 @@ describe('PaginationControls', () => {
     expect(screen.getByText('11–20 of 42')).toBeInTheDocument();
   });
 
+
+  it('renders page position when displayPagePosition is enabled', () => {
+    renderWithTheme(
+      <PaginationControls
+        page={1}
+        totalPages={10}
+        onChange={jest.fn()}
+        pageSize={10}
+        onPageSizeChange={jest.fn()}
+        totalCount={100}
+        displayPagePosition
+      />,
+    );
+
+    expect(screen.getByText('Page 1 of 10')).toBeInTheDocument();
+  });
+
   it('disables navigation buttons on boundary pages', () => {
     renderWithTheme(
       <PaginationControls page={1} totalPages={1} onChange={jest.fn()} />,
