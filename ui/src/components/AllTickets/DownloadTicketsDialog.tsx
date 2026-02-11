@@ -20,6 +20,8 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import { useTranslation } from 'react-i18next';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { getDistricts, getRegions } from '../../services/LocationService';
+import { useApi } from '../../hooks/useApi';
+import { getDropdownOptions, getDropdownOptionsWithExtraOption } from '../../utils/Utils';
 
 interface DownloadFilters {
     fromDate: string;
@@ -90,6 +92,8 @@ const mapDistrictOptions = (response: any): DropdownOption[] => [
     })),
 ];
 
+const allOptionObject: DropdownOption = { label: 'All', value: 'All' }
+
 const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     open,
     loading = false,
@@ -114,6 +118,26 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
     const [generateMenuAnchor, setGenerateMenuAnchor] = useState<null | HTMLElement>(null);
+
+    const { data: getRegionsApiData, pending: getRegionsApiPending, success: getRegionsApiSuccess, apiHandler: getRegionsApiHandler } = useApi()
+
+    const getRegionsHandler = async (zone: any) => {
+        return await getRegionsApiHandler(() => getRegions(zone))
+    }
+
+    // Setting Region dropdown options post getRegions API success
+    useEffect(() => {
+        if (getRegionsApiSuccess && !getRegionsApiPending) {
+            const nextRegionOptions = getDropdownOptionsWithExtraOption(getRegionsApiData, "regionName", "regionCode", allOptionObject)
+            setRegionOptions(nextRegionOptions);
+            const shouldRetainRegion = nextRegionOptions.some((option) => option.value === region);
+            const nextRegion = shouldRetainRegion ? region : 'All';
+            setRegion(nextRegion);
+            const selectedRegionOption = nextRegionOptions.find((option) => option.value === nextRegion);
+            setRegionHrmsCode(`${selectedRegionOption?.value}11` || 'All');
+        }
+
+    }, [getRegionsApiSuccess, getRegionsApiPending])
 
     const yearOptions = useMemo(() => {
         const currentYear = new Date().getFullYear() + 1;
@@ -177,23 +201,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             setDistrictOptions([{ label: 'All', value: 'All' }]);
             return;
         }
-
         // Region list in modal is always loaded from modal's zone selection.
-        getRegions(zone)
-            .then((response) => {
-                const nextRegionOptions = mapRegionOptions(response);
-                setRegionOptions(nextRegionOptions);
-                const shouldRetainRegion = nextRegionOptions.some((option) => option.value === region);
-                const nextRegion = shouldRetainRegion ? region : 'All';
-                setRegion(nextRegion);
-                const selectedRegionOption = nextRegionOptions.find((option) => option.value === nextRegion);
-                setRegionHrmsCode(selectedRegionOption?.hrmsRegCode || 'All');
-            })
-            .catch(() => {
-                setRegionOptions([{ label: 'All', value: 'All' }]);
-                setRegion('All');
-                setRegionHrmsCode('All');
-            });
+        getRegionsHandler(zone)
     }, [open, region, zone]);
 
     useEffect(() => {
