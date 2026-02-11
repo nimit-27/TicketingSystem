@@ -745,6 +745,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             onChange={(_, val) => setPage(val)}
                             pageSize={tablePageSize}
                             onPageSizeChange={(value) => setTablePageSize(value)}
+                            displayPagePosition
                         />
                     </div>
                 )}
@@ -771,6 +772,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             onChange={(_, val) => setPage(val)}
                             pageSize={gridPageSize}
                             onPageSizeChange={(value) => setGridPageSize(value)}
+                            displayPagePosition
                         />
                     </div>
                 )}

@@ -7,6 +7,7 @@ public class PaginationResponse<T> {
     private int page;
     private int size;
     private long totalElements;
+    private long filteredTotalElements;
     private int totalPages;
 
     public PaginationResponse(List<T> items, int page, int size, long totalElements, int totalPages) {
@@ -14,6 +15,7 @@ public class PaginationResponse<T> {
         this.page = page;
         this.size = size;
         this.totalElements = totalElements;
+        this.filteredTotalElements = totalElements;
         this.totalPages = totalPages;
     }
 
@@ -31,6 +33,10 @@ public class PaginationResponse<T> {
 
     public long getTotalElements() {
         return totalElements;
+    }
+
+    public long getFilteredTotalElements() {
+        return filteredTotalElements;
     }
 
     public int getTotalPages() {
