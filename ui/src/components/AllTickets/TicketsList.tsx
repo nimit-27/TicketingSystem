@@ -27,7 +27,7 @@ import GenericInput from "../UI/Input/GenericInput";
 import FeedbackModal from "../Feedback/FeedbackModal";
 import { getDistricts, getRegions, getZones } from "../../services/LocationService";
 import { getIssueTypes } from "../../services/IssueTypeService";
-import { getAllUsers } from "../../services/UserService";
+import AssigneeFilterDropdown from "./AssigneeFilterDropdown";
 
 export interface TicketsListFilterState {
     search: string;
@@ -129,7 +129,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<any[]>();
     const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<any[]>();
     const { data: issueTypesResponse = [], apiHandler: getIssueTypesApiHandler } = useApi<any[]>();
-    const { data: allUsersResponse = [], apiHandler: getAllUsersApiHandler } = useApi<any[]>();
 
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -228,28 +227,6 @@ const TicketsList: React.FC<TicketsListProps> = ({
         }))],
         [issueTypesResponse],
     );
-
-    const assigneeOptions: DropdownOption[] = useMemo(() => {
-        const users = ((allUsersResponse as any)?.data ?? allUsersResponse ?? []) as any[];
-        const allowedRoleIds = ["3", "8"];
-        const options = users
-            .filter((user) => user?.roles?.split("|").some((roleId: string) => allowedRoleIds.includes(roleId)))
-            .map((user) => {
-                const username = String(user?.username ?? "");
-                const userId = String(user?.userId ?? "");
-                const name = String(user?.name ?? username ?? userId);
-                const filterValue = username || userId;
-                const suffix = [username, userId].filter(Boolean).join(" | ");
-                return {
-                    label: suffix ? `${name} (${suffix})` : name,
-                    value: filterValue,
-                };
-            })
-            .filter((option) => Boolean(option.value));
-
-        const uniqueOptions = Array.from(new Map(options.map((option) => [option.value, option])).values());
-        return [{ label: "All", value: "All" }, ...uniqueOptions];
-    }, [allUsersResponse]);
 
     const selectedIssueTypeLabel = useMemo(
         () => issueTypeOptions.find((option) => option.value === selectedIssueType)?.label,
@@ -486,13 +463,12 @@ const TicketsList: React.FC<TicketsListProps> = ({
         workflowApiHandler(() => getStatusWorkflowMappings(roles));
         getZonesApiHandler(() => getZones());
         getIssueTypesApiHandler(() => getIssueTypes());
-        getAllUsersApiHandler(() => getAllUsers());
         if (restrictStatusesToAllowed) {
             allowedStatusApiHandler(() => getAllowedStatusListByRoles(roles));
         } else {
             getStatuses().then(setStatusList);
         }
-    }, [allowedStatusApiHandler, getAllUsersApiHandler, getIssueTypesApiHandler, getZonesApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
+    }, [allowedStatusApiHandler, getIssueTypesApiHandler, getZonesApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
 
     useEffect(() => {
         if (restrictStatusesToAllowed && allowedStatusData) {
@@ -667,12 +643,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         options={issueTypeOptions}
                     />
 
-                    <DropdownController
-                        label="Assignee"
+                    <AssigneeFilterDropdown
                         value={selectedAssignee}
-                        className="col-3 px-1"
                         onChange={handleAssigneeChange}
-                        options={assigneeOptions}
                     />
 
                     {/* DATE RANGE FILTER */}
