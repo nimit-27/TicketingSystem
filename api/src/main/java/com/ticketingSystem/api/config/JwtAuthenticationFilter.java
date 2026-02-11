@@ -82,25 +82,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (result.valid()) {
                 authenticate(result.payload(), request);
             } else if (result.expired()) {
-                handleExpiredAccessToken(result.payload(), request, response);
+                boolean refreshed = handleExpiredAccessToken(result.payload(), request, response);
+                if (!refreshed) {
+                    request.setAttribute(SessionExpiredAuthenticationEntryPoint.SESSION_EXPIRED_ATTRIBUTE, true);
+                }
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void handleExpiredAccessToken(LoginPayload payload,
-                                          HttpServletRequest request,
-                                          HttpServletResponse response) {
+    private boolean handleExpiredAccessToken(LoginPayload payload,
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
         if (payload == null) {
-            return;
+            return false;
         }
 
-        tokenPairService.rotateUsingStoredToken(payload).ifPresent(tokenPair -> {
-            authenticate(payload, request);
-            writeTokenHeaders(response, tokenPair);
-            tokenCookieService.addTokenCookies(response, tokenPair);
-        });
+        return tokenPairService.rotateUsingStoredToken(payload)
+                .map(tokenPair -> {
+                    authenticate(payload, request);
+                    writeTokenHeaders(response, tokenPair);
+                    tokenCookieService.addTokenCookies(response, tokenPair);
+                    return true;
+                })
+                .orElse(false);
     }
 
     private void authenticate(LoginPayload payload, HttpServletRequest request) {
