@@ -456,7 +456,7 @@ public class TicketService {
                     .filter(s -> !s.isEmpty())
                     .toList();
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
-        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate);
+        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
         Page<Ticket> page = ticketRepository.searchTickets(
                 query,
                 statusIds,
