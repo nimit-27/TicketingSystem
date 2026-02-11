@@ -22,7 +22,7 @@ import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { getDistricts, getRegions } from '../../services/LocationService';
 import { useApi } from '../../hooks/useApi';
 import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
-import { getAllUsers } from '../../services/UserService';
+import AssigneeFilterDropdown from './AssigneeFilterDropdown';
 
 interface DownloadFilters {
     fromDate: string;
@@ -101,23 +101,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
 
     const { data: getRegionsApiData, pending: getRegionsApiPending, success: getRegionsApiSuccess, apiHandler: getRegionsApiHandler } = useApi()
     const { data: getDistrictsApiData, pending: getDistrictsApiPending, success: getDistrictsApiSuccess, apiHandler: getDistrictsApiHandler } = useApi()
-    const { data: usersData = [], apiHandler: getAllUsersApiHandler } = useApi<any[]>();
-
-    const assigneeOptions = useMemo<DropdownOption[]>(() => {
-        const allUsers = (usersData as any)?.data ?? usersData ?? [];
-        const allowedRoleIds = ['3', '8'];
-        const validUsers = allUsers.filter((user: any) =>
-            user.roles?.split('|').some((roleId: string) => allowedRoleIds.includes(roleId)),
-        );
-
-        return [
-            allOptionObject,
-            ...validUsers.map((user: any) => ({
-                label: user.name || user.username || user.userId,
-                value: user.username || user.userId,
-            })),
-        ];
-    }, [usersData]);
 
     const getRegionsHandler = async (zone: any) => {
         return await getRegionsApiHandler(() => getRegions(zone))
@@ -186,9 +169,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setToDate(range.to);
     }, [year, month]);
 
-    useEffect(() => {
-        getAllUsersApiHandler(() => getAllUsers());
-    }, [getAllUsersApiHandler]);
 
     useEffect(() => {
         if (!open) return;
@@ -353,19 +333,10 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                         </Stack>
 
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-assignee-label">{t('Assignee')}</InputLabel>
-                                <Select
-                                    labelId="download-assignee-label"
-                                    label={t('Assignee')}
-                                    value={assignee}
-                                    onChange={(event) => setAssignee(String(event.target.value))}
-                                >
-                                    {assigneeOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                            <AssigneeFilterDropdown
+                                value={assignee}
+                                onChange={setAssignee}
+                            />
                             <TextField
                                 label={t('From Date')}
                                 type="date"
