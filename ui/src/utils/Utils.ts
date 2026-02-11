@@ -195,3 +195,14 @@ export function getDropdownOptions<T>(arr: T[] | any, labelKey: keyof T, valueKe
     }))
     : [];
 }
+
+export function getDropdownOptionsWithExtraOption<T>(arr: T[] | any, labelKey: keyof T, valueKey: keyof T, extraOption: DropdownOption): DropdownOption[] {
+  const base = Array.isArray(arr)
+    ? arr.map(item => ({
+      label: String(item[labelKey]),
+      value: item[valueKey]
+    }))
+    : [];
+
+  return extraOption ? [extraOption, ...base] : base;
+}

@@ -12,16 +12,6 @@ import {
     ListItemIcon,
     Tooltip,
     Button,
-    Divider,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    InputLabel,
-    Select,
-    Stack,
-    TextField,
 } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
 import RemarkComponent from '../UI/Remark/RemarkComponent';
@@ -34,13 +24,12 @@ import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 import DownloadIcon from '@mui/icons-material/Download';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import GridOnIcon from '@mui/icons-material/GridOn';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useSnackbar } from '../../context/SnackbarContext';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
+import DownloadTicketsDialog, { DownloadDialogInitialFilters, DownloadFilters } from './DownloadTicketsDialog';
 
 export interface TicketRow {
     id: string;
@@ -89,8 +78,6 @@ interface TicketsTableProps {
     handleFeedback?: (ticketId: string, feedbackStatus: string) => void;
     issueTypeFilterLabel?: string;
     zoneOptions?: DropdownOption[];
-    regionOptions?: DropdownOption[];
-    districtOptions?: DropdownOption[];
     issueTypeOptions?: DropdownOption[];
     selectedZone?: string;
     selectedRegion?: string;
@@ -134,24 +121,6 @@ const formatExportCreatedDate = (value: string | number | Date | null | undefine
     return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsed);
 };
 
-const formatInputDate = (value: Date) => {
-    const year = value.getFullYear();
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const day = String(value.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
-
-const getDateRangeForSelection = (year: number, month?: number) => {
-    if (month) {
-        const from = new Date(year, month - 1, 1);
-        const to = new Date(year, month, 0);
-        return { from: formatInputDate(from), to: formatInputDate(to) };
-    }
-    const from = new Date(year, 0, 1);
-    const to = new Date(year, 12, 0);
-    return { from: formatInputDate(from), to: formatInputDate(to) };
-};
-
 const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload as TicketRow[];
@@ -161,7 +130,7 @@ const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     return [];
 };
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], regionOptions = [], districtOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All' }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All' }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -172,21 +141,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const { apiHandler: downloadTicketsApiHandler, pending: downloadingTickets } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [generateMenuAnchor, setGenerateMenuAnchor] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
     const [actions, setActions] = useState<TicketStatusWorkflow[]>([]);
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
     const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
-    const today = new Date();
-    const [downloadYear, setDownloadYear] = useState<number | ''>(today.getFullYear());
-    const [downloadMonth, setDownloadMonth] = useState<number | ''>(today.getMonth() + 1);
-    const [downloadFromDate, setDownloadFromDate] = useState('');
-    const [downloadToDate, setDownloadToDate] = useState('');
-    const [downloadZone, setDownloadZone] = useState<string>(selectedZone);
-    const [downloadRegion, setDownloadRegion] = useState<string>(selectedRegion);
-    const [downloadDistrict, setDownloadDistrict] = useState<string>(selectedDistrict);
-    const [downloadIssueType, setDownloadIssueType] = useState<string>(selectedIssueType);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -198,47 +157,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const FCI_STATUS_NAME = 'On Hold (Pending with FCI)';
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
-    const yearOptions = useMemo(() => {
-        const currentYear = new Date().getFullYear() + 1;
-        return Array.from({ length: 12 }, (_, index) => currentYear - index);
-    }, []);
-    const monthOptions = useMemo(
-        () => ([
-            { value: 1, label: t('January') },
-            { value: 2, label: t('February') },
-            { value: 3, label: t('March') },
-            { value: 4, label: t('April') },
-            { value: 5, label: t('May') },
-            { value: 6, label: t('June') },
-            { value: 7, label: t('July') },
-            { value: 8, label: t('August') },
-            { value: 9, label: t('September') },
-            { value: 10, label: t('October') },
-            { value: 11, label: t('November') },
-            { value: 12, label: t('December') },
-        ]),
-        [t],
-    );
-
     let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
-
-    useEffect(() => {
-        if (!downloadYear) {
-            setDownloadFromDate('');
-            setDownloadToDate('');
-            return;
-        }
-        const range = getDateRangeForSelection(downloadYear, downloadMonth || undefined);
-        setDownloadFromDate(range.from);
-        setDownloadToDate(range.to);
-    }, [downloadYear, downloadMonth]);
-
-    useEffect(() => {
-        setDownloadZone(selectedZone);
-        setDownloadRegion(selectedRegion);
-        setDownloadDistrict(selectedDistrict);
-        setDownloadIssueType(selectedIssueType);
-    }, [selectedZone, selectedRegion, selectedDistrict, selectedIssueType]);
 
     const getAvailableActions = (statusId?: string) => {
         return (statusWorkflows[statusId || ''] || []).filter(a => {
@@ -323,12 +242,20 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         setCurrentTicketId('');
     };
 
-    const handleGenerateMenuClose = () => setGenerateMenuAnchor(null);
     const handleDownloadDialogOpen = () => setDownloadDialogOpen(true);
     const handleDownloadDialogClose = () => {
         setDownloadDialogOpen(false);
-        setGenerateMenuAnchor(null);
     };
+
+    const downloadDialogInitialFilters = useMemo<DownloadDialogInitialFilters>(
+        () => ({
+            zone: selectedZone,
+            region: selectedRegion,
+            district: selectedDistrict,
+            issueType: selectedIssueType,
+        }),
+        [selectedDistrict, selectedIssueType, selectedRegion, selectedZone],
+    );
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
         if (wf.action === 'Recommend Escalation') {
@@ -472,29 +399,33 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         doc.save('tickets.pdf');
     };
 
-    const handleGenerateSelection = async (format: 'pdf' | 'excel') => {
-        if (!downloadFromDate || !downloadToDate) {
+    const handleGenerateSelection = async (format: 'pdf' | 'excel', filters: DownloadFilters) => {
+        if (!filters.fromDate || !filters.toDate) {
             showMessage(t('Please select a valid date range.'), 'warning');
             return;
         }
+
         const payload = await downloadTicketsApiHandler(() => searchTicketsForExport({
-            fromDate: downloadFromDate,
-            toDate: downloadToDate,
-            zoneCode: downloadZone !== 'All' ? downloadZone : undefined,
-            regionCode: downloadRegion !== 'All' ? downloadRegion : undefined,
-            districtCode: downloadDistrict !== 'All' ? downloadDistrict : undefined,
-            issueTypeId: downloadIssueType !== 'All' ? downloadIssueType : undefined,
+            fromDate: filters.fromDate,
+            toDate: filters.toDate,
+            zoneCode: filters.zoneCode,
+            regionCode: filters.regionCode,
+            districtCode: filters.districtCode,
+            issueTypeId: filters.issueTypeId,
         }));
+
         const ticketsToExport = normalizeDownloadTickets(payload);
         if (!ticketsToExport.length) {
             showMessage(t('No data available'), 'info');
             return;
         }
+
         if (format === 'excel') {
-            downloadAsExcel(ticketsToExport, { from: downloadFromDate, to: downloadToDate });
+            downloadAsExcel(ticketsToExport, { from: filters.fromDate, to: filters.toDate });
         } else {
             downloadAsPdf(ticketsToExport);
         }
+
         handleDownloadDialogClose();
     };
 
@@ -842,163 +773,15 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 })}
             </Menu>
-            <Dialog open={downloadDialogOpen} onClose={handleDownloadDialogClose} fullWidth maxWidth="sm">
-                <DialogTitle>{t('Download Tickets')}</DialogTitle>
-                <DialogContent>
-                    <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-year-label">{t('Year')}</InputLabel>
-                                <Select
-                                    labelId="download-year-label"
-                                    label={t('Year')}
-                                    value={downloadYear}
-                                    onChange={(event) => setDownloadYear(event.target.value === '' ? '' : Number(event.target.value))}
-                                >
-                                    {yearOptions.map(year => (
-                                        <MenuItem key={year} value={year}>
-                                            {year}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-month-label">{t('Month')}</InputLabel>
-                                <Select
-                                    labelId="download-month-label"
-                                    label={t('Month')}
-                                    value={downloadMonth}
-                                    onChange={(event) => setDownloadMonth(event.target.value === '' ? '' : Number(event.target.value))}
-                                >
-                                    <MenuItem value="">
-                                        {t('All')}
-                                    </MenuItem>
-                                    {monthOptions.map(month => (
-                                        <MenuItem key={month.value} value={month.value}>
-                                            {month.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-zone-label">{t('Zone')}</InputLabel>
-                                <Select
-                                    labelId="download-zone-label"
-                                    label={t('Zone')}
-                                    value={downloadZone}
-                                    onChange={(event) => setDownloadZone(String(event.target.value))}
-                                >
-                                    {zoneOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-region-label">{t('Region')}</InputLabel>
-                                <Select
-                                    labelId="download-region-label"
-                                    label={t('Region')}
-                                    value={downloadRegion}
-                                    onChange={(event) => setDownloadRegion(String(event.target.value))}
-                                >
-                                    {regionOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-district-label">{t('District')}</InputLabel>
-                                <Select
-                                    labelId="download-district-label"
-                                    label={t('District')}
-                                    value={downloadDistrict}
-                                    onChange={(event) => setDownloadDistrict(String(event.target.value))}
-                                >
-                                    {districtOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-issue-type-label">{t('Issue Type')}</InputLabel>
-                                <Select
-                                    labelId="download-issue-type-label"
-                                    label={t('Issue Type')}
-                                    value={downloadIssueType}
-                                    onChange={(event) => setDownloadIssueType(String(event.target.value))}
-                                >
-                                    {issueTypeOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                                label={t('From Date')}
-                                type="date"
-                                size="small"
-                                fullWidth
-                                value={downloadFromDate}
-                                InputLabelProps={{ shrink: true }}
-                                onChange={(event) => setDownloadFromDate(event.target.value)}
-                            />
-                            <TextField
-                                label={t('To Date')}
-                                type="date"
-                                size="small"
-                                fullWidth
-                                value={downloadToDate}
-                                InputLabelProps={{ shrink: true }}
-                                onChange={(event) => setDownloadToDate(event.target.value)}
-                            />
-                        </Stack>
-                        <Button
-                            variant="contained"
-                            onClick={(event) => setGenerateMenuAnchor(event.currentTarget)}
-                            disabled={downloadingTickets}
-                            startIcon={<DownloadIcon fontSize="small" />}
-                        >
-                            {t('Generate')}
-                        </Button>
-                    </Stack>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleDownloadDialogClose}>{t('Cancel')}</Button>
-                </DialogActions>
-            </Dialog>
-            <Menu anchorEl={generateMenuAnchor} open={Boolean(generateMenuAnchor)} onClose={handleGenerateMenuClose}>
-                <MenuItem onClick={() => handleGenerateSelection('pdf')}>
-                    <ListItemIcon>
-                        <PictureAsPdfIcon fontSize="small" />
-                    </ListItemIcon>
-                    {t('As PDF')}
-                </MenuItem>
-                <MenuItem onClick={() => handleGenerateSelection('excel')}>
-                    <ListItemIcon>
-                        <GridOnIcon fontSize="small" />
-                    </ListItemIcon>
-                    {t('As Excel')}
-                </MenuItem>
-                {!downloadFromDate || !downloadToDate ? (
-                    <>
-                        <Divider />
-                        <MenuItem disabled>{t('Select a date range')}</MenuItem>
-                    </>
-                ) : null}
-            </Menu>
+            <DownloadTicketsDialog
+                open={downloadDialogOpen}
+                loading={downloadingTickets}
+                zoneOptions={zoneOptions}
+                issueTypeOptions={issueTypeOptions}
+                initialFilters={downloadDialogInitialFilters}
+                onClose={handleDownloadDialogClose}
+                onGenerate={handleGenerateSelection}
+            />
         </>
     );
 };
