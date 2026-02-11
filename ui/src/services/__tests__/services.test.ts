@@ -433,6 +433,26 @@ describe("TicketService", () => {
     expect(url).toContain("category=cat");
     expect(url).toContain("subCategory=sub");
   });
+  it("constructs export search query parameters", async () => {
+    const service = await import("../TicketService");
+    await service.searchTicketsForExport({
+      fromDate: "2024-01-01",
+      toDate: "2024-02-01",
+      zoneCode: "Z1",
+      regionCode: "R1",
+      districtCode: "D1",
+      issueTypeId: "I1",
+      assignedTo: "assignee",
+    });
+    const exportUrl = axiosMock.get.mock.calls.find((call: any[]) => String(call[0]).includes("/tickets/search/export"))?.[0] as string;
+    expect(exportUrl).toContain("fromDate=2024-01-01");
+    expect(exportUrl).toContain("toDate=2024-02-01");
+    expect(exportUrl).toContain("zoneCode=Z1");
+    expect(exportUrl).toContain("regionCode=R1");
+    expect(exportUrl).toContain("districtCode=D1");
+    expect(exportUrl).toContain("issueTypeId=I1");
+    expect(exportUrl).toContain("assignedTo=assignee");
+  });
 });
 
 describe("UserService", () => {
