@@ -8,7 +8,6 @@ import { fetchSupportDashboardSummary, fetchSupportDashboardSummaryFiltered } fr
 import { useApi } from "../hooks/useApi";
 import {
   SupportDashboardScopeKey,
-  SupportDashboardCategorySummary,
   SupportDashboardSeverityKey,
   SupportDashboardSummary,
   SupportDashboardSummaryView,
@@ -135,38 +134,6 @@ const normalizeSummaryView = (view: unknown): SupportDashboardSummaryView => {
     totalTickets: typeof typedView.totalTickets === "number" ? typedView.totalTickets : 0,
   };
 };
-
-const normalizeCategorySummary = (entry: unknown): SupportDashboardCategorySummary => {
-  if (!entry || typeof entry !== "object") {
-    return {
-      zone: undefined,
-      regionName: undefined,
-      districtName: undefined,
-      category: undefined,
-      subcategory: undefined,
-      pendingForAcknowledgement: 0,
-      severityCounts: createDefaultSeverityCounts(),
-      totalTickets: 0,
-    };
-  }
-
-  const typedEntry = entry as Partial<SupportDashboardCategorySummary>;
-
-  return {
-    zone: typedEntry.zone,
-    regionName: typedEntry.regionName,
-    districtName: typedEntry.districtName,
-    category: typedEntry.category,
-    subcategory: typedEntry.subcategory,
-    pendingForAcknowledgement:
-      typeof typedEntry.pendingForAcknowledgement === "number" ? typedEntry.pendingForAcknowledgement : 0,
-    severityCounts: normalizeSeverityCounts(typedEntry.severityCounts as Partial<Record<string, number>>),
-    totalTickets: typeof typedEntry.totalTickets === "number" ? typedEntry.totalTickets : 0,
-  };
-};
-
-const formatCategoryLabel = (item: { category?: string; subcategory?: string }) =>
-  `${item.category ?? "N/A"} > ${item.subcategory ?? "N/A"}`;
 
 const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
   { value: "DAILY", label: "supportDashboard.filters.interval.daily" },
@@ -877,14 +844,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           tickets: typeof entry?.tickets === "number" ? entry.tickets : 0,
         }));
 
-        const allTicketsByCategory = Array.isArray(dashboardData.allTicketsByCategory)
-          ? (dashboardData.allTicketsByCategory as unknown[]).map((entry) => normalizeCategorySummary(entry))
-          : [];
-
-        const myWorkloadByCategory = Array.isArray(dashboardData.myWorkloadByCategory)
-          ? (dashboardData.myWorkloadByCategory as unknown[]).map((entry) => normalizeCategorySummary(entry))
-          : [];
-
         const formatDisplayDate = (value: string | Date) =>
           new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
@@ -913,56 +872,14 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           [],
         ];
 
-        const buildCategorySection = (
-          label: string,
-          rows: SupportDashboardCategorySummary[],
-        ): (string | number)[][] => {
-          const headerRow = [
-            "Zone",
-            "Region Name",
-            "District Name",
-            "Module > Sub Module",
-            "Total Tickets",
-            "Pending for Acknowledgement",
-            "S1 (Critical)",
-            "S2 (High)",
-            "S3 (Medium)",
-            "S4 (Low)",
-          ];
-
-          if (!rows.length) {
-            return [[`${label} by Module - Sub Module`], headerRow, ["N/A", "N/A", "N/A", "No data", 0, 0, 0, 0, 0, 0], []];
-          }
-
-          return [
-            [`${label} by Module - Sub Module`],
-            headerRow,
-            ...rows.map((row) => [
-              row.zone ?? "N/A",
-              row.regionName ?? "N/A",
-              row.districtName ?? "N/A",
-              formatCategoryLabel(row),
-              row.totalTickets,
-              row.pendingForAcknowledgement,
-              row.severityCounts.S1,
-              row.severityCounts.S2,
-              row.severityCounts.S3,
-              row.severityCounts.S4,
-            ]),
-            [],
-          ];
-        };
-
         const sheetData: (string | number)[][] = [...overviewSection];
 
         if (allTicketsView) {
           sheetData.push(...buildScopeSection("All Tickets", allTicketsView));
-          sheetData.push(...buildCategorySection("All Tickets", allTicketsByCategory));
         }
 
         if (myWorkloadView) {
           sheetData.push(...buildScopeSection("My Workload", myWorkloadView));
-          sheetData.push(...buildCategorySection("My Workload", myWorkloadByCategory));
         }
 
         sheetData.push(
@@ -1001,38 +918,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           doc.setFontSize(10);
 
           const sections: { title: string; rows: (string | number)[][]; head?: (string | number)[] }[] = [];
-
-          const categorySectionHead: (string | number)[] = [
-            "Zone",
-            "Region Name",
-            "District Name",
-            "Module > Sub Module",
-            "Total Tickets",
-            "Pending for Acknowledgement",
-            "S1 (Critical)",
-            "S2 (High)",
-            "S3 (Medium)",
-            "S4 (Low)",
-          ];
-
-          const buildCategoryPdfRows = (rows: SupportDashboardCategorySummary[]): (string | number)[][] => {
-            if (!rows.length) {
-              return [["N/A", "N/A", "N/A", "No data", 0, 0, 0, 0, 0, 0]];
-            }
-
-            return rows.map((row) => [
-              row.zone ?? "N/A",
-              row.regionName ?? "N/A",
-              row.districtName ?? "N/A",
-              formatCategoryLabel(row),
-              row.totalTickets,
-              row.pendingForAcknowledgement,
-              row.severityCounts.S1,
-              row.severityCounts.S2,
-              row.severityCounts.S3,
-              row.severityCounts.S4,
-            ]);
-          };
 
           sections.push({
             title: "Report Details",
@@ -1076,22 +961,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               ],
             });
           }
-          if (allTicketsView) {
-            sections.push({
-              title: "All Tickets by Module - Sub Module",
-              head: categorySectionHead,
-              rows: buildCategoryPdfRows(allTicketsByCategory),
-            });
-          }
-
-          if (myWorkloadView) {
-            sections.push({
-              title: "My Workload by Module - Sub Module",
-              head: categorySectionHead,
-              rows: buildCategoryPdfRows(myWorkloadByCategory),
-            });
-          }
-
           sections.push({
             title: "Open vs Resolved",
             head: ["Metric", "Count"],
