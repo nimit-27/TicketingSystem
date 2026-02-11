@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import TicketsTable, { TicketRow } from '../TicketsTable';
 
 const mockJsPdfSave = jest.fn();
+const mockJsPdfText = jest.fn();
 const mockJsPdfConstructor = jest.fn();
 jest.mock('jspdf', () => ({
     __esModule: true,
@@ -13,6 +14,7 @@ jest.mock('jspdf', () => ({
             mockJsPdfConstructor(...args);
         }
 
+        text = mockJsPdfText
         save = mockJsPdfSave
     }
 }), { virtual: true });
@@ -145,8 +147,10 @@ jest.mock('@mui/material', () => {
 });
 
 const mockUpdateTicket = jest.fn();
+const mockSearchTicketsForExport = jest.fn();
 jest.mock('../../../services/TicketService', () => ({
     updateTicket: (...args: any[]) => mockUpdateTicket(...args),
+    searchTicketsForExport: (...args: any[]) => mockSearchTicketsForExport(...args),
 }));
 
 const mockGetCurrentUserDetails = jest.fn(() => ({ username: 'agent.user' }));
@@ -154,6 +158,13 @@ jest.mock('../../../config/config', () => ({
     getCurrentUserDetails: (...args: any[]) => mockGetCurrentUserDetails(...args),
 }));
 
+
+const mockGetRegions = jest.fn();
+const mockGetDistricts = jest.fn();
+jest.mock('../../../services/LocationService', () => ({
+    getRegions: (...args: any[]) => mockGetRegions(...args),
+    getDistricts: (...args: any[]) => mockGetDistricts(...args),
+}));
 const tickets: TicketRow[] = [
     {
         id: 'INC-001',
@@ -184,6 +195,7 @@ beforeEach(() => {
     mockCheckAccessMaster.mockImplementation(() => true);
     mockCheckMyTicketsColumnAccess.mockImplementation(() => true);
     mockJsPdfSave.mockClear();
+    mockJsPdfText.mockClear();
     mockJsPdfConstructor.mockClear();
     mockAutoTable.mockClear();
     mockAoaToSheet.mockReset();
@@ -191,6 +203,12 @@ beforeEach(() => {
     mockBookNew.mockClear();
     mockBookAppendSheet.mockClear();
     mockWriteFile.mockClear();
+    mockSearchTicketsForExport.mockReset();
+    mockSearchTicketsForExport.mockResolvedValue(tickets);
+    mockGetRegions.mockReset();
+    mockGetRegions.mockResolvedValue({ data: [] });
+    mockGetDistricts.mockReset();
+    mockGetDistricts.mockResolvedValue({ data: [] });
     (XLSX as any).utils.aoa_to_sheet = mockAoaToSheet;
 });
 
@@ -220,7 +238,7 @@ describe('TicketsTable', () => {
                 onIdClick={jest.fn()}
                 onRowClick={jest.fn()}
                 searchCurrentTicketsPaginatedApi={jest.fn()}
-                statusWorkflows={{ OPEN: [{ id: '1', action: 'Resolve', nextStatus: 'RESOLVED' }] as any }}
+                statusWorkflows={{ OPEN: [{ id: '1', action: 'Assign', nextStatus: 2 }] as any }}
             />,
         );
 
@@ -286,20 +304,24 @@ describe('TicketsTable', () => {
                 onRowClick={jest.fn()}
                 searchCurrentTicketsPaginatedApi={jest.fn()}
                 statusWorkflows={{ OPEN: [] }}
+                zoneOptions={[{ label: 'All', value: 'All' }]}
+                issueTypeOptions={[{ label: 'All', value: 'All' }]}
             />,
         );
 
         const downloadTrigger = screen.getByText('Download');
         await userEvent.click(downloadTrigger);
+        await userEvent.click(screen.getByText('Generate'));
 
-        await userEvent.click(screen.getByText('Download PDF'));
-        expect(mockJsPdfConstructor).toHaveBeenCalled();
-        expect(mockAutoTable).toHaveBeenCalled();
+        await userEvent.click(screen.getByText('As PDF'));
+        await waitFor(() => expect(mockJsPdfConstructor).toHaveBeenCalled());
+        await waitFor(() => expect(mockAutoTable).toHaveBeenCalled());
 
         await userEvent.click(downloadTrigger);
-        await userEvent.click(screen.getByText('Download Excel'));
-        expect(mockBookAppendSheet).toHaveBeenCalled();
-        expect(mockWriteFile).toHaveBeenCalled();
+        await userEvent.click(screen.getByText('Generate'));
+        await userEvent.click(screen.getByText('As Excel'));
+        await waitFor(() => expect(mockBookAppendSheet).toHaveBeenCalled());
+        await waitFor(() => expect(mockWriteFile).toHaveBeenCalled());
         expect(mockWriteFile.mock.calls[0][1]).toBe('tickets.xlsx');
     });
 });
