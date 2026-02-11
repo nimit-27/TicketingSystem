@@ -27,6 +27,7 @@ import GenericInput from "../UI/Input/GenericInput";
 import FeedbackModal from "../Feedback/FeedbackModal";
 import { getDistricts, getRegions, getZones } from "../../services/LocationService";
 import { getIssueTypes } from "../../services/IssueTypeService";
+import { getAllUsers } from "../../services/UserService";
 
 export interface TicketsListFilterState {
     search: string;
@@ -42,6 +43,7 @@ export interface TicketsListFilterState {
     dateRange: DateRangeState;
     selectedCategory: string;
     selectedSubCategory: string;
+    selectedAssignee: string;
     allowedStatuses?: string[];
 }
 
@@ -127,6 +129,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<any[]>();
     const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<any[]>();
     const { data: issueTypesResponse = [], apiHandler: getIssueTypesApiHandler } = useApi<any[]>();
+    const { data: allUsersResponse = [], apiHandler: getAllUsersApiHandler } = useApi<any[]>();
 
     const [statusList, setStatusList] = useState<any[]>([]);
     const [workflowMap, setWorkflowMap] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -171,6 +174,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = useState<string>("All");
     const [selectedDistrict, setSelectedDistrict] = useState<string>("All");
     const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
+    const [selectedAssignee, setSelectedAssignee] = useState<string>("All");
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -225,6 +229,28 @@ const TicketsList: React.FC<TicketsListProps> = ({
         [issueTypesResponse],
     );
 
+    const assigneeOptions: DropdownOption[] = useMemo(() => {
+        const users = ((allUsersResponse as any)?.data ?? allUsersResponse ?? []) as any[];
+        const allowedRoleIds = ["3", "8"];
+        const options = users
+            .filter((user) => user?.roles?.split("|").some((roleId: string) => allowedRoleIds.includes(roleId)))
+            .map((user) => {
+                const username = String(user?.username ?? "");
+                const userId = String(user?.userId ?? "");
+                const name = String(user?.name ?? username ?? userId);
+                const filterValue = username || userId;
+                const suffix = [username, userId].filter(Boolean).join(" | ");
+                return {
+                    label: suffix ? `${name} (${suffix})` : name,
+                    value: filterValue,
+                };
+            })
+            .filter((option) => Boolean(option.value));
+
+        const uniqueOptions = Array.from(new Map(options.map((option) => [option.value, option])).values());
+        return [{ label: "All", value: "All" }, ...uniqueOptions];
+    }, [allUsersResponse]);
+
     const selectedIssueTypeLabel = useMemo(
         () => issueTypeOptions.find((option) => option.value === selectedIssueType)?.label,
         [issueTypeOptions, selectedIssueType],
@@ -250,6 +276,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedRegionHrmsCode("All");
         setSelectedDistrict("All");
         setSelectedIssueType("All");
+        setSelectedAssignee("All");
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -261,6 +288,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const normalizedRegion = selectedRegion !== "All" ? selectedRegion : undefined;
     const normalizedDistrict = selectedDistrict !== "All" ? selectedDistrict : undefined;
     const normalizedIssueType = selectedIssueType !== "All" ? selectedIssueType : undefined;
+    const normalizedAssignee = selectedAssignee !== "All" ? selectedAssignee : undefined;
 
     const filterState: TicketsListFilterState = useMemo(
         () => ({
@@ -277,6 +305,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             dateRange,
             selectedCategory,
             selectedSubCategory,
+            selectedAssignee,
         }),
         [
             search,
@@ -292,6 +321,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             dateRange,
             selectedCategory,
             selectedSubCategory,
+            selectedAssignee,
         ],
     );
 
@@ -337,6 +367,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const regionParam = mergedOverrides.regionCode ?? normalizedRegion;
             const districtParam = mergedOverrides.districtCode ?? normalizedDistrict;
             const issueTypeParam = mergedOverrides.issueTypeId ?? normalizedIssueType;
+            const assignedToParam = mergedOverrides.assignedTo ?? normalizedAssignee;
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -346,7 +377,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     masterParam,
                     pageParam,
                     sizeParam,
-                    mergedOverrides.assignedTo,
+                    assignedToParam,
                     levelParam,
                     mergedOverrides.assignedBy,
                     mergedOverrides.requestorId,
@@ -382,6 +413,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             normalizedRegion,
             normalizedDistrict,
             normalizedIssueType,
+            normalizedAssignee,
             page,
             pageSize,
             sortBy,
@@ -434,6 +466,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setPage(1);
     };
 
+    const handleAssigneeChange = (value: string) => {
+        setSelectedAssignee(value);
+        setPage(1);
+    };
+
     const handleFeedbackClose = () => {
         setFeedbackOpen(false);
     };
@@ -449,12 +486,13 @@ const TicketsList: React.FC<TicketsListProps> = ({
         workflowApiHandler(() => getStatusWorkflowMappings(roles));
         getZonesApiHandler(() => getZones());
         getIssueTypesApiHandler(() => getIssueTypes());
+        getAllUsersApiHandler(() => getAllUsers());
         if (restrictStatusesToAllowed) {
             allowedStatusApiHandler(() => getAllowedStatusListByRoles(roles));
         } else {
             getStatuses().then(setStatusList);
         }
-    }, [allowedStatusApiHandler, getIssueTypesApiHandler, getZonesApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
+    }, [allowedStatusApiHandler, getAllUsersApiHandler, getIssueTypesApiHandler, getZonesApiHandler, restrictStatusesToAllowed, workflowApiHandler]);
 
     useEffect(() => {
         if (restrictStatusesToAllowed && allowedStatusData) {
@@ -516,6 +554,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         selectedRegion,
         selectedDistrict,
         selectedIssueType,
+        selectedAssignee,
         allowedStatusSuccess,
     ]);
 
@@ -626,6 +665,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         className="col-3 px-1"
                         onChange={handleIssueTypeChange}
                         options={issueTypeOptions}
+                    />
+
+                    <DropdownController
+                        label="Assignee"
+                        value={selectedAssignee}
+                        className="col-3 px-1"
+                        onChange={handleAssigneeChange}
+                        options={assigneeOptions}
                     />
 
                     {/* DATE RANGE FILTER */}

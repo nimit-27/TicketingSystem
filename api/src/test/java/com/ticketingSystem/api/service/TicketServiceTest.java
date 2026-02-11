@@ -23,6 +23,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import java.util.Optional;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,154 @@ class TicketServiceTest {
 
     @InjectMocks
     private TicketService ticketService;
+
+    @Test
+    void searchTickets_withAssignedToUserId_resolvesUsernameAndQueriesBothIdentifiers() {
+        User assignee = new User();
+        assignee.setUserId("agent-1");
+        assignee.setUsername("agentUser");
+
+        when(userRepository.findById("agent-1")).thenReturn(Optional.of(assignee));
+        when(ticketRepository.searchTickets(
+                anyString(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+        )).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
+
+        ticketService.searchTickets(
+                "",
+                null,
+                null,
+                "agent-1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                PageRequest.of(0, 10)
+        );
+
+        verify(ticketRepository).searchTickets(
+                anyString(),
+                any(),
+                any(),
+                eq("agent-1"),
+                eq("agentUser"),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    void searchTicketsList_withAssignedToUsername_resolvesUserIdAndQueriesBothIdentifiers() {
+        User assignee = new User();
+        assignee.setUserId("agent-1");
+        assignee.setUsername("agentUser");
+
+        when(userRepository.findById("agentUser")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("agentUser")).thenReturn(Optional.of(assignee));
+        when(ticketRepository.searchTicketsList(
+                anyString(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+        )).thenReturn(List.of());
+
+        ticketService.searchTicketsList(
+                "",
+                null,
+                null,
+                "agentUser",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        verify(ticketRepository).searchTicketsList(
+                anyString(),
+                any(),
+                any(),
+                eq("agentUser"),
+                eq("agent-1"),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+        );
+    }
 
     @Test
     void updateTicket_statusChangeWithRemarkOnUnassignedTicket_doesNotAddAssignmentHistory() {
