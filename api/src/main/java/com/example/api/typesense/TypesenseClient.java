@@ -13,6 +13,7 @@ import org.typesense.model.SearchParameters;
 import org.typesense.model.SearchResult;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +83,7 @@ public class TypesenseClient {
             );
             client.collections("tickets").documents().upsert(doc);
 
-            syncMetadataService.updateLastSyncedTime(LocalDateTime.now());
+            syncMetadataService.updateLastSyncedTime(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         }
     }
 }
