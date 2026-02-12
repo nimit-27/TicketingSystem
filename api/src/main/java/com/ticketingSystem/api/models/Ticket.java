@@ -20,7 +20,7 @@ public class Ticket {
     @Column(name = "created_by")
     private String createdBy;
     @Column(name="reported_date")
-    @CreationTimestamp
+//    @CreationTimestamp
     private LocalDateTime reportedDate;
     @Enumerated(EnumType.STRING)
     private Mode mode;

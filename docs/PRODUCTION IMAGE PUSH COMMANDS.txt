@@ -3,13 +3,15 @@ PRODUCTION IMAGE PUSH COMMANDS
 https://-----.annadarpan.in/helpdesk/login  --> Will get from Zeeshan
 
 Creating tag for UI to be pushed to prod_ticketing_system repository
-docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-ui_prod_v1.02
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-ui_prod_v1.06
 
 Creating tag for API to be pushed to prod_ticketing_system repository
-docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.01.02
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.06
 
 Pushing UI image to prod_ticketing_system
-docker push bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-ui_prod_v1.02
+docker push bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-ui_prod_v1.06
 
 Pushing API image prod_ticketing_system
-docker push bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.01.02
+docker push bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.06
+
+

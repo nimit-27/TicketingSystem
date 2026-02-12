@@ -150,6 +150,7 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
                 any()
         );
     }
@@ -211,6 +212,7 @@ class TicketServiceTest {
                 any(),
                 eq("agentUser"),
                 eq("agent-1"),
+                any(),
                 any(),
                 any(),
                 any(),

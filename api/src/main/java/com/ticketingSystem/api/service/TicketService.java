@@ -111,7 +111,7 @@ public class TicketService {
             issueTypeRepository.findById(ticket.getIssueTypeId())
                     .ifPresent(issueType -> dto.setIssueTypeLabel(issueType.getIssueTypeLabel()));
         }
-        if(ticket.getCreatedBy() != null) dto.setCreatedBy(ticket.getCreatedBy());
+        if (ticket.getCreatedBy() != null) dto.setCreatedBy(ticket.getCreatedBy());
 
         // priority info
         if (ticket.getPriority() != null) {
@@ -134,7 +134,7 @@ public class TicketService {
         }
         // short ticket id
         if (dto.getId() != null) {
-            dto.setShortId(dto.getId().length() > 8 ? dto.getId().substring(0,8) : dto.getId());
+            dto.setShortId(dto.getId().length() > 8 ? dto.getId().substring(0, 8) : dto.getId());
         }
         if (ticket.getId() != null) {
             List<com.ticketingSystem.api.models.UploadedFile> files = uploadedFileRepository.findByTicket_IdAndIsActive(ticket.getId(), "Y");
@@ -229,25 +229,28 @@ public class TicketService {
     public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
 
-        if(ticket.isMaster()) {
-            ticket.setMasterId(null);
-            ticket.setMaster(true);
-        }
-        if(ticket.getMasterId() == null) ticket.setMasterId(null);
-        else if(ticket.getMasterId().isBlank()) ticket.setMasterId(null);
-
-        if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
-
+        // SETTING Mode
         if (ticket.getMode() == null && ticket.getModeId() != null) {
             ticket.setMode(Mode.fromId(ticket.getModeId()));
         }
 
-//      Ticket Id Generator
+        // Ticket Id Generator
         if (ticket.getId() == null || ticket.getId().isBlank()) {
             ticket.setId(ticketIdGenerator.generateTicketId(ticket.getMode()));
         }
 
-        // If userId exists
+        // SETTING Master
+        if (ticket.isMaster()) {
+            ticket.setMasterId(null);
+            ticket.setMaster(true);
+        }
+        if (ticket.getMasterId() == null) ticket.setMasterId(null);
+        else if (ticket.getMasterId().isBlank()) ticket.setMasterId(null);
+
+        // SETTING Updated By
+        if (ticket.getUpdatedBy() == null) ticket.setUpdatedBy(ticket.getAssignedBy());
+
+        // SETTING User Details if userId exists
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
             userRepository.findById(ticket.getUserId()).ifPresentOrElse(user -> {
                 ticket.setUser(user);
@@ -290,6 +293,7 @@ public class TicketService {
             }
         }
 
+        // SETTING Ticket Status Code
         if (ticket.getTicketStatus() == null && ticket.getStatus() != null) {
             String code = ticket.getStatus().getStatusCode();
             if (code != null) {
@@ -297,14 +301,8 @@ public class TicketService {
             }
         }
 
-        if (ticket.getSeverity() == null && ticket.getSubCategory() != null) {
-            subCategoryRepository.findById(ticket.getSubCategory())
-                    .map(SubCategory::getSeverity)
-                    .map(Severity::getId)
-                    .ifPresent(ticket::setSeverity);
-        }
-
         boolean isAssigned = ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty();
+
         if (!isAssigned) {
             ticket.setTicketStatus(TicketStatus.OPEN);
             String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
@@ -315,10 +313,25 @@ public class TicketService {
             statusMasterRepository.findById(assignId).ifPresent(ticket::setStatus);
         }
 
+        // SETTING severity by getting severity mapping from subCategory repository
+        // HAS TO BE UPDATED
+        if (ticket.getSeverity() == null && ticket.getSubCategory() != null) {
+            subCategoryRepository.findById(ticket.getSubCategory())
+                    .map(SubCategory::getSeverity)
+                    .map(Severity::getId)
+                    .ifPresent(ticket::setSeverity);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        // SETTING Reported Date
+        if(ticket.getReportedDate() == null) {
+            ticket.setReportedDate(now);
+        }
+        // SETTING Last Modified
+        ticket.setLastModified(now);
+
+        // SAVING TICKET IN REPOSITORY
         System.out.println("TicketService: Saving the ticket to repository now...");
-
-        ticket.setLastModified(LocalDateTime.now());
-
         Ticket saved = ticketRepository.save(ticket);
 
         String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
@@ -326,19 +339,24 @@ public class TicketService {
 
         List<StatusHistory> histories = new ArrayList<>();
 
-        histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, null));
+        // ADDING TICKET IN STATUS HISTORY
+        histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, "New"));
 
         if (isAssigned) {
-            assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), saved.getLevelId(), null);
+            assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), saved.getLevelId(), "Assigned");
 
             String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
             boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
 
+            // ADDING TICKET IN ASSIGNMENT HISTORY
             histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null));
         }
+
+        // SLA CALCULATION
         ticketSlaService.calculateAndSaveByCalendar(saved, histories);
 
         if (isAssigned) {
+            // SEND NOTIFICATION
             sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
             sendRequestorAssignmentNotification(
                     saved,
@@ -471,16 +489,42 @@ public class TicketService {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
-                    .map(String::trim)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                .map(String::trim)
+                .collect(Collectors.toCollection(ArrayList::new));
         List<String> severityFilters = (severity == null || severity.isBlank())
                 ? null
                 : Arrays.stream(severity.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .toList();
-        LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
-        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+//        LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
+//        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
+
+        LocalDateTime from = null;
+        LocalDateTime to = null;
+
+        if (fromDate != null && !fromDate.isBlank()) {
+            from = DateTimeUtils.parseToLocalDateTime(fromDate)
+                    .toLocalDate()
+                    .atStartOfDay();
+        }
+
+        if (toDate != null && !toDate.isBlank()) {
+            to = DateTimeUtils.parseToLocalDateTime(toDate)
+                    .toLocalDate()
+                    .plusDays(1)
+                    .atStartOfDay(); // exclusive end
+        } else if (from != null) {
+            // If toDate not provided, treat as single-day range
+            to = from.toLocalDate()
+                    .plusDays(1)
+                    .atStartOfDay();
+        } else {
+            // Both null: treat as unbounded or handle upstream
+            to = null;
+        }
+
+
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         Page<Ticket> page = ticketRepository.searchTickets(
                 query,
@@ -515,14 +559,14 @@ public class TicketService {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
-                    .map(String::trim)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                .map(String::trim)
+                .collect(Collectors.toCollection(ArrayList::new));
         List<String> severityFilters = (severity == null || severity.isBlank())
                 ? null
                 : Arrays.stream(severity.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .toList();
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
 
         LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
         LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
@@ -590,7 +634,7 @@ public class TicketService {
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
         if (updatedStatus != null) existing.setTicketStatus(updatedStatus);
         if (updatedStatusId != null) statusMasterRepository.findById(updatedStatusId).ifPresent(existing::setStatus);
-        if(updatedStatus == TicketStatus.RESOLVED) {
+        if (updatedStatus == TicketStatus.RESOLVED) {
             if (existing.getResolvedAt() == null) {
                 existing.setResolvedAt(LocalDateTime.now());
             }
@@ -614,7 +658,8 @@ public class TicketService {
         if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
         if (updated.getRecommendedSeverity() != null) existing.setRecommendedSeverity(updated.getRecommendedSeverity());
         if (updated.getImpact() != null) existing.setImpact(updated.getImpact());
-        if (updated.getSeverityRecommendedBy() != null) existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
+        if (updated.getSeverityRecommendedBy() != null)
+            existing.setSeverityRecommendedBy(updated.getSeverityRecommendedBy());
         if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
         if (updated.getOffice() != null) existing.setOffice(updated.getOffice());
         if (updated.getOfficeCode() != null) existing.setOfficeCode(updated.getOfficeCode());
@@ -1006,9 +1051,9 @@ public class TicketService {
     }
 
     private void notifyRoleMembersOfRecommendedSeverityApproval(Ticket ticket,
-                                                                 String approvedSeverity,
-                                                                 String approverIdentifier,
-                                                                 String roleId) {
+                                                                String approvedSeverity,
+                                                                String approverIdentifier,
+                                                                String roleId) {
         if (ticket == null || roleId == null || roleId.isBlank()) {
             return;
         }
@@ -1378,6 +1423,7 @@ public class TicketService {
 
         return fileStorageService.generateDownloadUrl(attachment.getRelativePath(), attachment.getFileName());
     }
+
     public TicketDto removeAttachment(String id, String path) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
@@ -1496,7 +1542,6 @@ public class TicketService {
     public void deleteComment(String commentId) {
         commentRepository.deleteById(commentId);
     }
-
 
 
     public List<TicketDto> getChildTickets(String masterId) {
