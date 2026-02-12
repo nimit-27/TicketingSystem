@@ -739,6 +739,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             selectedRegion={selectedRegion}
                             selectedDistrict={selectedDistrict}
                             selectedIssueType={selectedIssueType}
+                            selectedAssignee={selectedAssignee}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
                         />
                         <PaginationControls

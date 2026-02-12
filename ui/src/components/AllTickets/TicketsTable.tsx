@@ -83,6 +83,7 @@ interface TicketsTableProps {
     selectedRegion?: string;
     selectedDistrict?: string;
     selectedIssueType?: string;
+    selectedAssignee?: string;
 }
 
 const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
@@ -130,7 +131,7 @@ const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     return [];
 };
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All' }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedAssignee = 'All' }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -253,8 +254,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             region: selectedRegion,
             district: selectedDistrict,
             issueType: selectedIssueType,
+            assignee: selectedAssignee,
         }),
-        [selectedDistrict, selectedIssueType, selectedRegion, selectedZone],
+        [selectedAssignee, selectedDistrict, selectedIssueType, selectedRegion, selectedZone],
     );
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
@@ -412,6 +414,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             regionCode: filters.regionCode,
             districtCode: filters.districtCode,
             issueTypeId: filters.issueTypeId,
+            assignedTo: filters.assignedTo,
         }));
 
         const ticketsToExport = normalizeDownloadTickets(payload);

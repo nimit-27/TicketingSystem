@@ -22,6 +22,7 @@ import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { getDistricts, getRegions } from '../../services/LocationService';
 import { useApi } from '../../hooks/useApi';
 import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
+import AssigneeFilterDropdown from './AssigneeFilterDropdown';
 
 interface DownloadFilters {
     fromDate: string;
@@ -30,6 +31,7 @@ interface DownloadFilters {
     regionCode?: string;
     districtCode?: string;
     issueTypeId?: string;
+    assignedTo?: string;
 }
 
 interface DownloadDialogInitialFilters {
@@ -37,6 +39,7 @@ interface DownloadDialogInitialFilters {
     region: string;
     district: string;
     issueType: string;
+    assignee: string;
 }
 
 interface DownloadTicketsDialogProps {
@@ -90,6 +93,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [region, setRegion] = useState<string>('All');
     const [district, setDistrict] = useState<string>('All');
     const [issueType, setIssueType] = useState<string>('All');
+    const [assignee, setAssignee] = useState<string>('All');
     const [regionOptions, setRegionOptions] = useState<Array<DropdownOption & { hrmsRegCode?: string }>>([{ label: 'All', value: 'All' }]);
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
@@ -165,6 +169,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setToDate(range.to);
     }, [year, month]);
 
+
     useEffect(() => {
         if (!open) return;
 
@@ -175,6 +180,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setRegion(initialFilters.region || 'All');
         setDistrict(initialFilters.district || 'All');
         setIssueType(initialFilters.issueType || 'All');
+        setAssignee(initialFilters.assignee || 'All');
         setRegionOptions([{ label: 'All', value: 'All' }]);
         setDistrictOptions([{ label: 'All', value: 'All' }]);
         setRegionHrmsCode('All');
@@ -223,6 +229,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             regionCode: region !== 'All' ? region : undefined,
             districtCode: district !== 'All' ? district : undefined,
             issueTypeId: issueType !== 'All' ? issueType : undefined,
+            assignedTo: assignee !== 'All' ? assignee : undefined,
         });
         setGenerateMenuAnchor(null);
     };
@@ -326,6 +333,10 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                         </Stack>
 
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <AssigneeFilterDropdown
+                                value={assignee}
+                                onChange={setAssignee}
+                            />
                             <TextField
                                 label={t('From Date')}
                                 type="date"

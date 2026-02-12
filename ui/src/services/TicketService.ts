@@ -146,6 +146,7 @@ interface SearchTicketsForExportParams {
     regionCode?: string;
     districtCode?: string;
     issueTypeId?: string;
+    assignedTo?: string;
 }
 
 export function searchTicketsForExport({
@@ -155,6 +156,7 @@ export function searchTicketsForExport({
     regionCode,
     districtCode,
     issueTypeId,
+    assignedTo,
 }: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
     if (fromDate) params.append('fromDate', fromDate);
@@ -163,5 +165,6 @@ export function searchTicketsForExport({
     if (regionCode) params.append('regionCode', regionCode);
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
+    if (assignedTo) params.append('assignedTo', assignedTo);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`);
 }
