@@ -10,6 +10,13 @@ const ticketLodgedThroughDropdownOptions: DropdownOption[] = [
     { label: "Mail", value: "Mail" }
 ];
 
+const indiaToday = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+}).format(new Date());
+
 const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
     <div className={`${cardContainer1}`}>
         {/* title */}
@@ -28,7 +35,7 @@ const RequestDetails: React.FC<FormProps> = ({ register, control, errors }) => (
                     required
                     errors={errors}
                     label="Reported Date"
-                    defaultValue={new Date().toISOString().slice(0, 10)}
+                    defaultValue={indiaToday}
                     disabled
                 />
             </div>
