@@ -28,10 +28,15 @@ interface DownloadFilters {
     fromDate: string;
     toDate: string;
     zoneCode?: string;
+    zoneLabel?: string;
     regionCode?: string;
+    regionLabel?: string;
     districtCode?: string;
+    districtLabel?: string;
     issueTypeId?: string;
+    issueTypeLabel?: string;
     assignedTo?: string;
+    assignedToLabel?: string;
 }
 
 interface DownloadDialogInitialFilters {
@@ -222,14 +227,23 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     };
 
     const handleGenerateSelection = async (format: 'pdf' | 'excel') => {
+        const selectedZone = zoneOptions.find((option) => option.value === zone);
+        const selectedRegion = regionOptions.find((option) => option.value === region);
+        const selectedDistrict = districtOptions.find((option) => option.value === district);
+        const selectedIssueType = issueTypeOptions.find((option) => option.value === issueType);
         await onGenerate(format, {
             fromDate,
             toDate,
             zoneCode: zone !== 'All' ? zone : undefined,
+            zoneLabel: zone !== 'All' ? selectedZone?.label || zone : undefined,
             regionCode: region !== 'All' ? region : undefined,
+            regionLabel: region !== 'All' ? selectedRegion?.label || region : undefined,
             districtCode: district !== 'All' ? district : undefined,
+            districtLabel: district !== 'All' ? selectedDistrict?.label || district : undefined,
             issueTypeId: issueType !== 'All' ? issueType : undefined,
+            issueTypeLabel: issueType !== 'All' ? selectedIssueType?.label || issueType : undefined,
             assignedTo: assignee !== 'All' ? assignee : undefined,
+            assignedToLabel: assignee !== 'All' ? assignee : undefined,
         });
         setGenerateMenuAnchor(null);
     };
