@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import InfoIcon from "../UI/Icons/InfoIcon";
 import {
   fetchSlaCalculationJobHistory,
   triggerSlaCalculationForAllTickets,
@@ -73,6 +74,20 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
   const { apiHandler: triggerApiHandler } = useApi<SlaCalculationJobRun>();
   const [triggering, setTriggering] = React.useState(false);
   const [overview, setOverview] = React.useState<SlaCalculationJobOverview | null>(null);
+
+  const slaJobActionInfoContent = (
+    <Stack spacing={1}>
+      <Typography variant="body2">
+        <strong>Refresh:</strong> Reloads the latest SLA job overview and execution history from the server.
+      </Typography>
+      <Typography variant="body2">
+        <strong>Trigger Active Tickets:</strong> Starts SLA recalculation only for currently active tickets.
+      </Typography>
+      <Typography variant="body2">
+        <strong>Recalculate All Tickets:</strong> Starts a full SLA recalculation for every ticket in the system.
+      </Typography>
+    </Stack>
+  );
 
   const loadOverview = React.useCallback(async () => {
     const response = await historyApiHandler(() => fetchSlaCalculationJobHistory(25));
@@ -138,7 +153,10 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="lg">
         <DialogTitle>
           <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-            <Typography variant="h6">SLA Calculation Job</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Typography variant="h6">SLA Calculation Job</Typography>
+              <InfoIcon content={slaJobActionInfoContent} />
+            </Stack>
             <Stack direction="row" spacing={1}>
               <Button onClick={loadOverview} variant="outlined" startIcon={<RefreshIcon />} disabled={loading}>
                 Refresh
