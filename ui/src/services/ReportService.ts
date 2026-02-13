@@ -1,6 +1,7 @@
 import apiClient from "./apiClient";
 import { BASE_URL } from "./api";
 import { MISReportRequestParams, SupportDashboardSummaryRequestParams } from "../types/reports";
+import { SlaCalculationJobOverview, SlaCalculationJobRun } from "../types/slaJob";
 
 export function fetchSupportDashboardSummary(params?: SupportDashboardSummaryRequestParams) {
     return apiClient.get(`${BASE_URL}/reports/support-dashboard-summary`, { params });
@@ -32,4 +33,18 @@ export function fetchSlaPerformanceReport(params?: MISReportRequestParams) {
 
 export function notifyBreachedTicketAssignees() {
     return apiClient.post(`${BASE_URL}/reports/sla-performance/notify-breaches`);
+}
+
+
+export function fetchSlaCalculationJobHistory(limit: number = 20) {
+    return apiClient.get<SlaCalculationJobOverview>(`${BASE_URL}/reports/sla-calculation/history`, { params: { limit } });
+}
+
+export function triggerSlaCalculationJob() {
+    return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger`);
+}
+
+
+export function triggerSlaCalculationForAllTickets() {
+    return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger-all`);
 }

@@ -90,6 +90,7 @@ interface TicketsListProps {
     };
     getViewTicketProps?: (selectedTicketId: string | null) => Partial<React.ComponentProps<typeof ViewTicket>>;
     allowAll: boolean;
+    headerRightContent?: React.ReactNode;
 }
 
 const getDropdownOptions = <T,>(arr: any, labelKey: keyof T, valueKey: keyof T): DropdownOption[] =>
@@ -119,7 +120,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     allowTable = true,
     tableOptions,
     getViewTicketProps,
-    allowAll
+    allowAll,
+    headerRightContent
 }) => {
     const { t } = useTranslation();
     const { data: allowedStatusData, pending: allowedStatusPending, success: allowedStatusSuccess, apiHandler: allowedStatusApiHandler } = useApi<any>();
@@ -563,7 +565,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     return (
         <div className="" style={{ display: "flex" }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
-                <Title textKey={titleKey} />
+                <Title textKey={titleKey} rightContent={headerRightContent} />
                 <div className="d-flex flex-wrap align-items-center mb-3">
                     {/* -------- FILTERS --------- */}
 

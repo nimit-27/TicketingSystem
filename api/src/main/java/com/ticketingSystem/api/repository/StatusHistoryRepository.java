@@ -12,4 +12,6 @@ public interface StatusHistoryRepository extends JpaRepository<StatusHistory, St
     List<StatusHistory> findByTicketOrderByTimestampAsc(Ticket ticket);
 
     List<StatusHistory> findByTicketOrderByTimestampDesc(Ticket ticket);
+
+    List<StatusHistory> findByTicketInOrderByTimestampAsc(List<Ticket> tickets);
 }
