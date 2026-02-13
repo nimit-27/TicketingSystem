@@ -1556,7 +1556,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
                 {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
               </Typography>
-              <div className="col-12 col-sm-12 col-xl-12">
+              {/* <div className="col-12 col-sm-12 col-xl-12">
                 <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff5252", color: "#fff" }}>
                   <CardContent className="py-3">
                     <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
@@ -1567,7 +1567,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                     </Typography>
                   </CardContent>
                 </Card>
-              </div>
+              </div> */}
               <div className="col-12 col-sm-12 col-xl-12">
                 <Card className="h-100 border-0 shadow-sm" style={{ background: "#1976d2", color: "#fff" }}>
                   <CardContent className="py-3">
@@ -1679,7 +1679,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 </CardContent>
               </Card>
             </div> */}
-            <div className="col-12 col-xl-6">
+            {/* <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
@@ -1710,7 +1710,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
             <div className="col-12 col-xl-6">
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
