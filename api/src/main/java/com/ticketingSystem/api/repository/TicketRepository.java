@@ -291,6 +291,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     List<Ticket> findByTicketStatusAndResolvedAtBefore(TicketStatus ticketStatus, LocalDateTime time);
 
+    Page<Ticket> findByTicketStatusNotIn(List<TicketStatus> statuses, Pageable pageable);
+
     List<Ticket> findByReportedDateBetween(LocalDateTime fromDate, LocalDateTime toDate);
 
     List<Ticket> findByResolvedAtBetween(LocalDateTime fromDate, LocalDateTime toDate);

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Box, Card, CardContent, MenuItem, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -29,6 +29,8 @@ import { useCategoryFilters } from "../hooks/useCategoryFilters";
 import { getParametersByRoles } from "../services/ParameterService";
 import { getDistricts, getRegions, getZones } from "../services/LocationService";
 import { getIssueTypes } from "../services/IssueTypeService";
+import { DevModeContext } from "../context/DevModeContext";
+import SlaCalculationTrigger from "../components/SlaJob/SlaCalculationTrigger";
 import { IssueTypeInfo } from "../types";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
@@ -394,6 +396,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 }) => {
   const [recharts, setRecharts] = React.useState<typeof import("recharts") | null>(null);
   const { t } = useTranslation();
+  const { devMode } = useContext(DevModeContext);
   const { showMessage } = useSnackbar();
   const userDetails = React.useMemo(() => getUserDetails(), []);
   const userRoles = React.useMemo(() => userDetails?.role ?? [], [userDetails]);
@@ -1306,9 +1309,16 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     busy={isLoading || downloadingReport}
   />
 
+  const headerRightContent = (
+    <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" justifyContent="flex-end">
+      {devMode ? <SlaCalculationTrigger buttonLabel="Trigger SLA Calculation" /> : null}
+      {misReportGeneratorComponent}
+    </Box>
+  )
+
   return (
     <div className="d-flex flex-column flex-grow-1">
-      <Title textKey="Dashboard" rightContent={misReportGeneratorComponent} />
+      <Title textKey="Dashboard" rightContent={headerRightContent} />
       <div className="row -mb-4">
         <div className="d-flex flex-column gap-3 w-100">
           <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-3 flex-wrap">

@@ -2,12 +2,15 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
+import com.ticketingSystem.api.dto.sla.SlaCalculationJobOverviewDto;
+import com.ticketingSystem.api.dto.sla.SlaCalculationJobRunDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
 import com.ticketingSystem.api.service.ReportService;
+import com.ticketingSystem.api.service.SlaCalculationJobService;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReportsController {
     private final ReportService reportService;
     private final TicketAuthorizationService ticketAuthorizationService;
+    private final SlaCalculationJobService slaCalculationJobService;
 
     @GetMapping("/support-dashboard-summary")
     public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary(
@@ -113,4 +117,37 @@ public class ReportsController {
         reportService.notifyBreachedSlaAssignees();
         return ResponseEntity.accepted().build();
     }
+
+    @GetMapping("/sla-calculation/history")
+    public ResponseEntity<SlaCalculationJobOverviewDto> getSlaCalculationHistory(
+            @RequestParam(value = "limit", required = false, defaultValue = "20") int limit) {
+        return ResponseEntity.ok(slaCalculationJobService.getOverview(limit));
+    }
+
+    @PostMapping("/sla-calculation/trigger-all")
+    public ResponseEntity<SlaCalculationJobRunDto> triggerSlaCalculationForAllTickets(
+            @AuthenticationPrincipal LoginPayload authenticatedUser,
+            @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
+        return ResponseEntity.accepted().body(slaCalculationJobService.triggerManualAllTickets(resolveTriggeredBy(authenticatedUser, userIdHeader)));
+    }
+
+    @PostMapping("/sla-calculation/trigger")
+    public ResponseEntity<SlaCalculationJobRunDto> triggerSlaCalculationJob(
+            @AuthenticationPrincipal LoginPayload authenticatedUser,
+            @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
+        return ResponseEntity.accepted().body(slaCalculationJobService.triggerManual(resolveTriggeredBy(authenticatedUser, userIdHeader)));
+    }
+
+    private String resolveTriggeredBy(LoginPayload authenticatedUser, String userIdHeader) {
+        if (authenticatedUser != null && authenticatedUser.getUserId() != null && !authenticatedUser.getUserId().isBlank()) {
+            return authenticatedUser.getUserId();
+        }
+
+        if (userIdHeader != null && !userIdHeader.isBlank()) {
+            return userIdHeader;
+        }
+
+        return "SYSTEM";
+    }
+
 }
