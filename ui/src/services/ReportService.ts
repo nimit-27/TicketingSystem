@@ -48,3 +48,7 @@ export function triggerSlaCalculationJob() {
 export function triggerSlaCalculationForAllTickets() {
     return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger-all`);
 }
+
+export function triggerSlaCalculationForAllTicketsFromScratch() {
+    return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger-all-from-scratch`);
+}

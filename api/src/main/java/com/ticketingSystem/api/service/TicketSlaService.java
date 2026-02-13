@@ -66,6 +66,14 @@ public class TicketSlaService {
     }
 
     public TicketSla calculateAndSaveByCalendar(Ticket ticket, List<StatusHistory> history) {
+        return calculateAndSaveByCalendarInternal(ticket, history, false);
+    }
+
+    public TicketSla calculateAndSaveByCalendarFromScratch(Ticket ticket, List<StatusHistory> history) {
+        return calculateAndSaveByCalendarInternal(ticket, history, true);
+    }
+
+    private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history, boolean fromScratch) {
         if (ticket == null) return null;
 
         LocalDateTime reportedDate = ticket.getReportedDate();
@@ -227,10 +235,12 @@ public class TicketSlaService {
                 && !Objects.equals(ticketSla.getSlaConfig().getId(), config.getId());
 
         Long previousBreached = ticketSla.getBreachedByMinutes();
-        LocalDateTime originalDueAt = Objects.requireNonNullElse(ticketSla.getActualDueAt(), baseDueAt);
+        LocalDateTime originalDueAt = fromScratch
+                ? baseDueAt
+                : Objects.requireNonNullElse(ticketSla.getActualDueAt(), baseDueAt);
 
-        LocalDateTime escalatedDueAt = ticketSla.getDueAtAfterEscalation();
-        if (severityChanged) {
+        LocalDateTime escalatedDueAt = fromScratch ? null : ticketSla.getDueAtAfterEscalation();
+        if (!fromScratch && severityChanged) {
             escalatedDueAt = baseDueAt;
         }
 
