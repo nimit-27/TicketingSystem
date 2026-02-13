@@ -22,6 +22,7 @@ import InfoIcon from "../UI/Icons/InfoIcon";
 import {
   fetchSlaCalculationJobHistory,
   triggerSlaCalculationForAllTickets,
+  triggerSlaCalculationForAllTicketsFromScratch,
   triggerSlaCalculationJob,
 } from "../../services/ReportService";
 import { SlaCalculationJobOverview, SlaCalculationJobRun } from "../../types/slaJob";
@@ -84,7 +85,10 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
         <strong>Trigger Active Tickets:</strong> Starts SLA recalculation only for currently active tickets.
       </Typography>
       <Typography variant="body2">
-        <strong>Recalculate All Tickets:</strong> Starts a full SLA recalculation for every ticket in the system.
+        <strong>Recalculate All Tickets:</strong> Re-runs SLA calculations for every ticket using existing baseline due dates.
+      </Typography>
+      <Typography variant="body2">
+        <strong>Recalculate All Tickets (From Scratch):</strong> Rebuilds SLA for every ticket from calendar rules, including recalculating both due-at and actual-due-at values.
       </Typography>
     </Stack>
   );
@@ -105,6 +109,25 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
     const interval = window.setInterval(loadOverview, 10000);
     return () => window.clearInterval(interval);
   }, [open, loadOverview]);
+
+  const handleTriggerAllTicketsFromScratch = async () => {
+    setTriggering(true);
+    try {
+      const run = await triggerApiHandler(() => triggerSlaCalculationForAllTicketsFromScratch());
+      if (!run) {
+        showMessage("Failed to trigger from-scratch SLA recalculation", "error");
+        return;
+      }
+      if (run.runStatus === "RUNNING") {
+        showMessage("From-scratch SLA recalculation has been triggered for all tickets", "success");
+      } else {
+        showMessage("An SLA job is already running. Showing latest status.", "info");
+      }
+      await loadOverview();
+    } finally {
+      setTriggering(false);
+    }
+  };
 
   const handleTriggerActiveOnly = async () => {
     setTriggering(true);
@@ -166,6 +189,9 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
               </Button>
               <Button onClick={handleTriggerAllTickets} color="warning" variant="outlined" disabled={triggering || !!overview?.running}>
                 {triggering ? "Triggering..." : "Recalculate All Tickets"}
+              </Button>
+              <Button onClick={handleTriggerAllTicketsFromScratch} color="error" variant="contained" disabled={triggering || !!overview?.running}>
+                {triggering ? "Triggering..." : "Recalculate All From Scratch"}
               </Button>
             </Stack>
           </Stack>

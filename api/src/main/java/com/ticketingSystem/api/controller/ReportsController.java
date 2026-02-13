@@ -131,6 +131,13 @@ public class ReportsController {
         return ResponseEntity.accepted().body(slaCalculationJobService.triggerManualAllTickets(resolveTriggeredBy(authenticatedUser, userIdHeader)));
     }
 
+    @PostMapping("/sla-calculation/trigger-all-from-scratch")
+    public ResponseEntity<SlaCalculationJobRunDto> triggerSlaCalculationForAllTicketsFromScratch(
+            @AuthenticationPrincipal LoginPayload authenticatedUser,
+            @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
+        return ResponseEntity.accepted().body(slaCalculationJobService.triggerManualAllTicketsFromScratch(resolveTriggeredBy(authenticatedUser, userIdHeader)));
+    }
+
     @PostMapping("/sla-calculation/trigger")
     public ResponseEntity<SlaCalculationJobRunDto> triggerSlaCalculationJob(
             @AuthenticationPrincipal LoginPayload authenticatedUser,

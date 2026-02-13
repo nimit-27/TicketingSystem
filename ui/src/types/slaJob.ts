@@ -1,4 +1,4 @@
-export type SlaJobScope = "ACTIVE_ONLY" | "ALL_TICKETS";
+export type SlaJobScope = "ACTIVE_ONLY" | "ALL_TICKETS" | "ALL_TICKETS_FROM_SCRATCH";
 export type SlaJobTriggerType = "SCHEDULED" | "MANUAL";
 export type SlaJobRunStatus = "RUNNING" | "COMPLETED" | "COMPLETED_WITH_ERRORS" | "FAILED";
 

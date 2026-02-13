@@ -79,6 +79,10 @@ public class SlaCalculationJobService {
         return triggerRun(SlaJobTriggerType.MANUAL, triggeredBy, SlaJobScope.ALL_TICKETS);
     }
 
+    public SlaCalculationJobRunDto triggerManualAllTicketsFromScratch(String triggeredBy) {
+        return triggerRun(SlaJobTriggerType.MANUAL, triggeredBy, SlaJobScope.ALL_TICKETS_FROM_SCRATCH);
+    }
+
     public SlaCalculationJobRunDto triggerScheduled() {
         return triggerRun(SlaJobTriggerType.SCHEDULED, "SYSTEM", SlaJobScope.ACTIVE_ONLY);
     }
@@ -165,7 +169,11 @@ public class SlaCalculationJobService {
                 for (Ticket ticket : tickets) {
                     processed++;
                     try {
-                        ticketSlaService.calculateAndSaveByCalendar(ticket, historyByTicketId.getOrDefault(ticket.getId(), List.of()));
+                        if (run.getScope() == SlaJobScope.ALL_TICKETS_FROM_SCRATCH) {
+                            ticketSlaService.calculateAndSaveByCalendarFromScratch(ticket, historyByTicketId.getOrDefault(ticket.getId(), List.of()));
+                        } else {
+                            ticketSlaService.calculateAndSaveByCalendar(ticket, historyByTicketId.getOrDefault(ticket.getId(), List.of()));
+                        }
                         success++;
                     } catch (Exception ex) {
                         failed++;
