@@ -25,6 +25,7 @@ import {
 } from "../../services/ReportService";
 import { SlaCalculationJobOverview, SlaCalculationJobRun } from "../../types/slaJob";
 import { useSnackbar } from "../../context/SnackbarContext";
+import { useApi } from "../../hooks/useApi";
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return "-";
@@ -68,21 +69,19 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
 }) => {
   const { showMessage } = useSnackbar();
   const [open, setOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+  const { apiHandler: historyApiHandler, pending: loading } = useApi<SlaCalculationJobOverview>();
+  const { apiHandler: triggerApiHandler } = useApi<SlaCalculationJobRun>();
   const [triggering, setTriggering] = React.useState(false);
   const [overview, setOverview] = React.useState<SlaCalculationJobOverview | null>(null);
 
   const loadOverview = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetchSlaCalculationJobHistory(25);
-      setOverview(response.data);
-    } catch (error) {
+    const response = await historyApiHandler(() => fetchSlaCalculationJobHistory(25));
+    if (!response) {
       showMessage("Unable to load SLA job history", "error");
-    } finally {
-      setLoading(false);
+      return;
     }
-  }, [showMessage]);
+    setOverview(response);
+  }, [historyApiHandler, showMessage]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -95,16 +94,17 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
   const handleTriggerActiveOnly = async () => {
     setTriggering(true);
     try {
-      const response = await triggerSlaCalculationJob();
-      const run: SlaCalculationJobRun = response.data;
+      const run = await triggerApiHandler(() => triggerSlaCalculationJob());
+      if (!run) {
+        showMessage("Failed to trigger SLA calculation job", "error");
+        return;
+      }
       if (run.runStatus === "RUNNING") {
         showMessage("SLA calculation job has been triggered", "success");
       } else {
         showMessage("An SLA job is already running. Showing latest status.", "info");
       }
       await loadOverview();
-    } catch (error) {
-      showMessage("Failed to trigger SLA calculation job", "error");
     } finally {
       setTriggering(false);
     }
@@ -113,16 +113,17 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
   const handleTriggerAllTickets = async () => {
     setTriggering(true);
     try {
-      const response = await triggerSlaCalculationForAllTickets();
-      const run: SlaCalculationJobRun = response.data;
+      const run = await triggerApiHandler(() => triggerSlaCalculationForAllTickets());
+      if (!run) {
+        showMessage("Failed to trigger full SLA recalculation", "error");
+        return;
+      }
       if (run.runStatus === "RUNNING") {
         showMessage("Full SLA recalculation has been triggered for all tickets", "success");
       } else {
         showMessage("An SLA job is already running. Showing latest status.", "info");
       }
       await loadOverview();
-    } catch (error) {
-      showMessage("Failed to trigger full SLA recalculation", "error");
     } finally {
       setTriggering(false);
     }
