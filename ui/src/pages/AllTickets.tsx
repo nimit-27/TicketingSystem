@@ -1,8 +1,11 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TicketsList from "../components/AllTickets/TicketsList";
+import { DevModeContext } from "../context/DevModeContext";
+import SlaCalculationTrigger from "../components/SlaJob/SlaCalculationTrigger";
 
 const AllTickets: React.FC = () => {
+    const { devMode } = useContext(DevModeContext);
     const navigate = useNavigate();
     const [focusRecommendSeverityTicketId, setFocusRecommendSeverityTicketId] = useState<string | null>(null);
 
@@ -34,6 +37,7 @@ const AllTickets: React.FC = () => {
             getViewTicketProps={getViewTicketProps}
             onTicketSelectChange={handleTicketSelectChange}
             allowAll={true}
+            headerRightContent={devMode ? <SlaCalculationTrigger buttonLabel="Trigger SLA Calculation" /> : undefined}
         />
     );
 };
