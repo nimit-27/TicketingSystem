@@ -7,6 +7,8 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  IconButton,
+  MenuItem,
   Stack,
   Table,
   TableBody,
@@ -14,18 +16,20 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import CheckIcon from "@mui/icons-material/Check";
+import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "../UI/Icons/InfoIcon";
 import {
   fetchSlaCalculationJobHistory,
-  triggerSlaCalculationForAllTickets,
-  triggerSlaCalculationForAllTicketsFromScratch,
   triggerSlaCalculationJob,
+  updateTriggerJobPeriod,
 } from "../../services/ReportService";
-import { SlaCalculationJobOverview, SlaCalculationJobRun } from "../../types/slaJob";
+import { SlaCalculationJobOverview, SlaCalculationJobRun, TriggerJob, TriggerPeriod } from "../../types/slaJob";
 import { useSnackbar } from "../../context/SnackbarContext";
 import { useApi } from "../../hooks/useApi";
 
@@ -66,6 +70,18 @@ interface SlaCalculationTriggerProps {
   buttonLabel?: string;
 }
 
+const parseCron = (cronExpression?: string | null) => {
+  const parts = (cronExpression ?? "").split(" ");
+  return {
+    second: parts[0] ?? "0",
+    minute: parts[1] ?? "0",
+    hour: parts[2] ?? "*",
+    dayOfMonth: parts[3] ?? "*",
+    month: parts[4] ?? "*",
+    dayOfWeek: parts[5] ?? "*",
+  };
+};
+
 const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
   buttonLabel = "Trigger SLA Calculation",
 }) => {
@@ -73,8 +89,25 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
   const [open, setOpen] = React.useState(false);
   const { apiHandler: historyApiHandler, pending: loading } = useApi<SlaCalculationJobOverview>();
   const { apiHandler: triggerApiHandler } = useApi<SlaCalculationJobRun>();
+  const { apiHandler: updateApiHandler } = useApi<TriggerJob>();
   const [triggering, setTriggering] = React.useState(false);
   const [overview, setOverview] = React.useState<SlaCalculationJobOverview | null>(null);
+  const [selectedJobCode, setSelectedJobCode] = React.useState("sla_job");
+  const [triggerPeriod, setTriggerPeriod] = React.useState<TriggerPeriod>("MANUAL");
+  const [cronFields, setCronFields] = React.useState(parseCron("0 0 */4 * * *"));
+  const [editingCron, setEditingCron] = React.useState(true);
+
+  const selectedJob = React.useMemo(
+    () => overview?.triggerJobs?.find((item) => item.triggerJobCode === selectedJobCode) ?? overview?.triggerJobs?.[0],
+    [overview?.triggerJobs, selectedJobCode],
+  );
+
+  React.useEffect(() => {
+    if (!selectedJob) return;
+    setTriggerPeriod(selectedJob.triggerPeriod);
+    setCronFields(parseCron(selectedJob.cronExpression));
+    setEditingCron(!selectedJob.cronExpression);
+  }, [selectedJob]);
 
   const slaJobActionInfoContent = (
     <Stack spacing={1}>
@@ -82,13 +115,10 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
         <strong>Refresh:</strong> Reloads the latest SLA job overview and execution history from the server.
       </Typography>
       <Typography variant="body2">
-        <strong>Trigger Active Tickets:</strong> Starts SLA recalculation only for currently active tickets.
+        <strong>Trigger:</strong> Runs the currently selected job from the Job dropdown.
       </Typography>
       <Typography variant="body2">
-        <strong>Recalculate All Tickets:</strong> Re-runs SLA calculations for every ticket using existing baseline due dates.
-      </Typography>
-      <Typography variant="body2">
-        <strong>Recalculate All Tickets (From Scratch):</strong> Rebuilds SLA for every ticket from calendar rules, including recalculating both due-at and actual-due-at values.
+        <strong>Trigger Period:</strong> Manual keeps ad-hoc trigger only, Periodic allows cron setup, Schedule is reserved for upcoming scheduled windows.
       </Typography>
     </Stack>
   );
@@ -100,7 +130,10 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
       return;
     }
     setOverview(response);
-  }, [historyApiHandler, showMessage]);
+    if (!selectedJobCode && response.triggerJobs?.length) {
+      setSelectedJobCode(response.triggerJobs[0].triggerJobCode);
+    }
+  }, [historyApiHandler, showMessage, selectedJobCode]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -110,35 +143,16 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
     return () => window.clearInterval(interval);
   }, [open, loadOverview]);
 
-  const handleTriggerAllTicketsFromScratch = async () => {
+  const handleTrigger = async () => {
     setTriggering(true);
     try {
-      const run = await triggerApiHandler(() => triggerSlaCalculationForAllTicketsFromScratch());
-      if (!run) {
-        showMessage("Failed to trigger from-scratch SLA recalculation", "error");
-        return;
-      }
-      if (run.runStatus === "RUNNING") {
-        showMessage("From-scratch SLA recalculation has been triggered for all tickets", "success");
-      } else {
-        showMessage("An SLA job is already running. Showing latest status.", "info");
-      }
-      await loadOverview();
-    } finally {
-      setTriggering(false);
-    }
-  };
-
-  const handleTriggerActiveOnly = async () => {
-    setTriggering(true);
-    try {
-      const run = await triggerApiHandler(() => triggerSlaCalculationJob());
+      const run = await triggerApiHandler(() => triggerSlaCalculationJob(selectedJobCode));
       if (!run) {
         showMessage("Failed to trigger SLA calculation job", "error");
         return;
       }
       if (run.runStatus === "RUNNING") {
-        showMessage("SLA calculation job has been triggered", "success");
+        showMessage(`${selectedJob?.triggerJobName ?? "Selected"} has been triggered`, "success");
       } else {
         showMessage("An SLA job is already running. Showing latest status.", "info");
       }
@@ -148,23 +162,21 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
     }
   };
 
-  const handleTriggerAllTickets = async () => {
-    setTriggering(true);
-    try {
-      const run = await triggerApiHandler(() => triggerSlaCalculationForAllTickets());
-      if (!run) {
-        showMessage("Failed to trigger full SLA recalculation", "error");
-        return;
-      }
-      if (run.runStatus === "RUNNING") {
-        showMessage("Full SLA recalculation has been triggered for all tickets", "success");
-      } else {
-        showMessage("An SLA job is already running. Showing latest status.", "info");
-      }
-      await loadOverview();
-    } finally {
-      setTriggering(false);
+  const handleSubmitPeriod = async () => {
+    if (!selectedJob) return;
+    const cronExpression = `${cronFields.second} ${cronFields.minute} ${cronFields.hour} ${cronFields.dayOfMonth} ${cronFields.month} ${cronFields.dayOfWeek}`;
+    const payload = {
+      triggerPeriod,
+      cronExpression: triggerPeriod === "PERIODIC" ? cronExpression : null,
+    };
+    const updated = await updateApiHandler(() => updateTriggerJobPeriod(selectedJob.triggerJobCode, payload));
+    if (!updated) {
+      showMessage("Unable to update trigger period", "error");
+      return;
     }
+    showMessage("Trigger period updated", "success");
+    setEditingCron(false);
+    await loadOverview();
   };
 
   return (
@@ -184,25 +196,87 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
               <Button onClick={loadOverview} variant="outlined" startIcon={<RefreshIcon />} disabled={loading}>
                 Refresh
               </Button>
-              <Button onClick={handleTriggerActiveOnly} variant="contained" disabled={triggering || !!overview?.running}>
-                {triggering ? "Triggering..." : "Trigger Active Tickets"}
-              </Button>
-              <Button onClick={handleTriggerAllTickets} color="warning" variant="outlined" disabled={triggering || !!overview?.running}>
-                {triggering ? "Triggering..." : "Recalculate All Tickets"}
-              </Button>
-              <Button onClick={handleTriggerAllTicketsFromScratch} color="error" variant="contained" disabled={triggering || !!overview?.running}>
-                {triggering ? "Triggering..." : "Recalculate All From Scratch"}
+              <Button onClick={handleTrigger} variant="contained" disabled={triggering || !!overview?.running}>
+                {triggering ? "Triggering..." : "Trigger"}
               </Button>
             </Stack>
           </Stack>
         </DialogTitle>
         <DialogContent>
+          <Stack spacing={2} sx={{ mb: 2 }}>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+              <TextField
+                select
+                label="Job"
+                value={selectedJobCode}
+                onChange={(event) => setSelectedJobCode(event.target.value)}
+                disabled={triggering || !!overview?.running}
+                size="small"
+                sx={{ minWidth: 260 }}
+              >
+                {(overview?.triggerJobs ?? []).map((job) => (
+                  <MenuItem key={job.triggerJobCode} value={job.triggerJobCode}>
+                    {job.triggerJobName}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                label="Trigger Period"
+                value={triggerPeriod}
+                onChange={(event) => {
+                  setTriggerPeriod(event.target.value as TriggerPeriod);
+                  setEditingCron(true);
+                }}
+                size="small"
+                sx={{ minWidth: 220 }}
+              >
+                <MenuItem value="MANUAL">Manual</MenuItem>
+                <MenuItem value="PERIODIC">Periodic</MenuItem>
+                <MenuItem value="SCHEDULE">Schedule</MenuItem>
+              </TextField>
+            </Stack>
+
+            {triggerPeriod === "PERIODIC" && (
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1} alignItems={{ xs: "stretch", md: "center" }}>
+                {Object.entries(cronFields).map(([key, value]) => (
+                  <TextField
+                    key={key}
+                    label={key}
+                    value={value}
+                    size="small"
+                    onChange={(event) => setCronFields((prev) => ({ ...prev, [key]: event.target.value }))}
+                    disabled={!editingCron}
+                  />
+                ))}
+                {editingCron ? (
+                  <IconButton color="primary" onClick={handleSubmitPeriod}>
+                    <CheckIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton color="primary" onClick={() => setEditingCron(true)}>
+                    <EditIcon />
+                  </IconButton>
+                )}
+              </Stack>
+            )}
+
+            {triggerPeriod === "SCHEDULE" && <Typography variant="body2">Coming soon!</Typography>}
+
+            {triggerPeriod !== "PERIODIC" && (
+              <Button variant="outlined" size="small" onClick={handleSubmitPeriod} sx={{ width: "fit-content" }}>
+                Save Trigger Period
+              </Button>
+            )}
+          </Stack>
+
           <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ mb: 2 }}>
-            <Chip label={`Running: ${overview?.running ? "Yes" : "No"}`} color={overview?.running ? "warning" : "success"} />
-            <Chip label={`Next Run: ${formatDateTime(overview?.nextScheduledAt)}`} />
-            <Chip label={`Time till next run: ${overview?.minutesUntilNextRun != null ? `${overview.minutesUntilNextRun} min` : "-"}`} />
-            <Chip label={`Cron: ${overview?.cronExpression ?? "-"}`} />
-            <Chip label={`Batch Size: ${overview?.batchSize ?? "-"}`} />
+            <Chip label={`Running: ${selectedJob?.running ? "Yes" : "No"}`} color={selectedJob?.running ? "warning" : "success"} />
+            <Chip label={`Next Run: ${formatDateTime(selectedJob?.nextScheduledAt)}`} />
+            <Chip label={`Time till next run: ${selectedJob?.minutesUntilNextRun != null ? `${selectedJob.minutesUntilNextRun} min` : "-"}`} />
+            <Chip label={`Cron: ${selectedJob?.cronExpression ?? "-"}`} />
+            <Chip label={`Batch Size: ${selectedJob?.batchSize ?? "-"}`} />
           </Stack>
 
           {loading ? (

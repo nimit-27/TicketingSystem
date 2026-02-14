@@ -15,5 +15,6 @@ public class SlaCalculationJobOverviewDto {
     Integer batchSize;
     LocalDateTime nextScheduledAt;
     Long minutesUntilNextRun;
+    List<TriggerJobDto> triggerJobs;
     List<SlaCalculationJobRunDto> history;
 }
