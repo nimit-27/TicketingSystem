@@ -4,6 +4,8 @@ import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobOverviewDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobRunDto;
+import com.ticketingSystem.api.dto.sla.TriggerJobDto;
+import com.ticketingSystem.api.dto.sla.UpdateTriggerPeriodRequestDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
@@ -23,7 +25,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/reports")
@@ -141,8 +148,21 @@ public class ReportsController {
     @PostMapping("/sla-calculation/trigger")
     public ResponseEntity<SlaCalculationJobRunDto> triggerSlaCalculationJob(
             @AuthenticationPrincipal LoginPayload authenticatedUser,
+            @RequestParam(value = "jobCode", required = false, defaultValue = "sla_job") String jobCode,
             @RequestHeader(value = "X-USER-ID", required = false) String userIdHeader) {
-        return ResponseEntity.accepted().body(slaCalculationJobService.triggerManual(resolveTriggeredBy(authenticatedUser, userIdHeader)));
+        return ResponseEntity.accepted().body(slaCalculationJobService.triggerManualByJobCode(jobCode, resolveTriggeredBy(authenticatedUser, userIdHeader)));
+    }
+
+    @GetMapping("/sla-calculation/trigger-jobs")
+    public ResponseEntity<List<TriggerJobDto>> getTriggerJobs() {
+        return ResponseEntity.ok(slaCalculationJobService.getTriggerJobs());
+    }
+
+    @PutMapping("/sla-calculation/trigger-jobs/{jobCode}/period")
+    public ResponseEntity<TriggerJobDto> updateTriggerJobPeriod(
+            @PathVariable("jobCode") String jobCode,
+            @RequestBody UpdateTriggerPeriodRequestDto request) {
+        return ResponseEntity.ok(slaCalculationJobService.updateTriggerPeriod(jobCode, request));
     }
 
     private String resolveTriggeredBy(LoginPayload authenticatedUser, String userIdHeader) {

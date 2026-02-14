@@ -1,7 +1,7 @@
 import apiClient from "./apiClient";
 import { BASE_URL } from "./api";
 import { MISReportRequestParams, SupportDashboardSummaryRequestParams } from "../types/reports";
-import { SlaCalculationJobOverview, SlaCalculationJobRun } from "../types/slaJob";
+import { SlaCalculationJobOverview, SlaCalculationJobRun, TriggerJob } from "../types/slaJob";
 
 export function fetchSupportDashboardSummary(params?: SupportDashboardSummaryRequestParams) {
     return apiClient.get(`${BASE_URL}/reports/support-dashboard-summary`, { params });
@@ -40,8 +40,8 @@ export function fetchSlaCalculationJobHistory(limit: number = 20) {
     return apiClient.get<SlaCalculationJobOverview>(`${BASE_URL}/reports/sla-calculation/history`, { params: { limit } });
 }
 
-export function triggerSlaCalculationJob() {
-    return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger`);
+export function triggerSlaCalculationJob(jobCode: string = "sla_job") {
+    return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger`, undefined, { params: { jobCode } });
 }
 
 
@@ -51,4 +51,12 @@ export function triggerSlaCalculationForAllTickets() {
 
 export function triggerSlaCalculationForAllTicketsFromScratch() {
     return apiClient.post<SlaCalculationJobRun>(`${BASE_URL}/reports/sla-calculation/trigger-all-from-scratch`);
+}
+
+export function fetchTriggerJobs() {
+    return apiClient.get<TriggerJob[]>(`${BASE_URL}/reports/sla-calculation/trigger-jobs`);
+}
+
+export function updateTriggerJobPeriod(jobCode: string, payload: { triggerPeriod: string; cronExpression: string | null }) {
+    return apiClient.put<TriggerJob>(`${BASE_URL}/reports/sla-calculation/trigger-jobs/${jobCode}/period`, payload);
 }
