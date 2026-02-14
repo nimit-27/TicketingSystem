@@ -17,6 +17,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -70,7 +71,25 @@ interface SlaCalculationTriggerProps {
   buttonLabel?: string;
 }
 
-const parseCron = (cronExpression?: string | null) => {
+type CronFields = {
+  second: string;
+  minute: string;
+  hour: string;
+  dayOfMonth: string;
+  month: string;
+  dayOfWeek: string;
+};
+
+const cronRanges: Record<keyof CronFields, [number, number]> = {
+  second: [0, 59],
+  minute: [0, 59],
+  hour: [0, 23],
+  dayOfMonth: [1, 31],
+  month: [1, 12],
+  dayOfWeek: [0, 7],
+};
+
+const parseCron = (cronExpression?: string | null): CronFields => {
   const parts = (cronExpression ?? "").split(" ");
   return {
     second: parts[0] ?? "0",
@@ -79,6 +98,38 @@ const parseCron = (cronExpression?: string | null) => {
     dayOfMonth: parts[3] ?? "*",
     month: parts[4] ?? "*",
     dayOfWeek: parts[5] ?? "*",
+  };
+};
+
+const isNumeric = (value: string) => /^\d+$/.test(value);
+
+const validateCronToken = (token: string, [min, max]: [number, number]) => {
+  const normalized = token.trim();
+  if (!normalized) return "Required";
+  if (normalized === "*") return "";
+
+  if (normalized.startsWith("*/")) {
+    const step = normalized.slice(2);
+    if (!isNumeric(step)) return "Use */n format";
+    const stepNum = Number(step);
+    if (stepNum < 1 || stepNum > max) return `Step must be 1-${max}`;
+    return "";
+  }
+
+  if (!isNumeric(normalized)) return "Only *, */n or number";
+  const numeric = Number(normalized);
+  if (numeric < min || numeric > max) return `Allowed range ${min}-${max}`;
+  return "";
+};
+
+const getCronFieldErrors = (fields: CronFields) => {
+  return {
+    second: validateCronToken(fields.second, cronRanges.second),
+    minute: validateCronToken(fields.minute, cronRanges.minute),
+    hour: validateCronToken(fields.hour, cronRanges.hour),
+    dayOfMonth: validateCronToken(fields.dayOfMonth, cronRanges.dayOfMonth),
+    month: validateCronToken(fields.month, cronRanges.month),
+    dayOfWeek: validateCronToken(fields.dayOfWeek, cronRanges.dayOfWeek),
   };
 };
 
@@ -94,8 +145,14 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
   const [overview, setOverview] = React.useState<SlaCalculationJobOverview | null>(null);
   const [selectedJobCode, setSelectedJobCode] = React.useState("sla_job");
   const [triggerPeriod, setTriggerPeriod] = React.useState<TriggerPeriod>("MANUAL");
-  const [cronFields, setCronFields] = React.useState(parseCron("0 0 */4 * * *"));
+  const [cronFields, setCronFields] = React.useState<CronFields>(parseCron("0 0 */4 * * *"));
   const [editingCron, setEditingCron] = React.useState(true);
+
+  const cronFieldErrors = React.useMemo(() => getCronFieldErrors(cronFields), [cronFields]);
+  const isCronValid = React.useMemo(
+    () => Object.values(cronFieldErrors).every((message) => !message),
+    [cronFieldErrors],
+  );
 
   const selectedJob = React.useMemo(
     () => overview?.triggerJobs?.find((item) => item.triggerJobCode === selectedJobCode) ?? overview?.triggerJobs?.[0],
@@ -119,6 +176,9 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
       </Typography>
       <Typography variant="body2">
         <strong>Trigger Period:</strong> Manual keeps ad-hoc trigger only, Periodic allows cron setup, Schedule is reserved for upcoming scheduled windows.
+      </Typography>
+      <Typography variant="body2">
+        <strong>Cron examples:</strong> Every 4 hours: <code>0 0 */4 * * *</code> · Every 15 min: <code>0 */15 * * * *</code>
       </Typography>
     </Stack>
   );
@@ -164,16 +224,23 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
 
   const handleSubmitPeriod = async () => {
     if (!selectedJob) return;
+    if (triggerPeriod === "PERIODIC" && !isCronValid) {
+      showMessage("Please fix cron field errors before saving.", "error");
+      return;
+    }
+
     const cronExpression = `${cronFields.second} ${cronFields.minute} ${cronFields.hour} ${cronFields.dayOfMonth} ${cronFields.month} ${cronFields.dayOfWeek}`;
     const payload = {
       triggerPeriod,
       cronExpression: triggerPeriod === "PERIODIC" ? cronExpression : null,
     };
+
     const updated = await updateApiHandler(() => updateTriggerJobPeriod(selectedJob.triggerJobCode, payload));
     if (!updated) {
       showMessage("Unable to update trigger period", "error");
       return;
     }
+
     showMessage("Trigger period updated", "success");
     setEditingCron(false);
     await loadOverview();
@@ -239,26 +306,40 @@ const SlaCalculationTrigger: React.FC<SlaCalculationTriggerProps> = ({
             </Stack>
 
             {triggerPeriod === "PERIODIC" && (
-              <Stack direction={{ xs: "column", md: "row" }} spacing={1} alignItems={{ xs: "stretch", md: "center" }}>
-                {Object.entries(cronFields).map(([key, value]) => (
-                  <TextField
-                    key={key}
-                    label={key}
-                    value={value}
-                    size="small"
-                    onChange={(event) => setCronFields((prev) => ({ ...prev, [key]: event.target.value }))}
-                    disabled={!editingCron}
-                  />
-                ))}
-                {editingCron ? (
-                  <IconButton color="primary" onClick={handleSubmitPeriod}>
-                    <CheckIcon />
-                  </IconButton>
-                ) : (
-                  <IconButton color="primary" onClick={() => setEditingCron(true)}>
-                    <EditIcon />
-                  </IconButton>
-                )}
+              <Stack spacing={1.5}>
+                <Stack direction={{ xs: "column", md: "row" }} spacing={1} alignItems={{ xs: "stretch", md: "flex-start" }}>
+                  {Object.entries(cronFields).map(([key, value]) => {
+                    const fieldKey = key as keyof CronFields;
+                    return (
+                      <TextField
+                        key={key}
+                        label={key}
+                        value={value}
+                        size="small"
+                        onChange={(event) => setCronFields((prev) => ({ ...prev, [fieldKey]: event.target.value }))}
+                        disabled={!editingCron}
+                        error={Boolean(cronFieldErrors[fieldKey])}
+                        helperText={cronFieldErrors[fieldKey] || " "}
+                      />
+                    );
+                  })}
+                  {editingCron ? (
+                    <Tooltip title={isCronValid ? "Save cron" : "Fix cron errors to save"}>
+                      <span>
+                        <IconButton color="primary" onClick={handleSubmitPeriod} disabled={!isCronValid}>
+                          <CheckIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <IconButton color="primary" onClick={() => setEditingCron(true)}>
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                </Stack>
+                <Typography variant="caption" color="text.secondary">
+                  Use <code>*</code>, <code>*/n</code>, or exact number. Examples: every 4 hours <code>0 0 */4 * * *</code>, every 15 minutes <code>0 */15 * * * *</code>.
+                </Typography>
               </Stack>
             )}
 

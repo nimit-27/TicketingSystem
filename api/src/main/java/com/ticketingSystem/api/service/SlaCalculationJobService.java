@@ -25,8 +25,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -146,12 +148,31 @@ public class SlaCalculationJobService {
 
     public TriggerJobDto updateTriggerPeriod(String triggerJobCode, UpdateTriggerPeriodRequestDto request) {
         TriggerJob triggerJob = triggerJobRepository.findByTriggerJobCode(triggerJobCode)
-                .orElseThrow(() -> new IllegalArgumentException("Trigger job not found: " + triggerJobCode));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trigger job not found: " + triggerJobCode));
 
-        TriggerPeriod period = TriggerPeriod.valueOf(request.getTriggerPeriod().toUpperCase());
+        if (request == null || request.getTriggerPeriod() == null || request.getTriggerPeriod().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "triggerPeriod is required");
+        }
+
+        TriggerPeriod period;
+        try {
+            period = TriggerPeriod.valueOf(request.getTriggerPeriod().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid triggerPeriod value", ex);
+        }
+
         triggerJob.setTriggerPeriod(period);
         if (period == TriggerPeriod.PERIODIC) {
-            triggerJob.setCronExpression(request.getCronExpression());
+            String cron = request.getCronExpression();
+            if (cron == null || cron.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cronExpression is required for PERIODIC triggerPeriod");
+            }
+            try {
+                CronExpression.parse(cron);
+            } catch (Exception ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid cronExpression", ex);
+            }
+            triggerJob.setCronExpression(cron);
         } else {
             triggerJob.setCronExpression(null);
         }
