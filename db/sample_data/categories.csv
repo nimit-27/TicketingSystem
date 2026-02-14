@@ -1,0 +1,7 @@
+category_id,category,created_by,timestamp,last_updated,updated_by,is_active
+CAT-100,Access & Auth,system,2025-01-02 09:10:00,2025-01-02 09:10:00,system,Y
+CAT-200,Data Management,system,2025-01-02 09:12:00,2025-01-02 09:12:00,system,Y
+CAT-300,Integrations,system,2025-01-02 09:14:00,2025-01-02 09:14:00,system,Y
+CAT-400,Reporting & Analytics,system,2025-01-02 09:16:00,2025-01-02 09:16:00,system,Y
+CAT-500,UI/UX,system,2025-01-02 09:18:00,2025-01-02 09:18:00,system,Y
+CAT-600,Infrastructure,system,2025-01-02 09:20:00,2025-01-02 09:20:00,system,Y

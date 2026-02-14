@@ -1,0 +1,11 @@
+sub_category_id,sub_category,description,created_by,timestamp,category_id,severity_id,is_active,last_updated,updated_by
+SUB-101,Password reset fails,Reset link expired or OTP missing,system,2025-01-02 10:00:00,CAT-100,S3,Y,2025-01-02 10:00:00,system
+SUB-102,Account locked,Too many failed attempts,system,2025-01-02 10:05:00,CAT-100,S2,Y,2025-01-02 10:05:00,system
+SUB-201,Data import errors,Validation failures in batch import,system,2025-01-02 10:10:00,CAT-200,S3,Y,2025-01-02 10:10:00,system
+SUB-202,Missing records,Reports show missing rows,system,2025-01-02 10:12:00,CAT-200,S2,Y,2025-01-02 10:12:00,system
+SUB-301,API timeouts,Upstream API latency,system,2025-01-02 10:15:00,CAT-300,S2,Y,2025-01-02 10:15:00,system
+SUB-302,Webhook failures,Callbacks not delivered,system,2025-01-02 10:18:00,CAT-300,S3,Y,2025-01-02 10:18:00,system
+SUB-401,KPI mismatch,Dashboard KPI doesn't match raw data,system,2025-01-02 10:20:00,CAT-400,S1,Y,2025-01-02 10:20:00,system
+SUB-402,Report scheduling fails,Recurring report not emailed,system,2025-01-02 10:22:00,CAT-400,S3,Y,2025-01-02 10:22:00,system
+SUB-501,Button misaligned,UI alignment issue on ticket form,system,2025-01-02 10:25:00,CAT-500,S4,Y,2025-01-02 10:25:00,system
+SUB-601,Service outage,Service unavailable in one region,system,2025-01-02 10:30:00,CAT-600,S1,Y,2025-01-02 10:30:00,system
