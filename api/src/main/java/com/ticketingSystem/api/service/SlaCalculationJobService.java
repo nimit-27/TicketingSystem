@@ -2,17 +2,23 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobOverviewDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobRunDto;
+import com.ticketingSystem.api.dto.sla.TriggerJobDto;
+import com.ticketingSystem.api.dto.sla.UpdateTriggerPeriodRequestDto;
 import com.ticketingSystem.api.enums.SlaJobRunStatus;
 import com.ticketingSystem.api.enums.SlaJobScope;
 import com.ticketingSystem.api.enums.SlaJobTriggerType;
 import com.ticketingSystem.api.enums.TicketStatus;
+import com.ticketingSystem.api.enums.TriggerPeriod;
 import com.ticketingSystem.api.models.SlaCalculationJobRun;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
+import com.ticketingSystem.api.models.TriggerJob;
 import com.ticketingSystem.api.repository.SlaCalculationJobRunRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
+import com.ticketingSystem.api.repository.TriggerJobRepository;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +51,7 @@ public class SlaCalculationJobService {
     private final StatusHistoryRepository statusHistoryRepository;
     private final TicketSlaService ticketSlaService;
     private final SlaCalculationJobRunRepository runRepository;
+    private final TriggerJobRepository triggerJobRepository;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -64,15 +71,30 @@ public class SlaCalculationJobService {
     public SlaCalculationJobService(TicketRepository ticketRepository,
                                     StatusHistoryRepository statusHistoryRepository,
                                     TicketSlaService ticketSlaService,
-                                    SlaCalculationJobRunRepository runRepository) {
+                                    SlaCalculationJobRunRepository runRepository,
+                                    TriggerJobRepository triggerJobRepository) {
         this.ticketRepository = ticketRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.ticketSlaService = ticketSlaService;
         this.runRepository = runRepository;
+        this.triggerJobRepository = triggerJobRepository;
+    }
+
+    @PostConstruct
+    public void initializeTriggerJobs() {
+        ensureTriggerJob("sla_job", "SLA Job", batchSize, TriggerPeriod.PERIODIC, cronExpression);
+        ensureTriggerJob("sla_job_from_scratch", "SLA Job from Scratch", batchSize, TriggerPeriod.MANUAL, null);
     }
 
     public SlaCalculationJobRunDto triggerManual(String triggeredBy) {
         return triggerRun(SlaJobTriggerType.MANUAL, triggeredBy, SlaJobScope.ACTIVE_ONLY);
+    }
+
+    public SlaCalculationJobRunDto triggerManualByJobCode(String jobCode, String triggeredBy) {
+        if ("sla_job_from_scratch".equalsIgnoreCase(jobCode)) {
+            return triggerManualAllTicketsFromScratch(triggeredBy);
+        }
+        return triggerManual(triggeredBy);
     }
 
     public SlaCalculationJobRunDto triggerManualAllTickets(String triggeredBy) {
@@ -113,8 +135,33 @@ public class SlaCalculationJobService {
                 .batchSize(batchSize)
                 .nextScheduledAt(next)
                 .minutesUntilNextRun(minutesUntilNext)
+                .triggerJobs(getTriggerJobs())
                 .history(history)
                 .build();
+    }
+
+    public List<TriggerJobDto> getTriggerJobs() {
+        return triggerJobRepository.findAll().stream().map(this::toTriggerJobDto).toList();
+    }
+
+    public TriggerJobDto updateTriggerPeriod(String triggerJobCode, UpdateTriggerPeriodRequestDto request) {
+        TriggerJob triggerJob = triggerJobRepository.findByTriggerJobCode(triggerJobCode)
+                .orElseThrow(() -> new IllegalArgumentException("Trigger job not found: " + triggerJobCode));
+
+        TriggerPeriod period = TriggerPeriod.valueOf(request.getTriggerPeriod().toUpperCase());
+        triggerJob.setTriggerPeriod(period);
+        if (period == TriggerPeriod.PERIODIC) {
+            triggerJob.setCronExpression(request.getCronExpression());
+        } else {
+            triggerJob.setCronExpression(null);
+        }
+
+        if ("sla_job".equalsIgnoreCase(triggerJobCode) && period == TriggerPeriod.PERIODIC && request.getCronExpression() != null) {
+            cronExpression = request.getCronExpression();
+        }
+
+        TriggerJob saved = triggerJobRepository.save(triggerJob);
+        return toTriggerJobDto(saved);
     }
 
     private SlaCalculationJobRunDto triggerRun(SlaJobTriggerType triggerType, String triggeredBy, SlaJobScope scope) {
@@ -250,6 +297,49 @@ public class SlaCalculationJobService {
             log.warn("Unable to parse SLA calculation cron expression: {}", cronExpression, ex);
             return null;
         }
+    }
+
+    private TriggerJobDto toTriggerJobDto(TriggerJob triggerJob) {
+        LocalDateTime next = null;
+        Long minutesUntilNext = null;
+        if (triggerJob.getTriggerPeriod() == TriggerPeriod.PERIODIC && triggerJob.getCronExpression() != null) {
+            try {
+                CronExpression cron = CronExpression.parse(triggerJob.getCronExpression());
+                ZoneId zoneId = ZoneId.of(schedulerZone);
+                ZonedDateTime nextRun = cron.next(ZonedDateTime.now(zoneId));
+                next = nextRun != null ? nextRun.toLocalDateTime() : null;
+                minutesUntilNext = next == null ? null : Duration.between(LocalDateTime.now(), next).toMinutes();
+            } catch (Exception ex) {
+                log.warn("Invalid cron expression for trigger job {}", triggerJob.getTriggerJobCode(), ex);
+            }
+        }
+
+        return TriggerJobDto.builder()
+                .triggerJobId(String.valueOf(triggerJob.getTriggerJobId()))
+                .triggerJobCode(triggerJob.getTriggerJobCode())
+                .triggerJobName(triggerJob.getTriggerJobName())
+                .batchSize(triggerJob.getBatchSize())
+                .triggerPeriod(triggerJob.getTriggerPeriod().name())
+                .cronExpression(triggerJob.getCronExpression())
+                .minutesUntilNextRun(minutesUntilNext)
+                .nextScheduledAt(next)
+                .running(running.get())
+                .build();
+    }
+
+    private void ensureTriggerJob(String code, String name, int configuredBatchSize, TriggerPeriod period, String cron) {
+        if (triggerJobRepository.findByTriggerJobCode(code).isPresent()) {
+            return;
+        }
+
+        TriggerJob triggerJob = new TriggerJob();
+        triggerJob.setTriggerJobCode(code);
+        triggerJob.setTriggerJobName(name);
+        triggerJob.setBatchSize(configuredBatchSize);
+        triggerJob.setTriggerPeriod(period);
+        triggerJob.setCronExpression(cron);
+        triggerJob.setRunning(false);
+        triggerJobRepository.save(triggerJob);
     }
 
     private SlaCalculationJobRunDto toDto(SlaCalculationJobRun run) {

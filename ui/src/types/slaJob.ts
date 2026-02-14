@@ -26,5 +26,20 @@ export interface SlaCalculationJobOverview {
   batchSize: number;
   nextScheduledAt?: string | null;
   minutesUntilNextRun?: number | null;
+  triggerJobs?: TriggerJob[];
   history: SlaCalculationJobRun[];
+}
+
+export type TriggerPeriod = "MANUAL" | "PERIODIC" | "SCHEDULE";
+
+export interface TriggerJob {
+  triggerJobId: string;
+  triggerJobCode: string;
+  triggerJobName: string;
+  batchSize: number;
+  triggerPeriod: TriggerPeriod;
+  cronExpression?: string | null;
+  minutesUntilNextRun?: number | null;
+  nextScheduledAt?: string | null;
+  running: boolean;
 }
