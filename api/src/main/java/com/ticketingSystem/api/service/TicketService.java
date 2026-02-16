@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
 import org.typesense.model.SearchRequestParams;
@@ -226,6 +227,7 @@ public class TicketService {
         return mapWithStatusId(ticket);
     }
 
+    @Transactional
     public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
 
@@ -597,6 +599,7 @@ public class TicketService {
                 .toList();
     }
 
+    @Transactional
     public TicketDto updateTicket(String id, Ticket updated) {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
@@ -700,7 +703,9 @@ public class TicketService {
                 isReopenedStatus = TicketStatus.REOPENED.name().equalsIgnoreCase(updatedStatusCode);
             }
         }
+        boolean assignmentClearedByReopen = false;
         if (isReopenedStatus) {
+            assignmentClearedByReopen = existing.getAssignedTo() != null && !existing.getAssignedTo().isBlank();
             existing.setResolvedAt(null);
             existing.setAssignedTo(null);
             existing.setAssignedToLevel(null);
@@ -736,6 +741,14 @@ public class TicketService {
                     previousAssignedTo,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
+            );
+        } else if (assignmentClearedByReopen) {
+            assignmentHistoryService.addHistory(
+                    id,
+                    updatedBy,
+                    null,
+                    null,
+                    remark != null ? remark : "Unassigned on reopen"
             );
         }
         // ensure status history is recorded whenever status changes via actions

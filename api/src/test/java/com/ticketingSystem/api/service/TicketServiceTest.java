@@ -618,6 +618,39 @@ class TicketServiceTest {
         );
     }
 
+
+    @Test
+    void updateTicket_reopenClearsAssignment_addsUnassignmentHistory() {
+        String ticketId = "T-REOPEN";
+        Ticket existing = buildExistingTicket(ticketId, "agent1");
+        existing.setAssignedToLevel("L1");
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Status reopenedStatus = new Status();
+        reopenedStatus.setStatusId("REOPENED_ID");
+        reopenedStatus.setStatusCode(TicketStatus.REOPENED.name());
+        when(workflowService.getStatusIdByCode(TicketStatus.REOPENED.name())).thenReturn("REOPENED_ID");
+        when(workflowService.getStatusCodeById("REOPENED_ID")).thenReturn(TicketStatus.REOPENED.name());
+        when(statusMasterRepository.findById("REOPENED_ID")).thenReturn(Optional.of(reopenedStatus));
+        when(workflowService.getSlaFlagByStatusId("REOPENED_ID")).thenReturn(Boolean.TRUE);
+
+        Ticket update = new Ticket();
+        update.setTicketStatus(TicketStatus.REOPENED);
+        update.setUpdatedBy("agent2");
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(assignmentHistoryService).addHistory(
+                eq(ticketId),
+                eq("agent2"),
+                isNull(),
+                isNull(),
+                eq("Unassigned on reopen")
+        );
+    }
+
     @Test
     void markAsMaster_setsMasterFlagsAndClearsMasterId() {
         String ticketId = "T-5";
