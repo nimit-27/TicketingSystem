@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -30,15 +31,18 @@ public class TicketFeedbackService {
     private final TicketFeedbackRepository feedbackRepository;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
+    private final StatusHistoryService statusHistoryService;
 
     public TicketFeedbackService(TicketRepository ticketRepository,
                                  TicketFeedbackRepository feedbackRepository,
                                  TicketStatusWorkflowService workflowService,
-                                 StatusMasterRepository statusMasterRepository) {
+                                 StatusMasterRepository statusMasterRepository,
+                                 StatusHistoryService statusHistoryService) {
         this.ticketRepository = ticketRepository;
         this.feedbackRepository = feedbackRepository;
         this.workflowService = workflowService;
         this.statusMasterRepository = statusMasterRepository;
+        this.statusHistoryService = statusHistoryService;
     }
 
     public FeedbackFormDTO getForm(String ticketId, String currentUserId) {
@@ -63,6 +67,7 @@ public class TicketFeedbackService {
         return new FeedbackFormDTO(ticketId, ticket.getResolvedAt());
     }
 
+    @Transactional
     public TicketFeedbackResponse submit(String ticketId, String currentUserId, SubmitFeedbackRequest req) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
@@ -83,6 +88,10 @@ public class TicketFeedbackService {
         try {
             TicketFeedback saved = feedbackRepository.save(feedback);
 
+            String previousStatusId = ticket.getStatus() != null
+                    ? ticket.getStatus().getStatusId()
+                    : (ticket.getTicketStatus() != null ? workflowService.getStatusIdByCode(ticket.getTicketStatus().name()) : null);
+
             ticket.setTicketStatus(TicketStatus.CLOSED);
             ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
             String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
@@ -90,6 +99,12 @@ public class TicketFeedbackService {
                 statusMasterRepository.findById(closedId).ifPresent(ticket::setStatus);
             }
             ticketRepository.save(ticket);
+
+            if (closedId != null && (previousStatusId == null || !closedId.equals(previousStatusId))) {
+                Boolean slaFlag = workflowService.getSlaFlagByStatusId(closedId);
+                statusHistoryService.addHistory(ticket.getId(), currentUserId, previousStatusId, closedId, slaFlag, "Closed after feedback submission");
+            }
+
             return toResponse(ticket, saved);
         } catch (Exception ex) {
             throw new FeedbackSubmissionException(ticketId, ex);
