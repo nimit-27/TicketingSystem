@@ -53,6 +53,8 @@ const getConfirmationText = (action?: string) => {
   }
 };
 
+const REMARK_CHAR_LIMIT = 255;
+
 const RemarkComponent: React.FC<RemarkComponentProps> = ({
   actionName,
   message,
@@ -71,6 +73,8 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
 }) => {
   const [remark, setRemark] = useState(defaultRemark);
   const [errorMessage, setErrorMessage] = useState('');
+  const remarkLength = remark.length;
+  const isRemarkOverLimit = remarkLength > REMARK_CHAR_LIMIT;
 
   useEffect(() => {
     if (isModal) {
@@ -90,6 +94,10 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
     const trimmedRemark = remark.trim();
     if (!trimmedRemark) {
       setErrorMessage('Remark cannot be empty.');
+      return;
+    }
+    if (trimmedRemark.length > REMARK_CHAR_LIMIT) {
+      setErrorMessage(`Remark must be ${REMARK_CHAR_LIMIT} characters or fewer.`);
       return;
     }
     setErrorMessage('');
@@ -126,7 +134,11 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
         autoFocus
         error={Boolean(errorMessage)}
         helperText={errorMessage}
+        inputProps={{ maxLength: REMARK_CHAR_LIMIT }}
       />
+      <small className={`d-block mt-1 ${isRemarkOverLimit ? 'text-danger' : 'text-muted'}`}>
+        {remarkLength}/{REMARK_CHAR_LIMIT}
+      </small>
     </Box>
   );
 

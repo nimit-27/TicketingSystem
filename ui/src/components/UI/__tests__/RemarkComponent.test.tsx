@@ -65,6 +65,26 @@ describe('RemarkComponent', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
+
+  it('limits remark input to 255 characters', async () => {
+    const onSubmit = jest.fn();
+    const onCancel = jest.fn();
+
+    renderWithTheme(
+      <RemarkComponent actionName="Close" onSubmit={onSubmit} onCancel={onCancel} />,
+    );
+
+    const input = screen.getByRole('textbox');
+    await userEvent.type(input, 'a'.repeat(300));
+
+    expect((input as HTMLInputElement).value).toHaveLength(255);
+    expect(screen.getByText('255/255')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(onSubmit).toHaveBeenCalledWith('a'.repeat(255));
+  });
+
   it('blocks empty remarks', async () => {
     const onSubmit = jest.fn();
     const onCancel = jest.fn();
