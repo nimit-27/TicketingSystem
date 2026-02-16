@@ -52,6 +52,7 @@ import org.springframework.data.domain.Pageable;
 @Service
 @RequiredArgsConstructor
 public class TicketService {
+    private static final int REMARK_MAX_LENGTH = 255;
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
@@ -211,6 +212,12 @@ public class TicketService {
         return (primary != null && !primary.isBlank()) ? primary : fallback;
     }
 
+    private void validateRemarkLength(String remark) {
+        if (remark != null && remark.length() > REMARK_MAX_LENGTH) {
+            throw new InvalidRequestException("Remark must be 255 characters or fewer.");
+        }
+    }
+
     public Page<TicketDto> getTickets(String priority, Pageable pageable) {
         Page<Ticket> ticketPage;
         if (priority != null && !priority.equalsIgnoreCase("All")) {
@@ -230,6 +237,7 @@ public class TicketService {
     @Transactional
     public TicketDto addTicket(Ticket ticket) {
         System.out.println("TicketService: addTicket - method");
+        validateRemarkLength(ticket.getRemark());
 
         // SETTING Mode
         if (ticket.getMode() == null && ticket.getModeId() != null) {
@@ -601,6 +609,7 @@ public class TicketService {
 
     @Transactional
     public TicketDto updateTicket(String id, Ticket updated) {
+        validateRemarkLength(updated.getRemark());
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 

@@ -3,6 +3,7 @@ package com.ticketingSystem.api.service;
 import com.ticketingSystem.api.dto.TicketDto;
 import com.ticketingSystem.api.enums.RecommendedSeverityStatus;
 import com.ticketingSystem.api.enums.TicketStatus;
+import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
@@ -32,6 +33,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -78,6 +80,18 @@ class TicketServiceTest {
 
     @InjectMocks
     private TicketService ticketService;
+
+    @Test
+    void addTicket_withRemarkLongerThan255_throwsInvalidRequestException() {
+        Ticket ticket = new Ticket();
+        ticket.setRemark("x".repeat(256));
+
+        assertThatThrownBy(() -> ticketService.addTicket(ticket))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Remark must be 255 characters or fewer.");
+
+        verifyNoInteractions(ticketRepository);
+    }
 
     @Test
     void searchTickets_withAssignedToUserId_resolvesUsernameAndQueriesBothIdentifiers() {
