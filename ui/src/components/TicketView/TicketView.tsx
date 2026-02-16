@@ -410,6 +410,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const allowCategoryEdit = checkAccessMaster(['ticketView', 'category', 'allowEdit'])
   const showSubcategory = checkAccessMaster(['ticketView', 'subcategory'])
   const allowSubcategoryEdit = checkAccessMaster(['ticketView', 'subcategory', 'allowEdit'])
+  const allowSeverityEdit = checkAccessMaster(['ticketView', 'severity', 'allowEdit'])
   const showIssueType = checkAccessMaster(['ticketView', 'issueType'])
   const showSla = checkAccessMaster(['ticketView', 'sla'])
   const showComments = checkAccessMaster(['ticketView', 'comments'])
@@ -723,9 +724,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     value: string,
     setValue: (v: string) => void,
     options: string[] | DropdownOption[],
-    config: { displayValue?: string; translate?: boolean; disabled?: boolean } = {}
-  ) => (
-    editing ? (
+    config: { displayValue?: string; translate?: boolean; disabled?: boolean; editing?: boolean } = {}
+  ) => {
+    const isEditing = config.editing ?? editing;
+    return isEditing ? (
       <Select
         value={value || ''}
         onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
@@ -754,8 +756,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             ? (config.translate === false ? value : t(value))
             : ' - '}
       </Typography>
-    )
-  );
+    );
+  };
 
   const canEscalate = isItManager && ticket?.statusId === '6';
 
@@ -1239,7 +1241,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           </Box>}
           {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
-            <Typography>{ticket.severity ? t(ticket.severity) : ''}</Typography>
+            {renderSelect(severity, setSeverity, severityOptions, {
+              displayValue: ticket.severity,
+              editing: allowSeverityEdit && editing,
+            })}
             <InfoIcon content={severityInfoContent} />
             {recommendSeverityAction
               ? !showSeverityToRecommendSeverity
