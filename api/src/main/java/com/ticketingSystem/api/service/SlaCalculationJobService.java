@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SlaCalculationJobService {
     private static final Logger log = LoggerFactory.getLogger(SlaCalculationJobService.class);
     private static final Set<TicketStatus> EXCLUDED_STATUSES = EnumSet.of(TicketStatus.CLOSED, TicketStatus.RESOLVED);
+    private static final int ERROR_SUMMARY_MAX_LENGTH = 1000;
 
     private final TicketRepository ticketRepository;
     private final StatusHistoryRepository statusHistoryRepository;
@@ -260,14 +261,14 @@ public class SlaCalculationJobService {
             run.setSucceededTickets(success);
             run.setFailedTickets(failed);
             run.setRunStatus(failed > 0 ? SlaJobRunStatus.COMPLETED_WITH_ERRORS : SlaJobRunStatus.COMPLETED);
-            run.setErrorSummary(errors.isEmpty() ? null : String.join(" | ", errors));
+            run.setErrorSummary(buildErrorSummary(errors));
             run.setCompletedAt(LocalDateTime.now());
             run.setDurationMs(Duration.between(startedAt, run.getCompletedAt()).toMillis());
             runRepository.save(run);
         } catch (Exception ex) {
             runRepository.findById(runId).ifPresent(run -> {
                 run.setRunStatus(SlaJobRunStatus.FAILED);
-                run.setErrorSummary(ex.getMessage());
+                run.setErrorSummary(truncateErrorSummary(ex.getMessage()));
                 run.setCompletedAt(LocalDateTime.now());
                 run.setDurationMs(Duration.between(startedAt, run.getCompletedAt()).toMillis());
                 runRepository.save(run);
@@ -380,6 +381,28 @@ public class SlaCalculationJobService {
                 .batchSize(run.getBatchSize())
                 .errorSummary(run.getErrorSummary())
                 .build();
+    }
+
+    private String buildErrorSummary(List<String> errors) {
+        if (errors == null || errors.isEmpty()) {
+            return null;
+        }
+
+        return truncateErrorSummary(String.join(" | ", errors));
+    }
+
+    private String truncateErrorSummary(String summary) {
+        if (summary == null || summary.length() <= ERROR_SUMMARY_MAX_LENGTH) {
+            return summary;
+        }
+
+        String suffix = "...(truncated)";
+        int available = ERROR_SUMMARY_MAX_LENGTH - suffix.length();
+        if (available <= 0) {
+            return summary.substring(0, ERROR_SUMMARY_MAX_LENGTH);
+        }
+
+        return summary.substring(0, available) + suffix;
     }
 
     @PreDestroy
