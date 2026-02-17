@@ -53,7 +53,7 @@ const getConfirmationText = (action?: string) => {
   }
 };
 
-const REMARK_CHAR_LIMIT = 255;
+const REMARK_CHAR_LIMIT = 250;
 
 const RemarkComponent: React.FC<RemarkComponentProps> = ({
   actionName,
@@ -97,7 +97,7 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
       return;
     }
     if (trimmedRemark.length > REMARK_CHAR_LIMIT) {
-      setErrorMessage(`Remark must be ${REMARK_CHAR_LIMIT} characters or fewer.`);
+      setErrorMessage('Remark cannot be more than 250 characters long');
       return;
     }
     setErrorMessage('');
@@ -134,7 +134,6 @@ const RemarkComponent: React.FC<RemarkComponentProps> = ({
         autoFocus
         error={Boolean(errorMessage)}
         helperText={errorMessage}
-        inputProps={{ maxLength: REMARK_CHAR_LIMIT }}
       />
       <small className={`d-block mt-1 ${isRemarkOverLimit ? 'text-danger' : 'text-muted'}`}>
         {remarkLength}/{REMARK_CHAR_LIMIT}

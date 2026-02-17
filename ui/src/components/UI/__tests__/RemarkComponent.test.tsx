@@ -66,7 +66,7 @@ describe('RemarkComponent', () => {
   });
 
 
-  it('limits remark input to 255 characters', async () => {
+  it('allows typing beyond 250 characters but blocks submit', async () => {
     const onSubmit = jest.fn();
     const onCancel = jest.fn();
 
@@ -77,12 +77,13 @@ describe('RemarkComponent', () => {
     const input = screen.getByRole('textbox');
     await userEvent.type(input, 'a'.repeat(300));
 
-    expect((input as HTMLInputElement).value).toHaveLength(255);
-    expect(screen.getByText('255/255')).toBeInTheDocument();
+    expect((input as HTMLInputElement).value).toHaveLength(300);
+    expect(screen.getByText('300/250')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    expect(onSubmit).toHaveBeenCalledWith('a'.repeat(255));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Remark cannot be more than 250 characters long')).toBeInTheDocument();
   });
 
   it('blocks empty remarks', async () => {
