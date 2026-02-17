@@ -48,6 +48,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -367,13 +369,15 @@ public class TicketService {
 
         if (isAssigned) {
             // SEND NOTIFICATION
-            sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
-            sendRequestorAssignmentNotification(
-                    saved,
-                    null,
-                    saved.getAssignedTo(),
-                    saved.getAssignedBy() != null ? saved.getAssignedBy() : saved.getUpdatedBy()
-            );
+            runNotificationAfterCommit(() -> {
+                sendAssignmentNotification(saved, saved.getAssignedTo(), saved.getAssignedBy());
+                sendRequestorAssignmentNotification(
+                        saved,
+                        null,
+                        saved.getAssignedTo(),
+                        saved.getAssignedBy() != null ? saved.getAssignedBy() : saved.getUpdatedBy()
+                );
+            });
         }
 
         if (saved.getReportedDate() != null && saved.getSeverity() != null) {
@@ -739,18 +743,18 @@ public class TicketService {
                 previousStatusId = assignedId;
             }
 // NOTIFY ASSIGNEE
-            sendAssignmentNotification(
+            runNotificationAfterCommit(() -> sendAssignmentNotification(
                     saved,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
-            );
+            ));
 // NOTIFY REQUESTOR
-            sendRequestorAssignmentNotification(
+            runNotificationAfterCommit(() -> sendRequestorAssignmentNotification(
                     saved,
                     previousAssignedTo,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
-            );
+            ));
         } else if (assignmentClearedByReopen) {
             assignmentHistoryService.addHistory(
                     id,
@@ -768,7 +772,7 @@ public class TicketService {
             boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
 
-            sendStatusUpdateNotification(
+            runNotificationAfterCommit(() -> sendStatusUpdateNotification(
                     saved,
                     previousStatus,
                     previousStatusEntity,
@@ -776,7 +780,7 @@ public class TicketService {
                     updatedStatus,
                     updatedStatusId,
                     updatedBy
-            );
+            ));
         }
 
         if ((recommendedSeverityChanged || recommendedByChanged)
@@ -1123,6 +1127,30 @@ public class TicketService {
                 ex.printStackTrace();
             }
         }
+    }
+
+
+    private void runNotificationAfterCommit(Runnable notificationAction) {
+        Runnable safeAction = () -> {
+            try {
+                notificationAction.run();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        };
+
+        if (!TransactionSynchronizationManager.isSynchronizationActive()
+                || !TransactionSynchronizationManager.isActualTransactionActive()) {
+            safeAction.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                safeAction.run();
+            }
+        });
     }
 
     private Optional<String> findRoleIdByName(String roleName) {
@@ -1497,7 +1525,7 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
         addLinkingHistory(saved, updatedBy, String.format("Linked to master ticket %s", masterId));
-        sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy);
+        runNotificationAfterCommit(() -> sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy));
         return mapWithStatusId(saved);
     }
 
