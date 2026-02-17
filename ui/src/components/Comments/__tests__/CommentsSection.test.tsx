@@ -50,6 +50,7 @@ describe('CommentsSection', () => {
       createdAt: new Date(2024, 0, index + 1).toISOString(),
       userId: 'user-1',
       createdBy: 'user-1',
+      createdByUsername: `user-${index + 1}`,
     }));
   const mockedGetCurrentUserDetails = getCurrentUserDetails as jest.Mock;
 
@@ -90,6 +91,7 @@ describe('CommentsSection', () => {
 
     await waitFor(() => expect(commentsApiHandler).toHaveBeenCalledTimes(1));
     await screen.findByText('Comment 1');
+    expect(screen.getByText(/user-1/)).toBeInTheDocument();
 
     expect(mockGetComments).toHaveBeenCalledWith(ticketId);
     expect(screen.queryByText('Comment 6')).not.toBeInTheDocument();
@@ -165,6 +167,7 @@ describe('CommentsSection', () => {
       createdAt: new Date().toISOString(),
       userId: 'other-user',
       createdBy: 'other-user',
+      createdByUsername: 'other-user-name',
     }];
     mockGetComments.mockResolvedValue(comments);
     setupUseApiMocks();
