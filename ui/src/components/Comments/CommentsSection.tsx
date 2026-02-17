@@ -5,6 +5,7 @@ import { addComment, getComments, updateComment, deleteComment } from '../../ser
 import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import { getCurrentUserDetails } from '../../config/config';
+import { getUserDetails } from '../../services/UserService';
 
 export interface CreateComment {
     comment: string;
@@ -20,6 +21,13 @@ export interface Comment {
     updatedBy: string;
     createdAt: string;
     updatedAt: string;
+    createdByUsername?: string;
+    createdByName?: string;
+}
+
+interface CommentAuthorDetails {
+    username?: string;
+    name?: string;
 }
 
 interface CommentsSectionProps {
@@ -52,6 +60,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId, allowCommen
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editText, setEditText] = useState('');
     const [showMore, setShowMore] = useState(false);
+    const [commentAuthorsById, setCommentAuthorsById] = useState<Record<string, CommentAuthorDetails>>({});
 
     useEffect(() => {
         loadComments(5);
@@ -62,10 +71,42 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId, allowCommen
             if (count && all?.length > count) {
                 setComments(all.slice(0, count));
                 setShowMore(true);
+                loadCommentAuthors(all.slice(0, count));
             } else {
                 setComments(all);
                 setShowMore(false);
+                loadCommentAuthors(all ?? []);
             }
+        });
+    };
+
+    const loadCommentAuthors = (items: Comment[]) => {
+        const missingAuthorIds = Array.from(new Set(items
+            .map((item) => item.createdBy)
+            .filter((createdBy): createdBy is string => Boolean(createdBy) && !commentAuthorsById[createdBy])));
+
+        if (missingAuthorIds.length === 0) {
+            return;
+        }
+
+        Promise.all(missingAuthorIds.map(async (authorId) => {
+            const user = await getUserDetails(authorId);
+            const payload = user?.data ?? user;
+            return {
+                authorId,
+                username: payload?.username,
+                name: payload?.name,
+            };
+        })).then((authors) => {
+            setCommentAuthorsById((prev) => {
+                const next = { ...prev };
+                authors.forEach(({ authorId, username, name }) => {
+                    next[authorId] = { username, name };
+                });
+                return next;
+            });
+        }).catch(() => {
+            // Keep comment list functional even when author lookup fails.
         });
     };
 
@@ -132,6 +173,15 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId, allowCommen
                             <div className="d-flex align-items-start">
                                 <div className="flex-grow-1">
                                     <div>{c.comment}</div>
+                                    <small className="text-muted d-block">
+                                        {(() => {
+                                            const author = commentAuthorsById[c.createdBy] ?? {};
+                                            const username = c.createdByUsername ?? author.username ?? c.createdBy;
+                                            const name = c.createdByName ?? author.name;
+                                            if (name && username) return `${username} (${name})`;
+                                            return username || t('Unknown user');
+                                        })()}
+                                    </small>
                                     <small className="text-muted">{timeSince(c.createdAt)}</small>
                                 </div>
                                 {allowCommenting && c.createdBy && currentUserId && c.createdBy.toLowerCase() === currentUserId.toLowerCase() && (

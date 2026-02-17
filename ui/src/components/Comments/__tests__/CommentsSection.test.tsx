@@ -14,12 +14,17 @@ const mockGetComments = jest.fn();
 const mockAddComment = jest.fn();
 const mockUpdateComment = jest.fn();
 const mockDeleteComment = jest.fn();
+const mockGetUserDetails = jest.fn();
 
 jest.mock('../../../services/TicketService', () => ({
   getComments: (...args: unknown[]) => mockGetComments(...args),
   addComment: (...args: unknown[]) => mockAddComment(...args),
   updateComment: (...args: unknown[]) => mockUpdateComment(...args),
   deleteComment: (...args: unknown[]) => mockDeleteComment(...args),
+}));
+
+jest.mock('../../../services/UserService', () => ({
+  getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
 }));
 
 jest.mock('../../../config/config', () => ({
@@ -62,6 +67,7 @@ describe('CommentsSection', () => {
     jest.clearAllMocks();
     mockUseApi.mockReset();
     mockedGetCurrentUserDetails.mockReturnValue({ userId: 'user-1', username: 'User One' });
+    mockGetUserDetails.mockResolvedValue({ data: { username: 'user.one', name: 'User One' } });
 
     const createHandler = () => jest.fn((fn: () => Promise<unknown>) => Promise.resolve(fn()));
     commentsApiHandler = createHandler();
@@ -90,8 +96,10 @@ describe('CommentsSection', () => {
 
     await waitFor(() => expect(commentsApiHandler).toHaveBeenCalledTimes(1));
     await screen.findByText('Comment 1');
+    expect(await screen.findAllByText('user.one (User One)')).not.toHaveLength(0);
 
     expect(mockGetComments).toHaveBeenCalledWith(ticketId);
+    expect(mockGetUserDetails).toHaveBeenCalledWith('user-1');
     expect(screen.queryByText('Comment 6')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Show more' })).toBeInTheDocument();
 
