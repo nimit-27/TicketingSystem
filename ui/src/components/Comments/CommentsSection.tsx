@@ -17,6 +17,7 @@ export interface Comment {
     ticketId: string
     comment: string;
     createdBy: string;
+    createdByUsername?: string;
     updatedBy: string;
     createdAt: string;
     updatedAt: string;
@@ -132,7 +133,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ ticketId, allowCommen
                             <div className="d-flex align-items-start">
                                 <div className="flex-grow-1">
                                     <div>{c.comment}</div>
-                                    <small className="text-muted">{timeSince(c.createdAt)}</small>
+                                    <small className="text-muted">{c.createdByUsername || c.createdBy} • {timeSince(c.createdAt)}</small>
                                 </div>
                                 {allowCommenting && c.createdBy && currentUserId && c.createdBy.toLowerCase() === currentUserId.toLowerCase() && (
                                     <div className="ms-2">

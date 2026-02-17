@@ -1538,7 +1538,7 @@ public class TicketService {
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
         comment.setTicket(ticket);
-        return DtoMapper.toTicketCommentDto(commentRepository.save(comment));
+        return populateCommentUserDetails(DtoMapper.toTicketCommentDto(commentRepository.save(comment)));
     }
 
     public List<TicketCommentDto> getComments(String id, Integer count) {
@@ -1547,6 +1547,7 @@ public class TicketService {
         List<TicketCommentDto> list = commentRepository.findByTicketOrderByCreatedAtDesc(ticket)
                 .stream()
                 .map(DtoMapper::toTicketCommentDto)
+                .map(this::populateCommentUserDetails)
                 .collect(Collectors.toList());
         if (count == null || count >= list.size()) return list;
 
@@ -1558,7 +1559,19 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("TicketComment", commentId));
         existing.setComment(comment);
         existing.setUpdatedAt(LocalDateTime.now());
-        return DtoMapper.toTicketCommentDto(commentRepository.save(existing));
+        return populateCommentUserDetails(DtoMapper.toTicketCommentDto(commentRepository.save(existing)));
+    }
+
+
+    private TicketCommentDto populateCommentUserDetails(TicketCommentDto dto) {
+        if (dto == null || dto.getCreatedBy() == null || dto.getCreatedBy().isBlank()) {
+            return dto;
+        }
+
+        findUserByIdOrUsername(dto.getCreatedBy())
+                .map(User::getUsername)
+                .ifPresent(dto::setCreatedByUsername);
+        return dto;
     }
 
     public void deleteComment(String commentId) {
