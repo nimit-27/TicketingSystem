@@ -391,8 +391,8 @@ interface IssueTypeOptionItem {
 }
 
 const SupportDashboard: React.FC<SupportDashboardProps> = ({
-  initialTimeScale = "DAILY",
-  initialTimeRange = "LAST_7_DAYS",
+  initialTimeScale = "MONTHLY",
+  initialTimeRange = "ALL_TIME",
 }) => {
   const [recharts, setRecharts] = React.useState<typeof import("recharts") | null>(null);
   const { t } = useTranslation();
