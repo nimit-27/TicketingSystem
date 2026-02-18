@@ -31,6 +31,7 @@ CREATE TABLE `issue_type_master` (
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `sla_flag` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`issue_type_id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -42,17 +43,9 @@ CREATE TABLE `issue_type_master` (
 
 LOCK TABLES `issue_type_master` WRITE;
 /*!40000 ALTER TABLE `issue_type_master` DISABLE KEYS */;
-INSERT INTO `issue_type_master` VALUES ('1','Incident','Unexpected disruption or degradation of a service (e.g., system outage, application crash).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('10','Network / Connectivity Issue','Internet or VPN problems (e.g., slow network, unable to connect).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('11','Security Incident','Breach or vulnerability (e.g., phishing attempt, malware detection).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('12','Cosmetic Issue','Some UI/UX related non-severe issue',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('2','Service Request','Requests for new services or access (e.g., software installation, account creation).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('3','Problem / Bug','Underlying cause of recurring incidents (e.g., root cause analysis for repeated application issue).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('4','Change Request','Request to modify or update existing systems or configurations (e.g., upgrade server capacity).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('5','Routine Task','Routine operational work (e.g., scheduled maintenance, data backup).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('6','Inquiry / Question','General queries or information requests',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('7','Access / Permission Issue','Problems related to user access rights',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('8','Hardware/ Device Issue','Physical device problems',1,'2026-01-15 14:42:24','2026-01-15 14:42:24'),('9','Integrated Application Issue','Integrated Application Down / Slow Response',1,'2026-01-15 14:42:24','2026-01-15 14:42:24');
+INSERT INTO `issue_type_master` VALUES ('1','Incident','Unexpected disruption or degradation of a service (e.g., system outage, application crash).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('10','Network / Connectivity Issue','Internet or VPN problems (e.g., slow network, unable to connect).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('11','Security Incident','Breach or vulnerability (e.g., phishing attempt, malware detection).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('12','Cosmetic Issue','Some UI/UX related non-severe issue',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('2','Service Request','Requests for new services or access (e.g., software installation, account creation).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('3','Problem / Bug','Underlying cause of recurring incidents (e.g., root cause analysis for repeated application issue).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',1),('4','Change Request','Request to modify or update existing systems or configurations (e.g., upgrade server capacity).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('5','Routine Task','Routine operational work (e.g., scheduled maintenance, data backup).',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('6','Inquiry / Question','General queries or information requests',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('7','Access / Permission Issue','Problems related to user access rights',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('8','Hardware/ Device Issue','Physical device problems',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0),('9','Integrated Application Issue','Integrated Application Down / Slow Response',1,'2026-01-15 14:42:24','2026-01-15 14:42:24',0);
 /*!40000 ALTER TABLE `issue_type_master` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'ticketing_system'
---
-
---
--- Dumping routines for database 'ticketing_system'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -63,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-23 16:02:01
+-- Dump completed on 2026-02-18 19:34:39
