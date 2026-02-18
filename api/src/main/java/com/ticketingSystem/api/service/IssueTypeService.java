@@ -8,6 +8,8 @@ import java.util.List;
 
 @Service
 public class IssueTypeService {
+    private static final String ACTIVE_FLAG = "1";
+
     private final IssueTypeRepository repository;
 
     public IssueTypeService(IssueTypeRepository repository) {
@@ -15,6 +17,15 @@ public class IssueTypeService {
     }
 
     public List<IssueType> getAllActive() {
-        return repository.findByIsActiveTrue();
+        return repository.findByIsActive(ACTIVE_FLAG);
+    }
+
+    public boolean isSlaEnabledForIssueType(String issueTypeId) {
+        if (issueTypeId == null || issueTypeId.isBlank()) {
+            return false;
+        }
+        return repository.findById(issueTypeId)
+                .map(IssueType::getSlaFlag)
+                .orElse(false);
     }
 }

@@ -26,6 +26,9 @@ public class IssueType {
 
     private String isActive;
 
+    @Column(name = "sla_flag")
+    private Boolean slaFlag;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

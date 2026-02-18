@@ -45,19 +45,22 @@ public class TicketSlaService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final SlaCalculatorService slaCalculatorService;
+    private final IssueTypeService issueTypeService;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
                             TicketSlaRepository ticketSlaRepository,
                             StatusHistoryRepository statusHistoryRepository,
                             NotificationService notificationService,
                             UserRepository userRepository,
-                            SlaCalculatorService slaCalculatorService) {
+                            SlaCalculatorService slaCalculatorService,
+                            IssueTypeService issueTypeService) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.slaCalculatorService = slaCalculatorService;
+        this.issueTypeService = issueTypeService;
     }
 
     @Deprecated(forRemoval = false)
@@ -81,6 +84,37 @@ public class TicketSlaService {
         LocalDateTime calculationTime = resolvedAt != null ? resolvedAt : LocalDateTime.now();
 
         if (ticket.getMasterId() != null && !ticket.getMasterId().isBlank()) {
+            long idleMinutes = 0L;
+            if (reportedDate != null) {
+                Duration workingElapsed = slaCalculatorService.computeWorkingDurationBetween(
+                        reportedDate.atZone(TimeUtils.ZONE_ID),
+                        calculationTime.atZone(TimeUtils.ZONE_ID)
+                );
+                idleMinutes = Math.max(workingElapsed.toMinutes(), 0L);
+            }
+
+            TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
+                    .orElseGet(TicketSla::new);
+
+            ticketSla.setTicket(ticket);
+            ticketSla.setSlaConfig(null);
+            ticketSla.setDueAt(null);
+            ticketSla.setActualDueAt(null);
+            ticketSla.setDueAtAfterEscalation(null);
+            ticketSla.setResolutionTimeMinutes(0L);
+            ticketSla.setElapsedTimeMinutes(idleMinutes);
+            ticketSla.setResponseTimeMinutes(0L);
+            ticketSla.setBreachedByMinutes(0L);
+            ticketSla.setIdleTimeMinutes(idleMinutes);
+            ticketSla.setCreatedAt(ticket.getReportedDate());
+            ticketSla.setTotalSlaMinutes(null);
+            ticketSla.setTimeTillDueDate(null);
+            ticketSla.setWorkingTimeLeftMinutes(null);
+
+            return ticketSlaRepository.save(ticketSla);
+        }
+
+        if (!issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId())) {
             long idleMinutes = 0L;
             if (reportedDate != null) {
                 Duration workingElapsed = slaCalculatorService.computeWorkingDurationBetween(

@@ -62,7 +62,7 @@ public class TicketStatusScheduler {
             if (closedId != null) {
                 statusMasterRepository.findById(closedId).ifPresent(t::setStatus);
                 if (previousStatusId == null || !closedId.equals(previousStatusId)) {
-                    Boolean slaFlag = workflowService.getSlaFlagByStatusId(closedId);
+                    Boolean slaFlag = workflowService.getSlaFlagByStatusAndIssueType(closedId, t.getIssueTypeId());
                     statusHistoryService.addHistory(
                             t.getId(),
                             "SYSTEM",

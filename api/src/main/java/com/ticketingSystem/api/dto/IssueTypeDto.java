@@ -12,6 +12,7 @@ public class IssueTypeDto {
     private String issueTypeLabel;
     private String description;
     private String isActive;
+    private Boolean slaFlag;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
