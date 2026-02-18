@@ -101,7 +101,7 @@ public class TicketFeedbackService {
             ticketRepository.save(ticket);
 
             if (closedId != null && (previousStatusId == null || !closedId.equals(previousStatusId))) {
-                Boolean slaFlag = workflowService.getSlaFlagByStatusId(closedId);
+                Boolean slaFlag = workflowService.getSlaFlagByStatusAndIssueType(closedId, ticket.getIssueTypeId());
                 statusHistoryService.addHistory(ticket.getId(), currentUserId, previousStatusId, closedId, slaFlag, "Closed after feedback submission");
             }
 

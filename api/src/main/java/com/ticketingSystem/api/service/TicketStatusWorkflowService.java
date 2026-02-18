@@ -22,13 +22,16 @@ public class TicketStatusWorkflowService {
     private final TicketStatusWorkflowRepository workflowRepository;
     private final StatusMasterRepository statusMasterRepository;
     private final RoleRepository roleRepository;
+    private final IssueTypeService issueTypeService;
 
     public TicketStatusWorkflowService(TicketStatusWorkflowRepository workflowRepository,
                                        StatusMasterRepository statusMasterRepository,
-                                       RoleRepository roleRepository) {
+                                       RoleRepository roleRepository,
+                                       IssueTypeService issueTypeService) {
         this.workflowRepository = workflowRepository;
         this.statusMasterRepository = statusMasterRepository;
         this.roleRepository = roleRepository;
+        this.issueTypeService = issueTypeService;
     }
 
     public List<TicketStatusWorkflow> getAllStatusActions() {
@@ -110,6 +113,10 @@ public class TicketStatusWorkflowService {
         return statusMasterRepository.findById(statusId)
                 .map(Status::getSlaFlag)
                 .orElse(false);
+    }
+
+    public boolean getSlaFlagByStatusAndIssueType(String statusId, String issueTypeId) {
+        return getSlaFlagByStatusId(statusId) && issueTypeService.isSlaEnabledForIssueType(issueTypeId);
     }
 
     public String getStatusCodeById(String statusId) {

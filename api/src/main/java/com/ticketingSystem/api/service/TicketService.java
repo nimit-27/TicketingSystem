@@ -348,7 +348,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
 
         String openId = workflowService.getStatusIdByCode(TicketStatus.OPEN.name());
-        boolean sla = workflowService.getSlaFlagByStatusId(openId);
+        boolean sla = workflowService.getSlaFlagByStatusAndIssueType(openId, saved.getIssueTypeId());
 
         List<StatusHistory> histories = new ArrayList<>();
 
@@ -359,7 +359,7 @@ public class TicketService {
             assignmentHistoryService.addHistory(saved.getId(), saved.getAssignedBy(), saved.getAssignedTo(), saved.getLevelId(), "Assigned");
 
             String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
-            boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
+            boolean slaAssigned = workflowService.getSlaFlagByStatusAndIssueType(assignedId, saved.getIssueTypeId());
 
             // ADDING TICKET IN ASSIGNMENT HISTORY
             histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), openId, assignedId, slaAssigned, null));
@@ -774,7 +774,7 @@ public class TicketService {
                     remark);
             if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
                 String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
-                boolean slaAssigned = workflowService.getSlaFlagByStatusId(assignedId);
+                boolean slaAssigned = workflowService.getSlaFlagByStatusAndIssueType(assignedId, saved.getIssueTypeId());
                 String prevId = previousStatusId;
                 statusHistoryService.addHistory(id, updatedBy, prevId, assignedId, slaAssigned, remark);
                 previousStatus = TicketStatus.ASSIGNED;
@@ -815,7 +815,7 @@ public class TicketService {
             saved = ticketRepository.save(existing);
         }
         if (statusChanged) {
-            boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
+            boolean slaCurr = workflowService.getSlaFlagByStatusAndIssueType(updatedStatusId, saved.getIssueTypeId());
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
 
             TicketStatus finalPreviousStatus = previousStatus;
@@ -1686,7 +1686,7 @@ public class TicketService {
         );
 
         String statusId = resolveCurrentStatusId(ticket);
-        Boolean slaFlag = statusId != null ? workflowService.getSlaFlagByStatusId(statusId) : null;
+        Boolean slaFlag = statusId != null ? workflowService.getSlaFlagByStatusAndIssueType(statusId, ticket.getIssueTypeId()) : null;
 
         statusHistoryService.addHistory(
                 ticket.getId(),

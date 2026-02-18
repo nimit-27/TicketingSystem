@@ -87,6 +87,7 @@ public class DtoMapper {
         dto.setIssueTypeLabel(issueType.getIssueTypeLabel());
         dto.setDescription(issueType.getDescription());
         dto.setIsActive(issueType.getIsActive());
+        dto.setSlaFlag(issueType.getSlaFlag());
         dto.setCreatedAt(issueType.getCreatedAt());
         dto.setUpdatedAt(issueType.getUpdatedAt());
         return dto;
