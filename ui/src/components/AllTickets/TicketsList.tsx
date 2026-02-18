@@ -44,6 +44,7 @@ export interface TicketsListFilterState {
     selectedCategory: string;
     selectedSubCategory: string;
     selectedAssignee: string;
+    selectedDateParam: string;
     allowedStatuses?: string[];
 }
 
@@ -61,6 +62,7 @@ export interface TicketsListSearchOverrides {
     direction?: string;
     severity?: string;
     createdBy?: string;
+    dateParam?: string;
     fromDate?: string;
     toDate?: string;
     categoryId?: string;
@@ -166,6 +168,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
 
     const [dateRange, setDateRange] = useState<DateRangeState>({ preset: "ALL" });
+    const [selectedDateParam, setSelectedDateParam] = useState<string>("reported_date");
     const dateRangeParams = useMemo(() => getDateRangeApiParams(dateRange), [dateRange]);
 
     const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
@@ -196,6 +199,15 @@ const TicketsList: React.FC<TicketsListProps> = ({
             { label: t("Latest Updated"), value: "lastModified" },
         ],
         [t],
+    );
+
+    const dateParamOptions: DropdownOption[] = useMemo(
+        () => [
+            { label: "Created On", value: "reported_date" },
+            { label: "Last Modified", value: "last_modified" },
+            { label: "Last Modified Status Date", value: "last_modified_status_date" },
+        ],
+        [],
     );
 
     const zoneOptions: DropdownOption[] = useMemo(
@@ -249,6 +261,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setLevelFilter(undefined);
         setSortBy("reportedDate");
         setDateRange({ preset: "ALL" });
+        setSelectedDateParam("reported_date");
         setSelectedCategory("All");
         setSelectedSubCategory("All");
         setSelectedZone("All");
@@ -286,6 +299,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             selectedCategory,
             selectedSubCategory,
             selectedAssignee,
+            selectedDateParam,
         }),
         [
             search,
@@ -302,6 +316,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             selectedCategory,
             selectedSubCategory,
             selectedAssignee,
+            selectedDateParam,
         ],
     );
 
@@ -341,6 +356,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const directionParam = mergedOverrides.direction ?? sortDirection;
             const fromDateParam = mergedOverrides.fromDate ?? dateRangeParams.fromDate;
             const toDateParam = mergedOverrides.toDate ?? dateRangeParams.toDate;
+            const dateParam = mergedOverrides.dateParam ?? selectedDateParam;
             const categoryParam = mergedOverrides.categoryId ?? normalizedCategory;
             const subCategoryParam = mergedOverrides.subCategoryId ?? normalizedSubCategory;
             const zoneParam = mergedOverrides.zoneCode ?? normalizedZone;
@@ -365,6 +381,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     directionParam,
                     mergedOverrides.severity,
                     mergedOverrides.createdBy,
+                    dateParam,
                     fromDateParam,
                     toDateParam,
                     categoryParam,
@@ -399,6 +416,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             sortBy,
             sortDirection,
             statusFilter,
+            selectedDateParam,
         ],
     );
 
@@ -650,6 +668,17 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <AssigneeFilterDropdown
                         value={selectedAssignee}
                         onChange={handleAssigneeChange}
+                    />
+
+                    <DropdownController
+                        label={t("Date Parameter")}
+                        value={selectedDateParam}
+                        onChange={(value) => {
+                            setSelectedDateParam(String(value));
+                            setPage(1);
+                        }}
+                        options={dateParamOptions}
+                        style={{ width: 240 }}
                     />
 
                     {/* DATE RANGE FILTER */}

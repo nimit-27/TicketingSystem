@@ -95,6 +95,9 @@ public class Ticket {
     @Column(name = "last_modified")
     private LocalDateTime lastModified;
 
+    @Column(name = "last_modified_status_date")
+    private LocalDateTime lastModifiedStatusDate;
+
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 

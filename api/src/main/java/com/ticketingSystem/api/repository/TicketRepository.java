@@ -393,8 +393,14 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
             "OR (:requestorId IS NOT NULL AND t.userId = :requestorId) " +
             "OR (:createdBy IS NOT NULL AND LOWER(t.createdBy) = LOWER(:createdBy))) " +
-            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
-            "AND (:toDate IS NULL OR t.reportedDate < :toDate) " +
+            "AND (:fromDate IS NULL OR " +
+            "(:dateParam = 'last_modified' AND t.lastModified >= :fromDate) OR " +
+            "(:dateParam = 'last_modified_status_date' AND t.lastModifiedStatusDate >= :fromDate) OR " +
+            "(:dateParam = 'reported_date' AND t.reportedDate >= :fromDate)) " +
+            "AND (:toDate IS NULL OR " +
+            "(:dateParam = 'last_modified' AND t.lastModified < :toDate) OR " +
+            "(:dateParam = 'last_modified_status_date' AND t.lastModifiedStatusDate < :toDate) OR " +
+            "(:dateParam = 'reported_date' AND t.reportedDate < :toDate)) " +
             "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
@@ -413,6 +419,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("regionCode") String regionCode,
                                @Param("districtCode") String districtCode,
                                @Param("issueTypeId") String issueTypeId,
+                               @Param("dateParam") String dateParam,
                                @Param("fromDate") LocalDateTime fromDate,
                                @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
@@ -434,8 +441,14 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
             "OR (:requestorId IS NOT NULL AND t.userId = :requestorId) " +
             "OR (:createdBy IS NOT NULL AND LOWER(t.createdBy) = LOWER(:createdBy))) " +
-            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
-            "AND (:toDate IS NULL OR t.reportedDate < :toDate) " +
+            "AND (:fromDate IS NULL OR " +
+            "(:dateParam = 'last_modified' AND t.lastModified >= :fromDate) OR " +
+            "(:dateParam = 'last_modified_status_date' AND t.lastModifiedStatusDate >= :fromDate) OR " +
+            "(:dateParam = 'reported_date' AND t.reportedDate >= :fromDate)) " +
+            "AND (:toDate IS NULL OR " +
+            "(:dateParam = 'last_modified' AND t.lastModified < :toDate) OR " +
+            "(:dateParam = 'last_modified_status_date' AND t.lastModifiedStatusDate < :toDate) OR " +
+            "(:dateParam = 'reported_date' AND t.reportedDate < :toDate)) " +
             "AND (LOWER(t.requestorName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.category) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.subCategory) LIKE LOWER(CONCAT('%', :query, '%')) " +
@@ -454,6 +467,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                    @Param("regionCode") String regionCode,
                                    @Param("districtCode") String districtCode,
                                    @Param("issueTypeId") String issueTypeId,
+                                   @Param("dateParam") String dateParam,
                                    @Param("fromDate") LocalDateTime fromDate,
                                    @Param("toDate") LocalDateTime toDate);
 

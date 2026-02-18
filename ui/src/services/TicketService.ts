@@ -108,6 +108,7 @@ export function searchTicketsPaginated(
     direction?: string,
     severity?: string,
     createdBy?: string,
+    dateParam?: string,
     fromDate?: string,
     toDate?: string,
     categoryId?: string,
@@ -128,6 +129,7 @@ export function searchTicketsPaginated(
     if (direction) params.append('direction', direction);
     if (severity) params.append('severity', severity);
     if (createdBy) params.append('createdBy', createdBy);
+    if (dateParam) params.append('dateParam', dateParam);
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
     if (categoryId) params.append('category', categoryId);
@@ -141,6 +143,7 @@ export function searchTicketsPaginated(
 
 interface SearchTicketsForExportParams {
     fromDate?: string;
+    dateParam?: string;
     toDate?: string;
     zoneCode?: string;
     regionCode?: string;
@@ -151,6 +154,7 @@ interface SearchTicketsForExportParams {
 
 export function searchTicketsForExport({
     fromDate,
+    dateParam,
     toDate,
     zoneCode,
     regionCode,
@@ -159,6 +163,7 @@ export function searchTicketsForExport({
     assignedTo,
 }: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
+    if (dateParam) params.append('dateParam', dateParam);
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
     if (zoneCode) params.append('zoneCode', zoneCode);
