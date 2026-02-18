@@ -234,6 +234,8 @@ public class TicketService {
     public TicketDto getTicket(String id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
+
+        refreshTicketSla(ticket);
         return mapWithStatusId(ticket);
     }
 
@@ -1670,6 +1672,14 @@ public class TicketService {
                 .stream()
                 .map(this::mapWithStatusId)
                 .collect(Collectors.toList());
+    }
+
+    private void refreshTicketSla(Ticket ticket) {
+        if (ticket == null || ticket.getReportedDate() == null || ticket.getSeverity() == null) {
+            return;
+        }
+        List<StatusHistory> historyEntries = statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket);
+        ticketSlaService.calculateAndSaveByCalendar(ticket, historyEntries);
     }
 
     private void addLinkingHistory(Ticket ticket, String updatedBy, String remark) {
