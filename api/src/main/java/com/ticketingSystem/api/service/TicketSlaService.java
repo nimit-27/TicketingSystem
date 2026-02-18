@@ -128,19 +128,8 @@ public class TicketSlaService {
                     .orElseGet(TicketSla::new);
 
             ticketSla.setTicket(ticket);
-            ticketSla.setSlaConfig(null);
-            ticketSla.setDueAt(null);
-            ticketSla.setActualDueAt(null);
-            ticketSla.setDueAtAfterEscalation(null);
-            ticketSla.setResolutionTimeMinutes(0L);
-            ticketSla.setElapsedTimeMinutes(idleMinutes);
-            ticketSla.setResponseTimeMinutes(0L);
             ticketSla.setBreachedByMinutes(0L);
-            ticketSla.setIdleTimeMinutes(idleMinutes);
-            ticketSla.setCreatedAt(ticket.getReportedDate());
-            ticketSla.setTotalSlaMinutes(null);
-            ticketSla.setTimeTillDueDate(null);
-            ticketSla.setWorkingTimeLeftMinutes(null);
+
 
             return ticketSlaRepository.save(ticketSla);
         }
