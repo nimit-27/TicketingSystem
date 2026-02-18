@@ -142,7 +142,7 @@ public class TicketService {
             dto.setShortId(dto.getId().length() > 8 ? dto.getId().substring(0, 8) : dto.getId());
         }
         if (ticket.getId() != null) {
-            List<com.ticketingSystem.api.models.UploadedFile> files = uploadedFileRepository.findByTicket_IdAndIsActive(ticket.getId(), "Y");
+            List<UploadedFile> files = uploadedFileRepository.findByTicket_IdAndIsActive(ticket.getId(), "Y");
             List<String> paths = files.stream().map(UploadedFile::getRelativePath).toList();
             dto.setAttachmentPaths(paths);
         } else {
@@ -669,14 +669,18 @@ public class TicketService {
                 && updated.getSeverity().equals(previousRecommendedSeverity)
                 && !Objects.equals(previousSeverity, updated.getSeverity());
 
-        TicketStatus updatedStatus = updated.getTicketStatus();
+        TicketStatus updatedStatus = null;
         String updatedStatusId = updated.getStatus() != null ? updated.getStatus().getStatusId() : null;
         String remark = updated.getRemark();
         if (updatedStatus == null && updatedStatusId != null) {
             String code = workflowService.getStatusCodeById(updatedStatusId);
             if (code != null) {
                 updatedStatus = TicketStatus.valueOf(code);
+            } else {
+                updatedStatus = updated.getTicketStatus();
             }
+        } else {
+            updatedStatus = updated.getTicketStatus();
         }
         if (updatedStatusId == null && updatedStatus != null) {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
@@ -776,15 +780,18 @@ public class TicketService {
                 previousStatus = TicketStatus.ASSIGNED;
                 previousStatusId = assignedId;
             }
+
+            Ticket finalSaved = saved;
+
 // NOTIFY ASSIGNEE
             runNotificationAfterCommit(() -> sendAssignmentNotification(
-                    saved,
+                    finalSaved,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
             ));
 // NOTIFY REQUESTOR
             runNotificationAfterCommit(() -> sendRequestorAssignmentNotification(
-                    saved,
+                    finalSaved,
                     previousAssignedTo,
                     updated.getAssignedTo(),
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy
@@ -811,13 +818,18 @@ public class TicketService {
             boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
 
+            TicketStatus finalPreviousStatus = previousStatus;
+            String finalPreviousStatusId = previousStatusId;
+            String finalUpdatedStatusId = updatedStatusId;
+            TicketStatus finalUpdatedStatus = updatedStatus;
+            Ticket finalSaved1 = saved;
             runNotificationAfterCommit(() -> sendStatusUpdateNotification(
-                    saved,
-                    previousStatus,
+                    finalSaved1,
+                    finalPreviousStatus,
                     previousStatusEntity,
-                    previousStatusId,
-                    updatedStatus,
-                    updatedStatusId,
+                    finalPreviousStatusId,
+                    finalUpdatedStatus,
+                    finalUpdatedStatusId,
                     updatedBy
             ));
         }
@@ -842,6 +854,7 @@ public class TicketService {
                     : Optional.empty();
             final Optional<String> itManagerRoleIdOptional = findRoleIdByName(IT_MANAGER_ROLE_NAME);
             final Optional<String> teamLeadRoleIdOptional = findRoleIdByName(TEAM_LEAD_ROLE_NAME);
+            Ticket finalSaved2 = saved;
             recommendedSeverityFlowRepository
                     .findTopByTicket_IdAndRecommendedSeverityAndRecommendedSeverityStatusOrderByIdDesc(id, previousRecommendedSeverity, RecommendedSeverityStatus.PENDING)
                     .ifPresent(flow -> {
@@ -854,7 +867,7 @@ public class TicketService {
                                 && userHasRole(approverUserOptional.get(), itManagerRoleIdOptional.get())
                                 && teamLeadRoleIdOptional.isPresent()) {
                             notifyRoleMembersOfRecommendedSeverityApproval(
-                                    saved,
+                                    finalSaved2,
                                     previousRecommendedSeverity,
                                     approver,
                                     teamLeadRoleIdOptional.get()
