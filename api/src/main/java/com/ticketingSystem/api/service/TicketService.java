@@ -64,6 +64,7 @@ public class TicketService {
     private static final String IT_MANAGER_ROLE_NAME = "IT Manager";
     private static final String TEAM_LEAD_ROLE_NAME = "Team Lead";
     private static final String RECOMMENDED_SEVERITY_APPROVED_UPDATE_TYPE = "RECOMMENDED_SEVERITY_APPROVED";
+    private static final String DEFAULT_DATE_FILTER_COLUMN = "reported_date";
     private final TypesenseClient typesenseClient;
     @Value("${app.search.engine:default}")
     private String searchEngine;
@@ -495,11 +496,22 @@ public class TicketService {
         return null;
     }
 
+    private String normalizeDateParam(String dateParam) {
+        if (dateParam == null || dateParam.isBlank()) {
+            return DEFAULT_DATE_FILTER_COLUMN;
+        }
+
+        return switch (dateParam.trim().toLowerCase()) {
+            case "reported_date", "last_modified", "last_modified_status_date" -> dateParam.trim().toLowerCase();
+            default -> DEFAULT_DATE_FILTER_COLUMN;
+        };
+    }
+
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId,
-                                         String fromDate, String toDate, Pageable pageable) {
+                                         String dateParam, String fromDate, String toDate, Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -540,6 +552,7 @@ public class TicketService {
 
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
+        String normalizedDateParam = normalizeDateParam(dateParam);
         Page<Ticket> page = ticketRepository.searchTickets(
                 query,
                 statusIds,
@@ -558,6 +571,7 @@ public class TicketService {
                 regionCode,
                 districtCode,
                 issueTypeId,
+                normalizedDateParam,
                 from,
                 to,
                 pageable
@@ -569,7 +583,7 @@ public class TicketService {
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId,
-                                             String fromDate, String toDate) {
+                                             String dateParam, String fromDate, String toDate) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -582,9 +596,28 @@ public class TicketService {
                 .filter(s -> !s.isEmpty())
                 .toList();
 
-        LocalDateTime from = DateTimeUtils.parseToLocalDateTime(fromDate);
-        LocalDateTime to = DateTimeUtils.parseToLocalDateTime(toDate).toLocalDate().plusDays(1).atStartOfDay();
+        LocalDateTime from = null;
+        LocalDateTime to = null;
+
+        if (fromDate != null && !fromDate.isBlank()) {
+            from = DateTimeUtils.parseToLocalDateTime(fromDate)
+                    .toLocalDate()
+                    .atStartOfDay();
+        }
+
+        if (toDate != null && !toDate.isBlank()) {
+            to = DateTimeUtils.parseToLocalDateTime(toDate)
+                    .toLocalDate()
+                    .plusDays(1)
+                    .atStartOfDay();
+        } else if (from != null) {
+            to = from.toLocalDate()
+                    .plusDays(1)
+                    .atStartOfDay();
+        }
+
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
+        String normalizedDateParam = normalizeDateParam(dateParam);
 
         return ticketRepository.searchTicketsList(
                         query,
@@ -604,6 +637,7 @@ public class TicketService {
                         regionCode,
                         districtCode,
                         issueTypeId,
+                        normalizedDateParam,
                         from,
                         to)
                 .stream()
@@ -768,7 +802,12 @@ public class TicketService {
         if (updatedStatusId == null && updatedStatus != null) {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
-        if (updatedStatusId != null && !updatedStatusId.equals(previousStatusId)) {
+        boolean statusChanged = updatedStatusId != null && !updatedStatusId.equals(previousStatusId);
+        if (statusChanged) {
+            existing.setLastModifiedStatusDate(LocalDateTime.now());
+            saved = ticketRepository.save(existing);
+        }
+        if (statusChanged) {
             boolean slaCurr = workflowService.getSlaFlagByStatusId(updatedStatusId);
             statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
 

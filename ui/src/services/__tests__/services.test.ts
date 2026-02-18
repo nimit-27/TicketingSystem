@@ -413,7 +413,7 @@ describe("TicketService", () => {
 
   it("constructs search query parameters", async () => {
     const service = await import("../TicketService");
-    await service.searchTicketsPaginated("query", "OPEN", true, 2, 10, "assignee", "level1", "assigner", "requestor", "createdAt", "desc", "HIGH", "creator", "2024-01-01", "2024-02-01", "cat", "sub");
+    await service.searchTicketsPaginated("query", "OPEN", true, 2, 10, "assignee", "level1", "assigner", "requestor", "createdAt", "desc", "HIGH", "creator", "reported_date", "2024-01-01", "2024-02-01", "cat", "sub");
     const url = axiosMock.get.mock.calls.find((call: any[]) => String(call[0]).includes("/tickets/search"))[0] as string;
     expect(url).toContain("query=query");
     expect(url).toContain("status=OPEN");
@@ -428,6 +428,7 @@ describe("TicketService", () => {
     expect(url).toContain("direction=desc");
     expect(url).toContain("severity=HIGH");
     expect(url).toContain("createdBy=creator");
+    expect(url).toContain("dateParam=reported_date");
     expect(url).toContain("fromDate=2024-01-01");
     expect(url).toContain("toDate=2024-02-01");
     expect(url).toContain("category=cat");
@@ -437,6 +438,7 @@ describe("TicketService", () => {
     const service = await import("../TicketService");
     await service.searchTicketsForExport({
       fromDate: "2024-01-01",
+      dateParam: "last_modified",
       toDate: "2024-02-01",
       zoneCode: "Z1",
       regionCode: "R1",
@@ -446,6 +448,7 @@ describe("TicketService", () => {
     });
     const exportUrl = axiosMock.get.mock.calls.find((call: any[]) => String(call[0]).includes("/tickets/search/export"))?.[0] as string;
     expect(exportUrl).toContain("fromDate=2024-01-01");
+    expect(exportUrl).toContain("dateParam=last_modified");
     expect(exportUrl).toContain("toDate=2024-02-01");
     expect(exportUrl).toContain("zoneCode=Z1");
     expect(exportUrl).toContain("regionCode=R1");
