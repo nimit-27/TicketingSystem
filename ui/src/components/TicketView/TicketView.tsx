@@ -847,8 +847,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     return ticket.userId.toLowerCase() === currentUserId.toLowerCase();
   }, [ticket?.userId, currentUserId]);
 
-  const shouldShowResolve = Boolean(resolveAction);
-  // const shouldShowResolve = Boolean(resolveAction && isAssignedStatus && isAssignedToCurrentUser);
+  // const shouldShowResolve = Boolean(resolveAction);
+  const shouldShowResolve = Boolean(resolveAction && isAssignedStatus && isAssignedToCurrentUser);
   const shouldShowResume = Boolean(resumeAction);
   const shouldShowClose = Boolean(closeAction && isResolvedStatus && isRequester);
   const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
