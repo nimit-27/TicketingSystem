@@ -237,6 +237,9 @@ public class TicketController {
             @RequestParam(required = false) String regionCode,
             @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String issueTypeId,
+            @RequestParam(required = false) String slaBreachFilter,
+            @RequestParam(required = false, name = "breachedByMinutes") Long breachedByMinutes,
+            @RequestParam(required = false, name = "breached_by_minutes") Long breachedByMinutesSnake,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
@@ -244,8 +247,8 @@ public class TicketController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, dateParam, fromDate, toDate, page, size, sortBy, direction);
+        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={} slaBreachFilter={} breachedByMinutes={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, dateParam, fromDate, toDate, page, size, sortBy, direction, slaBreachFilter, breachedByMinutes != null ? breachedByMinutes : breachedByMinutesSnake);
         Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
@@ -263,6 +266,8 @@ public class TicketController {
                 regionCode,
                 districtCode,
                 issueTypeId,
+                slaBreachFilter,
+                breachedByMinutes != null ? breachedByMinutes : breachedByMinutesSnake,
                 dateParam,
                 fromDate,
                 toDate,
@@ -291,6 +296,9 @@ public class TicketController {
             @RequestParam(required = false) String regionCode,
             @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String issueTypeId,
+            @RequestParam(required = false) String slaBreachFilter,
+            @RequestParam(required = false, name = "breachedByMinutes") Long breachedByMinutes,
+            @RequestParam(required = false, name = "breached_by_minutes") Long breachedByMinutesSnake,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate) {
@@ -313,6 +321,8 @@ public class TicketController {
                 regionCode,
                 districtCode,
                 issueTypeId,
+                slaBreachFilter,
+                breachedByMinutes != null ? breachedByMinutes : breachedByMinutesSnake,
                 dateParam,
                 fromDate,
                 toDate
