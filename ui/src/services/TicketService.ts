@@ -150,6 +150,7 @@ interface SearchTicketsForExportParams {
     districtCode?: string;
     issueTypeId?: string;
     assignedTo?: string;
+    signal?: AbortSignal;
 }
 
 export function searchTicketsForExport({
@@ -161,6 +162,7 @@ export function searchTicketsForExport({
     districtCode,
     issueTypeId,
     assignedTo,
+    signal,
 }: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
     if (dateParam) params.append('dateParam', dateParam);
@@ -171,5 +173,5 @@ export function searchTicketsForExport({
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
     if (assignedTo) params.append('assignedTo', assignedTo);
-    return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`);
+    return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
 }
