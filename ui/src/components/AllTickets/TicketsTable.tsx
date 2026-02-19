@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GenericTable from '../UI/GenericTable';
 import MasterIcon from '../UI/Icons/MasterIcon';
@@ -148,6 +148,18 @@ const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     return [];
 };
 
+const MAX_EXPORT_RANGE_DAYS = 31;
+
+const getDateRangeDays = (fromDate?: string, toDate?: string): number | null => {
+    if (!fromDate || !toDate) return null;
+    const start = new Date(fromDate);
+    const end = new Date(toDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+    const diffInMs = end.getTime() - start.getTime();
+    if (diffInMs < 0) return null;
+    return Math.floor(diffInMs / (1000 * 60 * 60 * 24)) + 1;
+};
+
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedAssignee = 'All' }) => {
     const { t } = useTranslation();
 
@@ -156,7 +168,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const { showMessage } = useSnackbar();
 
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
-    const { apiHandler: downloadTicketsApiHandler, pending: downloadingTickets } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
@@ -164,6 +175,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
     const [selectedAction, setSelectedAction] = useState<{ action: TicketStatusWorkflow, ticketId: string } | null>(null);
     const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+    const [exportGenerationState, setExportGenerationState] = useState<'idle' | 'generating' | 'error'>('idle');
+    const [lastExportRequest, setLastExportRequest] = useState<{ format: 'pdf' | 'excel', filters: DownloadFilters } | null>(null);
+    const exportAbortRef = useRef<AbortController | null>(null);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
 
@@ -453,35 +467,89 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         doc.save(`${fileName}.pdf`);
     };
 
+    const cancelExportGeneration = () => {
+        if (exportAbortRef.current) {
+            exportAbortRef.current.abort();
+            exportAbortRef.current = null;
+        }
+        setExportGenerationState('idle');
+        showMessage(t('Export cancelled.'), 'info');
+    };
+
     const handleGenerateSelection = async (format: 'pdf' | 'excel', filters: DownloadFilters) => {
         if (!filters.fromDate || !filters.toDate) {
             showMessage(t('Please select a valid date range.'), 'warning');
             return;
         }
 
-        const payload = await downloadTicketsApiHandler(() => searchTicketsForExport({
-            fromDate: filters.fromDate,
-            toDate: filters.toDate,
-            zoneCode: filters.zoneCode,
-            regionCode: filters.regionCode,
-            districtCode: filters.districtCode,
-            issueTypeId: filters.issueTypeId,
-            assignedTo: filters.assignedTo,
-        }));
-
-        const ticketsToExport = normalizeDownloadTickets(payload);
-        if (!ticketsToExport.length) {
-            showMessage(t('No data available'), 'info');
+        const selectedRangeDays = getDateRangeDays(filters.fromDate, filters.toDate);
+        if (!selectedRangeDays) {
+            showMessage(t('Please select a valid date range.'), 'warning');
             return;
         }
 
-        if (format === 'excel') {
-            downloadAsExcel(ticketsToExport, filters);
-        } else {
-            downloadAsPdf(ticketsToExport, filters);
+        if (selectedRangeDays > MAX_EXPORT_RANGE_DAYS) {
+            showMessage(
+                t('Please select a date range of 31 days or less to generate the report quickly.'),
+                'warning',
+            );
+            return;
         }
 
-        handleDownloadDialogClose();
+        setLastExportRequest({ format, filters });
+        setExportGenerationState('generating');
+        showMessage(t('Your report is being generated.'), 'info');
+
+        const controller = new AbortController();
+        exportAbortRef.current = controller;
+
+        try {
+            const response = await searchTicketsForExport({
+                fromDate: filters.fromDate,
+                toDate: filters.toDate,
+                zoneCode: filters.zoneCode,
+                regionCode: filters.regionCode,
+                districtCode: filters.districtCode,
+                issueTypeId: filters.issueTypeId,
+                assignedTo: filters.assignedTo,
+                signal: controller.signal,
+            });
+
+            const ticketsToExport = normalizeDownloadTickets(response?.data ?? response);
+            if (!ticketsToExport.length) {
+                showMessage(t('No data available'), 'info');
+                setExportGenerationState('idle');
+                return;
+            }
+
+            if (format === 'excel') {
+                downloadAsExcel(ticketsToExport, filters);
+            } else {
+                downloadAsPdf(ticketsToExport, filters);
+            }
+
+            setExportGenerationState('idle');
+            showMessage(t('Report generated successfully.'), 'success');
+            handleDownloadDialogClose();
+        } catch (error: any) {
+            if (error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {
+                return;
+            }
+            setExportGenerationState('error');
+            const statusCode = error?.response?.status;
+            const message = statusCode === 504
+                ? t('Request timed out. Range too large; narrow filters or request async report.')
+                : t('Export failed. Range may be too large; narrow filters or request async report.');
+            showMessage(message, 'error');
+        } finally {
+            exportAbortRef.current = null;
+        }
+    };
+
+    const retryLastExport = () => {
+        if (lastExportRequest) {
+            handleGenerateSelection(lastExportRequest.format, lastExportRequest.filters);
+        }
     };
 
 
@@ -830,7 +898,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             </Menu>
             <DownloadTicketsDialog
                 open={downloadDialogOpen}
-                loading={downloadingTickets}
+                loading={exportGenerationState === 'generating'}
+                generationState={exportGenerationState}
+                onCancelExport={cancelExportGeneration}
+                onRetryExport={retryLastExport}
                 zoneOptions={zoneOptions}
                 issueTypeOptions={issueTypeOptions}
                 initialFilters={downloadDialogInitialFilters}

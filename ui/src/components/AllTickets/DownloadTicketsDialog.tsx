@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+    Alert,
     Button,
+    Chip,
     Dialog,
     DialogActions,
     DialogContent,
@@ -23,6 +25,7 @@ import { getDistricts, getRegions } from '../../services/LocationService';
 import { useApi } from '../../hooks/useApi';
 import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
 import AssigneeFilterDropdown from './AssigneeFilterDropdown';
+import { searchTicketsPaginated } from '../../services/TicketService';
 
 interface DownloadFilters {
     fromDate: string;
@@ -50,11 +53,14 @@ interface DownloadDialogInitialFilters {
 interface DownloadTicketsDialogProps {
     open: boolean;
     loading?: boolean;
+    generationState?: 'idle' | 'generating' | 'error';
     zoneOptions: DropdownOption[];
     issueTypeOptions: DropdownOption[];
     initialFilters: DownloadDialogInitialFilters;
     onClose: () => void;
     onGenerate: (format: 'pdf' | 'excel', filters: DownloadFilters) => Promise<void> | void;
+    onCancelExport?: () => void;
+    onRetryExport?: () => void;
 }
 
 const formatInputDate = (value: Date) => {
@@ -77,15 +83,29 @@ const getDateRangeForSelection = (year: number, month?: number) => {
 };
 
 const allOptionObject: DropdownOption = { label: 'All', value: 'All' }
+const MAX_EXPORT_RANGE_DAYS = 31;
+
+const getDateRangeDays = (from: string, to: string): number | null => {
+    if (!from || !to) return null;
+    const start = new Date(from);
+    const end = new Date(to);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+    const diffInMs = end.getTime() - start.getTime();
+    if (diffInMs < 0) return null;
+    return Math.floor(diffInMs / (1000 * 60 * 60 * 24)) + 1;
+};
 
 const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     open,
     loading = false,
+    generationState = 'idle',
     zoneOptions,
     issueTypeOptions,
     initialFilters,
     onClose,
     onGenerate,
+    onCancelExport,
+    onRetryExport,
 }) => {
     const { t } = useTranslation();
 
@@ -103,6 +123,9 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
     const [generateMenuAnchor, setGenerateMenuAnchor] = useState<null | HTMLElement>(null);
+    const [estimatedCount, setEstimatedCount] = useState<number | null>(null);
+    const [estimateLoading, setEstimateLoading] = useState(false);
+
 
     const { data: getRegionsApiData, pending: getRegionsApiPending, success: getRegionsApiSuccess, apiHandler: getRegionsApiHandler } = useApi()
     const { data: getDistrictsApiData, pending: getDistrictsApiPending, success: getDistrictsApiSuccess, apiHandler: getDistrictsApiHandler } = useApi()
@@ -226,6 +249,14 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setDistrict('All');
     };
 
+    const applyPresetRange = (days: number) => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - (days - 1));
+        setFromDate(formatInputDate(start));
+        setToDate(formatInputDate(end));
+    };
+
     const handleGenerateSelection = async (format: 'pdf' | 'excel') => {
         const selectedZone = zoneOptions.find((option) => option.value === zone);
         const selectedRegion = regionOptions.find((option) => option.value === region);
@@ -247,6 +278,54 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         });
         setGenerateMenuAnchor(null);
     };
+
+    const selectedRangeDays = useMemo(() => getDateRangeDays(fromDate, toDate), [fromDate, toDate]);
+    const isRangeInvalid = selectedRangeDays === null;
+    const isRangeTooLarge = selectedRangeDays !== null && selectedRangeDays > MAX_EXPORT_RANGE_DAYS;
+
+    useEffect(() => {
+        if (!open || !fromDate || !toDate || isRangeInvalid) {
+            setEstimatedCount(null);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            try {
+                setEstimateLoading(true);
+                const response = await searchTicketsPaginated(
+                    '',
+                    undefined,
+                    undefined,
+                    0,
+                    1,
+                    assignee !== 'All' ? assignee : undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    fromDate,
+                    toDate,
+                    undefined,
+                    undefined,
+                    zone !== 'All' ? zone : undefined,
+                    region !== 'All' ? region : undefined,
+                    district !== 'All' ? district : undefined,
+                    issueType !== 'All' ? issueType : undefined,
+                );
+                setEstimatedCount(response?.data?.totalElements ?? null);
+            } catch (_) {
+                setEstimatedCount(null);
+            } finally {
+                setEstimateLoading(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [open, fromDate, toDate, zone, region, district, issueType, assignee, isRangeInvalid]);
 
     return (
         <>
@@ -370,6 +449,45 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                                 onChange={(event) => setToDate(event.target.value)}
                             />
                         </Stack>
+
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>
+                            <Button variant="outlined" size="small" onClick={() => applyPresetRange(7)}>{t('Last 7 days')}</Button>
+                            <Button variant="outlined" size="small" onClick={() => applyPresetRange(30)}>{t('Last 30 days')}</Button>
+                            <Chip
+                                size="small"
+                                label={estimateLoading ? t('Estimating records...') : estimatedCount !== null ? `${t('Estimated records')}: ~${estimatedCount.toLocaleString()}` : t('Estimated records unavailable')}
+                            />
+                        </Stack>
+
+                        {generationState === 'generating' && (
+                            <Alert severity="info">
+                                {t('Your report is being generated.')}
+                                {onCancelExport && (
+                                    <Button size="small" sx={{ ml: 1 }} onClick={onCancelExport}>{t('Cancel export')}</Button>
+                                )}
+                            </Alert>
+                        )}
+
+                        {generationState === 'error' && (
+                            <Alert severity="error">
+                                {t('Export failed. Range may be too large; narrow filters or request async report.')}
+                                {onRetryExport && (
+                                    <Button size="small" sx={{ ml: 1 }} onClick={onRetryExport}>{t('Retry')}</Button>
+                                )}
+                            </Alert>
+                        )}
+
+                        {isRangeInvalid && (
+                            <Alert severity="warning">
+                                {t('Please select a valid date range.')}
+                            </Alert>
+                        )}
+
+                        {isRangeTooLarge && (
+                            <Alert severity="info">
+                                {t('For faster downloads, please choose a date range of 31 days or less.')}
+                            </Alert>
+                        )}
 
                         <Button
                             variant="contained"
