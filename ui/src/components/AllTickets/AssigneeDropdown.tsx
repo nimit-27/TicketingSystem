@@ -15,6 +15,8 @@ import { TicketStatusWorkflow } from '../../types';
 interface AssigneeDropdownProps {
     ticketId: string;
     assigneeName?: string;
+    users?: User[];
+    callViaApi?: boolean;
     onAssigned?: (name: string) => void;
     searchCurrentTicketsPaginatedApi?: (id: string) => void;
     requestorId?: string;
@@ -24,7 +26,7 @@ interface AssigneeDropdownProps {
 interface Level { levelId: string; levelName: string; }
 interface User { userId: string; username: string; name: string; roles?: string; levels?: string[]; levelId?: string; levelName?: string; }
 
-const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, onAssigned, searchCurrentTicketsPaginatedApi, requestorId, getAllAvailableActionsByCurrentStatus }) => {
+const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeName, users = [], callViaApi = true, onAssigned, searchCurrentTicketsPaginatedApi, requestorId, getAllAvailableActionsByCurrentStatus }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
     const [search, setSearch] = useState('');
@@ -46,8 +48,10 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     // Fetch levels, users and roles on mount
     useEffect(() => {
         getLevelsApiHandler(() => getAllLevels());
-        getAllUsersApiHandler(() => getAllUsers());
-    }, []);
+        if (callViaApi) {
+            getAllUsersApiHandler(() => getAllUsers());
+        }
+    }, [callViaApi, getAllUsersApiHandler, getLevelsApiHandler]);
 
     // Fetch users when selectedLevel changes
     useEffect(() => {
@@ -90,7 +94,8 @@ const AssigneeDropdown: React.FC<AssigneeDropdownProps> = ({ ticketId, assigneeN
     };
 
     const levels: Level[] = levelsData || [];
-    const baseUsers: User[] = selectedLevel ? (usersData || []) : (allUsersData || []);
+    const allUsersList: User[] = callViaApi ? (allUsersData || []) : users;
+    const baseUsers: User[] = selectedLevel ? (usersData || []) : allUsersList;
     const expandedUsers: User[] = baseUsers.flatMap(u => {
         const ids = u.levels && u.levels.length ? u.levels : [''];
         return ids.map(id => ({ ...u, levelId: id }));

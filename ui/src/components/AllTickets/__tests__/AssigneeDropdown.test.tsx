@@ -182,6 +182,18 @@ describe('AssigneeDropdown', () => {
         expect(onAssigned).toHaveBeenCalledWith('Agent One');
     });
 
+
+    it('uses users from props when callViaApi is false', async () => {
+        render(<AssigneeDropdown ticketId="INC-300" users={mockUsers} callViaApi={false} />);
+
+        await waitFor(() => expect(mockGetAllLevels).toHaveBeenCalled());
+        expect(mockGetAllUsers).not.toHaveBeenCalled();
+
+        const triggerButtons = screen.getAllByTestId('assignee-trigger');
+        fireEvent.click(triggerButtons[0]);
+
+        expect((await screen.findAllByText('Agent One')).length).toBeGreaterThan(0);
+    });
     it('opens advanced options dialog with assign to FCI permission', async () => {
         render(<AssigneeDropdown ticketId="INC-200" />);
 

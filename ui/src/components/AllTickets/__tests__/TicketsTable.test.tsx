@@ -152,6 +152,11 @@ jest.mock('../../../services/TicketService', () => ({
     updateTicket: (...args: any[]) => mockUpdateTicket(...args),
     searchTicketsForExport: (...args: any[]) => mockSearchTicketsForExport(...args),
 }));
+const mockGetAllUsers = jest.fn();
+jest.mock('../../../services/UserService', () => ({
+    getAllUsers: (...args: any[]) => mockGetAllUsers(...args),
+}));
+
 
 const mockGetCurrentUserDetails = jest.fn(() => ({ username: 'agent.user' }));
 jest.mock('../../../config/config', () => ({
@@ -205,6 +210,8 @@ beforeEach(() => {
     mockWriteFile.mockClear();
     mockSearchTicketsForExport.mockReset();
     mockSearchTicketsForExport.mockResolvedValue(tickets);
+    mockGetAllUsers.mockReset();
+    mockGetAllUsers.mockResolvedValue([]);
     mockGetRegions.mockReset();
     mockGetRegions.mockResolvedValue({ data: [] });
     mockGetDistricts.mockReset();
@@ -243,6 +250,7 @@ describe('TicketsTable', () => {
         );
 
         await waitFor(() => expect(mockGenericTable).toHaveBeenCalled());
+        expect(mockGetAllUsers).toHaveBeenCalled();
         const tableProps = mockGenericTable.mock.calls[0][0];
         const assigneeColumn = tableProps.columns.find((col: any) => col.key === 'assignee');
         expect(assigneeColumn).toBeDefined();
@@ -250,7 +258,7 @@ describe('TicketsTable', () => {
         expect(React.isValidElement(renderedAssignee)).toBe(true);
         render(<>{renderedAssignee}</>);
         expect(mockAssigneeDropdown).toHaveBeenCalledWith(
-            expect.objectContaining({ ticketId: 'INC-001', assigneeName: 'Agent One' }),
+            expect.objectContaining({ ticketId: 'INC-001', assigneeName: 'Agent One', callViaApi: false, users: [] }),
         );
     });
 
