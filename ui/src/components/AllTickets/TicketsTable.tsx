@@ -20,6 +20,7 @@ import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
 import InfoIcon from '../UI/Icons/InfoIcon';
 import { searchTicketsForExport, updateTicket } from '../../services/TicketService';
+import { getAllUsers } from '../../services/UserService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
@@ -166,6 +167,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const { showMessage } = useSnackbar();
 
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { data: allUsersData, apiHandler: getAllUsersApiHandler } = useApi<any>();
     const { apiHandler: downloadTicketsApiHandler, pending: downloadingTickets } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -188,6 +190,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const FCI_STATUS_NAME = 'On Hold (Pending with FCI)';
 
     const priorityMap: Record<string, number> = { P1: 1, P2: 2, P3: 3, P4: 4 };
+
+    useEffect(() => {
+        getAllUsersApiHandler(() => getAllUsers());
+    }, [getAllUsersApiHandler]);
     let allowAssignment = checkAccessMaster([permissionPathPrefix, 'ticketsTable', 'columns', 'assignee', 'allowAssignment']);
 
     const getAvailableActions = (statusId?: string) => {
@@ -710,6 +716,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                             <AssigneeDropdown
                                 ticketId={record.id}
                                 assigneeName={record.assignedToName || record.assignedTo}
+                                users={allUsersData || []}
+                                callViaApi={false}
                                 requestorId={record.userId}
                                 searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
                                 getAllAvailableActionsByCurrentStatus={getAllAvailableActionsByCurrentStatus}
