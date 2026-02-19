@@ -83,8 +83,6 @@ const getDateRangeForSelection = (year: number, month?: number) => {
 };
 
 const allOptionObject: DropdownOption = { label: 'All', value: 'All' }
-const MAX_EXPORT_RANGE_DAYS = 31;
-
 const getDateRangeDays = (from: string, to: string): number | null => {
     if (!from || !to) return null;
     const start = new Date(from);
@@ -129,6 +127,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
 
     const { data: getRegionsApiData, pending: getRegionsApiPending, success: getRegionsApiSuccess, apiHandler: getRegionsApiHandler } = useApi()
     const { data: getDistrictsApiData, pending: getDistrictsApiPending, success: getDistrictsApiSuccess, apiHandler: getDistrictsApiHandler } = useApi()
+    const { apiHandler: estimateCountApiHandler, pending: estimateCountPending } = useApi<any>()
 
     const getRegionsHandler = async (zone: any) => {
         return await getRegionsApiHandler(() => getRegions(zone))
@@ -281,7 +280,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
 
     const selectedRangeDays = useMemo(() => getDateRangeDays(fromDate, toDate), [fromDate, toDate]);
     const isRangeInvalid = selectedRangeDays === null;
-    const isRangeTooLarge = selectedRangeDays !== null && selectedRangeDays > MAX_EXPORT_RANGE_DAYS;
 
     useEffect(() => {
         if (!open || !fromDate || !toDate || isRangeInvalid) {
@@ -292,7 +290,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         const timer = setTimeout(async () => {
             try {
                 setEstimateLoading(true);
-                const response = await searchTicketsPaginated(
+                const response = await estimateCountApiHandler(() => searchTicketsPaginated(
                     '',
                     undefined,
                     undefined,
@@ -315,8 +313,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                     region !== 'All' ? region : undefined,
                     district !== 'All' ? district : undefined,
                     issueType !== 'All' ? issueType : undefined,
-                );
-                setEstimatedCount(response?.data?.totalElements ?? null);
+                ));
+                setEstimatedCount(response?.totalElements ?? null);
             } catch (_) {
                 setEstimatedCount(null);
             } finally {
@@ -325,7 +323,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [open, fromDate, toDate, zone, region, district, issueType, assignee, isRangeInvalid]);
+    }, [open, fromDate, toDate, zone, region, district, issueType, assignee, isRangeInvalid, estimateCountApiHandler]);
 
     return (
         <>
@@ -455,7 +453,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             <Button variant="outlined" size="small" onClick={() => applyPresetRange(30)}>{t('Last 30 days')}</Button>
                             <Chip
                                 size="small"
-                                label={estimateLoading ? t('Estimating records...') : estimatedCount !== null ? `${t('Estimated records')}: ~${estimatedCount.toLocaleString()}` : t('Estimated records unavailable')}
+                                label={(estimateLoading || estimateCountPending) ? t('Estimating records...') : estimatedCount !== null ? `${t('Estimated records')}: ~${estimatedCount.toLocaleString()}` : t('Estimated records unavailable')}
                             />
                         </Stack>
 
@@ -483,9 +481,9 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             </Alert>
                         )}
 
-                        {isRangeTooLarge && (
+                        {selectedRangeDays !== null && selectedRangeDays > 31 && (
                             <Alert severity="info">
-                                {t('For faster downloads, please choose a date range of 31 days or less.')}
+                                {t('Large date range selected. It may take some time to download this data.')}
                             </Alert>
                         )}
 

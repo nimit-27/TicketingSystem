@@ -148,8 +148,6 @@ const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     return [];
 };
 
-const MAX_EXPORT_RANGE_DAYS = 31;
-
 const getDateRangeDays = (fromDate?: string, toDate?: string): number | null => {
     if (!fromDate || !toDate) return null;
     const start = new Date(fromDate);
@@ -168,6 +166,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const { showMessage } = useSnackbar();
 
     const { apiHandler: updateTicketApiHandler } = useApi<any>();
+    const { apiHandler: downloadTicketsApiHandler, pending: downloadingTickets } = useApi<any>();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [currentTicketId, setCurrentTicketId] = useState<string>('');
@@ -488,12 +487,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             return;
         }
 
-        if (selectedRangeDays > MAX_EXPORT_RANGE_DAYS) {
-            showMessage(
-                t('Please select a date range of 31 days or less to generate the report quickly.'),
-                'warning',
-            );
-            return;
+        if (selectedRangeDays > 31) {
+            showMessage(t('Large date range selected. It may take some time to download this data.'), 'info');
         }
 
         setLastExportRequest({ format, filters });
@@ -504,7 +499,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         exportAbortRef.current = controller;
 
         try {
-            const response = await searchTicketsForExport({
+            const response = await downloadTicketsApiHandler(() => searchTicketsForExport({
                 fromDate: filters.fromDate,
                 toDate: filters.toDate,
                 zoneCode: filters.zoneCode,
@@ -513,9 +508,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 issueTypeId: filters.issueTypeId,
                 assignedTo: filters.assignedTo,
                 signal: controller.signal,
-            });
+            }));
 
-            const ticketsToExport = normalizeDownloadTickets(response?.data ?? response);
+            if (controller.signal.aborted) {
+                return;
+            }
+
+            if (response === null) {
+                setExportGenerationState('error');
+                showMessage(t('Export failed. Range may be too large; narrow filters or request async report.'), 'error');
+                return;
+            }
+
+            const ticketsToExport = normalizeDownloadTickets(response);
             if (!ticketsToExport.length) {
                 showMessage(t('No data available'), 'info');
                 setExportGenerationState('idle');
@@ -898,7 +903,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             </Menu>
             <DownloadTicketsDialog
                 open={downloadDialogOpen}
-                loading={exportGenerationState === 'generating'}
+                loading={downloadingTickets || exportGenerationState === 'generating'}
                 generationState={exportGenerationState}
                 onCancelExport={cancelExportGeneration}
                 onRetryExport={retryLastExport}
