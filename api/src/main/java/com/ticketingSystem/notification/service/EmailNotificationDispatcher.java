@@ -44,6 +44,7 @@ public class EmailNotificationDispatcher {
     private final EmailMessageSender messageSender;
     private final ObjectMapper objectMapper;
     private final NotificationProperties properties;
+    private final NotificationRuntimeToggleService notificationRuntimeToggleService;
     @Qualifier("emailNotificationExecutor")
     private final TaskExecutor emailNotificationExecutor;
 
@@ -52,7 +53,7 @@ public class EmailNotificationDispatcher {
             initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
     )
     public void dispatchPendingEmails() {
-        if (!properties.isEnabled()) {
+        if (!notificationRuntimeToggleService.isNotificationEnabled()) {
             return;
         }
         NotificationProperties.EmailDispatcher emailSettings = properties.getEmailDispatcher();

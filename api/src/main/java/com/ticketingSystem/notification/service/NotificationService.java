@@ -16,10 +16,11 @@ import java.util.Map;
 public class NotificationService {
     private final List<Notifier> notifiers;
     private final NotificationProperties properties;
+    private final NotificationRuntimeToggleService notificationRuntimeToggleService;
     private final NotificationMasterRepository notificationMasterRepository;
 
     public void sendNotification(ChannelType channel, String notificationCode, Map<String, Object> dataModel, String recipient) throws Exception {
-        if(!properties.isEnabled()) return; //Notification Globally disabled
+        if (!notificationRuntimeToggleService.isNotificationEnabled()) return; // Notification Globally disabled
 
         Notifier notifier = notifiers.stream()
                 .filter(n -> n.getChannel() == channel)
