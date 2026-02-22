@@ -802,7 +802,7 @@ public class TicketService {
             assignmentHistoryService.addHistory(
                     id,
                     updatedBy,
-                    null,
+                    "NONE",
                     null,
                     remark != null ? remark : "Unassigned on reopen"
             );

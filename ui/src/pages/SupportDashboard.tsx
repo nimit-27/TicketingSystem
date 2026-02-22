@@ -1578,7 +1578,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Tickets by Status" })} (Apache ECharts)
+                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })}
                   </Typography>
                   <Box sx={{ height: "90%", minHeight: 260 }}>
                     <ReactECharts option={statusPieChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
