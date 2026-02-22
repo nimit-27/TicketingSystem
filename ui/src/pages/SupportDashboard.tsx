@@ -395,7 +395,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   initialTimeScale = "MONTHLY",
   initialTimeRange = "ALL_TIME",
 }) => {
-  const [recharts, setRecharts] = React.useState<typeof import("recharts") | null>(null);
   const { t } = useTranslation();
   const { devMode } = useContext(DevModeContext);
   const { showMessage } = useSnackbar();
@@ -464,26 +463,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<RegionOptionItem[]>();
   const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<DistrictOptionItem[]>();
   const { data: issueTypesResponse = [], apiHandler: getIssueTypesApiHandler } = useApi<IssueTypeInfo[]>();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    import("recharts")
-      .then((module) => {
-        if (isMounted) {
-          setRecharts(module);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setError("Failed to load charting library");
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (!userRoles.length) {
@@ -1347,21 +1326,51 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [summaryData],
   );
 
+  const ticketVolumeChartOptions = React.useMemo(
+    () => ({
+      tooltip: {
+        trigger: "axis",
+      },
+      grid: {
+        left: 36,
+        right: 20,
+        top: 20,
+        bottom: 36,
+      },
+      xAxis: {
+        type: "category",
+        data: ticketVolumeSeries.map((point) => point.label),
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: [
+        {
+          name: t("supportDashboard.metrics.tickets"),
+          data: ticketVolumeSeries.map((point) => point.tickets),
+          type: "line",
+          smooth: true,
+          symbol: "circle",
+          symbolSize: 8,
+          lineStyle: {
+            color: "#1976d2",
+            width: 2,
+          },
+          itemStyle: {
+            color: "#1976d2",
+          },
+          areaStyle: {
+            opacity: 0.12,
+            color: "#1976d2",
+          },
+        },
+      ],
+    }),
+    [ticketVolumeSeries, t],
+  );
+
   const activeScopeLabel = t(scopeLabels[activeScope]);
-
-  if (!recharts) {
-    return (
-      <div className="d-flex flex-column flex-grow-1">
-        <Title textKey="Dashboard" />
-        <Typography variant="body1" className="mt-3">
-          {t("supportDashboard.loadingCharts", { defaultValue: "Loading dashboard charts..." })}
-        </Typography>
-      </div>
-    );
-  }
-
-  const { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Bar, LineChart, Line } =
-    recharts;
 
   const misReportGeneratorComponent = <MISReportGenerator
     onDownload={handleReportDownload}
@@ -1577,53 +1586,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 </CardContent>
               </Card>
             </div>
-            <div className="col-12 col-xl-6">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })} (Recharts)
-                  </Typography>
-                  <ResponsiveContainer width="100%" height="75%">
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={50}
-                        outerRadius={90}
-                        paddingAngle={5}
-                        labelLine={false}
-                      >
-                        {statusData.map((entry) => (
-                          <Cell key={entry.name} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <text
-                        x="50%"
-                        y="45%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{ fontSize: 20, fontWeight: 700, fill: "#37474f" }}
-                      >
-                        {overallTickets.toLocaleString()}
-                      </text>
-                      <text
-                        x="50%"
-                        y="55%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{ fontSize: 12, fill: "#78909c" }}
-                      >
-                        {t("Total")}
-                      </text>
-                      <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
-                      <Tooltip contentStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Summary Cards */}
             <div className="row g-3 col-12 col-xl-6">
               <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
@@ -1790,23 +1752,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
                     {t("supportDashboard.metrics.ticketsPerMonth")}
                   </Typography>
-                  <ResponsiveContainer width="100%" height="90%">
-                    <LineChart data={ticketVolumeSeries}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12 }} tickLine={false} />
-                      <Tooltip contentStyle={{ fontSize: 12 }} />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                      <Line
-                        type="monotone"
-                        dataKey="tickets"
-                        stroke="#1976d2"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        name={t("supportDashboard.metrics.tickets")}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <Box sx={{ height: "90%", minHeight: 260 }}>
+                    <ReactECharts option={ticketVolumeChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                  </Box>
                 </CardContent>
               </Card>
             </div>
