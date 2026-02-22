@@ -132,6 +132,12 @@ jest.mock(
   { virtual: true },
 );
 
+jest.mock(
+  "echarts-for-react",
+  () => (props: any) => <div data-testid="echarts-mock" data-option={JSON.stringify(props.option)} />,
+  { virtual: true },
+);
+
 describe("SupportDashboard", () => {
   beforeAll(() => {
     jest.useFakeTimers().setSystemTime(new Date("2024-01-08T00:00:00Z"));
