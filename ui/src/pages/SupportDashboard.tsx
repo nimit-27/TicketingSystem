@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { Box, Card, CardContent, MenuItem, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import ReactECharts from "echarts-for-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -1267,6 +1268,66 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     }));
   }, [activeSummaryView.statusCounts, t]);
 
+  const statusPieChartOptions = React.useMemo(
+    () => ({
+      tooltip: {
+        trigger: "item",
+      },
+      legend: {
+        orient: "horizontal",
+        bottom: 0,
+      },
+      series: [
+        {
+          name: t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Tickets by Status" }),
+          type: "pie",
+          radius: ["45%", "75%"],
+          center: ["50%", "42%"],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 4,
+            borderColor: "#fff",
+            borderWidth: 1,
+          },
+          label: {
+            show: true,
+            formatter: "{b}: {c}",
+            fontSize: 11,
+          },
+          data: statusData.map((entry) => ({
+            value: entry.value,
+            name: entry.name,
+            itemStyle: { color: entry.color },
+          })),
+        },
+      ],
+      graphic: [
+        {
+          type: "text",
+          left: "center",
+          top: "36%",
+          style: {
+            text: overallTickets.toLocaleString(),
+            fill: "#37474f",
+            fontSize: 20,
+            fontWeight: 700,
+          },
+        },
+        {
+          type: "text",
+          left: "center",
+          top: "45%",
+          style: {
+            text: t("Total"),
+            fill: "#78909c",
+            fontSize: 12,
+          },
+        },
+      ],
+    }),
+    [overallTickets, statusData, t],
+  );
+
   const slaData = React.useMemo(
     () =>
       (summaryData?.slaCompliance ?? []).map((point: any) => ({
@@ -1508,7 +1569,19 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })}
+                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Tickets by Status" })} (Apache ECharts)
+                  </Typography>
+                  <Box sx={{ height: "90%", minHeight: 260 }}>
+                    <ReactECharts option={statusPieChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                  </Box>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })} (Recharts)
                   </Typography>
                   <ResponsiveContainer width="100%" height="75%">
                     <PieChart>
