@@ -14,7 +14,7 @@ import java.time.Instant;
 public class NotificationRuntimeToggleService {
 
     private static final String NOTIFICATION_ENABLED_KEY = "notification.enabled";
-    private static final Duration CACHE_TTL = Duration.ofSeconds(10);
+    private static final Duration CACHE_TTL = Duration.ofMinutes(2);
 
     private final AppRuntimeConfigRepository appRuntimeConfigRepository;
     private final NotificationProperties notificationProperties;
