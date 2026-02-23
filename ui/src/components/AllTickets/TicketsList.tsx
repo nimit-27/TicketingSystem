@@ -160,7 +160,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [filteredTicketCount, setFilteredTicketCount] = useState(0);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
-    const levels = getCurrentUserDetails()?.levels || [];
+    const userDetails = getCurrentUserDetails();
+    const levels = userDetails?.levels || [];
+    const defaultZoneCode = userDetails?.zoneCode ? String(userDetails.zoneCode) : "All";
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
     const [sortBy, setSortBy] = useState<"reportedDate" | "lastModified">("reportedDate");
@@ -174,7 +176,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
-    const [selectedZone, setSelectedZone] = useState<string>("All");
+    const [selectedZone, setSelectedZone] = useState<string>(defaultZoneCode);
     const [selectedRegion, setSelectedRegion] = useState<string>("All");
     const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = useState<string>("All");
     const [selectedDistrict, setSelectedDistrict] = useState<string>("All");
@@ -264,7 +266,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedDateParam("reported_date");
         setSelectedCategory("All");
         setSelectedSubCategory("All");
-        setSelectedZone("All");
+        setSelectedZone(defaultZoneCode);
         setSelectedRegion("All");
         setSelectedRegionHrmsCode("All");
         setSelectedDistrict("All");
