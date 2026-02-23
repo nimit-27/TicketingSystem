@@ -183,6 +183,11 @@ export interface SupportDashboardTicketVolumePoint {
     tickets: number;
 }
 
+export interface SupportDashboardAssigneeCount {
+    assignee: string;
+    count: number;
+}
+
 export interface SupportDashboardSummaryResponse {
     allTickets?: SupportDashboardSummarySectionDto | null;
     myWorkload?: SupportDashboardSummarySectionDto | null;
@@ -191,6 +196,7 @@ export interface SupportDashboardSummaryResponse {
     openResolved?: SupportDashboardOpenResolvedStats | null;
     slaCompliance?: SupportDashboardSlaCompliancePoint[];
     ticketVolume?: SupportDashboardTicketVolumePoint[];
+    assignedTicketsByAssignee?: SupportDashboardAssigneeCount[];
     unresolvedBreachedTickets?: number;
 }
 

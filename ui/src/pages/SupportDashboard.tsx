@@ -18,7 +18,7 @@ import {
   SupportDashboardTimeScale,
 } from "../types/reports";
 import { ParameterMaster } from "../types/parameters";
-import { checkSidebarAccess } from "../utils/permissions";
+import { checkMyTicketsAccess, checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
@@ -512,6 +512,14 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
+  const showTicketLifecycleSunburst = React.useMemo(
+    () => checkMyTicketsAccess("ticketLifecycleSunburst", "supportDashboard"),
+    [],
+  );
+  const showAssignedTicketsBarRace = React.useMemo(
+    () => checkMyTicketsAccess("assignedTicketsBarRace", "supportDashboard"),
+    [],
+  );
 
   const determineScope = React.useCallback(
     (data: SupportDashboardSummary): SupportDashboardScopeKey => {
@@ -1241,11 +1249,135 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
         .replace(/\b\w/g, (char) => char.toUpperCase());
 
     return entries.map(([status, value], index) => ({
+      key: status,
       name: t(formatStatusLabel(status)),
       value: typeof value === "number" ? value : 0,
       color: statusColorPalette[index % statusColorPalette.length],
     }));
   }, [activeSummaryView.statusCounts, t]);
+
+  const statusColorByKey = React.useMemo(
+    () => statusData.reduce<Record<string, string>>((acc, entry) => ({ ...acc, [entry.key]: entry.color }), {}),
+    [statusData],
+  );
+
+  const getStatusCount = React.useCallback(
+    (...keys: string[]) => keys.reduce((sum, key) => sum + (activeSummaryView.statusCounts?.[key] ?? 0), 0),
+    [activeSummaryView.statusCounts],
+  );
+
+  const ticketLifecycleSunburstOptions = React.useMemo(() => {
+    const openCount = getStatusCount("OPEN");
+    const reopenedCount = getStatusCount("REOPENED");
+    const assignedCount = getStatusCount("ASSIGNED");
+    const pendingWithRequester = getStatusCount("PENDING_WITH_REQUESTER");
+    const pendingWithFci = getStatusCount("PENDING_WITH_FCI");
+    const pendingWithVendor = getStatusCount("PENDING_WITH_SERVICE_PROVIDER");
+    const onHoldCount = getStatusCount("ON_HOLD");
+    const pendingCount = getStatusCount("PENDING") + onHoldCount + pendingWithRequester + pendingWithFci + pendingWithVendor;
+    const pendingForFeedbackCount = getStatusCount("PENDING_FOR_FEEDBACK", "AWAITING_ESCALATION_APPROVAL");
+    const feedbackSubmittedCount = getStatusCount("FEEDBACK_SUBMITTED", "ESCALATED");
+    const resolvedCount = getStatusCount("RESOLVED") + pendingForFeedbackCount + feedbackSubmittedCount;
+    const closedCount = getStatusCount("CLOSED");
+
+    const sunburstData = [
+      {
+        name: "Unacknowledged (Unassigned)",
+        value: openCount + reopenedCount,
+        children: [
+          { name: "Open", value: openCount, itemStyle: { color: statusColorByKey.OPEN ?? "#1976d2" } },
+          { name: "Re-opened", value: reopenedCount, itemStyle: { color: statusColorByKey.REOPENED ?? "#ff7043" } },
+        ],
+      },
+      {
+        name: "Acknowledged",
+        value: assignedCount + pendingCount + resolvedCount + closedCount,
+        children: [
+          { name: "Assigned", value: assignedCount },
+          {
+            name: "Pending",
+            value: pendingCount,
+            children: [
+              { name: "With Requestor", value: pendingWithRequester },
+              { name: "With FCI", value: pendingWithFci },
+              { name: "With Vendor", value: pendingWithVendor },
+            ],
+          },
+          {
+            name: "Resolved",
+            value: resolvedCount,
+            children: [
+              { name: "Pending for Feedback", value: pendingForFeedbackCount },
+              { name: "Feedback Submitted", value: feedbackSubmittedCount },
+            ],
+          },
+          { name: "Closed", value: closedCount },
+        ],
+      },
+    ];
+
+    return {
+      tooltip: { trigger: "item" },
+      legend: {
+        bottom: 0,
+        type: "scroll",
+        data: ["Open", "Re-opened", "Assigned", "Pending", "Resolved", "Closed"],
+      },
+      series: {
+        type: "sunburst",
+        data: sunburstData,
+        radius: [0, "72%"],
+        itemStyle: {
+          borderRadius: 5,
+          borderWidth: 2,
+        },
+        label: {
+          show: true,
+          formatter: "{b}: {c}",
+        },
+      },
+    };
+  }, [getStatusCount, statusColorByKey]);
+
+  const assignedTicketsBarRaceOptions = React.useMemo(() => {
+    const data = (summaryData?.assignedTicketsByAssignee ?? [])
+      .map((entry: any) => ({
+        assignee: typeof entry?.assignee === "string" && entry.assignee.trim().length > 0 ? entry.assignee : "Unassigned",
+        count: typeof entry?.count === "number" ? entry.count : 0,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15);
+
+    return {
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      grid: { top: 20, bottom: 20, left: 160, right: 40 },
+      xAxis: { type: "value" },
+      yAxis: {
+        type: "category",
+        inverse: true,
+        data: data.map((entry) => entry.assignee),
+        animationDuration: 300,
+        animationDurationUpdate: 300,
+      },
+      series: [
+        {
+          realtimeSort: true,
+          type: "bar",
+          data: data.map((entry) => entry.count),
+          label: {
+            show: true,
+            position: "right",
+            valueAnimation: true,
+          },
+          itemStyle: { color: "#1976d2" },
+        },
+      ],
+      animationDuration: 0,
+      animationDurationUpdate: 1500,
+      animationEasing: "linear",
+      animationEasingUpdate: "linear",
+    };
+  }, [summaryData?.assignedTicketsByAssignee]);
 
   const statusPieChartOptions = React.useMemo(
     () => ({
@@ -1758,6 +1890,34 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 </CardContent>
               </Card>
             </div>
+            {showTicketLifecycleSunburst ? (
+              <div className="col-12 col-xl-6">
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardContent className="h-100" style={{ minHeight: 320 }}>
+                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                      Ticket Lifecycle Breakdown
+                    </Typography>
+                    <Box sx={{ height: "90%", minHeight: 260 }}>
+                      <ReactECharts option={ticketLifecycleSunburstOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
+            {showAssignedTicketsBarRace ? (
+              <div className="col-12 col-xl-6">
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardContent className="h-100" style={{ minHeight: 320 }}>
+                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                      Assigned Tickets by Assignee
+                    </Typography>
+                    <Box sx={{ height: "90%", minHeight: 260 }}>
+                      <ReactECharts option={assignedTicketsBarRaceOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

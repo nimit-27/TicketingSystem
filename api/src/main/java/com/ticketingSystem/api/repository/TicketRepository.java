@@ -66,6 +66,48 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             @Param("districtCode") String districtCode,
             @Param("issueTypeId") String issueTypeId);
 
+    @Query("SELECT t.assignedTo AS assignedTo, COUNT(t) AS count FROM Ticket t " +
+            "WHERE t.ticketStatus = :status " +
+            "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
+            "GROUP BY t.assignedTo")
+    List<AssignedToCountProjection> countTicketsByAssigneeForStatusWithFilters(
+            @Param("status") TicketStatus status,
+            @Param("assignedTo") String assignedTo,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
+
+    @Query("SELECT t.assignedTo AS assignedTo, COUNT(t) AS count FROM Ticket t " +
+            "WHERE t.ticketStatus = :status " +
+            "AND (:assignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:assignedTo)) " +
+            "AND (:parameterAssignedTo IS NULL OR LOWER(t.assignedTo) = LOWER(:parameterAssignedTo)) " +
+            "AND (:parameterAssignedBy IS NULL OR LOWER(t.assignedBy) = LOWER(:parameterAssignedBy)) " +
+            "AND (:parameterUpdatedBy IS NULL OR LOWER(t.updatedBy) = LOWER(:parameterUpdatedBy)) " +
+            "AND (:parameterCreatedBy IS NULL OR LOWER(t.createdBy) = LOWER(:parameterCreatedBy)) " +
+            "AND (:parameterRequestedBy IS NULL OR LOWER(t.userId) = LOWER(:parameterRequestedBy)) " +
+            "AND (:zoneCode IS NULL OR LOWER(t.zoneCode) = LOWER(:zoneCode)) " +
+            "AND (:regionCode IS NULL OR LOWER(t.regionCode) = LOWER(:regionCode)) " +
+            "AND (:districtCode IS NULL OR LOWER(t.districtCode) = LOWER(:districtCode)) " +
+            "AND (:issueTypeId IS NULL OR LOWER(t.issueTypeId) = LOWER(:issueTypeId)) " +
+            "AND (:fromDate IS NULL OR t.reportedDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR t.reportedDate <= :toDate) " +
+            "GROUP BY t.assignedTo")
+    List<AssignedToCountProjection> countTicketsByAssigneeForStatusWithFiltersAndParameters(
+            @Param("status") TicketStatus status,
+            @Param("assignedTo") String assignedTo,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            @Param("parameterAssignedTo") String parameterAssignedTo,
+            @Param("parameterAssignedBy") String parameterAssignedBy,
+            @Param("parameterUpdatedBy") String parameterUpdatedBy,
+            @Param("parameterCreatedBy") String parameterCreatedBy,
+            @Param("parameterRequestedBy") String userId,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode,
+            @Param("issueTypeId") String issueTypeId);
+
     @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
     List<ModeCountProjection> countTicketsByMode();
 
@@ -487,6 +529,12 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
         String getCategory();
 
         String getSubcategory();
+
+        Long getCount();
+    }
+
+    interface AssignedToCountProjection {
+        String getAssignedTo();
 
         Long getCount();
     }
