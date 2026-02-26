@@ -84,6 +84,8 @@ interface TicketsTableProps {
     selectedRegion?: string;
     selectedDistrict?: string;
     selectedIssueType?: string;
+    selectedCategory?: string;
+    selectedSubCategory?: string;
     selectedAssignee?: string;
 }
 
@@ -159,7 +161,7 @@ const getDateRangeDays = (fromDate?: string, toDate?: string): number | null => 
     return Math.floor(diffInMs / (1000 * 60 * 60 * 24)) + 1;
 };
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedAssignee = 'All' }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All' }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -286,13 +288,15 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const downloadDialogInitialFilters = useMemo<DownloadDialogInitialFilters>(
         () => ({
+            category: selectedCategory,
+            subCategory: selectedSubCategory,
             zone: selectedZone,
             region: selectedRegion,
             district: selectedDistrict,
             issueType: selectedIssueType,
             assignee: selectedAssignee,
         }),
-        [selectedAssignee, selectedDistrict, selectedIssueType, selectedRegion, selectedZone],
+        [selectedAssignee, selectedCategory, selectedDistrict, selectedIssueType, selectedRegion, selectedSubCategory, selectedZone],
     );
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
@@ -389,6 +393,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const buildFilterSummary = (filters: DownloadFilters) => {
         const selectedFilters = [
+            { key: t('Module'), value: filters.categoryLabel },
+            { key: t('Sub Module'), value: filters.subCategoryLabel },
             { key: t('Zone'), value: filters.zoneLabel },
             { key: t('Region'), value: filters.regionLabel },
             { key: t('District'), value: filters.districtLabel },
@@ -508,6 +514,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             const response = await downloadTicketsApiHandler(() => searchTicketsForExport({
                 fromDate: filters.fromDate,
                 toDate: filters.toDate,
+                categoryId: filters.categoryId,
+                subCategoryId: filters.subCategoryId,
                 zoneCode: filters.zoneCode,
                 regionCode: filters.regionCode,
                 districtCode: filters.districtCode,

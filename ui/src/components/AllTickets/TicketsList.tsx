@@ -770,6 +770,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             selectedRegion={selectedRegion}
                             selectedDistrict={selectedDistrict}
                             selectedIssueType={selectedIssueType}
+                            selectedCategory={selectedCategory}
+                            selectedSubCategory={selectedSubCategory}
                             selectedAssignee={selectedAssignee}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
                         />

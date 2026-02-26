@@ -440,6 +440,8 @@ describe("TicketService", () => {
       fromDate: "2024-01-01",
       dateParam: "last_modified",
       toDate: "2024-02-01",
+      categoryId: "C1",
+      subCategoryId: "SC1",
       zoneCode: "Z1",
       regionCode: "R1",
       districtCode: "D1",
@@ -450,6 +452,8 @@ describe("TicketService", () => {
     expect(exportUrl).toContain("fromDate=2024-01-01");
     expect(exportUrl).toContain("dateParam=last_modified");
     expect(exportUrl).toContain("toDate=2024-02-01");
+    expect(exportUrl).toContain("category=C1");
+    expect(exportUrl).toContain("subCategory=SC1");
     expect(exportUrl).toContain("zoneCode=Z1");
     expect(exportUrl).toContain("regionCode=R1");
     expect(exportUrl).toContain("districtCode=D1");

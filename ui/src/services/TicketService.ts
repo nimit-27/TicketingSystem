@@ -145,6 +145,8 @@ interface SearchTicketsForExportParams {
     fromDate?: string;
     dateParam?: string;
     toDate?: string;
+    categoryId?: string;
+    subCategoryId?: string;
     zoneCode?: string;
     regionCode?: string;
     districtCode?: string;
@@ -157,6 +159,8 @@ export function searchTicketsForExport({
     fromDate,
     dateParam,
     toDate,
+    categoryId,
+    subCategoryId,
     zoneCode,
     regionCode,
     districtCode,
@@ -168,6 +172,8 @@ export function searchTicketsForExport({
     if (dateParam) params.append('dateParam', dateParam);
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
+    if (categoryId) params.append('category', categoryId);
+    if (subCategoryId) params.append('subCategory', subCategoryId);
     if (zoneCode) params.append('zoneCode', zoneCode);
     if (regionCode) params.append('regionCode', regionCode);
     if (districtCode) params.append('districtCode', districtCode);
