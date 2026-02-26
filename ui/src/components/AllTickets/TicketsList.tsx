@@ -162,7 +162,19 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [masterOnly, setMasterOnly] = useState(false);
     const userDetails = getCurrentUserDetails();
     const levels = userDetails?.levels || [];
+    const normalizedOfficeType = String(userDetails?.officeType ?? "").trim().toUpperCase();
+
     const defaultZoneCode = userDetails?.zoneCode ? String(userDetails.zoneCode) : "All";
+    const defaultRegionCode = userDetails?.regionCode
+        ? String(userDetails.regionCode)
+        : normalizedOfficeType === "RO" && userDetails?.officeCode
+            ? String(userDetails.officeCode)
+            : "All";
+    const defaultDistrictCode = userDetails?.districtCode
+        ? String(userDetails.districtCode)
+        : normalizedOfficeType === "DO" && userDetails?.officeCode
+            ? String(userDetails.officeCode)
+            : "All";
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
     const [sortBy, setSortBy] = useState<"reportedDate" | "lastModified">("reportedDate");
@@ -177,9 +189,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = useState<string>("All");
     const [selectedZone, setSelectedZone] = useState<string>(defaultZoneCode);
-    const [selectedRegion, setSelectedRegion] = useState<string>("All");
+    const [selectedRegion, setSelectedRegion] = useState<string>(defaultRegionCode);
     const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = useState<string>("All");
-    const [selectedDistrict, setSelectedDistrict] = useState<string>("All");
+    const [selectedDistrict, setSelectedDistrict] = useState<string>(defaultDistrictCode);
     const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
     const [selectedAssignee, setSelectedAssignee] = useState<string>("All");
 
@@ -267,9 +279,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedCategory("All");
         setSelectedSubCategory("All");
         setSelectedZone(defaultZoneCode);
-        setSelectedRegion("All");
+        setSelectedRegion(defaultRegionCode);
         setSelectedRegionHrmsCode("All");
-        setSelectedDistrict("All");
+        setSelectedDistrict(defaultDistrictCode);
         setSelectedIssueType("All");
         setSelectedAssignee("All");
         setPage(1);
@@ -512,21 +524,36 @@ const TicketsList: React.FC<TicketsListProps> = ({
             return;
         }
 
-        setSelectedRegion("All");
+        const shouldAutoSelectRegion = selectedZone === defaultZoneCode && defaultRegionCode !== "All";
+
+        setSelectedRegion(shouldAutoSelectRegion ? defaultRegionCode : "All");
         setSelectedRegionHrmsCode("All");
-        setSelectedDistrict("All");
+        setSelectedDistrict(shouldAutoSelectRegion && defaultDistrictCode !== "All" ? defaultDistrictCode : "All");
         getRegionsApiHandler(() => getRegions(selectedZone));
-    }, [getRegionsApiHandler, selectedZone]);
+    }, [defaultDistrictCode, defaultRegionCode, defaultZoneCode, getRegionsApiHandler, selectedZone]);
 
     useEffect(() => {
         if (selectedRegionHrmsCode === "All") {
-            setSelectedDistrict("All");
+            if (selectedRegion === "All") {
+                setSelectedDistrict("All");
+            }
             return;
         }
 
-        setSelectedDistrict("All");
+        const shouldAutoSelectDistrict = selectedRegion === defaultRegionCode && defaultDistrictCode !== "All";
+        setSelectedDistrict(shouldAutoSelectDistrict ? defaultDistrictCode : "All");
         getDistrictsApiHandler(() => getDistricts(selectedRegionHrmsCode));
-    }, [getDistrictsApiHandler, selectedRegionHrmsCode]);
+    }, [defaultDistrictCode, defaultRegionCode, getDistrictsApiHandler, selectedRegion, selectedRegionHrmsCode]);
+
+    useEffect(() => {
+        if (selectedRegion === "All") {
+            setSelectedRegionHrmsCode("All");
+            return;
+        }
+
+        const matchingOption = (regionOptions as Array<{ value: string; hrmsRegCode?: string }>).find((option) => option.value === selectedRegion);
+        setSelectedRegionHrmsCode(matchingOption?.hrmsRegCode ? String(matchingOption.hrmsRegCode) : selectedRegion);
+    }, [regionOptions, selectedRegion]);
 
     useEffect(() => {
         if (workflowData) {

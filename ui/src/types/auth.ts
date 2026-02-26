@@ -18,6 +18,11 @@ export interface UserDetails {
   email?: string;
   phone?: string;
   allowedStatusActionIds?: string[];
+  officeCode?: string;
+  officeType?: string;
+  zoneCode?: string;
+  regionCode?: string;
+  districtCode?: string;
 }
 
 export interface DecodedAuthDetails {

@@ -11,6 +11,23 @@ import {
 } from "./Utils";
 import { setPermissions } from "./permissions";
 
+const pickString = (sources: Array<Record<string, any> | undefined | null>, keys: string[]): string | undefined => {
+  for (const source of sources) {
+    if (!source) {
+      continue;
+    }
+
+    for (const key of keys) {
+      const value = source[key];
+      if (value != null && String(value).trim() !== "") {
+        return String(value);
+      }
+    }
+  }
+
+  return undefined;
+};
+
 type PersistLoginOptions = {
   fallbackUserId?: string;
   navigate: NavigateFunction;
@@ -58,6 +75,8 @@ export async function persistLoginData(
     ?? data.userPhone
     ?? data.user?.phone
     ?? undefined;
+  const userPayload = data.user && typeof data.user === "object" ? data.user : undefined;
+  const locationSources = [data as Record<string, any>, userPayload as Record<string, any> | undefined, decodedUser as Record<string, any> | null];
   const resolvedUserId = data.userId || decodedUser?.userId || submittedUserId;
   const details: UserDetails = {
     userId: resolvedUserId,
@@ -68,6 +87,11 @@ export async function persistLoginData(
     email: emailFromResponse,
     phone: phoneFromResponse,
     allowedStatusActionIds: data.allowedStatusActionIds ?? [],
+    officeCode: pickString(locationSources, ["officeCode", "office_code", "officeCd"]),
+    officeType: pickString(locationSources, ["officeType", "office_type", "officeTypeCode"]),
+    zoneCode: pickString(locationSources, ["zoneCode", "zone_code"]),
+    regionCode: pickString(locationSources, ["regionCode", "region_code", "hrmsRegCode"]),
+    districtCode: pickString(locationSources, ["districtCode", "district_code"]),
   };
   setUserDetails(details);
 
