@@ -142,6 +142,27 @@ const sanitizeFilenamePart = (value: string) =>
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
+const formatRequestedBy = (user: ReturnType<typeof getCurrentUserDetails>) => {
+    const username = user?.username || user?.userId;
+    if (user?.name && username) {
+        return `${user.name} | ${username}`;
+    }
+    return user?.name || username || 'Unknown User';
+};
+
+const buildPriorityLegend = (ticketsToExport: TicketRow[]) => {
+    const mappedEntries = ticketsToExport
+        .map((ticket) => {
+            const tpId = ticket.priorityId?.trim();
+            if (!tpId) return null;
+            const tpLevel = ticket.priority?.trim() || '-';
+            return `${tpId} - ${tpLevel}`;
+        })
+        .filter((entry): entry is string => Boolean(entry));
+
+    return Array.from(new Set(mappedEntries)).sort((a, b) => a.localeCompare(b));
+};
+
 const normalizeDownloadTickets = (payload: any): TicketRow[] => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload as TicketRow[];
@@ -372,7 +393,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             {
                 key: 'priority',
                 label: t('Priority'),
-                getValue: (record: TicketRow) => record.priority || '-',
+                getValue: (record: TicketRow) => record.priorityId || '-',
             },
             {
                 key: 'assignee',
@@ -382,7 +403,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             {
                 key: 'status',
                 label: t('Status'),
-                getValue: (record: TicketRow) => record.statusLabel || getStatusNameById(record.statusId || '') || '-',
+                getValue: (record: TicketRow) => getStatusNameById(record.statusId || '') || record.statusLabel || '-',
             },
         ].filter(Boolean) as { key: string, label: string, getValue: (record: TicketRow) => string }[];
         return columns;
@@ -422,16 +443,21 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         const headers = exportColumns.map(col => col.label);
         const selectedFilters = buildFilterSummary(filters);
         const fileName = buildExportFilename(filters);
+        const requestedBy = formatRequestedBy(currentUser);
+        const priorityLegend = buildPriorityLegend(ticketsToExport);
 
         const metadata: (string | number)[][] = [
             ['Tickets Report'],
             ['Report Type', 'Ticket List'],
             ['From Date', formatDisplayDate(filters.fromDate)],
             ['To Date', formatDisplayDate(filters.toDate)],
-            ['Requested By', currentUser?.username || currentUser?.userId || 'Unknown User'],
+            ['Requested By', requestedBy],
             ['Generated On', formatDisplayDate(new Date())],
             ['Total Tickets', ticketsToExport.length],
             ...selectedFilters.map((entry) => [entry.key, entry.value as string]),
+            ...(priorityLegend.length
+                ? [[t('Priority Reference')], ...priorityLegend.map((entry) => ['', entry])]
+                : []),
             [],
             headers,
             ...exportRows,
@@ -446,9 +472,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const downloadAsPdf = (ticketsToExport: TicketRow[], filters: DownloadFilters) => {
         const doc = new jsPDF('l', 'pt');
-        const requestedBy = currentUser?.username || currentUser?.userId || 'Unknown User';
+        const requestedBy = formatRequestedBy(currentUser);
         const selectedFilters = buildFilterSummary(filters);
         const fileName = buildExportFilename(filters);
+        const priorityLegend = buildPriorityLegend(ticketsToExport);
+        const priorityColumnIndex = exportColumns.findIndex((column) => column.key === 'priority');
 
         doc.setFontSize(14);
         doc.text(t('Tickets Report'), 40, 26);
@@ -468,12 +496,22 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             });
         }
 
+        if (priorityLegend.length) {
+            doc.text(`${t('Priority Reference')}:`, 40, currentY);
+            currentY += 14;
+            priorityLegend.forEach((entry) => {
+                doc.text(`• ${entry}`, 52, currentY);
+                currentY += 14;
+            });
+        }
+
         autoTable(doc, {
             head: [exportColumns.map(col => col.label)],
             body: buildExportMatrix(ticketsToExport),
             styles: { fontSize: 8 },
             headStyles: { fillColor: [52, 71, 103] },
             startY: currentY + 6,
+            ...(priorityColumnIndex >= 0 ? { columnStyles: { [priorityColumnIndex]: { cellWidth: 42 } } } : {}),
         });
         doc.save(`${fileName}.pdf`);
     };
