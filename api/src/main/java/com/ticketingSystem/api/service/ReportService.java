@@ -10,6 +10,7 @@ import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
 import com.ticketingSystem.api.dto.reports.ResolutionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardCategorySummaryDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardAssigneeCountDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardOpenResolvedDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSlaCompliancePointDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
@@ -168,6 +169,7 @@ public class ReportService {
         SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange);
         List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries);
         List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries);
+        List<SupportDashboardAssigneeCountDto> assignedTicketsByAssignee = buildAssignedTicketsByAssignee(dateRange, null);
         long unresolvedBreachedTickets = buildUnresolvedBreachedCount(dateRange, null);
 
         return SupportDashboardSummaryDto.builder()
@@ -178,6 +180,7 @@ public class ReportService {
                 .openResolved(openResolved)
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
+                .assignedTicketsByAssignee(assignedTicketsByAssignee)
                 .unresolvedBreachedTickets(unresolvedBreachedTickets)
                 .build();
     }
@@ -227,6 +230,7 @@ public class ReportService {
         SupportDashboardOpenResolvedDto openResolved = buildOpenResolvedSnapshot(dateRange, parameterCriteria);
         List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries, parameterCriteria);
         List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries, parameterCriteria);
+        List<SupportDashboardAssigneeCountDto> assignedTicketsByAssignee = buildAssignedTicketsByAssignee(dateRange, parameterCriteria);
         long unresolvedBreachedTickets = buildUnresolvedBreachedCount(dateRange, parameterCriteria);
 
         return SupportDashboardSummaryDto.builder()
@@ -237,8 +241,46 @@ public class ReportService {
                 .openResolved(openResolved)
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
+                .assignedTicketsByAssignee(assignedTicketsByAssignee)
                 .unresolvedBreachedTickets(unresolvedBreachedTickets)
                 .build();
+    }
+
+    private List<SupportDashboardAssigneeCountDto> buildAssignedTicketsByAssignee(DateRange dateRange,
+                                                                                   ParameterCriteria parameterCriteria) {
+        List<TicketRepository.AssignedToCountProjection> projections;
+        if (parameterCriteria != null && parameterCriteria.hasFilters()) {
+            projections = ticketRepository.countTicketsByAssigneeForStatusWithFiltersAndParameters(
+                    TicketStatus.ASSIGNED,
+                    null,
+                    dateRange.from(),
+                    dateRange.to(),
+                    parameterCriteria.assignedTo(),
+                    parameterCriteria.assignedBy(),
+                    parameterCriteria.updatedBy(),
+                    parameterCriteria.createdBy(),
+                    parameterCriteria.userId(),
+                    parameterCriteria.zoneCode(),
+                    parameterCriteria.regionCode(),
+                    parameterCriteria.districtCode(),
+                    parameterCriteria.issueTypeId()
+            );
+        } else {
+            projections = ticketRepository.countTicketsByAssigneeForStatusWithFilters(
+                    TicketStatus.ASSIGNED,
+                    null,
+                    dateRange.from(),
+                    dateRange.to()
+            );
+        }
+
+        return projections.stream()
+                .map(projection -> SupportDashboardAssigneeCountDto.builder()
+                        .assignee(StringUtils.hasText(projection.getAssignedTo()) ? projection.getAssignedTo() : "Unassigned")
+                        .count(Optional.ofNullable(projection.getCount()).orElse(0L))
+                        .build())
+                .sorted(Comparator.comparingLong(SupportDashboardAssigneeCountDto::getCount).reversed())
+                .toList();
     }
 
     private ParameterCriteria resolveDashboardParameterCriteria(String userId,
