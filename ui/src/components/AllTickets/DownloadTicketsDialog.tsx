@@ -26,6 +26,7 @@ import { useApi } from '../../hooks/useApi';
 import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
 import AssigneeFilterDropdown from './AssigneeFilterDropdown';
 import { searchTicketsPaginated } from '../../services/TicketService';
+import { useCategoryFilters } from '../../hooks/useCategoryFilters';
 
 interface DownloadFilters {
     fromDate: string;
@@ -38,11 +39,17 @@ interface DownloadFilters {
     districtLabel?: string;
     issueTypeId?: string;
     issueTypeLabel?: string;
+    categoryId?: string;
+    categoryLabel?: string;
+    subCategoryId?: string;
+    subCategoryLabel?: string;
     assignedTo?: string;
     assignedToLabel?: string;
 }
 
 interface DownloadDialogInitialFilters {
+    category: string;
+    subCategory: string;
     zone: string;
     region: string;
     district: string;
@@ -106,6 +113,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     onRetryExport,
 }) => {
     const { t } = useTranslation();
+    const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
     const today = useMemo(() => new Date(), []);
     const [year, setYear] = useState<number | ''>(today.getFullYear());
@@ -113,6 +121,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [zone, setZone] = useState<string>('All');
+    const [category, setCategory] = useState<string>('All');
+    const [subCategory, setSubCategory] = useState<string>('All');
     const [region, setRegion] = useState<string>('All');
     const [district, setDistrict] = useState<string>('All');
     const [issueType, setIssueType] = useState<string>('All');
@@ -203,7 +213,11 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         // Option 1 behavior:
         // initialize modal values from page filters once when dialog opens,
         // then keep modal state independent from the page while it is open.
+        const initialCategory = initialFilters.category || 'All';
+        const initialSubCategory = initialFilters.subCategory || 'All';
         setZone(initialFilters.zone || 'All');
+        setCategory(initialCategory);
+        setSubCategory(initialSubCategory);
         setRegion(initialFilters.region || 'All');
         setDistrict(initialFilters.district || 'All');
         setIssueType(initialFilters.issueType || 'All');
@@ -213,6 +227,32 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setRegionHrmsCode('All');
         setGenerateMenuAnchor(null);
     }, [initialFilters, open]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        if (category === 'All') {
+            setSubCategory('All');
+            resetSubCategories();
+            return;
+        }
+
+        loadSubCategories(category);
+    }, [open, category, loadSubCategories, resetSubCategories]);
+
+
+    useEffect(() => {
+        if (!open) return;
+        if (category === 'All') {
+            setSubCategory('All');
+            return;
+        }
+
+        const shouldRetainSubCategory = subCategoryOptions.some((option) => option.value === subCategory);
+        if (!shouldRetainSubCategory) {
+            setSubCategory('All');
+        }
+    }, [open, category, subCategory, subCategoryOptions]);
 
     useEffect(() => {
         if (!open) return;
@@ -258,6 +298,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
 
     const handleGenerateSelection = async (format: 'pdf' | 'excel') => {
         const selectedZone = zoneOptions.find((option) => option.value === zone);
+        const selectedCategory = categoryOptions.find((option) => option.value === category);
+        const selectedSubCategory = subCategoryOptions.find((option) => option.value === subCategory);
         const selectedRegion = regionOptions.find((option) => option.value === region);
         const selectedDistrict = districtOptions.find((option) => option.value === district);
         const selectedIssueType = issueTypeOptions.find((option) => option.value === issueType);
@@ -266,6 +308,10 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             toDate,
             zoneCode: zone !== 'All' ? zone : undefined,
             zoneLabel: zone !== 'All' ? selectedZone?.label || zone : undefined,
+            categoryId: category !== 'All' ? category : undefined,
+            categoryLabel: category !== 'All' ? selectedCategory?.label || category : undefined,
+            subCategoryId: subCategory !== 'All' ? subCategory : undefined,
+            subCategoryLabel: subCategory !== 'All' ? selectedSubCategory?.label || subCategory : undefined,
             regionCode: region !== 'All' ? region : undefined,
             regionLabel: region !== 'All' ? selectedRegion?.label || region : undefined,
             districtCode: district !== 'All' ? district : undefined,
@@ -309,6 +355,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                     toDate,
                     undefined,
                     undefined,
+                    category !== 'All' ? category : undefined,
+                    subCategory !== 'All' ? subCategory : undefined,
                     zone !== 'All' ? zone : undefined,
                     region !== 'All' ? region : undefined,
                     district !== 'All' ? district : undefined,
@@ -323,7 +371,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [open, fromDate, toDate, zone, region, district, issueType, assignee, isRangeInvalid, estimateCountApiHandler]);
+    }, [open, fromDate, toDate, zone, region, district, issueType, assignee, category, subCategory, isRangeInvalid, estimateCountApiHandler]);
 
     return (
         <>
@@ -360,6 +408,43 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                                         <MenuItem key={optionMonth.value} value={optionMonth.value}>
                                             {optionMonth.label}
                                         </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Stack>
+
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-module-label">{t('Module')}</InputLabel>
+                                <Select
+                                    labelId="download-module-label"
+                                    label={t('Module')}
+                                    value={category}
+                                    onChange={(event) => {
+                                        const selectedCategory = String(event.target.value);
+                                        setCategory(selectedCategory);
+                                        if (selectedCategory === 'All') {
+                                            setSubCategory('All');
+                                        } else if (!subCategoryOptions.some((option) => option.value === subCategory)) {
+                                            setSubCategory('All');
+                                        }
+                                    }}
+                                >
+                                    {categoryOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="download-sub-module-label">{t('Sub Module')}</InputLabel>
+                                <Select
+                                    labelId="download-sub-module-label"
+                                    label={t('Sub Module')}
+                                    value={subCategory}
+                                    onChange={(event) => setSubCategory(String(event.target.value))}
+                                >
+                                    {subCategoryOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
