@@ -1,20 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
     Button,
-    Chip,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
-    FormControl,
-    InputLabel,
     ListItemIcon,
     Menu,
     MenuItem,
-    Select,
-    Stack,
-    TextField,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -24,9 +17,10 @@ import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import { getDistricts, getRegions } from '../../services/LocationService';
 import { useApi } from '../../hooks/useApi';
 import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
-import AssigneeFilterDropdown from './AssigneeFilterDropdown';
 import { searchTicketsPaginated } from '../../services/TicketService';
 import { useCategoryFilters } from '../../hooks/useCategoryFilters';
+import DownloadFiltersScreen from './DownloadFiltersScreen';
+import DownloadColumnsScreen, { DownloadReportColumn } from './DownloadColumnsScreen';
 
 interface DownloadFilters {
     fromDate: string;
@@ -45,6 +39,7 @@ interface DownloadFilters {
     subCategoryLabel?: string;
     assignedTo?: string;
     assignedToLabel?: string;
+    selectedColumnKeys?: string[];
 }
 
 interface DownloadDialogInitialFilters {
@@ -64,6 +59,7 @@ interface DownloadTicketsDialogProps {
     zoneOptions: DropdownOption[];
     issueTypeOptions: DropdownOption[];
     initialFilters: DownloadDialogInitialFilters;
+    exportableColumns: DownloadReportColumn[];
     onClose: () => void;
     onGenerate: (format: 'pdf' | 'excel', filters: DownloadFilters) => Promise<void> | void;
     onCancelExport?: () => void;
@@ -107,6 +103,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     zoneOptions,
     issueTypeOptions,
     initialFilters,
+    exportableColumns,
     onClose,
     onGenerate,
     onCancelExport,
@@ -131,6 +128,9 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
     const [generateMenuAnchor, setGenerateMenuAnchor] = useState<null | HTMLElement>(null);
+    const [activeScreen, setActiveScreen] = useState<'filters' | 'columns'>('filters');
+    const [selectedColumnKeys, setSelectedColumnKeys] = useState<string[]>([]);
+    const [showPreview, setShowPreview] = useState(false);
     const [estimatedCount, setEstimatedCount] = useState<number | null>(null);
     const [estimateLoading, setEstimateLoading] = useState(false);
 
@@ -225,8 +225,11 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setRegionOptions([{ label: 'All', value: 'All' }]);
         setDistrictOptions([{ label: 'All', value: 'All' }]);
         setRegionHrmsCode('All');
+        setActiveScreen('filters');
+        setSelectedColumnKeys(exportableColumns.map((column) => column.key));
+        setShowPreview(false);
         setGenerateMenuAnchor(null);
-    }, [initialFilters, open]);
+    }, [exportableColumns, initialFilters, open]);
 
     useEffect(() => {
         if (!open) return;
@@ -320,8 +323,23 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             issueTypeLabel: issueType !== 'All' ? selectedIssueType?.label || issueType : undefined,
             assignedTo: assignee !== 'All' ? assignee : undefined,
             assignedToLabel: assignee !== 'All' ? assignee : undefined,
+            selectedColumnKeys,
         });
         setGenerateMenuAnchor(null);
+    };
+
+    const handleColumnToggle = (columnKey: string) => {
+        setSelectedColumnKeys((previous) => (
+            previous.includes(columnKey)
+                ? previous.filter((item) => item !== columnKey)
+                : [...previous, columnKey]
+        ));
+        setShowPreview(true);
+    };
+
+    const handleSelectAllColumns = () => {
+        setSelectedColumnKeys(exportableColumns.map((column) => column.key));
+        setShowPreview(true);
     };
 
     const selectedRangeDays = useMemo(() => getDateRangeDays(fromDate, toDate), [fromDate, toDate]);
@@ -378,212 +396,78 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
                 <DialogTitle>{t('Download Tickets')}</DialogTitle>
                 <DialogContent>
-                    <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-year-label">{t('Year')}</InputLabel>
-                                <Select
-                                    labelId="download-year-label"
-                                    label={t('Year')}
-                                    value={year}
-                                    onChange={(event) => setYear(event.target.value === '' ? '' : Number(event.target.value))}
-                                >
-                                    {yearOptions.map((optionYear) => (
-                                        <MenuItem key={optionYear} value={optionYear}>
-                                            {optionYear}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-month-label">{t('Month')}</InputLabel>
-                                <Select
-                                    labelId="download-month-label"
-                                    label={t('Month')}
-                                    value={month}
-                                    onChange={(event) => setMonth(event.target.value === '' ? '' : Number(event.target.value))}
-                                >
-                                    <MenuItem value="">{t('All')}</MenuItem>
-                                    {monthOptions.map((optionMonth) => (
-                                        <MenuItem key={optionMonth.value} value={optionMonth.value}>
-                                            {optionMonth.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-module-label">{t('Module')}</InputLabel>
-                                <Select
-                                    labelId="download-module-label"
-                                    label={t('Module')}
-                                    value={category}
-                                    onChange={(event) => {
-                                        const selectedCategory = String(event.target.value);
-                                        setCategory(selectedCategory);
-                                        if (selectedCategory === 'All') {
-                                            setSubCategory('All');
-                                        } else if (!subCategoryOptions.some((option) => option.value === subCategory)) {
-                                            setSubCategory('All');
-                                        }
-                                    }}
-                                >
-                                    {categoryOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-sub-module-label">{t('Sub Module')}</InputLabel>
-                                <Select
-                                    labelId="download-sub-module-label"
-                                    label={t('Sub Module')}
-                                    value={subCategory}
-                                    onChange={(event) => setSubCategory(String(event.target.value))}
-                                >
-                                    {subCategoryOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-zone-label">{t('Zone')}</InputLabel>
-                                <Select
-                                    labelId="download-zone-label"
-                                    label={t('Zone')}
-                                    value={zone}
-                                    onChange={(event) => setZone(String(event.target.value))}
-                                >
-                                    {zoneOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-region-label">{t('Region')}</InputLabel>
-                                <Select
-                                    labelId="download-region-label"
-                                    label={t('Region')}
-                                    value={region}
-                                    onChange={(event) => handleRegionChange(String(event.target.value))}
-                                >
-                                    {regionOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-district-label">{t('District')}</InputLabel>
-                                <Select
-                                    labelId="download-district-label"
-                                    label={t('District')}
-                                    value={district}
-                                    onChange={(event) => setDistrict(String(event.target.value))}
-                                >
-                                    {districtOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="download-issue-type-label">{t('Issue Type')}</InputLabel>
-                                <Select
-                                    labelId="download-issue-type-label"
-                                    label={t('Issue Type')}
-                                    value={issueType}
-                                    onChange={(event) => setIssueType(String(event.target.value))}
-                                >
-                                    {issueTypeOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Stack>
-
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <AssigneeFilterDropdown
-                                value={assignee}
-                                onChange={setAssignee}
-                            />
-                            <TextField
-                                label={t('From Date')}
-                                type="date"
-                                size="small"
-                                fullWidth
-                                value={fromDate}
-                                InputLabelProps={{ shrink: true }}
-                                onChange={(event) => setFromDate(event.target.value)}
-                            />
-                            <TextField
-                                label={t('To Date')}
-                                type="date"
-                                size="small"
-                                fullWidth
-                                value={toDate}
-                                InputLabelProps={{ shrink: true }}
-                                onChange={(event) => setToDate(event.target.value)}
-                            />
-                        </Stack>
-
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>
-                            <Button variant="outlined" size="small" onClick={() => applyPresetRange(7)}>{t('Last 7 days')}</Button>
-                            <Button variant="outlined" size="small" onClick={() => applyPresetRange(30)}>{t('Last 30 days')}</Button>
-                            <Chip
-                                size="small"
-                                label={(estimateLoading || estimateCountPending) ? t('Estimating records...') : estimatedCount !== null ? `${t('Estimated records')}: ~${estimatedCount.toLocaleString()}` : t('Estimated records unavailable')}
-                            />
-                        </Stack>
-
-                        {generationState === 'generating' && (
-                            <Alert severity="info">
-                                {t('Your report is being generated.')}
-                                {onCancelExport && (
-                                    <Button size="small" sx={{ ml: 1 }} onClick={onCancelExport}>{t('Cancel export')}</Button>
-                                )}
-                            </Alert>
-                        )}
-
-                        {generationState === 'error' && (
-                            <Alert severity="error">
-                                {t('Export failed. Range may be too large; narrow filters or request async report.')}
-                                {onRetryExport && (
-                                    <Button size="small" sx={{ ml: 1 }} onClick={onRetryExport}>{t('Retry')}</Button>
-                                )}
-                            </Alert>
-                        )}
-
-                        {isRangeInvalid && (
-                            <Alert severity="warning">
-                                {t('Please select a valid date range.')}
-                            </Alert>
-                        )}
-
-                        {selectedRangeDays !== null && selectedRangeDays > 31 && (
-                            <Alert severity="info">
-                                {t('Large date range selected. It may take some time to download this data.')}
-                            </Alert>
-                        )}
-
-                        <Button
-                            variant="contained"
-                            onClick={(event) => setGenerateMenuAnchor(event.currentTarget)}
-                            disabled={loading}
-                            startIcon={<DownloadIcon fontSize="small" />}
-                        >
-                            {t('Generate')}
-                        </Button>
-                    </Stack>
+                    {activeScreen === 'filters' ? (
+                        <DownloadFiltersScreen
+                            year={year}
+                            month={month}
+                            fromDate={fromDate}
+                            toDate={toDate}
+                            category={category}
+                            subCategory={subCategory}
+                            zone={zone}
+                            region={region}
+                            district={district}
+                            issueType={issueType}
+                            assignee={assignee}
+                            yearOptions={yearOptions}
+                            monthOptions={monthOptions}
+                            categoryOptions={categoryOptions}
+                            subCategoryOptions={subCategoryOptions}
+                            zoneOptions={zoneOptions}
+                            regionOptions={regionOptions}
+                            districtOptions={districtOptions}
+                            issueTypeOptions={issueTypeOptions}
+                            generationState={generationState}
+                            estimateLoading={estimateLoading}
+                            estimateCountPending={estimateCountPending}
+                            estimatedCount={estimatedCount}
+                            selectedRangeDays={selectedRangeDays}
+                            isRangeInvalid={isRangeInvalid}
+                            onCancelExport={onCancelExport}
+                            onRetryExport={onRetryExport}
+                            onYearChange={setYear}
+                            onMonthChange={setMonth}
+                            onCategoryChange={(selectedCategory) => {
+                                setCategory(selectedCategory);
+                                if (selectedCategory === 'All') {
+                                    setSubCategory('All');
+                                } else if (!subCategoryOptions.some((option) => option.value === subCategory)) {
+                                    setSubCategory('All');
+                                }
+                            }}
+                            onSubCategoryChange={setSubCategory}
+                            onZoneChange={setZone}
+                            onRegionChange={handleRegionChange}
+                            onDistrictChange={setDistrict}
+                            onIssueTypeChange={setIssueType}
+                            onAssigneeChange={setAssignee}
+                            onFromDateChange={setFromDate}
+                            onToDateChange={setToDate}
+                            onApplyPresetRange={applyPresetRange}
+                            onOpenColumns={() => setActiveScreen('columns')}
+                        />
+                    ) : (
+                        <DownloadColumnsScreen
+                            columns={exportableColumns}
+                            selectedColumnKeys={selectedColumnKeys}
+                            showPreview={showPreview}
+                            onBack={() => setActiveScreen('filters')}
+                            onToggleColumn={handleColumnToggle}
+                            onSelectAll={handleSelectAllColumns}
+                            onPreview={() => setShowPreview(true)}
+                        />
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>{t('Cancel')}</Button>
+                    <Button
+                        variant="contained"
+                        onClick={(event) => setGenerateMenuAnchor(event.currentTarget)}
+                        disabled={loading || !selectedColumnKeys.length}
+                        startIcon={<DownloadIcon fontSize="small" />}
+                    >
+                        {t('Generate')}
+                    </Button>
                 </DialogActions>
             </Dialog>
 
