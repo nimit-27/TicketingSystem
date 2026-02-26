@@ -26,5 +26,10 @@ public class LoginPayload {
     private List<String> levels;
     private RolePermission permissions;
     private Set<String> allowedStatusActionIds;
+    private String officeType;
+    private String officeCode;
+    private String zoneCode;
+    private String regionCode;
+    private String districtCode;
     private ClientType clientType;
 }
