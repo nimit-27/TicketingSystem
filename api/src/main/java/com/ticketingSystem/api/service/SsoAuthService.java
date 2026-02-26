@@ -90,6 +90,11 @@ public class SsoAuthService {
                 .levels(levels)
                 .permissions(permissions)
                 .allowedStatusActionIds(allowedStatusActionIds)
+                .officeType(user.getOfficeType())
+                .officeCode(user.getOfficeCode())
+                .zoneCode(user.getZoneCode())
+                .regionCode(user.getRegionCode())
+                .districtCode(user.getDistrictCode())
                 .clientType(clientType)
                 .build();
 
@@ -111,6 +116,11 @@ public class SsoAuthService {
         response.put("permissions", permissions);
         response.put("levels", levels);
         response.put("allowedStatusActionIds", allowedStatusActionIds);
+        response.put("officeType", user.getOfficeType());
+        response.put("officeCode", user.getOfficeCode());
+        response.put("zoneCode", user.getZoneCode());
+        response.put("regionCode", user.getRegionCode());
+        response.put("districtCode", user.getDistrictCode());
         response.put("clientType", clientType.name());
         return response;
     }

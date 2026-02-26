@@ -18,6 +18,11 @@ public class AuthenticatedUser {
     private final String roles;
     private final UserLevel userLevel;
     private final String stakeholder;
+    private final String officeType;
+    private final String officeCode;
+    private final String zoneCode;
+    private final String regionCode;
+    private final String districtCode;
 
     public static AuthenticatedUser fromUser(User user) {
         return AuthenticatedUser.builder()
@@ -30,6 +35,11 @@ public class AuthenticatedUser {
                 .roles(user.getRoles())
                 .userLevel(user.getUserLevel())
                 .stakeholder(user.getStakeholder())
+                .officeType(null)
+                .officeCode(null)
+                .zoneCode(null)
+                .regionCode(null)
+                .districtCode(null)
                 .build();
     }
 
@@ -44,6 +54,11 @@ public class AuthenticatedUser {
                 .roles(user.getRoles())
                 .userLevel(null)
                 .stakeholder(user.getStakeholder())
+                .officeType(user.getOfficeType())
+                .officeCode(user.getOfficeCode())
+                .zoneCode(user.getZoneCode())
+                .regionCode(user.getRegionCode())
+                .districtCode(user.getDistrictCode())
                 .build();
     }
 }

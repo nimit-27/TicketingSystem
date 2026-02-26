@@ -62,6 +62,11 @@ public class JwtTokenService {
         claims.put("roles", payload.getRoles());
         claims.put("levels", payload.getLevels());
         claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+        claims.put("officeType", payload.getOfficeType());
+        claims.put("officeCode", payload.getOfficeCode());
+        claims.put("zoneCode", payload.getZoneCode());
+        claims.put("regionCode", payload.getRegionCode());
+        claims.put("districtCode", payload.getDistrictCode());
         if (payload.getClientType() != null) {
             claims.put("clientType", payload.getClientType().name());
         }
@@ -158,6 +163,11 @@ public class JwtTokenService {
                 .roles(convertList(claims.get("roles")))
                 .levels(convertList(claims.get("levels")))
                 .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
+                .officeType(claims.get("officeType", String.class))
+                .officeCode(claims.get("officeCode", String.class))
+                .zoneCode(claims.get("zoneCode", String.class))
+                .regionCode(claims.get("regionCode", String.class))
+                .districtCode(claims.get("districtCode", String.class))
                 .clientType(resolveClientType(claims.get("clientType", String.class)))
                 .build();
     }
