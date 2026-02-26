@@ -18,7 +18,7 @@ import {
   SupportDashboardTimeScale,
 } from "../types/reports";
 import { ParameterMaster } from "../types/parameters";
-import { checkMyTicketsAccess, checkSidebarAccess } from "../utils/permissions";
+import { checkAccessMaster, checkMyTicketsAccess, checkSidebarAccess } from "../utils/permissions";
 import Title from "../components/Title";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import { useTranslation } from "react-i18next";
@@ -513,11 +513,13 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
   const showTicketLifecycleSunburst = React.useMemo(
-    () => checkMyTicketsAccess("ticketLifecycleSunburst", "supportDashboard"),
+    // () => checkMyTicketsAccess("ticketLifecycleSunburstChart", "supportDashboard"),
+    () => checkAccessMaster(["dashboard", "ticketLifecycleSunburstChart"]),
     [],
   );
+  console.log({ showTicketLifecycleSunburst })
   const showAssignedTicketsBarRace = React.useMemo(
-    () => checkMyTicketsAccess("assignedTicketsBarRace", "supportDashboard"),
+    () => checkAccessMaster(["dashboard", "ticketLifecycleSunburstChart"]),
     [],
   );
 
@@ -1333,7 +1335,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
         },
         label: {
           show: true,
-          formatter: "{b}: {c}",
+          formatter: "{c}",
         },
       },
     };
