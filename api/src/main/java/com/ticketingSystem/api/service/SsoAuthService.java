@@ -121,6 +121,9 @@ public class SsoAuthService {
         response.put("zoneCode", user.getZoneCode());
         response.put("regionCode", user.getRegionCode());
         response.put("districtCode", user.getDistrictCode());
+        response.put("zoCode", user.getZoneCode());
+        response.put("roCode", user.getRegionCode());
+        response.put("doCode", user.getDistrictCode());
         response.put("clientType", clientType.name());
         return response;
     }

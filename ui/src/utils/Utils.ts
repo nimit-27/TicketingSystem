@@ -36,7 +36,21 @@ export function getUserDetails(): UserDetails | null {
   // }
 
   const data = localStorage.getItem(USER_KEY);
-  return data ? JSON.parse(data) : null;
+  if (!data) {
+    return null;
+  }
+
+  const parsed = JSON.parse(data) as UserDetails & Record<string, any>;
+  const zoneCode = parsed.zoneCode ?? parsed.zoCode ?? parsed.zo_code;
+  const regionCode = parsed.regionCode ?? parsed.roCode ?? parsed.ro_code ?? parsed.hrmsRegCode;
+  const districtCode = parsed.districtCode ?? parsed.doCode ?? parsed.do_code;
+
+  return {
+    ...parsed,
+    zoneCode,
+    regionCode,
+    districtCode,
+  };
 }
 
 export function setUserPermissions(perm: any) {

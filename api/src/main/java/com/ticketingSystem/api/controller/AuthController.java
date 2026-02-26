@@ -140,6 +140,9 @@ public class AuthController {
                     responseBody.put("zoneCode", user.getZoneCode());
                     responseBody.put("regionCode", user.getRegionCode());
                     responseBody.put("districtCode", user.getDistrictCode());
+                    responseBody.put("zoCode", user.getZoneCode());
+                    responseBody.put("roCode", user.getRegionCode());
+                    responseBody.put("doCode", user.getDistrictCode());
                     responseBody.put("clientType", clientType.name());
 
                     return ResponseEntity.ok(responseBody);
@@ -254,6 +257,9 @@ public class AuthController {
         responseBody.put("zoneCode", payload.getZoneCode());
         responseBody.put("regionCode", payload.getRegionCode());
         responseBody.put("districtCode", payload.getDistrictCode());
+        responseBody.put("zoCode", payload.getZoneCode());
+        responseBody.put("roCode", payload.getRegionCode());
+        responseBody.put("doCode", payload.getDistrictCode());
         responseBody.put("clientType", payload.getClientType() != null ? payload.getClientType().name() : null);
         return ResponseEntity.ok(responseBody);
     }

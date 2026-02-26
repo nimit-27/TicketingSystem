@@ -23,6 +23,9 @@ export interface UserDetails {
   zoneCode?: string;
   regionCode?: string;
   districtCode?: string;
+  zoCode?: string;
+  roCode?: string;
+  doCode?: string;
 }
 
 export interface DecodedAuthDetails {

@@ -89,9 +89,9 @@ export async function persistLoginData(
     allowedStatusActionIds: data.allowedStatusActionIds ?? [],
     officeCode: pickString(locationSources, ["officeCode", "office_code", "officeCd"]),
     officeType: pickString(locationSources, ["officeType", "office_type", "officeTypeCode"]),
-    zoneCode: pickString(locationSources, ["zoneCode", "zone_code"]),
-    regionCode: pickString(locationSources, ["regionCode", "region_code", "hrmsRegCode"]),
-    districtCode: pickString(locationSources, ["districtCode", "district_code"]),
+    zoneCode: pickString(locationSources, ["zoneCode", "zone_code", "zoCode", "zo_code"]),
+    regionCode: pickString(locationSources, ["regionCode", "region_code", "hrmsRegCode", "roCode", "ro_code"]),
+    districtCode: pickString(locationSources, ["districtCode", "district_code", "doCode", "do_code"]),
   };
   setUserDetails(details);
 
