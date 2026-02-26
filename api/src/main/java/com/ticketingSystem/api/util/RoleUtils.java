@@ -36,6 +36,14 @@ public final class RoleUtils {
             "6"
     );
 
+    private static final Set<String> FCI_ADMIN_ROLE_IDENTIFIERS = Set.of(
+            "14",
+            "fci admin",
+            "fci_admin",
+            "fciadmin",
+            "role_fci_admin"
+    );
+
     private RoleUtils() {
     }
 
@@ -62,6 +70,7 @@ public final class RoleUtils {
         List<String> normalized = normalizeRoles(roles);
         return containsAny(normalized, TEAM_LEAD_ROLE_IDENTIFIERS)
                 || containsAny(normalized, ADMIN_ROLE_IDENTIFIERS)
+                || containsAny(normalized, FCI_ADMIN_ROLE_IDENTIFIERS)
                 || containsAny(normalized, REGIONAL_NODAL_OFFICER_ROLE_IDENTIFIERS);
 //        return !isRequestorOnly(roles);
     }
