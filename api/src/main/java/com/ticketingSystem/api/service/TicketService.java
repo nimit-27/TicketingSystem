@@ -513,6 +513,7 @@ public class TicketService {
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId,
+                                         String slaBreachFilter, Long breachedByMinutes,
                                          String dateParam, String fromDate, String toDate, Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
@@ -573,6 +574,8 @@ public class TicketService {
                 regionCode,
                 districtCode,
                 issueTypeId,
+                slaBreachFilter,
+                breachedByMinutes,
                 normalizedDateParam,
                 from,
                 to,
@@ -585,6 +588,7 @@ public class TicketService {
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId,
+                                             String slaBreachFilter, Long breachedByMinutes,
                                              String dateParam, String fromDate, String toDate) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
@@ -639,6 +643,8 @@ public class TicketService {
                         regionCode,
                         districtCode,
                         issueTypeId,
+                        slaBreachFilter,
+                        breachedByMinutes,
                         normalizedDateParam,
                         from,
                         to)

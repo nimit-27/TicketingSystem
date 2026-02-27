@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Chip } from "@mui/material";
+import { Button, Chip, IconButton } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
 import { useTranslation } from "react-i18next";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -46,6 +47,8 @@ export interface TicketsListFilterState {
     selectedAssignee: string;
     selectedDateParam: string;
     allowedStatuses?: string[];
+    slaBreachFilter: string;
+    breachWithinMinutes?: number;
 }
 
 export interface TicketsListSearchOverrides {
@@ -72,6 +75,8 @@ export interface TicketsListSearchOverrides {
     regionCode?: string;
     districtCode?: string;
     issueTypeId?: string;
+    slaBreachFilter?: string;
+    breachedByMinutes?: number;
 }
 
 interface TicketsListProps {
@@ -194,6 +199,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedDistrict, setSelectedDistrict] = useState<string>(defaultDistrictCode);
     const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
     const [selectedAssignee, setSelectedAssignee] = useState<string>("All");
+    const [slaBreachFilter, setSlaBreachFilter] = useState<string>("All");
+    const [breachWithinValue, setBreachWithinValue] = useState<string>("15");
+    const [breachWithinUnit, setBreachWithinUnit] = useState<"minutes" | "hours">("minutes");
+    const [appliedBreachedByMinutes, setAppliedBreachedByMinutes] = useState<number | undefined>(undefined);
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -201,6 +210,16 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const showStatusFilter = checkMyTicketsAccess("statusFilter", permissionPathPrefix);
     const showMasterFilterToggle = checkMyTicketsAccess("masterFilterToggle", permissionPathPrefix);
     const showGridTableViewToggle = checkMyTicketsAccess("gridTableViewToggle", permissionPathPrefix);
+    const showSlaBreachFilter = checkMyTicketsAccess("slaBreachFilter", permissionPathPrefix);
+
+    const slaBreachFilterOptions: DropdownOption[] = useMemo(
+        () => [
+            { label: "All", value: "All" },
+            { label: "Already Breached", value: "already_breached" },
+            { label: "Breach within", value: "breach_within" },
+        ],
+        [],
+    );
 
     const statusFilterOptions: DropdownOption[] = useMemo(
         () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
@@ -284,6 +303,10 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedDistrict(defaultDistrictCode);
         setSelectedIssueType("All");
         setSelectedAssignee("All");
+        setSlaBreachFilter("All");
+        setBreachWithinValue("15");
+        setBreachWithinUnit("minutes");
+        setAppliedBreachedByMinutes(undefined);
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -314,6 +337,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             selectedSubCategory,
             selectedAssignee,
             selectedDateParam,
+            slaBreachFilter,
+            breachWithinMinutes: appliedBreachedByMinutes,
         }),
         [
             search,
@@ -331,6 +356,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             selectedSubCategory,
             selectedAssignee,
             selectedDateParam,
+            slaBreachFilter,
+            appliedBreachedByMinutes,
         ],
     );
 
@@ -378,6 +405,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const districtParam = mergedOverrides.districtCode ?? normalizedDistrict;
             const issueTypeParam = mergedOverrides.issueTypeId ?? normalizedIssueType;
             const assignedToParam = mergedOverrides.assignedTo ?? normalizedAssignee;
+            const slaBreachFilterParam = mergedOverrides.slaBreachFilter ?? (slaBreachFilter !== "All" ? slaBreachFilter : undefined);
+            const breachedByMinutesParam = mergedOverrides.breachedByMinutes ?? (slaBreachFilter === "breach_within" ? appliedBreachedByMinutes : undefined);
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -404,6 +433,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     regionParam,
                     districtParam,
                     issueTypeParam,
+                    slaBreachFilterParam,
+                    breachedByMinutesParam,
                 )
             }
             );
@@ -425,14 +456,36 @@ const TicketsList: React.FC<TicketsListProps> = ({
             normalizedDistrict,
             normalizedIssueType,
             normalizedAssignee,
+            appliedBreachedByMinutes,
             page,
             pageSize,
             sortBy,
             sortDirection,
             statusFilter,
             selectedDateParam,
+            slaBreachFilter,
         ],
     );
+
+    const handleSlaBreachFilterChange = (value: string) => {
+        setSlaBreachFilter(value);
+        setPage(1);
+
+        if (value !== "breach_within") {
+            setAppliedBreachedByMinutes(undefined);
+        }
+    };
+
+    const applyBreachWithinFilter = () => {
+        const parsed = Number.parseInt(breachWithinValue, 10);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+            return;
+        }
+
+        const minutes = breachWithinUnit === "hours" ? parsed * 60 : parsed;
+        setAppliedBreachedByMinutes(-minutes);
+        setPage(1);
+    };
 
     const searchCurrentTicketsPaginatedApi = useCallback(
         async (id: string) => {
@@ -581,6 +634,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         selectedDistrict,
         selectedIssueType,
         selectedAssignee,
+        slaBreachFilter,
+        appliedBreachedByMinutes,
         allowedStatusSuccess,
     ]);
 
@@ -698,6 +753,39 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         value={selectedAssignee}
                         onChange={handleAssigneeChange}
                     />
+
+                    {showSlaBreachFilter && (
+                        <>
+                            <DropdownController
+                                label="SLA Breach"
+                                value={slaBreachFilter}
+                                className="col-3 px-1"
+                                onChange={(value) => handleSlaBreachFilterChange(String(value))}
+                                options={slaBreachFilterOptions}
+                            />
+                            {slaBreachFilter === "breach_within" && (
+                                <div className="d-flex align-items-center col-3 px-1 gap-1">
+                                    <GenericInput
+                                        label=""
+                                        type="number"
+                                        value={breachWithinValue}
+                                        onChange={(e) => setBreachWithinValue(e.target.value)}
+                                        placeholder="Minutes"
+                                        style={{ width: 85 }}
+                                        inputProps={{ min: 1 }}
+                                    />
+                                    <Chip
+                                        label={breachWithinUnit === "minutes" ? "Minute/s" : "Hour/s"}
+                                        onClick={() => setBreachWithinUnit(prev => prev === "minutes" ? "hours" : "minutes")}
+                                        variant="outlined"
+                                    />
+                                    <IconButton color="primary" size="small" onClick={applyBreachWithinFilter}>
+                                        <CheckIcon fontSize="small" />
+                                    </IconButton>
+                                </div>
+                            )}
+                        </>
+                    )}
 
                     <DropdownController
                         label={t("Date Parameter")}
