@@ -510,49 +510,19 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     void getDistrictsApiHandler(() => getDistricts(selectedRegionHrmsCode));
   }, [getDistrictsApiHandler, selectedRegionHrmsCode]);
 
+  // BOOLEAN PERMISSION CHECKS
   const hasAllTicketsAccess = React.useMemo(() => checkSidebarAccess("allTickets"), []);
   const hasMyWorkloadAccess = React.useMemo(() => checkSidebarAccess("myWorkload"), []);
-  const showTicketLifecycleSunburst = React.useMemo(
-    // () => checkMyTicketsAccess("ticketLifecycleSunburstChart", "supportDashboard"),
-    () => checkAccessMaster(["dashboard", "ticketLifecycleSunburstChart"]),
-    [],
-  );
-  const showOverallTicketsByStatus = React.useMemo(
-    () => checkAccessMaster(["dashboard", "overallTicketsCategorizedByStatus"]),
-    [],
-  );
-  const showKeyMetrics = React.useMemo(
-    () => checkAccessMaster(["dashboard", "keyMetrics"]),
-    [],
-  );
-  const showPendingForAcknowledgementCard = React.useMemo(
-    () => checkAccessMaster(["dashboard", "keyMetrics", "pendingForAcknowledgementCard"]),
-    [],
-  );
-  const showCriticalSeverityCard = React.useMemo(
-    () => checkAccessMaster(["dashboard", "keyMetrics", "criticalSeverityCard"]),
-    [],
-  );
-  const showHighSeverityCard = React.useMemo(
-    () => checkAccessMaster(["dashboard", "keyMetrics", "highSeverityCard"]),
-    [],
-  );
-  const showMediumSeverityCard = React.useMemo(
-    () => checkAccessMaster(["dashboard", "keyMetrics", "mediumSeverityCard"]),
-    [],
-  );
-  const showLowSeverityCard = React.useMemo(
-    () => checkAccessMaster(["dashboard", "keyMetrics", "lowSeverityCard"]),
-    [],
-  );
-  const showTicketsCreatedPerMonth = React.useMemo(
-    () => checkAccessMaster(["dashboard", "ticketsCreatedPerMonth"]),
-    [],
-  );
-  const showAssignedTicketsBarRace = React.useMemo(
-    () => checkAccessMaster(["dashboard", "assignedTicketsByAssignee"]),
-    [],
-  );
+  const showTicketLifecycleSunburst = React.useMemo(() => checkAccessMaster(["dashboard", "ticketLifecycleSunburstChart"]), []);
+  const showOverallTicketsByStatus = React.useMemo(() => checkAccessMaster(["dashboard", "overallTickets"]), []);
+  const showKeyMetrics = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics"]), []);
+  const showPendingForAcknowledgementCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "pendingForAcknowledgementCard"]), []);
+  const showCriticalSeverityCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "criticalSeverityCard"]), []);
+  const showHighSeverityCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "highSeverityCard"]), []);
+  const showMediumSeverityCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "mediumSeverityCard"]), []);
+  const showLowSeverityCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "lowSeverityCard"]), []);
+  const showTicketsCreatedPerMonth = React.useMemo(() => checkAccessMaster(["dashboard", "ticketsCreatedPerMonth"]), []);
+  const showAssignedTicketsBarRace = React.useMemo(() => checkAccessMaster(["dashboard", "assignedTicketsCount"]), []);
 
 
   const determineScope = React.useCallback(
@@ -1773,7 +1743,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
                   {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
                 </Typography>
-              {/* <div className="col-12 col-sm-12 col-xl-12">
+                {/* <div className="col-12 col-sm-12 col-xl-12">
                 <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff5252", color: "#fff" }}>
                   <CardContent className="py-3">
                     <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
@@ -1799,25 +1769,25 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                     </Card>
                   </div>
                 ) : null}
-              {visibleSummaryCards.map((card) => (
-                <div className="col-3 col-sm-3 col-xl-3" key={card.label}>
-                  <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
-                    <CardContent className="py-3">
-                      <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
-                        {t(card.label)}
-                      </Typography>
-                      <Typography className="fw-bold" sx={{ fontSize: 24 }}>
-                        {card.value.toString()}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
+                {visibleSummaryCards.map((card) => (
+                  <div className="col-3 col-sm-3 col-xl-3" key={card.label}>
+                    <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
+                      <CardContent className="py-3">
+                        <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                          {t(card.label)}
+                        </Typography>
+                        <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                          {card.value.toString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
               </div>
             ) : null}
 
             {/* Charts Section */}
-              {showTicketsCreatedPerMonth ? (
+            {showTicketsCreatedPerMonth ? (
               <div className="col-12 col-xl-6">
                 <Card className="h-100 border-0 shadow-sm">
                   <CardContent className="h-100" style={{ minHeight: 320 }}>
@@ -1830,35 +1800,35 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </CardContent>
                 </Card>
               </div>
-              ) : null}
-              {showTicketLifecycleSunburst ? (
-                <div className="col-12 col-xl-6">
-                  <Card className="h-100 border-0 shadow-sm">
-                    <CardContent className="h-100" style={{ minHeight: 320 }}>
-                      <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                        Ticket Lifecycle Breakdown
-                      </Typography>
-                      <Box sx={{ height: "90%", minHeight: 260 }}>
-                        <ReactECharts option={ticketLifecycleSunburstOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null}
-              {showAssignedTicketsBarRace ? (
-                <div className="col-12 col-xl-6">
-                  <Card className="h-100 border-0 shadow-sm">
-                    <CardContent className="h-100" style={{ minHeight: 320 }}>
-                      <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                        Assigned Tickets by Assignee
-                      </Typography>
-                      <Box sx={{ height: "90%", minHeight: 260 }}>
-                        <ReactECharts option={assignedTicketsBarRaceOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null}
+            ) : null}
+            {showTicketLifecycleSunburst ? (
+              <div className="col-12 col-xl-6">
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardContent className="h-100" style={{ minHeight: 320 }}>
+                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                      Ticket Lifecycle Breakdown
+                    </Typography>
+                    <Box sx={{ height: "90%", minHeight: 260 }}>
+                      <ReactECharts option={ticketLifecycleSunburstOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
+            {showAssignedTicketsBarRace ? (
+              <div className="col-12 col-xl-6">
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardContent className="h-100" style={{ minHeight: 320 }}>
+                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                      Assigned Tickets by Assignee
+                    </Typography>
+                    <Box sx={{ height: "90%", minHeight: 260 }}>
+                      <ReactECharts option={assignedTicketsBarRaceOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
