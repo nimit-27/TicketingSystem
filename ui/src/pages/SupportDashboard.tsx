@@ -1708,7 +1708,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           </Box>
 
           <div className="d-flex flex-wrap">
-            <div className="col-12 col-xl-6">
+            {/* Overall Tickets - Categorized by Status */}
+            <div className="col-12">
               <Card className="h-100 border-0 shadow-sm">
                 <CardContent className="h-100" style={{ minHeight: 320 }}>
                   <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
@@ -1764,162 +1765,48 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 </div>
               ))}
             </div>
-          </div>
 
-          {!isLoading && error && (
-            <Typography variant="body2" color="error">
-              {error}
-            </Typography>
-          )}
-
-          {/* Charts Section */}
-          <div className="row g-3">
-            {/* <div className="col-12 col-xl-6">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsBySeverity")}
-                  </Typography>
-                  <ResponsiveContainer width="100%" height="90%">
-                    <PieChart>
-                      <Pie
-                        data={severityData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={50}
-                        outerRadius={90}
-                        paddingAngle={3}
-                        labelLine={false}
-                      >
-                        {severityData.map((entry) => (
-                          <Cell key={entry.name} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
-                      <Tooltip contentStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div> */}
-            {/* <div className="col-12 col-xl-6">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Tickets by Status" })}
-                  </Typography>
-                  <ResponsiveContainer width="100%" height="90%">
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={50}
-                        outerRadius={90}
-                        paddingAngle={5}
-                        labelLine={false}
-                      >
-                        {statusData.map((entry) => (
-                          <Cell key={entry.name} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <text
-                        x="50%"
-                        y="45%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{ fontSize: 20, fontWeight: 700, fill: "#37474f" }}
-                      >
-                        {overallTickets.toLocaleString()}
-                      </text>
-                      <text
-                        x="50%"
-                        y="55%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{ fontSize: 12, fill: "#78909c" }}
-                      >
-                        {t("Total")}
-                      </text>
-                      <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
-                      <Tooltip contentStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div> */}
-            {/* <div className="col-12 col-xl-6">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.slaCompliance")}
-                  </Typography>
-                  <ResponsiveContainer width="100%" height="90%">
-                    <BarChart data={slaData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12 }} tickLine={false} allowDecimals={false} />
-                      <Tooltip formatter={(value: number) => `${value}`} contentStyle={{ fontSize: 12 }} />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                      <Bar
-                        dataKey="within"
-                        fill="#64d4a2"
-                        name={t("supportDashboard.metrics.resolvedWithinSla")}
-                        stackId="sla"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="overdue"
-                        fill="#ff7043"
-                        name={t("supportDashboard.metrics.breachedResolved")}
-                        stackId="sla"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div> */}
-            <div className="col-12 col-xl-6">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsPerMonth")}
-                  </Typography>
-                  <Box sx={{ height: "90%", minHeight: 260 }}>
-                    <ReactECharts option={ticketVolumeChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
-                  </Box>
-                </CardContent>
-              </Card>
-            </div>
-            {showTicketLifecycleSunburst ? (
+            {/* Charts Section */}
               <div className="col-12 col-xl-6">
                 <Card className="h-100 border-0 shadow-sm">
                   <CardContent className="h-100" style={{ minHeight: 320 }}>
                     <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                      Ticket Lifecycle Breakdown
+                      {t("supportDashboard.metrics.ticketsPerMonth")}
                     </Typography>
                     <Box sx={{ height: "90%", minHeight: 260 }}>
-                      <ReactECharts option={ticketLifecycleSunburstOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                      <ReactECharts option={ticketVolumeChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
                     </Box>
                   </CardContent>
                 </Card>
               </div>
-            ) : null}
-            {showAssignedTicketsBarRace ? (
-              <div className="col-12 col-xl-6">
-                <Card className="h-100 border-0 shadow-sm">
-                  <CardContent className="h-100" style={{ minHeight: 320 }}>
-                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                      Assigned Tickets by Assignee
-                    </Typography>
-                    <Box sx={{ height: "90%", minHeight: 260 }}>
-                      <ReactECharts option={assignedTicketsBarRaceOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : null}
+              {showTicketLifecycleSunburst ? (
+                <div className="col-12 col-xl-6">
+                  <Card className="h-100 border-0 shadow-sm">
+                    <CardContent className="h-100" style={{ minHeight: 320 }}>
+                      <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                        Ticket Lifecycle Breakdown
+                      </Typography>
+                      <Box sx={{ height: "90%", minHeight: 260 }}>
+                        <ReactECharts option={ticketLifecycleSunburstOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
+              {showAssignedTicketsBarRace ? (
+                <div className="col-12 col-xl-6">
+                  <Card className="h-100 border-0 shadow-sm">
+                    <CardContent className="h-100" style={{ minHeight: 320 }}>
+                      <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                        Assigned Tickets by Assignee
+                      </Typography>
+                      <Box sx={{ height: "90%", minHeight: 260 }}>
+                        <ReactECharts option={assignedTicketsBarRaceOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
           </div>
         </div>
       </div>
