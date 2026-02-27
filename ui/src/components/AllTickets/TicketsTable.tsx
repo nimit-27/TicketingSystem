@@ -89,6 +89,8 @@ interface TicketsTableProps {
     selectedCategory?: string;
     selectedSubCategory?: string;
     selectedAssignee?: string;
+    statusFilterOptions?: DropdownOption[];
+    selectedStatusFilter?: string;
 }
 
 const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
@@ -184,7 +186,7 @@ const getDateRangeDays = (fromDate?: string, toDate?: string): number | null => 
     return Math.floor(diffInMs / (1000 * 60 * 60 * 24)) + 1;
 };
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All' }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All', statusFilterOptions = [{ label: 'All', value: 'All' }], selectedStatusFilter = 'All' }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -318,8 +320,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             district: selectedDistrict,
             issueType: selectedIssueType,
             assignee: selectedAssignee,
+            status: selectedStatusFilter,
         }),
-        [selectedAssignee, selectedCategory, selectedDistrict, selectedIssueType, selectedRegion, selectedSubCategory, selectedZone],
+        [selectedAssignee, selectedCategory, selectedDistrict, selectedIssueType, selectedRegion, selectedStatusFilter, selectedSubCategory, selectedZone],
     );
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
@@ -447,6 +450,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             { key: t('District'), value: filters.districtLabel },
             { key: t('Issue Type'), value: filters.issueTypeLabel || issueTypeFilterLabel },
             { key: t('Assignee'), value: filters.assignedToLabel },
+            { key: t('Status'), value: filters.statusLabel },
         ].filter((entry) => Boolean(entry.value));
 
         return selectedFilters;
@@ -587,6 +591,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 districtCode: filters.districtCode,
                 issueTypeId: filters.issueTypeId,
                 assignedTo: filters.assignedTo,
+                statusId: filters.statusId,
                 signal: controller.signal,
             }));
 
@@ -991,6 +996,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 onRetryExport={retryLastExport}
                 zoneOptions={zoneOptions}
                 issueTypeOptions={issueTypeOptions}
+                statusOptions={statusFilterOptions}
                 initialFilters={downloadDialogInitialFilters}
                 exportableColumns={exportableColumns}
                 onClose={handleDownloadDialogClose}
