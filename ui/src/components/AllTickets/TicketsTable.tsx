@@ -31,6 +31,7 @@ import autoTable from 'jspdf-autotable';
 import { useSnackbar } from '../../context/SnackbarContext';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import DownloadTicketsDialog, { DownloadDialogInitialFilters, DownloadFilters } from './DownloadTicketsDialog';
+import { DownloadReportColumn } from './DownloadColumnsScreen';
 
 export interface TicketRow {
     id: string;
@@ -409,8 +410,22 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         return columns;
     }, [t, showSeverityColumn]);
 
-    const buildExportMatrix = (ticketsToExport: TicketRow[]) =>
-        ticketsToExport.map(ticket => exportColumns.map(col => col.getValue(ticket)));
+    const exportableColumns = useMemo<DownloadReportColumn[]>(() => (
+        exportColumns.map((column) => ({ key: column.key, label: column.label }))
+    ), [exportColumns]);
+
+    const getSelectedExportColumns = (filters: DownloadFilters) => {
+        if (!filters.selectedColumnKeys?.length) return exportColumns;
+
+        const selectedSet = new Set(filters.selectedColumnKeys);
+        const selectedColumns = exportColumns.filter((column) => selectedSet.has(column.key));
+        return selectedColumns.length ? selectedColumns : exportColumns;
+    };
+
+    const buildExportMatrix = (
+        ticketsToExport: TicketRow[],
+        columnsToExport: { key: string, label: string, getValue: (record: TicketRow) => string }[],
+    ) => ticketsToExport.map((ticket) => columnsToExport.map((col) => col.getValue(ticket)));
 
     const buildFilterSummary = (filters: DownloadFilters) => {
         const selectedFilters = [
@@ -439,8 +454,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     };
 
     const downloadAsExcel = (ticketsToExport: TicketRow[], filters: DownloadFilters) => {
-        const exportRows = buildExportMatrix(ticketsToExport);
-        const headers = exportColumns.map(col => col.label);
+        const selectedColumns = getSelectedExportColumns(filters);
+        const exportRows = buildExportMatrix(ticketsToExport, selectedColumns);
+        const headers = selectedColumns.map((col) => col.label);
         const selectedFilters = buildFilterSummary(filters);
         const fileName = buildExportFilename(filters);
         const requestedBy = formatRequestedBy(currentUser);
@@ -472,11 +488,12 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
 
     const downloadAsPdf = (ticketsToExport: TicketRow[], filters: DownloadFilters) => {
         const doc = new jsPDF('l', 'pt');
+        const selectedColumns = getSelectedExportColumns(filters);
         const requestedBy = formatRequestedBy(currentUser);
         const selectedFilters = buildFilterSummary(filters);
         const fileName = buildExportFilename(filters);
         const priorityLegend = buildPriorityLegend(ticketsToExport);
-        const priorityColumnIndex = exportColumns.findIndex((column) => column.key === 'priority');
+        const priorityColumnIndex = selectedColumns.findIndex((column) => column.key === 'priority');
 
         doc.setFontSize(14);
         doc.text(t('Tickets Report'), 40, 26);
@@ -506,8 +523,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         }
 
         autoTable(doc, {
-            head: [exportColumns.map(col => col.label)],
-            body: buildExportMatrix(ticketsToExport),
+            head: [selectedColumns.map((col) => col.label)],
+            body: buildExportMatrix(ticketsToExport, selectedColumns),
             styles: { fontSize: 8 },
             headStyles: { fillColor: [52, 71, 103] },
             startY: currentY + 6,
@@ -964,6 +981,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 zoneOptions={zoneOptions}
                 issueTypeOptions={issueTypeOptions}
                 initialFilters={downloadDialogInitialFilters}
+                exportableColumns={exportableColumns}
                 onClose={handleDownloadDialogClose}
                 onGenerate={handleGenerateSelection}
             />
