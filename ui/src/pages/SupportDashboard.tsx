@@ -517,11 +517,43 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     () => checkAccessMaster(["dashboard", "ticketLifecycleSunburstChart"]),
     [],
   );
-  console.log({ showTicketLifecycleSunburst })
-  const showAssignedTicketsBarRace = React.useMemo(
-    () => checkAccessMaster(["dashboard", "ticketLifecycleSunburstChart"]),
+  const showOverallTicketsByStatus = React.useMemo(
+    () => checkAccessMaster(["dashboard", "overallTicketsCategorizedByStatus"]),
     [],
   );
+  const showKeyMetrics = React.useMemo(
+    () => checkAccessMaster(["dashboard", "keyMetrics"]),
+    [],
+  );
+  const showPendingForAcknowledgementCard = React.useMemo(
+    () => checkAccessMaster(["dashboard", "keyMetrics", "pendingForAcknowledgementCard"]),
+    [],
+  );
+  const showCriticalSeverityCard = React.useMemo(
+    () => checkAccessMaster(["dashboard", "keyMetrics", "criticalSeverityCard"]),
+    [],
+  );
+  const showHighSeverityCard = React.useMemo(
+    () => checkAccessMaster(["dashboard", "keyMetrics", "highSeverityCard"]),
+    [],
+  );
+  const showMediumSeverityCard = React.useMemo(
+    () => checkAccessMaster(["dashboard", "keyMetrics", "mediumSeverityCard"]),
+    [],
+  );
+  const showLowSeverityCard = React.useMemo(
+    () => checkAccessMaster(["dashboard", "keyMetrics", "lowSeverityCard"]),
+    [],
+  );
+  const showTicketsCreatedPerMonth = React.useMemo(
+    () => checkAccessMaster(["dashboard", "ticketsCreatedPerMonth"]),
+    [],
+  );
+  const showAssignedTicketsBarRace = React.useMemo(
+    () => checkAccessMaster(["dashboard", "assignedTicketsByAssignee"]),
+    [],
+  );
+
 
   const determineScope = React.useCallback(
     (data: SupportDashboardSummary): SupportDashboardScopeKey => {
@@ -1213,6 +1245,18 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [activeSummaryView],
   );
 
+  const visibleSummaryCards = React.useMemo(
+    () => summaryCards.filter((card) => {
+      if (card.label === "Critical") return showCriticalSeverityCard;
+      if (card.label === "High") return showHighSeverityCard;
+      if (card.label === "Medium") return showMediumSeverityCard;
+      if (card.label === "Low") return showLowSeverityCard;
+
+      return true;
+    }),
+    [summaryCards, showCriticalSeverityCard, showHighSeverityCard, showLowSeverityCard, showMediumSeverityCard],
+  );
+
   const overallTickets = React.useMemo(() => activeSummaryView.totalTickets ?? 0, [activeSummaryView.totalTickets]);
 
   const severityData = React.useMemo(
@@ -1709,23 +1753,26 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
           <div className="d-flex flex-wrap">
             {/* Overall Tickets - Categorized by Status */}
-            <div className="col-12">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })}
-                  </Typography>
-                  <Box sx={{ height: "90%", minHeight: 260 }}>
-                    <ReactECharts option={statusPieChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
-                  </Box>
-                </CardContent>
-              </Card>
-            </div>
+            {showOverallTicketsByStatus ? (
+              <div className="col-12">
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardContent className="h-100" style={{ minHeight: 320 }}>
+                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                      {t("supportDashboard.metrics.ticketsByStatus", { defaultValue: "Overall Tickets - Categorized by Status" })}
+                    </Typography>
+                    <Box sx={{ height: "90%", minHeight: 260 }}>
+                      <ReactECharts option={statusPieChartOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
             {/* Summary Cards */}
-            <div className="row g-3 col-12 col-xl-6">
-              <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
-                {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
-              </Typography>
+            {showKeyMetrics ? (
+              <div className="row g-3 col-12 col-xl-6">
+                <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
+                  {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
+                </Typography>
               {/* <div className="col-12 col-sm-12 col-xl-12">
                 <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff5252", color: "#fff" }}>
                   <CardContent className="py-3">
@@ -1738,19 +1785,21 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </CardContent>
                 </Card>
               </div> */}
-              <div className="col-12 col-sm-12 col-xl-12">
-                <Card className="h-100 border-0 shadow-sm" style={{ background: "#1976d2", color: "#fff" }}>
-                  <CardContent className="py-3">
-                    <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
-                      {t("supportDashboard.metrics.pendingForAcknowledgement")}
-                    </Typography>
-                    <Typography className="fw-bold" sx={{ fontSize: 24 }}>
-                      {formatSummaryValue(activeSummaryView.pendingForAcknowledgement).toString()}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </div>
-              {summaryCards.map((card) => (
+                {showPendingForAcknowledgementCard ? (
+                  <div className="col-12 col-sm-12 col-xl-12">
+                    <Card className="h-100 border-0 shadow-sm" style={{ background: "#1976d2", color: "#fff" }}>
+                      <CardContent className="py-3">
+                        <Typography variant="subtitle2" className="fw-semibold text-uppercase mb-1" sx={{ fontSize: 12 }}>
+                          {t("supportDashboard.metrics.pendingForAcknowledgement")}
+                        </Typography>
+                        <Typography className="fw-bold" sx={{ fontSize: 24 }}>
+                          {formatSummaryValue(activeSummaryView.pendingForAcknowledgement).toString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : null}
+              {visibleSummaryCards.map((card) => (
                 <div className="col-3 col-sm-3 col-xl-3" key={card.label}>
                   <Card className="h-100 border-0 shadow-sm" style={{ background: card.background, color: card.color }}>
                     <CardContent className="py-3">
@@ -1764,9 +1813,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </Card>
                 </div>
               ))}
-            </div>
+              </div>
+            ) : null}
 
             {/* Charts Section */}
+              {showTicketsCreatedPerMonth ? (
               <div className="col-12 col-xl-6">
                 <Card className="h-100 border-0 shadow-sm">
                   <CardContent className="h-100" style={{ minHeight: 320 }}>
@@ -1779,6 +1830,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                   </CardContent>
                 </Card>
               </div>
+              ) : null}
               {showTicketLifecycleSunburst ? (
                 <div className="col-12 col-xl-6">
                   <Card className="h-100 border-0 shadow-sm">
