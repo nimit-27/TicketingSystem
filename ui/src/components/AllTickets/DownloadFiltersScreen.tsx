@@ -26,6 +26,7 @@ interface DownloadFiltersScreenProps {
     district: string;
     issueType: string;
     assignee: string;
+    status: string;
     yearOptions: number[];
     monthOptions: Array<{ value: number; label: string }>;
     categoryOptions: DropdownOption[];
@@ -34,6 +35,7 @@ interface DownloadFiltersScreenProps {
     regionOptions: DropdownOption[];
     districtOptions: DropdownOption[];
     issueTypeOptions: DropdownOption[];
+    statusOptions: DropdownOption[];
     generationState: 'idle' | 'generating' | 'error';
     estimateLoading: boolean;
     estimateCountPending: boolean;
@@ -51,6 +53,7 @@ interface DownloadFiltersScreenProps {
     onDistrictChange: (district: string) => void;
     onIssueTypeChange: (issueType: string) => void;
     onAssigneeChange: (assignee: string) => void;
+    onStatusChange: (status: string) => void;
     onFromDateChange: (fromDate: string) => void;
     onToDateChange: (toDate: string) => void;
     onApplyPresetRange: (days: number) => void;
@@ -69,6 +72,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     district,
     issueType,
     assignee,
+    status,
     yearOptions,
     monthOptions,
     categoryOptions,
@@ -77,6 +81,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     regionOptions,
     districtOptions,
     issueTypeOptions,
+    statusOptions,
     generationState,
     estimateLoading,
     estimateCountPending,
@@ -94,6 +99,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     onDistrictChange,
     onIssueTypeChange,
     onAssigneeChange,
+    onStatusChange,
     onFromDateChange,
     onToDateChange,
     onApplyPresetRange,
@@ -180,6 +186,15 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} />
+                <FormControl fullWidth size="small">
+                    <InputLabel id="download-status-label">{t('Status')}</InputLabel>
+                    <Select labelId="download-status-label" label={t('Status')} value={status} onChange={(e) => onStatusChange(String(e.target.value))}>
+                        {statusOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                    </Select>
+                </FormControl>
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField label={t('From Date')} type="date" size="small" fullWidth value={fromDate} InputLabelProps={{ shrink: true }} onChange={(e) => onFromDateChange(e.target.value)} />
                 <TextField label={t('To Date')} type="date" size="small" fullWidth value={toDate} InputLabelProps={{ shrink: true }} onChange={(e) => onToDateChange(e.target.value)} />
             </Stack>

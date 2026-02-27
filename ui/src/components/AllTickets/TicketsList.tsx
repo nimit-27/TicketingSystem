@@ -802,6 +802,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             selectedCategory={selectedCategory}
                             selectedSubCategory={selectedSubCategory}
                             selectedAssignee={selectedAssignee}
+                            statusFilterOptions={statusFilterOptions}
+                            selectedStatusFilter={statusFilter}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
                         />
                         <PaginationControls
