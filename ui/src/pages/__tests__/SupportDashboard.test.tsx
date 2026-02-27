@@ -36,6 +36,7 @@ jest.mock("../../services/IssueTypeService", () => ({
 jest.mock("../../utils/permissions", () => ({
   checkSidebarAccess: jest.fn(() => true),
   checkMyTicketsAccess: jest.fn(() => true),
+  checkAccessMaster: jest.fn(() => true),
 }));
 
 jest.mock("../../services/CategoryService", () => ({
