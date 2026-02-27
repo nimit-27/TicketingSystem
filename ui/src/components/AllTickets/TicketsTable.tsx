@@ -36,6 +36,7 @@ import { DownloadReportColumn } from './DownloadColumnsScreen';
 export interface TicketRow {
     id: string;
     subject: string;
+    description?: string;
     category: string;
     subCategory: string;
     priority: string;
@@ -350,6 +351,16 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 key: 'requester',
                 label: t('Requestor'),
                 getValue: (record: TicketRow) => record.requestorName || '-',
+            },
+            {
+                key: 'subject',
+                label: t('Subject'),
+                getValue: (record: TicketRow) => record.subject || '-',
+            },
+            {
+                key: 'description',
+                label: t('Description'),
+                getValue: (record: TicketRow) => record.description || '-',
             },
             {
                 key: 'createdDate',
