@@ -33,6 +33,7 @@ import { getIssueTypes } from "../services/IssueTypeService";
 import { DevModeContext } from "../context/DevModeContext";
 import SlaCalculationTrigger from "../components/SlaJob/SlaCalculationTrigger";
 import { IssueTypeInfo } from "../types";
+import CustomMetricCard, { MetricCardData } from "../components/Dashboard/CustomMetricCard";
 
 const severityLevels: SupportDashboardSeverityKey[] = [
   "S1",
@@ -523,6 +524,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const showLowSeverityCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "lowSeverityCard"]), []);
   const showTicketsCreatedPerMonth = React.useMemo(() => checkAccessMaster(["dashboard", "ticketsCreatedPerMonth"]), []);
   const showAssignedTicketsBarRace = React.useMemo(() => checkAccessMaster(["dashboard", "assignedTicketsCount"]), []);
+  const showTotalTicketsRaisedCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "totalTicketsRaisedCard"]), []);
 
 
   const determineScope = React.useCallback(
@@ -1355,6 +1357,82 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     };
   }, [getStatusCount, statusColorByKey]);
 
+  const ticketMetricsCardData = React.useMemo<MetricCardData>(() => {
+    const openCount = getStatusCount("OPEN");
+    const reopenedCount = getStatusCount("REOPENED");
+    const assignedCount = getStatusCount("ASSIGNED");
+    const pendingWithRequester = getStatusCount("PENDING_WITH_REQUESTER");
+    const pendingWithFci = getStatusCount("PENDING_WITH_FCI");
+    const pendingWithVendor = getStatusCount("PENDING_WITH_SERVICE_PROVIDER");
+    const onHoldCount = getStatusCount("ON_HOLD");
+    const pendingCount = getStatusCount("PENDING") + onHoldCount + pendingWithRequester + pendingWithFci + pendingWithVendor;
+    const pendingForFeedbackCount = getStatusCount("PENDING_FOR_FEEDBACK", "AWAITING_ESCALATION_APPROVAL");
+    const feedbackSubmittedCount = getStatusCount("FEEDBACK_SUBMITTED", "ESCALATED");
+    const resolvedCount = getStatusCount("RESOLVED") + pendingForFeedbackCount + feedbackSubmittedCount;
+    const closedCount = getStatusCount("CLOSED");
+    const unacknowledgedCount = openCount + reopenedCount;
+    const acknowledgedCount = assignedCount + pendingCount + resolvedCount + closedCount;
+
+    return {
+      title: {
+        text: "supportDashboard.metrics.totalTicketsRaised",
+        textSize: 12,
+        textColor: "text.secondary",
+      },
+      subtitle: {
+        text: "supportDashboard.metrics.loggedInUser",
+        textSize: 12,
+        textColor: "text.secondary",
+      },
+      metricValue: {
+        text: String(activeSummaryView.totalTickets ?? 0),
+        textSize: 24,
+        textColor: "text.primary",
+      },
+      backgroundColor: "background.paper",
+      show: showTotalTicketsRaisedCard,
+      children: [
+        {
+          title: { text: "supportDashboard.metrics.unacknowledged" },
+          metricValue: { text: String(unacknowledgedCount), textColor: "info.main" },
+          backgroundColor: "background.default",
+          children: [
+            { title: { text: "supportDashboard.metrics.open" }, metricValue: { text: String(openCount) }, backgroundColor: "background.paper" },
+            { title: { text: "supportDashboard.metrics.reOpened" }, metricValue: { text: String(reopenedCount) }, backgroundColor: "background.paper" },
+          ],
+        },
+        {
+          title: { text: "supportDashboard.metrics.acknowledged" },
+          metricValue: { text: String(acknowledgedCount), textColor: "success.main" },
+          backgroundColor: "background.default",
+          children: [
+            { title: { text: "supportDashboard.metrics.assigned" }, metricValue: { text: String(assignedCount) }, backgroundColor: "background.paper" },
+            {
+              title: { text: "supportDashboard.metrics.pending" },
+              metricValue: { text: String(pendingCount) },
+              backgroundColor: "background.paper",
+              children: [
+                { title: { text: "supportDashboard.metrics.withRequester" }, metricValue: { text: String(pendingWithRequester) } },
+                { title: { text: "supportDashboard.metrics.withFci" }, metricValue: { text: String(pendingWithFci) } },
+                { title: { text: "supportDashboard.metrics.withVendor" }, metricValue: { text: String(pendingWithVendor) } },
+              ],
+            },
+            {
+              title: { text: "supportDashboard.metrics.resolved" },
+              metricValue: { text: String(resolvedCount) },
+              backgroundColor: "background.paper",
+              children: [
+                { title: { text: "supportDashboard.metrics.pendingForFeedback" }, metricValue: { text: String(pendingForFeedbackCount) } },
+                { title: { text: "supportDashboard.metrics.feedbackSubmitted" }, metricValue: { text: String(feedbackSubmittedCount) } },
+              ],
+            },
+            { title: { text: "supportDashboard.metrics.closed" }, metricValue: { text: String(closedCount) }, backgroundColor: "background.paper" },
+          ],
+        },
+      ],
+    };
+  }, [activeSummaryView.totalTickets, getStatusCount, showTotalTicketsRaisedCard]);
+
   const assignedTicketsBarRaceOptions = React.useMemo(() => {
     const data = (summaryData?.assignedTicketsByAssignee ?? [])
       .map((entry: any) => ({
@@ -1740,9 +1818,9 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             {/* Summary Cards */}
             {showKeyMetrics ? (
               <div className="row g-3 col-12 col-xl-6">
-                <Typography variant="h6" className="fw-semibold mt-3" sx={{ fontSize: 18 }}>
-                  {t("supportDashboard.metrics.keyMetrics", { defaultValue: "Key Metrics" })}
-                </Typography>
+                  <div className="col-12">
+                  <CustomMetricCard {...ticketMetricsCardData} />
+                </div>
                 {/* <div className="col-12 col-sm-12 col-xl-12">
                 <Card className="h-100 border-0 shadow-sm" style={{ background: "#ff5252", color: "#fff" }}>
                   <CardContent className="py-3">
