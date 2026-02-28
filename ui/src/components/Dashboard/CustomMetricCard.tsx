@@ -125,7 +125,7 @@ const CustomMetricCard = ({
             {visibleChildren.map((child, index) => {
               const leafCount = getLeafCount(child);
               return (
-                <Box key={`${index}-${child?.title?.text ?? "metric-child"}`} sx={{ flex: `${leafCount} 1 0`, minWidth: 220 }}>
+                <Box key={`${index}-${child?.title?.text ?? "metric-child"}`} sx={{ flex: `${leafCount} 1 0`, minWidth: 75 }}>
                   <CustomMetricCard {...child} level={level + 1} />
                 </Box>
               );

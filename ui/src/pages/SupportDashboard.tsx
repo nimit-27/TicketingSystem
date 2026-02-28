@@ -1379,11 +1379,6 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
         textSize: 12,
         textColor: "text.secondary",
       },
-      subtitle: {
-        text: "supportDashboard.metrics.loggedInUser",
-        textSize: 12,
-        textColor: "text.secondary",
-      },
       metricValue: {
         text: String(activeSummaryView.totalTickets ?? 0),
         textSize: 24,
@@ -1817,7 +1812,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             ) : null}
             {/* Summary Cards */}
             {showKeyMetrics ? (
-              <div className="row g-3 col-12 col-xl-6">
+              <div className="row g-3 col-12">
                   <div className="col-12">
                   <CustomMetricCard {...ticketMetricsCardData} />
                 </div>
