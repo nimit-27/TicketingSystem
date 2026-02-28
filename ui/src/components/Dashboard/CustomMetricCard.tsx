@@ -104,36 +104,36 @@ const CustomMetricCard = ({
   const visibleChildren = (children ?? []).filter((child) => child?.show !== false);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, width: "100%" }}>
-      <Card
-        className="h-100"
-        sx={{
-          borderRadius: 2,
-          border: `1px solid ${theme.palette.divider}`,
-          backgroundColor: resolveThemeColor(theme, backgroundColor, "background.paper"),
-          boxShadow: level === 0 ? theme.shadows[1] : "none",
-        }}
-      >
-        <CardContent className="py-3">
+    <Card
+      className="h-100"
+      sx={{
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: resolveThemeColor(theme, backgroundColor, "background.paper"),
+        boxShadow: level === 0 ? theme.shadows[1] : "none",
+      }}
+    >
+      <CardContent className="py-3" sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <Box>
           <MetricText config={title} fallback={defaultTextConfig.title} variant="subtitle2" className="fw-semibold text-uppercase mb-1" />
           <MetricText config={metricValue} fallback={defaultTextConfig.metricValue} variant="h5" className="fw-bold" />
           <MetricText config={subtitle} fallback={defaultTextConfig.subtitle} variant="body2" className="mt-1" />
-        </CardContent>
-      </Card>
-
-      {visibleChildren.length ? (
-        <Box className="d-flex flex-wrap" sx={{ gap: 1, alignItems: "stretch" }}>
-          {visibleChildren.map((child, index) => {
-            const leafCount = getLeafCount(child);
-            return (
-              <Box key={`${index}-${child?.title?.text ?? "metric-child"}`} sx={{ flex: `${leafCount} 1 0`, minWidth: 220 }}>
-                <CustomMetricCard {...child} level={level + 1} />
-              </Box>
-            );
-          })}
         </Box>
-      ) : null}
-    </Box>
+
+        {visibleChildren.length ? (
+          <Box className="d-flex flex-wrap" sx={{ gap: 1, alignItems: "stretch" }}>
+            {visibleChildren.map((child, index) => {
+              const leafCount = getLeafCount(child);
+              return (
+                <Box key={`${index}-${child?.title?.text ?? "metric-child"}`} sx={{ flex: `${leafCount} 1 0`, minWidth: 220 }}>
+                  <CustomMetricCard {...child} level={level + 1} />
+                </Box>
+              );
+            })}
+          </Box>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 };
 
