@@ -318,7 +318,22 @@
       "ticketsPerMonth": "प्रति माह बनाए गए टिकट",
       "tickets": "टिकट",
       "overallTickets": "कुल टिकट",
-      "helpdeskOverview": "अन्ना दर्पण हेल्पडेस्क अवलोकन"
+      "helpdeskOverview": "अन्ना दर्पण हेल्पडेस्क अवलोकन",
+      "totalTicketsRaised": "कुल उठाए गए टिकट",
+      "loggedInUser": "लॉग-इन उपयोगकर्ता",
+      "unacknowledged": "अस्वीकृत",
+      "acknowledged": "स्वीकृत",
+      "open": "खुला",
+      "reOpened": "पुनः खोला गया",
+      "assigned": "असाइन किया गया",
+      "pending": "लंबित",
+      "withRequester": "अनुरोधकर्ता के साथ",
+      "withFci": "एफसीआई के साथ",
+      "withVendor": "विक्रेता के साथ",
+      "resolved": "समाधान किया गया",
+      "pendingForFeedback": "प्रतिक्रिया हेतु लंबित",
+      "feedbackSubmitted": "प्रतिक्रिया सबमिट की गई",
+      "closed": "बंद"
     }
   },
   "global": {

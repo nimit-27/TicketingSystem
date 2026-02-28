@@ -326,7 +326,22 @@
       "ticketsPerMonth": "Tickets Created Per Month",
       "tickets": "Tickets",
       "overallTickets": "Overall Tickets",
-      "helpdeskOverview": "Anna Darpan Helpdesk Overview"
+      "helpdeskOverview": "Anna Darpan Helpdesk Overview",
+      "totalTicketsRaised": "Total Tickets Raised",
+      "loggedInUser": "Logged in user",
+      "unacknowledged": "Unacknowledged",
+      "acknowledged": "Acknowledged",
+      "open": "Open",
+      "reOpened": "Re-opened",
+      "assigned": "Assigned",
+      "pending": "Pending",
+      "withRequester": "With Requester",
+      "withFci": "With FCI",
+      "withVendor": "With Vendor",
+      "resolved": "Resolved",
+      "pendingForFeedback": "Pending for Feedback",
+      "feedbackSubmitted": "Feedback Submitted",
+      "closed": "Closed"
     }
   },
   "global": {
