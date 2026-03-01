@@ -123,6 +123,7 @@ public class DtoMapper {
         }
         dto.setPriority(ticket.getPriority());
         dto.setPriorityId(ticket.getPriority());
+        dto.setDivision(ticket.getDivision());
         dto.setSeverity(ticket.getSeverity());
         dto.setSeverityId(ticket.getSeverity());
         dto.setSeverityLabel(ticket.getSeverity());

@@ -9,6 +9,7 @@ import { getCurrentUserDetails } from '../../config/config';
 import { getPriorities } from '../../services/PriorityService';
 import { getSeverities } from '../../services/SeverityService';
 import { getIssueTypes } from '../../services/IssueTypeService';
+import { getDivisions } from '../../services/DivisionService';
 import InfoIcon from '../UI/Icons/InfoIcon';
 import GenericButton from '../UI/Button';
 import { PriorityInfo, SeverityInfo, TicketSla, TicketStatusWorkflow, RootCauseAnalysis } from '../../types';
@@ -129,10 +130,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [severity, setSeverity] = useState('');
   const [recommendedSeverity, setRecommendedSeverity] = useState('');
   const [issueTypeId, setIssueTypeId] = useState('');
+  const [divisionId, setDivisionId] = useState('');
   const [priorityOptions, setPriorityOptions] = useState<string[]>([]);
   const [priorityDetails, setPriorityDetails] = useState<PriorityInfo[]>([]);
   const [severityList, setSeverityList] = useState<SeverityInfo[]>([]);
   const [issueTypeOptions, setIssueTypeOptions] = useState<DropdownOption[]>([]);
+  const [divisionOptions, setDivisionOptions] = useState<DropdownOption[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<DropdownOption[]>([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState<DropdownOption[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
@@ -412,6 +415,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const allowSubcategoryEdit = checkAccessMaster(['ticketView', 'subcategory', 'allowEdit'])
   const allowSeverityEdit = checkAccessMaster(['ticketView', 'severity', 'allowEdit'])
   const showIssueType = checkAccessMaster(['ticketView', 'issueType'])
+  const showDivision = checkAccessMaster(['ticketView', 'division'])
+  const allowDivisionEdit = checkAccessMaster(['ticketView', 'division', 'allowEdit'])
   const showSla = checkAccessMaster(['ticketView', 'sla'])
   const showComments = checkAccessMaster(['ticketView', 'comments'])
 
@@ -478,6 +483,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         const issueTypeData = Array.isArray(res?.data) ? res.data : [];
         setIssueTypeOptions(getDropdownOptions(issueTypeData, 'issueTypeLabel', 'issueTypeId'));
       });
+      getDivisions().then(res => {
+        const divisionData = Array.isArray(res?.data) ? res.data : [];
+        setDivisionOptions(getDropdownOptions(divisionData, 'divisionName', 'divisionId'));
+      });
       getCategories()
         .then(res => {
           const rawPayload = res?.data ?? res;
@@ -532,6 +541,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
       setIssueTypeId(ticket.issueTypeId || '');
+      setDivisionId(ticket.division || '');
       setSelectedCategoryId('');
       setSelectedSubCategoryId('');
       setSubCategoryOptions([]);
@@ -613,6 +623,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (issueTypeId) {
       payload.issueTypeId = issueTypeId;
     }
+    if (divisionId) {
+      payload.division = divisionId;
+    }
     if (selectedCategoryId) {
       payload.category = selectedCategoryId;
     }
@@ -675,6 +688,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       setSeverity(ticket.severity || '');
       setRecommendedSeverity(ticket.recommendedSeverity || '');
       setIssueTypeId(ticket.issueTypeId || '');
+      setDivisionId(ticket.division || '');
     }
   };
 
@@ -1221,6 +1235,15 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
         {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
+          {showDivision && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+            <Typography color="text.secondary">{t('Division')}</Typography>
+            {renderSelect(divisionId, setDivisionId, divisionOptions, {
+              displayValue: ticket?.divisionName || ticket?.division,
+              translate: false,
+              disabled: !divisionOptions.length,
+              editing: allowDivisionEdit && editing,
+            })}
+          </Box>}
           {showIssueType && (
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
               <Typography color="text.secondary">{t('Issue Type')}</Typography>

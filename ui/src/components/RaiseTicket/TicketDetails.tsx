@@ -16,6 +16,7 @@ import { checkFieldAccess } from "../../utils/permissions";
 import { getPriorities } from "../../services/PriorityService";
 import { getSeverities } from "../../services/SeverityService";
 import { getIssueTypes } from "../../services/IssueTypeService";
+import { getDivisions } from "../../services/DivisionService";
 import InfoIcon from "../UI/Icons/InfoIcon";
 import { IssueTypeInfo, PriorityInfo, SeverityInfo } from "../../types";
 import FileUpload from "../UI/FileUpload";
@@ -47,6 +48,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const { data: priorityList, apiHandler: getPriorityApiHandler } = useApi<any>();
     const { data: severityList, apiHandler: getSeverityApiHandler } = useApi<any>();
     const { data: issueTypeList, apiHandler: getIssueTypeApiHandler } = useApi<any>();
+    const { data: divisionList, apiHandler: getDivisionApiHandler } = useApi<any>();
 
     // USESTATE INITIALIZATIONS
     const [assignFurther, setAssignFurther] = useState<boolean>(false);
@@ -69,6 +71,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     const priorityOptions: DropdownOption[] = Array.isArray(priorityList) ? priorityList.map((p: PriorityInfo) => ({ label: p.level, value: p.id })) : [];
     const severityOptions: DropdownOption[] = Array.isArray(severityList) ? severityList.map((s: SeverityInfo) => ({ label: s.level, value: s.level })) : [];
     const issueTypeOptions: DropdownOption[] = getDropdownOptions(issueTypeList, 'issueTypeLabel', 'issueTypeId');
+    const divisionOptions: DropdownOption[] = getDropdownOptions(divisionList, 'divisionName', 'divisionId');
 
     const priorityContent = Array.isArray(priorityList) ? (
         <div>
@@ -104,6 +107,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
     let showCategory = checkFieldAccess('ticketDetails', 'category');
     let showSubCategory = checkFieldAccess('ticketDetails', 'subCategory');
     let showIssueType = checkFieldAccess('ticketDetails', 'issueType');
+    let showDivision = checkFieldAccess('ticketDetails', 'division');
     let showPriority = checkFieldAccess('ticketDetails', 'priority');
     let showSeverityFields = checkFieldAccess('ticketDetails', 'severity');
     let showSeverity = checkFieldAccess('ticketDetails', 'severity');
@@ -145,6 +149,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
         getPriorityApiHandler(() => getPriorities())
         getSeverityApiHandler(() => getSeverities())
         getIssueTypeApiHandler(() => getIssueTypes())
+        getDivisionApiHandler(() => getDivisions())
     }, [])
 
     useEffect(() => {
@@ -160,6 +165,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
             register('assignedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
             register('updatedBy', { value: getCurrentUserDetails()?.username || 'john.doe' });
             register('attachments');
+            register('division');
         }
     }, [register]);
 
@@ -219,6 +225,20 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ register, control, setVal
                             disabled={disableAll || !category}
                             rules={{ required: 'Please select Sub Module' }}
                         />
+                    </div>
+                )}
+                {showDivision && (
+                    <div className="col-md-6">
+                        <GenericDropdownController
+                            name="division"
+                            control={control}
+                            label="Division"
+                            options={divisionOptions}
+                            className="form-select"
+                            disabled={disableAll}
+                            rules={{ required: 'Please select Division' }}
+                        />
+                        <small className="text-muted">Select the Division to whom this Issue Pertains for easy Tracking</small>
                     </div>
                 )}
                 {showIssueType && (
