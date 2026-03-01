@@ -23,6 +23,7 @@ import com.ticketingSystem.api.repository.RecommendedSeverityFlowRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.RegionMasterRepository;
 import com.ticketingSystem.api.repository.DistrictMasterRepository;
+import com.ticketingSystem.api.repository.DivisionMasterRepository;
 import com.ticketingSystem.api.enums.Mode;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.enums.FeedbackStatus;
@@ -88,6 +89,8 @@ public class TicketService {
     private final RoleRepository roleRepository;
     private final RegionMasterRepository regionMasterRepository;
     private final DistrictMasterRepository districtMasterRepository;
+    private final DivisionMasterRepository divisionMasterRepository;
+    private final DivisionHistoryService divisionHistoryService;
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
@@ -117,6 +120,12 @@ public class TicketService {
                     .ifPresent(issueType -> dto.setIssueTypeLabel(issueType.getIssueTypeLabel()));
         }
         if (ticket.getCreatedBy() != null) dto.setCreatedBy(ticket.getCreatedBy());
+
+        if (ticket.getDivision() != null) {
+            dto.setDivision(ticket.getDivision());
+            divisionMasterRepository.findById(ticket.getDivision())
+                    .ifPresent(division -> dto.setDivisionName(division.getDivisionName()));
+        }
 
         // priority info
         if (ticket.getPriority() != null) {
@@ -353,6 +362,10 @@ public class TicketService {
         boolean sla = workflowService.getSlaFlagByStatusAndIssueType(openId, saved.getIssueTypeId());
 
         List<StatusHistory> histories = new ArrayList<>();
+
+        if (saved.getDivision() != null && !saved.getDivision().isBlank()) {
+            divisionHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, saved.getDivision(), "New");
+        }
 
         // ADDING TICKET IN STATUS HISTORY
         histories.add(statusHistoryService.addHistory(saved.getId(), saved.getUpdatedBy(), null, openId, sla, "New"));
@@ -657,6 +670,7 @@ public class TicketService {
         String previousRecommendedSeverity = existing.getRecommendedSeverity();
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
         String previousAssignedTo = existing.getAssignedTo();
+        String previousDivision = existing.getDivision();
         TicketStatus previousStatus = existing.getTicketStatus();
         Status previousStatusEntity = existing.getStatus();
         String previousStatusId = existing.getStatus() != null ? existing.getStatus().getStatusId()
@@ -711,6 +725,7 @@ public class TicketService {
         }
         if (updated.getIssueTypeId() != null) existing.setIssueTypeId(updated.getIssueTypeId());
         if (updated.getPriority() != null) existing.setPriority(updated.getPriority());
+        if (updated.getDivision() != null) existing.setDivision(updated.getDivision());
         if (updated.getSeverity() != null) existing.setSeverity(updated.getSeverity());
         if (updated.getRecommendedSeverity() != null) existing.setRecommendedSeverity(updated.getRecommendedSeverity());
         if (updated.getImpact() != null) existing.setImpact(updated.getImpact());
@@ -768,6 +783,9 @@ public class TicketService {
         existing.setLastModified(LocalDateTime.now());
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
+        if (updated.getDivision() != null && !Objects.equals(previousDivision, saved.getDivision())) {
+            divisionHistoryService.addHistory(id, updatedBy, previousDivision, saved.getDivision(), remark);
+        }
         if (assignmentChanged) {
             assignmentHistoryService.addHistory(id,
                     updated.getAssignedBy() != null ? updated.getAssignedBy() : updatedBy,

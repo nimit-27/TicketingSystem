@@ -53,6 +53,8 @@ export interface Ticket {
     subCategory: string;
     issueTypeId?: string;
     issueTypeLabel?: string;
+    division?: string;
+    divisionName?: string;
     priority: string;
     priorityId?: string;
     isMaster: boolean;
@@ -159,4 +161,13 @@ export interface PermissionNode {
         name?: string;
     };
     children?: { [key: string]: PermissionNode } | null;
+}
+
+
+export interface DivisionInfo {
+    divisionId: string;
+    divisionName: string;
+    divisionCode?: string;
+    description?: string;
+    isActive?: string;
 }

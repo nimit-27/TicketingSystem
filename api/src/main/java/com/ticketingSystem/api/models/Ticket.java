@@ -65,6 +65,8 @@ public class Ticket {
     @JoinColumn(name = "issue_type_id", referencedColumnName = "issue_type_id", insertable = false, updatable = false)
     private IssueType issueType;
     private String priority;
+    @Column(name = "division")
+    private String division;
     private String severity;
     @Column(name = "recommended_severity")
     private String recommendedSeverity;
