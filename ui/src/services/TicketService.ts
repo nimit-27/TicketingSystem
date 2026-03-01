@@ -117,6 +117,8 @@ export function searchTicketsPaginated(
     regionCode?: string,
     districtCode?: string,
     issueTypeId?: string,
+    slaBreachFilter?: string,
+    breachedByMinutes?: number,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -138,6 +140,8 @@ export function searchTicketsPaginated(
     if (regionCode) params.append('regionCode', regionCode);
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
+    if (slaBreachFilter) params.append('slaBreachFilter', slaBreachFilter);
+    if (breachedByMinutes !== undefined) params.append('breachedByMinutes', String(breachedByMinutes));
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 

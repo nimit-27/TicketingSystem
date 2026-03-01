@@ -430,6 +430,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:regionCode IS NULL OR t.regionCode = :regionCode) " +
             "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
+            "AND (:slaBreachFilter IS NULL OR :slaBreachFilter = 'All' " +
+            "OR (:slaBreachFilter = 'already_breached' AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND ts.breachedByMinutes IS NOT NULL AND ts.breachedByMinutes > 0)) " +
+            "OR (:slaBreachFilter = 'breach_within' AND :breachedByMinutes IS NOT NULL AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND ts.breachedByMinutes IS NOT NULL AND ts.breachedByMinutes <= 0 AND ts.breachedByMinutes >= :breachedByMinutes))) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -461,6 +464,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("regionCode") String regionCode,
                                @Param("districtCode") String districtCode,
                                @Param("issueTypeId") String issueTypeId,
+                               @Param("slaBreachFilter") String slaBreachFilter,
+                               @Param("breachedByMinutes") Long breachedByMinutes,
                                @Param("dateParam") String dateParam,
                                @Param("fromDate") LocalDateTime fromDate,
                                @Param("toDate") LocalDateTime toDate,
@@ -478,6 +483,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:regionCode IS NULL OR t.regionCode = :regionCode) " +
             "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
+            "AND (:slaBreachFilter IS NULL OR :slaBreachFilter = 'All' " +
+            "OR (:slaBreachFilter = 'already_breached' AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND ts.breachedByMinutes IS NOT NULL AND ts.breachedByMinutes > 0)) " +
+            "OR (:slaBreachFilter = 'breach_within' AND :breachedByMinutes IS NOT NULL AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND ts.breachedByMinutes IS NOT NULL AND ts.breachedByMinutes <= 0 AND ts.breachedByMinutes >= :breachedByMinutes))) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -509,6 +517,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                    @Param("regionCode") String regionCode,
                                    @Param("districtCode") String districtCode,
                                    @Param("issueTypeId") String issueTypeId,
+                                   @Param("slaBreachFilter") String slaBreachFilter,
+                                   @Param("breachedByMinutes") Long breachedByMinutes,
                                    @Param("dateParam") String dateParam,
                                    @Param("fromDate") LocalDateTime fromDate,
                                    @Param("toDate") LocalDateTime toDate);
