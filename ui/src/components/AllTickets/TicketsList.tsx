@@ -648,15 +648,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     />
 
                     {/* SUBCATEGORY DROPDOWN FILTER */}
-                    {selectedCategory !== "All"
-                        ? <DropdownController
-                            label="Sub Module"
-                            value={selectedSubCategory}
-                            className="col-3 ps-1"
-                            onChange={handleSubCategoryChange}
-                            options={subCategoryOptions}
-                        />
-                        : <div className="d-flex col-3"></div>}
+                    <DropdownController
+                        label="Sub Module"
+                        value={selectedSubCategory}
+                        className="col-3 ps-1"
+                        onChange={handleSubCategoryChange}
+                        options={subCategoryOptions}
+                        disabled={selectedCategory === "All"}
+                    />
 
                     <DropdownController
                         label="Zone"
@@ -666,25 +665,23 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         options={zoneOptions}
                     />
 
-                    {selectedZone !== "All"
-                        ? <DropdownController
-                            label="Region"
-                            value={selectedRegion}
-                            className="col-3 px-1"
-                            onChange={handleRegionChange}
-                            options={regionOptions}
-                        />
-                        : <div className="d-flex col-3"></div>}
+                    <DropdownController
+                        label="Region"
+                        value={selectedRegion}
+                        className="col-3 px-1"
+                        onChange={handleRegionChange}
+                        options={regionOptions}
+                        disabled={selectedZone === "All"}
+                    />
 
-                    {selectedRegion !== "All"
-                        ? <DropdownController
-                            label="District"
-                            value={selectedDistrict}
-                            className="col-3 px-1"
-                            onChange={handleDistrictChange}
-                            options={districtOptions}
-                        />
-                        : <div className="d-flex col-3"></div>}
+                    <DropdownController
+                        label="District"
+                        value={selectedDistrict}
+                        className="col-3 px-1"
+                        onChange={handleDistrictChange}
+                        options={districtOptions}
+                        disabled={selectedRegion === "All"}
+                    />
 
                     <DropdownController
                         label="Issue Type"
