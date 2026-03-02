@@ -30,6 +30,7 @@ import { useCategoryFilters } from "../hooks/useCategoryFilters";
 import { getParametersByRoles } from "../services/ParameterService";
 import { getDistricts, getRegions, getZones } from "../services/LocationService";
 import { getIssueTypes } from "../services/IssueTypeService";
+import { getDivisions } from "../services/DivisionService";
 import { DevModeContext } from "../context/DevModeContext";
 import SlaCalculationTrigger from "../components/SlaJob/SlaCalculationTrigger";
 import { IssueTypeInfo } from "../types";
@@ -445,6 +446,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = React.useState<string>("All");
   const [selectedDistrict, setSelectedDistrict] = React.useState<string>("All");
   const [selectedIssueType, setSelectedIssueType] = React.useState<string>("All");
+  const [selectedDivision, setSelectedDivision] = React.useState<string>("All");
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   const [downloadingReport, setDownloadingReport] = React.useState(false);
 
@@ -464,6 +466,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const { data: regionsResponse = [], apiHandler: getRegionsApiHandler } = useApi<RegionOptionItem[]>();
   const { data: districtsResponse = [], apiHandler: getDistrictsApiHandler } = useApi<DistrictOptionItem[]>();
   const { data: issueTypesResponse = [], apiHandler: getIssueTypesApiHandler } = useApi<IssueTypeInfo[]>();
+  const { data: divisionsResponse = [], apiHandler: getDivisionsApiHandler } = useApi<any[]>();
 
   useEffect(() => {
     if (!userRoles.length) {
@@ -485,7 +488,8 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
   useEffect(() => {
     void getIssueTypesApiHandler(() => getIssueTypes());
-  }, [getIssueTypesApiHandler]);
+    void getDivisionsApiHandler(() => getDivisions());
+  }, [getDivisionsApiHandler, getIssueTypesApiHandler]);
 
   useEffect(() => {
     if (selectedZone === "All") {
@@ -606,6 +610,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [issueTypesResponse],
   );
 
+
+  const divisionOptions = React.useMemo(
+    () => [{ label: "All", value: "All" }, ...getDropdownOptions((divisionsResponse?.data ?? divisionsResponse ?? []), "divisionName", "divisionId")],
+    [divisionsResponse],
+  );
   const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
   useEffect(() => {
@@ -718,6 +727,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     const normalizedRegionCode = normalizedZoneCode && selectedRegion !== "All" ? selectedRegion : undefined;
     const normalizedDistrictCode = normalizedRegionCode && selectedDistrict !== "All" ? selectedDistrict : undefined;
     const normalizedIssueTypeId = selectedIssueType === "All" ? undefined : selectedIssueType;
+    const normalizedDivisionId = selectedDivision === "All" ? undefined : selectedDivision;
 
     if (timeScale === "CUSTOM") {
       if (!activeDateRange.from || !activeDateRange.to) {
@@ -783,6 +793,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
       params.issueTypeId = normalizedIssueTypeId;
     }
 
+    if (normalizedDivisionId) {
+      params.divisionId = normalizedDivisionId;
+    }
+
     return params;
   }, [
     activeDateRange,
@@ -797,6 +811,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     selectedRegion,
     selectedDistrict,
     selectedIssueType,
+    selectedDivision,
     timeRange,
     timeScale,
     userDetails?.userId,
@@ -1151,6 +1166,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
 
   const handleIssueTypeChange = React.useCallback((event: SelectChangeEvent) => {
     setSelectedIssueType(event.target.value as string);
+  }, []);
+
+  const handleDivisionChange = React.useCallback((event: SelectChangeEvent) => {
+    setSelectedDivision(event.target.value as string);
   }, []);
 
   useEffect(() => {
@@ -1745,6 +1764,15 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
               value={selectedIssueType}
               onChange={handleIssueTypeChange}
               options={issueTypeOptions}
+              fullWidth
+              disabled={isLoading}
+            />
+            <GenericDropdown
+              id="support-dashboard-division"
+              label="Division"
+              value={selectedDivision}
+              onChange={handleDivisionChange}
+              options={divisionOptions}
               fullWidth
               disabled={isLoading}
             />
