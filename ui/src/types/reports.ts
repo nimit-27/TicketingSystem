@@ -241,4 +241,5 @@ export interface SupportDashboardSummaryRequestParams {
     regionCode?: string;
     districtCode?: string;
     issueTypeId?: string;
+    divisionId?: string;
 }

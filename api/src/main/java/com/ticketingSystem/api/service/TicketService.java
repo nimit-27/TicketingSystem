@@ -525,7 +525,7 @@ public class TicketService {
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
-                                         String zoneCode, String regionCode, String districtCode, String issueTypeId,
+                                         String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                          String dateParam, String fromDate, String toDate, Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
@@ -586,6 +586,7 @@ public class TicketService {
                 regionCode,
                 districtCode,
                 issueTypeId,
+                divisionId,
                 normalizedDateParam,
                 from,
                 to,
@@ -597,7 +598,7 @@ public class TicketService {
     public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master,
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                              String severity, String createdBy, String category, String subCategory,
-                                             String zoneCode, String regionCode, String districtCode, String issueTypeId,
+                                             String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                              String dateParam, String fromDate, String toDate) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
@@ -652,6 +653,7 @@ public class TicketService {
                         regionCode,
                         districtCode,
                         issueTypeId,
+                        divisionId,
                         normalizedDateParam,
                         from,
                         to)

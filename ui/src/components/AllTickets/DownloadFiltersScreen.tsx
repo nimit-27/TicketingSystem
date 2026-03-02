@@ -25,6 +25,7 @@ interface DownloadFiltersScreenProps {
     region: string;
     district: string;
     issueType: string;
+    division: string;
     assignee: string;
     status: string;
     yearOptions: number[];
@@ -35,6 +36,7 @@ interface DownloadFiltersScreenProps {
     regionOptions: DropdownOption[];
     districtOptions: DropdownOption[];
     issueTypeOptions: DropdownOption[];
+    divisionOptions: DropdownOption[];
     statusOptions: DropdownOption[];
     generationState: 'idle' | 'generating' | 'error';
     estimateLoading: boolean;
@@ -52,6 +54,7 @@ interface DownloadFiltersScreenProps {
     onRegionChange: (region: string) => void;
     onDistrictChange: (district: string) => void;
     onIssueTypeChange: (issueType: string) => void;
+    onDivisionChange: (division: string) => void;
     onAssigneeChange: (assignee: string) => void;
     onStatusChange: (status: string) => void;
     onFromDateChange: (fromDate: string) => void;
@@ -71,6 +74,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     region,
     district,
     issueType,
+    division,
     assignee,
     status,
     yearOptions,
@@ -81,6 +85,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     regionOptions,
     districtOptions,
     issueTypeOptions,
+    divisionOptions,
     statusOptions,
     generationState,
     estimateLoading,
@@ -98,6 +103,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     onRegionChange,
     onDistrictChange,
     onIssueTypeChange,
+    onDivisionChange,
     onAssigneeChange,
     onStatusChange,
     onFromDateChange,
@@ -185,6 +191,12 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <FormControl fullWidth size="small">
+                    <InputLabel id="download-division-label">{t('Division')}</InputLabel>
+                    <Select labelId="download-division-label" label={t('Division')} value={division} onChange={(e) => onDivisionChange(String(e.target.value))}>
+                        {divisionOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                    </Select>
+                </FormControl>
                 <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} />
                 <FormControl fullWidth size="small">
                     <InputLabel id="download-status-label">{t('Status')}</InputLabel>

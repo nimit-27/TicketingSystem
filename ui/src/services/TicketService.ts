@@ -117,6 +117,7 @@ export function searchTicketsPaginated(
     regionCode?: string,
     districtCode?: string,
     issueTypeId?: string,
+    divisionId?: string,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -138,6 +139,7 @@ export function searchTicketsPaginated(
     if (regionCode) params.append('regionCode', regionCode);
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
+    if (divisionId) params.append('divisionId', divisionId);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 
@@ -153,6 +155,7 @@ interface SearchTicketsForExportParams {
     issueTypeId?: string;
     assignedTo?: string;
     statusId?: string;
+    divisionId?: string;
     signal?: AbortSignal;
 }
 
@@ -168,6 +171,7 @@ export function searchTicketsForExport({
     issueTypeId,
     assignedTo,
     statusId,
+    divisionId,
     signal,
 }: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
@@ -180,7 +184,9 @@ export function searchTicketsForExport({
     if (regionCode) params.append('regionCode', regionCode);
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
+    if (divisionId) params.append('divisionId', divisionId);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
+    if (divisionId) params.append('divisionId', divisionId);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
 }

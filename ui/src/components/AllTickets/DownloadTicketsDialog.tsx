@@ -19,6 +19,7 @@ import { useApi } from '../../hooks/useApi';
 import { getDropdownOptionsWithExtraOption } from '../../utils/Utils';
 import { searchTicketsPaginated } from '../../services/TicketService';
 import { useCategoryFilters } from '../../hooks/useCategoryFilters';
+import { getDivisions } from '../../services/DivisionService';
 import DownloadFiltersScreen from './DownloadFiltersScreen';
 import DownloadColumnsScreen, { DownloadReportColumn } from './DownloadColumnsScreen';
 
@@ -37,6 +38,8 @@ interface DownloadFilters {
     categoryLabel?: string;
     subCategoryId?: string;
     subCategoryLabel?: string;
+    divisionId?: string;
+    divisionLabel?: string;
     assignedTo?: string;
     assignedToLabel?: string;
     statusId?: string;
@@ -51,6 +54,7 @@ interface DownloadDialogInitialFilters {
     region: string;
     district: string;
     issueType: string;
+    division: string;
     assignee: string;
     status: string;
 }
@@ -62,6 +66,7 @@ interface DownloadTicketsDialogProps {
     zoneOptions: DropdownOption[];
     issueTypeOptions: DropdownOption[];
     statusOptions: DropdownOption[];
+    divisionOptions: DropdownOption[];
     initialFilters: DownloadDialogInitialFilters;
     exportableColumns: DownloadReportColumn[];
     onClose: () => void;
@@ -107,6 +112,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     zoneOptions,
     issueTypeOptions,
     statusOptions,
+    divisionOptions,
     initialFilters,
     exportableColumns,
     onClose,
@@ -129,6 +135,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [district, setDistrict] = useState<string>('All');
     const [issueType, setIssueType] = useState<string>('All');
     const [assignee, setAssignee] = useState<string>('All');
+    const [division, setDivision] = useState<string>('All');
     const [status, setStatus] = useState<string>('All');
     const [regionOptions, setRegionOptions] = useState<Array<DropdownOption & { hrmsRegCode?: string }>>([{ label: 'All', value: 'All' }]);
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
@@ -144,6 +151,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const { data: getRegionsApiData, pending: getRegionsApiPending, success: getRegionsApiSuccess, apiHandler: getRegionsApiHandler } = useApi()
     const { data: getDistrictsApiData, pending: getDistrictsApiPending, success: getDistrictsApiSuccess, apiHandler: getDistrictsApiHandler } = useApi()
     const { apiHandler: estimateCountApiHandler, pending: estimateCountPending } = useApi<any>()
+    const { data: getDivisionsApiData = [], apiHandler: getDivisionsApiHandler } = useApi<any[]>()
 
     const getRegionsHandler = async (zone: any) => {
         return await getRegionsApiHandler(() => getRegions(zone))
@@ -177,6 +185,13 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }
     }, [getDistrictsApiSuccess, getDistrictsApiPending])
 
+
+    const effectiveDivisionOptions = useMemo(() => {
+        const apiDivisions = (getDivisionsApiData as any)?.data ?? getDivisionsApiData ?? [];
+        const fallbackDivisions = divisionOptions.slice(1);
+        const source = Array.isArray(apiDivisions) && apiDivisions.length ? apiDivisions : fallbackDivisions;
+        return getDropdownOptionsWithExtraOption(source, 'divisionName', 'divisionId', allOptionObject);
+    }, [divisionOptions, getDivisionsApiData]);
     const yearOptions = useMemo(() => {
         const currentYear = new Date().getFullYear() + 1;
         return Array.from({ length: 12 }, (_, index) => currentYear - index);
@@ -227,6 +242,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setRegion(initialFilters.region || 'All');
         setDistrict(initialFilters.district || 'All');
         setIssueType(initialFilters.issueType || 'All');
+        setDivision(initialFilters.division || 'All');
         setAssignee(initialFilters.assignee || 'All');
         setStatus(initialFilters.status || 'All');
         setRegionOptions([{ label: 'All', value: 'All' }]);
@@ -263,6 +279,12 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             setSubCategory('All');
         }
     }, [open, category, subCategory, subCategoryOptions]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        void getDivisionsApiHandler(() => getDivisions());
+    }, [getDivisionsApiHandler, open]);
 
     useEffect(() => {
         if (!open) return;
@@ -313,6 +335,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         const selectedRegion = regionOptions.find((option) => option.value === region);
         const selectedDistrict = districtOptions.find((option) => option.value === district);
         const selectedIssueType = issueTypeOptions.find((option) => option.value === issueType);
+        const selectedDivision = effectiveDivisionOptions.find((option) => option.value === division);
         const selectedStatus = statusOptions.find((option) => option.value === status);
         await onGenerate(format, {
             fromDate,
@@ -387,6 +410,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                     region !== 'All' ? region : undefined,
                     district !== 'All' ? district : undefined,
                     issueType !== 'All' ? issueType : undefined,
+                    division !== 'All' ? division : undefined,
                 ));
                 setEstimatedCount(response?.totalElements ?? null);
             } catch (_) {
@@ -397,7 +421,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [open, fromDate, toDate, zone, region, district, issueType, assignee, status, category, subCategory, isRangeInvalid, estimateCountApiHandler]);
+    }, [open, fromDate, toDate, zone, region, district, issueType, division, assignee, status, category, subCategory, isRangeInvalid, estimateCountApiHandler]);
 
     return (
         <>
@@ -416,6 +440,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             region={region}
                             district={district}
                             issueType={issueType}
+                    division={division}
                             assignee={assignee}
                             status={status}
                             yearOptions={yearOptions}
@@ -427,6 +452,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             districtOptions={districtOptions}
                             issueTypeOptions={issueTypeOptions}
                             statusOptions={statusOptions}
+                    divisionOptions={effectiveDivisionOptions}
                             generationState={generationState}
                             estimateLoading={estimateLoading}
                             estimateCountPending={estimateCountPending}
@@ -451,6 +477,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             onDistrictChange={setDistrict}
                             onIssueTypeChange={setIssueType}
                             onAssigneeChange={setAssignee}
+                    onDivisionChange={setDivision}
                             onStatusChange={setStatus}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
