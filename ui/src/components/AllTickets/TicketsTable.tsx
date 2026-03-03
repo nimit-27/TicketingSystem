@@ -64,6 +64,8 @@ export interface TicketRow {
     zoneCode?: string;
     districtName?: string;
     regionName?: string;
+    divisionName?: string;
+    divisionId?: string;
     rcaStatus?: 'NOT_APPLICABLE' | 'PENDING' | 'SUBMITTED';
 }
 
@@ -419,6 +421,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 getValue: (record: TicketRow) => record.assignedToName || record.assignedTo || '-',
             },
             {
+                key: 'division',
+                label: t('Division'),
+                getValue: (record: TicketRow) => record.divisionName || record.divisionId || '-',
+            },
+            {
                 key: 'status',
                 label: t('Status'),
                 getValue: (record: TicketRow) => getStatusNameById(record.statusId || '') || record.statusLabel || '-',
@@ -452,6 +459,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             { key: t('Region'), value: filters.regionLabel },
             { key: t('District'), value: filters.districtLabel },
             { key: t('Issue Type'), value: filters.issueTypeLabel || issueTypeFilterLabel },
+            { key: t('Division'), value: filters.divisionLabel },
             { key: t('Assignee'), value: filters.assignedToLabel },
             { key: t('Status'), value: filters.statusLabel },
         ].filter((entry) => Boolean(entry.value));

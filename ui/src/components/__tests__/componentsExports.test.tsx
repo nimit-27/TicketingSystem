@@ -33,6 +33,7 @@ import Header from '../Layout/Header';
 import Sidebar from '../Layout/Sidebar';
 import UserMenu from '../Layout/UserMenu';
 import AssignmentHistory from '../AssignmentHistory';
+import DivisionHistory from '../DivisionHistory';
 import ChildTicketsTable from '../Ticket/ChildTicketsTable';
 
 jest.mock('jwt-decode', () => ({
@@ -114,6 +115,7 @@ describe('component module exports', () => {
     expect(Sidebar).toBeTruthy();
     expect(UserMenu).toBeTruthy();
     expect(AssignmentHistory).toBeTruthy();
+    expect(DivisionHistory).toBeTruthy();
     expect(ChildTicketsTable).toBeTruthy();
   });
 });

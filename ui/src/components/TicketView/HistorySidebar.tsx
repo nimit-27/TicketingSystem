@@ -12,10 +12,10 @@ interface HistorySidebarProps {
 }
 
 const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen }) => {
-    const [tab, setTab] = useState<'status' | 'assignment'>('status');
+    const [tab, setTab] = useState<'status' | 'assignment' | 'division'>('status');
     const { t } = useTranslation();
 
-    const handleOpen = (value: 'status' | 'assignment') => {
+    const handleOpen = (value: 'status' | 'assignment' | 'division') => {
         setTab(value);
         setOpen(true);
     };
@@ -25,7 +25,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
     return (
         <>
             {!open && (
-                <div style={{ position: 'fixed', right: -40, top: '40%', zIndex: 1300, display: 'flex', flexDirection: 'column', gap: 115 }}>
+                <div style={{ position: 'fixed', right: -40, top: '40%', zIndex: 1300, display: 'flex', flexDirection: 'column', gap: 72 }}>
                     <Button
                         variant="contained"
                         size="small"
@@ -41,6 +41,14 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
                         sx={{ transform: 'rotate(-90deg)' }}
                     >
                         {t('Assignment History')}
+                    </Button>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleOpen('division')}
+                        sx={{ transform: 'rotate(-90deg)' }}
+                    >
+                        {t('Division History')}
                     </Button>
                 </div>
             )}
@@ -60,7 +68,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ ticketId, open, setOpen
                     <IconButton onClick={handleClose} sx={{ position: 'absolute', left: -40, top: 8 }}>
                         <ChevronLeftIcon />
                     </IconButton>
-                    <Histories ticketId={ticketId} currentTab={tab} onTabChange={(k) => setTab(k as 'status' | 'assignment')} />
+                    <Histories ticketId={ticketId} currentTab={tab} onTabChange={(k) => setTab(k as 'status' | 'assignment' | 'division')} />
                 </Box>
             </Drawer>
         </>

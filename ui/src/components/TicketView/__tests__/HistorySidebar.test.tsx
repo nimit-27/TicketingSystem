@@ -24,6 +24,7 @@ describe('HistorySidebar', () => {
 
     const statusButton = screen.getByRole('button', { name: 'Status History' });
     const assignmentButton = screen.getByRole('button', { name: 'Assignment History' });
+    const divisionButton = screen.getByRole('button', { name: 'Division History' });
 
     fireEvent.click(assignmentButton);
     expect(setOpen).toHaveBeenCalledWith(true);
@@ -34,6 +35,10 @@ describe('HistorySidebar', () => {
     fireEvent.click(statusButton);
     const lastStatusCall = historiesMock.mock.calls[historiesMock.mock.calls.length - 1];
     expect(lastStatusCall?.[0].currentTab).toBe('status');
+
+    fireEvent.click(divisionButton);
+    const lastDivisionCall = historiesMock.mock.calls[historiesMock.mock.calls.length - 1];
+    expect(lastDivisionCall?.[0].currentTab).toBe('division');
   });
 
   it('renders drawer content when open and handles tab change and close', async () => {
@@ -51,6 +56,13 @@ describe('HistorySidebar', () => {
 
     const nextCall = historiesMock.mock.calls[historiesMock.mock.calls.length - 1];
     expect(nextCall?.[0].currentTab).toBe('assignment');
+
+    await act(async () => {
+      props.onTabChange?.('division');
+    });
+
+    const divisionCall = historiesMock.mock.calls[historiesMock.mock.calls.length - 1];
+    expect(divisionCall?.[0].currentTab).toBe('division');
 
     const closeButton = screen.getByTestId('ChevronRightIcon').closest('button');
     expect(closeButton).not.toBeNull();
