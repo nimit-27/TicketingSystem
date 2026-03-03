@@ -342,6 +342,15 @@ describe("StakeholderService", () => {
   });
 });
 
+
+describe("DivisionHistoryService", () => {
+  it("retrieves ticket division history", async () => {
+    const service = await import("../DivisionHistoryService");
+    await service.getDivisionHistory("123");
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/division-history/123"));
+  });
+});
+
 describe("StatusHistoryService", () => {
   it("retrieves ticket status history", async () => {
     const service = await import("../StatusHistoryService");
