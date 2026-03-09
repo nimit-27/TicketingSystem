@@ -22,6 +22,7 @@ import { useCategoryFilters } from '../../hooks/useCategoryFilters';
 import { getDivisions } from '../../services/DivisionService';
 import DownloadFiltersScreen from './DownloadFiltersScreen';
 import DownloadColumnsScreen, { DownloadReportColumn } from './DownloadColumnsScreen';
+import { ALL_FILTER_VALUE, normalizeMultiFilterValues, toApiMultiFilterParam } from '../../utils/multiSelectFilters';
 
 interface DownloadFilters {
     fromDate: string;
@@ -95,6 +96,7 @@ const getDateRangeForSelection = (year: number, month?: number) => {
 };
 
 const allOptionObject: DropdownOption = { label: 'All', value: 'All' }
+const parseMultiFilter = (value: string) => (value ? normalizeMultiFilterValues(value.split(',')) : [ALL_FILTER_VALUE]);
 const getDateRangeDays = (from: string, to: string): number | null => {
     if (!from || !to) return null;
     const start = new Date(from);
@@ -133,10 +135,10 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [subCategory, setSubCategory] = useState<string>('All');
     const [region, setRegion] = useState<string>('All');
     const [district, setDistrict] = useState<string>('All');
-    const [issueType, setIssueType] = useState<string>('All');
-    const [assignee, setAssignee] = useState<string>('All');
-    const [division, setDivision] = useState<string>('All');
-    const [status, setStatus] = useState<string>('All');
+    const [issueType, setIssueType] = useState<string[]>([ALL_FILTER_VALUE]);
+    const [assignee, setAssignee] = useState<string[]>([ALL_FILTER_VALUE]);
+    const [division, setDivision] = useState<string[]>([ALL_FILTER_VALUE]);
+    const [status, setStatus] = useState<string[]>([ALL_FILTER_VALUE]);
     const [regionOptions, setRegionOptions] = useState<Array<DropdownOption & { hrmsRegCode?: string }>>([{ label: 'All', value: 'All' }]);
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
@@ -241,10 +243,10 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setSubCategory(initialSubCategory);
         setRegion(initialFilters.region || 'All');
         setDistrict(initialFilters.district || 'All');
-        setIssueType(initialFilters.issueType || 'All');
-        setDivision(initialFilters.division || 'All');
-        setAssignee(initialFilters.assignee || 'All');
-        setStatus(initialFilters.status || 'All');
+        setIssueType(parseMultiFilter(initialFilters.issueType));
+        setDivision(parseMultiFilter(initialFilters.division));
+        setAssignee(parseMultiFilter(initialFilters.assignee));
+        setStatus(parseMultiFilter(initialFilters.status));
         setRegionOptions([{ label: 'All', value: 'All' }]);
         setDistrictOptions([{ label: 'All', value: 'All' }]);
         setRegionHrmsCode('All');
@@ -334,9 +336,13 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         const selectedSubCategory = subCategoryOptions.find((option) => option.value === subCategory);
         const selectedRegion = regionOptions.find((option) => option.value === region);
         const selectedDistrict = districtOptions.find((option) => option.value === district);
-        const selectedIssueType = issueTypeOptions.find((option) => option.value === issueType);
-        const selectedDivision = effectiveDivisionOptions.find((option) => option.value === division);
-        const selectedStatus = statusOptions.find((option) => option.value === status);
+        const selectedIssueType = issueTypeOptions.filter((option) => issueType.includes(option.value) && option.value !== ALL_FILTER_VALUE);
+        const selectedDivision = effectiveDivisionOptions.filter((option) => division.includes(option.value) && option.value !== ALL_FILTER_VALUE);
+        const selectedStatus = statusOptions.filter((option) => status.includes(option.value) && option.value !== ALL_FILTER_VALUE);
+        const issueTypeParam = toApiMultiFilterParam(issueType);
+        const divisionParam = toApiMultiFilterParam(division);
+        const assigneeParam = toApiMultiFilterParam(assignee);
+        const statusParam = toApiMultiFilterParam(status);
         await onGenerate(format, {
             fromDate,
             toDate,
@@ -350,12 +356,14 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             regionLabel: region !== 'All' ? selectedRegion?.label || region : undefined,
             districtCode: district !== 'All' ? district : undefined,
             districtLabel: district !== 'All' ? selectedDistrict?.label || district : undefined,
-            issueTypeId: issueType !== 'All' ? issueType : undefined,
-            issueTypeLabel: issueType !== 'All' ? selectedIssueType?.label || issueType : undefined,
-            assignedTo: assignee !== 'All' ? assignee : undefined,
-            assignedToLabel: assignee !== 'All' ? assignee : undefined,
-            statusId: status !== 'All' ? status : undefined,
-            statusLabel: status !== 'All' ? selectedStatus?.label || status : undefined,
+            issueTypeId: issueTypeParam,
+            issueTypeLabel: issueTypeParam ? selectedIssueType.map((option) => option.label).join(', ') : undefined,
+            assignedTo: assigneeParam,
+            assignedToLabel: assigneeParam,
+            statusId: statusParam,
+            statusLabel: statusParam ? selectedStatus.map((option) => option.label).join(', ') : undefined,
+            divisionId: divisionParam,
+            divisionLabel: divisionParam ? selectedDivision.map((option) => option.label).join(', ') : undefined,
             selectedColumnKeys,
         });
         setGenerateMenuAnchor(null);
@@ -389,11 +397,11 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                 setEstimateLoading(true);
                 const response = await estimateCountApiHandler(() => searchTicketsPaginated(
                     '',
-                    status !== 'All' ? status : undefined,
+                    toApiMultiFilterParam(status),
                     undefined,
                     0,
                     1,
-                    assignee !== 'All' ? assignee : undefined,
+                    toApiMultiFilterParam(assignee),
                     undefined,
                     undefined,
                     undefined,
@@ -409,8 +417,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                     zone !== 'All' ? zone : undefined,
                     region !== 'All' ? region : undefined,
                     district !== 'All' ? district : undefined,
-                    issueType !== 'All' ? issueType : undefined,
-                    division !== 'All' ? division : undefined,
+                    toApiMultiFilterParam(issueType),
+                    toApiMultiFilterParam(division),
                 ));
                 setEstimatedCount(response?.totalElements ?? null);
             } catch (_) {
@@ -440,7 +448,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             region={region}
                             district={district}
                             issueType={issueType}
-                    division={division}
+                            division={division}
                             assignee={assignee}
                             status={status}
                             yearOptions={yearOptions}
@@ -452,7 +460,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             districtOptions={districtOptions}
                             issueTypeOptions={issueTypeOptions}
                             statusOptions={statusOptions}
-                    divisionOptions={effectiveDivisionOptions}
+                            divisionOptions={effectiveDivisionOptions}
                             generationState={generationState}
                             estimateLoading={estimateLoading}
                             estimateCountPending={estimateCountPending}
@@ -477,7 +485,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             onDistrictChange={setDistrict}
                             onIssueTypeChange={setIssueType}
                             onAssigneeChange={setAssignee}
-                    onDivisionChange={setDivision}
+                            onDivisionChange={setDivision}
                             onStatusChange={setStatus}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}

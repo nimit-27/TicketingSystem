@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Chip, IconButton, List, ListItemButton, Menu, TextField, Tooltip } from '@mui/material';
+import { Box, Checkbox, Chip, IconButton, List, ListItemButton, Menu, TextField, Tooltip } from '@mui/material';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
 import { getAllLevels, getAllUsersByLevel } from '../../services/LevelService';
 import { getAllUsers } from '../../services/UserService';
+import { ALL_FILTER_VALUE, normalizeMultiFilterValues, toggleMultiFilterValue } from '../../utils/multiSelectFilters';
 import './AssigneeDropdown.scss';
 
 interface Level {
@@ -22,8 +23,8 @@ interface User {
 }
 
 interface AssigneeFilterDropdownProps {
-    value: string;
-    onChange: (value: string) => void;
+    value: string[];
+    onChange: (value: string[]) => void;
 }
 
 const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, onChange }) => {
@@ -67,25 +68,28 @@ const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, 
     });
 
     const selectedLabel = useMemo(() => {
-        if (!value || value === 'All') return '';
-        const matched = allowedUsers.find(user => user.username === value || user.userId === value);
-        return matched?.name || value;
+        const normalizedValues = normalizeMultiFilterValues(value);
+        if (normalizedValues.includes(ALL_FILTER_VALUE)) return '';
+        const selectedNames = normalizedValues.map((selectedValue) => {
+            const matched = allowedUsers.find((user) => user.username === selectedValue || user.userId === selectedValue);
+            return matched?.name || selectedValue;
+        });
+        return selectedNames.join(', ');
     }, [allowedUsers, value]);
 
     const handleSelect = (user: User) => {
-        onChange(user.username || user.userId);
-        setAnchorEl(null);
+        onChange(toggleMultiFilterValue(value, user.username || user.userId));
     };
 
     return (
         <>
             <div className="col-3 px-1 d-flex align-items-end">
-                {value && value !== 'All'
+                {!normalizeMultiFilterValues(value).includes(ALL_FILTER_VALUE)
                     ? (
-                        <Tooltip title={selectedLabel || value}>
+                        <Tooltip title={selectedLabel || 'Assignees'}>
                             <span>
                                 <UserAvatar
-                                    name={selectedLabel || value}
+                                    name={selectedLabel || 'Assignees'}
                                     onClick={(e) => setAnchorEl(e.currentTarget)}
                                     className="assignee-btn shadow"
                                 />
@@ -116,12 +120,11 @@ const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, 
                     <Box sx={{ mt: 1, mb: 1, display: 'flex', flexWrap: 'wrap' }}>
                         <Chip
                             label="All"
-                            onClick={() => {
-                                setSelectedLevel('');
-                                onChange('All');
-                                setAnchorEl(null);
-                            }}
-                            color={value === 'All' ? 'primary' : 'default'}
+                                onClick={() => {
+                                    setSelectedLevel('');
+                                    onChange([ALL_FILTER_VALUE]);
+                                }}
+                            color={normalizeMultiFilterValues(value).includes(ALL_FILTER_VALUE) ? 'primary' : 'default'}
                             size="small"
                             sx={{ mr: 0.5, mb: 0.5 }}
                         />
@@ -142,6 +145,7 @@ const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, 
                             {filteredUsers.map(user => (
                                 <ListItemButton key={`${user.userId}-${user.levelId || ''}`} onClick={() => handleSelect(user)}>
                                     <Box sx={{ display: 'flex', width: '100%' }}>
+                                        <Checkbox size="small" checked={value.includes(user.username || user.userId)} />
                                         <Box sx={{ width: 60 }}>{user.levelId}</Box>
                                         <Box sx={{ flexGrow: 1 }}>{user.name}</Box>
                                         <Box sx={{ width: 80, fontStyle: 'italic', color: 'text.secondary' }}>{user.username}</Box>

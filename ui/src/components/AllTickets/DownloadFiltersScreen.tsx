@@ -13,6 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import AssigneeFilterDropdown from './AssigneeFilterDropdown';
+import MultiSelectDropdown from '../UI/Dropdown/MultiSelectDropdown';
 
 interface DownloadFiltersScreenProps {
     year: number | '';
@@ -24,10 +25,10 @@ interface DownloadFiltersScreenProps {
     zone: string;
     region: string;
     district: string;
-    issueType: string;
-    division: string;
-    assignee: string;
-    status: string;
+    issueType: string[];
+    division: string[];
+    assignee: string[];
+    status: string[];
     yearOptions: number[];
     monthOptions: Array<{ value: number; label: string }>;
     categoryOptions: DropdownOption[];
@@ -53,10 +54,10 @@ interface DownloadFiltersScreenProps {
     onZoneChange: (zone: string) => void;
     onRegionChange: (region: string) => void;
     onDistrictChange: (district: string) => void;
-    onIssueTypeChange: (issueType: string) => void;
-    onDivisionChange: (division: string) => void;
-    onAssigneeChange: (assignee: string) => void;
-    onStatusChange: (status: string) => void;
+    onIssueTypeChange: (issueType: string[]) => void;
+    onDivisionChange: (division: string[]) => void;
+    onAssigneeChange: (assignee: string[]) => void;
+    onStatusChange: (status: string[]) => void;
     onFromDateChange: (fromDate: string) => void;
     onToDateChange: (toDate: string) => void;
     onApplyPresetRange: (days: number) => void;
@@ -182,28 +183,13 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                         {districtOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
                     </Select>
                 </FormControl>
-                <FormControl fullWidth size="small">
-                    <InputLabel id="download-issue-type-label">{t('Issue Type')}</InputLabel>
-                    <Select labelId="download-issue-type-label" label={t('Issue Type')} value={issueType} onChange={(e) => onIssueTypeChange(String(e.target.value))}>
-                        {issueTypeOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
-                    </Select>
-                </FormControl>
+                <MultiSelectDropdown label={t('Issue Type')} value={issueType} onChange={onIssueTypeChange} options={issueTypeOptions} />
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <FormControl fullWidth size="small">
-                    <InputLabel id="download-division-label">{t('Division')}</InputLabel>
-                    <Select labelId="download-division-label" label={t('Division')} value={division} onChange={(e) => onDivisionChange(String(e.target.value))}>
-                        {divisionOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
-                    </Select>
-                </FormControl>
+                <MultiSelectDropdown label={t('Division')} value={division} onChange={onDivisionChange} options={divisionOptions} />
                 <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} />
-                <FormControl fullWidth size="small">
-                    <InputLabel id="download-status-label">{t('Status')}</InputLabel>
-                    <Select labelId="download-status-label" label={t('Status')} value={status} onChange={(e) => onStatusChange(String(e.target.value))}>
-                        {statusOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
-                    </Select>
-                </FormControl>
+                <MultiSelectDropdown label={t('Status')} value={status} onChange={onStatusChange} options={statusOptions} />
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>

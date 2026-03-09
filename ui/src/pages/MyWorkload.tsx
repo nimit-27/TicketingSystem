@@ -44,10 +44,10 @@ const MyWorkload: React.FC = () => {
                 params.assignedTo = username;
             }
 
-            if(!_.allowedStatuses || !_.allowedStatuses.length || _.allowedStatuses.length == 0) {
-                params.statusParam = ""
-            };
-            if (_.statusFilter === "All"
+            if (Array.isArray(_.allowedStatuses) && _.allowedStatuses.length === 0) {
+                params.statusParam = "";
+            }
+            if ((_.statusFilter ?? ["All"]).includes("All")
                 && Array.isArray(_.allowedStatuses)
                 && _.allowedStatuses.length > 0) params.statusParam = _.allowedStatuses.join(",");
 
