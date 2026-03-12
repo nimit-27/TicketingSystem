@@ -25,12 +25,11 @@ VALUES
 ('DIV-009', 'General/House Keeping Division', 'GENHK', 'General/House Keeping Division', 'SYSTEM', '1'),
 ('DIV-010', 'Contract Division', 'CONT', 'Contract Division', 'SYSTEM', '1'),
 ('DIV-011', 'IRL Division', 'IRL', 'IRL Division', 'SYSTEM', '1'),
-('DIV-012', 'Engineering & Maintenance (Civil & Mechanical)', 'ENMCM', 'Engineering & Maintenance (Civil & Mechanical)', 'SYSTEM', '1')
-ON CONFLICT (division_id) DO NOTHING;
+('DIV-012', 'Engineering & Maintenance (Civil & Mechanical)', 'ENMCM', 'Engineering & Maintenance (Civil & Mechanical)', 'SYSTEM', '1');
 
 -- 2) Add division column to tickets
 ALTER TABLE tickets
-    ADD COLUMN IF NOT EXISTS division VARCHAR(20);
+    ADD COLUMN division VARCHAR(20);
 
 -- Optional FK for data integrity
 ALTER TABLE tickets
