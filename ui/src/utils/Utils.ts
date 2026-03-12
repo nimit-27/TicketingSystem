@@ -183,6 +183,19 @@ export function formatDateWithSuffix(date: string | Date): string {
   return `${day}${suffix} ${month}, ${year}`;
 }
 
+export function formatDateToDayMonthYear(date: string | Date): string {
+  const parsedDate = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(parsedDate.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(parsedDate);
+}
+
 export function logout() {
   void logoutUser()
     .then((res) => {
