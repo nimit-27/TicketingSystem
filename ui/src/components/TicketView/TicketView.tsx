@@ -104,7 +104,17 @@ const formatDisplayDate = (value: string | number | Date | null | undefined) => 
 
 const formatAttachmentChipLabel = (fileName?: string, uploadedOn?: string) => {
   const uploadDate = uploadedOn ? formatDateToDayMonthYear(uploadedOn) : '';
-  return uploadDate ? `${fileName || ''} • ${uploadDate}` : (fileName || '');
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
+      <Typography component="span" sx={{ fontSize: '0.875rem' }}>{fileName || ''}</Typography>
+      {uploadDate && (
+        <Typography component="span" className="text-muted" sx={{ fontSize: '0.75rem' }}>
+          {uploadDate}
+        </Typography>
+      )}
+    </Box>
+  );
 };
 
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
@@ -1355,7 +1365,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                   rel="noopener noreferrer"
                   icon={<DownloadIcon fontSize="small" />}
                   clickable
-                  sx={{ maxWidth: '100%' }}
+                  sx={{ maxWidth: '100%', height: 'auto', '& .MuiChip-label': { py: 0.5 } }}
                 />
               ))}
             </Box>
