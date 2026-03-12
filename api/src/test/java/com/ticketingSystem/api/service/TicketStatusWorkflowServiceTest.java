@@ -32,9 +32,12 @@ class TicketStatusWorkflowServiceTest {
 
     private TicketStatusWorkflowService service;
 
+    @Mock
+    private IssueTypeService issueTypeService;
+
     @BeforeEach
     void setUp() {
-        service = new TicketStatusWorkflowService(workflowRepository, statusMasterRepository, roleRepository);
+        service = new TicketStatusWorkflowService(workflowRepository, statusMasterRepository, roleRepository, issueTypeService);
     }
 
     @Test
