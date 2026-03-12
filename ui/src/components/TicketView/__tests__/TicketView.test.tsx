@@ -153,6 +153,7 @@ jest.mock('../../../utils/permissions', () => ({
 }));
 
 jest.mock('../../../utils/Utils', () => ({
+  formatDateToDayMonthYear: jest.fn(() => '01 Jan 2026'),
   getDropdownOptions: jest.fn((items: any[], label: string, value: string) =>
     (items || []).map(item => ({ label: item[label], value: item[value] }))),
   getStatusNameById: jest.fn(() => 'Open'),
