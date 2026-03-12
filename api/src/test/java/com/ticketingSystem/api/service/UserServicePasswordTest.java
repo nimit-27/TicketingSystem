@@ -56,6 +56,7 @@ class UserServicePasswordTest {
         User user = new User();
         user.setUserId("user-1");
         user.setUsername("demo");
+        user.setStakeholder("1");
         user.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
 
         when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
@@ -89,7 +90,11 @@ class UserServicePasswordTest {
         requesterUser.setStakeholder("200");
         requesterUser.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
 
-        when(userRepository.findById("req-1")).thenReturn(Optional.empty());
+        User requesterLookup = new User();
+        requesterLookup.setUserId("req-1");
+        requesterLookup.setStakeholder("3");
+
+        when(userRepository.findById("req-1")).thenReturn(Optional.of(requesterLookup));
         when(requesterUserRepository.findById("req-1")).thenReturn(Optional.of(requesterUser));
         when(stakeholderRepository.findAllById(any())).thenReturn(List.of(stakeholder));
         when(requesterUserRepository.save(any(RequesterUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -113,6 +118,7 @@ class UserServicePasswordTest {
         User user = new User();
         user.setUserId("user-1");
         user.setUsername("demo");
+        user.setStakeholder("1");
         user.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
 
         when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
@@ -133,6 +139,7 @@ class UserServicePasswordTest {
         User user = new User();
         user.setUserId("user-1");
         user.setUsername("demo");
+        user.setStakeholder("1");
         user.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
 
         when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
@@ -153,6 +160,7 @@ class UserServicePasswordTest {
         User user = new User();
         user.setUserId("user-1");
         user.setUsername("demo");
+        user.setStakeholder("1");
         user.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
 
         when(userRepository.findById("user-1")).thenReturn(Optional.of(user));

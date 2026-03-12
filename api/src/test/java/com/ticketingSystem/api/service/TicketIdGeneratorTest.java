@@ -39,7 +39,7 @@ class TicketIdGeneratorTest {
     @Test
     void generateTicketId_createsSequenceWhenMissing() {
         YearMonth currentMonth = YearMonth.now();
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("GLOBAL"), any()))
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("2"), any()))
                 .thenReturn(Optional.empty());
 
         String id = ticketIdGenerator.generateTicketId(Mode.Call);
@@ -49,7 +49,7 @@ class TicketIdGeneratorTest {
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
         String expectedMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
-        assertThat(savedSequence.getModeId()).isEqualTo("GLOBAL");
+        assertThat(savedSequence.getModeId()).isEqualTo("2");
         assertThat(savedSequence.getLastValue()).isEqualTo(1);
         assertThat(id).isEqualTo("TKT-2-" + expectedMonth + "-00001");
     }
@@ -57,10 +57,10 @@ class TicketIdGeneratorTest {
     @Test
     void generateTicketId_incrementsExistingSequence() {
         TicketSequence existing = new TicketSequence();
-        existing.setModeId("GLOBAL");
+        existing.setModeId("3");
         existing.setSequenceDate(YearMonth.now().atDay(1));
         existing.setLastValue(5);
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("GLOBAL"), any()))
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("3"), any()))
                 .thenReturn(Optional.of(existing));
 
         String id = ticketIdGenerator.generateTicketId(Mode.Email);
@@ -70,7 +70,7 @@ class TicketIdGeneratorTest {
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
         String expectedMonth = existing.getSequenceDate().format(DateTimeFormatter.ofPattern("yyyyMM"));
-        assertThat(savedSequence.getModeId()).isEqualTo("GLOBAL");
+        assertThat(savedSequence.getModeId()).isEqualTo("3");
         assertThat(savedSequence.getLastValue()).isEqualTo(6);
         assertThat(id).isEqualTo("TKT-3-" + expectedMonth + "-00006");
     }
@@ -78,7 +78,7 @@ class TicketIdGeneratorTest {
     @Test
     void generateTicketId_usesFallbackWhenModeMissing() {
         YearMonth currentMonth = YearMonth.now();
-        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("GLOBAL"), any()))
+        when(ticketSequenceRepository.findByModeIdAndSequenceDate(eq("NA"), any()))
                 .thenReturn(Optional.empty());
 
         String id = ticketIdGenerator.generateTicketId(null);
@@ -88,7 +88,7 @@ class TicketIdGeneratorTest {
 
         TicketSequence savedSequence = sequenceCaptor.getValue();
         String expectedMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
-        assertThat(savedSequence.getModeId()).isEqualTo("GLOBAL");
+        assertThat(savedSequence.getModeId()).isEqualTo("NA");
         assertThat(savedSequence.getLastValue()).isEqualTo(1);
         assertThat(id).isEqualTo("TKT-NA-" + expectedMonth + "-00001");
     }

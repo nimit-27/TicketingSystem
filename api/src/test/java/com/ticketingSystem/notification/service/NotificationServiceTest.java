@@ -23,6 +23,7 @@ class NotificationServiceTest {
     private NotificationProperties properties;
     private Notifier notifier;
     private NotificationService notificationService;
+    private NotificationRuntimeToggleService notificationRuntimeToggleService;
     private NotificationMasterRepository notificationMasterRepository;
 
     @BeforeEach
@@ -42,7 +43,7 @@ class NotificationServiceTest {
         when(notificationMasterRepository.findByCodeAndIsActiveTrue("TICKET_CREATED"))
                 .thenReturn(Optional.of(notificationMaster));
 
-        notificationService = new NotificationService(List.of(notifier), properties, notificationMasterRepository);
+        notificationService = new NotificationService(List.of(notifier), properties, notificationRuntimeToggleService, notificationMasterRepository);
     }
 
     @Test
