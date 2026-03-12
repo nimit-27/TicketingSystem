@@ -15,7 +15,7 @@ import ViewTicket from "./ViewTicket";
 import ViewToggle from "../UI/ViewToggle";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
-import MultiSelectDropdown from "../UI/Dropdown/MultiSelectDropdown";
+import GenericAutocomplete from "../UI/Dropdown/GenericAutocomplete";
 import PaginationControls from "../PaginationControls";
 import { checkMyTicketsAccess } from "../../utils/permissions";
 import { TicketStatusWorkflow } from "../../types";
@@ -655,7 +655,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
                     {/* STATUS DROPDOWN FILTER */}
                     {showStatusFilter && (
-                        <MultiSelectDropdown
+                        <GenericAutocomplete
                             label="Status"
                             className="col-3 px-1"
                             value={statusFilter}
@@ -709,7 +709,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         disabled={selectedRegion === "All"}
                     />
 
-                    <MultiSelectDropdown
+                    <GenericAutocomplete
                         label="Issue Type"
                         value={selectedIssueType}
                         className="col-3 px-1"
@@ -717,7 +717,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         options={issueTypeOptions}
                     />
 
-                    <MultiSelectDropdown
+                    <GenericAutocomplete
                         label="Division"
                         value={selectedDivision}
                         className="col-3 px-1"

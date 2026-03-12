@@ -13,7 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import AssigneeFilterDropdown from './AssigneeFilterDropdown';
-import MultiSelectDropdown from '../UI/Dropdown/MultiSelectDropdown';
+import GenericAutocomplete from '../UI/Dropdown/GenericAutocomplete';
 
 interface DownloadFiltersScreenProps {
     year: number | '';
@@ -183,13 +183,13 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                         {districtOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
                     </Select>
                 </FormControl>
-                <MultiSelectDropdown label={t('Issue Type')} value={issueType} onChange={onIssueTypeChange} options={issueTypeOptions} />
+                <GenericAutocomplete label={t('Issue Type')} value={issueType} onChange={onIssueTypeChange} options={issueTypeOptions} />
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <MultiSelectDropdown label={t('Division')} value={division} onChange={onDivisionChange} options={divisionOptions} />
+                <GenericAutocomplete label={t('Division')} value={division} onChange={onDivisionChange} options={divisionOptions} />
                 <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} />
-                <MultiSelectDropdown label={t('Status')} value={status} onChange={onStatusChange} options={statusOptions} />
+                <GenericAutocomplete label={t('Status')} value={status} onChange={onStatusChange} options={statusOptions} />
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
