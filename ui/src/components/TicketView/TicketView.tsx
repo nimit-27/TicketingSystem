@@ -26,7 +26,7 @@ import { getFeedback } from '../../services/FeedbackService';
 import { getStatusWorkflowMappings } from '../../services/StatusService';
 import GenericDropdown, { DropdownOption } from '../UI/Dropdown/GenericDropdown';
 import RemarkComponent from '../UI/Remark/RemarkComponent';
-import { getDropdownOptions, getStatusNameById } from '../../utils/Utils';
+import { formatDateToDayMonthYear, getDropdownOptions, getStatusNameById } from '../../utils/Utils';
 import SlaProgressChart from './SlaProgressChart';
 import { getCategories, getAllSubCategoriesByCategory } from '../../services/CategoryService';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -99,6 +99,12 @@ const applyThinBorders = (worksheet: XLSX.WorkSheet) => {
 const formatDisplayDate = (value: string | number | Date | null | undefined) => {
   if (!value) return "N/A";
   return new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+
+const formatAttachmentChipLabel = (fileName?: string, uploadedOn?: string) => {
+  const uploadDate = uploadedOn ? formatDateToDayMonthYear(uploadedOn) : '';
+  return uploadDate ? `${fileName || ''} • ${uploadDate}` : (fileName || '');
 };
 
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
@@ -1342,7 +1348,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               {uploadedAttachments.map((item: any, i: any) => (
                 <Chip
                   key={item.id ?? `${item.fileName}-${i}`}
-                  label={item.fileName}
+                  label={formatAttachmentChipLabel(item.fileName, item.uploadedOn)}
                   component="a"
                   href={item.downloadFileUri}
                   target="_blank"
