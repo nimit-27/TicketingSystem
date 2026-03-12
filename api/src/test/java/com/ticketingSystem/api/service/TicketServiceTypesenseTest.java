@@ -4,9 +4,13 @@ import com.ticketingSystem.api.dto.TypesenseTicketDto;
 import com.ticketingSystem.api.dto.TypesenseTicketPageResponse;
 import com.ticketingSystem.api.repository.CategoryRepository;
 import com.ticketingSystem.api.repository.PriorityRepository;
+import com.ticketingSystem.api.repository.IssueTypeRepository;
 import com.ticketingSystem.api.repository.RecommendedSeverityFlowRepository;
 import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
+import com.ticketingSystem.api.repository.RegionMasterRepository;
+import com.ticketingSystem.api.repository.DistrictMasterRepository;
+import com.ticketingSystem.api.repository.DivisionMasterRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
@@ -14,12 +18,13 @@ import com.ticketingSystem.api.repository.SubCategoryRepository;
 import com.ticketingSystem.api.repository.TicketCommentRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.UploadedFileRepository;
+import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.api.typesense.TypesenseClient;
 import com.ticketingSystem.notification.service.NotificationService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.typesense.model.SearchResult;
@@ -67,9 +72,21 @@ class TicketServiceTypesenseTest {
     @Mock
     private PriorityRepository priorityRepository;
     @Mock
+    private IssueTypeRepository issueTypeRepository;
+    @Mock
     private UploadedFileRepository uploadedFileRepository;
     @Mock
+    private FileStorageService fileStorageService;
+    @Mock
     private StakeholderRepository stakeholderRepository;
+    @Mock
+    private RegionMasterRepository regionMasterRepository;
+    @Mock
+    private DistrictMasterRepository districtMasterRepository;
+    @Mock
+    private DivisionMasterRepository divisionMasterRepository;
+    @Mock
+    private DivisionHistoryService divisionHistoryService;
     @Mock
     private RoleRepository roleRepository;
     @Mock
@@ -79,33 +96,9 @@ class TicketServiceTypesenseTest {
     @Mock
     private TicketIdGenerator ticketIdGenerator;
 
+    @InjectMocks
     private TicketService ticketService;
 
-//    @BeforeEach
-//    void setUp() {
-//        ticketService = new TicketService(
-//                typesenseClient,
-//                ticketRepository,
-//                userRepository,
-//                requesterUserRepository,
-//                commentRepository,
-//                assignmentHistoryService,
-//                statusHistoryService,
-//                statusHistoryRepository,
-//                notificationService,
-//                workflowService,
-//                statusMasterRepository,
-//                categoryRepository,
-//                subCategoryRepository,
-//                priorityRepository,
-//                uploadedFileRepository,
-//                stakeholderRepository,
-//                roleRepository,
-//                ticketSlaService,
-//                recommendedSeverityFlowRepository,
-//                ticketIdGenerator
-//        );
-//    }
 
     @Test
     void shouldMapTypesenseDocumentsToDtos() throws Exception {

@@ -60,6 +60,11 @@ class TicketStatusSchedulerTest {
         ticket.setTicketStatus(TicketStatus.RESOLVED);
         ticket.setLastModified(LocalDateTime.now().minusHours(80));
 
+        Status resolvedStatus = new Status();
+        resolvedStatus.setStatusId("RESOLVED_ID");
+        resolvedStatus.setStatusCode(TicketStatus.RESOLVED.name());
+        ticket.setStatus(resolvedStatus);
+
         Status closedStatus = new Status();
         closedStatus.setStatusId("CLOSED_ID");
         closedStatus.setStatusCode(TicketStatus.CLOSED.name());
@@ -68,7 +73,7 @@ class TicketStatusSchedulerTest {
                 .thenReturn(List.of(ticket));
         when(workflowService.getStatusIdByCode(TicketStatus.CLOSED.name())).thenReturn("CLOSED_ID");
         when(statusMasterRepository.findById("CLOSED_ID")).thenReturn(Optional.of(closedStatus));
-        when(workflowService.getSlaFlagByStatusId("CLOSED_ID")).thenReturn(Boolean.FALSE);
+        when(workflowService.getSlaFlagByStatusAndIssueType("CLOSED_ID", null)).thenReturn(Boolean.FALSE);
 
         long configuredHours = 48;
         TicketStatusScheduler scheduler = new TicketStatusScheduler(
@@ -86,7 +91,7 @@ class TicketStatusSchedulerTest {
         ArgumentCaptor<LocalDateTime> cutoffCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
         verify(ticketRepository).findByTicketStatusAndLastModifiedBefore(eq(TicketStatus.RESOLVED), cutoffCaptor.capture());
         verify(ticketRepository).saveAll(eq(List.of(ticket)));
-        verify(statusHistoryService, times(1)).addHistory(eq("T-1"), eq("SYSTEM"), any(), eq("CLOSED_ID"), eq(Boolean.FALSE), any());
+        verify(statusHistoryService, times(1)).addHistory(eq("T-1"), eq("SYSTEM"), eq("RESOLVED_ID"), eq("CLOSED_ID"), eq(Boolean.FALSE), eq("Auto-closed after resolved timeout"));
 
         LocalDateTime expectedCutoff = beforeRun.minusHours(configuredHours);
         long diffSeconds = Math.abs(Duration.between(expectedCutoff, cutoffCaptor.getValue()).getSeconds());
