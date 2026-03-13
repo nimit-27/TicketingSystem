@@ -130,4 +130,34 @@ describe('PaginationControls', () => {
     expect(screen.getByLabelText('next page')).toBeDisabled();
     expect(screen.getByLabelText('last page')).toBeDisabled();
   });
+
+  it('includes current page size in sorted options when it is not part of defaults', async () => {
+    renderWithTheme(
+      <PaginationControls
+        page={1}
+        totalPages={5}
+        onChange={jest.fn()}
+        pageSize={15}
+        onPageSizeChange={jest.fn()}
+        pageSizeOptions={[5, 10, 20]}
+      />,
+    );
+
+    const select = screen.getByLabelText('Rows per page');
+    await userEvent.click(select);
+    const options = screen.getAllByRole('option').map(option => option.textContent);
+    expect(options).toEqual(['5', '10', '15', '20']);
+  });
+
+  it('shows fallback page text when no valid pageSize is provided', () => {
+    renderWithTheme(
+      <PaginationControls
+        page={0}
+        totalPages={0}
+        onChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
+  });
 });
