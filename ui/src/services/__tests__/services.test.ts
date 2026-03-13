@@ -104,6 +104,44 @@ describe("AuthService", () => {
     await service.logoutUser();
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/logout"), null, { withCredentials: true });
   });
+
+  it("supports session and sso login endpoints", async () => {
+    const payload = { token: "sso-token" } as any;
+    const service = await import("../AuthService");
+    await service.getActiveSession();
+    await service.loginSso(payload);
+
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/auth/session"), expect.objectContaining({ withCredentials: true, validateStatus: expect.any(Function) }));
+    const validateStatus = axiosMock.get.mock.calls[0][1].validateStatus;
+    expect(validateStatus(200)).toBe(true);
+    expect(validateStatus(204)).toBe(true);
+    expect(validateStatus(401)).toBe(true);
+    expect(validateStatus(500)).toBe(false);
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/sso"), payload, { withCredentials: true });
+  });
+});
+
+describe("CalendarService", () => {
+  it("returns nested calendar view data and upserts working hours", async () => {
+    axiosMock.get.mockResolvedValue({ data: { body: { data: { holidays: [] } } } });
+    const service = await import("../CalendarService");
+
+    const data = await service.CalendarService.fetchCalendar("2025-01-01", "2025-01-31");
+    await service.CalendarService.upsertWorkingHours({ startTime: "09:00", endTime: "18:00", timezone: "Asia/Kolkata" });
+    await service.CalendarService.upsertWorkingHours({ startTime: "09:00", endTime: "18:00" } as any);
+
+    expect(data).toEqual({ holidays: [] });
+    expect(axiosMock.get).toHaveBeenCalledWith("/api/calendar/view", { params: { from: "2025-01-01", to: "2025-01-31" } });
+    expect(axiosMock.post).toHaveBeenCalledWith("/calendar/admin/working-hours:upsert", {
+      startTime: "09:00",
+      endTime: "18:00",
+      timezone: "Asia/Kolkata",
+    });
+    expect(axiosMock.post).toHaveBeenCalledWith("/calendar/admin/working-hours:upsert", {
+      startTime: "09:00",
+      endTime: "18:00",
+    });
+  });
 });
 
 describe("CategoryService", () => {
@@ -185,6 +223,23 @@ describe("FeedbackService", () => {
   });
 });
 
+describe("DivisionService", () => {
+  it("normalizes division responses from both list and body wrappers", async () => {
+    axiosMock.get.mockResolvedValueOnce({ data: [{ id: "D1" }] });
+    axiosMock.get.mockResolvedValueOnce({ data: { body: { data: [{ id: "D2" }] } } });
+    axiosMock.get.mockResolvedValueOnce({ data: { unknown: true } });
+    const service = await import("../DivisionService");
+
+    const flat = await service.getDivisions();
+    const wrapped = await service.getDivisions();
+    const fallback = await service.getDivisions();
+
+    expect(flat.data).toEqual([{ id: "D1" }]);
+    expect(wrapped.data).toEqual([{ id: "D2" }]);
+    expect(fallback.data).toEqual([]);
+  });
+});
+
 describe("FilegatorService", () => {
   it("initialises the filegator session", async () => {
     const service = await import("../FilegatorService");
@@ -211,6 +266,65 @@ describe("LevelService", () => {
     axiosMock.get.mockClear();
     await service.getAllUsersByLevel("L1");
     expect(axiosMock.get).not.toHaveBeenCalled();
+  });
+});
+
+describe("FileManagementService", () => {
+  it("lists, uploads and formats managed file endpoints", async () => {
+    const service = await import("../FileManagementService");
+    const file = new File(["binary"], "document.txt", { type: "text/plain" });
+    const payload = { section: "faq", title: "Document" } as any;
+
+    await service.listManagedFiles("faq");
+    await service.uploadManagedFile(file, payload);
+    await service.getManagedFileMetadata("f-1");
+    const url = service.getManagedFileContentUrl("f-1");
+
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/file-management/files"), { params: { section: "faq" } });
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      expect.stringContaining("/file-management/files"),
+      expect.any(FormData),
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/file-management/files/f-1"));
+    expect(url).toContain("/file-management/files/f-1/content");
+  });
+});
+
+describe("IssueTypeService", () => {
+  it("normalizes, caches and falls back to empty issue type lists", async () => {
+    axiosMock.get.mockResolvedValueOnce({ data: { body: { data: [{ id: "I1" }] } } });
+    axiosMock.get.mockResolvedValueOnce({ data: { bad: true } });
+    const service = await import("../IssueTypeService");
+
+    const first = await service.getIssueTypes();
+    expect(first.data).toEqual([{ id: "I1" }]);
+    axiosMock.get.mockClear();
+
+    const cached = await service.getIssueTypes();
+    expect(cached.data).toEqual([{ id: "I1" }]);
+    expect(axiosMock.get).not.toHaveBeenCalled();
+
+    jest.resetModules();
+    axiosMock = jest.requireMock("axios");
+    resetAxios();
+    axiosMock.get.mockResolvedValueOnce({ data: { bad: true } });
+    const reloaded = await import("../IssueTypeService");
+    const empty = await reloaded.getIssueTypes();
+    expect(empty.data).toEqual([]);
+  });
+});
+
+describe("LocationService", () => {
+  it("requests zone, region and district data with params", async () => {
+    const service = await import("../LocationService");
+    await service.getZones();
+    await service.getRegions("Z1");
+    await service.getDistricts("R1");
+
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/zones"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/regions"), { params: { zoneCode: "Z1" } });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/districts"), { params: { hrmsRegCode: "R1" } });
   });
 });
 
@@ -252,6 +366,35 @@ describe("ReportService", () => {
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/resolution-time"), { params: undefined });
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/customer-satisfaction"), { params: undefined });
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/problem-management"), { params: undefined });
+  });
+
+  it("covers sla reports and job trigger endpoints", async () => {
+    const service = await import("../ReportService");
+    await service.fetchSupportDashboardSummary({ period: "today" } as any);
+    await service.fetchSupportDashboardSummaryFiltered({ period: "today" } as any);
+    await service.fetchSlaPerformanceReport({ fromDate: "2025-01-01" } as any);
+    await service.notifyBreachedTicketAssignees();
+    await service.fetchSlaCalculationJobHistory();
+    await service.fetchSlaCalculationJobHistory(5);
+    await service.triggerSlaCalculationJob();
+    await service.triggerSlaCalculationJob("custom_job");
+    await service.triggerSlaCalculationForAllTickets();
+    await service.triggerSlaCalculationForAllTicketsFromScratch();
+    await service.fetchTriggerJobs();
+    await service.updateTriggerJobPeriod("sla_job", { triggerPeriod: "MANUAL", cronExpression: null });
+
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/support-dashboard-summary"), { params: { period: "today" } });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/support-dashboard-summary/filtered"), { params: { period: "today" } });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-performance"), { params: { fromDate: "2025-01-01" } });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-performance/notify-breaches"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/history"), { params: { limit: 20 } });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/history"), { params: { limit: 5 } });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/trigger"), undefined, { params: { jobCode: "sla_job" } });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/trigger"), undefined, { params: { jobCode: "custom_job" } });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/trigger-all"));
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/trigger-all-from-scratch"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/trigger-jobs"));
+    expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/reports/sla-calculation/trigger-jobs/sla_job/period"), { triggerPeriod: "MANUAL", cronExpression: null });
   });
 });
 
@@ -308,6 +451,21 @@ describe("RootCauseAnalysisService", () => {
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/root-cause-analysis/tickets/123"));
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/root-cause-analysis/123"), formData, expect.objectContaining({ headers: expect.objectContaining({ "Content-Type": "multipart/form-data" }) }));
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/root-cause-analysis/123/attachments"));
+  });
+
+  it("returns fallback payload shapes in helper methods", async () => {
+    axiosMock.get.mockResolvedValueOnce({ data: { body: { data: { id: "rca" } } } });
+    axiosMock.post.mockResolvedValueOnce({ data: { body: { data: { id: "saved" } } } });
+    axiosMock.delete.mockResolvedValueOnce({ data: { data: { id: "deleted" } } });
+    const service = await import("../RootCauseAnalysisService");
+
+    const fetched = await service.getRootCauseAnalysis("10");
+    const saved = await service.saveRootCauseAnalysis("10", new FormData());
+    const deleted = await service.deleteRootCauseAnalysisAttachment("10", "/a/b");
+
+    expect(fetched).toEqual({ data: { body: { data: { id: "rca" } } } });
+    expect(saved).toEqual({ id: "saved" });
+    expect(deleted).toEqual({ id: "deleted" });
   });
 });
 
@@ -400,6 +558,10 @@ describe("TicketService", () => {
     await service.getComments("10", 5);
     await service.updateComment("comment-1", "update");
     await service.deleteComment("comment-1");
+    await service.getAttachmentsByTicketId("10");
+    await service.getComments("10");
+    await service.linkTicketToMaster("10", "11");
+    await service.unlinkTicketFromMaster("10");
 
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/tickets"), "payload");
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/tickets/add"), plainPayload, undefined);
@@ -418,6 +580,10 @@ describe("TicketService", () => {
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/comments?count=5"));
     expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/tickets/comments/comment-1"), "update", { headers: { "Content-Type": "text/plain" } });
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/tickets/comments/comment-1"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/attachments"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/comments"));
+    expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/link/11"), null, undefined);
+    expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/unlink"), null, undefined);
   });
 
   it("constructs search query parameters", async () => {
@@ -469,6 +635,18 @@ describe("TicketService", () => {
     expect(exportUrl).toContain("issueTypeId=I1");
     expect(exportUrl).toContain("assignedTo=assignee");
   });
+
+  it("passes abort signal and extra export filters when provided", async () => {
+    const service = await import("../TicketService");
+    const controller = new AbortController();
+
+    await service.searchTicketsForExport({ statusId: "OPEN", divisionId: "DIV-1", signal: controller.signal });
+
+    const [url, config] = axiosMock.get.mock.calls.find((call: any[]) => String(call[0]).includes("/tickets/search/export"));
+    expect(url).toContain("status=OPEN");
+    expect(url).toContain("divisionId=DIV-1");
+    expect(config).toEqual({ signal: controller.signal });
+  });
 });
 
 describe("UserService", () => {
@@ -489,6 +667,18 @@ describe("UserService", () => {
       stakeholderIds: ["1"],
     });
     await service.deleteUser("2");
+    await service.getHelpdeskUsers();
+    await service.searchHelpdeskUsers("john", "ADMIN", "ST1", 1, 25);
+    await service.getHelpdeskUserDetails("h1");
+    await service.getRequesterUsers();
+    await service.searchRequesterUsers("doe", "REQ", "ST2", "OFF", "SCHOOL", "Z1", "R1", "D1", 2, 30);
+    await service.getRequesterUserDetails("r1");
+    await service.getRequesterOfficeTypes();
+    await service.appointRequesterAsRno("r1");
+    await service.checkUsernameAvailability("testuser");
+    await service.updateUser("1", { name: "Updated" } as any);
+    await service.changeUserPassword("1", { oldPassword: "old", newPassword: "new" });
+    await service.resetUserPassword("1", { newPassword: "new" });
 
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/1"));
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users"));
@@ -499,5 +689,47 @@ describe("UserService", () => {
       expect.objectContaining({ username: "testuser" })
     );
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/users/2"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/helpdesk"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/helpdesk/search"), { params: { query: "john", roleId: "ADMIN", stakeholderId: "ST1", page: 1, size: 25 } });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/helpdesk/h1"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/requesters"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/requesters/search"), { params: { query: "doe", roleId: "REQ", stakeholderId: "ST2", officeCode: "OFF", officeType: "SCHOOL", zoneCode: "Z1", regionCode: "R1", districtCode: "D1", page: 2, size: 30 } });
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/requesters/r1"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/requesters/office-types"));
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/users/requesters/r1/appoint-rno"));
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/users/check-username"), { params: { username: "testuser" } });
+    expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/users/1"), { name: "Updated" });
+    expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/users/1/password"), { oldPassword: "old", newPassword: "new" });
+    expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/users/1/password/reset"), { newPassword: "new" });
+  });
+
+  it("falls back between requester and helpdesk profiles", async () => {
+    const service = await import("../UserService");
+
+    axiosMock.get
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockResolvedValueOnce({ data: { id: "helpdesk" } });
+    const requesterFallback = await service.getUserDetailsWithFallback("u1");
+    expect(requesterFallback).toEqual({ data: { id: "helpdesk" } });
+
+    axiosMock.get
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockResolvedValueOnce({ data: { id: "requester" } });
+    const helpdeskFallback = await service.getUserDetailsWithFallback("u2", true);
+    expect(helpdeskFallback).toEqual({ data: { id: "requester" } });
+
+    axiosMock.get.mockRejectedValueOnce({ response: { status: 500 } });
+    await expect(service.getUserDetailsWithFallback("u3", true)).rejects.toEqual({ response: { status: 500 } });
+  });
+});
+
+describe("ParameterService", () => {
+  it("fetches global and role specific parameters", async () => {
+    const service = await import("../ParameterService");
+    await service.getParameters();
+    await service.getParametersByRoles(["ADMIN", "USER"]);
+
+    expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/parameters"));
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/parameters/by-roles"), ["ADMIN", "USER"]);
   });
 });
