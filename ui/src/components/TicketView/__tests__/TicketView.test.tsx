@@ -7,6 +7,7 @@ import { getPriorities } from '../../../services/PriorityService';
 import { getSeverities } from '../../../services/SeverityService';
 import { getCategories, getAllSubCategoriesByCategory } from '../../../services/CategoryService';
 import { getFeedback } from '../../../services/FeedbackService';
+import { getDivisions } from '../../../services/DivisionService';
 import { getStatusWorkflowMappings } from '../../../services/StatusService';
 import Histories from '../../../pages/Histories';
 import ChildTicketsList from '../ChildTicketsList';
@@ -120,6 +121,7 @@ jest.mock('../../../services/TicketService', () => ({
   getTicketSla: jest.fn(async () => ({ status: 200, data: { body: { data: mockSla } } })),
   getChildTickets: jest.fn(),
   unlinkTicketFromMaster: jest.fn(),
+  getAttachmentsByTicketId: jest.fn(() => Promise.resolve({ data: [] })),
 }));
 
 jest.mock('../../../services/RootCauseAnalysisService', () => ({
@@ -145,6 +147,10 @@ jest.mock('../../../services/CategoryService', () => ({
 
 jest.mock('../../../services/FeedbackService', () => ({
   getFeedback: jest.fn(() => Promise.resolve({ data: null })),
+}));
+
+jest.mock('../../../services/DivisionService', () => ({
+  getDivisions: jest.fn(() => Promise.resolve({ data: [] })),
 }));
 
 jest.mock('../../../services/StatusService', () => ({
@@ -272,6 +278,7 @@ const getSeveritiesMock = getSeverities as jest.Mock;
 const getCategoriesMock = getCategories as jest.Mock;
 const getAllSubCategoriesByCategoryMock = getAllSubCategoriesByCategory as jest.Mock;
 const getFeedbackMock = getFeedback as jest.Mock;
+const getDivisionsMock = getDivisions as jest.Mock;
 const getStatusWorkflowMappingsMock = getStatusWorkflowMappings as jest.Mock;
 const getTicketSlaMock = getTicketSla as jest.Mock;
 const checkAccessMasterMock = checkAccessMaster as jest.Mock;
@@ -300,6 +307,7 @@ describe('TicketView', () => {
     getCategoriesMock.mockResolvedValue({ data: { body: { data: [] } } });
     getAllSubCategoriesByCategoryMock.mockResolvedValue({ data: { body: { data: [] } } });
     getFeedbackMock.mockResolvedValue({ data: null });
+    getDivisionsMock.mockResolvedValue({ data: [] });
     getStatusWorkflowMappingsMock.mockResolvedValue({});
 
     const defaultResponse = {
@@ -314,11 +322,13 @@ describe('TicketView', () => {
       { ...defaultResponse, data: mockTicket, success: true },
       { ...defaultResponse },
       { ...defaultResponse, data: { '1': [] }, success: true },
+      { ...defaultResponse, data: [], success: true },
+      { ...defaultResponse, data: [{ timestamp: '2024-01-02T00:00:00Z', remark: 'latest remark' }], success: true },
     ];
     let callIndex = 0;
     useApiMock.mockImplementation(() => {
-      const response = useApiResponses[callIndex] ?? defaultResponse;
-      callIndex = (callIndex + 1) % useApiResponses.length;
+      const response = useApiResponses[callIndex % useApiResponses.length] ?? defaultResponse;
+      callIndex += 1;
       return response;
     });
 
