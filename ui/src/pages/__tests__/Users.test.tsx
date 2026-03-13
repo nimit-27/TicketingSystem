@@ -12,6 +12,7 @@ const mockGetZones = jest.fn();
 const mockGetRegions = jest.fn();
 const mockGetDistricts = jest.fn();
 const mockAppointRequesterAsRno = jest.fn();
+const mockResetUserPassword = jest.fn();
 const mockShowMessage = jest.fn();
 const mockCheckAccessMaster = jest.fn();
 
@@ -38,6 +39,7 @@ jest.mock('../../services/UserService', () => ({
   searchRequesterUsers: (...args: unknown[]) => mockSearchRequesterUsers(...args),
   getRequesterOfficeTypes: () => mockGetRequesterOfficeTypes(),
   appointRequesterAsRno: (...args: unknown[]) => mockAppointRequesterAsRno(...args),
+  resetUserPassword: (...args: unknown[]) => mockResetUserPassword(...args),
 }));
 
 jest.mock('../../services/RoleService', () => ({
@@ -104,6 +106,7 @@ jest.mock('../../components/Users/RequesterUsersTable', () => ({
         Requester Table
         <button onClick={() => props.onViewProfile({ requesterUserId: 'r1' })}>view-requester</button>
         <button onClick={() => props.onAppointRno({ requesterUserId: 'r1' })}>appoint-rno</button>
+        <button onClick={() => props.onResetPassword({ requesterUserId: 'r1', name: 'Requester One' })}>reset-requester</button>
       </div>
     );
   },
@@ -155,6 +158,7 @@ describe('Users page', () => {
     mockGetRegions.mockReset();
     mockGetDistricts.mockReset();
     mockAppointRequesterAsRno.mockReset();
+    mockResetUserPassword.mockReset();
     mockShowMessage.mockReset();
     mockCheckAccessMaster.mockReset();
     mockCheckAccessMaster.mockReturnValue(true);
@@ -168,6 +172,7 @@ describe('Users page', () => {
     mockGetRegions.mockResolvedValue([{ regionCode: 'R1', regionName: 'Region 1' }]);
     mockGetDistricts.mockResolvedValue([{ districtCode: 'D1', districtName: 'District 1' }]);
     mockAppointRequesterAsRno.mockResolvedValue(true);
+    mockResetUserPassword.mockResolvedValue({});
 
     mockUseApi.mockImplementation(() => {
       const callIndex = mockUseApi.mock.calls.length;
@@ -246,5 +251,19 @@ describe('Users page', () => {
     const { getByTestId } = renderWithTheme(<Users />);
 
     expect(getByTestId('navigate')).toHaveTextContent('/dashboard');
+  });
+
+  it('resets requester password through confirmation flow', async () => {
+    const { getByText, findByText, getByLabelText } = renderWithTheme(<Users />);
+
+    await waitFor(() => expect(requesterTableProps).not.toBeNull());
+
+    fireEvent.click(getByText('reset-requester'));
+    fireEvent.click(await findByText('Yes'));
+    fireEvent.change(getByLabelText('New Password'), { target: { value: 'Temp@123' } });
+    fireEvent.click(getByText('Submit'));
+
+    await waitFor(() => expect(mockResetUserPassword).toHaveBeenCalledWith('r1', { newPassword: 'Temp@123' }));
+    expect(mockShowMessage).toHaveBeenCalledWith('Password reset successfully', 'success');
   });
 });
