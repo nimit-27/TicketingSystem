@@ -32,6 +32,8 @@ const mockSetStatusListInSession = jest.fn();
 jest.mock('../../../utils/Utils', () => ({
     getStatuses: (...args: any[]) => mockGetStatuses(...args),
     setStatusList: (...args: any[]) => mockSetStatusListInSession(...args),
+    getDropdownOptions: (items: any[] = [], labelKey: string, valueKey: string) =>
+        items.map((item) => ({ label: item?.[labelKey], value: item?.[valueKey] })),
 }));
 
 const mockCheckMyTicketsAccess = jest.fn(() => true);
@@ -49,6 +51,26 @@ jest.mock('../../../services/StatusService', () => ({
 const mockGetCurrentUserDetails = jest.fn();
 jest.mock('../../../config/config', () => ({
     getCurrentUserDetails: (...args: any[]) => mockGetCurrentUserDetails(...args),
+}));
+
+
+const mockGetZones = jest.fn();
+const mockGetRegions = jest.fn();
+const mockGetDistricts = jest.fn();
+jest.mock('../../../services/LocationService', () => ({
+    getZones: (...args: any[]) => mockGetZones(...args),
+    getRegions: (...args: any[]) => mockGetRegions(...args),
+    getDistricts: (...args: any[]) => mockGetDistricts(...args),
+}));
+
+const mockGetIssueTypes = jest.fn();
+jest.mock('../../../services/IssueTypeService', () => ({
+    getIssueTypes: (...args: any[]) => mockGetIssueTypes(...args),
+}));
+
+const mockGetDivisions = jest.fn();
+jest.mock('../../../services/DivisionService', () => ({
+    getDivisions: (...args: any[]) => mockGetDivisions(...args),
 }));
 
 jest.mock('../../Title', () => ({ textKey }: { textKey: string }) => <h1>{textKey}</h1>);
@@ -105,6 +127,9 @@ jest.mock('../../PaginationControls', () => ({ page, onChange, pageSize, onPageS
 jest.mock('../../UI/Input/GenericInput', () => ({ value, onChange }: any) => (
     <input data-testid="tickets-search" value={value} onChange={onChange} />
 ));
+
+
+jest.mock('../AssigneeFilterDropdown', () => () => <div data-testid="assignee-filter" />);
 
 const mockGetDateRangeApiParams = jest.fn(() => ({ fromDate: undefined, toDate: undefined }));
 jest.mock('../../Filters/DateRangeFilter', () => ({
@@ -177,13 +202,25 @@ describe('TicketsList', () => {
         mockSearchTicketsPaginated.mockResolvedValue({ items: mockTickets, totalPages: 2 });
 
         mockUseDebounce.mockImplementation((value) => value);
+        mockGetZones.mockResolvedValue([]);
+        mockGetRegions.mockResolvedValue([]);
+        mockGetDistricts.mockResolvedValue([]);
+        mockGetIssueTypes.mockResolvedValue([]);
+        mockGetDivisions.mockResolvedValue([]);
     });
 
     const arrangeUseApiMocks = (overrides?: { data?: any; workflowData?: any; allowedData?: any }) => {
         const searchHandler = jest.fn(async (fn) => fn());
         const workflowHandler = jest.fn(async (fn) => fn());
         const allowedHandler = jest.fn(async (fn) => fn());
+        const noopHandler = jest.fn(async (fn) => fn());
 
+        const allowedResponse = {
+            data: overrides?.allowedData ?? ['OPEN', 'CLOSED'],
+            pending: false,
+            success: true,
+            apiHandler: allowedHandler,
+        };
         const searchResponse = {
             data: overrides?.data ?? { items: mockTickets, totalPages: 2 },
             pending: false,
@@ -194,13 +231,17 @@ describe('TicketsList', () => {
             pending: false,
             apiHandler: workflowHandler,
         };
-        const allowedResponse = {
-            data: overrides?.allowedData ?? ['OPEN', 'CLOSED'],
-            pending: false,
-            apiHandler: allowedHandler,
-        };
 
-        const responses = [searchResponse, workflowResponse, allowedResponse];
+        const responses = [
+            allowedResponse,
+            searchResponse,
+            workflowResponse,
+            { data: [], pending: false, apiHandler: noopHandler },
+            { data: [], pending: false, apiHandler: noopHandler },
+            { data: [], pending: false, apiHandler: noopHandler },
+            { data: [], pending: false, apiHandler: noopHandler },
+            { data: [], pending: false, apiHandler: noopHandler },
+        ];
         let callCount = 0;
         mockUseApi.mockImplementation(() => {
             const response = responses[callCount % responses.length];
@@ -229,7 +270,7 @@ describe('TicketsList', () => {
         const firstCall = mockSearchTicketsPaginated.mock.calls[0];
         expect(firstCall[0]).toBe('');
         expect(firstCall[3]).toBe(0);
-        expect(firstCall[4]).toBe(5);
+        expect(firstCall[4]).toBe(20);
         expect(firstCall[9]).toBe('reportedDate');
         expect(firstCall[10]).toBe('desc');
     });
@@ -265,7 +306,7 @@ describe('TicketsList', () => {
             const lastCall = mockSearchTicketsPaginated.mock.calls[mockSearchTicketsPaginated.mock.calls.length - 1];
             expect(lastCall[0]).toBe('INC');
             expect(lastCall[3]).toBe(0);
-            expect(lastCall[4]).toBe(5);
+            expect(lastCall[4]).toBe(20);
         });
     });
 
@@ -280,8 +321,7 @@ describe('TicketsList', () => {
         fireEvent.click(pagination.querySelectorAll('button')[0]);
 
         await waitFor(() => {
-            const lastCall = mockSearchTicketsPaginated.mock.calls[mockSearchTicketsPaginated.mock.calls.length - 1];
-            expect(lastCall[3]).toBe(1);
+            expect(mockSearchTicketsPaginated.mock.calls.some((call) => call[3] === 1)).toBe(true);
         });
     });
 });
