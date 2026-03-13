@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.CalendarViewResponse;
+import com.ticketingSystem.calendar.dto.BusinessHoursDto;
 import com.ticketingSystem.calendar.dto.CalendarConfigDto;
 import com.ticketingSystem.calendar.dto.FullCalendarEventDto;
 import com.ticketingSystem.calendar.service.CalendarQueryService;
@@ -32,8 +33,19 @@ class CalendarUiServiceTest {
     void loadCalendarShouldSyncThenReturnConfigAndEvents() {
         LocalDate from = LocalDate.of(2025, 1, 1);
         LocalDate to = LocalDate.of(2025, 1, 31);
-        CalendarConfigDto config = new CalendarConfigDto();
-        List<FullCalendarEventDto> events = List.of(new FullCalendarEventDto());
+        BusinessHoursDto defaultHours = new BusinessHoursDto(540, 1020, new Integer[]{1, 2, 3, 4, 5});
+        CalendarConfigDto config = new CalendarConfigDto("UTC", defaultHours, List.of());
+        List<FullCalendarEventDto> events = List.of(
+                new FullCalendarEventDto(
+                        "evt-1",
+                        "Incident triage",
+                        "2025-01-15T09:00:00Z",
+                        "2025-01-15T10:00:00Z",
+                        false,
+                        "#1f77b4",
+                        "#ffffff"
+                )
+        );
         when(calendarQueryService.getCalendarConfig(from, to)).thenReturn(config);
         when(calendarQueryService.listEvents(from, to)).thenReturn(events);
 
