@@ -1,8 +1,13 @@
 import React from 'react';
-import { render, waitFor, screen } from '@testing-library/react';
+import { act, render, waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as XLSX from 'xlsx';
 import TicketsTable, { TicketRow } from '../TicketsTable';
+
+const mockShowMessage = jest.fn();
+jest.mock('../../../context/SnackbarContext', () => ({
+    useSnackbar: () => ({ showMessage: mockShowMessage }),
+}));
 
 const mockJsPdfSave = jest.fn();
 const mockJsPdfText = jest.fn();
@@ -227,6 +232,7 @@ beforeEach(() => {
     mockGetRegions.mockResolvedValue({ data: [] });
     mockGetDistricts.mockReset();
     mockGetDistricts.mockResolvedValue({ data: [] });
+    mockShowMessage.mockReset();
     (XLSX as any).utils.aoa_to_sheet = mockAoaToSheet;
 });
 
@@ -356,5 +362,207 @@ describe('TicketsTable', () => {
             expect.objectContaining({ key: 'id', label: 'Ticket Id' }),
             expect.objectContaining({ key: 'status', label: 'Status' }),
         ]));
+    });
+
+    it('generates excel export with borders and a sanitized filename from selected filters', async () => {
+        mockSearchTicketsForExport.mockResolvedValue({
+            content: [{ ...tickets[0], createdOn: '2024-05-01T00:00:00.000Z', zoneName: 'North Zone' }],
+        });
+
+        render(
+            <TicketsTable
+                tickets={tickets}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={{ OPEN: [] }}
+            />,
+        );
+
+        await waitFor(() => expect(mockDownloadTicketsDialog).toHaveBeenCalled());
+        const dialogProps = mockDownloadTicketsDialog.mock.calls.at(-1)?.[0];
+
+        await act(async () => {
+            await dialogProps.onGenerate('excel', {
+                fromDate: '2024-05-01',
+                toDate: '2024-05-10',
+                zoneLabel: 'North Zone!',
+                selectedColumnKeys: ['id', 'createdDate', 'status'],
+            });
+        });
+
+        await waitFor(() => expect(mockWriteFile).toHaveBeenCalled());
+        expect(mockDecodeRange).toHaveBeenCalled();
+        const [, fileName] = mockWriteFile.mock.calls[0];
+        expect(fileName).toContain('tickets_01052024_10052024');
+        expect(fileName).toContain('zone-north-zone');
+        expect(fileName).toContain('.xlsx');
+    });
+
+    it('shows warning and does not export when date range is invalid', async () => {
+        render(
+            <TicketsTable
+                tickets={tickets}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={{ OPEN: [] }}
+            />,
+        );
+
+        await waitFor(() => expect(mockDownloadTicketsDialog).toHaveBeenCalled());
+        const dialogProps = mockDownloadTicketsDialog.mock.calls.at(-1)?.[0];
+
+        await act(async () => {
+            await dialogProps.onGenerate('excel', {
+                fromDate: '2024-05-15',
+                toDate: '2024-05-10',
+            });
+        });
+
+        expect(mockShowMessage).toHaveBeenCalledWith('Please select a valid date range.', 'warning');
+        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(mockJsPdfSave).not.toHaveBeenCalled();
+    });
+
+    it('opens action menu and excludes Resume for allowed assign-back users on FCI on-hold status', async () => {
+        mockGetCurrentUserDetails.mockReturnValue({ username: 'agent.user', levels: ['L1'] });
+        mockGetStatusNameById.mockReturnValue('On Hold (Pending with FCI)');
+
+        render(
+            <TicketsTable
+                tickets={[{ ...tickets[0], statusId: 'ON_HOLD_FCI', assignedBy: 'someone.else' }]}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={{
+                    ON_HOLD_FCI: [
+                        { id: 'wf1', action: 'Resume', nextStatus: 2 },
+                        { id: 'wf2', action: 'Resolve', nextStatus: 3 },
+                        { id: 'wf3', action: 'Close', nextStatus: 4 },
+                    ] as any,
+                }}
+            />,
+        );
+
+        await waitFor(() => expect(mockGenericTable).toHaveBeenCalled());
+        const tableProps = mockGenericTable.mock.calls.at(-1)?.[0];
+        const actionsColumn = tableProps.columns.find((col: any) => col.key === 'action');
+
+        render(<>{actionsColumn.render(null, { ...tickets[0], statusId: 'ON_HOLD_FCI', assignedBy: 'someone.else' })}</>);
+        const moreVertCall = mockCustomIconButton.mock.calls.find((call) => call[0].icon === 'moreVert');
+        expect(moreVertCall).toBeDefined();
+
+        await act(async () => {
+            moreVertCall?.[0].onClick({ currentTarget: document.createElement('button') });
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Resolve')).toBeInTheDocument();
+            expect(screen.queryByText('Resume')).not.toBeInTheDocument();
+        });
+    });
+
+    it('handles Assign Back via Resume icon and chooses next status based on assignee', async () => {
+        const workflows = {
+            ON_HOLD: [
+                { id: 'wf1', action: 'Resume', nextStatus: 99 },
+                { id: 'wf2', action: 'Reassign', nextStatus: 2 },
+                { id: 'wf3', action: 'Resolve', nextStatus: 3 },
+                { id: 'wf4', action: 'Reset Open', nextStatus: 1 },
+            ] as any,
+        };
+
+        const { rerender } = render(
+            <TicketsTable
+                tickets={[{ ...tickets[0], statusId: 'ON_HOLD', assignedTo: 'agent1' }]}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={workflows}
+            />,
+        );
+
+        await waitFor(() => expect(mockGenericTable).toHaveBeenCalled());
+        let tableProps = mockGenericTable.mock.calls.at(-1)?.[0];
+        let actionsColumn = tableProps.columns.find((col: any) => col.key === 'action');
+        const rowWithAssignee = { ...tickets[0], statusId: 'ON_HOLD', assignedTo: 'agent1' };
+
+        render(<>{actionsColumn.render(null, rowWithAssignee)}</>);
+        const firstUndoButtonCall = mockCustomIconButton.mock.calls.find((call) => call[0].icon === 'undo');
+        expect(firstUndoButtonCall).toBeDefined();
+
+        await act(async () => {
+            firstUndoButtonCall?.[0].onClick();
+        });
+
+        await waitFor(() => {
+            const latestProps = mockGenericTable.mock.calls.at(-1)?.[0];
+            expect(latestProps.expandable.expandedRowKeys).toEqual(['INC-001']);
+            const expandedContent = latestProps.expandable.expandedRowRender(rowWithAssignee);
+            render(<>{expandedContent}</>);
+            expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Reassign' }));
+        });
+        rerender(
+            <TicketsTable
+                tickets={[{ ...tickets[0], statusId: 'ON_HOLD', assignedTo: '' }]}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={workflows}
+            />,
+        );
+
+        await waitFor(() => expect(mockGenericTable).toHaveBeenCalled());
+        tableProps = mockGenericTable.mock.calls.at(-1)?.[0];
+        actionsColumn = tableProps.columns.find((col: any) => col.key === 'action');
+        const rowWithoutAssignee = { ...tickets[0], statusId: 'ON_HOLD', assignedTo: '' };
+
+        render(<>{actionsColumn.render(null, rowWithoutAssignee)}</>);
+        const undoCalls = mockCustomIconButton.mock.calls.filter((call) => call[0].icon === 'undo');
+        const secondUndoButtonCall = undoCalls.at(-1);
+        expect(secondUndoButtonCall).toBeDefined();
+
+        await act(async () => {
+            secondUndoButtonCall?.[0].onClick();
+        });
+
+        await waitFor(() => {
+            const latestProps = mockGenericTable.mock.calls.at(-1)?.[0];
+            const expandedContent = latestProps.expandable.expandedRowRender(rowWithoutAssignee);
+            render(<>{expandedContent}</>);
+            expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Reset Open' }));
+        });
+    });
+
+    it('handles Recommend Escalation action by calling callback and opening ticket id', async () => {
+        const onRecommendEscalation = jest.fn();
+        const onIdClick = jest.fn();
+
+        render(
+            <TicketsTable
+                tickets={[{ ...tickets[0], statusId: 'OPEN' }]}
+                onIdClick={onIdClick}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                onRecommendEscalation={onRecommendEscalation}
+                statusWorkflows={{ OPEN: [{ id: 'wf-esc', action: 'Recommend Escalation', nextStatus: 4 }] as any }}
+            />,
+        );
+
+        await waitFor(() => expect(mockGenericTable).toHaveBeenCalled());
+        const tableProps = mockGenericTable.mock.calls.at(-1)?.[0];
+        const actionsColumn = tableProps.columns.find((col: any) => col.key === 'action');
+
+        render(<>{actionsColumn.render(null, { ...tickets[0], statusId: 'OPEN' })}</>);
+        const recommendButtonCall = mockCustomIconButton.mock.calls.find((call) => call[0].icon === 'northEast');
+        expect(recommendButtonCall).toBeDefined();
+
+        await act(async () => {
+            recommendButtonCall?.[0].onClick();
+        });
+
+        expect(onRecommendEscalation).toHaveBeenCalledWith('INC-001');
+        expect(onIdClick).toHaveBeenCalledWith('INC-001');
     });
 });
