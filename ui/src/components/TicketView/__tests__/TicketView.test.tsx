@@ -5,8 +5,10 @@ import { useApi } from '../../../hooks/useApi';
 import { getTicketSla } from '../../../services/TicketService';
 import { getPriorities } from '../../../services/PriorityService';
 import { getSeverities } from '../../../services/SeverityService';
+import { getIssueTypes } from '../../../services/IssueTypeService';
 import { getCategories, getAllSubCategoriesByCategory } from '../../../services/CategoryService';
 import { getFeedback } from '../../../services/FeedbackService';
+import { getDivisions } from '../../../services/DivisionService';
 import { getStatusWorkflowMappings } from '../../../services/StatusService';
 import Histories from '../../../pages/Histories';
 import ChildTicketsList from '../ChildTicketsList';
@@ -120,6 +122,7 @@ jest.mock('../../../services/TicketService', () => ({
   getTicketSla: jest.fn(async () => ({ status: 200, data: { body: { data: mockSla } } })),
   getChildTickets: jest.fn(),
   unlinkTicketFromMaster: jest.fn(),
+  getAttachmentsByTicketId: jest.fn(async () => ({ data: { body: { data: [] } } })),
 }));
 
 jest.mock('../../../services/RootCauseAnalysisService', () => ({
@@ -145,6 +148,10 @@ jest.mock('../../../services/CategoryService', () => ({
 
 jest.mock('../../../services/FeedbackService', () => ({
   getFeedback: jest.fn(() => Promise.resolve({ data: null })),
+}));
+
+jest.mock('../../../services/DivisionService', () => ({
+  getDivisions: jest.fn(() => Promise.resolve({ data: [] })),
 }));
 
 jest.mock('../../../services/StatusService', () => ({
@@ -269,9 +276,11 @@ const useApiMock = useApi as jest.MockedFunction<typeof useApi>;
 const getStatusNameByIdMock = getStatusNameById as jest.MockedFunction<typeof getStatusNameById>;
 const getPrioritiesMock = getPriorities as jest.Mock;
 const getSeveritiesMock = getSeverities as jest.Mock;
+const getIssueTypesMock = getIssueTypes as jest.Mock;
 const getCategoriesMock = getCategories as jest.Mock;
 const getAllSubCategoriesByCategoryMock = getAllSubCategoriesByCategory as jest.Mock;
 const getFeedbackMock = getFeedback as jest.Mock;
+const getDivisionsMock = getDivisions as jest.Mock;
 const getStatusWorkflowMappingsMock = getStatusWorkflowMappings as jest.Mock;
 const getTicketSlaMock = getTicketSla as jest.Mock;
 const checkAccessMasterMock = checkAccessMaster as jest.Mock;
@@ -297,9 +306,11 @@ describe('TicketView', () => {
 
     getPrioritiesMock.mockResolvedValue({ data: { body: { data: [] } } });
     getSeveritiesMock.mockResolvedValue({ data: [] });
+    getIssueTypesMock.mockResolvedValue({ data: [] });
     getCategoriesMock.mockResolvedValue({ data: { body: { data: [] } } });
     getAllSubCategoriesByCategoryMock.mockResolvedValue({ data: { body: { data: [] } } });
     getFeedbackMock.mockResolvedValue({ data: null });
+    getDivisionsMock.mockResolvedValue({ data: [] });
     getStatusWorkflowMappingsMock.mockResolvedValue({});
 
     const defaultResponse = {
@@ -391,4 +402,40 @@ describe('TicketView', () => {
       );
     });
   });
+
+  it('opens link to master modal for non-master tickets', async () => {
+    mockTicket.isMaster = false;
+    mockTicket.masterId = '';
+
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    const linkButton = await screen.findByRole('button', { name: 'Link to a Master Ticket' });
+    fireEvent.click(linkButton);
+
+    expect(await screen.findByTestId('link-master-modal')).toBeInTheDocument();
+  });
+
+  it('navigates to linked master ticket when info alert is clicked', async () => {
+    mockTicket.isMaster = false;
+    mockTicket.masterId = 'T-42';
+
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    const alert = await screen.findByText('Linked to master ticket ID T-42. Click to view master ticket.');
+    fireEvent.click(alert);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/tickets/T-42');
+  });
+
+  it('opens requestor details modal when requestor name is clicked', async () => {
+    mockTicket.requestorName = 'Requester';
+
+    render(<TicketView ticketId="T-1" showHistory sidebar />);
+
+    const requestorLink = await screen.findByText('Requester');
+    fireEvent.click(requestorLink);
+
+    expect(await screen.findByText('Requestor Details')).toBeInTheDocument();
+  });
+
 });
