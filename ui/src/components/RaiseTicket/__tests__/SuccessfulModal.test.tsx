@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
+import { renderWithTheme } from '../../../test/testUtils';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -25,7 +26,7 @@ describe('SuccessfulModal', () => {
   });
 
   it('displays ticket information when open', () => {
-    render(<SuccessfulModal {...baseProps} />);
+    renderWithTheme(<SuccessfulModal {...baseProps} />);
 
     expect(screen.getByText('Thank you! Your ticket has been submitted successfully.')).toBeInTheDocument();
     expect(screen.getByText(/Ticket ID/)).toBeInTheDocument();
@@ -33,7 +34,7 @@ describe('SuccessfulModal', () => {
   });
 
   it('invokes callbacks from action buttons', () => {
-    render(<SuccessfulModal {...baseProps} />);
+    renderWithTheme(<SuccessfulModal {...baseProps} />);
 
     fireEvent.click(screen.getByText('Raise New Ticket'));
     expect(baseProps.onClose).toHaveBeenCalledTimes(1);

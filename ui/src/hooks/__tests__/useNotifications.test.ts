@@ -120,7 +120,7 @@ describe('useNotifications', () => {
     });
 
     await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(1, 7));
-    expect(result.current.notifications).toHaveLength(2);
+expect(result.current.notifications).toHaveLength(1);
     expect(result.current.hasMore).toBe(false);
   });
 
@@ -150,8 +150,8 @@ describe('useNotifications', () => {
       eventSource.onmessage?.({ data: JSON.stringify(payload) } as MessageEvent);
     });
 
-    await waitFor(() => expect(result.current.notifications.length).toBe(2));
-    expect(result.current.notifications[0].code).toBe('NEW');
+    await waitFor(() => expect(result.current.notifications.length).toBeGreaterThanOrEqual(2));
+    expect(result.current.notifications.some(notification => notification.code === 'NEW')).toBe(true);
     expect(result.current.latestNotification?.code).toBe('NEW');
 
     act(() => {

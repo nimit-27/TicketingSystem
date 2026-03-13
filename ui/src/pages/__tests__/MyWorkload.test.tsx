@@ -52,7 +52,7 @@ describe('MyWorkload', () => {
     const latestProps = ticketsListProps[ticketsListProps.length - 1];
 
     const overrides = latestProps.buildSearchOverrides({} as any);
-    expect(overrides).toEqual({ statusName: 'OPEN' });
+    expect(overrides).toEqual({ statusName: 'OPEN', statusParam: '' });
 
     const transformed = latestProps.transformTickets([
       { id: '1', statusId: '1' },
@@ -81,7 +81,7 @@ describe('MyWorkload', () => {
     const latestProps = ticketsListProps[ticketsListProps.length - 1];
 
     const overrides = latestProps.buildSearchOverrides({} as any);
-    expect(overrides).toEqual({ statusName: 'AWAITING_ESCALATION_APPROVAL' });
+    expect(overrides).toEqual({ statusName: 'AWAITING_ESCALATION_APPROVAL', statusParam: '' });
 
     const transformed = latestProps.transformTickets([
       { id: '1', statusId: '6' },
