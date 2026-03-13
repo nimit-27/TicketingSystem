@@ -66,15 +66,26 @@ describe("utils/misReports", () => {
     expect(calculateDateRange("YEARLY", "YEAR_TO_DATE", { start: null, end: null })).toEqual({ from: "2024-01-01", to: "2024-08-15" });
     expect(calculateDateRange("YEARLY", "LAST_YEAR", { start: null, end: null })).toEqual({ from: "2023-01-01", to: "2023-12-31" });
     expect(calculateDateRange("YEARLY", "LAST_5_YEARS", { start: null, end: null })).toEqual({ from: "2020-01-01", to: "2024-12-31" });
+    expect(calculateDateRange("YEARLY", "ALL_TIME", { start: null, end: null })).toEqual({ from: "2020-01-01", to: "2024-12-31" });
 
     expect(calculateDateRange("CUSTOM", "CUSTOM_DATE_RANGE", { start: null, end: null })).toEqual({ from: "", to: "" });
+    expect(calculateDateRange("CUSTOM", "LAST_YEAR", { start: null, end: null })).toEqual({ from: "", to: "" });
     expect(calculateDateRange("DAILY", "CUSTOM_DATE_RANGE", { start: null, end: null })).toEqual({ from: "", to: "" });
     expect(calculateDateRange("UNKNOWN" as any, "LAST_YEAR" as any, { start: null, end: null })).toEqual({ from: "", to: "" });
+  });
+
+  it("falls back custom month range bounds to current year when omitted", () => {
+    expect(calculateDateRange("MONTHLY", "CUSTOM_MONTH_RANGE", { start: null, end: null })).toEqual({ from: "2024-01-01", to: "2024-12-31" });
+    expect(calculateDateRange("MONTHLY", "CUSTOM_MONTH_RANGE", { start: 2022, end: null })).toEqual({ from: "2022-01-01", to: "2024-12-31" });
+    expect(calculateDateRange("MONTHLY", "CUSTOM_MONTH_RANGE", { start: null, end: 2023 })).toEqual({ from: "2024-01-01", to: "2023-12-31" });
   });
 
   it("extracts payload and throws for unsuccessful response", () => {
     expect(extractApiPayload<{ a: number }>({ data: { body: { data: { a: 1 } } } })).toEqual({ a: 1 });
     expect(extractApiPayload({ data: { x: 2 } })).toEqual({ x: 2 });
+    expect(extractApiPayload({ body: { data: 5 } })).toBe(5);
+    expect(() => extractApiPayload({ success: false, error: { message: "flat failure" } })).toThrow("flat failure");
+    expect(() => extractApiPayload({ success: false })).toThrow("Unable to fetch report data.");
     expect(extractApiPayload(null)).toBeNull();
     expect(() => extractApiPayload({ data: { body: { success: false, error: { message: "boom" } } } })).toThrow("boom");
     expect(() => extractApiPayload({ data: { body: { success: false } } })).toThrow("Unable to fetch report data.");
