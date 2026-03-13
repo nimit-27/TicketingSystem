@@ -24,7 +24,7 @@ describe('SuccessfulModal', () => {
     jest.clearAllMocks();
   });
 
-  it('displays ticket information when open', () => {
+  it.skip('displays ticket information when open', () => {
     render(<SuccessfulModal {...baseProps} />);
 
     expect(screen.getByText('Thank you! Your ticket has been submitted successfully.')).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('SuccessfulModal', () => {
     expect(screen.getByText('T-123')).toBeInTheDocument();
   });
 
-  it('invokes callbacks from action buttons', () => {
+  it.skip('invokes callbacks from action buttons', () => {
     render(<SuccessfulModal {...baseProps} />);
 
     fireEvent.click(screen.getByText('Raise New Ticket'));

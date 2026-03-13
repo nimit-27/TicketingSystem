@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 
 const mockLoginUser = jest.fn(() => Promise.resolve({ token: 'abc' }));
 const mockUseApi = jest.fn();
@@ -19,6 +20,8 @@ jest.mock('../../utils/permissions', () => ({
 jest.mock('../../utils/Utils', () => ({
   setRoleLookup: jest.fn(),
   setUserDetails: jest.fn(),
+  getUserDetails: jest.fn(() => null),
+  getUserPermissions: jest.fn(() => null),
 }));
 
 jest.mock('../../utils/authToken', () => ({
@@ -57,7 +60,7 @@ describe('Login page', () => {
   });
 
   it('allows requester login submission', async () => {
-    const { getByText, getAllByRole, container } = render(<Login />);
+    const { getByText, getAllByRole, container } = renderWithTheme(<Login />);
 
     const [userIdInput] = getAllByRole('textbox');
     fireEvent.change(userIdInput, { target: { value: 'tester' } });
@@ -69,7 +72,7 @@ describe('Login page', () => {
   });
 
   it('switches to helpdesk portal', () => {
-    const { getByRole, getAllByRole, container, getByText } = render(<Login />);
+    const { getByRole, getAllByRole, container, getByText } = renderWithTheme(<Login />);
 
     fireEvent.click(getByRole('tab', { name: 'Helpdesk' }));
     const [userIdInput] = getAllByRole('textbox');

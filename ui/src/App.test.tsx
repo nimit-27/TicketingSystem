@@ -52,6 +52,8 @@ jest.mock('./pages/UserProfile', () => () => <div>UserProfile</div>);
 jest.mock('./pages/MyProfile', () => () => <div>MyProfile</div>);
 jest.mock('./pages/PublicFaq', () => () => <div>PublicFaq</div>);
 jest.mock('./pages/AddUser', () => () => <div>AddUser</div>);
+jest.mock('./pages/ChangePasswordPage', () => () => <div>ChangePasswordPage</div>);
+jest.mock('./pages/ExternalCallback', () => () => <div>ExternalCallback</div>);
 jest.mock('./components/Layout/SidebarLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 jest.mock('./components/Layout/PublicLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 

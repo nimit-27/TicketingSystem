@@ -1,11 +1,16 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import { renderWithTheme } from '../../test/testUtils';
 import KnowledgeBase from '../KnowledgeBase';
 
 const mockInitSession = jest.fn(() => Promise.resolve());
 
 jest.mock('../../services/FilegatorService', () => ({
   initFilegatorSession: (...args: unknown[]) => mockInitSession(...args),
+}));
+
+jest.mock('../../config/config', () => ({
+  filegatorEnabled: true,
 }));
 
 describe('KnowledgeBase', () => {
@@ -22,7 +27,7 @@ describe('KnowledgeBase', () => {
   });
 
   it('initializes filegator session and sets iframe src', async () => {
-    const { container } = render(<KnowledgeBase />);
+    const { container } = renderWithTheme(<KnowledgeBase />);
     const frame = container.querySelector('iframe');
     expect(frame).not.toBeNull();
 

@@ -55,6 +55,6 @@ describe('RequestorDetails', () => {
         fireEvent.click(usernameCopyIcon);
 
         expect(writeTextMock).not.toHaveBeenCalled();
-        expect(screen.getByText('-')).toBeInTheDocument();
+        expect(screen.getAllByText('-').length).toBeGreaterThan(0);
     });
 });

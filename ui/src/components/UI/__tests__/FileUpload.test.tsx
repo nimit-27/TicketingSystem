@@ -33,11 +33,11 @@ describe('FileUpload', () => {
   });
 
   it('accepts files within the size limit and notifies parent', async () => {
-    const onFilesChange = jest.fn();
+    const setAttachments = jest.fn();
     const file = new File(['hello'], 'hello.png', { type: 'image/png' });
 
     const { container } = renderWithTheme(
-      <FileUpload maxSizeMB={5} onFilesChange={onFilesChange} attachments={[]} />,
+      <FileUpload maxSizeMB={5} setAttachments={setAttachments as any} attachments={[]} />,
     );
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -46,7 +46,7 @@ describe('FileUpload', () => {
       await userEvent.upload(input, file);
     });
 
-    expect(onFilesChange).toHaveBeenCalledWith([file]);
+    expect(setAttachments).toHaveBeenCalledWith([file]);
   });
 
   it('shows an error when a file exceeds the size limit', async () => {
