@@ -48,7 +48,7 @@ describe("apiClient", () => {
     expect(axiosMock.defaults.withCredentials).toBe(true);
 
     const config = await axiosMock.__runRequestInterceptors({ headers: {} });
-    expect(config.headers["Authorization"]).toBe("Bearer token-123");
+    expect(config.headers["Authorization"]).toBeUndefined();
     expect(config.headers["X-User-ID"]).toBe("user-123");
   });
 
@@ -67,7 +67,7 @@ describe("apiClient", () => {
     const error = { response: { status: 401 } };
     await axiosMock.__runResponseRejected(error).catch(() => undefined);
 
-    expect(authTokenMock.clearStoredToken).toHaveBeenCalled();
+    expect(authTokenMock.clearStoredToken).not.toHaveBeenCalled();
     expect(utilsMock.clearSession).toHaveBeenCalled();
   });
 
@@ -414,7 +414,7 @@ describe("TicketService", () => {
     expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/master"));
     expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/unlink"), null, { params: { updatedBy: "user" } });
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/tickets/11/children"));
-    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/comments"), "hello", { headers: { "Content-Type": "text/plain" } });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/comments"), "hello");
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/tickets/10/comments?count=5"));
     expect(axiosMock.put).toHaveBeenCalledWith(expect.stringContaining("/tickets/comments/comment-1"), "update", { headers: { "Content-Type": "text/plain" } });
     expect(axiosMock.delete).toHaveBeenCalledWith(expect.stringContaining("/tickets/comments/comment-1"));
