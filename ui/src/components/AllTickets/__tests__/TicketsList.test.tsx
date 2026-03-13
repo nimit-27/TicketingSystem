@@ -180,6 +180,7 @@ describe('TicketsList', () => {
                 { label: 'Hardware', value: 'Hardware' },
             ],
             loadSubCategories: jest.fn(),
+            resetSubCategories: jest.fn(),
         });
 
         mockGetCurrentUserDetails.mockReturnValue({
@@ -209,7 +210,7 @@ describe('TicketsList', () => {
         mockGetDivisions.mockResolvedValue([]);
     });
 
-    const arrangeUseApiMocks = (overrides?: { data?: any; workflowData?: any; allowedData?: any }) => {
+    const arrangeUseApiMocks = (overrides?: { data?: any; workflowData?: any; allowedData?: any; zonesData?: any; regionsData?: any; districtsData?: any; issueTypesData?: any; divisionsData?: any }) => {
         const searchHandler = jest.fn(async (fn) => fn());
         const workflowHandler = jest.fn(async (fn) => fn());
         const allowedHandler = jest.fn(async (fn) => fn());
@@ -236,11 +237,11 @@ describe('TicketsList', () => {
             allowedResponse,
             searchResponse,
             workflowResponse,
-            { data: [], pending: false, apiHandler: noopHandler },
-            { data: [], pending: false, apiHandler: noopHandler },
-            { data: [], pending: false, apiHandler: noopHandler },
-            { data: [], pending: false, apiHandler: noopHandler },
-            { data: [], pending: false, apiHandler: noopHandler },
+            { data: overrides?.zonesData ?? [], pending: false, apiHandler: noopHandler },
+            { data: overrides?.regionsData ?? [], pending: false, apiHandler: noopHandler },
+            { data: overrides?.districtsData ?? [], pending: false, apiHandler: noopHandler },
+            { data: overrides?.issueTypesData ?? [], pending: false, apiHandler: noopHandler },
+            { data: overrides?.divisionsData ?? [], pending: false, apiHandler: noopHandler },
         ];
         let callCount = 0;
         mockUseApi.mockImplementation(() => {
@@ -323,5 +324,121 @@ describe('TicketsList', () => {
         await waitFor(() => {
             expect(mockSearchTicketsPaginated.mock.calls.some((call) => call[3] === 1)).toBe(true);
         });
+    });
+
+    it('resets filters and reapplies default user location values', async () => {
+        const loadSubCategories = jest.fn();
+        const resetSubCategories = jest.fn();
+        mockUseCategoryFilters.mockReturnValue({
+            categoryOptions: [
+                { label: 'All', value: 'All' },
+                { label: 'IT', value: 'IT' },
+            ],
+            subCategoryOptions: [
+                { label: 'All', value: 'All' },
+                { label: 'Hardware', value: 'Hardware' },
+            ],
+            loadSubCategories,
+            resetSubCategories,
+        });
+        mockGetCurrentUserDetails.mockReturnValue({
+            levels: ['L1', 'L2'],
+            role: ['Agent'],
+            zoneCode: 'Z1',
+            officeType: 'RO',
+            officeCode: 'R1',
+        });
+
+        arrangeUseApiMocks({
+            zonesData: [{ zoneCode: 'Z1', zoneName: 'Zone 1' }],
+            regionsData: [{ regionCode: 'R1', regionName: 'Region 1', hrmsRegCode: 'HR1' }],
+            districtsData: [{ districtCode: 'D1', districtName: 'District 1' }],
+            issueTypesData: [{ issueTypeId: 'ISS-1', issueTypeLabel: 'Hardware' }],
+            divisionsData: [{ divisionId: 'DIV-1', divisionName: 'Division One' }],
+        });
+        render(<TicketsList titleKey="tickets.title" allowAll={true} />);
+
+        await waitFor(() => expect(mockSearchTicketsPaginated).toHaveBeenCalled());
+
+        fireEvent.change(screen.getByTestId('tickets-search'), { target: { value: 'INC-2' } });
+        fireEvent.change(screen.getByTestId('dropdown-Status'), { target: { value: 'OPEN' } });
+        fireEvent.change(screen.getByTestId('dropdown-Module'), { target: { value: 'IT' } });
+        fireEvent.change(screen.getByTestId('dropdown-Sub Module'), { target: { value: 'Hardware' } });
+        fireEvent.change(screen.getByTestId('dropdown-Zone'), { target: { value: 'Z2' } });
+        fireEvent.change(screen.getByTestId('dropdown-Region'), { target: { value: 'R2' } });
+        fireEvent.change(screen.getByTestId('dropdown-District'), { target: { value: 'D2' } });
+        fireEvent.change(screen.getByTestId('dropdown-Issue Type'), { target: { value: 'ISS-2' } });
+        fireEvent.change(screen.getByTestId('dropdown-Division'), { target: { value: 'DIV-2' } });
+        fireEvent.change(screen.getByTestId('dropdown-Date Parameter'), { target: { value: 'last_modified' } });
+
+        fireEvent.click(screen.getByText('L1'));
+        fireEvent.click(screen.getByText('Master'));
+        fireEvent.click(screen.getByText('Reset Filters'));
+
+        await waitFor(() => {
+            const lastCall = mockSearchTicketsPaginated.mock.calls[mockSearchTicketsPaginated.mock.calls.length - 1];
+            expect(lastCall[0]).toBe('');
+            expect(lastCall[1]).toBeUndefined();
+            expect(lastCall[2]).toBeUndefined();
+            expect(lastCall[3]).toBe(0);
+            expect(lastCall[13]).toBe('reported_date');
+            expect(lastCall[18]).toBe('Z1');
+            expect(lastCall[19]).toBe('R1');
+            expect(lastCall[20]).toBeUndefined();
+            expect(lastCall[21]).toBeUndefined();
+            expect(lastCall[22]).toBeUndefined();
+        });
+
+        expect(resetSubCategories).toHaveBeenCalled();
+        expect(loadSubCategories).toHaveBeenCalled();
+    });
+
+    it('updates issue type and geographic filters through handlers', async () => {
+        mockGetZones.mockResolvedValue({ data: [{ zoneCode: 'Z1', zoneName: 'Zone 1' }] });
+        mockGetRegions.mockResolvedValue({ data: [{ regionCode: 'R1', regionName: 'Region 1', hrmsRegCode: 'HR1' }] });
+        mockGetDistricts.mockResolvedValue({ data: [{ districtCode: 'D1', districtName: 'District 1' }] });
+        mockGetIssueTypes.mockResolvedValue({ data: [{ issueTypeId: 'ISS-1', issueTypeLabel: 'Hardware' }] });
+        mockGetDivisions.mockResolvedValue({ data: [{ divisionId: 'DIV-1', divisionName: 'Division One' }] });
+
+        arrangeUseApiMocks({
+            zonesData: [{ zoneCode: 'Z1', zoneName: 'Zone 1' }],
+            regionsData: [{ regionCode: 'R1', regionName: 'Region 1', hrmsRegCode: 'HR1' }],
+            districtsData: [{ districtCode: 'D1', districtName: 'District 1' }],
+            issueTypesData: [{ issueTypeId: 'ISS-1', issueTypeLabel: 'Hardware' }],
+            divisionsData: [{ divisionId: 'DIV-1', divisionName: 'Division One' }],
+        });
+        render(<TicketsList titleKey="tickets.title" allowAll={true} />);
+
+        await waitFor(() => expect(mockGetZones).toHaveBeenCalled());
+        await waitFor(() => expect(mockSearchTicketsPaginated).toHaveBeenCalled());
+
+        fireEvent.change(screen.getByTestId('dropdown-Zone'), { target: { value: 'Z1' } });
+        await waitFor(() => expect(mockGetRegions).toHaveBeenCalledWith('Z1'));
+
+        fireEvent.change(screen.getByTestId('dropdown-Region'), { target: { value: 'R1' } });
+        await waitFor(() => expect(mockGetDistricts).toHaveBeenCalledWith('HR1'));
+
+        fireEvent.change(screen.getByTestId('dropdown-District'), { target: { value: 'D1' } });
+        fireEvent.change(screen.getByTestId('dropdown-Issue Type'), { target: { value: 'ISS-1' } });
+        fireEvent.change(screen.getByTestId('dropdown-Division'), { target: { value: 'DIV-1' } });
+
+        await waitFor(() => {
+            const lastCall = mockSearchTicketsPaginated.mock.calls[mockSearchTicketsPaginated.mock.calls.length - 1];
+            expect(lastCall[18]).toBe('Z1');
+            expect(lastCall[19]).toBe('R1');
+            expect(lastCall[20]).toBe('D1');
+            expect(lastCall[21]).toBe('ISS-1');
+            expect(lastCall[22]).toBe('DIV-1');
+        });
+    });
+
+    it('loads statuses directly when restrictStatusesToAllowed is false and avoids allowed-status api gate', async () => {
+        const { allowedHandler } = arrangeUseApiMocks();
+
+        render(<TicketsList titleKey="tickets.title" allowAll={false} restrictStatusesToAllowed={false} />);
+
+        await waitFor(() => expect(mockGetStatuses).toHaveBeenCalled());
+        await waitFor(() => expect(mockSearchTicketsPaginated).toHaveBeenCalled());
+        expect(allowedHandler).not.toHaveBeenCalled();
     });
 });

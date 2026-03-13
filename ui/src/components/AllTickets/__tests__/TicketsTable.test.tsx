@@ -12,6 +12,7 @@ jest.mock('../../../context/SnackbarContext', () => ({
 const mockJsPdfSave = jest.fn();
 const mockJsPdfText = jest.fn();
 const mockJsPdfConstructor = jest.fn();
+const mockJsPdfSetFontSize = jest.fn();
 jest.mock('jspdf', () => ({
     __esModule: true,
     default: class {
@@ -21,6 +22,7 @@ jest.mock('jspdf', () => ({
 
         text = mockJsPdfText
         save = mockJsPdfSave
+        setFontSize = mockJsPdfSetFontSize
     }
 }), { virtual: true });
 
@@ -218,6 +220,7 @@ beforeEach(() => {
     mockJsPdfSave.mockClear();
     mockJsPdfText.mockClear();
     mockJsPdfConstructor.mockClear();
+    mockJsPdfSetFontSize.mockClear();
     mockAutoTable.mockClear();
     mockAoaToSheet.mockReset();
     mockAoaToSheet.mockImplementation(() => ({ '!ref': 'A1:A1' } as any));
@@ -397,6 +400,53 @@ describe('TicketsTable', () => {
         expect(fileName).toContain('tickets_01052024_10052024');
         expect(fileName).toContain('zone-north-zone');
         expect(fileName).toContain('.xlsx');
+    });
+
+    it('generates pdf export with selected filters and priority column sizing', async () => {
+        mockGetCurrentUserDetails.mockReturnValue({ username: 'agent.user', name: 'Agent User' });
+        mockSearchTicketsForExport.mockResolvedValue({
+            items: [
+                { ...tickets[0], createdOn: '2024-05-01T00:00:00.000Z', priority: 'Critical', priorityId: 'P1' },
+                { ...tickets[0], id: 'INC-002', priority: 'High', priorityId: 'P2' },
+            ],
+        });
+
+        render(
+            <TicketsTable
+                tickets={tickets}
+                onIdClick={jest.fn()}
+                onRowClick={jest.fn()}
+                searchCurrentTicketsPaginatedApi={jest.fn()}
+                statusWorkflows={{ OPEN: [] }}
+                selectedZone="ZN"
+            />,
+        );
+
+        await waitFor(() => expect(mockDownloadTicketsDialog).toHaveBeenCalled());
+        const dialogProps = mockDownloadTicketsDialog.mock.calls.at(-1)?.[0];
+
+        await act(async () => {
+            await dialogProps.onGenerate('pdf', {
+                fromDate: '2024-05-01',
+                toDate: '2024-05-10',
+                zoneCode: 'ZN',
+                zoneLabel: 'North Zone',
+                selectedColumnKeys: ['id', 'priority', 'status'],
+            });
+        });
+
+        await waitFor(() => expect(mockJsPdfSave).toHaveBeenCalled());
+        expect(mockJsPdfConstructor).toHaveBeenCalledWith('l', 'pt');
+        expect(mockAutoTable).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining({
+                columnStyles: { 1: { cellWidth: 42 } },
+                head: [expect.arrayContaining(['Ticket Id', 'Priority', 'Status'])],
+            }),
+        );
+        expect(mockJsPdfText).toHaveBeenCalledWith(expect.stringContaining('Priority Reference:'), 40, expect.any(Number));
+        expect(mockJsPdfText).toHaveBeenCalledWith(expect.stringContaining('Requested By: Agent User | agent.user'), 400, 44);
+        expect(mockJsPdfSave).toHaveBeenCalledWith(expect.stringMatching(/^tickets_01052024_10052024_zone-north-zone.*\.pdf$/));
     });
 
     it('shows warning and does not export when date range is invalid', async () => {
