@@ -189,7 +189,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const isRno = roleList.includes('4');
 
   const latestStatusRemark = Array.isArray(data)
-    ? [...data]?.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0].remark
+    ? ([...data]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]?.remark ?? '')
     : ""
 
   const handleLinkToMasterTicketModalClose = useCallback(() => {
@@ -495,14 +496,22 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         const severityData = Array.isArray(res?.data) ? res.data : [];
         setSeverityList(severityData);
       });
-      getIssueTypes().then(res => {
-        const issueTypeData = Array.isArray(res?.data) ? res.data : [];
-        setIssueTypeOptions(getDropdownOptions(issueTypeData, 'issueTypeLabel', 'issueTypeId'));
-      });
-      getDivisions().then(res => {
-        const divisionData = Array.isArray(res?.data) ? res.data : [];
-        setDivisionOptions(getDropdownOptions(divisionData, 'divisionName', 'divisionId'));
-      });
+      Promise.resolve(getIssueTypes())
+        .then(res => {
+          const issueTypeData = Array.isArray(res?.data) ? res.data : [];
+          setIssueTypeOptions(getDropdownOptions(issueTypeData, 'issueTypeLabel', 'issueTypeId'));
+        })
+        .catch(() => {
+          setIssueTypeOptions([]);
+        });
+      Promise.resolve(getDivisions())
+        .then(res => {
+          const divisionData = Array.isArray(res?.data) ? res.data : [];
+          setDivisionOptions(getDropdownOptions(divisionData, 'divisionName', 'divisionId'));
+        })
+        .catch(() => {
+          setDivisionOptions([]);
+        });
       getCategories()
         .then(res => {
           const rawPayload = res?.data ?? res;
@@ -1228,7 +1237,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 {
                   displayValue: ticket.category,
                   translate: false,
-                  disabled: !categoryOptions.length
+                  disabled: !(categoryOptions?.length)
                 }
               )}
             </Box>
@@ -1256,7 +1265,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             {renderSelect(divisionId, setDivisionId, divisionOptions, {
               displayValue: ticket?.divisionName || ticket?.division,
               translate: false,
-              disabled: !divisionOptions.length,
+              disabled: !(divisionOptions?.length),
               editing: allowDivisionEdit && editing,
             })}
           </Box>}
@@ -1266,7 +1275,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               {renderSelect(issueTypeId, setIssueTypeId, issueTypeOptions, {
                 displayValue: ticket?.issueTypeLabel || ticket?.issueTypeId,
                 translate: false,
-                disabled: !issueTypeOptions.length
+                disabled: !(issueTypeOptions?.length)
               })}
             </Box>
           )}
