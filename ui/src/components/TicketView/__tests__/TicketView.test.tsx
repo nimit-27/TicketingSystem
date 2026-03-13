@@ -321,16 +321,19 @@ describe('TicketView', () => {
       apiHandler: (cb: () => Promise<any>) => Promise.resolve(cb()),
     } as any;
 
-    const useApiResponses = [
-      { ...defaultResponse, data: mockTicket, success: true },
-      { ...defaultResponse },
-      { ...defaultResponse, data: { '1': [] }, success: true },
-    ];
+    const ticketApiResponse = { ...defaultResponse, data: mockTicket, success: true };
+    const workflowApiResponse = { ...defaultResponse, data: { '1': [] }, success: true };
+    const attachmentsApiResponse = { ...defaultResponse, data: { body: { data: [] } }, success: true };
+
     let callIndex = 0;
     useApiMock.mockImplementation(() => {
-      const response = useApiResponses[callIndex] ?? defaultResponse;
-      callIndex = (callIndex + 1) % useApiResponses.length;
-      return response;
+      const slot = callIndex % 5;
+      callIndex += 1;
+
+      if (slot === 0) return ticketApiResponse;
+      if (slot === 2) return workflowApiResponse;
+      if (slot === 3) return attachmentsApiResponse;
+      return defaultResponse;
     });
 
     getTicketSlaMock.mockResolvedValue({ status: 200, data: { body: { data: mockSla } } });

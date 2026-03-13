@@ -525,12 +525,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
       getAttachmentsByTicketIdHandlerApi(ticketId)
     }
-  }, [ticketId, pageType, getTicketHandler, workflowApiHandler]);
+  }, [ticketId, pageType, getTicketHandler]);
 
   useEffect(() => {
     const masterTicketId = ticket?.masterId;
     if (!masterTicketId || masterTicketId === ticketId) {
-      setMasterSla(null);
+      setMasterSla(prev => (prev === null ? prev : null));
       return;
     }
 
@@ -1256,7 +1256,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             {renderSelect(divisionId, setDivisionId, divisionOptions, {
               displayValue: ticket?.divisionName || ticket?.division,
               translate: false,
-              disabled: !divisionOptions.length,
+              disabled: !(divisionOptions || []).length,
               editing: allowDivisionEdit && editing,
             })}
           </Box>}
@@ -1266,7 +1266,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               {renderSelect(issueTypeId, setIssueTypeId, issueTypeOptions, {
                 displayValue: ticket?.issueTypeLabel || ticket?.issueTypeId,
                 translate: false,
-                disabled: !issueTypeOptions.length
+                disabled: !(issueTypeOptions || []).length
               })}
             </Box>
           )}
