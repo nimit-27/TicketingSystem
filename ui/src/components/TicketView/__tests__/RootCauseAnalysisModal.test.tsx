@@ -74,6 +74,18 @@ jest.mock('../../UI/Button', () => ({ children, onClick, type, disabled }: any) 
   </button>
 ));
 
+jest.mock('../../UI/Button/GenericSubmitButton', () => ({ children, disabled }: any) => (
+  <button type="submit" disabled={disabled}>
+    {children}
+  </button>
+));
+
+jest.mock('../../UI/Button/GenericCancelButton', () => ({ children, onClick, disabled }: any) => (
+  <button type="button" onClick={onClick} disabled={disabled}>
+    {children}
+  </button>
+));
+
 jest.mock('../../UI/Input/CustomFormInput', () => ({ register, name, label }: any) => {
   const field = register(name);
   return (
@@ -97,6 +109,20 @@ const saveRootCauseAnalysisMock = saveRootCauseAnalysis as jest.Mock;
 const deleteAttachmentMock = deleteRootCauseAnalysisAttachment as jest.Mock;
 const getTicketMock = getTicket as jest.Mock;
 let deleteHandlerSpy: jest.Mock;
+let saveHandlerSpy: jest.Mock;
+let showMessageSpy: jest.Mock;
+
+const renderModal = (props: Partial<React.ComponentProps<typeof RootCauseAnalysisModal>> = {}) =>
+  renderWithTheme(
+    <RootCauseAnalysisModal
+      open
+      onClose={jest.fn()}
+      rcaStatus="IN_PROGRESS"
+      ticketId="ticket-default"
+      updatedBy="user-default"
+      {...props}
+    />,
+  );
 
 describe('RootCauseAnalysisModal', () => {
   beforeEach(() => {
@@ -106,14 +132,14 @@ describe('RootCauseAnalysisModal', () => {
 
     const getTicketHandler = jest.fn((fn: () => Promise<any>) => Promise.resolve(fn()));
     const fetchHandler = jest.fn((fn: () => Promise<any>) => Promise.resolve(fn()));
-    const saveHandler = jest.fn((fn: () => Promise<any>) => Promise.resolve(fn()));
+    saveHandlerSpy = jest.fn((fn: () => Promise<any>) => Promise.resolve(fn()));
     deleteHandlerSpy = jest.fn((fn: () => Promise<any>) => Promise.resolve(fn()));
 
     const defaultResponse = { data: null, pending: false, success: false, error: null } as any;
     const useApiResponses = [
       { ...defaultResponse, apiHandler: getTicketHandler },
       { ...defaultResponse, apiHandler: fetchHandler },
-      { ...defaultResponse, apiHandler: saveHandler },
+      { ...defaultResponse, apiHandler: saveHandlerSpy },
       { ...defaultResponse, apiHandler: deleteHandlerSpy },
     ];
     let callIndex = 0;
@@ -123,7 +149,8 @@ describe('RootCauseAnalysisModal', () => {
       return response;
     });
 
-    useSnackbarMock.mockReturnValue({ showMessage: jest.fn() });
+    showMessageSpy = jest.fn();
+    useSnackbarMock.mockReturnValue({ showMessage: showMessageSpy });
 
     getRootCauseAnalysisMock.mockResolvedValue({
       descriptionOfCause: 'Existing cause',
@@ -146,15 +173,7 @@ describe('RootCauseAnalysisModal', () => {
   });
 
   it('fetches data when opened and displays existing attachments', async () => {
-    renderWithTheme(
-      <RootCauseAnalysisModal
-        open
-        onClose={jest.fn()}
-        rcaStatus="IN_PROGRESS"
-        ticketId="ticket-1"
-        updatedBy="user-1"
-      />,
-    );
+    renderModal({ ticketId: 'ticket-1', updatedBy: 'user-1' });
 
     await waitFor(() => expect(getRootCauseAnalysisMock).toHaveBeenCalledWith('ticket-1'));
 
@@ -166,15 +185,7 @@ describe('RootCauseAnalysisModal', () => {
 
   it('submits form and saves RCA data', async () => {
     const onClose = jest.fn();
-    renderWithTheme(
-      <RootCauseAnalysisModal
-        open
-        onClose={onClose}
-        rcaStatus="DRAFT"
-        ticketId="ticket-2"
-        updatedBy="user-2"
-      />,
-    );
+    renderModal({ onClose, rcaStatus: 'DRAFT', ticketId: 'ticket-2', updatedBy: 'user-2' });
 
     await waitFor(() => expect(getRootCauseAnalysisMock).toHaveBeenCalled());
 
@@ -190,15 +201,7 @@ describe('RootCauseAnalysisModal', () => {
   });
 
   it('allows deleting existing attachment when in edit mode', async () => {
-    renderWithTheme(
-      <RootCauseAnalysisModal
-        open
-        onClose={jest.fn()}
-        rcaStatus="IN_PROGRESS"
-        ticketId="ticket-3"
-        updatedBy="user-3"
-      />,
-    );
+    renderModal({ ticketId: 'ticket-3', updatedBy: 'user-3' });
 
     await waitFor(() => expect(getRootCauseAnalysisMock).toHaveBeenCalledWith('ticket-3'));
 
@@ -218,5 +221,102 @@ describe('RootCauseAnalysisModal', () => {
     await waitFor(() => {
       expect(deleteAttachmentMock).toHaveBeenCalledWith('ticket-3', 'one.png', 'user-3');
     });
+  });
+
+  it('renders submitted RCA in view mode and keeps attachments read-only', async () => {
+    renderModal({ rcaStatus: 'SUBMITTED', ticketId: 'ticket-submitted' });
+
+    await waitFor(() => expect(getRootCauseAnalysisMock).toHaveBeenCalledWith('ticket-submitted'));
+
+    expect(screen.getByText('View Root Cause Analysis')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Existing cause')).toBeInTheDocument();
+      expect(screen.getByText('Existing resolution')).toBeInTheDocument();
+    });
+
+    const thumbnailProps = mockThumbnailList.mock.calls[mockThumbnailList.mock.calls.length - 1]?.[0];
+    expect(thumbnailProps?.onRemove).toBeUndefined();
+    expect(mockFileUpload).not.toHaveBeenCalled();
+  });
+
+  it('handles file upload append/remove and attachment delete failures', async () => {
+    deleteHandlerSpy.mockImplementationOnce((fn: () => Promise<any>) => fn());
+    deleteAttachmentMock.mockRejectedValueOnce(new Error('delete failed'));
+    renderModal({ ticketId: 'ticket-files' });
+
+    await waitFor(() => expect(getRootCauseAnalysisMock).toHaveBeenCalledWith('ticket-files'));
+
+    fireEvent.change(screen.getByTestId('descriptionOfCause'), { target: { value: 'File cause' } });
+    fireEvent.change(screen.getByTestId('resolutionDescription'), { target: { value: 'File resolution' } });
+    const onFilesChange = mockFileUpload.mock.calls[mockFileUpload.mock.calls.length - 1]?.[0].onFilesChange;
+    await act(async () => {
+      onFilesChange?.([new File(['first'], 'first.txt')]);
+      onFilesChange?.([new File(['second'], 'second.txt')]);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await waitFor(() => expect(saveRootCauseAnalysisMock).toHaveBeenCalled());
+    const formData = saveRootCauseAnalysisMock.mock.calls[0][1] as FormData;
+    expect(formData.getAll('attachments')).toHaveLength(2);
+
+    const firstThumbCall = mockThumbnailList.mock.calls[mockThumbnailList.mock.calls.length - 1]?.[0];
+    await act(async () => {
+      await firstThumbCall?.onRemove?.(0);
+    });
+    expect(showMessageSpy).not.toHaveBeenCalledWith('Attachment removed successfully', 'success');
+
+    await act(async () => {
+      mockFileUpload.mock.calls[mockFileUpload.mock.calls.length - 1]?.[0].onFilesChange?.([]);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await waitFor(() => expect(saveRootCauseAnalysisMock).toHaveBeenCalledTimes(2));
+    const secondSubmitData = saveRootCauseAnalysisMock.mock.calls[1][1] as FormData;
+    expect(secondSubmitData.getAll('attachments')).toHaveLength(0);
+  });
+
+  it('does not fetch or submit when modal is closed or ticket id is missing', async () => {
+    const onClose = jest.fn();
+    renderWithTheme(
+      <RootCauseAnalysisModal
+        open={false}
+        onClose={onClose}
+        rcaStatus="DRAFT"
+        ticketId=""
+        updatedBy=""
+      />,
+    );
+
+    expect(getRootCauseAnalysisMock).not.toHaveBeenCalled();
+
+    renderModal({ onClose, rcaStatus: 'DRAFT', ticketId: '', updatedBy: '' });
+    fireEvent.change(screen.getByTestId('descriptionOfCause'), { target: { value: 'Cause only' } });
+    fireEvent.change(screen.getByTestId('resolutionDescription'), { target: { value: 'Resolution only' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await waitFor(() => expect(saveRootCauseAnalysisMock).not.toHaveBeenCalled());
+  });
+
+  it('does not close the modal while save is pending', () => {
+    const onClose = jest.fn();
+    const defaultResponse = { data: null, pending: false, success: false, error: null } as any;
+
+    useApiMock.mockReset();
+    const responses = [
+      { ...defaultResponse, apiHandler: jest.fn((fn: () => Promise<any>) => Promise.resolve(fn())) },
+      { ...defaultResponse, apiHandler: jest.fn((fn: () => Promise<any>) => Promise.resolve(fn())) },
+      { ...defaultResponse, apiHandler: jest.fn((fn: () => Promise<any>) => Promise.resolve(fn())), pending: true },
+      { ...defaultResponse, apiHandler: jest.fn((fn: () => Promise<any>) => Promise.resolve(fn())) },
+    ];
+    let idx = 0;
+    useApiMock.mockImplementation(() => responses[(idx++) % responses.length]);
+
+    renderModal({ onClose, rcaStatus: 'DRAFT', ticketId: 'ticket-pending' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
