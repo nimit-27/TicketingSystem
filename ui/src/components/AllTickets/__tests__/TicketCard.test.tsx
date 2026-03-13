@@ -34,7 +34,7 @@ const mockRemarkComponent = jest.fn(({ actionName, onSubmit, onCancel }: any) =>
         <button type="button" data-testid="remark-submit" onClick={() => onSubmit('remark')}>
             submit
         </button>
-        <button type="button" onClick={onCancel}>
+        <button type="button" data-testid="remark-cancel" onClick={onCancel}>
             cancel
         </button>
     </span>
@@ -83,8 +83,9 @@ jest.mock('react-router-dom', () => ({
     useNavigate: () => mockUseNavigate,
 }));
 
+const mockT = jest.fn((key: string) => key);
 jest.mock('react-i18next', () => ({
-    useTranslation: () => ({ t: (key: string) => key }),
+    useTranslation: () => ({ t: (...args: any[]) => mockT(...args) }),
 }));
 
 describe('TicketCard', () => {
@@ -112,6 +113,10 @@ describe('TicketCard', () => {
         mockUseApi.mockReturnValue({ apiHandler: updateTicketApiHandler });
         mockUpdateTicket.mockResolvedValue({});
         mockGetCurrentUserDetails.mockReturnValue({ username: 'agent.user' });
+        mockGetStatusNameById.mockReturnValue('In Progress');
+        mockGetStatusColorById.mockReturnValue('#000');
+        mockTruncateWithEllipsis.mockImplementation((value: string) => value);
+        mockT.mockImplementation((key: string) => key);
         searchCurrentTicketsPaginatedApi.mockClear();
     });
 
@@ -141,7 +146,41 @@ describe('TicketCard', () => {
         });
     });
 
-    it('renders menu button when more than two actions are available', async () => {
+    it('renders assigned avatar when assignee change is not allowed', () => {
+        render(
+            <TicketCard
+                ticket={ticket}
+                priorityConfig={{}}
+                statusWorkflows={{ open: [{ id: '1', action: 'Resolve', nextStatus: '2' }] }}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+            />
+        );
+
+        expect(screen.getByTestId('user-avatar')).toHaveTextContent('Agent One');
+        expect(mockAssigneeDropdown).not.toHaveBeenCalled();
+    });
+
+    it('renders no assignee UI when there is no assignee and assignment is not allowed', () => {
+        const ticketWithoutAssignee: TicketCardData = {
+            ...ticket,
+            assignedTo: undefined,
+            assignedToName: undefined,
+        };
+
+        const { queryByTestId } = render(
+            <TicketCard
+                ticket={ticketWithoutAssignee}
+                priorityConfig={{}}
+                statusWorkflows={{ open: [{ id: '1', action: 'Resolve', nextStatus: '2' }] }}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+            />
+        );
+
+        expect(queryByTestId('assignee-dropdown')).not.toBeInTheDocument();
+        expect(queryByTestId('user-avatar')).not.toBeInTheDocument();
+    });
+
+    it('renders menu button when more than two actions are available and opens menu actions', async () => {
         const workflows: Record<string, TicketStatusWorkflow[]> = {
             open: [
                 { id: '1', action: 'Resolve', nextStatus: '2' },
@@ -163,9 +202,43 @@ describe('TicketCard', () => {
         await waitFor(() => {
             expect(mockCustomIconButton).toHaveBeenCalledWith(expect.objectContaining({ icon: 'moreVert' }));
         });
+
+        const moreButtonCall = mockCustomIconButton.mock.calls.find(([props]) => props.icon === 'moreVert');
+        expect(moreButtonCall).toBeDefined();
+        await act(async () => {
+            moreButtonCall![0].onClick?.({ stopPropagation: jest.fn(), currentTarget: document.createElement('button') } as any);
+        });
+
+        expect(await screen.findByText('Cancel/ Reject')).toBeInTheDocument();
+        expect(mockIconComponent).toHaveBeenCalledWith(expect.objectContaining({ icon: 'close' }));
     });
 
-    it('submits remark when action is chosen', async () => {
+    it('shows submit button for resume action in pending requester/fci hold statuses', async () => {
+        const workflows: Record<string, TicketStatusWorkflow[]> = {
+            open: [{ id: 'resume', action: 'Resume', nextStatus: '2' }],
+        };
+        mockGetStatusNameById.mockReturnValue('On Hold (Pending with Requester)');
+
+        const { container } = render(
+            <TicketCard
+                ticket={ticket}
+                priorityConfig={{}}
+                statusWorkflows={workflows}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+            />
+        );
+
+        fireEvent.mouseEnter(container.firstChild as HTMLElement);
+
+        const submitBtn = await screen.findByRole('button', { name: 'Submit' });
+        fireEvent.click(submitBtn);
+
+        await waitFor(() => {
+            expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Resume' }));
+        });
+    });
+
+    it('submits remark when action is chosen and resets state on cancel', async () => {
         const workflows: Record<string, TicketStatusWorkflow[]> = {
             open: [
                 { id: '1', action: 'Resolve', nextStatus: '2' },
@@ -194,9 +267,17 @@ describe('TicketCard', () => {
         await waitFor(() => {
             expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Resolve' }));
         });
-        const remarkCall = mockRemarkComponent.mock.calls.find(([props]) => props.actionName === 'Resolve');
-        expect(remarkCall).toBeDefined();
-        remarkCall![0].onSubmit('remark');
+
+        const firstRemarkProps = mockRemarkComponent.mock.calls.at(-1)?.[0];
+        await act(async () => {
+            firstRemarkProps.onCancel();
+        });
+
+        await act(async () => {
+            actionProps.onClick?.({ stopPropagation: jest.fn() } as any);
+        });
+        const secondRemarkProps = mockRemarkComponent.mock.calls.at(-1)?.[0];
+        secondRemarkProps.onSubmit('remark');
 
         await waitFor(() => {
             expect(mockUpdateTicket).toHaveBeenCalled();
@@ -208,7 +289,65 @@ describe('TicketCard', () => {
             updatedBy: 'agent.user',
         }));
         expect(searchCurrentTicketsPaginatedApi).toHaveBeenCalledWith('INC-100');
-        expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Resolve' }));
+    });
+
+    it('handles missing current user while submitting remarks', async () => {
+        mockGetCurrentUserDetails.mockReturnValue(undefined);
+        const workflows: Record<string, TicketStatusWorkflow[]> = {
+            open: [{ id: '1', action: 'Close', nextStatus: '9' }],
+        };
+
+        const { container } = render(
+            <TicketCard
+                ticket={ticket}
+                priorityConfig={{}}
+                statusWorkflows={workflows}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+            />
+        );
+
+        fireEvent.mouseEnter(container.firstChild as HTMLElement);
+        const closeActionCall = await waitFor(() => {
+            const call = mockCustomIconButton.mock.calls.find(([props]) => props.icon === 'doneAll');
+            if (!call) throw new Error('close action not rendered');
+            return call;
+        });
+
+        await act(async () => {
+            closeActionCall[0].onClick?.({ stopPropagation: jest.fn() } as any);
+        });
+
+        const remarkProps = mockRemarkComponent.mock.calls.at(-1)?.[0];
+        remarkProps.onSubmit('remark');
+
+        await waitFor(() => {
+            expect(mockUpdateTicket).toHaveBeenCalledWith('INC-100', expect.objectContaining({ updatedBy: undefined }));
+        });
+    });
+
+    it('truncates translated status label and falls back to default icon for unknown action', async () => {
+        mockGetStatusNameById.mockReturnValue('Some Internal Status');
+        mockT.mockReturnValue('VeryLongTranslatedStatusName');
+
+        const workflows: Record<string, TicketStatusWorkflow[]> = {
+            open: [{ id: '1', action: 'Custom Action', nextStatus: '2' }],
+        };
+
+        const { container } = render(
+            <TicketCard
+                ticket={ticket}
+                priorityConfig={{}}
+                statusWorkflows={workflows}
+                searchCurrentTicketsPaginatedApi={searchCurrentTicketsPaginatedApi}
+            />
+        );
+
+        expect(screen.getByText('VeryLongTran...')).toBeInTheDocument();
+
+        fireEvent.mouseEnter(container.firstChild as HTMLElement);
+        await waitFor(() => {
+            expect(mockCustomIconButton).toHaveBeenCalledWith(expect.objectContaining({ icon: 'done', className: 'icon-green' }));
+        });
     });
 
     it('navigates to ticket details when visibility icon is clicked', async () => {
