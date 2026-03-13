@@ -82,6 +82,7 @@ class UserServicePasswordTest {
 
         Stakeholder stakeholder = new Stakeholder();
         stakeholder.setId(200);
+        stakeholder.setDescription("Requester Stakeholder");
         stakeholder.setStakeholderGroup(stakeholderGroup);
 
         RequesterUser requesterUser = new RequesterUser();
@@ -92,7 +93,7 @@ class UserServicePasswordTest {
 
         User requesterLookup = new User();
         requesterLookup.setUserId("req-1");
-        requesterLookup.setStakeholder("3");
+        requesterLookup.setStakeholder("200");
 
         when(userRepository.findById("req-1")).thenReturn(Optional.of(requesterLookup));
         when(requesterUserRepository.findById("req-1")).thenReturn(Optional.of(requesterUser));

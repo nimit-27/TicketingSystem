@@ -43,6 +43,9 @@ class NotificationServiceTest {
         when(notificationMasterRepository.findByCodeAndIsActiveTrue("TICKET_CREATED"))
                 .thenReturn(Optional.of(notificationMaster));
 
+        notificationRuntimeToggleService = mock(NotificationRuntimeToggleService.class);
+        when(notificationRuntimeToggleService.isNotificationEnabled()).thenReturn(true);
+
         notificationService = new NotificationService(List.of(notifier), properties, notificationRuntimeToggleService, notificationMasterRepository);
     }
 
