@@ -109,9 +109,10 @@ jest.mock('../../UI/UserAvatar/UserAvatar', () => ({
 }));
 
 const mockRequestorDetails = jest.fn(() => <div data-testid="requestor-details" />);
+const mockDownloadTicketsDialog = jest.fn(() => <div data-testid="download-dialog" />);
 jest.mock('../DownloadTicketsDialog', () => ({
     __esModule: true,
-    default: () => <div data-testid="download-dialog" />,
+    default: (props: any) => mockDownloadTicketsDialog(props),
 }));
 
 jest.mock('../RequestorDetails', () => ({
@@ -204,6 +205,7 @@ const tickets: TicketRow[] = [
 beforeEach(() => {
     jest.clearAllMocks();
     mockUseApi.mockReset();
+    mockDownloadTicketsDialog.mockClear();
     mockUseApi.mockImplementation(() => ({ apiHandler: jest.fn(async (fn) => fn()) }));
     mockNavigate.mockReset();
     mockCheckAccessMaster.mockImplementation(() => true);
@@ -313,7 +315,7 @@ describe('TicketsTable', () => {
         expect(rendered.getByRole('button', { name: 'Submit RCA' })).toBeInTheDocument();
     });
 
-    it('offers pdf and excel downloads with data rows', async () => {
+    it('opens download dialog and passes export metadata', async () => {
         render(
             <TicketsTable
                 tickets={tickets}
@@ -321,12 +323,38 @@ describe('TicketsTable', () => {
                 onRowClick={jest.fn()}
                 searchCurrentTicketsPaginatedApi={jest.fn()}
                 statusWorkflows={{ OPEN: [] }}
+                selectedCategory="Infrastructure"
+                selectedSubCategory="Network"
+                selectedZone="All"
+                selectedRegion="All"
+                selectedDistrict="All"
+                selectedIssueType="All"
+                selectedDivision="All"
+                selectedAssignee="All"
+                selectedStatusFilter="All"
                 zoneOptions={[{ label: 'All', value: 'All' }]}
                 issueTypeOptions={[{ label: 'All', value: 'All' }]}
+                statusFilterOptions={[{ label: 'All', value: 'All' }]}
+                divisionOptions={[{ label: 'All', value: 'All' }]}
             />,
         );
 
-        await userEvent.click(screen.getByText('Download'));
-        expect(screen.getByTestId('download-dialog')).toBeInTheDocument();
+        await waitFor(() => expect(mockDownloadTicketsDialog).toHaveBeenCalled());
+
+        const initialProps = mockDownloadTicketsDialog.mock.calls[0][0];
+        expect(initialProps.open).toBe(false);
+
+        await userEvent.click(screen.getByRole('button', { name: /Download/i }));
+
+        const latestProps = mockDownloadTicketsDialog.mock.calls.at(-1)?.[0];
+        expect(latestProps.open).toBe(true);
+        expect(latestProps.initialFilters).toEqual(expect.objectContaining({
+            category: 'Infrastructure',
+            subCategory: 'Network',
+        }));
+        expect(latestProps.exportableColumns).toEqual(expect.arrayContaining([
+            expect.objectContaining({ key: 'id', label: 'Ticket Id' }),
+            expect.objectContaining({ key: 'status', label: 'Status' }),
+        ]));
     });
 });
