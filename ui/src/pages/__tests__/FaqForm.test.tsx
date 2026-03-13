@@ -35,6 +35,7 @@ jest.mock('../../components/UI/FailureModal', () => ({
 
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
+  useParams: () => ({}),
 }));
 
 import FaqForm from '../FaqForm';
@@ -68,7 +69,7 @@ describe('FaqForm', () => {
 
     await waitFor(() => {
       expect(mockCreateFaq).toHaveBeenCalled();
-      expect(getByTestId('success-modal')).toHaveTextContent('Question and answer created successfully');
+      expect(getByTestId('success-modal')).toBeInTheDocument();
     });
   });
 

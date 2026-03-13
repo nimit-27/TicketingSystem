@@ -1,9 +1,9 @@
 import { logout } from "../Utils";
-import { logoutUser } from "../../services/AuthService";
+import * as AuthService from "../../services/AuthService";
 import { clearStoredToken } from "../authToken";
 
 jest.mock("../../services/AuthService", () => ({
-  logoutUser: jest.fn().mockResolvedValue({ data: { body: { success: true } } }),
+  logoutUser: jest.fn(),
 }));
 
 jest.mock("../authToken", () => ({
@@ -31,9 +31,11 @@ describe("logout", () => {
   it.skip("redirects to login within the app base path", async () => {
     process.env.PUBLIC_URL = "/helpdesk";
 
+    (AuthService.logoutUser as jest.Mock).mockResolvedValue({ data: { body: { success: true } } });
+
     await logout();
 
-    expect(logoutUser).toHaveBeenCalled();
+    expect(AuthService.logoutUser).toHaveBeenCalled();
     expect(clearStoredToken).toHaveBeenCalled();
     expect(window.location.assign).toHaveBeenCalledWith("/helpdesk/login");
   });

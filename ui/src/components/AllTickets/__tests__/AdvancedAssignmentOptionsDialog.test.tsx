@@ -98,7 +98,7 @@ describe('AdvancedAssignmentOptionsDialog', () => {
         );
 
         expect(screen.getByText('Assign User')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /requester/i })).toBeInTheDocument();
+        expect(screen.getByText(/requestor/i)).toBeInTheDocument();
         expect(screen.getByText('Assign to FCI')).toBeInTheDocument();
     });
 
@@ -137,7 +137,7 @@ describe('AdvancedAssignmentOptionsDialog', () => {
             />
         );
 
-        fireEvent.click(screen.getByRole('button', { name: /requester/i }));
+        fireEvent.click(screen.getByText(/requestor/i));
         await waitFor(() => {
             expect(mockRemarkComponent).toHaveBeenCalledWith(expect.objectContaining({ actionName: 'Assign to Requester' }));
         });

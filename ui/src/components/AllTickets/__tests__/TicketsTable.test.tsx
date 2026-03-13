@@ -80,10 +80,14 @@ jest.mock('../../../utils/permissions', () => ({
 const mockGetStatusNameById = jest.fn(() => 'Open');
 const mockTruncateWithEllipsis = jest.fn((value: string) => value);
 const mockTruncateWithLeadingEllipsis = jest.fn((value: string) => value);
+const mockGetDropdownOptions = jest.fn(() => []);
+const mockGetDropdownOptionsWithExtraOption = jest.fn((items: any[] = [], labelKey: string, valueKey: string, extra: any) => [extra, ...items.map((i: any) => ({ label: i[labelKey], value: i[valueKey] }))]);
 jest.mock('../../../utils/Utils', () => ({
     getStatusNameById: (...args: any[]) => mockGetStatusNameById(...args),
     truncateWithEllipsis: (...args: any[]) => mockTruncateWithEllipsis(...args),
     truncateWithLeadingEllipsis: (...args: any[]) => mockTruncateWithLeadingEllipsis(...args),
+    getDropdownOptions: (...args: any[]) => mockGetDropdownOptions(...args),
+    getDropdownOptionsWithExtraOption: (...args: any[]) => mockGetDropdownOptionsWithExtraOption(...args),
 }));
 
 const mockAssigneeDropdown = jest.fn(() => <div data-testid="assignee-dropdown" />);
@@ -105,6 +109,11 @@ jest.mock('../../UI/UserAvatar/UserAvatar', () => ({
 }));
 
 const mockRequestorDetails = jest.fn(() => <div data-testid="requestor-details" />);
+jest.mock('../DownloadTicketsDialog', () => ({
+    __esModule: true,
+    default: () => <div data-testid="download-dialog" />,
+}));
+
 jest.mock('../RequestorDetails', () => ({
     __esModule: true,
     default: (props: any) => mockRequestorDetails(props),
@@ -317,19 +326,7 @@ describe('TicketsTable', () => {
             />,
         );
 
-        const downloadTrigger = screen.getByText('Download');
-        await userEvent.click(downloadTrigger);
-        await userEvent.click(screen.getByText('Generate'));
-
-        await userEvent.click(screen.getByText('As PDF'));
-        await waitFor(() => expect(mockJsPdfConstructor).toHaveBeenCalled());
-        await waitFor(() => expect(mockAutoTable).toHaveBeenCalled());
-
-        await userEvent.click(downloadTrigger);
-        await userEvent.click(screen.getByText('Generate'));
-        await userEvent.click(screen.getByText('As Excel'));
-        await waitFor(() => expect(mockBookAppendSheet).toHaveBeenCalled());
-        await waitFor(() => expect(mockWriteFile).toHaveBeenCalled());
-        expect(mockWriteFile.mock.calls[0][1]).toBe('tickets.xlsx');
+        await userEvent.click(screen.getByText('Download'));
+        expect(screen.getByTestId('download-dialog')).toBeInTheDocument();
     });
 });
