@@ -133,7 +133,7 @@ describe('RaiseTicket', () => {
     mockApiHandler.mockImplementation((fn: () => Promise<any>) => Promise.resolve(fn()));
   });
 
-  it.skip('submits ticket and opens success modal', async () => {
+  it('submits ticket and opens success modal', async () => {
     const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
 
     fireEvent.click(getByTestId('add-attachment'));
@@ -146,13 +146,13 @@ describe('RaiseTicket', () => {
     });
   });
 
-  it.skip('opens link to master ticket modal', () => {
+  it('opens link to master ticket modal', () => {
     const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
     fireEvent.click(getByText('Link to a Master Ticket'));
     fireEvent.click(getByTestId('close-link-modal'));
   });
 
-  it.skip('allows assigning the ticket as master through the modal', () => {
+  it('allows assigning the ticket as master through the modal', () => {
     mockFormValues.ticketId = 'T-200';
     const { getByText, getByTestId } = renderWithTheme(<RaiseTicket />);
 
@@ -162,7 +162,7 @@ describe('RaiseTicket', () => {
     expect(mockFormValues.isMaster).toBe(true);
   });
 
-  it.skip('hides link button for master tickets', () => {
+  it('hides link button for master tickets', () => {
     mockFormValues.isMaster = true;
     const { queryByText } = renderWithTheme(<RaiseTicket />);
 

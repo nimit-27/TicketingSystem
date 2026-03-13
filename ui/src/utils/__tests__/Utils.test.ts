@@ -28,7 +28,7 @@ describe("logout", () => {
     window.location = originalLocation;
   });
 
-  it.skip("redirects to login within the app base path", async () => {
+  it("redirects to login within the app base path", async () => {
     process.env.PUBLIC_URL = "/helpdesk";
 
     (AuthService.logoutUser as jest.Mock).mockResolvedValue({ data: { body: { success: true } } });

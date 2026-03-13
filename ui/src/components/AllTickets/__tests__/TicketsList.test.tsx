@@ -211,7 +211,7 @@ describe('TicketsList', () => {
         return { searchHandler, workflowHandler, allowedHandler };
     };
 
-    it.skip('renders table view with fetched tickets and triggers initial search', async () => {
+    it('renders table view with fetched tickets and triggers initial search', async () => {
         const { searchHandler } = arrangeUseApiMocks();
 
         render(<TicketsList titleKey="tickets.title" />);
@@ -234,7 +234,7 @@ describe('TicketsList', () => {
         expect(firstCall[10]).toBe('desc');
     });
 
-    it.skip('switches to grid view when view toggle is used', async () => {
+    it('switches to grid view when view toggle is used', async () => {
         const { searchHandler } = arrangeUseApiMocks();
 
         render(<TicketsList titleKey="tickets.title" />);
@@ -250,7 +250,7 @@ describe('TicketsList', () => {
         );
     });
 
-    it.skip('triggers a new search when the query changes', async () => {
+    it('triggers a new search when the query changes', async () => {
         const { searchHandler } = arrangeUseApiMocks();
 
         render(<TicketsList titleKey="tickets.title" />);
@@ -269,7 +269,7 @@ describe('TicketsList', () => {
         });
     });
 
-    it.skip('fetches the next page when pagination changes', async () => {
+    it('fetches the next page when pagination changes', async () => {
         const { searchHandler } = arrangeUseApiMocks();
 
         render(<TicketsList titleKey="tickets.title" />);

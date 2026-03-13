@@ -158,7 +158,7 @@ describe('TicketDetails', () => {
     permissions.checkFieldAccess.mockReturnValue(true);
   });
 
-  it.skip('fetches initial data on mount', async () => {
+  it('fetches initial data on mount', async () => {
     setupUseApiMocks();
     render(<TicketDetails {...baseProps} />);
 
@@ -170,7 +170,7 @@ describe('TicketDetails', () => {
     });
   });
 
-  it.skip('loads dependent data when values change', async () => {
+  it('loads dependent data when values change', async () => {
     setupUseApiMocks();
     render(<TicketDetails {...baseProps} />);
 
@@ -181,7 +181,7 @@ describe('TicketDetails', () => {
     });
   });
 
-  it.skip('propagates attachment changes through callbacks', async () => {
+  it('propagates attachment changes through callbacks', async () => {
     setupUseApiMocks();
     render(<TicketDetails {...baseProps} />);
 

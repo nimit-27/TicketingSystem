@@ -177,7 +177,7 @@ describe("SupportDashboard", () => {
     mockGetDropdownOptions.mockReturnValue([]);
   });
 
-  it.skip("requests dashboard data on mount with default filters", async () => {
+  it("requests dashboard data on mount with default filters", async () => {
     mockGetDropdownOptions.mockImplementation((data: any) => {
       if (Array.isArray(data) && data[0]?.code === "assigned_to") {
         return [
@@ -200,7 +200,7 @@ describe("SupportDashboard", () => {
     expect(mockGetParametersByRoles).toHaveBeenCalledWith([]);
   });
 
-  it.skip("adds the creator filter when the user is a requester", async () => {
+  it("adds the creator filter when the user is a requester", async () => {
     mockGetUserDetails.mockReturnValue({ userId: "user-123", username: "user-123", role: ["Requester"] });
 
     renderWithTheme(<SupportDashboard />);
@@ -215,7 +215,7 @@ describe("SupportDashboard", () => {
     expect(mockGetParametersByRoles).toHaveBeenCalledWith(["Requester"]);
   });
 
-  it.skip("updates the request parameters when the time scale changes", async () => {
+  it("updates the request parameters when the time scale changes", async () => {
     renderWithTheme(<SupportDashboard />);
 
     await waitFor(() => expect(mockFetchSupportDashboardSummaryFiltered).toHaveBeenCalled());
@@ -233,7 +233,7 @@ describe("SupportDashboard", () => {
     });
   });
 
-  it.skip("filters dashboard data when a parameter is selected", async () => {
+  it("filters dashboard data when a parameter is selected", async () => {
     mockUseApi.mockReset();
     mockSummaryApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
     mockParameterApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
@@ -284,7 +284,7 @@ describe("SupportDashboard", () => {
     });
   });
 
-  it.skip("renders summary metrics from the API response", async () => {
+  it("renders summary metrics from the API response", async () => {
     const summaryResponse = {
       allTickets: {
         pendingForAcknowledgement: 2,
@@ -316,7 +316,7 @@ describe("SupportDashboard", () => {
     expect(await findByText("Critical")).toBeInTheDocument();
   });
 
-  it.skip("shows an error message when custom month range is invalid", async () => {
+  it("shows an error message when custom month range is invalid", async () => {
     renderWithTheme(<SupportDashboard initialTimeScale="MONTHLY" initialTimeRange="CUSTOM_MONTH_RANGE" />);
 
     fireEvent.change(await screen.findByLabelText("supportDashboard.filters.range.startYear"), {

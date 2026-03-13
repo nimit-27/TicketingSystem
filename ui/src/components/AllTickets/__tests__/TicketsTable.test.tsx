@@ -229,7 +229,7 @@ beforeEach(() => {
 });
 
 describe('TicketsTable', () => {
-    it.skip('passes rows to GenericTable and highlights refreshing ticket', async () => {
+    it('passes rows to GenericTable and highlights refreshing ticket', async () => {
         render(
             <TicketsTable
                 tickets={tickets}
@@ -247,7 +247,7 @@ describe('TicketsTable', () => {
         expect(tableProps.rowClassName(tickets[0])).toBe('refreshing-row');
     });
 
-    it.skip('renders assignee dropdown when assignment is allowed', async () => {
+    it('renders assignee dropdown when assignment is allowed', async () => {
         render(
             <TicketsTable
                 tickets={tickets}
@@ -271,7 +271,7 @@ describe('TicketsTable', () => {
         );
     });
 
-    it.skip('includes severity column when enabled', async () => {
+    it('includes severity column when enabled', async () => {
         render(
             <TicketsTable
                 tickets={tickets}
@@ -292,7 +292,7 @@ describe('TicketsTable', () => {
         expect(rendered.getByText('High')).toBeInTheDocument();
     });
 
-    it.skip('renders RCA action button when rcaStatus is provided', async () => {
+    it('renders RCA action button when rcaStatus is provided', async () => {
         const rcaTickets: TicketRow[] = [{ ...tickets[0], rcaStatus: 'PENDING' }];
 
         render(
@@ -313,7 +313,7 @@ describe('TicketsTable', () => {
         expect(rendered.getByRole('button', { name: 'Submit RCA' })).toBeInTheDocument();
     });
 
-    it.skip('offers pdf and excel downloads with data rows', async () => {
+    it('offers pdf and excel downloads with data rows', async () => {
         render(
             <TicketsTable
                 tickets={tickets}

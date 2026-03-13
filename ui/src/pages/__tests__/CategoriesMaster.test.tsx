@@ -114,13 +114,13 @@ describe('CategoriesMaster', () => {
     });
   });
 
-  it.skip('allows adding a new category when unique name is entered', async () => {
+  it('allows adding a new category when unique name is entered', async () => {
     const { getByLabelText, getByText } = renderWithTheme(<CategoriesMaster />);
 
-    const input = getByLabelText('Category') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'New Category' } });
+    const input = getByLabelText('Module') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'New Module' } });
 
-    const addButton = getByText('Add Category');
+    const addButton = getByText('Add Module');
     fireEvent.click(addButton);
 
     await waitFor(() => {
@@ -128,42 +128,42 @@ describe('CategoriesMaster', () => {
     });
   });
 
-  it.skip('hides the add button for duplicate category names', () => {
+  it('hides the add button for duplicate category names', () => {
     const { getByLabelText, queryByText } = renderWithTheme(<CategoriesMaster />);
 
-    const input = getByLabelText('Category') as HTMLInputElement;
+    const input = getByLabelText('Module') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'Existing' } });
 
-    expect(queryByText('Add Category')).toBeNull();
+    expect(queryByText('Add Module')).toBeNull();
     expect(mockAddCategory).not.toHaveBeenCalled();
   });
 
-  it.skip('splits matching and non-matching sub-categories', async () => {
+  it('splits matching and non-matching sub-categories', async () => {
     const { getByLabelText, getByText } = renderWithTheme(<CategoriesMaster />);
 
     await waitFor(() => {
       expect(mockFetchSubCategories).toHaveBeenCalled();
     });
 
-    const subInput = getByLabelText('Sub-Category') as HTMLInputElement;
+    const subInput = getByLabelText('Sub Module') as HTMLInputElement;
     fireEvent.change(subInput, { target: { value: 'Child' } });
 
     expect(getByText('Child')).toBeInTheDocument();
     expect(getByText('Other')).toBeInTheDocument();
   });
 
-  it.skip('adds a new sub-category with severity when category is selected', async () => {
+  it('adds a new sub-category with severity when category is selected', async () => {
     const { getByText } = renderWithTheme(<CategoriesMaster />);
 
     fireEvent.click(getByText('Existing'));
-    fireEvent.click(getByText('Add Sub-Category'));
+    fireEvent.click(getByText('Add Sub Module'));
 
     await waitFor(() => {
       expect(mockAddSubCategory).toHaveBeenCalled();
     });
   });
 
-  it.skip('updates severity for an existing sub-category selection', async () => {
+  it('updates severity for an existing sub-category selection', async () => {
     const { getByText } = renderWithTheme(<CategoriesMaster />);
 
     fireEvent.click(getByText('Child'));
