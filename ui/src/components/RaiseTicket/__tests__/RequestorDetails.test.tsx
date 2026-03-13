@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import RequestorDetails from '../RequestorDetails';
 
@@ -134,6 +135,92 @@ describe('RequestorDetails', () => {
 
     await waitFor(() => {
       expect(mockGetUserDetailsWithFallback).toHaveBeenCalledWith('self-1', false);
+    });
+  });
+
+
+
+  it('renders user option details and supports load more option', async () => {
+    mockSearchRequesterUsers
+      .mockResolvedValueOnce({
+        items: [
+          {
+            requesterUserId: 'u-1',
+            name: 'Alice Example',
+            username: 'alice',
+            mobileNo: '99999',
+            emailId: 'alice@example.com',
+          },
+        ],
+        totalPages: 2,
+        totalElements: 11,
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            requesterUserId: 'u-2',
+            name: 'Bob User',
+            username: 'bob',
+            mobileNo: '88888',
+            emailId: 'bob@example.com',
+          },
+        ],
+        totalPages: 2,
+        totalElements: 11,
+      });
+
+    renderWithForm({ mode: 'OnBehalf', stakeholder: '' });
+
+    await userEvent.click((await screen.findByLabelText('Open')));
+
+    expect(await screen.findByText('Alice Example')).toBeInTheDocument();
+    expect(screen.getByText('alice • u-1')).toBeInTheDocument();
+    expect(screen.getByText('alice@example.com')).toBeInTheDocument();
+
+    await act(async () => {
+      screen.getByText('Load more users').click();
+    });
+
+    await waitFor(() => {
+      expect(mockSearchRequesterUsers).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('selects and clears a requester from autocomplete', async () => {
+    mockSearchRequesterUsers.mockResolvedValue({
+      items: [
+        {
+          requesterUserId: 'u-1',
+          name: 'Alice Example',
+          username: 'alice',
+          mobileNo: '99999',
+          emailId: 'alice@example.com',
+          role: 'Requester',
+          office: 'HQ',
+        },
+      ],
+      totalPages: 1,
+      totalElements: 1,
+    });
+
+    const { form } = renderWithForm({ mode: 'OnBehalf', stakeholder: '' });
+
+    await userEvent.click((await screen.findByLabelText('Open')));
+
+    await userEvent.click(await screen.findByText('Alice Example'));
+
+    await waitFor(() => {
+      expect(form.getValues('userId')).toBe('u-1');
+      expect(form.getValues('requestorName')).toBe('Alice Example');
+    });
+
+    await act(async () => {
+      form.setValue('mode', 'Other');
+      form.setValue('onBehalfFciUser', true);
+    });
+
+    await waitFor(() => {
+      expect(form.getValues('requestorName')).toBe('');
     });
   });
 

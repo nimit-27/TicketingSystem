@@ -68,6 +68,42 @@ describe('SlaCalculationTrigger', () => {
     expect(fetchSlaCalculationJobHistory).toHaveBeenCalled();
   });
 
+
+
+  it('shows update error when periodic save API returns empty response', async () => {
+    const showMessage = jest.fn();
+    mockUseSnackbar.mockReturnValue({ showMessage } as any);
+    (updateTriggerJobPeriod as jest.Mock).mockResolvedValueOnce(null);
+
+    render(<SlaCalculationTrigger />);
+    await userEvent.click(screen.getByRole('button', { name: 'Trigger SLA Calculation' }));
+    await waitFor(() => expect(fetchSlaCalculationJobHistory).toHaveBeenCalled());
+
+    await userEvent.click(screen.getByTestId('EditIcon').closest('button')!);
+    await userEvent.click(screen.getByTestId('CheckIcon').closest('button')!);
+
+    await waitFor(() => {
+      expect(updateTriggerJobPeriod).toHaveBeenCalled();
+      expect(showMessage).toHaveBeenCalledWith('Unable to update trigger period', 'error');
+    });
+  });
+
+  it('shows info when trigger API reports already running', async () => {
+    const showMessage = jest.fn();
+    mockUseSnackbar.mockReturnValue({ showMessage } as any);
+    (triggerSlaCalculationJob as jest.Mock).mockResolvedValueOnce({ runStatus: 'SKIPPED' });
+
+    render(<SlaCalculationTrigger />);
+    await userEvent.click(screen.getByRole('button', { name: 'Trigger SLA Calculation' }));
+    await waitFor(() => expect(fetchSlaCalculationJobHistory).toHaveBeenCalled());
+
+    await userEvent.click(screen.getByRole('button', { name: 'Trigger' }));
+
+    await waitFor(() => {
+      expect(showMessage).toHaveBeenCalledWith('An SLA job is already running. Showing latest status.', 'info');
+    });
+  });
+
   it('shows cron validation feedback and blocks invalid periodic save', async () => {
     const showMessage = jest.fn();
     mockUseSnackbar.mockReturnValue({ showMessage } as any);

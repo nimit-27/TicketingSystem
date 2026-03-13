@@ -88,7 +88,7 @@ describe("TicketSummaryReport", () => {
 });
 
 describe("TicketResolutionTimeReport", () => {
-    it("renders resolution metrics and chart for loaded data", () => {
+    it("renders resolution metrics, grouped breakdown and chart options", () => {
         const data = {
             averageResolutionHours: 12.3456,
             resolvedTicketCount: 8,
@@ -96,6 +96,10 @@ describe("TicketResolutionTimeReport", () => {
                 Open: 10,
                 Closed: 14,
             },
+            categoryPriorityStats: [
+                { priority: 'High', categoryName: 'Infra', subcategoryName: 'Network', averageResolutionHours: 4.5, resolvedTicketCount: 3 },
+                { priority: null, category: 'Access', subcategory: null, averageResolutionHours: 7.25, resolvedTicketCount: 2 },
+            ],
         };
 
         const apiState = createApiState({ data });
@@ -103,14 +107,27 @@ describe("TicketResolutionTimeReport", () => {
 
         renderWithTheme(<TicketResolutionTimeReport />);
 
-//        expect(screen.getByTestId("echarts-mock")).toBeInTheDocument();
+        expect(screen.getByText(/Average Resolution Time/i)).toBeInTheDocument();
+        expect(screen.getByText('12.35 hrs')).toBeInTheDocument();
+        expect(screen.getByText('Priority: High')).toBeInTheDocument();
+        expect(screen.getByText('Priority: Unspecified')).toBeInTheDocument();
+        expect(screen.getByText('Infra > Network')).toBeInTheDocument();
+        expect(screen.getByText('Access > N/A')).toBeInTheDocument();
         expect(apiState.apiHandler).toHaveBeenCalledWith(expect.any(Function));
         expect(fetchTicketResolutionTimeReport).not.toHaveBeenCalled();
+    });
+
+    it("shows only loading state when report is pending", () => {
+        mockUseApi.mockReturnValue(createApiState({ pending: true, data: null }));
+        renderWithTheme(<TicketResolutionTimeReport />);
+
+        expect(screen.getByText(/Calculating resolution insights/i)).toBeInTheDocument();
+        expect(screen.queryByTestId('echarts-mock')).not.toBeInTheDocument();
     });
 });
 
 describe("CustomerSatisfactionReport", () => {
-    it("displays satisfaction stats and renders the bar chart", () => {
+    it("displays stats, rating headers, and renders bar chart values", () => {
         const data = {
             totalResponses: 25,
             compositeScore: 4.123,
@@ -118,6 +135,17 @@ describe("CustomerSatisfactionReport", () => {
             resolutionEffectivenessAverage: 4.3,
             communicationSupportAverage: 3.9,
             timelinessAverage: 4.0,
+            priorityBreakdown: [
+                {
+                    priority: 'High',
+                    category: 'Infra',
+                    subcategory: 'Network',
+                    ticketCount: 4,
+                    breachedTickets: 1,
+                    totalResponses: 6,
+                    ratingCounts: { '1★': 1, '5★': 5 },
+                },
+            ],
         };
 
         const apiState = createApiState({ data });
@@ -125,8 +153,22 @@ describe("CustomerSatisfactionReport", () => {
 
         renderWithTheme(<CustomerSatisfactionReport />);
 
+        expect(screen.getByText('4.12 / 5')).toBeInTheDocument();
+        expect(screen.getByText('Tickets Represented')).toBeInTheDocument();
+        expect(screen.getByText('Breached: 1')).toBeInTheDocument();
+        expect(screen.getByText(/Priority: High — Infra > Network/i)).toBeInTheDocument();
+        expect(screen.getByText('1★')).toBeInTheDocument();
+        expect(screen.getByText('5★')).toBeInTheDocument();
+
         expect(apiState.apiHandler).toHaveBeenCalledWith(expect.any(Function));
         expect(fetchCustomerSatisfactionReport).not.toHaveBeenCalled();
+    });
+
+    it("shows feedback loading copy while pending", () => {
+        mockUseApi.mockReturnValue(createApiState({ pending: true, data: null }));
+        renderWithTheme(<CustomerSatisfactionReport />);
+
+        expect(screen.getByText(/Gathering feedback trends/i)).toBeInTheDocument();
     });
 });
 
