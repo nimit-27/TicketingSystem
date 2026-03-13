@@ -216,6 +216,71 @@ describe('PermissionTree', () => {
     await waitFor(() => expect(screen.queryByTestId('json-edit-modal')).not.toBeInTheDocument());
   });
 
+
+
+  it('renames and deletes attributes with confirm flow', async () => {
+    const initialData = {
+      pages: {
+        show: true,
+        metadata: { name: 'Pages' },
+        children: {
+          reports: { show: true, metadata: { name: 'Reports' }, children: null },
+        },
+      },
+    };
+
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+    const Wrapper = () => {
+      const [data, setData] = React.useState(initialData);
+      return <PermissionTree data={data} onChange={setData} allowStructureEdit />;
+    };
+
+    renderWithContext(<Wrapper />, devModeValue);
+
+    const renameButton = screen.getAllByLabelText('Rename attribute')[0];
+    await userEvent.click(renameButton);
+    const input = screen.getByDisplayValue('Pages');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Main Pages');
+    await userEvent.click(screen.getByTestId('CheckIcon').closest('button')!);
+    expect(await screen.findByText('Main Pages')).toBeInTheDocument();
+
+    const deleteButtons = screen.getAllByLabelText('Delete attribute');
+    await userEvent.click(deleteButtons[0]);
+    await waitFor(() => expect(screen.queryByText('Main Pages')).not.toBeInTheDocument());
+    expect(confirmSpy).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('cancels pending add input when dev mode is toggled off', async () => {
+    const initialData = {
+      pages: { show: true, metadata: { name: 'Pages' }, children: null },
+    };
+
+    const Wrapper = () => {
+      const [data, setData] = React.useState(initialData);
+      const [devMode, setDevMode] = React.useState(true);
+      return (
+        <DevModeContext.Provider value={{ ...devModeValue, devMode }}>
+          <button type="button" onClick={() => setDevMode(false)}>disable-dev</button>
+          <PermissionTree data={data} onChange={setData} allowStructureEdit />
+        </DevModeContext.Provider>
+      );
+    };
+
+    renderWithTheme(<Wrapper />);
+
+    await userEvent.click(screen.getByLabelText('Add child attribute'));
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'disable-dev' }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+  });
+
   it('does not render structure edit controls when dev mode is disabled', () => {
     const data = {
       pages: {

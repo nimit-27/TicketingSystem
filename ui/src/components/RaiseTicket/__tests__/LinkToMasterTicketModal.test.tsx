@@ -171,4 +171,51 @@ describe('LinkToMasterTicketModal', () => {
     expect(baseProps.setMasterId).toHaveBeenCalledWith('');
     expect(baseProps.onClose).toHaveBeenCalled();
   });
+
+  it('shows API error from paginated search', async () => {
+    mockSearchTicketsPaginated.mockRejectedValueOnce(new Error('network'));
+
+    render(<LinkToMasterTicketModal {...baseProps} />);
+
+    expect(await screen.findByText('Failed to load tickets')).toBeInTheDocument();
+  });
+
+  it('converts a selected non-master ticket into master', async () => {
+    mockGetTicket.mockResolvedValueOnce({
+      body: { data: { id: 'MT-9', subject: 'Needs conversion', isMaster: false } },
+    });
+    mockMakeTicketMaster.mockResolvedValueOnce({
+      body: { data: { id: 'MT-9', subject: 'Needs conversion', isMaster: true } },
+    });
+
+    render(<LinkToMasterTicketModal {...baseProps} />);
+
+    fireEvent.click(await screen.findByText(/Master ticket/));
+    await waitFor(() => expect(mockGetTicket).toHaveBeenCalled());
+
+    const checkbox = await screen.findByLabelText(/create it as a master ticket/i);
+    fireEvent.click(checkbox);
+
+    await waitFor(() => {
+      expect(mockMakeTicketMaster).toHaveBeenCalledWith('MT-9');
+    });
+  });
+
+  it('shows conversion error message when master conversion fails', async () => {
+    mockGetTicket.mockResolvedValueOnce({
+      body: { data: { id: 'MT-8', subject: 'Cannot convert', isMaster: false } },
+    });
+    mockMakeTicketMaster.mockRejectedValueOnce({
+      response: { data: { body: { data: { message: 'Conversion failed' } } } },
+    });
+
+    render(<LinkToMasterTicketModal {...baseProps} />);
+
+    fireEvent.click(await screen.findByText(/Master ticket/));
+    await waitFor(() => expect(mockGetTicket).toHaveBeenCalled());
+
+    fireEvent.click(await screen.findByLabelText(/create it as a master ticket/i));
+
+    expect(await screen.findByText('Conversion failed')).toBeInTheDocument();
+  });
 });
