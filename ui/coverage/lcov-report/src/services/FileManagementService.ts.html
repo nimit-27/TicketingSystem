@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -92,48 +92,48 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from "./apiClient";
 import { BASE_URL } from "./api";
 import { FileDocument, FileUploadPayload } from "../types/fileManagement";
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >listManagedFiles(</span>section?: string) {
-<span class="cstat-no" title="statement not covered" >    return apiClient.get&lt;FileDocument[]&gt;(`${BASE_URL}/file-management/files`, { params: { section } });</span>
+export function listManagedFiles(section?: string) {
+    return apiClient.get&lt;FileDocument[]&gt;(`${BASE_URL}/file-management/files`, { params: { section } });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >uploadManagedFile(</span>file: File, payload: FileUploadPayload) {
-    const formData = <span class="cstat-no" title="statement not covered" >new FormData();</span>
-<span class="cstat-no" title="statement not covered" >    formData.append("file", file);</span>
-<span class="cstat-no" title="statement not covered" >    formData.append("metadata", new Blob([JSON.stringify(payload)], { type: "application/json" }));</span>
-<span class="cstat-no" title="statement not covered" >    return apiClient.post&lt;FileDocument&gt;(`${BASE_URL}/file-management/files`, formData, {</span>
+export function uploadManagedFile(file: File, payload: FileUploadPayload) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("metadata", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+    return apiClient.post&lt;FileDocument&gt;(`${BASE_URL}/file-management/files`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
     });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getManagedFileMetadata(</span>id: string) {
-<span class="cstat-no" title="statement not covered" >    return apiClient.get&lt;FileDocument&gt;(`${BASE_URL}/file-management/files/${id}`);</span>
+export function getManagedFileMetadata(id: string) {
+    return apiClient.get&lt;FileDocument&gt;(`${BASE_URL}/file-management/files/${id}`);
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getManagedFileContentUrl(</span>id: string) {
-<span class="cstat-no" title="statement not covered" >    return `${BASE_URL}/file-management/files/${id}/content`;</span>
+export function getManagedFileContentUrl(id: string) {
+    return `${BASE_URL}/file-management/files/${id}/content`;
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -142,7 +142,7 @@ export function <span class="fstat-no" title="function not covered" >getManagedF
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-13T13:32:45.145Z
+                at 2026-03-13T14:25:30.158Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>12/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -183,7 +183,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,9 +192,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -224,22 +224,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -248,7 +248,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -257,7 +257,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -286,18 +286,18 @@ interface RequesterUsersTableProps {
   resettingUserId?: string | null;
 }
 &nbsp;
-const RequesterUsersTable: React.FC&lt;RequesterUsersTableProps&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span></span>
+const RequesterUsersTable: React.FC&lt;RequesterUsersTableProps&gt; = ({
   users,
-  loading = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span>
+  loading = false,
   onViewProfile,
   onAppointRno,
   appointingUserId,
   onResetPassword,
   resettingUserId,
 }) =&gt; {
-  const { t } = <span class="cstat-no" title="statement not covered" >useTranslation();</span>
+  const { t } = useTranslation();
 &nbsp;
-  const columns: ColumnsType&lt;RequesterUser&gt; = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >[</span></span>
+  const columns: ColumnsType&lt;RequesterUser&gt; = useMemo(() =&gt; [
     { title: t('User ID'), dataIndex: 'requesterUserId', key: 'requesterUserId' },
     { title: t('Name'), dataIndex: 'name', key: 'name' },
     // { title: t('First Name'), dataIndex: 'firstName', key: 'firstName' },
@@ -326,23 +326,23 @@ const RequesterUsersTable: React.FC&lt;RequesterUsersTableProps&gt; = <span clas
     {
       title: t('Actions'),
       key: 'actions',
-      render: <span class="fstat-no" title="function not covered" >(_</span>, record) =&gt; {
-        const alreadyRno = <span class="cstat-no" title="statement not covered" >(record.roleIds ?? []).includes('4');</span>
-        const isAppointing = <span class="cstat-no" title="statement not covered" >appointingUserId === record.requesterUserId;</span>
-        const isRoOffice = <span class="cstat-no" title="statement not covered" >(record.officeType ?? '').trim().toUpperCase() === 'RO';</span>
+      render: (_, record) =&gt; {
+        const alreadyRno = (record.roleIds ?? <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>.includes('4');
+        const isAppointing = appointingUserId === record.requesterUserId;
+        const isRoOffice = (record.officeType ?? <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.trim().toUpperCase() === 'RO';
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        return (</span>
+        return (
           &lt;div className="d-flex gap-2"&gt;
             &lt;CustomIconButton
               size="small"
               icon="visibility"
-              onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >onViewProfile(record)}</span>
+              onClick={() =&gt; onViewProfile(record)}
             /&gt;
             &lt;CustomIconButton
               size="small"
               icon="lockReset"
               title={t('Reset Password')}
-              onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >onResetPassword?.(record)}</span>
+              onClick={() =&gt; onResetPassword?.(record)}
               disabled={!onResetPassword || resettingUserId === record.requesterUserId}
             /&gt;
             {isRoOffice &amp;&amp; (
@@ -351,7 +351,7 @@ const RequesterUsersTable: React.FC&lt;RequesterUsersTableProps&gt; = <span clas
                 icon="verifiedUser"
                 disabled={!onAppointRno || alreadyRno || isAppointing}
                 title={alreadyRno ? t('Already appointed as RNO') : t('Appoint as RNO')}
-                onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >onAppointRno?.(record)}</span>
+                onClick={() =&gt; onAppointRno?.(record)}
               /&gt;
             )}
           &lt;/div&gt;
@@ -360,7 +360,7 @@ const RequesterUsersTable: React.FC&lt;RequesterUsersTableProps&gt; = <span clas
     },
   ], [appointingUserId, onAppointRno, onResetPassword, onViewProfile, resettingUserId, t]);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;GenericTable
       rowKey="requesterUserId"
       columns={columns}
@@ -379,7 +379,7 @@ export default RequesterUsersTable;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-13T13:32:45.145Z
+                at 2026-03-13T14:25:30.158Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

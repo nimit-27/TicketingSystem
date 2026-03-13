@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">15.38% </span>
+                <span class="strong">92.3% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/13</span>
+                <span class='fraction'>12/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">15.38% </span>
+                <span class="strong">92.3% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/13</span>
+                <span class='fraction'>12/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -93,26 +93,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import axios, { AxiosResponse } from 'axios';
@@ -121,24 +121,24 @@ import { IssueTypeInfo } from '../types';
 &nbsp;
 let issueTypeCache: IssueTypeInfo[] | null = null;
 &nbsp;
-const normalizeIssueTypeData = <span class="fstat-no" title="function not covered" >(d</span>ata: any): IssueTypeInfo[] =&gt; {
-<span class="cstat-no" title="statement not covered" >    if (Array.isArray(data)) {</span>
+const normalizeIssueTypeData = (data: any): IssueTypeInfo[] =&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (Array.isArray(data)) {
 <span class="cstat-no" title="statement not covered" >        return data as IssueTypeInfo[];</span>
     }
-<span class="cstat-no" title="statement not covered" >    if (data?.body?.data &amp;&amp; Array.isArray(data.body.data)) {</span>
-<span class="cstat-no" title="statement not covered" >        return data.body.data as IssueTypeInfo[];</span>
+    if (data?.body?.data &amp;&amp; Array.isArray(data.body.data)) {
+        return data.body.data as IssueTypeInfo[];
     }
-<span class="cstat-no" title="statement not covered" >    return [];</span>
+    return [];
 };
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getIssueTypes(</span>) {
-<span class="cstat-no" title="statement not covered" >    if (issueTypeCache) {</span>
-<span class="cstat-no" title="statement not covered" >        return Promise.resolve({ data: issueTypeCache } as { data: IssueTypeInfo[] });</span>
+export function getIssueTypes() {
+    if (issueTypeCache) {
+        return Promise.resolve({ data: issueTypeCache } as { data: IssueTypeInfo[] });
     }
-<span class="cstat-no" title="statement not covered" >    return axios.get(`${BASE_URL}/issue-types`).then(<span class="fstat-no" title="function not covered" >(r</span>es: AxiosResponse&lt;any&gt;) =&gt; {</span>
-        const issueTypeData = <span class="cstat-no" title="statement not covered" >normalizeIssueTypeData(res.data);</span>
-<span class="cstat-no" title="statement not covered" >        issueTypeCache = issueTypeData;</span>
-<span class="cstat-no" title="statement not covered" >        return { ...res, data: issueTypeData } as AxiosResponse&lt;IssueTypeInfo[]&gt;;</span>
+    return axios.get(`${BASE_URL}/issue-types`).then((res: AxiosResponse&lt;any&gt;) =&gt; {
+        const issueTypeData = normalizeIssueTypeData(res.data);
+        issueTypeCache = issueTypeData;
+        return { ...res, data: issueTypeData } as AxiosResponse&lt;IssueTypeInfo[]&gt;;
     });
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -148,7 +148,7 @@ export function <span class="fstat-no" title="function not covered" >getIssueTyp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-13T13:32:45.145Z
+                at 2026-03-13T14:25:30.158Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
