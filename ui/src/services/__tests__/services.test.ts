@@ -145,6 +145,39 @@ describe("CalendarService", () => {
 });
 
 describe("CategoryService", () => {
+  it("normalizes category sub-category fields from different payload shapes", async () => {
+    axiosMock.get.mockResolvedValue({
+      data: [
+        {
+          id: "C1",
+          subCategories: [
+            { id: "S1", subCategory: "Power+Issue=", severity: { id: "SEV-1" } },
+            { id: "S2", subCategory: "Already Clean", severityId: "SEV-2" },
+          ],
+        },
+      ],
+    });
+    const service = await import("../CategoryService");
+
+    const response = await service.getCategories();
+
+    expect(response.data[0].subCategories).toEqual([
+      expect.objectContaining({ id: "S1", subCategory: "Power Issue", severityId: "SEV-1" }),
+      expect.objectContaining({ id: "S2", subCategory: "Already Clean", severityId: "SEV-2" }),
+    ]);
+  });
+
+  it("does not cache category responses when the payload is not an array", async () => {
+    axiosMock.get.mockResolvedValueOnce({ data: { body: { data: [] } } });
+    axiosMock.get.mockResolvedValueOnce({ data: [] });
+    const service = await import("../CategoryService");
+
+    await service.getCategories();
+    await service.getCategories();
+
+    expect(axiosMock.get).toHaveBeenCalledTimes(2);
+  });
+
   it("caches categories after the first request", async () => {
     const response = { data: [{ id: 1 }] };
     axiosMock.get.mockResolvedValue(response);
@@ -172,6 +205,36 @@ describe("CategoryService", () => {
     const cached = await service.getAllSubCategoriesByCategory("network");
     expect(cached.data).toEqual(response.data);
     // expect(axiosMock.get).not.toHaveBeenCalled();
+  });
+
+  it("resets category and sub-category caches on mutating operations", async () => {
+    const service = await import("../CategoryService");
+
+    axiosMock.get.mockResolvedValue({ data: [{ id: "C1" }] });
+    await service.getCategories();
+    axiosMock.get.mockClear();
+    await service.addCategory({ name: "New Category" });
+    axiosMock.get.mockResolvedValue({ data: [{ id: "C2" }] });
+    await service.getCategories();
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+
+    axiosMock.get.mockClear();
+    axiosMock.get.mockResolvedValue({ data: [{ id: "S1" }] });
+    await service.getAllSubCategoriesByCategory("network");
+    axiosMock.get.mockClear();
+    await service.updateSubCategory("S1", { name: "Updated" });
+    axiosMock.get.mockResolvedValue({ data: [{ id: "S2" }] });
+    await service.getAllSubCategoriesByCategory("network");
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+
+    axiosMock.get.mockClear();
+    axiosMock.get.mockResolvedValue({ data: [{ id: "S3" }] });
+    await service.getAllSubCategoriesByCategory("network");
+    axiosMock.get.mockClear();
+    await service.deleteSubCategory("S1");
+    axiosMock.get.mockResolvedValue({ data: [{ id: "S4" }] });
+    await service.getAllSubCategoriesByCategory("network");
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
   });
 
   it("supports CRUD operations on categories and sub categories", async () => {
@@ -588,7 +651,31 @@ describe("TicketService", () => {
 
   it("constructs search query parameters", async () => {
     const service = await import("../TicketService");
-    await service.searchTicketsPaginated("query", "OPEN", true, 2, 10, "assignee", "level1", "assigner", "requestor", "createdAt", "desc", "HIGH", "creator", "reported_date", "2024-01-01", "2024-02-01", "cat", "sub");
+    await service.searchTicketsPaginated(
+      "query",
+      "OPEN",
+      true,
+      2,
+      10,
+      "assignee",
+      "level1",
+      "assigner",
+      "requestor",
+      "createdAt",
+      "desc",
+      "HIGH",
+      "creator",
+      "reported_date",
+      "2024-01-01",
+      "2024-02-01",
+      "cat",
+      "sub",
+      "Z1",
+      "R1",
+      "D1",
+      "I1",
+      "DIV-1"
+    );
     const url = axiosMock.get.mock.calls.find((call: any[]) => String(call[0]).includes("/tickets/search"))[0] as string;
     expect(url).toContain("query=query");
     expect(url).toContain("status=OPEN");
@@ -608,6 +695,11 @@ describe("TicketService", () => {
     expect(url).toContain("toDate=2024-02-01");
     expect(url).toContain("category=cat");
     expect(url).toContain("subCategory=sub");
+    expect(url).toContain("zoneCode=Z1");
+    expect(url).toContain("regionCode=R1");
+    expect(url).toContain("districtCode=D1");
+    expect(url).toContain("issueTypeId=I1");
+    expect(url).toContain("divisionId=DIV-1");
   });
   it("constructs export search query parameters", async () => {
     const service = await import("../TicketService");
