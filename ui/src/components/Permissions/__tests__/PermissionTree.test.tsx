@@ -7,7 +7,7 @@ import { renderWithTheme } from '../../../test/testUtils';
 
 jest.mock('../JsonEditModal', () => ({
   __esModule: true,
-  default: ({ open, onSubmit, onCancel }: { open: boolean; onSubmit: (value: any) => void; onCancel: () => void }) => (
+  default: ({ open, onSubmit, onCancel }) => (
     open ? (
       <div data-testid="json-edit-modal">
         <button type="button" onClick={() => onSubmit({ show: false })}>
@@ -29,23 +29,23 @@ const devModeValue = {
   setJwtBypass: jest.fn(),
 };
 
-const renderWithContext = (ui: React.ReactNode, value = { ...devModeValue, devMode: false }) =>
+const renderWithContext = (ui, value = { ...devModeValue, devMode: false }) =>
   renderWithTheme(
-    <DevModeContext.Provider value={value as any}>
+    <DevModeContext.Provider value={value}>
       {ui}
     </DevModeContext.Provider>,
   );
 
-const findCheckboxForLabel = (label: string): HTMLInputElement => {
+const findCheckboxForLabel = (label) => {
   const textEl = screen.getByText(label);
-  let current: HTMLElement | null = textEl.parentElement as HTMLElement | null;
+  let current = textEl.parentElement;
   while (current && !current.querySelector('input[type="checkbox"]')) {
-    current = current.parentElement as HTMLElement | null;
+    current = current.parentElement;
   }
   if (!current) {
     throw new Error(`Checkbox for ${label} not found`);
   }
-  return current.querySelector('input[type="checkbox"]') as HTMLInputElement;
+  return current.querySelector('input[type="checkbox"]');
 };
 
 describe('PermissionTree', () => {
@@ -100,7 +100,7 @@ describe('PermissionTree', () => {
     await userEvent.type(input, 'New Child');
 
     const confirmButton = screen.getByTestId('CheckIcon').closest('button');
-    await userEvent.click(confirmButton!);
+    await userEvent.click(confirmButton);
 
     await waitFor(() => expect(screen.getByText('New Child')).toBeInTheDocument());
 
@@ -175,7 +175,7 @@ describe('PermissionTree', () => {
       />, devModeValue
     );
 
-    const editJsonButton = screen.getAllByLabelText('Edit JSON').find(el => el.tagName === 'BUTTON') as HTMLElement;
+    const editJsonButton = screen.getAllByLabelText('Edit JSON').find(el => el.tagName === 'BUTTON');
     await userEvent.click(editJsonButton);
 
     expect(screen.getByTestId('json-edit-modal')).toBeInTheDocument();
@@ -186,5 +186,55 @@ describe('PermissionTree', () => {
       pages: { show: false },
     });
     await waitFor(() => expect(screen.queryByTestId('json-edit-modal')).not.toBeInTheDocument());
+  });
+
+  it('closes json editor without submitting on cancel', async () => {
+    const handleChange = jest.fn();
+    const data = {
+      pages: {
+        show: true,
+        metadata: { name: 'Pages' },
+        children: null,
+      },
+    };
+
+    renderWithContext(
+      <PermissionTree
+        data={data}
+        onChange={handleChange}
+        allowStructureEdit
+      />, devModeValue
+    );
+
+    const editJsonButton = screen.getAllByLabelText('Edit JSON').find(el => el.tagName === 'BUTTON');
+    await userEvent.click(editJsonButton);
+    expect(screen.getByTestId('json-edit-modal')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /close json/i }));
+
+    expect(handleChange).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByTestId('json-edit-modal')).not.toBeInTheDocument());
+  });
+
+  it('does not render structure edit controls when dev mode is disabled', () => {
+    const data = {
+      pages: {
+        show: true,
+        metadata: { name: 'Pages' },
+        children: null,
+      },
+    };
+
+    renderWithContext(
+      <PermissionTree
+        data={data}
+        onChange={jest.fn()}
+        allowStructureEdit
+      />,
+      { ...devModeValue, devMode: false }
+    );
+
+    expect(screen.queryByLabelText('Add child attribute')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Edit JSON')).not.toBeInTheDocument();
   });
 });
