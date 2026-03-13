@@ -59,6 +59,19 @@ jest.mock('../../../services/SeverityService', () => ({
   getSeverities: (...args: any[]) => mockGetSeverities(...args),
 }));
 
+
+const mockGetIssueTypes = jest.fn(() => Promise.resolve([]));
+
+jest.mock('../../../services/IssueTypeService', () => ({
+  getIssueTypes: (...args: any[]) => mockGetIssueTypes(...args),
+}));
+
+const mockGetDivisions = jest.fn(() => Promise.resolve([]));
+
+jest.mock('../../../services/DivisionService', () => ({
+  getDivisions: (...args: any[]) => mockGetDivisions(...args),
+}));
+
 jest.mock('../../UI/Dropdown/GenericDropdownController', () => ({
   __esModule: true,
   default: ({ name, label, options, disabled }: any) => (
@@ -129,14 +142,24 @@ describe('TicketDetails', () => {
       return { data, pending: false, error: null, apiHandler: handler };
     };
 
-    mockUseApi
-      .mockReturnValueOnce(makeReturn([]))
-      .mockReturnValueOnce(makeReturn([]))
-      .mockReturnValueOnce(makeReturn([{ category: 'Hardware', categoryId: 'cat-1' }]))
-      .mockReturnValueOnce(makeReturn([{ subCategory: 'Laptop', subCategoryId: 'sub-1', severityId: 'sev-1' }]))
-      .mockReturnValueOnce(makeReturn([]))
-      .mockReturnValueOnce(makeReturn([{ id: 'p1', level: 'High', description: 'High impact' }]))
-      .mockReturnValueOnce(makeReturn([{ id: 's1', level: 'Critical', description: 'Critical issue' }]));
+    const useApiReturns = [
+      makeReturn([]),
+      makeReturn([]),
+      makeReturn([{ category: 'Hardware', categoryId: 'cat-1' }]),
+      makeReturn([{ subCategory: 'Laptop', subCategoryId: 'sub-1', severityId: 'sev-1' }]),
+      makeReturn([]),
+      makeReturn([{ id: 'p1', level: 'High', description: 'High impact' }]),
+      makeReturn([{ id: 's1', level: 'Critical', description: 'Critical issue' }]),
+      makeReturn([]),
+      makeReturn([]),
+    ];
+
+    let callCount = 0;
+    mockUseApi.mockImplementation(() => {
+      const value = useApiReturns[callCount % useApiReturns.length];
+      callCount += 1;
+      return value;
+    });
 
     return handlers;
   };
