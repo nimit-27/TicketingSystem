@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.31% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>184/232</span>
+                <span class='fraction'>182/208</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.36% </span>
+                <span class="strong">64.18% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>99/164</span>
+                <span class='fraction'>95/148</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.03% </span>
+                <span class="strong">85.45% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>47/58</span>
+                <span class='fraction'>47/55</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.5% </span>
+                <span class="strong">91.06% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>165/200</span>
+                <span class='fraction'>163/179</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -759,25 +759,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -911,17 +911,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">18x</span>
@@ -1290,26 +1290,26 @@ const DownloadTicketsDialog: React.FC&lt;DownloadTicketsDialogProps&gt; = ({
 &nbsp;
     // Setting Region dropdown options post getRegions API success
     useEffect(() =&gt; {
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (getRegionsApiSuccess &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >!getRegionsApiPending)</span> {
-            const nextRegionOptions = <span class="cstat-no" title="statement not covered" >getDropdownOptionsWithExtraOption(getRegionsApiData, "regionName", "regionCode", allOptionObject)</span>
-<span class="cstat-no" title="statement not covered" >            setRegionOptions(nextRegionOptions);</span>
-            const shouldRetainRegion = <span class="cstat-no" title="statement not covered" >nextRegionOptions.some(<span class="fstat-no" title="function not covered" >(o</span>ption) =&gt; <span class="cstat-no" title="statement not covered" >option.value === region)</span>;</span>
-            const nextRegion = <span class="cstat-no" title="statement not covered" >shouldRetainRegion ? region : 'All';</span>
-<span class="cstat-no" title="statement not covered" >            setRegion(nextRegion);</span>
-            const selectedRegionOption = <span class="cstat-no" title="statement not covered" >nextRegionOptions.find(<span class="fstat-no" title="function not covered" >(o</span>ption) =&gt; <span class="cstat-no" title="statement not covered" >option.value === nextRegion)</span>;</span>
-<span class="cstat-no" title="statement not covered" >            setRegionHrmsCode(`${selectedRegionOption?.value}11` || 'All');</span>
-        }
+        // if (getRegionsApiSuccess &amp;&amp; !getRegionsApiPending) {
+        //     const nextRegionOptions = getDropdownOptionsWithExtraOption(getRegionsApiData, "regionName", "regionCode", allOptionObject)
+        //     setRegionOptions(nextRegionOptions);
+        //     const shouldRetainRegion = nextRegionOptions.some((option) =&gt; option.value === region);
+        //     const nextRegion = shouldRetainRegion ? region : 'All';
+        //     setRegion(nextRegion);
+        //     const selectedRegionOption = nextRegionOptions.find((option) =&gt; option.value === nextRegion);
+        //     setRegionHrmsCode(`${selectedRegionOption?.value}11` || 'All');
+        // }
 &nbsp;
     }, [getRegionsApiSuccess, getRegionsApiPending])
 &nbsp;
     // Setting District dropdown options post getDistricts API success
     useEffect(() =&gt; {
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (getDistrictsApiSuccess &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >!getDistrictsApiPending)</span> {
-            const nextDistrictOptions = <span class="cstat-no" title="statement not covered" >getDropdownOptionsWithExtraOption(getDistrictsApiData, 'districtName', 'districtCode', allOptionObject)</span>
-<span class="cstat-no" title="statement not covered" >            setDistrictOptions(nextDistrictOptions);</span>
-            const shouldRetainDistrict = <span class="cstat-no" title="statement not covered" >nextDistrictOptions.some(<span class="fstat-no" title="function not covered" >(o</span>ption) =&gt; <span class="cstat-no" title="statement not covered" >option.value === district)</span>;</span>
-<span class="cstat-no" title="statement not covered" >            setDistrict(shouldRetainDistrict ? district : 'All');</span>
-        }
+        // if (getDistrictsApiSuccess &amp;&amp; !getDistrictsApiPending) {
+        //     const nextDistrictOptions = getDropdownOptionsWithExtraOption(getDistrictsApiData, 'districtName', 'districtCode', allOptionObject)
+        //     setDistrictOptions(nextDistrictOptions);
+        //     const shouldRetainDistrict = nextDistrictOptions.some((option) =&gt; option.value === district);
+        //     setDistrict(shouldRetainDistrict ? district : 'All');
+        // }
     }, [getDistrictsApiSuccess, getDistrictsApiPending])
 &nbsp;
 &nbsp;
@@ -1442,17 +1442,17 @@ const DownloadTicketsDialog: React.FC&lt;DownloadTicketsDialogProps&gt; = ({
     }, [district, open, regionHrmsCode]);
 &nbsp;
     const handleRegionChange = <span class="fstat-no" title="function not covered" >(n</span>extRegion: string) =&gt; {
-<span class="cstat-no" title="statement not covered" >        setRegion(nextRegion);</span>
-<span class="cstat-no" title="statement not covered" >        setRegionHrmsCode(nextRegion !== 'All' ? `${nextRegion}11` : 'All');</span>
-<span class="cstat-no" title="statement not covered" >        setDistrict('All');</span>
+        // setRegion(nextRegion);
+        // setRegionHrmsCode(nextRegion !== 'All' ? `${nextRegion}11` : 'All');
+        // setDistrict('All');
     };
 &nbsp;
     const applyPresetRange = <span class="fstat-no" title="function not covered" >(d</span>ays: number) =&gt; {
-        const end = <span class="cstat-no" title="statement not covered" >new Date();</span>
-        const start = <span class="cstat-no" title="statement not covered" >new Date();</span>
-<span class="cstat-no" title="statement not covered" >        start.setDate(end.getDate() - (days - 1));</span>
-<span class="cstat-no" title="statement not covered" >        setFromDate(formatInputDate(start));</span>
-<span class="cstat-no" title="statement not covered" >        setToDate(formatInputDate(end));</span>
+        // const end = new Date();
+        // const start = new Date();
+        // start.setDate(end.getDate() - (days - 1));
+        // setFromDate(formatInputDate(start));
+        // setToDate(formatInputDate(end));
     };
 &nbsp;
     const handleGenerateSelection = async (format: 'pdf' | 'excel') =&gt; {
@@ -1663,7 +1663,7 @@ export default DownloadTicketsDialog;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-13T14:25:30.158Z
+                at 2026-03-13T15:20:26.922Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
