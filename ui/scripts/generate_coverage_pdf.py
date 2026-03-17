@@ -77,7 +77,7 @@ def summarize(coverage_data: dict) -> tuple[list[dict], dict]:
     return rows, overall
 
 
-def draw_table(pdf: canvas.Canvas, rows: list[dict], overall: dict, input_file: Path):
+def draw_table(pdf: canvas.Canvas, rows: list[dict], overall: dict, input_file: Path, file_count: int):
     width, height = landscape(A4)
     left = 10 * mm
     right = width - 10 * mm
@@ -95,11 +95,27 @@ def draw_table(pdf: canvas.Canvas, rows: list[dict], overall: dict, input_file: 
     def header():
         nonlocal y
         pdf.setFont("Helvetica-Bold", 14)
-        pdf.drawString(left, y, "UI Coverage Report (coverage-final.json)")
+        pdf.drawString(left, y, "Unit Test Report for Ticketing System")
         y -= 7 * mm
 
         pdf.setFont("Helvetica", 9)
         pdf.drawString(left, y, f"Source: {input_file}")
+        y -= 6 * mm
+
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(left, y, "Summary")
+        y -= 5 * mm
+
+        pdf.setFont("Helvetica", 9)
+        pdf.drawString(left, y, f"Total Files: {file_count}")
+        y -= 5 * mm
+        pdf.drawString(left, y, f"Statements: {overall['statements']}")
+        y -= 5 * mm
+        pdf.drawString(left, y, f"Branches: {overall['branches']}")
+        y -= 5 * mm
+        pdf.drawString(left, y, f"Functions: {overall['functions']}")
+        y -= 5 * mm
+        pdf.drawString(left, y, f"Lines: {overall['lines']}")
         y -= 6 * mm
 
         pdf.setFont("Helvetica-Bold", 9)
@@ -133,22 +149,6 @@ def draw_table(pdf: canvas.Canvas, rows: list[dict], overall: dict, input_file: 
         pdf.drawString(x, y, row["lines"])
         y -= line_height
 
-    if y < 30 * mm:
-        pdf.showPage()
-        y = height - 12 * mm
-
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(left, y, "Overall Totals")
-    y -= 7 * mm
-    pdf.setFont("Helvetica", 10)
-    pdf.drawString(left, y, f"Statements: {overall['statements']}")
-    y -= 6 * mm
-    pdf.drawString(left, y, f"Branches: {overall['branches']}")
-    y -= 6 * mm
-    pdf.drawString(left, y, f"Functions: {overall['functions']}")
-    y -= 6 * mm
-    pdf.drawString(left, y, f"Lines: {overall['lines']}")
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate PDF from Istanbul coverage-final.json")
@@ -173,7 +173,7 @@ def main() -> None:
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     pdf = canvas.Canvas(str(args.output), pagesize=landscape(A4))
-    draw_table(pdf, rows, overall, args.input)
+    draw_table(pdf, rows, overall, args.input, len(rows))
     pdf.save()
 
     print(f"Generated PDF: {args.output} ({len(rows)} files)")
