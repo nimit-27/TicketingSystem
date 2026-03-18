@@ -29,9 +29,13 @@ jest.mock('../../../services/TicketService', () => ({
 
 const mockGetStatuses = jest.fn();
 const mockSetStatusListInSession = jest.fn();
+const mockGetDropdownOptions = jest.fn((items = [], labelKey: string, valueKey: string) =>
+    items.map((item: any) => ({ label: item[labelKey], value: item[valueKey] }))
+);
 jest.mock('../../../utils/Utils', () => ({
     getStatuses: (...args: any[]) => mockGetStatuses(...args),
     setStatusList: (...args: any[]) => mockSetStatusListInSession(...args),
+    getDropdownOptions: (...args: any[]) => mockGetDropdownOptions(...args),
 }));
 
 const mockCheckMyTicketsAccess = jest.fn(() => true);
@@ -93,6 +97,19 @@ jest.mock('../../UI/Dropdown/DropdownController', () => ({ label, value, onChang
             ))}
         </select>
     </label>
+));
+
+
+jest.mock('../AssigneeFilterDropdown', () => ({ value, onChange, className }: any) => (
+    <div className={className}>
+        <label>
+            Assignee
+            <select data-testid="assignee-filter" value={value} onChange={(e) => onChange(e.target.value)}>
+                <option value="All">All</option>
+                <option value="agent">agent</option>
+            </select>
+        </label>
+    </div>
 ));
 
 jest.mock('../../PaginationControls', () => ({ page, onChange, pageSize, onPageSizeChange }: any) => (

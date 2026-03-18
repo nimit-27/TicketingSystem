@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Chip, IconButton, List, ListItemButton, Menu, TextField, Tooltip } from '@mui/material';
+import { Box, Button, Chip, List, ListItemButton, Menu, TextField, Tooltip, Typography } from '@mui/material';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
@@ -24,9 +24,10 @@ interface User {
 interface AssigneeFilterDropdownProps {
     value: string;
     onChange: (value: string) => void;
+    className?: string;
 }
 
-const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, onChange }) => {
+const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, onChange, className }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const [search, setSearch] = useState('');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
@@ -79,29 +80,20 @@ const AssigneeFilterDropdown: React.FC<AssigneeFilterDropdownProps> = ({ value, 
 
     return (
         <>
-            <div className="col-3 px-1 d-flex align-items-end">
-                {value && value !== 'All'
-                    ? (
-                        <Tooltip title={selectedLabel || value}>
-                            <span>
-                                <UserAvatar
-                                    name={selectedLabel || value}
-                                    onClick={(e) => setAnchorEl(e.currentTarget)}
-                                    className="assignee-btn shadow"
-                                />
-                            </span>
-                        </Tooltip>
-                    )
-                    : (
-                        <IconButton
-                            size="small"
-                            onClick={(e) => setAnchorEl(e.currentTarget)}
-                            className="assignee-btn shadow"
-                        >
-                            <PersonAddAltIcon fontSize="small" />
-                        </IconButton>
-                    )}
-                <span className="ms-2 text-muted small">Assignee</span>
+            <div className={className}>
+                <Typography variant="caption" className="text-muted d-block mb-1">Assignee</Typography>
+                <Button
+                    variant="outlined"
+                    className="assignee-filter-trigger"
+                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    startIcon={value && value !== 'All'
+                        ? <UserAvatar name={selectedLabel || value} className="assignee-btn shadow" />
+                        : <PersonAddAltIcon fontSize="small" />}
+                >
+                    <Tooltip title={selectedLabel || value || 'All'}>
+                        <span className="assignee-filter-label">{selectedLabel || 'All Assignees'}</span>
+                    </Tooltip>
+                </Button>
             </div>
 
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>

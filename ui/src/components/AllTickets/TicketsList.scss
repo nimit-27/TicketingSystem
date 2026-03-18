@@ -1,0 +1,16 @@
+.tickets-filters-panel {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.tickets-filters-row {
+  row-gap: 14px;
+}
+
+.tickets-filters-row .MuiFormControl-root,
+.tickets-filters-row .MuiTextField-root,
+.tickets-filters-row .assignee-filter-trigger {
+  width: 100%;
+}

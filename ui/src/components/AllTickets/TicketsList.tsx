@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Chip } from "@mui/material";
+import { Box, Button, Chip, Divider, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useApi } from "../../hooks/useApi";
 import { useDebounce } from "../../hooks/useDebounce";
 import { searchTicketsPaginated } from "../../services/TicketService";
 import {
+    getDropdownOptions,
     getStatuses,
     setStatusList as setStatusListInSession,
 } from "../../utils/Utils";
@@ -29,7 +30,7 @@ import { getDistricts, getRegions, getZones } from "../../services/LocationServi
 import { getIssueTypes } from "../../services/IssueTypeService";
 import AssigneeFilterDropdown from "./AssigneeFilterDropdown";
 import { getDivisions } from "../../services/DivisionService";
-import { getDropdownOptions } from "../../utils/Utils";
+import "./TicketsList.scss";
 
 export interface TicketsListFilterState {
     search: string;
@@ -200,10 +201,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const showMasterFilterToggle = checkMyTicketsAccess("masterFilterToggle", permissionPathPrefix);
     const showGridTableViewToggle = checkMyTicketsAccess("gridTableViewToggle", permissionPathPrefix);
 
-    const statusFilterOptions: DropdownOption[] = useMemo(
-        () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
-        [statusList],
-    );
+    const statusFilterOptions: DropdownOption[] = useMemo(() => {
+        const dynamicOptionsRaw = typeof getDropdownOptions === "function"
+            ? getDropdownOptions(statusList, "statusName", "statusId")
+            : [];
+        const dynamicOptions = Array.isArray(dynamicOptionsRaw) ? dynamicOptionsRaw : [];
+
+        return [{ label: "All", value: "All" }, ...dynamicOptions];
+    }, [statusList]);
 
     const sortOptions: DropdownOption[] = useMemo(
         () => [
@@ -630,14 +635,15 @@ const TicketsList: React.FC<TicketsListProps> = ({
         <div className="" style={{ display: "flex" }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey={titleKey} rightContent={headerRightContent} />
-                <div className="d-flex flex-wrap align-items-center mb-3">
+                <Box className="tickets-filters-panel mb-3">
+                    <div className="d-flex flex-wrap align-items-end tickets-filters-row g-2">
                     {/* -------- FILTERS --------- */}
 
                     {/* SEARCH FILTER */}
                     {showSearchBar && (
                         <GenericInput
                             label="Search"
-                            className="col-3 pe-1"
+                            className="col-12 col-md-6 col-xl-3"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search by Ticket Id, Requestor Name, Subject"
@@ -648,7 +654,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     {showStatusFilter && (
                         <DropdownController
                             label="Status"
-                            className="col-3 px-1"
+                            className="col-12 col-md-6 col-xl-3"
                             value={statusFilter}
                             onChange={(value) => { setStatusFilter(value); setPage(1); }}
                             options={statusFilterOptions}
@@ -659,7 +665,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="Module"
                         value={selectedCategory}
-                        className="col-3 px-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleCategoryChange}
                         options={categoryOptions}
                     />
@@ -668,7 +674,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="Sub Module"
                         value={selectedSubCategory}
-                        className="col-3 ps-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleSubCategoryChange}
                         options={subCategoryOptions}
                         disabled={selectedCategory === "All"}
@@ -677,7 +683,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="Zone"
                         value={selectedZone}
-                        className="col-3 px-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleZoneChange}
                         options={zoneOptions}
                     />
@@ -685,7 +691,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="Region"
                         value={selectedRegion}
-                        className="col-3 px-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleRegionChange}
                         options={regionOptions}
                         disabled={selectedZone === "All"}
@@ -694,7 +700,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="District"
                         value={selectedDistrict}
-                        className="col-3 px-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleDistrictChange}
                         options={districtOptions}
                         disabled={selectedRegion === "All"}
@@ -703,7 +709,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="Issue Type"
                         value={selectedIssueType}
-                        className="col-3 px-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleIssueTypeChange}
                         options={issueTypeOptions}
                     />
@@ -711,12 +717,13 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     <DropdownController
                         label="Division"
                         value={selectedDivision}
-                        className="col-3 px-1"
+                        className="col-12 col-md-6 col-xl-3"
                         onChange={handleDivisionChange}
                         options={divisionOptions}
                     />
 
                     <AssigneeFilterDropdown
+                        className="col-12 col-md-6 col-xl-3"
                         value={selectedAssignee}
                         onChange={handleAssigneeChange}
                     />
@@ -729,11 +736,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             setPage(1);
                         }}
                         options={dateParamOptions}
-                        style={{ width: 240 }}
+                        className="col-12 col-md-6 col-xl-3"
                     />
 
                     {/* DATE RANGE FILTER */}
-                    <DateRangeFilter value={dateRange} onChange={setDateRange} />
+                    <div className="col-12 col-md-6 col-xl-3"><DateRangeFilter value={dateRange} onChange={setDateRange} /></div>
 
                     {/* LEVEL CHIP FILTER   --->   Switch to DROPDOWN*/}
                     {showLevelFilterToggle && levels.map(level => (
@@ -762,25 +769,34 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
                     {/* -------- FILTERS END --------- */}
 
+
+                    <Divider className="my-2" />
+
                     {/* VIEW TOGGLE - TABLE | GRID */}
-                    <div className="d-flex align-items-center ms-auto">
-                        <Button variant="outlined" onClick={resetFilters} className="me-2">
-                            {t("Reset Filters")}
-                        </Button>
-                        {showGridTableViewToggle && showTablePermission && showGridPermission && (
-                            <div className="d-flex">
-                                <ViewToggle
-                                    value={viewMode}
-                                    onChange={(value: any) => setViewMode(value)}
-                                    options={[
-                                        { icon: "grid", value: "grid" },
-                                        { icon: "table", value: "table" },
-                                    ]}
-                                />
-                            </div>
-                        )}
+                    <div className="d-flex align-items-center justify-content-between w-100 gap-2 pt-1">
+                        <Typography variant="body2" className="text-muted">
+                            {t("Tip: combine Module, Location, and Date filters for faster results")}
+                        </Typography>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button variant="outlined" onClick={resetFilters}>
+                                {t("Reset Filters")}
+                            </Button>
+                            {showGridTableViewToggle && showTablePermission && showGridPermission && (
+                                <div className="d-flex">
+                                    <ViewToggle
+                                        value={viewMode}
+                                        onChange={(value: any) => setViewMode(value)}
+                                        options={[
+                                            { icon: "grid", value: "grid" },
+                                            { icon: "table", value: "table" },
+                                        ]}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+                </Box>
 
 
                 {(viewMode === "table" && showTablePermission) || (viewMode === "grid" && showGridPermission) ? (
