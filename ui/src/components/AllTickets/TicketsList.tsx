@@ -15,6 +15,7 @@ import ViewTicket from "./ViewTicket";
 import ViewToggle from "../UI/ViewToggle";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
+import GenericAutocomplete from "../UI/Dropdown/GenericAutocomplete";
 import PaginationControls from "../PaginationControls";
 import { checkMyTicketsAccess } from "../../utils/permissions";
 import { TicketStatusWorkflow } from "../../types";
@@ -30,10 +31,11 @@ import { getIssueTypes } from "../../services/IssueTypeService";
 import AssigneeFilterDropdown from "./AssigneeFilterDropdown";
 import { getDivisions } from "../../services/DivisionService";
 import { getDropdownOptions } from "../../utils/Utils";
+import { ALL_FILTER_VALUE, normalizeMultiFilterValues, toApiMultiFilterParam } from "../../utils/multiSelectFilters";
 
 export interface TicketsListFilterState {
     search: string;
-    statusFilter: string;
+    statusFilter: string[];
     masterOnly: boolean;
     levelFilter?: string;
     sortBy: "reportedDate" | "lastModified";
@@ -45,8 +47,8 @@ export interface TicketsListFilterState {
     dateRange: DateRangeState;
     selectedCategory: string;
     selectedSubCategory: string;
-    selectedAssignee: string;
-    selectedDivision: string;
+    selectedAssignee: string[];
+    selectedDivision: string[];
     selectedDateParam: string;
     allowedStatuses?: string[];
 }
@@ -155,7 +157,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const pageSize = viewMode === "grid" ? gridPageSize : tablePageSize;
     const [totalPages, setTotalPages] = useState(1);
     const [filteredTicketCount, setFilteredTicketCount] = useState(0);
-    const [statusFilter, setStatusFilter] = useState("All");
+    const [statusFilter, setStatusFilter] = useState<string[]>([ALL_FILTER_VALUE]);
     const [masterOnly, setMasterOnly] = useState(false);
     const userDetails = getCurrentUserDetails();
     const levels = userDetails?.levels || [];
@@ -189,9 +191,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedRegion, setSelectedRegion] = useState<string>(defaultRegionCode);
     const [selectedRegionHrmsCode, setSelectedRegionHrmsCode] = useState<string>("All");
     const [selectedDistrict, setSelectedDistrict] = useState<string>(defaultDistrictCode);
-    const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
-    const [selectedDivision, setSelectedDivision] = useState<string>("All");
-    const [selectedAssignee, setSelectedAssignee] = useState<string>("All");
+    const [selectedIssueType, setSelectedIssueType] = useState<string[]>([ALL_FILTER_VALUE]);
+    const [selectedDivision, setSelectedDivision] = useState<string[]>([ALL_FILTER_VALUE]);
+    const [selectedAssignee, setSelectedAssignee] = useState<string[]>([ALL_FILTER_VALUE]);
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -261,7 +263,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
     );
 
     const selectedIssueTypeLabel = useMemo(
-        () => issueTypeOptions.find((option) => option.value === selectedIssueType)?.label,
+        () => {
+            const selectedValues = normalizeMultiFilterValues(selectedIssueType);
+            if (selectedValues.includes(ALL_FILTER_VALUE)) return undefined;
+            return issueTypeOptions
+                .filter((option) => selectedValues.includes(option.value))
+                .map((option) => option.label)
+                .join(", ");
+        },
         [issueTypeOptions, selectedIssueType],
     );
 
@@ -273,7 +282,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
     const resetFilters = () => {
         setSearch("");
-        setStatusFilter("All");
+        setStatusFilter([ALL_FILTER_VALUE]);
         setMasterOnly(false);
         setLevelFilter(undefined);
         setSortBy("reportedDate");
@@ -285,9 +294,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedRegion(defaultRegionCode);
         setSelectedRegionHrmsCode("All");
         setSelectedDistrict(defaultDistrictCode);
-        setSelectedIssueType("All");
-        setSelectedDivision("All");
-        setSelectedAssignee("All");
+        setSelectedIssueType([ALL_FILTER_VALUE]);
+        setSelectedDivision([ALL_FILTER_VALUE]);
+        setSelectedAssignee([ALL_FILTER_VALUE]);
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -298,9 +307,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const normalizedZone = selectedZone !== "All" ? selectedZone : undefined;
     const normalizedRegion = selectedRegion !== "All" ? selectedRegion : undefined;
     const normalizedDistrict = selectedDistrict !== "All" ? selectedDistrict : undefined;
-    const normalizedIssueType = selectedIssueType !== "All" ? selectedIssueType : undefined;
-    const normalizedDivision = selectedDivision !== "All" ? selectedDivision : undefined;
-    const normalizedAssignee = selectedAssignee !== "All" ? selectedAssignee : undefined;
+    const normalizedIssueType = toApiMultiFilterParam(selectedIssueType);
+    const normalizedDivision = toApiMultiFilterParam(selectedDivision);
+    const normalizedAssignee = toApiMultiFilterParam(selectedAssignee);
 
     const filterState: TicketsListFilterState = useMemo(
         () => ({
@@ -353,7 +362,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 if(!allowedStatusSuccess) return
             }
 
-            let statusParam: string | undefined = statusFilter === "All" ? undefined : statusFilter;
+            let statusParam: string | undefined = toApiMultiFilterParam(statusFilter);
 
             if (overrides?.statusName !== undefined) {
                 statusParam = overrides.statusName;
@@ -483,18 +492,18 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setPage(1);
     };
 
-    const handleIssueTypeChange = (value: string) => {
-        setSelectedIssueType(value);
+    const handleIssueTypeChange = (value: string[]) => {
+        setSelectedIssueType(normalizeMultiFilterValues(value));
         setPage(1);
     };
 
-    const handleAssigneeChange = (value: string) => {
-        setSelectedAssignee(value);
+    const handleAssigneeChange = (value: string[]) => {
+        setSelectedAssignee(normalizeMultiFilterValues(value));
         setPage(1);
     };
 
-    const handleDivisionChange = (value: string) => {
-        setSelectedDivision(value);
+    const handleDivisionChange = (value: string[]) => {
+        setSelectedDivision(normalizeMultiFilterValues(value));
         setPage(1);
     };
 
@@ -646,11 +655,11 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
                     {/* STATUS DROPDOWN FILTER */}
                     {showStatusFilter && (
-                        <DropdownController
+                        <GenericAutocomplete
                             label="Status"
                             className="col-3 px-1"
                             value={statusFilter}
-                            onChange={(value) => { setStatusFilter(value); setPage(1); }}
+                            onChange={(value) => { setStatusFilter(normalizeMultiFilterValues(value)); setPage(1); }}
                             options={statusFilterOptions}
                         />
                     )}
@@ -700,7 +709,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         disabled={selectedRegion === "All"}
                     />
 
-                    <DropdownController
+                    <GenericAutocomplete
                         label="Issue Type"
                         value={selectedIssueType}
                         className="col-3 px-1"
@@ -708,7 +717,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         options={issueTypeOptions}
                     />
 
-                    <DropdownController
+                    <GenericAutocomplete
                         label="Division"
                         value={selectedDivision}
                         className="col-3 px-1"
@@ -820,14 +829,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             selectedZone={selectedZone}
                             selectedRegion={selectedRegion}
                             selectedDistrict={selectedDistrict}
-                        selectedIssueType={selectedIssueType}
-                        selectedDivision={selectedDivision}
+                        selectedIssueType={normalizedIssueType ?? ALL_FILTER_VALUE}
+                        selectedDivision={normalizedDivision ?? ALL_FILTER_VALUE}
                         selectedCategory={selectedCategory}
                         selectedSubCategory={selectedSubCategory}
-                        selectedAssignee={selectedAssignee}
+                        selectedAssignee={normalizedAssignee ?? ALL_FILTER_VALUE}
                         divisionOptions={divisionOptions}
                         statusFilterOptions={statusFilterOptions}
-                            selectedStatusFilter={statusFilter}
+                            selectedStatusFilter={toApiMultiFilterParam(statusFilter) ?? ALL_FILTER_VALUE}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
                         />
                         <PaginationControls
