@@ -744,9 +744,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         minRows={multiline ? 3 : undefined}
         size="small"
         sx={{ mt: 1 }}
+        inputProps={{
+          style: {
+            overflowWrap: 'anywhere'
+          }
+        }}
       />
     ) : (
-      <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || ' - '}</Typography>
+      <Typography sx={{ mt: 1, lineHeight: 1.66 }} style={{ overflowWrap: 'anywhere' }}>{value || ' - '}</Typography>
     );
   };
 
@@ -985,7 +990,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   // DESIGN 1
   return (
-    <Box sx={{ width: '100%', position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Box sx={{ width: '100%', position: 'relative', p: 2, display: 'flex', flexDirection: 'column', height: '100%', maxWidth: '100%' }}>
       <Box
         sx={{
           backgroundColor: '#e8f5e9',
@@ -1176,7 +1181,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         </Box>
 
 
-      <Box className="d-flex flex-column col-6" >
+        <Box className="d-flex flex-column col-6" >
           <Typography className='d-flex justify-content-end' variant="caption" color="text.secondary" sx={{ mt: 1 }}>
             Created by {' '}
             <Typography
