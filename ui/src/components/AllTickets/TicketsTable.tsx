@@ -201,6 +201,8 @@ const areEqualVisibilityMaps = (left: Record<string, boolean>, right: Record<str
     return leftKeys.every((key) => left[key] === right[key]);
 };
 
+const DEFAULT_HIDDEN_COLUMN_KEYS = new Set(['zoneName', 'districtName', 'regionName']);
+
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedDivision = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All', statusFilterOptions = [{ label: 'All', value: 'All' }], selectedStatusFilter = 'All', divisionOptions = [{ label: 'All', value: 'All' }] }) => {
     const { t } = useTranslation();
 
@@ -783,6 +785,51 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     );
                 }
             },
+            {
+                title: t('Zone'),
+                columnLabel: t('Zone'),
+                key: 'zoneName',
+                width: '12%',
+                ellipsis: true,
+                render: (_: any, record: TicketRow) => {
+                    const zone = record.zoneName || record.zoneCode || '-';
+                    return (
+                        <Tooltip title={zone} placement="top">
+                            <span>{zone}</span>
+                        </Tooltip>
+                    );
+                }
+            },
+            {
+                title: t('District Name'),
+                columnLabel: t('District Name'),
+                key: 'districtName',
+                width: '14%',
+                ellipsis: true,
+                render: (_: any, record: TicketRow) => {
+                    const district = record.districtName || '-';
+                    return (
+                        <Tooltip title={district} placement="top">
+                            <span>{district}</span>
+                        </Tooltip>
+                    );
+                }
+            },
+            {
+                title: t('Region Name'),
+                columnLabel: t('Region Name'),
+                key: 'regionName',
+                width: '14%',
+                ellipsis: true,
+                render: (_: any, record: TicketRow) => {
+                    const region = record.regionName || '-';
+                    return (
+                        <Tooltip title={region} placement="top">
+                            <span>{region}</span>
+                        </Tooltip>
+                    );
+                }
+            },
             showSeverityColumn
             && {
                 title: t('Severity'),
@@ -1019,7 +1066,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     nextVisibility[key] = previousVisibility[key];
                     return;
                 }
-                nextVisibility[key] = persisted[key] ?? true;
+                nextVisibility[key] = persisted[key] ?? !DEFAULT_HIDDEN_COLUMN_KEYS.has(key);
             });
 
             if (areEqualVisibilityMaps(previousVisibility, nextVisibility)) {
@@ -1047,7 +1094,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const toggleColumnVisibility = (columnKey: string) => {
         setColumnVisibility((prev) => ({
             ...prev,
-            [columnKey]: !(prev[columnKey] ?? true),
+            [columnKey]: !(prev[columnKey] ?? !DEFAULT_HIDDEN_COLUMN_KEYS.has(columnKey)),
         }));
     };
 
