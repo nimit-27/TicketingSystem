@@ -12,6 +12,10 @@ import {
     ListItemIcon,
     Tooltip,
     Button,
+    Checkbox,
+    FormControlLabel,
+    FormGroup,
+    Paper,
 } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
 import RemarkComponent from '../UI/Remark/RemarkComponent';
@@ -209,6 +213,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
     const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
     const [exportGenerationState, setExportGenerationState] = useState<'idle' | 'generating' | 'error'>('idle');
     const [lastExportRequest, setLastExportRequest] = useState<{ format: 'pdf' | 'excel', filters: DownloadFilters } | null>(null);
+    const [showColumnSelector, setShowColumnSelector] = useState(false);
+    const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
     const exportAbortRef = useRef<AbortController | null>(null);
 
     const excludeInActionMenu = ['Assign', 'Further Assign', 'Assign / Assign Further', 'Assign Further', 'On Hold (Pending with FCI)', 'On Hold (Pending with Requester)', 'On Hold (Pending with Service Provider)'];
@@ -702,6 +708,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         () => [
             {
                 title: t('Ticket Id'),
+                columnLabel: t('Ticket Id'),
                 dataIndex: 'id',
                 key: 'ticketId',
                 width: '12%',
@@ -721,6 +728,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 title: t('Requestor'),
+                columnLabel: t('Requestor'),
                 key: 'requestorName',
                 width: '15%',
                 ellipsis: true,
@@ -738,6 +746,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 title: t('Module'),
+                columnLabel: t('Module'),
                 dataIndex: 'category',
                 key: 'category',
                 width: '15%',
@@ -753,6 +762,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 title: t('Sub Module'),
+                columnLabel: t('Sub Module'),
                 dataIndex: 'subCategory',
                 key: 'subCategory',
                 width: '17%',
@@ -769,6 +779,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             showSeverityColumn
             && {
                 title: t('Severity'),
+                columnLabel: t('Severity'),
                 dataIndex: 'severity',
                 key: 'severity',
                 width: '10%',
@@ -790,6 +801,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                         <InfoIcon content={priorityInfoContent} />
                     </span>
                 ),
+                columnLabel: t('Priority'),
                 dataIndex: 'priority',
                 key: 'priority',
                 width: '9%',
@@ -798,6 +810,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 title: t('Assignee'),
+                columnLabel: t('Assignee'),
                 key: 'assignee',
                 width: '10%',
                 ellipsis: true,
@@ -827,6 +840,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 title: t('Status'),
+                columnLabel: t('Status'),
                 dataIndex: 'statusLabel',
                 key: 'statusLabel',
                 width: '11%',
@@ -844,6 +858,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             },
             {
                 title: t('Actions'),
+                columnLabel: t('Actions'),
                 key: 'action',
                 width: '9%',
                 ellipsis: true,
@@ -964,10 +979,61 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         ]
     );
 
+    const columnVisibilityStorageKey = useMemo(
+        () => `ticketsTableColumnVisibility:${permissionPathPrefix}`,
+        [permissionPathPrefix]
+    );
+
+    useEffect(() => {
+        const nextVisibility: Record<string, boolean> = {};
+        let persisted: Record<string, boolean> = {};
+        try {
+            const raw = sessionStorage.getItem(columnVisibilityStorageKey);
+            if (raw) {
+                persisted = JSON.parse(raw);
+            }
+        } catch (error) {
+            persisted = {};
+        }
+
+        columns.forEach((column: any) => {
+            const key = String(column.key);
+            nextVisibility[key] = persisted[key] ?? true;
+        });
+        setColumnVisibility(nextVisibility);
+    }, [columnVisibilityStorageKey, columns]);
+
+    useEffect(() => {
+        if (!Object.keys(columnVisibility).length) return;
+        sessionStorage.setItem(columnVisibilityStorageKey, JSON.stringify(columnVisibility));
+    }, [columnVisibility, columnVisibilityStorageKey]);
+
+    const visibleColumns = useMemo(
+        () =>
+            columns.filter((column: any) => {
+                const key = String(column.key);
+                return columnVisibility[key] !== false;
+            }),
+        [columnVisibility, columns]
+    );
+
+    const toggleColumnVisibility = (columnKey: string) => {
+        setColumnVisibility((prev) => ({
+            ...prev,
+            [columnKey]: !(prev[columnKey] ?? true),
+        }));
+    };
+
     return (
         <>
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <div />
+                <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setShowColumnSelector((prev) => !prev)}
+                >
+                    {showColumnSelector ? t('Hide Columns') : t('Show Columns')}
+                </Button>
                 <Button
                     size="small"
                     variant="outlined"
@@ -977,10 +1043,32 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     {t('Download')}
                 </Button>
             </div>
+            {showColumnSelector && (
+                <Paper variant="outlined" sx={{ p: 1.5, mb: 2 }}>
+                    <FormGroup row>
+                        {columns.map((column: any) => {
+                            const columnKey = String(column.key);
+                            return (
+                                <FormControlLabel
+                                    key={columnKey}
+                                    control={
+                                        <Checkbox
+                                            size="small"
+                                            checked={columnVisibility[columnKey] !== false}
+                                            onChange={() => toggleColumnVisibility(columnKey)}
+                                        />
+                                    }
+                                    label={column.columnLabel || column.title}
+                                />
+                            );
+                        })}
+                    </FormGroup>
+                </Paper>
+            )}
             <GenericTable
                 className="tickets-table"
                 dataSource={tickets}
-                columns={columns as any}
+                columns={visibleColumns as any}
                 rowKey="id"
                 pagination={false}
                 rowClassName={(record: any) => record.id === refreshingTicketId ? 'refreshing-row' : ''}
