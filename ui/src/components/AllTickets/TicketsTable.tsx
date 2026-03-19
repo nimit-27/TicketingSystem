@@ -194,6 +194,13 @@ const getDateRangeDays = (fromDate?: string, toDate?: string): number | null => 
     return Math.floor(diffInMs / (1000 * 60 * 60 * 24)) + 1;
 };
 
+const areEqualVisibilityMaps = (left: Record<string, boolean>, right: Record<string, boolean>) => {
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+    if (leftKeys.length !== rightKeys.length) return false;
+    return leftKeys.every((key) => left[key] === right[key]);
+};
+
 const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedDivision = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All', statusFilterOptions = [{ label: 'All', value: 'All' }], selectedStatusFilter = 'All', divisionOptions = [{ label: 'All', value: 'All' }] }) => {
     const { t } = useTranslation();
 
@@ -984,24 +991,44 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         [permissionPathPrefix]
     );
 
-    useEffect(() => {
-        const nextVisibility: Record<string, boolean> = {};
-        let persisted: Record<string, boolean> = {};
-        try {
-            const raw = sessionStorage.getItem(columnVisibilityStorageKey);
-            if (raw) {
-                persisted = JSON.parse(raw);
-            }
-        } catch (error) {
-            persisted = {};
-        }
+    const columnKeys = useMemo(
+        () => columns.map((column: any) => String(column.key)),
+        [columns]
+    );
+    const columnKeysSignature = useMemo(
+        () => columnKeys.join('|'),
+        [columnKeys]
+    );
 
-        columns.forEach((column: any) => {
-            const key = String(column.key);
-            nextVisibility[key] = persisted[key] ?? true;
+    useEffect(() => {
+        const currentColumnKeys = columnKeysSignature ? columnKeysSignature.split('|') : [];
+        setColumnVisibility((previousVisibility) => {
+            let persisted: Record<string, boolean> = {};
+            try {
+                const raw = sessionStorage.getItem(columnVisibilityStorageKey);
+                if (raw) {
+                    persisted = JSON.parse(raw);
+                }
+            } catch (error) {
+                persisted = {};
+            }
+
+            const nextVisibility: Record<string, boolean> = {};
+            currentColumnKeys.forEach((key) => {
+                if (Object.prototype.hasOwnProperty.call(previousVisibility, key)) {
+                    nextVisibility[key] = previousVisibility[key];
+                    return;
+                }
+                nextVisibility[key] = persisted[key] ?? true;
+            });
+
+            if (areEqualVisibilityMaps(previousVisibility, nextVisibility)) {
+                return previousVisibility;
+            }
+
+            return nextVisibility;
         });
-        setColumnVisibility(nextVisibility);
-    }, [columnVisibilityStorageKey, columns]);
+    }, [columnVisibilityStorageKey, columnKeysSignature]);
 
     useEffect(() => {
         if (!Object.keys(columnVisibility).length) return;
