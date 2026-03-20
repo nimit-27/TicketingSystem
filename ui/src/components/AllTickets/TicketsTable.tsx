@@ -754,6 +754,38 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     ) : '-' as any,
             },
             {
+                title: t('Subject'),
+                columnLabel: t('Subject'),
+                dataIndex: 'subject',
+                key: 'subject',
+                width: '16%',
+                ellipsis: true,
+                render: (value: string) => {
+                    const subject = value || '-';
+                    return (
+                        <Tooltip title={subject} placement="top">
+                            <span>{subject}</span>
+                        </Tooltip>
+                    );
+                }
+            },
+            {
+                title: t('Description'),
+                columnLabel: t('Description'),
+                dataIndex: 'description',
+                key: 'description',
+                width: '18%',
+                ellipsis: true,
+                render: (value: string) => {
+                    const description = value || '-';
+                    return (
+                        <Tooltip title={description} placement="top">
+                            <span>{description}</span>
+                        </Tooltip>
+                    );
+                }
+            },
+            {
                 title: t('Module'),
                 columnLabel: t('Module'),
                 dataIndex: 'category',
