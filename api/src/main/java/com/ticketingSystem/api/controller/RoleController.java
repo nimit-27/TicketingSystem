@@ -1,8 +1,11 @@
 package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.RoleDto;
+import com.ticketingSystem.api.dto.RolePolicyAssignmentRequest;
 import com.ticketingSystem.api.dto.RoleLevelDto;
 import com.ticketingSystem.api.dto.RoleSummaryDto;
+import com.ticketingSystem.api.dto.PolicyDto;
+import com.ticketingSystem.api.service.PolicyService;
 import com.ticketingSystem.api.service.RoleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
@@ -18,6 +21,7 @@ import java.util.Collections;
 @AllArgsConstructor
 public class RoleController {
     private final RoleService roleService;
+    private final PolicyService policyService;
 
     @GetMapping
     public ResponseEntity<List<RoleDto>> getAllRoles() {
@@ -69,5 +73,17 @@ public class RoleController {
                                             @RequestParam(required = false, defaultValue = "false") boolean hard) {
         roleService.deleteRoles(ids, hard);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{roleId}/policies")
+    public ResponseEntity<Void> assignPoliciesToRole(@PathVariable Integer roleId,
+                                                     @RequestBody RolePolicyAssignmentRequest request) {
+        policyService.assignPoliciesToRole(roleId, request.getPolicyIds(), request.getPolicyCodes(), request.getUpdatedBy());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{roleId}/effective-access")
+    public ResponseEntity<List<PolicyDto>> getRoleEffectiveAccess(@PathVariable Integer roleId) {
+        return ResponseEntity.ok(policyService.getRoleEffectivePolicies(roleId));
     }
 }

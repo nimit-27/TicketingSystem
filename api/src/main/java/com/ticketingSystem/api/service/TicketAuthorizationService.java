@@ -14,6 +14,11 @@ import java.util.List;
 
 @Service
 public class TicketAuthorizationService {
+    private final PolicyEvaluationService policyEvaluationService;
+
+    public TicketAuthorizationService(PolicyEvaluationService policyEvaluationService) {
+        this.policyEvaluationService = policyEvaluationService;
+    }
 
     private static final List<String> IT_MANAGER_ROLE_IDENTIFIERS = List.of(
             "it manager",
@@ -39,6 +44,16 @@ public class TicketAuthorizationService {
 
         List<String> roles = resolveRoles(authenticatedUser, session);
         List<String> normalizedRoles = normalizeRoles(roles);
+        PolicyDecision policyDecision = policyEvaluationService.evaluateTicketView(roles, authenticatedUser, context);
+        if (policyDecision == PolicyDecision.DENY) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    String.format("Access to ticket %s is denied by policy", ticketId)
+            );
+        }
+        if (policyDecision == PolicyDecision.ALLOW) {
+            return;
+        }
         if (RoleUtils.hasUnrestrictedTicketAccess(roles) || hasRoleBasedAccess(normalizedRoles, context)) {
             return;
         }

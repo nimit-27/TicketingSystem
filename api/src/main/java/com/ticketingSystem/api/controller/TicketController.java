@@ -88,7 +88,8 @@ public class TicketController {
                         ticketAssigneeUserId,
                         dto.getStatus(),
                         dto.getRecommendedSeverityStatus(),
-                        ticketCreatorUserId
+                        ticketCreatorUserId,
+                        dto.getZoneCode()
                 ),
                 resolvedUser,
                 session);
@@ -118,7 +119,8 @@ public class TicketController {
                         slaTicketAssigneeUserId,
                         sla.getTicket() != null ? sla.getTicket().getTicketStatus() : null,
                         null,
-                        null
+                        null,
+                        sla.getTicket() != null ? sla.getTicket().getZoneCode() : null
                 ),
                 resolvedUser,
                 session);
