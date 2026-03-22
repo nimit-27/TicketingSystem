@@ -235,6 +235,33 @@ Suggested API behavior:
 
 So: **keep your requirement**, and add `policy_code` support at API boundary for portability.
 
+### F) `role_policy_map` table vs `policy_ids` column in `role_permission_config`
+
+Short answer: use **`role_policy_map`** (normalized many-to-many table). It is the better long-term and safer option.
+
+Why `role_policy_map` is better:
+
+1. **Relational integrity**
+   - FK constraints prevent orphan policy references.
+2. **Querying + indexing**
+   - Faster and cleaner for joins, filtering, and audit reports.
+3. **Operational flexibility**
+   - Easy activate/deactivate per mapping (`is_active`) without rewriting a full CSV/JSON column.
+4. **Auditability**
+   - Per-assignment timestamps/actor fields are straightforward.
+5. **Scalability**
+   - Handles many roles/policies cleanly as data grows.
+
+When `policy_ids` column in `role_permission_config` may look easier:
+
+- It is quick for an initial prototype.
+- But it creates parsing complexity, weaker validation, harder indexing, and brittle migrations.
+
+Recommendation:
+
+- If you want a production-grade model: **`role_policy_map`**.
+- If you need temporary MVP speed: `policy_ids` can be transitional, but plan migration to `role_policy_map`.
+
 ### D) First seed policies to support immediately
 
 - `TICKET_VIEW_ALL` (allow, no rule or always-true rule)
