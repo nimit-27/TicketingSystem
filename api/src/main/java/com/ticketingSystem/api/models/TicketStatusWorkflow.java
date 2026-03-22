@@ -21,4 +21,10 @@ public class TicketStatusWorkflow {
 
     @Column(name = "TSW_Next_Status")
     private Integer nextStatus;
+
+    @Transient
+    private String currentStatusName;
+
+    @Transient
+    private String nextStatusName;
 }
