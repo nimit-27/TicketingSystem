@@ -21,6 +21,10 @@ export function refreshSession() {
     return axios.post(`${BASE_URL}/auth/refresh`, null, { withCredentials: true });
 }
 
+export function refreshSessionWithToken(refreshToken: string) {
+    return axios.post(`${BASE_URL}/auth/refresh`, { refreshToken }, { withCredentials: true });
+}
+
 export function loginSso(payload: SsoLoginPayload) {
     return axios.post(`${BASE_URL}/auth/sso`, payload, { withCredentials: true });
 }

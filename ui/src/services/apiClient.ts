@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getUserDetails, clearSession } from "../utils/Utils";
 import { BASE_URL } from "./api";
+import { refreshSession, refreshSessionWithToken } from "./AuthService";
 
 axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || BASE_URL;
 axios.defaults.withCredentials = true;
@@ -12,6 +13,7 @@ const AUTH_PATH_PATTERNS = ["/auth/login", "/auth/logout", "/auth/session", "/au
 
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 let refreshPromise: Promise<void> | null = null;
+let inMemoryRefreshToken: string | null = null;
 
 const normalizeUrl = (url: string | undefined): string => {
     if (!url) {
@@ -52,6 +54,15 @@ const resolveAccessExpiryMinutes = (response: any): number | null => {
     return toMinutes(candidate);
 };
 
+const resolveRefreshToken = (response: any): string | null => {
+    const responseData = response?.data;
+    const bodyData = responseData?.body;
+    const candidate = responseData?.refreshToken
+        ?? bodyData?.refreshToken
+        ?? response?.headers?.["x-refresh-token"];
+    return typeof candidate === "string" && candidate.trim() ? candidate : null;
+};
+
 const redirectToLogin = () => {
     const basePath = process.env.PUBLIC_URL || "";
     const loginPath = `${basePath}/login`;
@@ -76,7 +87,10 @@ const scheduleProactiveRefresh = (expiresInMinutes: number | null) => {
 
 const triggerRefresh = async (): Promise<void> => {
     if (!refreshPromise) {
-        refreshPromise = axios.post(`${BASE_URL}/auth/refresh`, null, { withCredentials: true })
+        const request = inMemoryRefreshToken
+            ? refreshSessionWithToken(inMemoryRefreshToken)
+            : refreshSession();
+        refreshPromise = request
             .then(() => undefined)
             .finally(() => {
                 refreshPromise = null;
@@ -95,6 +109,7 @@ axios.interceptors.request.use((config) => {
 
 axios.interceptors.response.use(
     (response) => {
+        inMemoryRefreshToken = resolveRefreshToken(response) ?? inMemoryRefreshToken;
         scheduleProactiveRefresh(resolveAccessExpiryMinutes(response));
         return response;
     },
@@ -108,6 +123,7 @@ axios.interceptors.response.use(
                 await triggerRefresh();
                 return axios.request(originalRequest);
             } catch (refreshError) {
+                inMemoryRefreshToken = null;
                 clearSession();
                 redirectToLogin();
                 return Promise.reject(refreshError);
@@ -115,6 +131,7 @@ axios.interceptors.response.use(
         }
 
         if (SESSION_EXPIRED_STATUSES.has(status)) {
+            inMemoryRefreshToken = null;
             clearSession();
             redirectToLogin();
         }
