@@ -69,7 +69,7 @@ describe("apiClient", () => {
     const originalRequest = { url: "/tickets", method: "get" };
     const error = { response: { status: 403 }, config: originalRequest };
     const retriedResponse = { data: { ok: true } };
-    axiosMock.post.mockResolvedValueOnce({ data: { expiresInMinutes: 60, refreshToken: "r1" } });
+    axiosMock.post.mockResolvedValueOnce({ data: { expiresInMinutes: 60 } });
     axiosMock.request.mockResolvedValueOnce(retriedResponse);
 
     const result = await axiosMock.__runResponseRejected(error);
@@ -82,12 +82,11 @@ describe("apiClient", () => {
 
   it("clears session information when refresh fails for 401", async () => {
     await import("../apiClient");
-    await axiosMock.__runResponseFulfilled({ data: { refreshToken: "refresh-from-login", expiresInMinutes: 60 } });
     const error = { response: { status: 401 }, config: { url: "/tickets" } };
     axiosMock.post.mockRejectedValueOnce(new Error("refresh-failed"));
     await axiosMock.__runResponseRejected(error).catch(() => undefined);
 
-    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), { refreshToken: "refresh-from-login" }, { withCredentials: true });
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), null, { withCredentials: true });
     expect(authTokenMock.clearStoredToken).not.toHaveBeenCalled();
     expect(utilsMock.clearSession).toHaveBeenCalled();
   });
@@ -131,7 +130,6 @@ describe("AuthService", () => {
     const service = await import("../AuthService");
     await service.getActiveSession();
     await service.refreshSession();
-    await service.refreshSessionWithToken("refresh-token");
     await service.loginSso(payload);
 
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/auth/session"), expect.objectContaining({ withCredentials: true, validateStatus: expect.any(Function) }));
@@ -141,7 +139,6 @@ describe("AuthService", () => {
     expect(validateStatus(401)).toBe(true);
     expect(validateStatus(500)).toBe(false);
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), null, { withCredentials: true });
-    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), { refreshToken: "refresh-token" }, { withCredentials: true });
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/sso"), payload, { withCredentials: true });
   });
 });
