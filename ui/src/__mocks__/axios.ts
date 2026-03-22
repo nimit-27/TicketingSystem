@@ -4,6 +4,7 @@ const responseHandlers: Array<{ fulfilled?: (value: any) => any; rejected?: (err
 const createDefaultMock = () => jest.fn(() => Promise.resolve({}));
 
 const axiosMock: any = {
+  request: createDefaultMock(),
   get: createDefaultMock(),
   post: createDefaultMock(),
   put: createDefaultMock(),
