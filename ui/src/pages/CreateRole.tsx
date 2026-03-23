@@ -8,13 +8,14 @@ import CancelAndSubmitButtons from '../components/UI/Button/CancelAndSubmitButto
 interface CreateRoleProps {
     roles: string[];
     permissions: any;
+    permissionOptions: { label: string; value: string }[];
     statusActions: any[];
     parameterOptions: { label: string; value: string }[];
     onSubmit: (payload: any) => void;
     onCancel: () => void;
 }
 
-const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActions, parameterOptions, onSubmit, onCancel }) => {
+const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, permissionOptions, statusActions, parameterOptions, onSubmit, onCancel }) => {
     const { register, handleSubmit, control, watch, setValue, formState: { errors }, reset } = useForm({
         defaultValues: {
             role: '',
@@ -92,21 +93,41 @@ const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActio
                         <Autocomplete
                             multiple={!field.value.includes('Custom')}
                             disableCloseOnSelect={!field.value.includes('Custom')}
-                            options={["Custom", ...roles]}
+                            options={["Custom", ...permissionOptions]}
                             value={field.value}
-                            onChange={(_, val) => handlePermChange(val)}
+                            onChange={(_, val) => {
+                                const normalized = (Array.isArray(val) ? val : [val]).map((item: any) =>
+                                    typeof item === 'string' ? item : item.value
+                                );
+                                handlePermChange(normalized);
+                            }}
                             className="w-50"
+                            getOptionLabel={(option: any) => {
+                                if (typeof option === 'string') return option;
+                                return option.label;
+                            }}
+                            isOptionEqualToValue={(option: any, value: any) => {
+                                if (typeof option === 'string' || typeof value === 'string') return option === value;
+                                return option.value === value.value;
+                            }}
                             renderTags={(value, getTagProps) =>
                                 value.length === 0 ? (
                                     <em className="ms-1" style={{ color: '#888' }}>No selection</em>
                                 ) : (
                                     value.map((option, index) => (
-                                        <Chip label={option} {...getTagProps({ index })} />
+                                        <Chip
+                                            label={typeof option === 'string'
+                                                ? (permissionOptions.find((perm) => perm.value === option)?.label || option)
+                                                : option.label}
+                                            {...getTagProps({ index })}
+                                        />
                                     ))
                                 )
                             }
                             renderOption={(props, option) => (
-                                <li {...props} style={{ fontStyle: option === 'Custom' ? 'italic' : 'normal' }}>{option}</li>
+                                <li {...props} style={{ fontStyle: option === 'Custom' ? 'italic' : 'normal' }}>
+                                    {typeof option === 'string' ? option : option.label}
+                                </li>
                             )}
                             renderInput={(params) => (
                                 <TextField
@@ -140,10 +161,15 @@ const CreateRole: React.FC<CreateRoleProps> = ({ roles, permissions, statusActio
                         value={(statusActions || []).filter((a: any) => field.value.includes(String(a.id)))}
                         onChange={(_, val) => field.onChange(val.map((a: any) => String(a.id)))}
                         className="w-50 mb-2"
-                        getOptionLabel={(option: any) => option.action}
+                        getOptionLabel={(option: any) =>
+                            `${option.action} (${option.currentStatusName || option.currentStatus} → ${option.nextStatusName || option.nextStatus})`
+                        }
                         renderTags={(value, getTagProps) =>
                             value.map((option, index) => (
-                                <Chip label={option.action} {...getTagProps({ index })} />
+                                <Chip
+                                    label={`${option.action} (${option.currentStatusName || option.currentStatus} → ${option.nextStatusName || option.nextStatus})`}
+                                    {...getTagProps({ index })}
+                                />
                             ))
                         }
                         renderInput={(params) => <TextField {...params} label="Status Actions" />}

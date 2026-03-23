@@ -46,6 +46,10 @@ const RoleMaster: React.FC = () => {
     }, []);
 
     const roles = data?.roles ? Object.keys(data.roles) : [];
+    const permissionOptions = (rolesData || []).map((role: any) => ({
+        label: role.role,
+        value: String(role.roleId)
+    }));
     const parameterOptions = getDropdownOptions(parameters || [], 'label', 'parameterId');
 
     const handleCreate = () => {
@@ -110,6 +114,7 @@ const RoleMaster: React.FC = () => {
                 <CreateRole
                     roles={roles}
                     permissions={data?.roles || {}}
+                    permissionOptions={permissionOptions}
                     statusActions={statusActions || []}
                     parameterOptions={parameterOptions}
                     onSubmit={handleCreateSubmit}

@@ -21,8 +21,14 @@ jest.mock('@mui/material', () => {
         if (option?.id != null) {
           return String(option.id);
         }
+        if (option?.value != null) {
+          return String(option.value);
+        }
         if (option?.action) {
           return option.action;
+        }
+        if (option?.label) {
+          return option.label;
         }
         return String(option);
       };
@@ -96,6 +102,7 @@ describe('CreateRole', () => {
     const { getByLabelText, getByText, getAllByTestId } = renderWithTheme(
       <CreateRole
         roles={['Admin']}
+        permissionOptions={[{ label: 'Admin', value: '1' }]}
         permissions={{}}
         statusActions={[]}
         parameterOptions={[{ label: 'Param 1', value: '1' }]}
@@ -113,7 +120,7 @@ describe('CreateRole', () => {
     await act(async () => {
       fireEvent.change(permissionsSelect, {
         target: {
-          value: 'Admin',
+          value: '1',
         },
       } as any);
     });
@@ -125,13 +132,13 @@ describe('CreateRole', () => {
     expect(mockSubmit).toHaveBeenCalledWith(expect.objectContaining({
       role: 'Supervisor',
       description: 'Handles escalations',
-      permissionsList: ['Admin'],
+      permissionsList: ['1'],
     }));
   });
 
   it('triggers cancel handler on cancel click', () => {
     const { getByText } = renderWithTheme(
-      <CreateRole roles={[]} permissions={{}} statusActions={[]} parameterOptions={[]} onSubmit={mockSubmit} onCancel={mockCancel} />
+      <CreateRole roles={[]} permissionOptions={[]} permissions={{}} statusActions={[]} parameterOptions={[]} onSubmit={mockSubmit} onCancel={mockCancel} />
     );
     fireEvent.click(getByText('Cancel'));
     expect(mockCancel).toHaveBeenCalled();

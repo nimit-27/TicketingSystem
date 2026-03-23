@@ -36,7 +36,19 @@ public class TicketStatusWorkflowService {
     }
 
     public List<TicketStatusWorkflow> getAllStatusActions() {
-        return workflowRepository.findAll();
+        List<TicketStatusWorkflow> workflows = workflowRepository.findAll();
+        Map<String, String> statusNamesById = statusMasterRepository.findAll().stream()
+                .collect(Collectors.toMap(Status::getStatusId, Status::getStatusName, (existing, replacement) -> existing));
+
+        for (TicketStatusWorkflow workflow : workflows) {
+            String currentStatusId = workflow.getCurrentStatus() != null ? String.valueOf(workflow.getCurrentStatus()) : null;
+            String nextStatusId = workflow.getNextStatus() != null ? String.valueOf(workflow.getNextStatus()) : null;
+
+            workflow.setCurrentStatusName(currentStatusId != null ? statusNamesById.get(currentStatusId) : null);
+            workflow.setNextStatusName(nextStatusId != null ? statusNamesById.get(nextStatusId) : null);
+        }
+
+        return workflows;
     }
 
     public List<TicketStatusWorkflow> getNextStatusesByCurrentStatus(String statusId) {
