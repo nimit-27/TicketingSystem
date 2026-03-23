@@ -522,10 +522,22 @@ public class TicketService {
         };
     }
 
+    private String normalizeBreachOption(String breachOption) {
+        if (breachOption == null || breachOption.isBlank()) {
+            return null;
+        }
+
+        return switch (breachOption.trim().toUpperCase()) {
+            case "BREACHED", "BREACH_IN" -> breachOption.trim().toUpperCase();
+            default -> null;
+        };
+    }
+
     public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
+                                         String breachOption, Integer breachInMinutes,
                                          String dateParam, String fromDate, String toDate, Pageable pageable) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
@@ -568,6 +580,8 @@ public class TicketService {
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
+        String normalizedBreachOption = normalizeBreachOption(breachOption);
+        Integer normalizedBreachInMinutes = breachInMinutes != null ? Math.max(0, breachInMinutes) : null;
         Page<Ticket> page = ticketRepository.searchTickets(
                 query,
                 statusIds,
@@ -587,6 +601,8 @@ public class TicketService {
                 districtCode,
                 issueTypeId,
                 divisionId,
+                normalizedBreachOption,
+                normalizedBreachInMinutes,
                 normalizedDateParam,
                 from,
                 to,
@@ -599,6 +615,7 @@ public class TicketService {
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
+                                             String breachOption, Integer breachInMinutes,
                                              String dateParam, String fromDate, String toDate) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
@@ -634,6 +651,8 @@ public class TicketService {
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
+        String normalizedBreachOption = normalizeBreachOption(breachOption);
+        Integer normalizedBreachInMinutes = breachInMinutes != null ? Math.max(0, breachInMinutes) : null;
 
         return ticketRepository.searchTicketsList(
                         query,
@@ -654,6 +673,8 @@ public class TicketService {
                         districtCode,
                         issueTypeId,
                         divisionId,
+                        normalizedBreachOption,
+                        normalizedBreachInMinutes,
                         normalizedDateParam,
                         from,
                         to)
