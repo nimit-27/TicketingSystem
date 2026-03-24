@@ -99,7 +99,13 @@ const SlaReports: React.FC = () => {
         const filteredIssueTypes = (selectedBreached === "BREACHED" || selectedBreached === "BREACHED_IN")
             ? normalized.filter((item: any) => Boolean(item?.slaFlag))
             : normalized;
-        return getDropdownOptionsWithExtraOption(filteredIssueTypes, "issueType", "issueTypeId", allOption);
+        const mapped = filteredIssueTypes
+            .map((item: any) => ({
+                value: item?.issueTypeId,
+                label: item?.issueTypeLabel ?? item?.name ?? item?.issueType ?? item?.issueTypeId,
+            }))
+            .filter((item: any) => Boolean(item.value) && Boolean(item.label));
+        return [allOption, ...mapped];
     }, [allOption, issueTypesData, selectedBreached]);
 
     const divisionOptions = React.useMemo(() => {
