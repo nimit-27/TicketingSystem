@@ -49,6 +49,20 @@ const MISReports: React.FC = () => {
     } = useMisReportFilters();
 
     const { downloading, handleDownload, handleEmail } = useMisReportDownloader(requestParams);
+    const filterSummary = [
+        { label: "Interval", value: timeScale },
+        { label: "Range", value: timeRange },
+        { label: "From Date", value: activeDateRange.from || "-" },
+        { label: "To Date", value: activeDateRange.to || "-" },
+        { label: "Zone", value: selectedZone },
+        { label: "Region", value: selectedRegion },
+        { label: "District", value: selectedDistrict },
+        { label: "Issue Type", value: selectedIssueType },
+        { label: "Division", value: selectedDivision },
+        { label: "Assignee", value: selectedAssignee },
+        { label: "Module", value: selectedCategory },
+        { label: "Sub Module", value: selectedSubCategory },
+    ];
 
     const misReportGeneratorComponent = (
         <MISReportGenerator
@@ -56,6 +70,7 @@ const MISReports: React.FC = () => {
             onEmail={handleEmail}
             defaultPeriod="daily"
             busy={downloading}
+            filterSummary={filterSummary}
         />
     );
 
