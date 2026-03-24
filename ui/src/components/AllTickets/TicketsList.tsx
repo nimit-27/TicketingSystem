@@ -255,12 +255,22 @@ const TicketsList: React.FC<TicketsListProps> = ({
         [districtsResponse],
     );
 
-    const issueTypeOptions: DropdownOption[] = useMemo(
-        () => [{ label: "All", value: "All" }, ...((issueTypesResponse as any)?.data ?? issueTypesResponse ?? []).map((issueType: any) => ({
-            label: issueType.issueTypeLabel ?? "",
-            value: String(issueType.issueTypeId ?? ""),
-        }))],
-        [issueTypesResponse],
+    const issueTypeOptions: DropdownOption[] = useMemo(() => {
+        const allIssueTypes = ((issueTypesResponse as any)?.data ?? issueTypesResponse ?? []) as any[];
+        const shouldRestrictToSlaEnabled = breachOption === "BREACHED" || breachOption === "BREACH_IN";
+        const filteredIssueTypes = shouldRestrictToSlaEnabled
+            ? allIssueTypes.filter((issueType: any) => issueType?.slaFlag === true || issueType?.slaFlag === 1 || issueType?.slaFlag === "1")
+            : allIssueTypes;
+
+        return [
+            { label: "All", value: "All" },
+            ...filteredIssueTypes.map((issueType: any) => ({
+                label: issueType.issueTypeLabel ?? "",
+                value: String(issueType.issueTypeId ?? ""),
+            })),
+        ];
+    },
+    [breachOption, issueTypesResponse],
     );
 
     const divisionOptions: DropdownOption[] = useMemo(
@@ -614,6 +624,18 @@ const TicketsList: React.FC<TicketsListProps> = ({
             setWorkflowMap(workflowData);
         }
     }, [workflowData]);
+
+    useEffect(() => {
+        if (selectedIssueType === "All") {
+            return;
+        }
+
+        const existsInOptions = issueTypeOptions.some((option) => option.value === selectedIssueType);
+        if (!existsInOptions) {
+            setSelectedIssueType("All");
+            setPage(1);
+        }
+    }, [issueTypeOptions, selectedIssueType]);
 
     useEffect(() => {
         callSearch();
