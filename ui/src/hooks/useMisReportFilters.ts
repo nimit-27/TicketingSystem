@@ -81,9 +81,9 @@ export const useMisReportFilters = (): UseMisReportFiltersResult => {
     const [assigneeOptions, setAssigneeOptions] = React.useState([{ ...allOption }]);
 
     const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
-    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("LAST_DAY");
+    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("ALL_TIME");
     const [dateRange, setDateRange] = React.useState<{ from: string; to: string }>(() =>
-        calculateDateRange("DAILY", "LAST_DAY", { start: null, end: null }),
+        calculateDateRange("DAILY", "ALL_TIME", { start: null, end: null }),
     );
     const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
 

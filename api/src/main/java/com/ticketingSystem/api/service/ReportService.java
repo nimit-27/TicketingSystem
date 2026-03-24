@@ -1278,6 +1278,9 @@ public class ReportService {
     }
 
     private boolean matchesDateRange(LocalDateTime ticketDate, LocalDateTime from, LocalDateTime to) {
+        if (from == null && to == null) {
+            return true;
+        }
         if (ticketDate == null) {
             return false;
         }
