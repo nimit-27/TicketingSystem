@@ -4,8 +4,6 @@ import {
     Button,
     Chip,
     CircularProgress,
-    Card,
-    CardContent,
     Paper,
     Table,
     TableBody,
@@ -17,6 +15,7 @@ import {
 } from "@mui/material";
 import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
+import CustomMetricCard, { MetricCardData } from "../Dashboard/CustomMetricCard";
 import { useApi } from "../../hooks/useApi";
 import {
     fetchSlaPerformanceReport,
@@ -137,38 +136,44 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
         }
     }, [data, loadData, showMessage]);
 
-    const summaryMetrics = useMemo(() => {
+    const ticketHierarchyCardData = useMemo<MetricCardData | null>(() => {
         if (!data) {
-            return [];
+            return null;
         }
 
-        return [
-            {
-                label: "Tickets with SLA",
-                value: formatNumber(data.totalTicketsWithSla),
-            },
-            {
-                label: "On Track",
-                value: formatNumber(data.totalOnTrackTickets),
-            },
-            {
-                label: "Breached",
-                value: formatNumber(data.totalBreachedTickets),
-                highlight: true,
-            },
-            {
-                label: "Resolved Within SLA",
-                value: formatNumber(data.totalResolvedWithinSla),
-            },
-            {
-                label: "Resolved After Breach",
-                value: formatNumber(data.totalResolvedAfterBreach),
-            },
-            {
-                label: "In Progress",
-                value: formatNumber(data.totalInProgressTickets),
-            },
-        ];
+        const breachedTotal =
+            (data.breachedResolvedTickets ?? 0) + (data.breachedClosedTickets ?? 0) + (data.breachedInProgressTickets ?? 0);
+        const notBreachedTotal =
+            (data.notBreachedResolvedTickets ?? 0) + (data.notBreachedClosedTickets ?? 0) + (data.notBreachedInProgressTickets ?? 0);
+        const total = breachedTotal + notBreachedTotal;
+
+        return {
+            title: { text: "Total Tickets" },
+            metricValue: { text: String(total) },
+            backgroundColor: "background.paper",
+            children: [
+                {
+                    title: { text: "Breached" },
+                    metricValue: { text: String(breachedTotal), textColor: "error.main" },
+                    backgroundColor: "background.default",
+                    children: [
+                        { title: { text: "Resolved" }, metricValue: { text: String(data.breachedResolvedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "Closed" }, metricValue: { text: String(data.breachedClosedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "In Progress" }, metricValue: { text: String(data.breachedInProgressTickets ?? 0) }, backgroundColor: "background.paper" },
+                    ],
+                },
+                {
+                    title: { text: "Not Breached" },
+                    metricValue: { text: String(notBreachedTotal), textColor: "success.main" },
+                    backgroundColor: "background.default",
+                    children: [
+                        { title: { text: "Resolved" }, metricValue: { text: String(data.notBreachedResolvedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "Closed" }, metricValue: { text: String(data.notBreachedClosedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "In Progress" }, metricValue: { text: String(data.notBreachedInProgressTickets ?? 0) }, backgroundColor: "background.paper" },
+                    ],
+                },
+            ],
+        };
     }, [data]);
 
     const statusPieOptions = useMemo(() => {
@@ -411,44 +416,8 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
 
             {!pending && data && (
                 <Box display="flex" flexDirection="column" gap={3}>
-                    <Box
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: {
-                                xs: "1fr",
-                                sm: "repeat(2, minmax(0, 1fr))",
-                                md: "repeat(3, minmax(0, 1fr))",
-                                lg: "repeat(6, minmax(0, 1fr))",
-                            },
-                            gap: 2,
-                        }}
-                    >
-                        {summaryMetrics.map((metric) => (
-                            <Box key={metric.label}>
-                                <Card
-                                    elevation={metric.highlight ? 4 : 1}
-                                    sx={{
-                                        height: "100%",
-                                        borderTop: metric.highlight
-                                            ? `4px solid ${theme.palette.error.main}`
-                                            : `4px solid ${theme.palette.divider}`,
-                                    }}
-                                >
-                                    <CardContent>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ textTransform: "uppercase", fontWeight: 600 }}
-                                        >
-                                            {metric.label}
-                                        </Typography>
-                                        <Typography variant="h5" fontWeight={700} sx={{ mt: 1 }}>
-                                            {metric.value}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Box>
-                        ))}
+                    <Box sx={{ width: "100%" }}>
+                        {ticketHierarchyCardData ? <CustomMetricCard {...ticketHierarchyCardData} /> : null}
                     </Box>
 
                     <Box display="flex" flexWrap="wrap" gap={3} alignItems="center">

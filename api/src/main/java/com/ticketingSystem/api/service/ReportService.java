@@ -1514,6 +1514,12 @@ public class ReportService {
                     .totalInProgressTickets(0L)
                     .inProgressBreachedTickets(0L)
                     .inProgressOnTrackTickets(0L)
+                    .breachedResolvedTickets(0L)
+                    .breachedClosedTickets(0L)
+                    .breachedInProgressTickets(0L)
+                    .notBreachedResolvedTickets(0L)
+                    .notBreachedClosedTickets(0L)
+                    .notBreachedInProgressTickets(0L)
                     .breachRate(0.0)
                     .averageBreachMinutes(0.0)
                     .statusBreakdown(List.of())
@@ -1538,6 +1544,12 @@ public class ReportService {
         long inProgress = 0L;
         long inProgressBreached = 0L;
         long inProgressOnTrack = 0L;
+        long breachedResolved = 0L;
+        long breachedClosed = 0L;
+        long breachedInProgress = 0L;
+        long notBreachedResolved = 0L;
+        long notBreachedClosed = 0L;
+        long notBreachedInProgress = 0L;
 
         Map<String, Long> severityTotals = new LinkedHashMap<>();
         Map<String, Long> severityBreached = new LinkedHashMap<>();
@@ -1578,6 +1590,26 @@ public class ReportService {
                     inProgressBreached++;
                 } else {
                     inProgressOnTrack++;
+                }
+            }
+
+            if (status == TicketStatus.RESOLVED) {
+                if (hasBreached) {
+                    breachedResolved++;
+                } else {
+                    notBreachedResolved++;
+                }
+            } else if (status == TicketStatus.CLOSED) {
+                if (hasBreached) {
+                    breachedClosed++;
+                } else {
+                    notBreachedClosed++;
+                }
+            } else if (status != TicketStatus.CANCELLED) {
+                if (hasBreached) {
+                    breachedInProgress++;
+                } else {
+                    notBreachedInProgress++;
                 }
             }
 
@@ -1687,6 +1719,12 @@ public class ReportService {
                 .totalInProgressTickets(inProgress)
                 .inProgressBreachedTickets(inProgressBreached)
                 .inProgressOnTrackTickets(inProgressOnTrack)
+                .breachedResolvedTickets(breachedResolved)
+                .breachedClosedTickets(breachedClosed)
+                .breachedInProgressTickets(breachedInProgress)
+                .notBreachedResolvedTickets(notBreachedResolved)
+                .notBreachedClosedTickets(notBreachedClosed)
+                .notBreachedInProgressTickets(notBreachedInProgress)
                 .breachRate(round(breachRate))
                 .averageBreachMinutes(round(averageBreachMinutes))
                 .statusBreakdown(statusBreakdown)

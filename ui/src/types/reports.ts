@@ -125,6 +125,12 @@ export interface SlaPerformanceReportProps {
     totalInProgressTickets: number;
     inProgressBreachedTickets: number;
     inProgressOnTrackTickets: number;
+    breachedResolvedTickets: number;
+    breachedClosedTickets: number;
+    breachedInProgressTickets: number;
+    notBreachedResolvedTickets: number;
+    notBreachedClosedTickets: number;
+    notBreachedInProgressTickets: number;
     breachRate: number;
     averageBreachMinutes: number;
     statusBreakdown: SlaPerformanceStatusBreakdown[];

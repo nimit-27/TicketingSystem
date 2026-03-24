@@ -19,6 +19,12 @@ public class SlaPerformanceReportDto {
     private long totalInProgressTickets;
     private long inProgressBreachedTickets;
     private long inProgressOnTrackTickets;
+    private long breachedResolvedTickets;
+    private long breachedClosedTickets;
+    private long breachedInProgressTickets;
+    private long notBreachedResolvedTickets;
+    private long notBreachedClosedTickets;
+    private long notBreachedInProgressTickets;
     private double breachRate;
     private Double averageBreachMinutes;
     private List<SlaStatusBreakdownDto> statusBreakdown;
