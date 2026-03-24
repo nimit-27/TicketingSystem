@@ -140,6 +140,13 @@ export interface MISReportRequestParams {
     userId?: string;
     categoryId?: string;
     subCategoryId?: string;
+    zoneCode?: string;
+    regionCode?: string;
+    districtCode?: string;
+    issueTypeId?: string;
+    division?: string;
+    assignedTo?: string;
+    breachedFilter?: "ALL" | "BREACHED" | "BREACHED_IN";
 }
 
 export type SupportDashboardSeverityKey = "S1" | "S2" | "S3" | "S4";

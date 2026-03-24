@@ -127,7 +127,8 @@ public class ReportsController {
             @RequestParam(value = "districtCode", required = false) String districtCode,
             @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
             @RequestParam(value = "division", required = false) String division,
-            @RequestParam(value = "assignedTo", required = false) String assignedTo) {
+            @RequestParam(value = "assignedTo", required = false) String assignedTo,
+            @RequestParam(value = "breachedFilter", required = false) String breachedFilter) {
         return ResponseEntity.ok(reportService.getSlaPerformanceReport(
                 fromDate,
                 toDate,
@@ -140,7 +141,8 @@ public class ReportsController {
                 districtCode,
                 issueTypeId,
                 division,
-                assignedTo
+                assignedTo,
+                breachedFilter
         ));
     }
 

@@ -1419,7 +1419,7 @@ public class ReportService {
     }
 
     public SlaPerformanceReportDto getSlaPerformanceReport() {
-        return getSlaPerformanceReport(null, null, null, null, null, null, null, null, null, null, null, null);
+        return getSlaPerformanceReport(null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public SlaPerformanceReportDto getSlaPerformanceReport(String fromDate,
@@ -1433,7 +1433,8 @@ public class ReportService {
                                                            String districtCode,
                                                            String issueTypeId,
                                                            String division,
-                                                           String assignedTo) {
+                                                           String assignedTo,
+                                                           String breachedFilter) {
         List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
         DateRange dateRange = new DateRange(parseStartDate(fromDate), parseEndDate(toDate));
         Map<String, Boolean> issueTypeSlaCache = issueTypeRepository.findAll().stream()
@@ -1485,6 +1486,14 @@ public class ReportService {
                     if (StringUtils.hasText(assignedTo) && !matchesFilter(assignedTo, ticket.getAssignedTo())) {
                         return false;
                     }
+                    long breachedByMinutes = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L);
+                    if ("BREACHED".equalsIgnoreCase(breachedFilter) && breachedByMinutes <= 0) {
+                        return false;
+                    }
+                    if ("BREACHED_IN".equalsIgnoreCase(breachedFilter) && !(breachedByMinutes > 0 && !RESOLVED_STATUSES.contains(ticket.getTicketStatus()))) {
+                        return false;
+                    }
+
                     if ("user".equalsIgnoreCase(scope) && StringUtils.hasText(userId)) {
                         return matchesFilter(userId, ticket.getAssignedTo())
                                 || matchesFilter(userId, ticket.getCreatedBy())
