@@ -10,7 +10,7 @@ import TicketSummaryReport from "../components/MISReports/TicketSummaryReport";
 import TicketResolutionTimeReport from "../components/MISReports/TicketResolutionTimeReport";
 import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
 import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
-import { checkAccessMaster } from "../config/config";
+import { checkAccessMaster } from "../utils/permissions";
 
 const MISReports: React.FC = () => {
     const {
