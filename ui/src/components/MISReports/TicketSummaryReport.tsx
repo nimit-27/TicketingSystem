@@ -203,14 +203,14 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
                         </Box>
                     </Box>
 
-                    <Box display="flex" flexWrap="wrap" gap={4}>
-                        <Box flex={1} minWidth={280}>
+                    <Box display="flex" flexDirection="column" gap={4}>
+                        <Box width="100%">
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                 Overall Tickets - Categorized by Status
                             </Typography>
                             <ReactECharts option={statusPieChartOptions} style={{ height: 340 }} />
                         </Box>
-                        <Box flex={1} minWidth={280}>
+                        <Box width="100%">
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                 Tickets Count
                             </Typography>

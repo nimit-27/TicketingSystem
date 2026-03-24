@@ -10,6 +10,7 @@ import TicketSummaryReport from "../components/MISReports/TicketSummaryReport";
 import TicketResolutionTimeReport from "../components/MISReports/TicketResolutionTimeReport";
 import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
 import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
+import { checkAccessMaster } from "../config/config";
 
 const MISReports: React.FC = () => {
     const {
@@ -49,6 +50,10 @@ const MISReports: React.FC = () => {
     } = useMisReportFilters();
 
     const { downloading, handleDownload, handleEmail } = useMisReportDownloader(requestParams);
+    const showTicketSummaryReport = React.useMemo(() => checkAccessMaster(["misReports", "ticketSummaryReport"]), []);
+    const showTicketResolutionTimeReport = React.useMemo(() => checkAccessMaster(["misReports", "ticketResolutionTimeReport"]), []);
+    const showCustomerSatisfactionReport = React.useMemo(() => checkAccessMaster(["misReports", "customerSatisfactionReport"]), []);
+    const showProblemManagementReport = React.useMemo(() => checkAccessMaster(["misReports", "problemManagementReport"]), []);
     const filterSummary = [
         { label: "Interval", value: timeScale },
         { label: "Range", value: timeRange },
@@ -230,10 +235,10 @@ const MISReports: React.FC = () => {
             </Box>
 
             <Box display="flex" flexDirection="column" gap={2} mt={2}>
-                <TicketSummaryReport params={requestParams} />
-                <TicketResolutionTimeReport params={requestParams} />
-                <CustomerSatisfactionReport params={requestParams} />
-                <ProblemManagementReport params={requestParams} />
+                {showTicketSummaryReport && <TicketSummaryReport params={requestParams} />}
+                {showTicketResolutionTimeReport && <TicketResolutionTimeReport params={requestParams} />}
+                {showCustomerSatisfactionReport && <CustomerSatisfactionReport params={requestParams} />}
+                {showProblemManagementReport && <ProblemManagementReport params={requestParams} />}
             </Box>
         </div>
     );

@@ -24,6 +24,8 @@ import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketFeedback;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.repository.CategoryRepository;
+import com.ticketingSystem.api.repository.SubCategoryRepository;
 import com.ticketingSystem.api.repository.TicketFeedbackRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
@@ -63,6 +65,8 @@ public class ReportService {
     private final TicketFeedbackRepository ticketFeedbackRepository;
     private final TicketSlaRepository ticketSlaRepository;
     private final TicketSlaService ticketSlaService;
+    private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
     private final UserRepository userRepository;
     private final UserService userService;
     private final RequesterUserService requesterUserService;
@@ -1305,6 +1309,26 @@ public class ReportService {
         }
     }
 
+    private Map<String, String> getCategoryNameLookup() {
+        return categoryRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        category -> category.getCategoryId() == null ? "" : category.getCategoryId(),
+                        category -> category.getCategory() == null ? "" : category.getCategory(),
+                        (first, second) -> first,
+                        LinkedHashMap::new
+                ));
+    }
+
+    private Map<String, String> getSubCategoryNameLookup() {
+        return subCategoryRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        subCategory -> subCategory.getSubCategoryId() == null ? "" : subCategory.getSubCategoryId(),
+                        subCategory -> subCategory.getSubCategory() == null ? "" : subCategory.getSubCategory(),
+                        (first, second) -> first,
+                        LinkedHashMap::new
+                ));
+    }
+
     public TicketSummaryReportDto getTicketSummaryReport(String fromDate,
                                                          String toDate,
                                                          String scope,
@@ -1542,6 +1566,8 @@ public class ReportService {
                                                                String divisionId,
                                                                String assignedTo) {
         List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
+        Map<String, String> categoryNameLookup = getCategoryNameLookup();
+        Map<String, String> subCategoryNameLookup = getSubCategoryNameLookup();
 
         List<ProblemCategoryStatDto> categoryStats = filteredTickets.stream()
                 .filter(ticket -> ticket.getTicketStatus() == TicketStatus.RESOLVED || ticket.getTicketStatus() == TicketStatus.CLOSED)
@@ -1549,11 +1575,15 @@ public class ReportService {
                 .entrySet().stream()
                 .map(entry -> {
                     String[] parts = entry.getKey().split("\\|\\|", 2);
+                    String categoryCode = parts[0];
+                    String subCategoryCode = parts.length > 1 ? parts[1] : "N/A";
+                    String categoryName = categoryNameLookup.getOrDefault(categoryCode, categoryCode);
+                    String subCategoryName = subCategoryNameLookup.getOrDefault(subCategoryCode, subCategoryCode);
                     return ProblemCategoryStatDto.builder()
-                            .category(parts[0])
-                            .subcategory(parts.length > 1 ? parts[1] : "N/A")
-                            .categoryName(parts[0])
-                            .subcategoryName(parts.length > 1 ? parts[1] : "N/A")
+                            .category(categoryCode)
+                            .subcategory(subCategoryCode)
+                            .categoryName(categoryName)
+                            .subcategoryName(subCategoryName)
                             .ticketCount(entry.getValue())
                             .build();
                 })
