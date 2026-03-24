@@ -16,13 +16,10 @@ const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithPa
     useEffect(() => {
         apiHandler(() =>
             fetchCustomerSatisfactionReport({
-                fromDate: params?.fromDate,
-                toDate: params?.toDate,
-                scope: params?.scope,
-                userId: params?.userId,
+                ...params,
             }),
         );
-    }, [apiHandler, params?.fromDate, params?.scope, params?.toDate, params?.userId]);
+    }, [apiHandler, params]);
 
     const chartOptions = useMemo(() => {
         if (!data) {

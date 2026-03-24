@@ -95,23 +95,71 @@ public class ReportsController {
     }
 
     @GetMapping("/ticket-summary")
-    public ResponseEntity<TicketSummaryReportDto> getTicketSummaryReport() {
-        return ResponseEntity.ok(reportService.getTicketSummaryReport());
+    public ResponseEntity<TicketSummaryReportDto> getTicketSummaryReport(
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
+            @RequestParam(value = "subCategoryId", required = false) String subCategoryId,
+            @RequestParam(value = "zoneCode", required = false) String zoneCode,
+            @RequestParam(value = "regionCode", required = false) String regionCode,
+            @RequestParam(value = "districtCode", required = false) String districtCode,
+            @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
+            @RequestParam(value = "divisionId", required = false) String divisionId,
+            @RequestParam(value = "assignedTo", required = false) String assignedTo) {
+        return ResponseEntity.ok(reportService.getTicketSummaryReport(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo));
     }
 
     @GetMapping("/resolution-time")
-    public ResponseEntity<TicketResolutionTimeReportDto> getTicketResolutionTimeReport() {
-        return ResponseEntity.ok(reportService.getTicketResolutionTimeReport());
+    public ResponseEntity<TicketResolutionTimeReportDto> getTicketResolutionTimeReport(
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
+            @RequestParam(value = "subCategoryId", required = false) String subCategoryId,
+            @RequestParam(value = "zoneCode", required = false) String zoneCode,
+            @RequestParam(value = "regionCode", required = false) String regionCode,
+            @RequestParam(value = "districtCode", required = false) String districtCode,
+            @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
+            @RequestParam(value = "divisionId", required = false) String divisionId,
+            @RequestParam(value = "assignedTo", required = false) String assignedTo) {
+        return ResponseEntity.ok(reportService.getTicketResolutionTimeReport(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo));
     }
 
     @GetMapping("/customer-satisfaction")
-    public ResponseEntity<CustomerSatisfactionReportDto> getCustomerSatisfactionReport() {
-        return ResponseEntity.ok(reportService.getCustomerSatisfactionReport());
+    public ResponseEntity<CustomerSatisfactionReportDto> getCustomerSatisfactionReport(
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
+            @RequestParam(value = "subCategoryId", required = false) String subCategoryId,
+            @RequestParam(value = "zoneCode", required = false) String zoneCode,
+            @RequestParam(value = "regionCode", required = false) String regionCode,
+            @RequestParam(value = "districtCode", required = false) String districtCode,
+            @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
+            @RequestParam(value = "divisionId", required = false) String divisionId,
+            @RequestParam(value = "assignedTo", required = false) String assignedTo) {
+        return ResponseEntity.ok(reportService.getCustomerSatisfactionReport(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo));
     }
 
     @GetMapping("/problem-management")
-    public ResponseEntity<ProblemManagementReportDto> getProblemManagementReport() {
-        return ResponseEntity.ok(reportService.getProblemManagementReport());
+    public ResponseEntity<ProblemManagementReportDto> getProblemManagementReport(
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
+            @RequestParam(value = "subCategoryId", required = false) String subCategoryId,
+            @RequestParam(value = "zoneCode", required = false) String zoneCode,
+            @RequestParam(value = "regionCode", required = false) String regionCode,
+            @RequestParam(value = "districtCode", required = false) String districtCode,
+            @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
+            @RequestParam(value = "divisionId", required = false) String divisionId,
+            @RequestParam(value = "assignedTo", required = false) String assignedTo) {
+        return ResponseEntity.ok(reportService.getProblemManagementReport(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo));
     }
 
     @GetMapping("/sla-performance")

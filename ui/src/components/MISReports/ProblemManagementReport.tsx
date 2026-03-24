@@ -16,13 +16,10 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
     useEffect(() => {
         apiHandler(() =>
             fetchProblemManagementReport({
-                fromDate: params?.fromDate,
-                toDate: params?.toDate,
-                scope: params?.scope,
-                userId: params?.userId,
+                ...params,
             }),
         );
-    }, [apiHandler, params?.fromDate, params?.scope, params?.toDate, params?.userId]);
+    }, [apiHandler, params]);
 
     const chartOptions = useMemo(() => {
         const stats = data?.categoryStats ?? [];

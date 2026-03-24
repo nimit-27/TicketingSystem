@@ -79,9 +79,16 @@ describe("TicketSummaryReport", () => {
         renderWithTheme(<TicketSummaryReport />);
 
         expect(screen.getByText("Total Tickets")).toBeInTheDocument();
-        expect(screen.getByText("120")).toBeInTheDocument();
+        expect(screen.getAllByText("120").length).toBeGreaterThan(0);
         expect(screen.getByText("Open Tickets")).toBeInTheDocument();
-        expect(screen.getByText("30")).toBeInTheDocument();
+        expect(screen.getAllByText("30").length).toBeGreaterThan(0);
+        expect(screen.getByText("Overall Tickets - Categorized by Status")).toBeInTheDocument();
+        expect(screen.getByText("Tickets Count")).toBeInTheDocument();
+        expect(screen.getByText("Pending for Feedback")).toBeInTheDocument();
+        expect(screen.getByText("Feedback Submitted")).toBeInTheDocument();
+        expect(screen.getByText("With Requestor")).toBeInTheDocument();
+        expect(screen.getByText("With FCI")).toBeInTheDocument();
+        expect(screen.getByText("With Vendor")).toBeInTheDocument();
         expect(apiState.apiHandler).toHaveBeenCalledWith(expect.any(Function));
         expect(fetchTicketSummaryReport).toHaveBeenCalledTimes(0);
     });
