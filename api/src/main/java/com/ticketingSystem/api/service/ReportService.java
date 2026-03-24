@@ -1419,7 +1419,23 @@ public class ReportService {
     }
 
     public SlaPerformanceReportDto getSlaPerformanceReport() {
+        return getSlaPerformanceReport(null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    public SlaPerformanceReportDto getSlaPerformanceReport(String fromDate,
+                                                           String toDate,
+                                                           String scope,
+                                                           String userId,
+                                                           String categoryId,
+                                                           String subCategoryId,
+                                                           String zoneCode,
+                                                           String regionCode,
+                                                           String districtCode,
+                                                           String issueTypeId,
+                                                           String division,
+                                                           String assignedTo) {
         List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
+        DateRange dateRange = new DateRange(parseStartDate(fromDate), parseEndDate(toDate));
         Map<String, Boolean> issueTypeSlaCache = issueTypeRepository.findAll().stream()
                 .collect(Collectors.toMap(
                         issueType -> Optional.ofNullable(issueType.getIssueTypeId()).orElse(""),
@@ -1437,7 +1453,45 @@ public class ReportService {
                     if (!StringUtils.hasText(issueTypeId)) {
                         return false;
                     }
-                    return Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId));
+                    if (!Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId))) {
+                        return false;
+                    }
+
+                    if (!isWithinRange(ticket.getReportedDate(), dateRange)) {
+                        return false;
+                    }
+
+                    if (StringUtils.hasText(categoryId) && !matchesFilter(categoryId, ticket.getCategory())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(subCategoryId) && !matchesFilter(subCategoryId, ticket.getSubCategory())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(zoneCode) && !matchesFilter(zoneCode, ticket.getZoneCode())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(regionCode) && !matchesFilter(regionCode, ticket.getRegionCode())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(districtCode) && !matchesFilter(districtCode, ticket.getDistrictCode())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(issueTypeId) && !matchesFilter(issueTypeId, ticket.getIssueTypeId())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(division) && !matchesFilter(division, ticket.getDivision())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(assignedTo) && !matchesFilter(assignedTo, ticket.getAssignedTo())) {
+                        return false;
+                    }
+                    if ("user".equalsIgnoreCase(scope) && StringUtils.hasText(userId)) {
+                        return matchesFilter(userId, ticket.getAssignedTo())
+                                || matchesFilter(userId, ticket.getCreatedBy())
+                                || matchesFilter(userId, ticket.getUserId());
+                    }
+
+                    return true;
                 })
                 .collect(Collectors.toList());
 
@@ -1631,6 +1685,16 @@ public class ReportService {
                 .breachTrend(trendPoints)
                 .breachedTickets(breachedTickets.stream().limit(15).collect(Collectors.toList()))
                 .build();
+    }
+
+    private boolean matchesFilter(String expected, String actual) {
+        if (!StringUtils.hasText(expected)) {
+            return true;
+        }
+        if ("all".equalsIgnoreCase(expected)) {
+            return true;
+        }
+        return StringUtils.hasText(actual) && expected.trim().equalsIgnoreCase(actual.trim());
     }
 
     public void notifyBreachedSlaAssignees() {

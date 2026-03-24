@@ -6,7 +6,6 @@ import {
     CircularProgress,
     Card,
     CardContent,
-    Grid,
     Paper,
     Table,
     TableBody,
@@ -293,7 +292,6 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
             return {};
         }
         const categories = data.breachTrend?.map((point: any) => point.date) ?? [];
-        const dueSeries = data.breachTrend?.map((point: any) => point.dueCount) ?? [];
         const breachedSeries = data.breachTrend?.map((point: any) => point.breachedCount) ?? [];
         const resolvedSeries = data.breachTrend?.map((point: any) => point.resolvedCount) ?? [];
 
@@ -305,31 +303,37 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                 top: 0,
             },
             grid: {
-                left: "3%",
-                right: "4%",
-                bottom: "3%",
+                left: 36,
+                right: 20,
+                top: 40,
+                bottom: 32,
                 containLabel: true,
             },
             xAxis: {
                 type: "category",
                 data: categories,
+                axisTick: { show: false },
             },
             yAxis: {
                 type: "value",
             },
             series: [
                 {
-                    name: "Due",
-                    type: "line",
-                    data: dueSeries,
-                    smooth: true,
-                },
-                {
                     name: "Breached",
                     type: "line",
                     data: breachedSeries,
                     smooth: true,
+                    symbol: "circle",
+                    symbolSize: 8,
+                    lineStyle: {
+                        color: theme.palette.error.main,
+                        width: 2,
+                    },
                     itemStyle: {
+                        color: theme.palette.error.main,
+                    },
+                    areaStyle: {
+                        opacity: 0.1,
                         color: theme.palette.error.main,
                     },
                 },
@@ -338,7 +342,17 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                     type: "line",
                     data: resolvedSeries,
                     smooth: true,
+                    symbol: "circle",
+                    symbolSize: 8,
+                    lineStyle: {
+                        color: theme.palette.info.main,
+                        width: 2,
+                    },
                     itemStyle: {
+                        color: theme.palette.info.main,
+                    },
+                    areaStyle: {
+                        opacity: 0.1,
                         color: theme.palette.info.main,
                     },
                 },
@@ -376,9 +390,20 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
 
             {!pending && data && (
                 <Box display="flex" flexDirection="column" gap={3}>
-                    <Grid container spacing={2}>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: {
+                                xs: "1fr",
+                                sm: "repeat(2, minmax(0, 1fr))",
+                                md: "repeat(3, minmax(0, 1fr))",
+                                lg: "repeat(6, minmax(0, 1fr))",
+                            },
+                            gap: 2,
+                        }}
+                    >
                         {summaryMetrics.map((metric) => (
-                            <Grid key={metric.label} item xs={12} sm={6} md={4} lg={2}>
+                            <Box key={metric.label}>
                                 <Card
                                     elevation={metric.highlight ? 4 : 1}
                                     sx={{
@@ -401,9 +426,9 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                                         </Typography>
                                     </CardContent>
                                 </Card>
-                            </Grid>
+                            </Box>
                         ))}
-                    </Grid>
+                    </Box>
 
                     <Box display="flex" flexWrap="wrap" gap={3} alignItems="center">
                         <Chip
@@ -421,24 +446,31 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                         </Typography>
                     </Box>
 
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} lg={6}>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+                            gap: 3,
+                            width: "100%",
+                        }}
+                    >
+                        <Box sx={{ width: "100%" }}>
                             <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA State Distribution
                                 </Typography>
                                 <ReactECharts option={statusPieOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
                             </Paper>
-                        </Grid>
-                        <Grid item xs={12} lg={6}>
-                            <Paper elevation={1} sx={{ p: 2 }}>
+                        </Box>
+                        <Box sx={{ width: "100%" }}>
+                            <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA by Severity
                                 </Typography>
                                 <ReactECharts option={severityBarOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
                             </Paper>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Box>
 
                     <Paper elevation={1} sx={{ p: 2, width: "100%", maxWidth: "100%", overflow: "hidden" }}>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
