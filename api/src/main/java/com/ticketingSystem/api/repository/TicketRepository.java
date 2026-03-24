@@ -416,7 +416,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                        @Param("toDate") LocalDateTime toDate,
                                                        Pageable pageable);
 
-    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
+    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s LEFT JOIN t.issueType it " +
 //            "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
 //            "WHERE (:statusId IS NULL OR function(FIND_IN_SET, s.statusId, :statusId) > 0)" +
             "WHERE (:statusIds IS NULL OR s.statusId IN (:statusIds))" +
@@ -431,6 +431,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:divisionId IS NULL OR t.division = :divisionId) " +
+            "AND (:breachOption IS NULL " +
+            "OR (:breachOption = 'BREACHED' AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) >= 0)) " +
+            "OR (:breachOption = 'BREACH_IN' AND :breachInMinutes IS NOT NULL AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) < 0 AND COALESCE(ts.breachedByMinutes, 0) >= (0 - :breachInMinutes)))) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -463,12 +466,14 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("districtCode") String districtCode,
                                @Param("issueTypeId") String issueTypeId,
                                @Param("divisionId") String divisionId,
+                               @Param("breachOption") String breachOption,
+                               @Param("breachInMinutes") Integer breachInMinutes,
                                @Param("dateParam") String dateParam,
                                @Param("fromDate") LocalDateTime fromDate,
                                @Param("toDate") LocalDateTime toDate,
                                Pageable pageable);
 
-    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s " +
+    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s LEFT JOIN t.issueType it " +
             "WHERE (:statusIds IS NULL OR s.statusId IN (:statusIds))" +
             "AND (:master IS NULL OR t.isMaster = :master) " +
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
@@ -481,6 +486,9 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:districtCode IS NULL OR t.districtCode = :districtCode) " +
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:divisionId IS NULL OR t.division = :divisionId) " +
+            "AND (:breachOption IS NULL " +
+            "OR (:breachOption = 'BREACHED' AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) >= 0)) " +
+            "OR (:breachOption = 'BREACH_IN' AND :breachInMinutes IS NOT NULL AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) < 0 AND COALESCE(ts.breachedByMinutes, 0) >= (0 - :breachInMinutes)))) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -513,6 +521,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                    @Param("districtCode") String districtCode,
                                    @Param("issueTypeId") String issueTypeId,
                                    @Param("divisionId") String divisionId,
+                                   @Param("breachOption") String breachOption,
+                                   @Param("breachInMinutes") Integer breachInMinutes,
                                    @Param("dateParam") String dateParam,
                                    @Param("fromDate") LocalDateTime fromDate,
                                    @Param("toDate") LocalDateTime toDate);

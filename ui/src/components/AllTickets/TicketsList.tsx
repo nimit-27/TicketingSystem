@@ -48,6 +48,9 @@ export interface TicketsListFilterState {
     selectedAssignee: string;
     selectedDivision: string;
     selectedDateParam: string;
+    breachOption: string;
+    breachInHours: number;
+    breachInMinutes: number;
     allowedStatuses?: string[];
 }
 
@@ -76,6 +79,8 @@ export interface TicketsListSearchOverrides {
     districtCode?: string;
     issueTypeId?: string;
     divisionId?: string;
+    breachOption?: string;
+    breachInMinutes?: number;
 }
 
 interface TicketsListProps {
@@ -192,6 +197,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [selectedIssueType, setSelectedIssueType] = useState<string>("All");
     const [selectedDivision, setSelectedDivision] = useState<string>("All");
     const [selectedAssignee, setSelectedAssignee] = useState<string>("All");
+    const [breachOption, setBreachOption] = useState<string>("All");
+    const [breachInHours, setBreachInHours] = useState<number>(0);
+    const [breachInMinutes, setBreachInMinutes] = useState<number>(0);
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -247,12 +255,22 @@ const TicketsList: React.FC<TicketsListProps> = ({
         [districtsResponse],
     );
 
-    const issueTypeOptions: DropdownOption[] = useMemo(
-        () => [{ label: "All", value: "All" }, ...((issueTypesResponse as any)?.data ?? issueTypesResponse ?? []).map((issueType: any) => ({
-            label: issueType.issueTypeLabel ?? "",
-            value: String(issueType.issueTypeId ?? ""),
-        }))],
-        [issueTypesResponse],
+    const issueTypeOptions: DropdownOption[] = useMemo(() => {
+        const allIssueTypes = ((issueTypesResponse as any)?.data ?? issueTypesResponse ?? []) as any[];
+        const shouldRestrictToSlaEnabled = breachOption === "BREACHED" || breachOption === "BREACH_IN";
+        const filteredIssueTypes = shouldRestrictToSlaEnabled
+            ? allIssueTypes.filter((issueType: any) => issueType?.slaFlag === true || issueType?.slaFlag === 1 || issueType?.slaFlag === "1")
+            : allIssueTypes;
+
+        return [
+            { label: "All", value: "All" },
+            ...filteredIssueTypes.map((issueType: any) => ({
+                label: issueType.issueTypeLabel ?? "",
+                value: String(issueType.issueTypeId ?? ""),
+            })),
+        ];
+    },
+    [breachOption, issueTypesResponse],
     );
 
     const divisionOptions: DropdownOption[] = useMemo(
@@ -288,6 +306,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setSelectedIssueType("All");
         setSelectedDivision("All");
         setSelectedAssignee("All");
+        setBreachOption("All");
+        setBreachInHours(0);
+        setBreachInMinutes(0);
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -320,6 +341,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             selectedAssignee,
             selectedDivision,
             selectedDateParam,
+            breachOption,
+            breachInHours,
+            breachInMinutes,
         }),
         [
             search,
@@ -338,6 +362,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             selectedAssignee,
             selectedDivision,
             selectedDateParam,
+            breachOption,
+            breachInHours,
+            breachInMinutes,
         ],
     );
 
@@ -386,6 +413,13 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const issueTypeParam = mergedOverrides.issueTypeId ?? normalizedIssueType;
             const assignedToParam = mergedOverrides.assignedTo ?? normalizedAssignee;
             const divisionParam = mergedOverrides.divisionId ?? normalizedDivision;
+            const breachOptionParam = mergedOverrides.breachOption ?? (breachOption === "All" ? undefined : breachOption);
+            const computedBreachInMinutes = Math.max(0, (breachInHours * 60) + breachInMinutes);
+            const breachInMinutesParam = mergedOverrides.breachInMinutes ?? (
+                breachOptionParam === "BREACH_IN" && computedBreachInMinutes > 0
+                    ? computedBreachInMinutes
+                    : undefined
+            );
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -413,6 +447,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     districtParam,
                     issueTypeParam,
                     divisionParam,
+                    breachOptionParam,
+                    breachInMinutesParam,
                 )
             }
             );
@@ -435,6 +471,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             normalizedIssueType,
             normalizedDivision,
             normalizedAssignee,
+            breachOption,
+            breachInHours,
+            breachInMinutes,
             page,
             pageSize,
             sortBy,
@@ -495,6 +534,15 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
     const handleDivisionChange = (value: string) => {
         setSelectedDivision(value);
+        setPage(1);
+    };
+
+    const handleBreachOptionChange = (value: string) => {
+        setBreachOption(value);
+        if (value !== "BREACH_IN") {
+            setBreachInHours(0);
+            setBreachInMinutes(0);
+        }
         setPage(1);
     };
 
@@ -578,6 +626,18 @@ const TicketsList: React.FC<TicketsListProps> = ({
     }, [workflowData]);
 
     useEffect(() => {
+        if (selectedIssueType === "All") {
+            return;
+        }
+
+        const existsInOptions = issueTypeOptions.some((option) => option.value === selectedIssueType);
+        if (!existsInOptions) {
+            setSelectedIssueType("All");
+            setPage(1);
+        }
+    }, [issueTypeOptions, selectedIssueType]);
+
+    useEffect(() => {
         callSearch();
     }, [
         debouncedSearch,
@@ -598,6 +658,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
         selectedIssueType,
         selectedDivision,
         selectedAssignee,
+        breachOption,
+        breachInHours,
+        breachInMinutes,
         allowedStatusSuccess,
     ]);
 
@@ -720,6 +783,48 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         value={selectedAssignee}
                         onChange={handleAssigneeChange}
                     />
+
+                    <DropdownController
+                        label="Breach Option"
+                        value={breachOption}
+                        className="col-3 px-1"
+                        onChange={handleBreachOptionChange}
+                        options={[
+                            { label: "All", value: "All" },
+                            { label: "Breached", value: "BREACHED" },
+                            { label: "Breach In", value: "BREACH_IN" },
+                        ]}
+                    />
+
+                    {breachOption === "BREACH_IN" && (
+                        <>
+                            <GenericInput
+                                label="Breach In (Hours)"
+                                className="col-3 px-1"
+                                type="number"
+                                value={String(breachInHours)}
+                                onChange={(e) => {
+                                    const nextVal = Number(e.target.value);
+                                    setBreachInHours(Number.isFinite(nextVal) ? Math.max(0, Math.floor(nextVal)) : 0);
+                                    setPage(1);
+                                }}
+                                placeholder="0"
+                            />
+                            <GenericInput
+                                label="Breach In (Minutes)"
+                                className="col-3 px-1"
+                                type="number"
+                                value={String(breachInMinutes)}
+                                onChange={(e) => {
+                                    const nextVal = Number(e.target.value);
+                                    const normalized = Number.isFinite(nextVal) ? Math.max(0, Math.floor(nextVal)) : 0;
+                                    setBreachInMinutes(Math.min(59, normalized));
+                                    setPage(1);
+                                }}
+                                placeholder="0"
+                            />
+                        </>
+                    )}
 
                     <DropdownController
                         label={t("Date Parameter")}
