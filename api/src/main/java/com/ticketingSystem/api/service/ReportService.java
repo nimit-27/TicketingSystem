@@ -23,6 +23,7 @@ import com.ticketingSystem.api.models.ParameterMaster;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.repository.IssueTypeRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
@@ -59,6 +60,7 @@ import java.time.format.DateTimeFormatter;
 public class ReportService {
     private final TicketRepository ticketRepository;
     private final TicketSlaRepository ticketSlaRepository;
+    private final IssueTypeRepository issueTypeRepository;
     private final TicketSlaService ticketSlaService;
     private final UserRepository userRepository;
     private final UserService userService;
@@ -1418,6 +1420,26 @@ public class ReportService {
 
     public SlaPerformanceReportDto getSlaPerformanceReport() {
         List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
+        Map<String, Boolean> issueTypeSlaCache = issueTypeRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        issueType -> Optional.ofNullable(issueType.getIssueTypeId()).orElse(""),
+                        issueType -> Boolean.TRUE.equals(issueType.getSlaFlag()),
+                        (left, right) -> left
+                ));
+        slaEntries = slaEntries.stream()
+                .filter(Objects::nonNull)
+                .filter(sla -> {
+                    Ticket ticket = sla.getTicket();
+                    if (ticket == null) {
+                        return false;
+                    }
+                    String issueTypeId = ticket.getIssueTypeId();
+                    if (!StringUtils.hasText(issueTypeId)) {
+                        return false;
+                    }
+                    return Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId));
+                })
+                .collect(Collectors.toList());
 
         if (slaEntries.isEmpty()) {
             return SlaPerformanceReportDto.builder()

@@ -37,15 +37,16 @@ const formatNumber = (value: number | undefined | null, fractionDigits = 0) => {
     }).format(value);
 };
 
-const formatDuration = (minutes: number | undefined | null, fractionDigits = 0) => {
+const formatDuration = (minutes: number | undefined | null) => {
     if (!minutes || Number.isNaN(minutes) || minutes <= 0) {
         return "-";
     }
-    if (minutes < 60) {
-        return `${formatNumber(minutes, fractionDigits)} mins`;
+    const roundedMinutes = Math.floor(minutes);
+    if (roundedMinutes < 60) {
+        return `${roundedMinutes} mins`;
     }
-    const hours = Math.floor(minutes / 60);
-    const remaining = minutes % 60;
+    const hours = Math.floor(roundedMinutes / 60);
+    const remaining = roundedMinutes % 60;
     if (remaining === 0) {
         return `${hours} hrs`;
     }
@@ -411,7 +412,7 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                         />
                         <Chip
                             color="info"
-                            label={`Average Breach: ${formatDuration(data.averageBreachMinutes, 1)}`}
+                            label={`Average Breach: ${formatDuration(data.averageBreachMinutes)}`}
                         />
                         <Typography variant="body2" color="text.secondary">
                             In-progress tickets on track: {formatNumber(data.inProgressOnTrackTickets)} | Breached:
@@ -421,29 +422,29 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                     </Box>
 
                     <Grid container spacing={3}>
-                        <Grid>
+                        <Grid item xs={12} lg={6}>
                             <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA State Distribution
                                 </Typography>
-                                <ReactECharts option={statusPieOptions} style={{ height: 300 }} notMerge lazyUpdate />
+                                <ReactECharts option={statusPieOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
                             </Paper>
                         </Grid>
-                        <Grid>
+                        <Grid item xs={12} lg={6}>
                             <Paper elevation={1} sx={{ p: 2 }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA by Severity
                                 </Typography>
-                                <ReactECharts option={severityBarOptions} style={{ height: 300 }} notMerge lazyUpdate />
+                                <ReactECharts option={severityBarOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
                             </Paper>
                         </Grid>
                     </Grid>
 
-                    <Paper elevation={1} sx={{ p: 2 }}>
+                    <Paper elevation={1} sx={{ p: 2, width: "100%", maxWidth: "100%", overflow: "hidden" }}>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                             Breach & Resolution Trend
                         </Typography>
-                        <ReactECharts option={trendLineOptions} style={{ height: 320 }} notMerge lazyUpdate />
+                        <ReactECharts option={trendLineOptions} style={{ height: 320, width: "100%", maxWidth: "100%" }} notMerge lazyUpdate />
                     </Paper>
 
                     <Paper elevation={1} sx={{ p: 2 }}>

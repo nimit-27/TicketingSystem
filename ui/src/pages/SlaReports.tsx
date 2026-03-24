@@ -4,7 +4,7 @@ import Title from "../components/Title";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
-import { timeScaleOptions, timeRangeOptions } from "../utils/misReports";
+import { timeScaleOptions } from "../utils/misReports";
 import { useMisReportFilters } from "../hooks/useMisReportFilters";
 import { useMisReportDownloader } from "../hooks/useMisReportDownloader";
 
@@ -15,7 +15,6 @@ const SlaReports: React.FC = () => {
         timeRange,
         availableTimeRanges,
         activeDateRange,
-        customMonthRange,
         selectedCategory,
         selectedSubCategory,
         categoryOptions,
@@ -23,11 +22,14 @@ const SlaReports: React.FC = () => {
         viewScope,
         handleTimeScaleChange,
         handleTimeRangeChange,
-        handleCustomMonthRangeChange,
         handleDateChange,
         handleCategoryChange,
         handleSubCategoryChange,
-    } = useMisReportFilters();
+    } = useMisReportFilters({
+        initialTimeScale: "MONTHLY",
+        initialTimeRange: "ALL_TIME",
+        allowedTimeScales: ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+    });
 
     const { downloading, handleDownload, handleEmail } = useMisReportDownloader(requestParams);
 
@@ -35,7 +37,7 @@ const SlaReports: React.FC = () => {
         <MISReportGenerator
             onDownload={handleDownload}
             onEmail={handleEmail}
-            defaultPeriod="daily"
+            defaultPeriod="monthly"
             busy={downloading}
         />
     );
@@ -55,7 +57,7 @@ const SlaReports: React.FC = () => {
                             label="Interval"
                             value={timeScale}
                             onChange={handleTimeScaleChange}
-                            options={timeScaleOptions}
+                            options={timeScaleOptions.filter((option) => option.value !== "CUSTOM")}
                             fullWidth
                             className="w-100"
                         />
@@ -96,33 +98,6 @@ const SlaReports: React.FC = () => {
                         />
                     </Box>
                 </Box>
-
-                {timeScale === "MONTHLY" && timeRange === "CUSTOM_MONTH_RANGE" && (
-                    <Box className="row g-3">
-                        <Box className="col-12 col-md-6 col-lg-3">
-                            <TextField
-                                label="Start Year"
-                                type="number"
-                                size="small"
-                                value={customMonthRange.start ?? ""}
-                                onChange={handleCustomMonthRangeChange("start")}
-                                inputProps={{ min: 1970, max: new Date().getFullYear(), step: 1 }}
-                                fullWidth
-                            />
-                        </Box>
-                        <Box className="col-12 col-md-6 col-lg-3">
-                            <TextField
-                                label="End Year"
-                                type="number"
-                                size="small"
-                                value={customMonthRange.end ?? ""}
-                                onChange={handleCustomMonthRangeChange("end")}
-                                inputProps={{ min: 1970, max: new Date().getFullYear(), step: 1 }}
-                                fullWidth
-                            />
-                        </Box>
-                    </Box>
-                )}
 
                 <Box className="row g-3">
                     <Box className="col-12 col-md-6">

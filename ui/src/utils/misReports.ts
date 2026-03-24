@@ -6,7 +6,7 @@ export const ADMIN_ROLES = new Set(["Team Lead", "System Administrator", "Region
 export const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
 
 export const timeScaleOptions: { value: SupportDashboardTimeScale; label: string }[] = [
-    { value: "DAILY", label: "Interval" },
+    { value: "DAILY", label: "Daily" },
     { value: "WEEKLY", label: "Weekly" },
     { value: "MONTHLY", label: "Monthly" },
     { value: "YEARLY", label: "Yearly" },
@@ -15,24 +15,32 @@ export const timeScaleOptions: { value: SupportDashboardTimeScale; label: string
 
 export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
     DAILY: [
-        { value: "LAST_7_DAYS", label: "Last 7 Days" },
-        { value: "LAST_30_DAYS", label: "Last 30 Days" },
+        { value: "LAST_DAY", label: "Last 1 Day" },
+        { value: "LAST_7_DAYS", label: "Last 1 Week" },
+        { value: "LAST_30_DAYS", label: "Last 1 Month" },
+        { value: "CURRENT_YEAR", label: "Last 1 Year" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     WEEKLY: [
-        { value: "LAST_4_WEEKS", label: "Last 4 Weeks" },
+        { value: "LAST_WEEK", label: "Last 1 Week" },
+        { value: "LAST_4_WEEKS", label: "Last 1 Month" },
+        { value: "CURRENT_YEAR", label: "Last 1 Year" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     MONTHLY: [
-        { value: "LAST_6_MONTHS", label: "Last 6 Months" },
-        { value: "CURRENT_YEAR", label: "Current Year" },
-        { value: "LAST_YEAR", label: "Previous Year" },
-        { value: "LAST_5_YEARS", label: "Last 5 Years" },
-        { value: "CUSTOM_MONTH_RANGE", label: "Custom Range" },
-        { value: "ALL_TIME", label: "All Time" },
+        { value: "LAST_30_DAYS", label: "Last 1 Month" },
+        { value: "LAST_YEAR", label: "Last 1 Year" },
+        { value: "LAST_5_YEARS", label: "Last 2 Years" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     YEARLY: [
-        { value: "YEAR_TO_DATE", label: "Year To Date" },
-        { value: "LAST_YEAR", label: "Previous Year" },
+        { value: "LAST_YEAR", label: "Last 1 Year" },
         { value: "LAST_5_YEARS", label: "Last 5 Years" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     CUSTOM: [{ value: "CUSTOM_DATE_RANGE", label: "Custom Dates" }],
 };
@@ -85,6 +93,17 @@ export const calculateDateRange = (
                 from.setDate(from.getDate() - 6);
                 return buildRange(from, today);
             }
+            if (timeRange === "CURRENT_YEAR") {
+                const from = new Date(today);
+                from.setFullYear(from.getFullYear() - 1);
+                return buildRange(from, today);
+            }
+            if (timeRange === "ALL_TIME") {
+                return buildRange(startOfYear(1970), today);
+            }
+            if (timeRange === "CUSTOM_DATE_RANGE") {
+                return buildRange(null, null);
+            }
 
             const from = new Date(today);
             from.setDate(from.getDate() - 29);
@@ -100,6 +119,17 @@ export const calculateDateRange = (
                 start.setDate(start.getDate() - 7);
                 const end = endOfWeek(start);
                 return buildRange(start, end);
+            }
+            if (timeRange === "CURRENT_YEAR") {
+                const from = new Date(today);
+                from.setFullYear(from.getFullYear() - 1);
+                return buildRange(startOfWeek(from), endOfWeek(today));
+            }
+            if (timeRange === "ALL_TIME") {
+                return buildRange(startOfYear(1970), today);
+            }
+            if (timeRange === "CUSTOM_DATE_RANGE") {
+                return buildRange(null, null);
             }
 
             const start = startOfWeek(today);
@@ -126,7 +156,7 @@ export const calculateDateRange = (
             }
 
             if (timeRange === "LAST_5_YEARS") {
-                return buildRange(startOfYear(currentYear - 4), endOfYear(currentYear));
+                return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear));
             }
 
             if (timeRange === "CUSTOM_MONTH_RANGE") {
@@ -146,6 +176,12 @@ export const calculateDateRange = (
 
             if (timeRange === "LAST_YEAR") {
                 return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+            }
+            if (timeRange === "ALL_TIME") {
+                return buildRange(startOfYear(1970), endOfYear(currentYear));
+            }
+            if (timeRange === "CUSTOM_DATE_RANGE") {
+                return buildRange(null, null);
             }
 
             return buildRange(startOfYear(currentYear - 4), endOfYear(currentYear));
