@@ -157,7 +157,7 @@ const SlaReports: React.FC = () => {
     );
 
     return (
-        <div className="d-flex flex-column flex-grow-1">
+        <div className="d-flex flex-column flex-grow-1 w-100">
             <Title textKey="SLA Reports" rightContent={misReportGeneratorComponent} />
 
             <Box display="flex" flexDirection="column" gap={2}>
