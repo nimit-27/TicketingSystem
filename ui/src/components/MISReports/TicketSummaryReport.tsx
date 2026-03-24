@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
 import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
+import CustomMetricCard, { MetricCardData } from "../Dashboard/CustomMetricCard";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketSummaryReport } from "../../services/ReportService";
 import { MISReportRequestParams } from "../../types/reports";
@@ -19,74 +20,123 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
         apiHandler(() => fetchTicketSummaryReport(params));
     }, [apiHandler, params]);
 
-    const statusChartOptions = useMemo(() => {
-        const entries = Object.entries(data?.statusCounts ?? {});
-        return {
-            tooltip: {
-                trigger: "item",
-            },
-            legend: {
-                top: "bottom",
-            },
-            series: [
-                {
-                    name: "Status",
-                    type: "pie",
-                    radius: ["40%", "70%"],
-                    avoidLabelOverlap: false,
-                    itemStyle: {
-                        borderRadius: 6,
-                        borderColor: "#fff",
-                        borderWidth: 2,
-                    },
-                    label: {
-                        show: false,
-                        position: "center",
-                    },
-                    emphasis: {
-                        label: {
-                            show: true,
-                            fontSize: 16,
-                            fontWeight: "bold",
-                        },
-                    },
-                    labelLine: {
-                        show: false,
-                    },
-                    data: entries.map(([name, value]) => ({ name, value })),
-                },
-            ],
-        };
-    }, [data]);
+    const getStatusCount = (...keys: string[]) => keys.reduce((sum, key) => sum + (data?.statusCounts?.[key] ?? 0), 0);
 
-    const modeChartOptions = useMemo(() => {
-        const entries = Object.entries(data?.modeCounts ?? {});
+    const ticketLifecycleSunburstOptions = useMemo(() => {
+        const openCount = getStatusCount("OPEN");
+        const reopenedCount = getStatusCount("REOPENED");
+        const assignedCount = getStatusCount("ASSIGNED");
+        const pendingWithRequester = getStatusCount("PENDING_WITH_REQUESTER");
+        const pendingWithFci = getStatusCount("PENDING_WITH_FCI");
+        const pendingWithVendor = getStatusCount("PENDING_WITH_SERVICE_PROVIDER");
+        const onHoldCount = getStatusCount("ON_HOLD");
+        const pendingCount = getStatusCount("PENDING") + onHoldCount + pendingWithRequester + pendingWithFci + pendingWithVendor;
+        const pendingForFeedbackCount = getStatusCount("PENDING_FOR_FEEDBACK", "AWAITING_ESCALATION_APPROVAL");
+        const feedbackSubmittedCount = getStatusCount("FEEDBACK_SUBMITTED", "ESCALATED");
+        const resolvedCount = getStatusCount("RESOLVED") + pendingForFeedbackCount + feedbackSubmittedCount;
+        const closedCount = getStatusCount("CLOSED");
+
         return {
-            tooltip: {
-                trigger: "axis",
-                axisPointer: {
-                    type: "shadow",
+            tooltip: { trigger: "item" },
+            legend: {
+                bottom: 0,
+                type: "scroll",
+                data: ["Open", "Re-opened", "Assigned", "Pending", "Resolved", "Closed"],
+            },
+            series: {
+                type: "sunburst",
+                data: [
+                    {
+                        name: "Unacknowledged (Unassigned)",
+                        value: openCount + reopenedCount,
+                        children: [
+                            { name: "Open", value: openCount },
+                            { name: "Re-opened", value: reopenedCount },
+                        ],
+                    },
+                    {
+                        name: "Acknowledged",
+                        value: assignedCount + pendingCount + resolvedCount + closedCount,
+                        children: [
+                            { name: "Assigned", value: assignedCount },
+                            {
+                                name: "Pending",
+                                value: pendingCount,
+                                children: [
+                                    { name: "With Requestor", value: pendingWithRequester },
+                                    { name: "With FCI", value: pendingWithFci },
+                                    { name: "With Vendor", value: pendingWithVendor },
+                                ],
+                            },
+                            {
+                                name: "Resolved",
+                                value: resolvedCount,
+                                children: [
+                                    { name: "Pending for Feedback", value: pendingForFeedbackCount },
+                                    { name: "Feedback Submitted", value: feedbackSubmittedCount },
+                                ],
+                            },
+                            { name: "Closed", value: closedCount },
+                        ],
+                    },
+                ],
+                radius: [0, "72%"],
+                itemStyle: {
+                    borderRadius: 5,
+                    borderWidth: 2,
+                },
+                label: {
+                    show: true,
+                    formatter: "{c}",
                 },
             },
-            xAxis: {
-                type: "category",
-                data: entries.map(([name]) => name),
-            },
-            yAxis: {
-                type: "value",
-            },
-            series: [
+        };
+    }, [data?.statusCounts]);
+
+    const ticketMetricsCardData = useMemo<MetricCardData>(() => {
+        const openCount = getStatusCount("OPEN");
+        const reopenedCount = getStatusCount("REOPENED");
+        const assignedCount = getStatusCount("ASSIGNED");
+        const pendingWithRequester = getStatusCount("PENDING_WITH_REQUESTER");
+        const pendingWithFci = getStatusCount("PENDING_WITH_FCI");
+        const pendingWithVendor = getStatusCount("PENDING_WITH_SERVICE_PROVIDER");
+        const onHoldCount = getStatusCount("ON_HOLD");
+        const pendingCount = getStatusCount("PENDING") + onHoldCount + pendingWithRequester + pendingWithFci + pendingWithVendor;
+        const pendingForFeedbackCount = getStatusCount("PENDING_FOR_FEEDBACK", "AWAITING_ESCALATION_APPROVAL");
+        const feedbackSubmittedCount = getStatusCount("FEEDBACK_SUBMITTED", "ESCALATED");
+        const resolvedCount = getStatusCount("RESOLVED") + pendingForFeedbackCount + feedbackSubmittedCount;
+        const closedCount = getStatusCount("CLOSED");
+        const unacknowledgedCount = openCount + reopenedCount;
+        const acknowledgedCount = assignedCount + pendingCount + resolvedCount + closedCount;
+
+        return {
+            title: { text: "Total Tickets Raised", textSize: 12, textColor: "text.secondary" },
+            metricValue: { text: String(data?.totalTickets ?? 0), textSize: 24, textColor: "text.primary" },
+            backgroundColor: "background.paper",
+            children: [
                 {
-                    name: "Tickets",
-                    type: "bar",
-                    data: entries.map(([, value]) => value),
-                    itemStyle: {
-                        color: "#1976d2",
-                    },
+                    title: { text: "Unacknowledged" },
+                    metricValue: { text: String(unacknowledgedCount), textColor: "info.main" },
+                    backgroundColor: "background.default",
+                    children: [
+                        { title: { text: "Open" }, metricValue: { text: String(openCount) }, backgroundColor: "background.paper" },
+                        { title: { text: "Re-opened" }, metricValue: { text: String(reopenedCount) }, backgroundColor: "background.paper" },
+                    ],
+                },
+                {
+                    title: { text: "Acknowledged" },
+                    metricValue: { text: String(acknowledgedCount), textColor: "success.main" },
+                    backgroundColor: "background.default",
+                    children: [
+                        { title: { text: "Assigned" }, metricValue: { text: String(assignedCount) }, backgroundColor: "background.paper" },
+                        { title: { text: "Pending" }, metricValue: { text: String(pendingCount) }, backgroundColor: "background.paper" },
+                        { title: { text: "Resolved" }, metricValue: { text: String(resolvedCount) }, backgroundColor: "background.paper" },
+                        { title: { text: "Closed" }, metricValue: { text: String(closedCount) }, backgroundColor: "background.paper" },
+                    ],
                 },
             ],
         };
-    }, [data]);
+    }, [data?.statusCounts, data?.totalTickets]);
 
     return (
         <CustomFieldset title="Ticket Summary Report" variant="bordered">
@@ -128,15 +178,15 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
                     <Box display="flex" flexWrap="wrap" gap={4}>
                         <Box flex={1} minWidth={280}>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Ticket Status Distribution
+                                Ticket Lifecycle Distribution
                             </Typography>
-                            <ReactECharts option={statusChartOptions} style={{ height: 280 }} />
+                            <ReactECharts option={ticketLifecycleSunburstOptions} style={{ height: 340 }} />
                         </Box>
                         <Box flex={1} minWidth={280}>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Mode of Receipt
+                                Tickets Count
                             </Typography>
-                            <ReactECharts option={modeChartOptions} style={{ height: 280 }} />
+                            <CustomMetricCard {...ticketMetricsCardData} />
                         </Box>
                     </Box>
                 </Box>
