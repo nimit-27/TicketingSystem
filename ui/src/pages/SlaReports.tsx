@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import Title from "../components/Title";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
@@ -26,7 +26,6 @@ const SlaReports: React.FC = () => {
         selectedSubCategory,
         categoryOptions,
         subCategoryOptions,
-        viewScope,
         handleTimeScaleChange,
         handleTimeRangeChange,
         handleDateChange,
@@ -135,6 +134,8 @@ const SlaReports: React.FC = () => {
     const extendedRequestParams = React.useMemo(
         () => ({
             ...requestParams,
+            scope: undefined,
+            userId: undefined,
             zoneCode: selectedZone !== "All" ? selectedZone : undefined,
             regionCode: selectedRegion !== "All" ? selectedRegion : undefined,
             districtCode: selectedDistrict !== "All" ? selectedDistrict : undefined,
@@ -161,9 +162,6 @@ const SlaReports: React.FC = () => {
             <Title textKey="SLA Reports" rightContent={misReportGeneratorComponent} />
 
             <Box display="flex" flexDirection="column" gap={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                    Viewing data for {viewScope === "all" ? "all tickets" : "your workload"}
-                </Typography>
                 <Box className="row g-3" alignItems="stretch">
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
