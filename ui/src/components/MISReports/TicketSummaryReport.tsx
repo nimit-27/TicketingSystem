@@ -15,19 +15,9 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
     // const { data, pending, apiHandler } = useApi<TicketSummaryReport>();
     const { data, pending, apiHandler } = useApi<any>();
 
-    const normalizedParams = useMemo(
-        () => ({
-            fromDate: params?.fromDate,
-            toDate: params?.toDate,
-            scope: params?.scope,
-            userId: params?.userId,
-        }),
-        [params?.fromDate, params?.scope, params?.toDate, params?.userId],
-    );
-
     useEffect(() => {
-        apiHandler(() => fetchTicketSummaryReport(normalizedParams));
-    }, [apiHandler, normalizedParams]);
+        apiHandler(() => fetchTicketSummaryReport(params));
+    }, [apiHandler, params]);
 
     const statusChartOptions = useMemo(() => {
         const entries = Object.entries(data?.statusCounts ?? {});

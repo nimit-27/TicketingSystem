@@ -1,12 +1,15 @@
 import React from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Box, TextField, Typography } from "@mui/material";
 import Title from "../components/Title";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
-import { timeScaleOptions, timeRangeOptions } from "../utils/misReports";
+import { timeScaleOptions } from "../utils/misReports";
 import { useMisReportFilters } from "../hooks/useMisReportFilters";
 import { useMisReportDownloader } from "../hooks/useMisReportDownloader";
+import TicketSummaryReport from "../components/MISReports/TicketSummaryReport";
+import TicketResolutionTimeReport from "../components/MISReports/TicketResolutionTimeReport";
+import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
+import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
 
 const MISReports: React.FC = () => {
     const {
@@ -15,28 +18,47 @@ const MISReports: React.FC = () => {
         timeRange,
         availableTimeRanges,
         activeDateRange,
-        customMonthRange,
         selectedCategory,
         selectedSubCategory,
+        selectedZone,
+        selectedRegion,
+        selectedDistrict,
+        selectedIssueType,
+        selectedDivision,
+        selectedAssignee,
         categoryOptions,
         subCategoryOptions,
+        zoneOptions,
+        regionOptions,
+        districtOptions,
+        issueTypeOptions,
+        divisionOptions,
+        assigneeOptions,
         viewScope,
         handleTimeScaleChange,
         handleTimeRangeChange,
-        handleCustomMonthRangeChange,
         handleDateChange,
         handleCategoryChange,
         handleSubCategoryChange,
+        handleZoneChange,
+        handleRegionChange,
+        handleDistrictChange,
+        handleIssueTypeChange,
+        handleDivisionChange,
+        handleAssigneeChange,
     } = useMisReportFilters();
 
     const { downloading, handleDownload, handleEmail } = useMisReportDownloader(requestParams);
 
-    let misReportGeneratorComponent = <MISReportGenerator
-        onDownload={handleDownload}
-        onEmail={handleEmail}
-        defaultPeriod="daily"
-        busy={downloading}
-    />;
+    const misReportGeneratorComponent = (
+        <MISReportGenerator
+            onDownload={handleDownload}
+            onEmail={handleEmail}
+            defaultPeriod="daily"
+            busy={downloading}
+        />
+    );
+
     return (
         <div className="d-flex flex-column flex-grow-1">
             <Title textKey="Management Information System Reports" rightContent={misReportGeneratorComponent} />
@@ -94,35 +116,79 @@ const MISReports: React.FC = () => {
                     </Box>
                 </Box>
 
-                {timeScale === "MONTHLY" && timeRange === "CUSTOM_MONTH_RANGE" && (
-                    <Box className="row g-3">
-                        <Box className="col-12 col-md-6 col-lg-3">
-                            <TextField
-                                label="Start Year"
-                                type="number"
-                                size="small"
-                                value={customMonthRange.start ?? ""}
-                                onChange={handleCustomMonthRangeChange("start")}
-                                inputProps={{ min: 1970, max: new Date().getFullYear(), step: 1 }}
-                                fullWidth
-                            />
-                        </Box>
-                        <Box className="col-12 col-md-6 col-lg-3">
-                            <TextField
-                                label="End Year"
-                                type="number"
-                                size="small"
-                                value={customMonthRange.end ?? ""}
-                                onChange={handleCustomMonthRangeChange("end")}
-                                inputProps={{ min: 1970, max: new Date().getFullYear(), step: 1 }}
-                                fullWidth
-                            />
-                        </Box>
+                <Box className="row g-3">
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <GenericDropdown
+                            id="mis-report-zone"
+                            label="Zone"
+                            value={selectedZone}
+                            onChange={handleZoneChange}
+                            options={zoneOptions}
+                            fullWidth
+                            className="w-100"
+                        />
                     </Box>
-                )}
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <GenericDropdown
+                            id="mis-report-region"
+                            label="Region"
+                            value={selectedRegion}
+                            onChange={handleRegionChange}
+                            options={regionOptions}
+                            fullWidth
+                            className="w-100"
+                            disabled={selectedZone === "All"}
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <GenericDropdown
+                            id="mis-report-district"
+                            label="District"
+                            value={selectedDistrict}
+                            onChange={handleDistrictChange}
+                            options={districtOptions}
+                            fullWidth
+                            className="w-100"
+                            disabled={selectedRegion === "All"}
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <GenericDropdown
+                            id="mis-report-issue-type"
+                            label="Issue Type"
+                            value={selectedIssueType}
+                            onChange={handleIssueTypeChange}
+                            options={issueTypeOptions}
+                            fullWidth
+                            className="w-100"
+                        />
+                    </Box>
+                </Box>
 
                 <Box className="row g-3">
-                    <Box className="col-12 col-md-6">
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <GenericDropdown
+                            id="mis-report-division"
+                            label="Division"
+                            value={selectedDivision}
+                            onChange={handleDivisionChange}
+                            options={divisionOptions}
+                            fullWidth
+                            className="w-100"
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3">
+                        <GenericDropdown
+                            id="mis-report-assignee"
+                            label="Assignee"
+                            value={selectedAssignee}
+                            onChange={handleAssigneeChange}
+                            options={assigneeOptions}
+                            fullWidth
+                            className="w-100"
+                        />
+                    </Box>
+                    <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-category"
                             label="Module"
@@ -133,7 +199,7 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
-                    <Box className="col-12 col-md-6">
+                    <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-subcategory"
                             label="Sub Module"
@@ -148,28 +214,11 @@ const MISReports: React.FC = () => {
                 </Box>
             </Box>
 
-            <Box display="flex" flexDirection="column" gap={2}>
-                <Typography variant="subtitle1" fontWeight={700}>
-                    View individual MIS report pages
-                </Typography>
-                <Box display="flex" gap={2} flexWrap="wrap">
-                    <Button component={RouterLink} to="/mis-reports/ticket-summary" variant="outlined">
-                        Ticket Summary
-                    </Button>
-                    <Button component={RouterLink} to="/mis-reports/resolution-time" variant="outlined">
-                        Resolution Time
-                    </Button>
-                    <Button
-                        component={RouterLink}
-                        to="/mis-reports/customer-satisfaction"
-                        variant="outlined"
-                    >
-                        Customer Satisfaction
-                    </Button>
-                    <Button component={RouterLink} to="/mis-reports/problem-management" variant="outlined">
-                        Problem Management
-                    </Button>
-                </Box>
+            <Box display="flex" flexDirection="column" gap={2} mt={2}>
+                <TicketSummaryReport params={requestParams} />
+                <TicketResolutionTimeReport params={requestParams} />
+                <CustomerSatisfactionReport params={requestParams} />
+                <ProblemManagementReport params={requestParams} />
             </Box>
         </div>
     );
