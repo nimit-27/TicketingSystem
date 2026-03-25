@@ -4,8 +4,6 @@ import Title from "../Title";
 import { MISReportRequestParams } from "../../types/reports";
 import { getCurrentUserDetails } from "../../config/config";
 
-const ADMIN_ROLES = new Set(["Team Lead", "System Administrator", "Regional Nodal Officer"]);
-
 const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
 
 interface ReportPageLayoutProps {
@@ -24,23 +22,16 @@ const ReportPageLayout: React.FC<ReportPageLayoutProps> = ({ title, children, de
     const [generatedOn, setGeneratedOn] = useState<Date>(() => new Date());
 
     const userDetails = useMemo(() => getCurrentUserDetails(), []);
-    const viewScope: MISReportRequestParams["scope"] = useMemo(() => {
-        const roles = userDetails?.role ?? [];
-        return roles.some((role) => ADMIN_ROLES.has(role)) ? "all" : "user";
-    }, [userDetails?.role]);
-
     const requestParams = useMemo<MISReportRequestParams>(() => {
         return {
             fromDate: dateRange.from,
             toDate: dateRange.to,
-            scope: viewScope,
-            userId: userDetails?.userId,
         };
-    }, [dateRange.from, dateRange.to, userDetails?.userId, viewScope]);
+    }, [dateRange.from, dateRange.to]);
 
     useEffect(() => {
         setGeneratedOn(new Date());
-    }, [dateRange.from, dateRange.to, viewScope]);
+    }, [dateRange.from, dateRange.to]);
 
     const handleDateChange = (key: "from" | "to") => (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
@@ -91,7 +82,7 @@ const ReportPageLayout: React.FC<ReportPageLayoutProps> = ({ title, children, de
                     Generated On: <strong>{formatDisplayDate(generatedOn)}</strong>
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Viewing: <strong>{viewScope === "all" ? "All Tickets" : "My Workload"}</strong>
+                    Viewing: <strong>All Tickets</strong>
                 </Typography>
             </Box>
 

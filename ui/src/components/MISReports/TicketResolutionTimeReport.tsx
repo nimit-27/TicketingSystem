@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketResolutionTimeReport } from "../../services/ReportService";
@@ -20,42 +19,10 @@ const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({
     useEffect(() => {
         apiHandler(() =>
             fetchTicketResolutionTimeReport({
-                fromDate: params?.fromDate,
-                toDate: params?.toDate,
-                scope: params?.scope,
-                userId: params?.userId,
+                ...params,
             }),
         );
-    }, [apiHandler, params?.fromDate, params?.scope, params?.toDate, params?.userId]);
-
-    const chartOptions = useMemo(() => {
-        const entries = Object.entries(data?.averageResolutionHoursByStatus ?? {});
-        return {
-            tooltip: {
-                trigger: "axis",
-            },
-            xAxis: {
-                type: "category",
-                data: entries.map(([status]) => status),
-            },
-            yAxis: {
-                type: "value",
-                name: "Hours",
-            },
-            series: [
-                {
-                    name: "Average Resolution Time",
-                    type: "line",
-                    smooth: true,
-                    areaStyle: {},
-                    data: entries.map(([, value]) => value),
-                    itemStyle: {
-                        color: "#2e7d32",
-                    },
-                },
-            ],
-        };
-    }, [data]);
+    }, [apiHandler, params]);
 
     const categoryPriorityGroups = useMemo(() => {
         const stats = data?.categoryPriorityStats ?? [];
@@ -90,19 +57,12 @@ const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({
                         </Box>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Resolved Tickets Considered
+                                Tickets Considered (Resolved + Closed)
                             </Typography>
                             <Typography variant="h5" fontWeight={700}>
                                 {data.resolvedTicketCount}
                             </Typography>
                         </Box>
-                    </Box>
-
-                    <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                            Average Resolution Hours by Status
-                        </Typography>
-                        <ReactECharts option={chartOptions} style={{ height: 280 }} />
                     </Box>
 
                     {Object.keys(categoryPriorityGroups).length > 0 && (

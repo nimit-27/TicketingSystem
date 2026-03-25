@@ -240,6 +240,8 @@ public class TicketController {
             @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String issueTypeId,
             @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String breachOption,
+            @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
@@ -247,8 +249,8 @@ public class TicketController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, dateParam, fromDate, toDate, page, size, sortBy, direction);
+        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, page, size, sortBy, direction);
         Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
@@ -267,6 +269,8 @@ public class TicketController {
                 districtCode,
                 issueTypeId,
                 divisionId,
+                breachOption,
+                breachInMinutes,
                 dateParam,
                 fromDate,
                 toDate,
@@ -296,11 +300,13 @@ public class TicketController {
             @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String issueTypeId,
             @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String breachOption,
+            @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate) {
-        logger.info("Request to export tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} dateParam={} fromDate={} toDate={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, dateParam, fromDate, toDate);
+        logger.info("Request to export tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
+                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
         List<TicketDto> results = ticketService.searchTicketsList(
                 query,
                 statusId,
@@ -319,6 +325,8 @@ public class TicketController {
                 districtCode,
                 issueTypeId,
                 divisionId,
+                breachOption,
+                breachInMinutes,
                 dateParam,
                 fromDate,
                 toDate

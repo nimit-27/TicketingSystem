@@ -142,8 +142,6 @@ export interface SlaPerformanceReportProps {
 export interface MISReportRequestParams {
     fromDate?: string;
     toDate?: string;
-    scope?: "all" | "user";
-    userId?: string;
     categoryId?: string;
     subCategoryId?: string;
     zoneCode?: string;
@@ -153,6 +151,8 @@ export interface MISReportRequestParams {
     division?: string;
     assignedTo?: string;
     breachedFilter?: "ALL" | "BREACHED" | "BREACHED_IN";
+    divisionId?: string;
+    assignedTo?: string;
 }
 
 export type SupportDashboardSeverityKey = "S1" | "S2" | "S3" | "S4";

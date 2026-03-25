@@ -1,4 +1,19 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+const mockPdfSave = jest.fn();
+const mockPdfText = jest.fn();
+jest.mock('jspdf', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    text: (...args: any[]) => mockPdfText(...args),
+    setFontSize: jest.fn(),
+    save: (...args: any[]) => mockPdfSave(...args),
+    lastAutoTable: { finalY: 40 },
+  })),
+}), { virtual: true });
+jest.mock('jspdf-autotable', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}), { virtual: true });
 
 jest.mock('xlsx', () => {
   const mock = {
@@ -100,15 +115,20 @@ describe('useMisReportDownloader', () => {
     expect(result.current.downloading).toBe(false);
   });
 
-  it('handles unsupported download option with info toast', async () => {
+  it('downloads pdf successfully', async () => {
+    (fetchTicketSummaryReport as jest.Mock).mockResolvedValue({ totalTickets: 1, openTickets: 1, closedTickets: 0, statusCounts: {}, modeCounts: {} });
+    (fetchTicketResolutionTimeReport as jest.Mock).mockResolvedValue({ averageResolutionHours: 2, resolvedTicketCount: 1, categoryStats: [] });
+    (fetchCustomerSatisfactionReport as jest.Mock).mockResolvedValue({ totalResponses: 1, overallSatisfactionAverage: 4, resolutionEffectivenessAverage: 4, communicationSupportAverage: 4, timelinessAverage: 4, compositeScore: 4, categoryStats: [] });
+    (fetchProblemManagementReport as jest.Mock).mockResolvedValue({ categoryStats: [] });
+
     const { result } = renderHook(() => useMisReportDownloader(mockRequestParams));
 
     await act(async () => {
       await result.current.handleDownload('pdf', 'daily', sampleRange);
     });
 
-    expect(fetchTicketSummaryReport).not.toHaveBeenCalled();
-    expect(showMessage).toHaveBeenCalledWith('PDF downloads are not available yet.', 'info');
+    expect(fetchTicketSummaryReport).toHaveBeenCalledWith(mockRequestParams);
+    expect(showMessage).toHaveBeenCalledWith('MIS reports downloaded successfully.', 'success');
   });
 
   it('shows an error when any report payload is missing', async () => {

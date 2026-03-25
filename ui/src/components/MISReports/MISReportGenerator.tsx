@@ -40,6 +40,7 @@ interface MISReportGeneratorProps {
     onDownload: (option: string, period: ReportPeriod, range: ReportRange) => Promise<void> | void;
     onEmail: (period: ReportPeriod, range: ReportRange) => Promise<void> | void;
     busy?: boolean;
+    filterSummary?: Array<{ label: string; value: string }>;
 }
 
 const formatRange = (range: ReportRange) => {
@@ -65,6 +66,7 @@ const MISReportGenerator: React.FC<MISReportGeneratorProps> = ({
     onDownload,
     onEmail,
     busy = false,
+    filterSummary = [],
 }) => {
     const [open, setOpen] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState<ReportPeriod>(defaultPeriod);
@@ -176,6 +178,22 @@ const MISReportGenerator: React.FC<MISReportGeneratorProps> = ({
                                     ? `Custom range selected: ${formatRange(range)}`
                                     : `${getPeriodLabel(selectedPeriod)} report will cover ${formatRange(range)}.`}
                             </Typography>
+                        </Box>
+
+                        <Box p={2} borderRadius={1} bgcolor="rgba(0,0,0,0.03)">
+                            <Typography variant="subtitle2" gutterBottom>
+                                Applied MIS Filters
+                            </Typography>
+                            <Stack spacing={0.5}>
+                                {filterSummary.length === 0 && (
+                                    <Typography variant="body2" color="text.secondary">No filters applied.</Typography>
+                                )}
+                                {filterSummary.map((item) => (
+                                    <Typography key={`${item.label}-${item.value}`} variant="body2" color="text.secondary">
+                                        {item.label}: {item.value}
+                                    </Typography>
+                                ))}
+                            </Stack>
                         </Box>
                     </Stack>
                 </DialogContent>

@@ -10,7 +10,6 @@ export const timeScaleOptions: { value: SupportDashboardTimeScale; label: string
     { value: "WEEKLY", label: "Weekly" },
     { value: "MONTHLY", label: "Monthly" },
     { value: "YEARLY", label: "Yearly" },
-    { value: "CUSTOM", label: "Custom" },
 ];
 
 export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
@@ -40,6 +39,31 @@ export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: Suppor
         { value: "LAST_YEAR", label: "Last 1 Year" },
         { value: "LAST_5_YEARS", label: "Last 5 Years" },
         { value: "ALL_TIME", label: "All" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "LAST_DAY", label: "Last 1 Day" },
+        { value: "LAST_7_DAYS", label: "Last 1 Week" },
+        { value: "LAST_30_DAYS", label: "Last 1 Month" },
+        { value: "LAST_YEAR", label: "Last 1 Year" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    WEEKLY: [
+        { value: "ALL_TIME", label: "All" },
+        { value: "LAST_WEEK", label: "Last Week" },
+        { value: "LAST_30_DAYS", label: "Last Month" },
+        { value: "LAST_YEAR", label: "Last Year" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    MONTHLY: [
+        { value: "ALL_TIME", label: "All" },
+        { value: "LAST_30_DAYS", label: "Last Month" },
+        { value: "LAST_YEAR", label: "Last Year" },
+        { value: "LAST_5_YEARS", label: "Last 2 Years" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    YEARLY: [
+        { value: "ALL_TIME", label: "All" },
+        { value: "LAST_YEAR", label: "Last Year" },
+        { value: "LAST_5_YEARS", label: "Last 5 Years" },
         { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     CUSTOM: [{ value: "CUSTOM_DATE_RANGE", label: "Custom Dates" }],
@@ -62,12 +86,10 @@ const endOfWeek = (date: Date) => {
 
 const startOfYear = (year: number) => new Date(year, 0, 1);
 const endOfYear = (year: number) => new Date(year, 11, 31);
-const endOfMonth = (year: number, monthIndex: number) => new Date(year, monthIndex + 1, 0);
-
 export const calculateDateRange = (
     timeScale: SupportDashboardTimeScale,
     timeRange: SupportDashboardTimeRange,
-    customMonthRange: { start: number | null; end: number | null },
+    _customMonthRange: { start: number | null; end: number | null },
 ) => {
     const today = new Date();
 
@@ -77,6 +99,10 @@ export const calculateDateRange = (
     });
 
     if (timeScale === "CUSTOM" || timeRange === "CUSTOM_DATE_RANGE") {
+        return buildRange(null, null);
+    }
+
+    if (timeRange === "ALL_TIME") {
         return buildRange(null, null);
     }
 
@@ -105,15 +131,21 @@ export const calculateDateRange = (
                 return buildRange(null, null);
             }
 
-            const from = new Date(today);
-            from.setDate(from.getDate() - 29);
-            return buildRange(from, today);
-        }
-        case "WEEKLY": {
-            if (timeRange === "THIS_WEEK") {
-                return buildRange(startOfWeek(today), endOfWeek(today));
+            if (timeRange === "LAST_30_DAYS") {
+                const from = new Date(today);
+                from.setDate(from.getDate() - 29);
+                return buildRange(from, today);
             }
 
+            if (timeRange === "LAST_YEAR") {
+                const from = new Date(today);
+                from.setFullYear(from.getFullYear() - 1);
+                return buildRange(from, today);
+            }
+
+            return buildRange(null, null);
+        }
+        case "WEEKLY": {
             if (timeRange === "LAST_WEEK") {
                 const start = startOfWeek(today);
                 start.setDate(start.getDate() - 7);
@@ -132,27 +164,31 @@ export const calculateDateRange = (
                 return buildRange(null, null);
             }
 
-            const start = startOfWeek(today);
-            start.setDate(start.getDate() - 21);
+            if (timeRange === "LAST_30_DAYS") {
+                const end = endOfWeek(today);
+                const start = new Date(end);
+                start.setDate(start.getDate() - 27);
+                return buildRange(start, end);
+            }
+
             const end = endOfWeek(today);
+            const start = new Date(end);
+            start.setDate(start.getDate() - 364);
             return buildRange(start, end);
         }
         case "MONTHLY": {
             const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
 
-            if (timeRange === "LAST_6_MONTHS") {
-                const startMonth = new Date(today);
-                startMonth.setMonth(startMonth.getMonth() - 5, 1);
-                return buildRange(startMonth, endOfMonth(currentYear, currentMonth));
-            }
-
-            if (timeRange === "CURRENT_YEAR") {
-                return buildRange(startOfYear(currentYear), today);
+            if (timeRange === "LAST_30_DAYS") {
+                const start = new Date(today);
+                start.setMonth(start.getMonth() - 1);
+                return buildRange(start, today);
             }
 
             if (timeRange === "LAST_YEAR") {
-                return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+                const start = new Date(today);
+                start.setFullYear(start.getFullYear() - 1);
+                return buildRange(start, today);
             }
 
             if (timeRange === "LAST_5_YEARS") {
@@ -163,16 +199,15 @@ export const calculateDateRange = (
                 const startYear = customMonthRange.start ?? currentYear;
                 const endYear = customMonthRange.end ?? currentYear;
                 return buildRange(startOfYear(startYear), endOfYear(endYear));
+                const start = new Date(today);
+                start.setFullYear(start.getFullYear() - 2);
+                return buildRange(start, today);
             }
 
-            return buildRange(startOfYear(1970), endOfYear(currentYear));
+            return buildRange(startOfYear(currentYear), today);
         }
         case "YEARLY": {
             const currentYear = today.getFullYear();
-
-            if (timeRange === "YEAR_TO_DATE") {
-                return buildRange(startOfYear(currentYear), today);
-            }
 
             if (timeRange === "LAST_YEAR") {
                 return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
