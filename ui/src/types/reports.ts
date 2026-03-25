@@ -136,8 +136,6 @@ export interface SlaPerformanceReportProps {
 export interface MISReportRequestParams {
     fromDate?: string;
     toDate?: string;
-    scope?: "all" | "user";
-    userId?: string;
     categoryId?: string;
     subCategoryId?: string;
     zoneCode?: string;

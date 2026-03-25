@@ -14,6 +14,7 @@ export const timeScaleOptions: { value: SupportDashboardTimeScale; label: string
 
 export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
     DAILY: [
+        { value: "ALL_TIME", label: "All" },
         { value: "LAST_DAY", label: "Last 1 Day" },
         { value: "LAST_7_DAYS", label: "Last 1 Week" },
         { value: "LAST_30_DAYS", label: "Last 1 Month" },
@@ -21,18 +22,21 @@ export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: Suppor
         { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     WEEKLY: [
+        { value: "ALL_TIME", label: "All" },
         { value: "LAST_WEEK", label: "Last Week" },
         { value: "LAST_30_DAYS", label: "Last Month" },
         { value: "LAST_YEAR", label: "Last Year" },
         { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     MONTHLY: [
+        { value: "ALL_TIME", label: "All" },
         { value: "LAST_30_DAYS", label: "Last Month" },
         { value: "LAST_YEAR", label: "Last Year" },
         { value: "LAST_5_YEARS", label: "Last 2 Years" },
         { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     YEARLY: [
+        { value: "ALL_TIME", label: "All" },
         { value: "LAST_YEAR", label: "Last Year" },
         { value: "LAST_5_YEARS", label: "Last 5 Years" },
         { value: "CUSTOM_DATE_RANGE", label: "Custom" },
@@ -70,6 +74,10 @@ export const calculateDateRange = (
     });
 
     if (timeScale === "CUSTOM" || timeRange === "CUSTOM_DATE_RANGE") {
+        return buildRange(null, null);
+    }
+
+    if (timeRange === "ALL_TIME") {
         return buildRange(null, null);
     }
 

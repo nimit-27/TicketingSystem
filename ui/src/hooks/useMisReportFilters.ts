@@ -1,9 +1,8 @@
 import React from "react";
 import { SelectChangeEvent } from "@mui/material";
-import { getCurrentUserDetails } from "../config/config";
 import { useCategoryFilters } from "./useCategoryFilters";
 import { MISReportRequestParams, SupportDashboardTimeRange, SupportDashboardTimeScale } from "../types/reports";
-import { ADMIN_ROLES, calculateDateRange, timeRangeOptions, timeScaleOptions } from "../utils/misReports";
+import { calculateDateRange, timeRangeOptions, timeScaleOptions } from "../utils/misReports";
 import { getZones, getRegions, getDistricts } from "../services/LocationService";
 import { getIssueTypes } from "../services/IssueTypeService";
 import { getDivisions } from "../services/DivisionService";
@@ -46,7 +45,6 @@ export interface UseMisReportFiltersResult {
     issueTypeOptions: { value: string; label: string }[];
     divisionOptions: { value: string; label: string }[];
     assigneeOptions: { value: string; label: string }[];
-    viewScope: MISReportRequestParams["scope"];
     handleTimeScaleChange: (event: SelectChangeEvent<string>) => void;
     handleTimeRangeChange: (event: SelectChangeEvent<string>) => void;
     handleDateChange: (key: "from" | "to") => (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -61,7 +59,6 @@ export interface UseMisReportFiltersResult {
 }
 
 export const useMisReportFilters = (): UseMisReportFiltersResult => {
-    const userDetails = React.useMemo(() => getCurrentUserDetails(), []);
     const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
     const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
@@ -81,16 +78,11 @@ export const useMisReportFilters = (): UseMisReportFiltersResult => {
     const [assigneeOptions, setAssigneeOptions] = React.useState([{ ...allOption }]);
 
     const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
-    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("LAST_DAY");
+    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("ALL_TIME");
     const [dateRange, setDateRange] = React.useState<{ from: string; to: string }>(() =>
-        calculateDateRange("DAILY", "LAST_DAY", { start: null, end: null }),
+        calculateDateRange("DAILY", "ALL_TIME", { start: null, end: null }),
     );
     const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
-
-    const viewScope: MISReportRequestParams["scope"] = React.useMemo(() => {
-        const roles = userDetails?.role ?? [];
-        return roles.some((role) => ADMIN_ROLES.has(role)) ? "all" : "user";
-    }, [userDetails?.role]);
 
     const activeDateRange = React.useMemo(() => {
         if (timeRange === "CUSTOM_DATE_RANGE") {
@@ -112,8 +104,6 @@ export const useMisReportFilters = (): UseMisReportFiltersResult => {
         return {
             fromDate: activeDateRange.from,
             toDate: activeDateRange.to,
-            scope: viewScope,
-            userId: userDetails?.userId,
             categoryId,
             subCategoryId,
             zoneCode,
@@ -134,8 +124,6 @@ export const useMisReportFilters = (): UseMisReportFiltersResult => {
         selectedIssueType,
         selectedDivision,
         selectedAssignee,
-        userDetails?.userId,
-        viewScope,
     ]);
 
     const handleTimeScaleChange = (event: SelectChangeEvent<string>) => {
@@ -314,7 +302,6 @@ export const useMisReportFilters = (): UseMisReportFiltersResult => {
         issueTypeOptions,
         divisionOptions,
         assigneeOptions,
-        viewScope,
         handleTimeScaleChange,
         handleTimeRangeChange,
         handleDateChange,

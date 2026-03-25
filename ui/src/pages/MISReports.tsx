@@ -35,7 +35,6 @@ const MISReports: React.FC = () => {
         issueTypeOptions,
         divisionOptions,
         assigneeOptions,
-        viewScope,
         handleTimeScaleChange,
         handleTimeRangeChange,
         handleDateChange,
@@ -85,7 +84,7 @@ const MISReports: React.FC = () => {
 
             <Box display="flex" flexDirection="column" gap={2}>
                 <Typography variant="subtitle2" color="text.secondary">
-                    Viewing data for {viewScope === "all" ? "all tickets" : "your workload"}
+                    Viewing data for all tickets
                 </Typography>
                 <Box className="row g-3" alignItems="stretch">
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">

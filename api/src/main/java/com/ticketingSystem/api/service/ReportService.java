@@ -1234,8 +1234,6 @@ public class ReportService {
 
     private List<Ticket> getFilteredTickets(String fromDate,
                                             String toDate,
-                                            String scope,
-                                            String userId,
                                             String categoryId,
                                             String subCategoryId,
                                             String zoneCode,
@@ -1247,7 +1245,6 @@ public class ReportService {
         LocalDateTime from = parseFromDateTime(fromDate);
         LocalDateTime to = parseToDateTime(toDate);
         return ticketRepository.findAll().stream()
-                .filter(ticket -> matchesScope(ticket, scope, userId))
                 .filter(ticket -> matchesFilter(ticket.getCategory(), categoryId))
                 .filter(ticket -> matchesFilter(ticket.getSubCategory(), subCategoryId))
                 .filter(ticket -> matchesFilter(ticket.getZoneCode(), zoneCode))
@@ -1260,16 +1257,6 @@ public class ReportService {
                 .collect(Collectors.toList());
     }
 
-    private boolean matchesScope(Ticket ticket, String scope, String userId) {
-        if (!StringUtils.hasText(scope) || !"user".equalsIgnoreCase(scope) || !StringUtils.hasText(userId)) {
-            return true;
-        }
-
-        return matchesFilter(ticket.getAssignedTo(), userId)
-                || matchesFilter(ticket.getUserId(), userId)
-                || matchesFilter(ticket.getCreatedBy(), userId);
-    }
-
     private boolean matchesFilter(String actual, String expected) {
         if (!StringUtils.hasText(expected)) {
             return true;
@@ -1278,6 +1265,9 @@ public class ReportService {
     }
 
     private boolean matchesDateRange(LocalDateTime ticketDate, LocalDateTime from, LocalDateTime to) {
+        if (from == null && to == null) {
+            return true;
+        }
         if (ticketDate == null) {
             return false;
         }
@@ -1331,8 +1321,6 @@ public class ReportService {
 
     public TicketSummaryReportDto getTicketSummaryReport(String fromDate,
                                                          String toDate,
-                                                         String scope,
-                                                         String userId,
                                                          String categoryId,
                                                          String subCategoryId,
                                                          String zoneCode,
@@ -1341,7 +1329,7 @@ public class ReportService {
                                                          String issueTypeId,
                                                          String divisionId,
                                                          String assignedTo) {
-        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
+        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
 
         long totalTickets = filteredTickets.size();
         long openTickets = filteredTickets.stream().filter(ticket -> TicketStatus.OPEN.equals(ticket.getTicketStatus())).count();
@@ -1372,8 +1360,6 @@ public class ReportService {
 
     public TicketResolutionTimeReportDto getTicketResolutionTimeReport(String fromDate,
                                                                      String toDate,
-                                                                     String scope,
-                                                                     String userId,
                                                                      String categoryId,
                                                                      String subCategoryId,
                                                                      String zoneCode,
@@ -1382,7 +1368,7 @@ public class ReportService {
                                                                      String issueTypeId,
                                                                      String divisionId,
                                                                      String assignedTo) {
-        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
+        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
 
         List<Ticket> resolvedTickets = filteredTickets.stream()
                 .filter(ticket -> ticket.getReportedDate() != null && ticket.getResolvedAt() != null)
@@ -1453,8 +1439,6 @@ public class ReportService {
 
     public CustomerSatisfactionReportDto getCustomerSatisfactionReport(String fromDate,
                                                                      String toDate,
-                                                                     String scope,
-                                                                     String userId,
                                                                      String categoryId,
                                                                      String subCategoryId,
                                                                      String zoneCode,
@@ -1463,7 +1447,7 @@ public class ReportService {
                                                                      String issueTypeId,
                                                                      String divisionId,
                                                                      String assignedTo) {
-        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
+        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
         List<String> ticketIds = filteredTickets.stream().map(Ticket::getId).filter(Objects::nonNull).toList();
         List<TicketFeedback> feedbacks = ticketIds.isEmpty() ? List.of() : ticketFeedbackRepository.findByTicketIdIn(ticketIds);
 
@@ -1555,8 +1539,6 @@ public class ReportService {
 
     public ProblemManagementReportDto getProblemManagementReport(String fromDate,
                                                                String toDate,
-                                                               String scope,
-                                                               String userId,
                                                                String categoryId,
                                                                String subCategoryId,
                                                                String zoneCode,
@@ -1565,7 +1547,7 @@ public class ReportService {
                                                                String issueTypeId,
                                                                String divisionId,
                                                                String assignedTo) {
-        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, scope, userId, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
+        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
         Map<String, String> categoryNameLookup = getCategoryNameLookup();
         Map<String, String> subCategoryNameLookup = getSubCategoryNameLookup();
 
