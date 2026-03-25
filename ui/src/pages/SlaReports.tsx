@@ -13,8 +13,10 @@ import { getIssueTypes } from "../services/IssueTypeService";
 import { getDivisions } from "../services/DivisionService";
 import { getDropdownOptionsWithExtraOption } from "../utils/Utils";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
+import { checkAccessMaster } from "../utils/permissions";
 
 const SlaReports: React.FC = () => {
+    const hasAccess = React.useCallback((keys: string[]) => checkAccessMaster(["slaReports", ...keys]), []);
     const allOption: DropdownOption = React.useMemo(() => ({ label: "All", value: "All" }), []);
     const {
         requestParams,
@@ -147,6 +149,20 @@ const SlaReports: React.FC = () => {
     );
 
     const { downloading, handleDownload, handleEmail } = useSlaReportDownloader(extendedRequestParams);
+    const showReportGenerator = React.useMemo(() => hasAccess(["reportGenerator"]), [hasAccess]);
+    const showIntervalFilter = React.useMemo(() => hasAccess(["filters", "interval"]), [hasAccess]);
+    const showRangeFilter = React.useMemo(() => hasAccess(["filters", "range"]), [hasAccess]);
+    const showFromDateFilter = React.useMemo(() => hasAccess(["filters", "fromDate"]), [hasAccess]);
+    const showToDateFilter = React.useMemo(() => hasAccess(["filters", "toDate"]), [hasAccess]);
+    const showModuleFilter = React.useMemo(() => hasAccess(["filters", "module"]), [hasAccess]);
+    const showSubModuleFilter = React.useMemo(() => hasAccess(["filters", "subModule"]), [hasAccess]);
+    const showZoneFilter = React.useMemo(() => hasAccess(["filters", "zone"]), [hasAccess]);
+    const showRegionFilter = React.useMemo(() => hasAccess(["filters", "region"]), [hasAccess]);
+    const showDistrictFilter = React.useMemo(() => hasAccess(["filters", "district"]), [hasAccess]);
+    const showIssueTypeFilter = React.useMemo(() => hasAccess(["filters", "issueType"]), [hasAccess]);
+    const showDivisionFilter = React.useMemo(() => hasAccess(["filters", "division"]), [hasAccess]);
+    const showBreachedFilter = React.useMemo(() => hasAccess(["filters", "breached"]), [hasAccess]);
+    const showSlaPerformanceReport = React.useMemo(() => hasAccess(["slaPerformanceReport"]), [hasAccess]);
 
     const misReportGeneratorComponent = (
         <SLAReportGenerator
@@ -155,42 +171,42 @@ const SlaReports: React.FC = () => {
             busy={downloading}
             filterControls={(
                 <Box className="row g-2">
-                    <Box className="col-12 col-md-6">
+                    {showIntervalFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-interval" label="Interval" value={timeScale} onChange={handleTimeScaleChange} options={timeScaleOptions.filter((option) => option.value !== "CUSTOM")} fullWidth className="w-100" />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showRangeFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-range" label="Range" value={timeRange} onChange={handleTimeRangeChange} options={availableTimeRanges} fullWidth className="w-100" />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showFromDateFilter && <Box className="col-12 col-md-6">
                         <TextField id="sla-report-modal-from" label="From Date" type="date" value={activeDateRange.from} onChange={handleDateChange("from")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showToDateFilter && <Box className="col-12 col-md-6">
                         <TextField id="sla-report-modal-to" label="To Date" type="date" value={activeDateRange.to} onChange={handleDateChange("to")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showModuleFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-category" label="Module" value={selectedCategory} onChange={handleCategoryChange} options={categoryOptions} fullWidth className="w-100" />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showSubModuleFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-subcategory" label="Sub Module" value={selectedSubCategory} onChange={handleSubCategoryChange} options={subCategoryOptions} fullWidth className="w-100" disabled={selectedCategory === "All"} />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showZoneFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-zone" label="Zone" value={selectedZone} onChange={(e) => setSelectedZone(e.target.value as string)} options={zoneOptions} fullWidth className="w-100" />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showRegionFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-region" label="Region" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value as string)} options={regionOptions} fullWidth className="w-100" disabled={selectedZone === "All"} />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showDistrictFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-district" label="District" value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value as string)} options={districtOptions} fullWidth className="w-100" disabled={selectedRegion === "All"} />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showIssueTypeFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-issue-type" label="Issue Type" value={selectedIssueType} onChange={(e) => setSelectedIssueType(e.target.value as string)} options={issueTypeOptions} fullWidth className="w-100" />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showDivisionFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-division" label="Division" value={selectedDivision} onChange={(e) => setSelectedDivision(e.target.value as string)} options={divisionOptions} fullWidth className="w-100" />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showBreachedFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown id="sla-report-modal-breached" label="Breached" value={selectedBreached} onChange={(e) => setSelectedBreached(e.target.value as "ALL" | "BREACHED" | "BREACHED_IN")} options={breachedOptions} fullWidth className="w-100" />
-                    </Box>
+                    </Box>}
                 </Box>
             )}
         />
@@ -198,11 +214,11 @@ const SlaReports: React.FC = () => {
 
     return (
         <div className="d-flex flex-column flex-grow-1 w-100">
-            <Title textKey="SLA Reports" rightContent={misReportGeneratorComponent} />
+            <Title textKey="SLA Reports" rightContent={showReportGenerator ? misReportGeneratorComponent : undefined} />
 
             <Box display="flex" flexDirection="column" gap={2}>
                 <Box className="row g-3" alignItems="stretch">
-                    <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    {showIntervalFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
                             id="sla-report-interval"
                             label="Interval"
@@ -212,8 +228,8 @@ const SlaReports: React.FC = () => {
                             fullWidth
                             className="w-100"
                         />
-                    </Box>
-                    <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    </Box>}
+                    {showRangeFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
                             id="sla-report-range"
                             label="Range"
@@ -223,8 +239,8 @@ const SlaReports: React.FC = () => {
                             fullWidth
                             className="w-100"
                         />
-                    </Box>
-                    <Box className="col-12 col-md-6 col-lg-3">
+                    </Box>}
+                    {showFromDateFilter && <Box className="col-12 col-md-6 col-lg-3">
                         <TextField
                             id="sla-report-from"
                             label="From Date"
@@ -235,8 +251,8 @@ const SlaReports: React.FC = () => {
                             size="small"
                             fullWidth
                         />
-                    </Box>
-                    <Box className="col-12 col-md-6 col-lg-3">
+                    </Box>}
+                    {showToDateFilter && <Box className="col-12 col-md-6 col-lg-3">
                         <TextField
                             id="sla-report-to"
                             label="To Date"
@@ -247,11 +263,11 @@ const SlaReports: React.FC = () => {
                             size="small"
                             fullWidth
                         />
-                    </Box>
+                    </Box>}
                 </Box>
 
                 <Box className="row g-3">
-                    <Box className="col-12 col-md-6">
+                    {showModuleFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown
                             id="sla-report-category"
                             label="Module"
@@ -261,8 +277,8 @@ const SlaReports: React.FC = () => {
                             fullWidth
                             className="w-100"
                         />
-                    </Box>
-                    <Box className="col-12 col-md-6">
+                    </Box>}
+                    {showSubModuleFilter && <Box className="col-12 col-md-6">
                         <GenericDropdown
                             id="sla-report-subcategory"
                             label="Sub Module"
@@ -273,32 +289,32 @@ const SlaReports: React.FC = () => {
                             className="w-100"
                             disabled={selectedCategory === "All"}
                         />
-                    </Box>
+                    </Box>}
                 </Box>
             </Box>
 
             <Box className="row g-3 mt-1">
-                <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                {showZoneFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-zone" label="Zone" value={selectedZone} onChange={(e) => setSelectedZone(e.target.value as string)} options={zoneOptions} fullWidth className="w-100" />
-                </Box>
-                <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                </Box>}
+                {showRegionFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-region" label="Region" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value as string)} options={regionOptions} fullWidth className="w-100" disabled={selectedZone === "All"} />
-                </Box>
-                <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                </Box>}
+                {showDistrictFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-district" label="District" value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value as string)} options={districtOptions} fullWidth className="w-100" disabled={selectedRegion === "All"} />
-                </Box>
-                <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                </Box>}
+                {showIssueTypeFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-issue-type" label="Issue Type" value={selectedIssueType} onChange={(e) => setSelectedIssueType(e.target.value as string)} options={issueTypeOptions} fullWidth className="w-100" />
-                </Box>
-                <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                </Box>}
+                {showDivisionFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-division" label="Division" value={selectedDivision} onChange={(e) => setSelectedDivision(e.target.value as string)} options={divisionOptions} fullWidth className="w-100" />
-                </Box>
-                <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                </Box>}
+                {showBreachedFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-breached" label="Breached" value={selectedBreached} onChange={(e) => setSelectedBreached(e.target.value as "ALL" | "BREACHED" | "BREACHED_IN")} options={breachedOptions} fullWidth className="w-100" />
-                </Box>
+                </Box>}
             </Box>
 
-            <SlaPerformanceReport params={extendedRequestParams} />
+            {showSlaPerformanceReport && <SlaPerformanceReport params={extendedRequestParams} />}
         </div>
     );
 };

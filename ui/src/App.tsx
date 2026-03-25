@@ -2,6 +2,7 @@ import React, { JSX, Suspense, lazy, useContext } from 'react';
 import './App.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
+import { checkAccessMaster } from './utils/permissions';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
 import ExternalCallback from './pages/ExternalCallback';
@@ -88,7 +89,10 @@ function App() {
           <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="mis-reports" element={<MISReports />} />
-          <Route path="sla-reports" element={<SlaReports />} />
+          <Route
+            path="sla-reports"
+            element={checkAccessMaster(['slaReports']) ? <SlaReports /> : <Navigate to="/dashboard" replace />}
+          />
           <Route path="mis-reports/ticket-summary" element={<TicketSummaryReportPage />} />
           <Route
             path="mis-reports/resolution-time"

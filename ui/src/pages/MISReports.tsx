@@ -49,10 +49,27 @@ const MISReports: React.FC = () => {
     } = useMisReportFilters();
 
     const { downloading, handleDownload, handleEmail } = useMisReportDownloader(requestParams);
-    const showTicketSummaryReport = React.useMemo(() => checkAccessMaster(["misReports", "ticketSummaryReport"]), []);
-    const showTicketResolutionTimeReport = React.useMemo(() => checkAccessMaster(["misReports", "ticketResolutionTimeReport"]), []);
-    const showCustomerSatisfactionReport = React.useMemo(() => checkAccessMaster(["misReports", "customerSatisfactionReport"]), []);
-    const showProblemManagementReport = React.useMemo(() => checkAccessMaster(["misReports", "problemManagementReport"]), []);
+    const hasAccess = React.useCallback((keys: string[]) => checkAccessMaster(["misReports", ...keys]), []);
+
+    const showReportGenerator = React.useMemo(() => hasAccess(["reportGenerator"]), [hasAccess]);
+    const showViewingDataText = React.useMemo(() => hasAccess(["viewingDataText"]), [hasAccess]);
+    const showIntervalFilter = React.useMemo(() => hasAccess(["filters", "interval"]), [hasAccess]);
+    const showRangeFilter = React.useMemo(() => hasAccess(["filters", "range"]), [hasAccess]);
+    const showFromDateFilter = React.useMemo(() => hasAccess(["filters", "fromDate"]), [hasAccess]);
+    const showToDateFilter = React.useMemo(() => hasAccess(["filters", "toDate"]), [hasAccess]);
+    const showZoneFilter = React.useMemo(() => hasAccess(["filters", "zone"]), [hasAccess]);
+    const showRegionFilter = React.useMemo(() => hasAccess(["filters", "region"]), [hasAccess]);
+    const showDistrictFilter = React.useMemo(() => hasAccess(["filters", "district"]), [hasAccess]);
+    const showIssueTypeFilter = React.useMemo(() => hasAccess(["filters", "issueType"]), [hasAccess]);
+    const showDivisionFilter = React.useMemo(() => hasAccess(["filters", "division"]), [hasAccess]);
+    const showAssigneeFilter = React.useMemo(() => hasAccess(["filters", "assignee"]), [hasAccess]);
+    const showModuleFilter = React.useMemo(() => hasAccess(["filters", "module"]), [hasAccess]);
+    const showSubModuleFilter = React.useMemo(() => hasAccess(["filters", "subModule"]), [hasAccess]);
+
+    const showTicketSummaryReport = React.useMemo(() => hasAccess(["ticketSummaryReport"]), [hasAccess]);
+    const showTicketResolutionTimeReport = React.useMemo(() => hasAccess(["ticketResolutionTimeReport"]), [hasAccess]);
+    const showCustomerSatisfactionReport = React.useMemo(() => hasAccess(["customerSatisfactionReport"]), [hasAccess]);
+    const showProblemManagementReport = React.useMemo(() => hasAccess(["problemManagementReport"]), [hasAccess]);
     const filterSummary = [
         { label: "Interval", value: timeScale },
         { label: "Range", value: timeRange },
@@ -80,13 +97,19 @@ const MISReports: React.FC = () => {
 
     return (
         <div className="d-flex flex-column flex-grow-1">
-            <Title textKey="Management Information System Reports" rightContent={misReportGeneratorComponent} />
+            <Title
+                textKey="Management Information System Reports"
+                rightContent={showReportGenerator ? misReportGeneratorComponent : undefined}
+            />
 
             <Box display="flex" flexDirection="column" gap={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                    Viewing data for all tickets
-                </Typography>
+                {showViewingDataText && (
+                    <Typography variant="subtitle2" color="text.secondary">
+                        Viewing data for all tickets
+                    </Typography>
+                )}
                 <Box className="row g-3" alignItems="stretch">
+                    {showIntervalFilter && (
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
                             id="mis-report-interval"
@@ -98,6 +121,8 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
+                    {showRangeFilter && (
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
                             id="mis-report-range"
@@ -109,6 +134,8 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
+                    {showFromDateFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <TextField
                             id="mis-report-from"
@@ -121,6 +148,8 @@ const MISReports: React.FC = () => {
                             fullWidth
                         />
                     </Box>
+                    )}
+                    {showToDateFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <TextField
                             id="mis-report-to"
@@ -133,9 +162,11 @@ const MISReports: React.FC = () => {
                             fullWidth
                         />
                     </Box>
+                    )}
                 </Box>
 
                 <Box className="row g-3">
+                    {showZoneFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-zone"
@@ -147,6 +178,8 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
+                    {showRegionFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-region"
@@ -159,6 +192,8 @@ const MISReports: React.FC = () => {
                             disabled={selectedZone === "All"}
                         />
                     </Box>
+                    )}
+                    {showDistrictFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-district"
@@ -171,6 +206,8 @@ const MISReports: React.FC = () => {
                             disabled={selectedRegion === "All"}
                         />
                     </Box>
+                    )}
+                    {showIssueTypeFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-issue-type"
@@ -182,9 +219,11 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
                 </Box>
 
                 <Box className="row g-3">
+                    {showDivisionFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-division"
@@ -196,6 +235,8 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
+                    {showAssigneeFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-assignee"
@@ -207,6 +248,8 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
+                    {showModuleFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-category"
@@ -218,6 +261,8 @@ const MISReports: React.FC = () => {
                             className="w-100"
                         />
                     </Box>
+                    )}
+                    {showSubModuleFilter && (
                     <Box className="col-12 col-md-6 col-lg-3">
                         <GenericDropdown
                             id="mis-report-subcategory"
@@ -230,6 +275,7 @@ const MISReports: React.FC = () => {
                             disabled={selectedCategory === "All"}
                         />
                     </Box>
+                    )}
                 </Box>
             </Box>
 
