@@ -172,71 +172,6 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
         };
     }, [data]);
 
-    const statusPieOptions = useMemo(() => {
-        if (!data) {
-            return {};
-        }
-        const pieSeries = [
-            {
-                name: "SLA State",
-                value: data.totalOnTrackTickets,
-                label: "On Track",
-            },
-            {
-                name: "SLA State",
-                value: data.inProgressBreachedTickets,
-                label: "In Progress (Breached)",
-            },
-            {
-                name: "SLA State",
-                value: data.totalResolvedAfterBreach,
-                label: "Resolved After Breach",
-            },
-            {
-                name: "SLA State",
-                value: data.totalResolvedWithinSla,
-                label: "Resolved Within SLA",
-            },
-        ].filter((item) => item.value > 0);
-
-        return {
-            tooltip: {
-                trigger: "item",
-                formatter: "{b}: {c} ({d}%)",
-            },
-            legend: {
-                orient: "horizontal",
-                bottom: 0,
-            },
-            series: [
-                {
-                    type: "pie",
-                    radius: ["40%", "70%"],
-                    avoidLabelOverlap: true,
-                    itemStyle: {
-                        borderRadius: 6,
-                        borderColor: theme.palette.background.paper,
-                        borderWidth: 2,
-                    },
-                    label: {
-                        show: false,
-                    },
-                    emphasis: {
-                        label: {
-                            show: true,
-                            fontSize: 16,
-                            fontWeight: "bold",
-                        },
-                    },
-                    data: pieSeries.map((item) => ({
-                        name: item.label,
-                        value: item.value,
-                    })),
-                },
-            ],
-        };
-    }, [data, theme.palette.background.paper]);
-
     const severityBarOptions = useMemo(() => {
         if (!data) {
             return {};
@@ -432,30 +367,13 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                         </Typography>
                     </Box>
 
-                    <Box
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-                            gap: 3,
-                            width: "100%",
-                        }}
-                    >
-                        <Box sx={{ width: "100%" }}>
-                            <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                    SLA State Distribution
-                                </Typography>
-                                <ReactECharts option={statusPieOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
-                            </Paper>
-                        </Box>
-                        <Box sx={{ width: "100%" }}>
-                            <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                    SLA by Severity
-                                </Typography>
-                                <ReactECharts option={severityBarOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
-                            </Paper>
-                        </Box>
+                    <Box sx={{ width: "100%" }}>
+                        <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                SLA by Severity
+                            </Typography>
+                            <ReactECharts option={severityBarOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
+                        </Paper>
                     </Box>
 
                     <Paper elevation={1} sx={{ p: 2, width: "100%", maxWidth: "100%", overflow: "hidden" }}>

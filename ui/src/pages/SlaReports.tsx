@@ -1,12 +1,12 @@
 import React from "react";
 import { Box, TextField } from "@mui/material";
 import Title from "../components/Title";
-import MISReportGenerator from "../components/MISReports/MISReportGenerator";
+import SLAReportGenerator from "../components/MISReports/SLAReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import { timeScaleOptions } from "../utils/misReports";
 import { useMisReportFilters } from "../hooks/useMisReportFilters";
-import { useMisReportDownloader } from "../hooks/useMisReportDownloader";
+import { useSlaReportDownloader } from "../hooks/useSlaReportDownloader";
 import { useApi } from "../hooks/useApi";
 import { getZones, getRegions, getDistricts } from "../services/LocationService";
 import { getIssueTypes } from "../services/IssueTypeService";
@@ -146,14 +146,86 @@ const SlaReports: React.FC = () => {
         [requestParams, selectedBreached, selectedDistrict, selectedDivision, selectedIssueType, selectedRegion, selectedZone],
     );
 
-    const { downloading, handleDownload, handleEmail } = useMisReportDownloader(extendedRequestParams);
+    const { downloading, handleDownload, handleEmail } = useSlaReportDownloader(extendedRequestParams);
+
+    const slaFilterSummary = React.useMemo(
+        () => [
+            { label: "Interval", value: timeScale },
+            { label: "Range", value: timeRange },
+            { label: "From Date", value: activeDateRange.from || "All" },
+            { label: "To Date", value: activeDateRange.to || "All" },
+            { label: "Module", value: selectedCategory },
+            { label: "Sub Module", value: selectedSubCategory },
+            { label: "Zone", value: selectedZone },
+            { label: "Region", value: selectedRegion },
+            { label: "District", value: selectedDistrict },
+            { label: "Issue Type", value: selectedIssueType },
+            { label: "Division", value: selectedDivision },
+            { label: "Breached", value: selectedBreached },
+        ],
+        [
+            activeDateRange.from,
+            activeDateRange.to,
+            selectedBreached,
+            selectedCategory,
+            selectedDistrict,
+            selectedDivision,
+            selectedIssueType,
+            selectedRegion,
+            selectedSubCategory,
+            selectedZone,
+            timeRange,
+            timeScale,
+        ],
+    );
 
     const misReportGeneratorComponent = (
-        <MISReportGenerator
+        <SLAReportGenerator
             onDownload={handleDownload}
             onEmail={handleEmail}
             defaultPeriod="monthly"
             busy={downloading}
+            filterSummary={slaFilterSummary}
+            filterControls={(
+                <Box className="row g-2">
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-interval" label="Interval" value={timeScale} onChange={handleTimeScaleChange} options={timeScaleOptions.filter((option) => option.value !== "CUSTOM")} fullWidth className="w-100" />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-range" label="Range" value={timeRange} onChange={handleTimeRangeChange} options={availableTimeRanges} fullWidth className="w-100" />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <TextField id="sla-report-modal-from" label="From Date" type="date" value={activeDateRange.from} onChange={handleDateChange("from")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <TextField id="sla-report-modal-to" label="To Date" type="date" value={activeDateRange.to} onChange={handleDateChange("to")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-category" label="Module" value={selectedCategory} onChange={handleCategoryChange} options={categoryOptions} fullWidth className="w-100" />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-subcategory" label="Sub Module" value={selectedSubCategory} onChange={handleSubCategoryChange} options={subCategoryOptions} fullWidth className="w-100" disabled={selectedCategory === "All"} />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-zone" label="Zone" value={selectedZone} onChange={(e) => setSelectedZone(e.target.value as string)} options={zoneOptions} fullWidth className="w-100" />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-region" label="Region" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value as string)} options={regionOptions} fullWidth className="w-100" disabled={selectedZone === "All"} />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-district" label="District" value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value as string)} options={districtOptions} fullWidth className="w-100" disabled={selectedRegion === "All"} />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-issue-type" label="Issue Type" value={selectedIssueType} onChange={(e) => setSelectedIssueType(e.target.value as string)} options={issueTypeOptions} fullWidth className="w-100" />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-division" label="Division" value={selectedDivision} onChange={(e) => setSelectedDivision(e.target.value as string)} options={divisionOptions} fullWidth className="w-100" />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <GenericDropdown id="sla-report-modal-breached" label="Breached" value={selectedBreached} onChange={(e) => setSelectedBreached(e.target.value as "ALL" | "BREACHED" | "BREACHED_IN")} options={breachedOptions} fullWidth className="w-100" />
+                    </Box>
+                </Box>
+            )}
         />
     );
 
