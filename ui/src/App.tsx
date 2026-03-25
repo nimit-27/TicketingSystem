@@ -89,10 +89,7 @@ function App() {
           <Route path="tickets/:ticketId/feedback" element={<CustomerSatisfactionForm />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="mis-reports" element={<MISReports />} />
-          <Route
-            path="sla-reports"
-            element={checkAccessMaster(['slaReports']) ? <SlaReports /> : <Navigate to="/dashboard" replace />}
-          />
+          <Route path="sla-reports" element={<SlaReports />} />
           <Route path="mis-reports/ticket-summary" element={<TicketSummaryReportPage />} />
           <Route
             path="mis-reports/resolution-time"
