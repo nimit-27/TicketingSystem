@@ -56,6 +56,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useTheme } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import DownloadIcon from '@mui/icons-material/Download';
+import TimerIcon from '@mui/icons-material/Timer';
 
 // Define the icon map
 const iconMap = {
@@ -116,7 +117,8 @@ const iconMap = {
     restore: RestoreIcon,
     accountCircle: AccountCircleIcon,
     lockReset: LockResetIcon,
-    download: DownloadIcon
+    download: DownloadIcon,
+    timer: TimerIcon,
 };
 
 // Valid keys for the icon map
