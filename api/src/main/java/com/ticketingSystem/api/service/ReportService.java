@@ -1452,10 +1452,8 @@ public class ReportService {
                     }
                     String issueTypeId = ticket.getIssueTypeId();
                     if (!StringUtils.hasText(issueTypeId)) {
-                        return false;
-                    }
-                    if (!Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId))) {
-                        return false;
+                        // Include tickets without issue type in total/not-breached buckets.
+                        issueTypeId = "";
                     }
 
                     if (!isWithinRange(ticket.getReportedDate(), dateRange)) {
@@ -1487,10 +1485,12 @@ public class ReportService {
                         return false;
                     }
                     long breachedByMinutes = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L);
-                    if ("BREACHED".equalsIgnoreCase(breachedFilter) && breachedByMinutes <= 0) {
+                    boolean issueTypeHasSla = Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId));
+                    boolean hasBreached = issueTypeHasSla && breachedByMinutes > 0;
+                    if ("BREACHED".equalsIgnoreCase(breachedFilter) && !hasBreached) {
                         return false;
                     }
-                    if ("BREACHED_IN".equalsIgnoreCase(breachedFilter) && !(breachedByMinutes > 0 && !RESOLVED_STATUSES.contains(ticket.getTicketStatus()))) {
+                    if ("BREACHED_IN".equalsIgnoreCase(breachedFilter) && !(hasBreached && !RESOLVED_STATUSES.contains(ticket.getTicketStatus()))) {
                         return false;
                     }
 
@@ -1571,7 +1571,9 @@ public class ReportService {
             TicketStatus status = ticket != null ? ticket.getTicketStatus() : null;
             boolean isResolved = status != null && resolvedStatuses.contains(status);
             long breachedBy = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L);
-            boolean hasBreached = breachedBy > 0;
+            String issueTypeId = ticket != null ? ticket.getIssueTypeId() : null;
+            boolean issueTypeHasSla = StringUtils.hasText(issueTypeId) && Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId));
+            boolean hasBreached = issueTypeHasSla && breachedBy > 0;
 
             if (hasBreached) {
                 totalBreached++;
