@@ -95,13 +95,10 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
             params?.fromDate,
             params?.issueTypeId,
             params?.regionCode,
-            params?.scope,
             params?.subCategoryId,
             params?.toDate,
-            params?.userId,
             params?.zoneCode,
         ],
-        [params?.categoryId, params?.fromDate, params?.subCategoryId, params?.toDate],
     );
 
     const loadData = useCallback(() => {

@@ -1591,7 +1591,7 @@ public class ReportService {
                                                            String zoneCode,
                                                            String regionCode,
                                                            String districtCode,
-                                                           String issueTypeId,
+                                                           String issueTypeId_,
                                                            String division,
                                                            String assignedTo,
                                                            String breachedFilter) {
@@ -1896,15 +1896,15 @@ public class ReportService {
                 .build();
     }
 
-    private boolean matchesFilter(String expected, String actual) {
-        if (!StringUtils.hasText(expected)) {
-            return true;
-        }
-        if ("all".equalsIgnoreCase(expected)) {
-            return true;
-        }
-        return StringUtils.hasText(actual) && expected.trim().equalsIgnoreCase(actual.trim());
-    }
+//    private boolean matchesFilter(String expected, String actual) {
+//        if (!StringUtils.hasText(expected)) {
+//            return true;
+//        }
+//        if ("all".equalsIgnoreCase(expected)) {
+//            return true;
+//        }
+//        return StringUtils.hasText(actual) && expected.trim().equalsIgnoreCase(actual.trim());
+//    }
 
     public void notifyBreachedSlaAssignees() {
         List<TicketSla> breachedTickets = ticketSlaRepository.findBreachedWithTicket();

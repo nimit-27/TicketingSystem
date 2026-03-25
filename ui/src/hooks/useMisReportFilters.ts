@@ -7,6 +7,7 @@ import { getZones, getRegions, getDistricts } from "../services/LocationService"
 import { getIssueTypes } from "../services/IssueTypeService";
 import { getDivisions } from "../services/DivisionService";
 import { getAllUsers } from "../services/UserService";
+import { getCurrentUserDetails } from "../config/config";
 
 interface RegionOption {
     value: string;
@@ -70,8 +71,8 @@ export const useMisReportFilters = (config: UseMisReportFiltersConfig = {}): Use
 
     const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
-    const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>(config.initialTimeScale ?? "DAILY");
-    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>(config.initialTimeRange ?? "LAST_30_DAYS");
+    // const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>(config.initialTimeScale ?? "DAILY");
+    // const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>(config.initialTimeRange ?? "LAST_30_DAYS");
     const [customMonthRange, setCustomMonthRange] = React.useState<{ start: number | null; end: number | null }>(() => ({
         start: null,
         end: null,
