@@ -148,44 +148,11 @@ const SlaReports: React.FC = () => {
 
     const { downloading, handleDownload, handleEmail } = useSlaReportDownloader(extendedRequestParams);
 
-    const slaFilterSummary = React.useMemo(
-        () => [
-            { label: "Interval", value: timeScale },
-            { label: "Range", value: timeRange },
-            { label: "From Date", value: activeDateRange.from || "All" },
-            { label: "To Date", value: activeDateRange.to || "All" },
-            { label: "Module", value: selectedCategory },
-            { label: "Sub Module", value: selectedSubCategory },
-            { label: "Zone", value: selectedZone },
-            { label: "Region", value: selectedRegion },
-            { label: "District", value: selectedDistrict },
-            { label: "Issue Type", value: selectedIssueType },
-            { label: "Division", value: selectedDivision },
-            { label: "Breached", value: selectedBreached },
-        ],
-        [
-            activeDateRange.from,
-            activeDateRange.to,
-            selectedBreached,
-            selectedCategory,
-            selectedDistrict,
-            selectedDivision,
-            selectedIssueType,
-            selectedRegion,
-            selectedSubCategory,
-            selectedZone,
-            timeRange,
-            timeScale,
-        ],
-    );
-
     const misReportGeneratorComponent = (
         <SLAReportGenerator
             onDownload={handleDownload}
             onEmail={handleEmail}
-            defaultPeriod="monthly"
             busy={downloading}
-            filterSummary={slaFilterSummary}
             filterControls={(
                 <Box className="row g-2">
                     <Box className="col-12 col-md-6">
