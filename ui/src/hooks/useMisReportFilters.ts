@@ -58,11 +58,24 @@ export interface UseMisReportFiltersResult {
     handleAssigneeChange: (event: SelectChangeEvent<string>) => void;
 }
 
-export const useMisReportFilters = (): UseMisReportFiltersResult => {
+interface UseMisReportFiltersConfig {
+    initialTimeScale?: SupportDashboardTimeScale;
+    initialTimeRange?: SupportDashboardTimeRange;
+    allowedTimeScales?: SupportDashboardTimeScale[];
+}
+
+export const useMisReportFilters = (config: UseMisReportFiltersConfig = {}): UseMisReportFiltersResult => {
+    const userDetails = React.useMemo(() => getCurrentUserDetails(), []);
     const { categoryOptions, subCategoryOptions, loadSubCategories, resetSubCategories } = useCategoryFilters();
 
     const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
     const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("All");
+    const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>(config.initialTimeScale ?? "DAILY");
+    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>(config.initialTimeRange ?? "LAST_30_DAYS");
+    const [customMonthRange, setCustomMonthRange] = React.useState<{ start: number | null; end: number | null }>(() => ({
+        start: null,
+        end: null,
+    }));
     const [selectedZone, setSelectedZone] = React.useState<string>("All");
     const [selectedRegion, setSelectedRegion] = React.useState<string>("All");
     const [selectedDistrict, setSelectedDistrict] = React.useState<string>("All");

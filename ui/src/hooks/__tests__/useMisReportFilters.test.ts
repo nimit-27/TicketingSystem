@@ -55,7 +55,7 @@ describe('useMisReportFilters', () => {
     });
 
     expect(result.current.timeScale).toBe('WEEKLY');
-    expect(result.current.timeRange).toBe('LAST_4_WEEKS');
+    expect(result.current.timeRange).toBe('LAST_WEEK');
   });
 
   it('updates explicit time range', () => {

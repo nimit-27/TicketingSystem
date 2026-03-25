@@ -24,6 +24,7 @@ import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketFeedback;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.repository.IssueTypeRepository;
 import com.ticketingSystem.api.repository.CategoryRepository;
 import com.ticketingSystem.api.repository.SubCategoryRepository;
 import com.ticketingSystem.api.repository.TicketFeedbackRepository;
@@ -64,6 +65,7 @@ public class ReportService {
     private final TicketRepository ticketRepository;
     private final TicketFeedbackRepository ticketFeedbackRepository;
     private final TicketSlaRepository ticketSlaRepository;
+    private final IssueTypeRepository issueTypeRepository;
     private final TicketSlaService ticketSlaService;
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
@@ -1577,7 +1579,90 @@ public class ReportService {
     }
 
     public SlaPerformanceReportDto getSlaPerformanceReport() {
+        return getSlaPerformanceReport(null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    public SlaPerformanceReportDto getSlaPerformanceReport(String fromDate,
+                                                           String toDate,
+                                                           String scope,
+                                                           String userId,
+                                                           String categoryId,
+                                                           String subCategoryId,
+                                                           String zoneCode,
+                                                           String regionCode,
+                                                           String districtCode,
+                                                           String issueTypeId,
+                                                           String division,
+                                                           String assignedTo,
+                                                           String breachedFilter) {
         List<TicketSla> slaEntries = ticketSlaRepository.findAllWithTicket();
+        DateRange dateRange = new DateRange(parseStartDate(fromDate), parseEndDate(toDate));
+        Map<String, Boolean> issueTypeSlaCache = issueTypeRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        issueType -> Optional.ofNullable(issueType.getIssueTypeId()).orElse(""),
+                        issueType -> Boolean.TRUE.equals(issueType.getSlaFlag()),
+                        (left, right) -> left
+                ));
+        slaEntries = slaEntries.stream()
+                .filter(Objects::nonNull)
+                .filter(sla -> {
+                    Ticket ticket = sla.getTicket();
+                    if (ticket == null) {
+                        return false;
+                    }
+                    String issueTypeId = ticket.getIssueTypeId();
+                    if (!StringUtils.hasText(issueTypeId)) {
+                        // Include tickets without issue type in total/not-breached buckets.
+                        issueTypeId = "";
+                    }
+
+                    if (!isWithinRange(ticket.getReportedDate(), dateRange)) {
+                        return false;
+                    }
+
+                    if (StringUtils.hasText(categoryId) && !matchesFilter(categoryId, ticket.getCategory())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(subCategoryId) && !matchesFilter(subCategoryId, ticket.getSubCategory())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(zoneCode) && !matchesFilter(zoneCode, ticket.getZoneCode())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(regionCode) && !matchesFilter(regionCode, ticket.getRegionCode())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(districtCode) && !matchesFilter(districtCode, ticket.getDistrictCode())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(issueTypeId) && !matchesFilter(issueTypeId, ticket.getIssueTypeId())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(division) && !matchesFilter(division, ticket.getDivision())) {
+                        return false;
+                    }
+                    if (StringUtils.hasText(assignedTo) && !matchesFilter(assignedTo, ticket.getAssignedTo())) {
+                        return false;
+                    }
+                    long breachedByMinutes = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L);
+                    boolean issueTypeHasSla = Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId));
+                    boolean hasBreached = issueTypeHasSla && breachedByMinutes > 0;
+                    if ("BREACHED".equalsIgnoreCase(breachedFilter) && !hasBreached) {
+                        return false;
+                    }
+                    if ("BREACHED_IN".equalsIgnoreCase(breachedFilter) && !(hasBreached && !RESOLVED_STATUSES.contains(ticket.getTicketStatus()))) {
+                        return false;
+                    }
+
+                    if ("user".equalsIgnoreCase(scope) && StringUtils.hasText(userId)) {
+                        return matchesFilter(userId, ticket.getAssignedTo())
+                                || matchesFilter(userId, ticket.getCreatedBy())
+                                || matchesFilter(userId, ticket.getUserId());
+                    }
+
+                    return true;
+                })
+                .collect(Collectors.toList());
 
         if (slaEntries.isEmpty()) {
             return SlaPerformanceReportDto.builder()
@@ -1589,6 +1674,12 @@ public class ReportService {
                     .totalInProgressTickets(0L)
                     .inProgressBreachedTickets(0L)
                     .inProgressOnTrackTickets(0L)
+                    .breachedResolvedTickets(0L)
+                    .breachedClosedTickets(0L)
+                    .breachedInProgressTickets(0L)
+                    .notBreachedResolvedTickets(0L)
+                    .notBreachedClosedTickets(0L)
+                    .notBreachedInProgressTickets(0L)
                     .breachRate(0.0)
                     .averageBreachMinutes(0.0)
                     .statusBreakdown(List.of())
@@ -1613,6 +1704,12 @@ public class ReportService {
         long inProgress = 0L;
         long inProgressBreached = 0L;
         long inProgressOnTrack = 0L;
+        long breachedResolved = 0L;
+        long breachedClosed = 0L;
+        long breachedInProgress = 0L;
+        long notBreachedResolved = 0L;
+        long notBreachedClosed = 0L;
+        long notBreachedInProgress = 0L;
 
         Map<String, Long> severityTotals = new LinkedHashMap<>();
         Map<String, Long> severityBreached = new LinkedHashMap<>();
@@ -1634,7 +1731,9 @@ public class ReportService {
             TicketStatus status = ticket != null ? ticket.getTicketStatus() : null;
             boolean isResolved = status != null && resolvedStatuses.contains(status);
             long breachedBy = Optional.ofNullable(sla.getBreachedByMinutes()).orElse(0L);
-            boolean hasBreached = breachedBy > 0;
+            String issueTypeId = ticket != null ? ticket.getIssueTypeId() : null;
+            boolean issueTypeHasSla = StringUtils.hasText(issueTypeId) && Boolean.TRUE.equals(issueTypeSlaCache.get(issueTypeId));
+            boolean hasBreached = issueTypeHasSla && breachedBy > 0;
 
             if (hasBreached) {
                 totalBreached++;
@@ -1653,6 +1752,26 @@ public class ReportService {
                     inProgressBreached++;
                 } else {
                     inProgressOnTrack++;
+                }
+            }
+
+            if (status == TicketStatus.RESOLVED) {
+                if (hasBreached) {
+                    breachedResolved++;
+                } else {
+                    notBreachedResolved++;
+                }
+            } else if (status == TicketStatus.CLOSED) {
+                if (hasBreached) {
+                    breachedClosed++;
+                } else {
+                    notBreachedClosed++;
+                }
+            } else if (status != TicketStatus.CANCELLED) {
+                if (hasBreached) {
+                    breachedInProgress++;
+                } else {
+                    notBreachedInProgress++;
                 }
             }
 
@@ -1762,6 +1881,12 @@ public class ReportService {
                 .totalInProgressTickets(inProgress)
                 .inProgressBreachedTickets(inProgressBreached)
                 .inProgressOnTrackTickets(inProgressOnTrack)
+                .breachedResolvedTickets(breachedResolved)
+                .breachedClosedTickets(breachedClosed)
+                .breachedInProgressTickets(breachedInProgress)
+                .notBreachedResolvedTickets(notBreachedResolved)
+                .notBreachedClosedTickets(notBreachedClosed)
+                .notBreachedInProgressTickets(notBreachedInProgress)
                 .breachRate(round(breachRate))
                 .averageBreachMinutes(round(averageBreachMinutes))
                 .statusBreakdown(statusBreakdown)
@@ -1769,6 +1894,16 @@ public class ReportService {
                 .breachTrend(trendPoints)
                 .breachedTickets(breachedTickets.stream().limit(15).collect(Collectors.toList()))
                 .build();
+    }
+
+    private boolean matchesFilter(String expected, String actual) {
+        if (!StringUtils.hasText(expected)) {
+            return true;
+        }
+        if ("all".equalsIgnoreCase(expected)) {
+            return true;
+        }
+        return StringUtils.hasText(actual) && expected.trim().equalsIgnoreCase(actual.trim());
     }
 
     public void notifyBreachedSlaAssignees() {

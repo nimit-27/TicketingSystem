@@ -125,6 +125,12 @@ export interface SlaPerformanceReportProps {
     totalInProgressTickets: number;
     inProgressBreachedTickets: number;
     inProgressOnTrackTickets: number;
+    breachedResolvedTickets: number;
+    breachedClosedTickets: number;
+    breachedInProgressTickets: number;
+    notBreachedResolvedTickets: number;
+    notBreachedClosedTickets: number;
+    notBreachedInProgressTickets: number;
     breachRate: number;
     averageBreachMinutes: number;
     statusBreakdown: SlaPerformanceStatusBreakdown[];
@@ -142,6 +148,9 @@ export interface MISReportRequestParams {
     regionCode?: string;
     districtCode?: string;
     issueTypeId?: string;
+    division?: string;
+    assignedTo?: string;
+    breachedFilter?: "ALL" | "BREACHED" | "BREACHED_IN";
     divisionId?: string;
     assignedTo?: string;
 }

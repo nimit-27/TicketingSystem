@@ -4,9 +4,6 @@ import {
     Button,
     Chip,
     CircularProgress,
-    Card,
-    CardContent,
-    Grid,
     Paper,
     Table,
     TableBody,
@@ -18,6 +15,7 @@ import {
 } from "@mui/material";
 import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
+import CustomMetricCard, { MetricCardData } from "../Dashboard/CustomMetricCard";
 import { useApi } from "../../hooks/useApi";
 import {
     fetchSlaPerformanceReport,
@@ -37,15 +35,16 @@ const formatNumber = (value: number | undefined | null, fractionDigits = 0) => {
     }).format(value);
 };
 
-const formatDuration = (minutes: number | undefined | null, fractionDigits = 0) => {
+const formatDuration = (minutes: number | undefined | null) => {
     if (!minutes || Number.isNaN(minutes) || minutes <= 0) {
         return "-";
     }
-    if (minutes < 60) {
-        return `${formatNumber(minutes, fractionDigits)} mins`;
+    const roundedMinutes = Math.floor(minutes);
+    if (roundedMinutes < 60) {
+        return `${roundedMinutes} mins`;
     }
-    const hours = Math.floor(minutes / 60);
-    const remaining = minutes % 60;
+    const hours = Math.floor(roundedMinutes / 60);
+    const remaining = roundedMinutes % 60;
     if (remaining === 0) {
         return `${hours} hrs`;
     }
@@ -79,7 +78,29 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
             toDate: params?.toDate,
             categoryId: params?.categoryId,
             subCategoryId: params?.subCategoryId,
+            zoneCode: params?.zoneCode,
+            regionCode: params?.regionCode,
+            districtCode: params?.districtCode,
+            issueTypeId: params?.issueTypeId,
+            division: params?.division,
+            assignedTo: params?.assignedTo,
+            breachedFilter: params?.breachedFilter,
         }),
+        [
+            params?.assignedTo,
+            params?.breachedFilter,
+            params?.categoryId,
+            params?.districtCode,
+            params?.division,
+            params?.fromDate,
+            params?.issueTypeId,
+            params?.regionCode,
+            params?.scope,
+            params?.subCategoryId,
+            params?.toDate,
+            params?.userId,
+            params?.zoneCode,
+        ],
         [params?.categoryId, params?.fromDate, params?.subCategoryId, params?.toDate],
     );
 
@@ -114,38 +135,44 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
         }
     }, [data, loadData, showMessage]);
 
-    const summaryMetrics = useMemo(() => {
+    const ticketHierarchyCardData = useMemo<MetricCardData | null>(() => {
         if (!data) {
-            return [];
+            return null;
         }
 
-        return [
-            {
-                label: "Tickets with SLA",
-                value: formatNumber(data.totalTicketsWithSla),
-            },
-            {
-                label: "On Track",
-                value: formatNumber(data.totalOnTrackTickets),
-            },
-            {
-                label: "Breached",
-                value: formatNumber(data.totalBreachedTickets),
-                highlight: true,
-            },
-            {
-                label: "Resolved Within SLA",
-                value: formatNumber(data.totalResolvedWithinSla),
-            },
-            {
-                label: "Resolved After Breach",
-                value: formatNumber(data.totalResolvedAfterBreach),
-            },
-            {
-                label: "In Progress",
-                value: formatNumber(data.totalInProgressTickets),
-            },
-        ];
+        const breachedTotal =
+            (data.breachedResolvedTickets ?? 0) + (data.breachedClosedTickets ?? 0) + (data.breachedInProgressTickets ?? 0);
+        const notBreachedTotal =
+            (data.notBreachedResolvedTickets ?? 0) + (data.notBreachedClosedTickets ?? 0) + (data.notBreachedInProgressTickets ?? 0);
+        const total = breachedTotal + notBreachedTotal;
+
+        return {
+            title: { text: "Total Tickets" },
+            metricValue: { text: String(total) },
+            backgroundColor: "background.paper",
+            children: [
+                {
+                    title: { text: "Breached" },
+                    metricValue: { text: String(breachedTotal), textColor: "error.main" },
+                    backgroundColor: "background.default",
+                    children: [
+                        { title: { text: "Resolved" }, metricValue: { text: String(data.breachedResolvedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "Closed" }, metricValue: { text: String(data.breachedClosedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "In Progress" }, metricValue: { text: String(data.breachedInProgressTickets ?? 0) }, backgroundColor: "background.paper" },
+                    ],
+                },
+                {
+                    title: { text: "Not Breached" },
+                    metricValue: { text: String(notBreachedTotal), textColor: "success.main" },
+                    backgroundColor: "background.default",
+                    children: [
+                        { title: { text: "Resolved" }, metricValue: { text: String(data.notBreachedResolvedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "Closed" }, metricValue: { text: String(data.notBreachedClosedTickets ?? 0) }, backgroundColor: "background.paper" },
+                        { title: { text: "In Progress" }, metricValue: { text: String(data.notBreachedInProgressTickets ?? 0) }, backgroundColor: "background.paper" },
+                    ],
+                },
+            ],
+        };
     }, [data]);
 
     const statusPieOptions = useMemo(() => {
@@ -290,7 +317,6 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
             return {};
         }
         const categories = data.breachTrend?.map((point: any) => point.date) ?? [];
-        const dueSeries = data.breachTrend?.map((point: any) => point.dueCount) ?? [];
         const breachedSeries = data.breachTrend?.map((point: any) => point.breachedCount) ?? [];
         const resolvedSeries = data.breachTrend?.map((point: any) => point.resolvedCount) ?? [];
 
@@ -302,31 +328,37 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                 top: 0,
             },
             grid: {
-                left: "3%",
-                right: "4%",
-                bottom: "3%",
+                left: 36,
+                right: 20,
+                top: 40,
+                bottom: 32,
                 containLabel: true,
             },
             xAxis: {
                 type: "category",
                 data: categories,
+                axisTick: { show: false },
             },
             yAxis: {
                 type: "value",
             },
             series: [
                 {
-                    name: "Due",
-                    type: "line",
-                    data: dueSeries,
-                    smooth: true,
-                },
-                {
                     name: "Breached",
                     type: "line",
                     data: breachedSeries,
                     smooth: true,
+                    symbol: "circle",
+                    symbolSize: 8,
+                    lineStyle: {
+                        color: theme.palette.error.main,
+                        width: 2,
+                    },
                     itemStyle: {
+                        color: theme.palette.error.main,
+                    },
+                    areaStyle: {
+                        opacity: 0.1,
                         color: theme.palette.error.main,
                     },
                 },
@@ -335,7 +367,17 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                     type: "line",
                     data: resolvedSeries,
                     smooth: true,
+                    symbol: "circle",
+                    symbolSize: 8,
+                    lineStyle: {
+                        color: theme.palette.info.main,
+                        width: 2,
+                    },
                     itemStyle: {
+                        color: theme.palette.info.main,
+                    },
+                    areaStyle: {
+                        opacity: 0.1,
                         color: theme.palette.info.main,
                     },
                 },
@@ -373,34 +415,9 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
 
             {!pending && data && (
                 <Box display="flex" flexDirection="column" gap={3}>
-                    <Grid container spacing={2}>
-                        {summaryMetrics.map((metric) => (
-                            <Grid key={metric.label} item xs={12} sm={6} md={4} lg={2}>
-                                <Card
-                                    elevation={metric.highlight ? 4 : 1}
-                                    sx={{
-                                        height: "100%",
-                                        borderTop: metric.highlight
-                                            ? `4px solid ${theme.palette.error.main}`
-                                            : `4px solid ${theme.palette.divider}`,
-                                    }}
-                                >
-                                    <CardContent>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ textTransform: "uppercase", fontWeight: 600 }}
-                                        >
-                                            {metric.label}
-                                        </Typography>
-                                        <Typography variant="h5" fontWeight={700} sx={{ mt: 1 }}>
-                                            {metric.value}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
-                        ))}
-                    </Grid>
+                    <Box sx={{ width: "100%" }}>
+                        {ticketHierarchyCardData ? <CustomMetricCard {...ticketHierarchyCardData} /> : null}
+                    </Box>
 
                     <Box display="flex" flexWrap="wrap" gap={3} alignItems="center">
                         <Chip
@@ -409,7 +426,7 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                         />
                         <Chip
                             color="info"
-                            label={`Average Breach: ${formatDuration(data.averageBreachMinutes, 1)}`}
+                            label={`Average Breach: ${formatDuration(data.averageBreachMinutes)}`}
                         />
                         <Typography variant="body2" color="text.secondary">
                             In-progress tickets on track: {formatNumber(data.inProgressOnTrackTickets)} | Breached:
@@ -418,30 +435,37 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
                         </Typography>
                     </Box>
 
-                    <Grid container spacing={3}>
-                        <Grid>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+                            gap: 3,
+                            width: "100%",
+                        }}
+                    >
+                        <Box sx={{ width: "100%" }}>
                             <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA State Distribution
                                 </Typography>
-                                <ReactECharts option={statusPieOptions} style={{ height: 300 }} notMerge lazyUpdate />
+                                <ReactECharts option={statusPieOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
                             </Paper>
-                        </Grid>
-                        <Grid>
-                            <Paper elevation={1} sx={{ p: 2 }}>
+                        </Box>
+                        <Box sx={{ width: "100%" }}>
+                            <Paper elevation={1} sx={{ p: 2, height: "100%" }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     SLA by Severity
                                 </Typography>
-                                <ReactECharts option={severityBarOptions} style={{ height: 300 }} notMerge lazyUpdate />
+                                <ReactECharts option={severityBarOptions} style={{ height: 300, width: "100%" }} notMerge lazyUpdate />
                             </Paper>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Box>
 
-                    <Paper elevation={1} sx={{ p: 2 }}>
+                    <Paper elevation={1} sx={{ p: 2, width: "100%", maxWidth: "100%", overflow: "hidden" }}>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                             Breach & Resolution Trend
                         </Typography>
-                        <ReactECharts option={trendLineOptions} style={{ height: 320 }} notMerge lazyUpdate />
+                        <ReactECharts option={trendLineOptions} style={{ height: 320, width: "100%", maxWidth: "100%" }} notMerge lazyUpdate />
                     </Paper>
 
                     <Paper elevation={1} sx={{ p: 2 }}>

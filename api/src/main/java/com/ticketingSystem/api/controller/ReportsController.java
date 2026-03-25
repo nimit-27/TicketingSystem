@@ -155,8 +155,35 @@ public class ReportsController {
     }
 
     @GetMapping("/sla-performance")
-    public ResponseEntity<SlaPerformanceReportDto> getSlaPerformanceReport() {
-        return ResponseEntity.ok(reportService.getSlaPerformanceReport());
+    public ResponseEntity<SlaPerformanceReportDto> getSlaPerformanceReport(
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
+            @RequestParam(value = "subCategoryId", required = false) String subCategoryId,
+            @RequestParam(value = "zoneCode", required = false) String zoneCode,
+            @RequestParam(value = "regionCode", required = false) String regionCode,
+            @RequestParam(value = "districtCode", required = false) String districtCode,
+            @RequestParam(value = "issueTypeId", required = false) String issueTypeId,
+            @RequestParam(value = "division", required = false) String division,
+            @RequestParam(value = "assignedTo", required = false) String assignedTo,
+            @RequestParam(value = "breachedFilter", required = false) String breachedFilter) {
+        return ResponseEntity.ok(reportService.getSlaPerformanceReport(
+                fromDate,
+                toDate,
+                scope,
+                userId,
+                categoryId,
+                subCategoryId,
+                zoneCode,
+                regionCode,
+                districtCode,
+                issueTypeId,
+                division,
+                assignedTo,
+                breachedFilter
+        ));
     }
 
     @PostMapping("/sla-performance/notify-breaches")

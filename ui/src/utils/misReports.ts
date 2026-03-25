@@ -14,6 +14,31 @@ export const timeScaleOptions: { value: SupportDashboardTimeScale; label: string
 
 export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: SupportDashboardTimeRange; label: string }[]> = {
     DAILY: [
+        { value: "LAST_DAY", label: "Last 1 Day" },
+        { value: "LAST_7_DAYS", label: "Last 1 Week" },
+        { value: "LAST_30_DAYS", label: "Last 1 Month" },
+        { value: "CURRENT_YEAR", label: "Last 1 Year" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    WEEKLY: [
+        { value: "LAST_WEEK", label: "Last 1 Week" },
+        { value: "LAST_4_WEEKS", label: "Last 1 Month" },
+        { value: "CURRENT_YEAR", label: "Last 1 Year" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    MONTHLY: [
+        { value: "LAST_30_DAYS", label: "Last 1 Month" },
+        { value: "LAST_YEAR", label: "Last 1 Year" },
+        { value: "LAST_5_YEARS", label: "Last 2 Years" },
+        { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    YEARLY: [
+        { value: "LAST_YEAR", label: "Last 1 Year" },
+        { value: "LAST_5_YEARS", label: "Last 5 Years" },
+        { value: "ALL_TIME", label: "All" },
         { value: "ALL_TIME", label: "All" },
         { value: "LAST_DAY", label: "Last 1 Day" },
         { value: "LAST_7_DAYS", label: "Last 1 Week" },
@@ -94,6 +119,17 @@ export const calculateDateRange = (
                 from.setDate(from.getDate() - 6);
                 return buildRange(from, today);
             }
+            if (timeRange === "CURRENT_YEAR") {
+                const from = new Date(today);
+                from.setFullYear(from.getFullYear() - 1);
+                return buildRange(from, today);
+            }
+            if (timeRange === "ALL_TIME") {
+                return buildRange(startOfYear(1970), today);
+            }
+            if (timeRange === "CUSTOM_DATE_RANGE") {
+                return buildRange(null, null);
+            }
 
             if (timeRange === "LAST_30_DAYS") {
                 const from = new Date(today);
@@ -115,6 +151,17 @@ export const calculateDateRange = (
                 start.setDate(start.getDate() - 7);
                 const end = endOfWeek(start);
                 return buildRange(start, end);
+            }
+            if (timeRange === "CURRENT_YEAR") {
+                const from = new Date(today);
+                from.setFullYear(from.getFullYear() - 1);
+                return buildRange(startOfWeek(from), endOfWeek(today));
+            }
+            if (timeRange === "ALL_TIME") {
+                return buildRange(startOfYear(1970), today);
+            }
+            if (timeRange === "CUSTOM_DATE_RANGE") {
+                return buildRange(null, null);
             }
 
             if (timeRange === "LAST_30_DAYS") {
@@ -145,6 +192,13 @@ export const calculateDateRange = (
             }
 
             if (timeRange === "LAST_5_YEARS") {
+                return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear));
+            }
+
+            if (timeRange === "CUSTOM_MONTH_RANGE") {
+                const startYear = customMonthRange.start ?? currentYear;
+                const endYear = customMonthRange.end ?? currentYear;
+                return buildRange(startOfYear(startYear), endOfYear(endYear));
                 const start = new Date(today);
                 start.setFullYear(start.getFullYear() - 2);
                 return buildRange(start, today);
@@ -157,6 +211,12 @@ export const calculateDateRange = (
 
             if (timeRange === "LAST_YEAR") {
                 return buildRange(startOfYear(currentYear - 1), endOfYear(currentYear - 1));
+            }
+            if (timeRange === "ALL_TIME") {
+                return buildRange(startOfYear(1970), endOfYear(currentYear));
+            }
+            if (timeRange === "CUSTOM_DATE_RANGE") {
+                return buildRange(null, null);
             }
 
             return buildRange(startOfYear(currentYear - 4), endOfYear(currentYear));
