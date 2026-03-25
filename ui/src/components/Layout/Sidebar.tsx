@@ -69,7 +69,7 @@ const menuItems = [
     key: "slaReports",
     label: "SLA Reports",
     to: "/sla-reports",
-    icon: "schedule",
+    icon: "timer",
   },
   {
     key: "misReports",
