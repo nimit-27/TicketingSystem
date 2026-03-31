@@ -1,12 +1,12 @@
 package com.ticketingSystem.api.service;
 
-import com.ticketingSystem.api.config.NagiosMonitoringProperties;
+import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRequestDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
+import com.ticketingSystem.api.models.ClientCredential;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.TicketStatus;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,11 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,21 +31,14 @@ class NagiosTicketSlaServiceTest {
     @Mock
     private TicketSlaRepository ticketSlaRepository;
 
-    private NagiosMonitoringProperties nagiosMonitoringProperties;
+    @Mock
+    private ClientCredentialService clientCredentialService;
 
     @InjectMocks
     private NagiosTicketSlaService nagiosTicketSlaService;
 
-    @BeforeEach
-    void setUp() {
-        nagiosMonitoringProperties = new NagiosMonitoringProperties();
-        nagiosMonitoringProperties.setApiKey("nagios-secret");
-        nagiosMonitoringProperties.setAllowedClientIds(List.of("nagios-client"));
-        nagiosTicketSlaService = new NagiosTicketSlaService(ticketSlaRepository, nagiosMonitoringProperties);
-    }
-
     @Test
-    void fetchSnapshotReturnsMappedResponseWhenVerificationSucceeds() {
+    void fetchSnapshotReturnsMappedResponseWhenCredentialsAreValid() {
         Ticket ticket = new Ticket();
         ticket.setId("ticket-id");
         ticket.setTicketNumber("T-123");
@@ -60,14 +52,18 @@ class NagiosTicketSlaServiceTest {
         ticketSla.setResolutionTimeMinutes(100L);
 
         Page<TicketSla> page = new PageImpl<>(List.of(ticketSla));
+        NagiosTicketSlaRequestDto request = new NagiosTicketSlaRequestDto();
+        request.setClientId("nagios-client");
+        request.setClientSecret("nagios-secret");
+        request.setLimit(10);
 
+        when(clientCredentialService.authenticate("nagios-client", "nagios-secret"))
+                .thenReturn(Optional.of(new ClientCredential()));
         when(ticketSlaRepository.findAll(any(Pageable.class))).thenReturn(page);
         when(ticketSlaRepository.count()).thenReturn(10L);
         when(ticketSlaRepository.countByBreachedByMinutesGreaterThan(0L)).thenReturn(2L);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken("nagios-client", null, List.of());
-
-        NagiosTicketSlaSnapshotDto snapshot = nagiosTicketSlaService.fetchSnapshot(authentication, "nagios-secret", 10);
+        NagiosTicketSlaSnapshotDto snapshot = nagiosTicketSlaService.fetchSnapshot(request);
 
         assertThat(snapshot.totalRecords()).isEqualTo(10L);
         assertThat(snapshot.breachedRecords()).isEqualTo(2L);
@@ -78,19 +74,15 @@ class NagiosTicketSlaServiceTest {
     }
 
     @Test
-    void fetchSnapshotRejectsClientOutsideAllowList() {
-        Authentication authentication = new UsernamePasswordAuthenticationToken("other-client", null, List.of());
+    void fetchSnapshotRejectsInvalidCredentials() {
+        NagiosTicketSlaRequestDto request = new NagiosTicketSlaRequestDto();
+        request.setClientId("nagios-client");
+        request.setClientSecret("wrong");
 
-        assertThatThrownBy(() -> nagiosTicketSlaService.fetchSnapshot(authentication, "nagios-secret", 10))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("403 FORBIDDEN");
-    }
+        when(clientCredentialService.authenticate("nagios-client", "wrong"))
+                .thenReturn(Optional.empty());
 
-    @Test
-    void fetchSnapshotRejectsInvalidApiKey() {
-        Authentication authentication = new UsernamePasswordAuthenticationToken("nagios-client", null, List.of());
-
-        assertThatThrownBy(() -> nagiosTicketSlaService.fetchSnapshot(authentication, "wrong", 10))
+        assertThatThrownBy(() -> nagiosTicketSlaService.fetchSnapshot(request))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("401 UNAUTHORIZED");
     }

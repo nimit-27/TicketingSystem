@@ -41,7 +41,7 @@ public class ClientTokenAuthenticationFilter extends OncePerRequestFilter {
         }
         String path = resolvePath(request);
         boolean isClientPath = path.startsWith("/m") || path.startsWith("/ext");
-        boolean isPublicClientPath = path.startsWith("/ext/auth/token");
+        boolean isPublicClientPath = path.startsWith("/ext/auth/token") || path.startsWith("/ext/nagios/ticket-sla");
         return !isClientPath || isPublicClientPath;
     }
 

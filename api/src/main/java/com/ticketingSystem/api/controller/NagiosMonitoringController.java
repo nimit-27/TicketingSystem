@@ -1,12 +1,12 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRequestDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.service.NagiosTicketSlaService;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,10 +18,8 @@ public class NagiosMonitoringController {
         this.nagiosTicketSlaService = nagiosTicketSlaService;
     }
 
-    @GetMapping("/ticket-sla")
-    public NagiosTicketSlaSnapshotDto getTicketSlaSnapshot(Authentication authentication,
-                                                           @RequestHeader(value = "X-Nagios-Api-Key", required = false) String apiKey,
-                                                           @RequestParam(value = "limit", required = false) Integer limit) {
-        return nagiosTicketSlaService.fetchSnapshot(authentication, apiKey, limit);
+    @PostMapping("/ticket-sla")
+    public NagiosTicketSlaSnapshotDto getTicketSlaSnapshot(@RequestBody @Valid NagiosTicketSlaRequestDto request) {
+        return nagiosTicketSlaService.fetchSnapshot(request);
     }
 }

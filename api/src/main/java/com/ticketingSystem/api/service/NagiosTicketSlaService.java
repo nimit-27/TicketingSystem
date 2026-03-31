@@ -1,7 +1,7 @@
 package com.ticketingSystem.api.service;
 
-import com.ticketingSystem.api.config.NagiosMonitoringProperties;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRecordDto;
+import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRequestDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
@@ -9,7 +9,6 @@ import com.ticketingSystem.api.repository.TicketSlaRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -17,7 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class NagiosTicketSlaService {
@@ -25,22 +23,18 @@ public class NagiosTicketSlaService {
     private static final int DEFAULT_RECORD_LIMIT = 200;
 
     private final TicketSlaRepository ticketSlaRepository;
-    private final NagiosMonitoringProperties nagiosMonitoringProperties;
+    private final ClientCredentialService clientCredentialService;
 
     public NagiosTicketSlaService(TicketSlaRepository ticketSlaRepository,
-                                  NagiosMonitoringProperties nagiosMonitoringProperties) {
+                                  ClientCredentialService clientCredentialService) {
         this.ticketSlaRepository = ticketSlaRepository;
-        this.nagiosMonitoringProperties = nagiosMonitoringProperties;
+        this.clientCredentialService = clientCredentialService;
     }
 
-    public NagiosTicketSlaSnapshotDto fetchSnapshot(Authentication authentication,
-                                                    String providedApiKey,
-                                                    Integer limit) {
-        String clientId = resolveClientId(authentication);
-        validateAllowedClient(clientId);
-        validateApiKey(providedApiKey);
+    public NagiosTicketSlaSnapshotDto fetchSnapshot(NagiosTicketSlaRequestDto request) {
+        validateCredentials(request.getClientId(), request.getClientSecret());
 
-        int normalizedLimit = normalizeLimit(limit);
+        int normalizedLimit = normalizeLimit(request.getLimit());
         List<TicketSla> ticketSlas = ticketSlaRepository.findAll(PageRequest.of(0, normalizedLimit, Sort.by(Sort.Direction.DESC, "dueAt")))
                 .getContent();
 
@@ -56,6 +50,13 @@ public class NagiosTicketSlaService {
                 ticketSlas.size(),
                 ticketSlas.stream().map(this::toRecord).toList()
         );
+    }
+
+    private void validateCredentials(String clientId, String clientSecret) {
+        boolean valid = clientCredentialService.authenticate(clientId, clientSecret).isPresent();
+        if (!valid) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid client credentials");
+        }
     }
 
     private BigDecimal calculateCompliance(long totalRecords, long breachedRecords) {
@@ -89,35 +90,5 @@ public class NagiosTicketSlaService {
             return DEFAULT_RECORD_LIMIT;
         }
         return Math.min(limit, MAX_RECORD_LIMIT);
-    }
-
-    private String resolveClientId(Authentication authentication) {
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Client token is missing or invalid");
-        }
-        return authentication.getPrincipal().toString();
-    }
-
-    private void validateAllowedClient(String clientId) {
-        List<String> allowedClientIds = nagiosMonitoringProperties.getAllowedClientIds();
-        if (allowedClientIds == null || allowedClientIds.isEmpty()) {
-            return;
-        }
-        boolean allowed = allowedClientIds.stream()
-                .filter(Objects::nonNull)
-                .anyMatch(clientId::equals);
-        if (!allowed) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Client is not allowed for Nagios monitoring");
-        }
-    }
-
-    private void validateApiKey(String providedApiKey) {
-        String configuredApiKey = nagiosMonitoringProperties.getApiKey();
-        if (configuredApiKey == null || configuredApiKey.isBlank()) {
-            return;
-        }
-        if (!configuredApiKey.equals(providedApiKey)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nagios API key is missing or invalid");
-        }
     }
 }
