@@ -45,6 +45,10 @@ mobile:
     description: ${MOBILE_CLIENT_DESCRIPTION:Parent mobile application client}
     expirationMinutes: ${MOBILE_CLIENT_EXPIRATION_MINUTES:60}
 
+integration:
+  nagios:
+    api-key: ${NAGIOS_API_KEY:}
+
 calendar:
   ui:
     provider-code: ${CALENDAR_PROVIDER_CODE:NAGER_DATE}
