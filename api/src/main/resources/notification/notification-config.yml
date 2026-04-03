@@ -9,7 +9,7 @@ notification:
   email-dispatcher:
     batchSize: 200
     maxRetries: 5
-    retryBaseSeconds: 30
+    retryBaseSeconds: 300
     retryMaxSeconds: 3600
     processingTimeoutMinutes: 10
     fixedDelayMs: 5000

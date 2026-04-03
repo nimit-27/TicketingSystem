@@ -337,7 +337,7 @@ const SlaPerformanceReport: React.FC<SlaPerformanceReportProps> = ({ params }) =
     );
 
     return (
-        <CustomFieldset title="SLA Performance Overview" variant="bordered" actionElement={actionElement}>
+        <CustomFieldset title="SLA Performance Overview" variant="default" actionElement={actionElement}>
             {pending && (
                 <Box display="flex" alignItems="center" gap={1} py={2}>
                     <CircularProgress size={20} />

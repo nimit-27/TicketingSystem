@@ -14,6 +14,7 @@ import { getDivisions } from "../services/DivisionService";
 import { getDropdownOptionsWithExtraOption } from "../utils/Utils";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { checkAccessMaster } from "../utils/permissions";
+import GenericInput from "../components/UI/Input/GenericInput";
 
 const SlaReports: React.FC = () => {
     const hasAccess = React.useCallback((keys: string[]) => checkAccessMaster(["slaReports", ...keys]), []);
@@ -216,7 +217,97 @@ const SlaReports: React.FC = () => {
         <div className="d-flex flex-column flex-grow-1 w-100">
             <Title textKey="SLA Reports" rightContent={showReportGenerator ? misReportGeneratorComponent : undefined} />
 
-            <Box display="flex" flexDirection="column" gap={2}>
+            <div className="row g-3 mb-4">
+                {showIntervalFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown
+                        id="sla-report-interval"
+                        label="Interval"
+                        value={timeScale}
+                        onChange={handleTimeScaleChange}
+                        options={timeScaleOptions.filter((option) => option.value !== "CUSTOM")}
+                        fullWidth
+                        className="w-100"
+                    />
+                </Box>}
+                {showRangeFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown
+                        id="sla-report-range"
+                        label="Range"
+                        value={timeRange}
+                        onChange={handleTimeRangeChange}
+                        options={availableTimeRanges}
+                        fullWidth
+                        className="w-100"
+                    />
+                </Box>}
+                {showFromDateFilter && <Box className="col-12 col-md-6 col-lg-3">
+                    <GenericInput
+                        id="sla-report-from"
+                        label="From Date"
+                        type="date"
+                        value={activeDateRange.from}
+                        onChange={handleDateChange("from")}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                        fullWidth
+                    />
+                </Box>}
+                {showToDateFilter && <Box className="col-12 col-md-6 col-lg-3">
+                    <GenericInput
+                        id="sla-report-to"
+                        label="To Date"
+                        type="date"
+                        value={activeDateRange.to}
+                        onChange={handleDateChange("to")}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                        fullWidth
+                    />
+                </Box>}
+                {showModuleFilter && <Box className="col-12 col-md-6">
+                    <GenericDropdown
+                        id="sla-report-category"
+                        label="Module"
+                        value={selectedCategory}
+                        onChange={handleCategoryChange}
+                        options={categoryOptions}
+                        fullWidth
+                        className="w-100"
+                    />
+                </Box>}
+                {showSubModuleFilter && <Box className="col-12 col-md-6">
+                    <GenericDropdown
+                        id="sla-report-subcategory"
+                        label="Sub Module"
+                        value={selectedSubCategory}
+                        onChange={handleSubCategoryChange}
+                        options={subCategoryOptions}
+                        fullWidth
+                        className="w-100"
+                        disabled={selectedCategory === "All"}
+                    />
+                </Box>}
+                {showZoneFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown id="sla-report-zone" label="Zone" value={selectedZone} onChange={(e) => setSelectedZone(e.target.value as string)} options={zoneOptions} fullWidth className="w-100" />
+                </Box>}
+                {showRegionFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown id="sla-report-region" label="Region" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value as string)} options={regionOptions} fullWidth className="w-100" disabled={selectedZone === "All"} />
+                </Box>}
+                {showDistrictFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown id="sla-report-district" label="District" value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value as string)} options={districtOptions} fullWidth className="w-100" disabled={selectedRegion === "All"} />
+                </Box>}
+                {showIssueTypeFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown id="sla-report-issue-type" label="Issue Type" value={selectedIssueType} onChange={(e) => setSelectedIssueType(e.target.value as string)} options={issueTypeOptions} fullWidth className="w-100" />
+                </Box>}
+                {showDivisionFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown id="sla-report-division" label="Division" value={selectedDivision} onChange={(e) => setSelectedDivision(e.target.value as string)} options={divisionOptions} fullWidth className="w-100" />
+                </Box>}
+                {showBreachedFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
+                    <GenericDropdown id="sla-report-breached" label="Breached" value={selectedBreached} onChange={(e) => setSelectedBreached(e.target.value as "ALL" | "BREACHED" | "BREACHED_IN")} options={breachedOptions} fullWidth className="w-100" />
+                </Box>}
+            </div>
+
+            {/* <Box display="flex" flexDirection="column" gap={2}>
                 <Box className="row g-3" alignItems="stretch">
                     {showIntervalFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                         <GenericDropdown
@@ -291,9 +382,9 @@ const SlaReports: React.FC = () => {
                         />
                     </Box>}
                 </Box>
-            </Box>
+            </Box> */}
 
-            <Box className="row g-3 mt-1">
+            {/* <Box className="row g-3 my-1">
                 {showZoneFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-zone" label="Zone" value={selectedZone} onChange={(e) => setSelectedZone(e.target.value as string)} options={zoneOptions} fullWidth className="w-100" />
                 </Box>}
@@ -312,7 +403,7 @@ const SlaReports: React.FC = () => {
                 {showBreachedFilter && <Box className="col-12 col-md-6 col-lg-3 d-flex">
                     <GenericDropdown id="sla-report-breached" label="Breached" value={selectedBreached} onChange={(e) => setSelectedBreached(e.target.value as "ALL" | "BREACHED" | "BREACHED_IN")} options={breachedOptions} fullWidth className="w-100" />
                 </Box>}
-            </Box>
+            </Box> */}
 
             {showSlaPerformanceReport && <SlaPerformanceReport params={extendedRequestParams} />}
         </div>

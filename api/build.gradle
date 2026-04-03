@@ -66,6 +66,8 @@ dependencies {
         implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.77.0'
         implementation 'org.springframework:spring-webflux'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.12.1'
+        testImplementation 'io.qameta.allure:allure-junit5:2.29.1'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

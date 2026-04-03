@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record NagiosTicketSlaRecordDto(String ticketSlaId,
                                        String ticketId,
-                                       String ticketNumber,
+//                                       String ticketNumber,
                                        String ticketStatus,
                                        Long breachedByMinutes,
                                        Long responseTimeMinutes,

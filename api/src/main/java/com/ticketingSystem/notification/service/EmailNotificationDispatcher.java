@@ -49,8 +49,8 @@ public class EmailNotificationDispatcher {
     private final TaskExecutor emailNotificationExecutor;
 
     @Scheduled(
-            fixedDelayString = "${notification.email-dispatcher.fixedDelayMs:5000}",
-            initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
+            fixedDelayString = "${notification.email-dispatcher.fixedDelayMs:60000}",
+            initialDelayString = "${notification.email-dispatcher.initialDelayMs:60000}"
     )
     public void dispatchPendingEmails() {
         if (!notificationRuntimeToggleService.isNotificationEnabled()) {

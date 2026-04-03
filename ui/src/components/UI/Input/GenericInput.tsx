@@ -23,7 +23,7 @@ const GenericInput: React.FC<GenericInputProps> = ({
     ...props
 }) => {
     const classes = `generic-input ${className ?? ''}`.trim();
-    let size: "small" | "medium" = "medium";
+    let size: "small" | "medium" | undefined;
     const { t } = useTranslation();
 
     return (
