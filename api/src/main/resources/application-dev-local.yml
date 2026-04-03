@@ -45,6 +45,7 @@ mobile:
     description: ${MOBILE_CLIENT_DESCRIPTION:Parent mobile application client}
     expirationMinutes: ${MOBILE_CLIENT_EXPIRATION_MINUTES:60}
 
+
 calendar:
   ui:
     provider-code: ${CALENDAR_PROVIDER_CODE:NAGER_DATE}

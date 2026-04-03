@@ -17,4 +17,6 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
 
     @Query("SELECT DISTINCT sla FROM TicketSla sla LEFT JOIN FETCH sla.ticket WHERE sla.breachedByMinutes IS NOT NULL AND sla.breachedByMinutes > 0")
     List<TicketSla> findBreachedWithTicket();
+
+    long countByBreachedByMinutesGreaterThan(Long breachedByMinutes);
 }
