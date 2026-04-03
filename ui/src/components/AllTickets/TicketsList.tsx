@@ -270,7 +270,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             })),
         ];
     },
-    [breachOption, issueTypesResponse],
+        [breachOption, issueTypesResponse],
     );
 
     const divisionOptions: DropdownOption[] = useMemo(
@@ -376,8 +376,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             const effectivePage = options?.pageOverride ?? page;
             const effectiveSize = options?.sizeOverride ?? pageSize;
 
-            if(!allowAll) {
-                if(!allowedStatusSuccess) return
+            if (!allowAll) {
+                if (!allowedStatusSuccess) return
             }
 
             let statusParam: string | undefined = statusFilter === "All" ? undefined : statusFilter;
@@ -693,198 +693,250 @@ const TicketsList: React.FC<TicketsListProps> = ({
         <div className="" style={{ display: "flex" }}>
             <div style={{ flexGrow: 1, marginRight: sidebarOpen ? 400 : 0 }}>
                 <Title textKey={titleKey} rightContent={headerRightContent} />
-                <div className="d-flex flex-wrap align-items-center mb-3">
+                <div className="row align-items-center mb-3 g-2">
                     {/* -------- FILTERS --------- */}
 
                     {/* SEARCH FILTER */}
                     {showSearchBar && (
-                        <GenericInput
-                            label="Search"
-                            className="col-3 pe-1"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search by Ticket Id, Requestor Name, Subject"
-                        />
+                        <div className="col-3">
+                            <GenericInput
+                                className="w-100"
+                                label="Search"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search by Ticket Id, Requestor Name, Subject"
+                            />
+                        </div>
                     )}
 
-                    {/* STATUS DROPDOWN FILTER */}
+                    {/* STATUS FILTER */}
                     {showStatusFilter && (
-                        <DropdownController
-                            label="Status"
-                            className="col-3 px-1"
-                            value={statusFilter}
-                            onChange={(value) => { setStatusFilter(value); setPage(1); }}
-                            options={statusFilterOptions}
-                        />
+                        <div className="col-3">
+                            <DropdownController
+                                className="w-100"
+                                label="Status"
+                                value={statusFilter}
+                                onChange={(value) => {
+                                    setStatusFilter(value);
+                                    setPage(1);
+                                }}
+                                options={statusFilterOptions}
+                            />
+                        </div>
                     )}
 
-                    {/* CATEGORY DROPDOWN FILTER */}
-                    <DropdownController
-                        label="Module"
-                        value={selectedCategory}
-                        className="col-3 px-1"
-                        onChange={handleCategoryChange}
-                        options={categoryOptions}
-                    />
+                    {/* CATEGORY */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Module"
+                            value={selectedCategory}
+                            onChange={handleCategoryChange}
+                            options={categoryOptions}
+                        />
+                    </div>
 
-                    {/* SUBCATEGORY DROPDOWN FILTER */}
-                    <DropdownController
-                        label="Sub Module"
-                        value={selectedSubCategory}
-                        className="col-3 ps-1"
-                        onChange={handleSubCategoryChange}
-                        options={subCategoryOptions}
-                        disabled={selectedCategory === "All"}
-                    />
+                    {/* SUB CATEGORY */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Sub Module"
+                            value={selectedSubCategory}
+                            onChange={handleSubCategoryChange}
+                            options={subCategoryOptions}
+                            disabled={selectedCategory === "All"}
+                        />
+                    </div>
 
-                    <DropdownController
-                        label="Zone"
-                        value={selectedZone}
-                        className="col-3 px-1"
-                        onChange={handleZoneChange}
-                        options={zoneOptions}
-                    />
+                    {/* ZONE */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Zone"
+                            value={selectedZone}
+                            onChange={handleZoneChange}
+                            options={zoneOptions}
+                        />
+                    </div>
 
-                    <DropdownController
-                        label="Region"
-                        value={selectedRegion}
-                        className="col-3 px-1"
-                        onChange={handleRegionChange}
-                        options={regionOptions}
-                        disabled={selectedZone === "All"}
-                    />
+                    {/* REGION */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Region"
+                            value={selectedRegion}
+                            onChange={handleRegionChange}
+                            options={regionOptions}
+                            disabled={selectedZone === "All"}
+                        />
+                    </div>
 
-                    <DropdownController
-                        label="District"
-                        value={selectedDistrict}
-                        className="col-3 px-1"
-                        onChange={handleDistrictChange}
-                        options={districtOptions}
-                        disabled={selectedRegion === "All"}
-                    />
+                    {/* DISTRICT */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="District"
+                            value={selectedDistrict}
+                            onChange={handleDistrictChange}
+                            options={districtOptions}
+                            disabled={selectedRegion === "All"}
+                        />
+                    </div>
 
-                    <DropdownController
-                        label="Issue Type"
-                        value={selectedIssueType}
-                        className="col-3 px-1"
-                        onChange={handleIssueTypeChange}
-                        options={issueTypeOptions}
-                    />
+                    {/* ISSUE TYPE */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Issue Type"
+                            value={selectedIssueType}
+                            onChange={handleIssueTypeChange}
+                            options={issueTypeOptions}
+                        />
+                    </div>
 
-                    <DropdownController
-                        label="Division"
-                        value={selectedDivision}
-                        className="col-3 px-1"
-                        onChange={handleDivisionChange}
-                        options={divisionOptions}
-                    />
+                    {/* DIVISION */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Division"
+                            value={selectedDivision}
+                            onChange={handleDivisionChange}
+                            options={divisionOptions}
+                        />
+                    </div>
 
-                    <AssigneeFilterDropdown
-                        value={selectedAssignee}
-                        onChange={handleAssigneeChange}
-                    />
+                    {/* ASSIGNEE */}
+                    <div className="col-3">
+                        <AssigneeFilterDropdown
+                            className="w-100"
+                            value={selectedAssignee}
+                            onChange={handleAssigneeChange}
+                        />
+                    </div>
 
-                    <DropdownController
-                        label="Breach Option"
-                        value={breachOption}
-                        className="col-3 px-1"
-                        onChange={handleBreachOptionChange}
-                        options={[
-                            { label: "All", value: "All" },
-                            { label: "Breached", value: "BREACHED" },
-                            { label: "Breach In", value: "BREACH_IN" },
-                        ]}
-                    />
+                    {/* BREACH OPTION */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label="Breach Option"
+                            value={breachOption}
+                            onChange={handleBreachOptionChange}
+                            options={[
+                                { label: "All", value: "All" },
+                                { label: "Breached", value: "BREACHED" },
+                                { label: "Breach In", value: "BREACH_IN" },
+                            ]}
+                        />
+                    </div>
 
+                    {/* BREACH IN */}
                     {breachOption === "BREACH_IN" && (
                         <>
-                            <GenericInput
-                                label="Breach In (Hours)"
-                                className="col-3 px-1"
-                                type="number"
-                                value={String(breachInHours)}
-                                onChange={(e) => {
-                                    const nextVal = Number(e.target.value);
-                                    setBreachInHours(Number.isFinite(nextVal) ? Math.max(0, Math.floor(nextVal)) : 0);
-                                    setPage(1);
-                                }}
-                                placeholder="0"
-                            />
-                            <GenericInput
-                                label="Breach In (Minutes)"
-                                className="col-3 px-1"
-                                type="number"
-                                value={String(breachInMinutes)}
-                                onChange={(e) => {
-                                    const nextVal = Number(e.target.value);
-                                    const normalized = Number.isFinite(nextVal) ? Math.max(0, Math.floor(nextVal)) : 0;
-                                    setBreachInMinutes(Math.min(59, normalized));
-                                    setPage(1);
-                                }}
-                                placeholder="0"
-                            />
+                            <div className="col-3">
+                                <GenericInput
+                                    className="w-100"
+                                    label="Breach In (Hours)"
+                                    type="number"
+                                    value={String(breachInHours)}
+                                    onChange={(e) => {
+                                        const v = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                                        setBreachInHours(v);
+                                        setPage(1);
+                                    }}
+                                    placeholder="0"
+                                />
+                            </div>
+
+                            <div className="col-3">
+                                <GenericInput
+                                    className="w-100"
+                                    label="Breach In (Minutes)"
+                                    type="number"
+                                    value={String(breachInMinutes)}
+                                    onChange={(e) => {
+                                        const v = Math.min(59, Math.max(0, Math.floor(Number(e.target.value) || 0)));
+                                        setBreachInMinutes(v);
+                                        setPage(1);
+                                    }}
+                                    placeholder="0"
+                                />
+                            </div>
                         </>
                     )}
 
-                    <DropdownController
-                        label={t("Date Parameter")}
-                        value={selectedDateParam}
-                        onChange={(value) => {
-                            setSelectedDateParam(String(value));
-                            setPage(1);
-                        }}
-                        options={dateParamOptions}
-                        style={{ width: 240 }}
-                    />
-
-                    {/* DATE RANGE FILTER */}
-                    <DateRangeFilter value={dateRange} onChange={setDateRange} />
-
-                    {/* LEVEL CHIP FILTER   --->   Switch to DROPDOWN*/}
-                    {showLevelFilterToggle && levels.map(level => (
-                        <Chip
-                            key={level}
-                            label={level}
-                            color={levelFilter === level ? "primary" : "default"}
-                            variant={levelFilter === level ? "filled" : "outlined"}
-                            onClick={() => {
-                                setLevelFilter(prev => prev === level ? undefined : level);
+                    {/* DATE PARAMETER */}
+                    <div className="col-3">
+                        <DropdownController
+                            className="w-100"
+                            label={t("Date Parameter")}
+                            value={selectedDateParam}
+                            onChange={(value) => {
+                                setSelectedDateParam(String(value));
                                 setPage(1);
                             }}
-                            sx={{ mr: 1 }}
+                            options={dateParamOptions}
                         />
-                    ))}
+                    </div>
 
-                    {/* MASTER CHIP TOGGLE FILTER */}
+                    {/* DATE RANGE */}
+                    <div className="col-3">
+                        <DateRangeFilter
+                            className="w-100"
+                            value={dateRange}
+                            onChange={setDateRange}
+                        />
+                    </div>
+
+                    {/* LEVEL FILTER */}
+                    {showLevelFilterToggle &&
+                        levels.map((level) => (
+                            <div key={level} className="col-auto">
+                                <Chip
+                                    label={level}
+                                    color={levelFilter === level ? "primary" : "default"}
+                                    variant={levelFilter === level ? "filled" : "outlined"}
+                                    onClick={() => {
+                                        setLevelFilter((prev) => (prev === level ? undefined : level));
+                                        setPage(1);
+                                    }}
+                                />
+                            </div>
+                        ))}
+
+                    {/* MASTER FILTER */}
                     {showMasterFilterToggle && (
-                        <Chip
-                            label={t("Master")}
-                            color={masterOnly ? "primary" : "default"}
-                            variant={masterOnly ? "filled" : "outlined"}
-                            onClick={() => { setMasterOnly(prev => !prev); setPage(1); }}
-                            sx={{ mr: 1 }}
-                        />
+                        <div className="col-auto">
+                            <Chip
+                                label={t("Master")}
+                                color={masterOnly ? "primary" : "default"}
+                                variant={masterOnly ? "filled" : "outlined"}
+                                onClick={() => {
+                                    setMasterOnly((prev) => !prev);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
                     )}
-                    {/* -------- FILTERS END --------- */}
 
-                    {/* VIEW TOGGLE - TABLE | GRID */}
+                    {/* VIEW TOGGLE */}
                     <div className="d-flex align-items-center ms-auto">
                         <Button variant="outlined" onClick={resetFilters} className="me-2">
                             {t("Reset Filters")}
                         </Button>
+
                         {showGridTableViewToggle && showTablePermission && showGridPermission && (
-                            <div className="d-flex">
-                                <ViewToggle
-                                    value={viewMode}
-                                    onChange={(value: any) => setViewMode(value)}
-                                    options={[
-                                        { icon: "grid", value: "grid" },
-                                        { icon: "table", value: "table" },
-                                    ]}
-                                />
-                            </div>
+                            <ViewToggle
+                                value={viewMode}
+                                onChange={(value: any) => setViewMode(value)}
+                                options={[
+                                    { icon: "grid", value: "grid" },
+                                    { icon: "table", value: "table" },
+                                ]}
+                            />
                         )}
                     </div>
+
+                    {/* -------- FILTERS END --------- */}
                 </div>
 
 
@@ -925,13 +977,13 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             selectedZone={selectedZone}
                             selectedRegion={selectedRegion}
                             selectedDistrict={selectedDistrict}
-                        selectedIssueType={selectedIssueType}
-                        selectedDivision={selectedDivision}
-                        selectedCategory={selectedCategory}
-                        selectedSubCategory={selectedSubCategory}
-                        selectedAssignee={selectedAssignee}
-                        divisionOptions={divisionOptions}
-                        statusFilterOptions={statusFilterOptions}
+                            selectedIssueType={selectedIssueType}
+                            selectedDivision={selectedDivision}
+                            selectedCategory={selectedCategory}
+                            selectedSubCategory={selectedSubCategory}
+                            selectedAssignee={selectedAssignee}
+                            divisionOptions={divisionOptions}
+                            statusFilterOptions={statusFilterOptions}
                             selectedStatusFilter={statusFilter}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
                         />
