@@ -8,7 +8,6 @@ import com.ticketingSystem.api.repository.TicketRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,7 +24,6 @@ public class AssignmentHistoryService {
         history.setAssignedBy(assignedBy);
         history.setAssignedTo(assignedTo);
         history.setLevelId(levelId);
-        history.setTimestamp(LocalDateTime.now());
         history.setRemark(remark);
         return historyRepository.save(history);
     }

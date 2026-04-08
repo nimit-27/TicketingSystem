@@ -2,6 +2,7 @@ package com.ticketingSystem.api.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +27,8 @@ public class AssignmentHistory {
     @Column(name = "level_id")
     private String levelId;
 
-    @Column(name = "timestamp")
+    @CreationTimestamp
+    @Column(name = "timestamp", updatable = false)
     private LocalDateTime timestamp;
 
     @Column(name = "remark")

@@ -11,7 +11,6 @@ import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +40,6 @@ public class StatusHistoryService {
         history.setUpdatedBy(updatedBy);
         history.setPreviousStatus(previousStatus);
         history.setCurrentStatus(currentStatus);
-        history.setTimestamp(LocalDateTime.now());
         history.setSlaFlag(slaFlag);
         history.setRemark(remark);
         return historyRepository.save(history);

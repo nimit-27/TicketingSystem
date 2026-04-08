@@ -3,6 +3,7 @@ package com.ticketingSystem.api.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +30,8 @@ public class StatusHistory {
     @Column(name = "current_status")
     private String currentStatus;
 
-    @Column(name = "timestamp")
+    @CreationTimestamp
+    @Column(name = "timestamp", updatable = false)
     private LocalDateTime timestamp;
 
     @Column(name = "sla_flag")
