@@ -1,16 +1,13 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRecordDto;
-import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRequestDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,18 +20,13 @@ public class NagiosTicketSlaService {
     private static final int DEFAULT_RECORD_LIMIT = 200;
 
     private final TicketSlaRepository ticketSlaRepository;
-    private final ClientCredentialService clientCredentialService;
 
-    public NagiosTicketSlaService(TicketSlaRepository ticketSlaRepository,
-                                  ClientCredentialService clientCredentialService) {
+    public NagiosTicketSlaService(TicketSlaRepository ticketSlaRepository) {
         this.ticketSlaRepository = ticketSlaRepository;
-        this.clientCredentialService = clientCredentialService;
     }
 
-    public NagiosTicketSlaSnapshotDto fetchSnapshot(NagiosTicketSlaRequestDto request) {
-        validateCredentials(request.getClientId(), request.getClientSecret());
-
-        int normalizedLimit = normalizeLimit(request.getLimit());
+    public NagiosTicketSlaSnapshotDto fetchSnapshot(Integer limit) {
+        int normalizedLimit = normalizeLimit(limit);
         List<TicketSla> ticketSlas = ticketSlaRepository.findAll(PageRequest.of(0, normalizedLimit, Sort.by(Sort.Direction.DESC, "dueAt")))
                 .getContent();
 
@@ -50,13 +42,6 @@ public class NagiosTicketSlaService {
                 ticketSlas.size(),
                 ticketSlas.stream().map(this::toRecord).toList()
         );
-    }
-
-    private void validateCredentials(String clientId, String clientSecret) {
-        boolean valid = clientCredentialService.authenticate(clientId, clientSecret).isPresent();
-        if (!valid) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid client credentials");
-        }
     }
 
     private BigDecimal calculateCompliance(long totalRecords, long breachedRecords) {
