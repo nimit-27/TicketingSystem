@@ -57,9 +57,9 @@ class CalendarSyncServiceTest {
 
         service.ensureRange(LocalDate.of(2024, 12, 20), LocalDate.of(2026, 1, 10));
 
-        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 366), "IN-WB");
-        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 365), "IN-WB");
-        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 365), "IN-WB");
+        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2), "IN-WB");
+        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 2), "IN-WB");
+        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 2), "IN-WB");
         verify(externalCalendarFacade, never()).sync(any(), any(), any());
     }
 

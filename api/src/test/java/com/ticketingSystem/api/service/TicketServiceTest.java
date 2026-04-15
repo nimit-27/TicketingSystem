@@ -122,6 +122,8 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
                 any()
         )).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
@@ -130,6 +132,8 @@ class TicketServiceTest {
                 null,
                 null,
                 "agent-1",
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -155,6 +159,8 @@ class TicketServiceTest {
                 any(),
                 eq("agent-1"),
                 eq("agentUser"),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -204,6 +210,8 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
                 any()
         )).thenReturn(List.of());
 
@@ -212,6 +220,8 @@ class TicketServiceTest {
                 null,
                 null,
                 "agentUser",
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -236,6 +246,8 @@ class TicketServiceTest {
                 any(),
                 eq("agentUser"),
                 eq("agent-1"),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
