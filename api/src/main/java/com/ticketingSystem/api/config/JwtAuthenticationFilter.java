@@ -47,9 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "auth/login/sso",
             "/auth/sso",
             "auth/sso",
-            "/helpdesk/ext/nagios/ticket-sla",
-            "helpdesk/auth/sso",
-            "helpdesk/ext/nagios/ticket-sla"
+//            "/helpdesk/ext/nagios/ticket-sla",
+            "helpdesk/auth/sso"
+//            "helpdesk/ext/nagios/ticket-sla"
     );
 
     private final JwtTokenService jwtTokenService;

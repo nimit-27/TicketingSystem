@@ -6,7 +6,7 @@ import com.ticketingSystem.api.service.NagiosTicketSlaService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/ext/nagios")
+@RequestMapping("/public/nagios")
 public class NagiosMonitoringController {
     private final NagiosTicketSlaService nagiosTicketSlaService;
 
