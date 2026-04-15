@@ -59,7 +59,6 @@ public class NagiosTicketSlaService {
         return new NagiosTicketSlaRecordDto(
                 ticketSla.getId(),
                 ticket != null ? ticket.getId() : null,
-                ticket != null ? ticket.getTicketNumber() : null,
                 ticket != null && ticket.getTicketStatus() != null ? ticket.getTicketStatus().name() : null,
                 ticketSla.getBreachedByMinutes(),
                 ticketSla.getResponseTimeMinutes(),
