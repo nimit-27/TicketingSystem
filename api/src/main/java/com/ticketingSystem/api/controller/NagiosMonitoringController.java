@@ -3,7 +3,6 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRequestDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.service.NagiosTicketSlaService;
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,8 @@ public class NagiosMonitoringController {
     }
 
     @PostMapping("/ticket-sla")
-    public NagiosTicketSlaSnapshotDto getTicketSlaSnapshot(@RequestBody @Valid NagiosTicketSlaRequestDto request) {
-        return nagiosTicketSlaService.fetchSnapshot(request);
+    public NagiosTicketSlaSnapshotDto getTicketSlaSnapshot(@RequestBody(required = false) NagiosTicketSlaRequestDto request) {
+        Integer limit = request != null ? request.getLimit() : null;
+        return nagiosTicketSlaService.fetchSnapshot(limit);
     }
 }
