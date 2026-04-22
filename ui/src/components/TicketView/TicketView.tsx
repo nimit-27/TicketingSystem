@@ -1377,7 +1377,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
           )}
         </div>
         {/* ATTACHMENTS */}
-        <div className="col-5 mt-4" style={{ minWidth: 'max-content' }}>
+        <div className="col-5 mt-4 w-100">
           {/* {attachments.length > 0 && (
             <Box className="d-flex justify-content-center" sx={{ mt: 2 }}>
               <ThumbnailList uploadedAttachments={attachmentsByTicketIdData} attachments={attachments} thumbnailSize={100} onRemove={handleAttachmentRemove} />

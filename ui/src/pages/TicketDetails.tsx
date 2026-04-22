@@ -10,7 +10,7 @@ const TicketDetails: React.FC = () => {
   if (!ticketId) return null;
 
   return (
-    <div className="container" style={{ display: 'flex' }}>
+    <div className="container" style={{ display: 'flex', overflowWrap: 'anywhere' }}>
       <div style={{ flexGrow: 1, marginRight: historyOpen ? 400 : 0 }}>
         <TicketView ticketId={ticketId} />
       </div>
