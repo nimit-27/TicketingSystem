@@ -706,6 +706,54 @@ class TicketServiceTest {
         verify(ticketRepository).save(existing);
     }
 
+    @Test
+    void linkToMaster_closesChildTicket_andAddsDuplicateRelatedRemarkInStatusHistory() {
+        String childId = "T-CHILD";
+        String masterId = "T-MASTER";
+
+        Ticket child = buildExistingTicket(childId, "agent1");
+        child.setIssueTypeId("ISSUE-1");
+        child.setFeedbackStatus(null);
+        child.setMaster(false);
+
+        Ticket master = buildExistingTicket(masterId, "agent2");
+        master.setMaster(true);
+
+        Status closedStatus = new Status();
+        closedStatus.setStatusId("CLOSED_ID");
+        closedStatus.setStatusCode(TicketStatus.CLOSED.name());
+        closedStatus.setStatusName("Closed");
+        closedStatus.setLabel("Closed");
+
+        when(ticketRepository.findById(childId)).thenReturn(Optional.of(child));
+        when(ticketRepository.findById(masterId)).thenReturn(Optional.of(master));
+        when(workflowService.getStatusIdByCode(TicketStatus.CLOSED.name())).thenReturn("CLOSED_ID");
+        when(statusMasterRepository.findById("CLOSED_ID")).thenReturn(Optional.of(closedStatus));
+        when(workflowService.getSlaFlagByStatusAndIssueType("CLOSED_ID", "ISSUE-1")).thenReturn(Boolean.FALSE);
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TicketDto result = ticketService.linkToMaster(childId, masterId, "agent-linker");
+
+        assertThat(result.getMasterId()).isEqualTo(masterId);
+        assertThat(result.getTicketStatus()).isEqualTo(TicketStatus.CLOSED);
+
+        verify(statusHistoryService).addHistory(
+                eq(childId),
+                eq("agent-linker"),
+                eq("OPEN_ID"),
+                eq("CLOSED_ID"),
+                eq(Boolean.FALSE),
+                eq("duplicate/related")
+        );
+        verify(assignmentHistoryService).addHistory(
+                eq(childId),
+                eq("agent-linker"),
+                eq("agent1"),
+                eq("L1"),
+                eq("Linked to master ticket T-MASTER")
+        );
+    }
+
     private Ticket buildExistingTicket(String ticketId, String assignee) {
         Ticket ticket = new Ticket();
         ticket.setId(ticketId);

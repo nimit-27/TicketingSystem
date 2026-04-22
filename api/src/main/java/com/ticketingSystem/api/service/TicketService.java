@@ -1612,14 +1612,47 @@ public class TicketService {
             return mapWithStatusId(ticket);
         }
 
+        String previousStatusId = resolveCurrentStatusId(ticket);
+        String closedStatusId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
         ticket.setMasterId(masterId);
+        ticket.setTicketStatus(TicketStatus.CLOSED);
+        if (closedStatusId != null && !closedStatusId.isBlank()) {
+            statusMasterRepository.findById(closedStatusId).ifPresent(ticket::setStatus);
+        }
+        if (ticket.getFeedbackStatus() == null) {
+            ticket.setFeedbackStatus(FeedbackStatus.PENDING);
+        }
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
         ticket.setLastModified(LocalDateTime.now());
+        ticket.setLastModifiedStatusDate(LocalDateTime.now());
 
         Ticket saved = ticketRepository.save(ticket);
-        addLinkingHistory(saved, updatedBy, String.format("Linked to master ticket %s", masterId));
+        String actor = updatedBy != null && !updatedBy.isBlank() ? updatedBy : saved.getUpdatedBy();
+        assignmentHistoryService.addHistory(
+                saved.getId(),
+                actor,
+                saved.getAssignedTo(),
+                saved.getLevelId(),
+                String.format("Linked to master ticket %s", masterId)
+        );
+
+        String currentStatusId = resolveCurrentStatusId(saved);
+        Boolean slaFlag = currentStatusId != null
+                ? workflowService.getSlaFlagByStatusAndIssueType(currentStatusId, saved.getIssueTypeId())
+                : null;
+        String fromStatusId = previousStatusId != null ? previousStatusId : currentStatusId;
+        String toStatusId = currentStatusId != null ? currentStatusId : previousStatusId;
+        statusHistoryService.addHistory(
+                saved.getId(),
+                actor,
+                fromStatusId,
+                toStatusId,
+                slaFlag,
+                "duplicate/related"
+        );
+
         runNotificationAfterCommit(() -> sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy));
         return mapWithStatusId(saved);
     }

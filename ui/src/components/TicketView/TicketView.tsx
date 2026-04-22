@@ -161,6 +161,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [uploadKey, setUploadKey] = useState(0);
   const [sla, setSla] = useState<TicketSla | null>(null);
   const [masterSla, setMasterSla] = useState<TicketSla | null>(null);
+  const [masterTicketStatus, setMasterTicketStatus] = useState<string>('');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [hasFeedback, setHasFeedback] = useState(false);
   // const [statusWorkflows, setStatusWorkflows] = useState<Record<string, TicketStatusWorkflow[]>>({});
@@ -531,8 +532,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     const masterTicketId = ticket?.masterId;
     if (!masterTicketId || masterTicketId === ticketId) {
       setMasterSla(prev => (prev === null ? prev : null));
+      setMasterTicketStatus('');
       return;
     }
+
+    getTicket(masterTicketId)
+      .then(res => {
+        const payload = res.data?.body?.data ?? res.data;
+        const status = payload?.statusLabel || payload?.statusName || payload?.ticketStatus || '';
+        setMasterTicketStatus(status);
+      })
+      .catch(() => setMasterTicketStatus(''));
 
     getTicketSla(masterTicketId)
       .then(res => {
@@ -1127,7 +1137,22 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             sx={{ mb: 2, cursor: 'pointer' }}
             onClick={() => navigate(`/tickets/${ticket.masterId}`)}
           >
-            Linked to master ticket ID {ticket.masterId}. Click to view master ticket.
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              <Typography variant="body2">
+                Linked to master ticket ID {ticket.masterId}. Click to view master ticket.
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  Master Ticket Status:
+                </Typography>
+                <Chip
+                  label={masterTicketStatus || 'N/A'}
+                  color="warning"
+                  size="small"
+                  sx={{ fontWeight: 700, letterSpacing: 0.3 }}
+                />
+              </Box>
+            </Box>
           </Alert>
         )
       }
