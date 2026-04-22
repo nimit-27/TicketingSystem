@@ -476,7 +476,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   useEffect(() => {
     if (attachmentsByTicketIdData) setUploadedAttachments(attachmentsByTicketIdData)
-  }, [isAttachmentsByTicketIdSuccess, attachmentsByTicketIdData?.length])
+  }, [ticketId, isAttachmentsByTicketIdSuccess, attachmentsByTicketIdData?.length])
 
   useEffect(() => {
     if (ticketId) {
