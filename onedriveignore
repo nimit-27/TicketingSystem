@@ -1,0 +1,5 @@
+node_modules/
+**/.config/
+**/configstore/
+**/update-notifier-npm.json
+Darpan/Ticketing-System/Frontend/

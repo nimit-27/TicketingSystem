@@ -17,6 +17,7 @@ security:
       - https://annadarpan.in
       - http://80.225.192.179/nagios/
       - http://80.225.192.179/nagios
+      - http://80.225.192.179
     allowed-methods:
       - GET
       - POST
