@@ -66,21 +66,21 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusR
     }
   }, [ticket]);
 
-  const handleSave = () => {
-    if (!ticketId) return;
-    const payload = {
-      subject,
-      description,
-      priority,
-      severity,
-      recommendedSeverity,
-      updatedBy: getCurrentUserDetails()?.username
-    };
-    updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
-      setEditing(false);
-      getTicketHandler(() => getTicket(ticketId));
-    });
-  };
+  // const handleSave = () => {
+  //   if (!ticketId) return;
+  //   const payload = {
+  //     subject,
+  //     description,
+  //     priority,
+  //     severity,
+  //     recommendedSeverity,
+  //     updatedBy: getCurrentUserDetails()?.username
+  //   };
+  //   updateTicketHandler(() => updateTicket(ticketId, payload)).then(() => {
+  //     setEditing(false);
+  //     getTicketHandler(() => getTicket(ticketId));
+  //   });
+  // };
 
   const handleClose = () => {
     setEditing(false);
@@ -89,51 +89,51 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusR
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const cancelEditing = () => {
-    setEditing(false);
-    if (ticket) {
-      setSubject(ticket.subject || '');
-      setDescription(ticket.description || '');
-      setPriority(ticket.priority || '');
-      setSeverity(ticket.severity || '');
-      setRecommendedSeverity(ticket.recommendedSeverity || '');
-    }
-  }
+  // const cancelEditing = () => {
+  //   setEditing(false);
+  //   if (ticket) {
+  //     setSubject(ticket.subject || '');
+  //     setDescription(ticket.description || '');
+  //     setPriority(ticket.priority || '');
+  //     setSeverity(ticket.severity || '');
+  //     setRecommendedSeverity(ticket.recommendedSeverity || '');
+  //   }
+  // }
 
-  const renderText = (value: string, onChange: (v: string) => void, multiline?: boolean) => (
-    editing ? (
-      <TextField
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        variant="outlined"
-        fullWidth
-        multiline={multiline}
-        minRows={multiline ? 3 : undefined}
-        size="small"
-        sx={{ mt: 1 }}
-      />
-    ) : (
-      <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || '-'}</Typography>
-    )
-  );
+  // const renderText = (value: string, onChange: (v: string) => void, multiline?: boolean) => (
+  //   editing ? (
+  //     <TextField
+  //       value={value}
+  //       onChange={e => onChange(e.target.value)}
+  //       variant="outlined"
+  //       fullWidth
+  //       multiline={multiline}
+  //       minRows={multiline ? 3 : undefined}
+  //       size="small"
+  //       sx={{ mt: 1 }}
+  //     />
+  //   ) : (
+  //     <Typography sx={{ mt: 1, lineHeight: 1.66 }}>{value || '-'}</Typography>
+  //   )
+  // );
 
-  const renderSelect = (value: string, setValue: (v: string) => void, options: string[]) => (
-    editing ? (
-      <Select
-        value={value}
-        onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
-        fullWidth
-        size="small"
-      // sx={{ mt: 1 }}
-      >
-        {(Array.isArray(options) && options.length > 0) ? options.map(o => (
-          <MenuItem key={o} value={o}>{o}</MenuItem>
-        )) : <MenuItem key="" value="">None</MenuItem>}
-      </Select>
-    ) : (
-      <Typography color="text.secondary" sx={{ mt: 1 }}>{value || '-'}</Typography>
-    )
-  );
+  // const renderSelect = (value: string, setValue: (v: string) => void, options: string[]) => (
+  //   editing ? (
+  //     <Select
+  //       value={value}
+  //       onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
+  //       fullWidth
+  //       size="small"
+  //     // sx={{ mt: 1 }}
+  //     >
+  //       {(Array.isArray(options) && options.length > 0) ? options.map(o => (
+  //         <MenuItem key={o} value={o}>{o}</MenuItem>
+  //       )) : <MenuItem key="" value="">None</MenuItem>}
+  //     </Select>
+  //   ) : (
+  //     <Typography color="text.secondary" sx={{ mt: 1 }}>{value || '-'}</Typography>
+  //   )
+  // );
 
   const createdInfo = ticket ? `Created by ${ticket.requestorName || ticket.userId || ''} on ${ticket.reportedDate ? new Date(ticket.reportedDate).toLocaleString() : ''}` : '';
   const updatedInfo = ticket ? `Updated by ${ticket.updatedBy || ''} on ${ticket.lastModified ? new Date(ticket.lastModified).toLocaleDateString() : ''}` : '';
