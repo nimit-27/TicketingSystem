@@ -84,6 +84,43 @@ public class NagiosTicketSlaService {
         );
     }
 
+
+    public NagiosTicketSlaSummaryDto fetchSummaryDetailed(LocalDate fromDate, LocalDate toDate) {
+        LocalDate effectiveToDate = toDate != null ? toDate : LocalDate.now();
+        LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime toDateInclusive = effectiveToDate.atTime(23, 59, 59);
+        LocalDateTime toDateExclusive = effectiveToDate.plusDays(1).atStartOfDay();
+
+        NagiosTicketSlaSummaryAggregateDto aggregate = ticketSlaRepository.fetchSummary(fromDateTime, toDateExclusive);
+
+        long totalTickets = aggregate.totalTickets();
+        long breachedTickets = aggregate.breachedTickets();
+        long nonBreachedTickets = Math.max(totalTickets - breachedTickets, 0);
+
+        BigDecimal breachPercentage = calculatePercentage(breachedTickets, totalTickets);
+        BigDecimal compliancePercentage = calculatePercentage(nonBreachedTickets, totalTickets);
+
+        LocalDateTime responseFromDate = fromDateTime != null ? fromDateTime : aggregate.minReportedDate();
+        if (responseFromDate == null) {
+            responseFromDate = toDateInclusive;
+        }
+
+        return new NagiosTicketSlaSummaryDto(
+                "ticketing-system",
+                Instant.now(),
+                responseFromDate,
+                toDateInclusive,
+                totalTickets,
+                breachedTickets,
+                nonBreachedTickets,
+                breachPercentage,
+                compliancePercentage,
+                toBigDecimal(aggregate.averageResolutionTimeMinutes()),
+                toBigDecimal(aggregate.averageResponseTimeMinutes()),
+                toBigDecimal(aggregate.averageBreachMinutes())
+        );
+    }
+
     private BigDecimal calculateCompliance(long totalRecords, long breachedRecords) {
         if (totalRecords == 0) {
             return BigDecimal.valueOf(100);
