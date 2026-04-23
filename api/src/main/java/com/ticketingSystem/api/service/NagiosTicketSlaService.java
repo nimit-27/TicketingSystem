@@ -2,6 +2,8 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRecordDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
+import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
+import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaMetricsDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryDto;
 import com.ticketingSystem.api.models.Ticket;
@@ -16,7 +18,9 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class NagiosTicketSlaService {
@@ -80,7 +84,9 @@ public class NagiosTicketSlaService {
                 compliancePercentage,
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
-                toBigDecimal(aggregate.averageBreachMinutes())
+                toBigDecimal(aggregate.averageBreachMinutes()),
+                buildSeveritySummary(fromDateTime, toDateExclusive),
+                Map.of()
         );
     }
 
@@ -117,8 +123,78 @@ public class NagiosTicketSlaService {
                 compliancePercentage,
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
-                toBigDecimal(aggregate.averageBreachMinutes())
+                toBigDecimal(aggregate.averageBreachMinutes()),
+                buildSeveritySummary(fromDateTime, toDateExclusive),
+                buildDetailedBreakdown(fromDateTime, toDateExclusive)
         );
+    }
+
+    private Map<String, NagiosSeveritySlaMetricsDto> buildSeveritySummary(LocalDateTime fromDateTime,
+                                                                          LocalDateTime toDateExclusive) {
+        Map<String, NagiosSeveritySlaMetricsDto> severitySummary = new LinkedHashMap<>();
+        severitySummary.put("S1", defaultSeverityMetrics());
+        severitySummary.put("S2", defaultSeverityMetrics());
+        severitySummary.put("S3", defaultSeverityMetrics());
+        severitySummary.put("S4", defaultSeverityMetrics());
+
+        List<NagiosSeveritySlaAggregateView> severityAggregates = ticketSlaRepository.fetchSummaryBySeverity(fromDateTime, toDateExclusive);
+        for (NagiosSeveritySlaAggregateView aggregate : severityAggregates) {
+            String normalizedSeverity = normalizeSeverity(aggregate.getSeverity());
+            if (normalizedSeverity == null) {
+                continue;
+            }
+
+            long totalCount = aggregate.getTotalCount() != null ? aggregate.getTotalCount() : 0L;
+            long breachCount = aggregate.getBreachCount() != null ? aggregate.getBreachCount() : 0L;
+
+            severitySummary.put(
+                    normalizedSeverity,
+                    new NagiosSeveritySlaMetricsDto(
+                            totalCount,
+                            breachCount,
+                            calculatePercentage(breachCount, totalCount),
+                            toBigDecimal(aggregate.getAverageResolutionTimeMinutes()),
+                            toBigDecimal(aggregate.getAverageResponseTimeMinutes())
+                    )
+            );
+        }
+        return severitySummary;
+    }
+
+    private Map<String, Long> buildDetailedBreakdown(LocalDateTime fromDateTime, LocalDateTime toDateExclusive) {
+        Map<String, Long> detailedBreakdown = new LinkedHashMap<>();
+
+        ticketSlaRepository.fetchModuleCounts(fromDateTime, toDateExclusive)
+                .forEach(row -> detailedBreakdown.put("Module - " + row.getGroupValue(), row.getTotalCount()));
+
+        ticketSlaRepository.fetchIssueTypeCounts(fromDateTime, toDateExclusive)
+                .forEach(row -> detailedBreakdown.put("Issue Type - " + row.getGroupValue(), row.getTotalCount()));
+
+        return detailedBreakdown;
+    }
+
+    private NagiosSeveritySlaMetricsDto defaultSeverityMetrics() {
+        return new NagiosSeveritySlaMetricsDto(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    private String normalizeSeverity(String severity) {
+        if (severity == null) {
+            return null;
+        }
+        String normalized = severity.toUpperCase();
+        if (normalized.contains("S1")) {
+            return "S1";
+        }
+        if (normalized.contains("S2")) {
+            return "S2";
+        }
+        if (normalized.contains("S3")) {
+            return "S3";
+        }
+        if (normalized.contains("S4")) {
+            return "S4";
+        }
+        return null;
     }
 
     private BigDecimal calculateCompliance(long totalRecords, long breachedRecords) {

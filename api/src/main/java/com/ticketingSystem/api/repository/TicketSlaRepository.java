@@ -1,6 +1,8 @@
 package com.ticketingSystem.api.repository;
 
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
+import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
+import com.ticketingSystem.api.dto.nagios.NagiosGroupedCountView;
 import com.ticketingSystem.api.models.TicketSla;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,6 +40,47 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             """)
     NagiosTicketSlaSummaryAggregateDto fetchSummary(@Param("fromDate") LocalDateTime fromDate,
                                                     @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+    @Query(value = """
+            SELECT
+                t.severity AS severity,
+                COUNT(sla.id) AS totalCount,
+                COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0 THEN 1 ELSE 0 END), 0) AS breachCount,
+                AVG(sla.resolution_time_minutes) AS averageResolutionTimeMinutes,
+                AVG(sla.response_time_minutes) AS averageResponseTimeMinutes
+            FROM ticket_sla sla
+            JOIN tickets t ON t.ticket_id = sla.ticket_id
+            WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
+              AND t.reported_date < :toDateExclusive
+            GROUP BY t.severity
+            """, nativeQuery = true)
+    List<NagiosSeveritySlaAggregateView> fetchSummaryBySeverity(@Param("fromDate") LocalDateTime fromDate,
+                                                                @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+    @Query(value = """
+            SELECT COALESCE(NULLIF(TRIM(t.category), ''), 'Unknown') AS groupValue,
+                   COUNT(sla.id) AS totalCount
+            FROM ticket_sla sla
+            JOIN tickets t ON t.ticket_id = sla.ticket_id
+            WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
+              AND t.reported_date < :toDateExclusive
+            GROUP BY COALESCE(NULLIF(TRIM(t.category), ''), 'Unknown')
+            """, nativeQuery = true)
+    List<NagiosGroupedCountView> fetchModuleCounts(@Param("fromDate") LocalDateTime fromDate,
+                                                   @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+    @Query(value = """
+            SELECT COALESCE(NULLIF(TRIM(it.name), ''), 'Unknown') AS groupValue,
+                   COUNT(sla.id) AS totalCount
+            FROM ticket_sla sla
+            JOIN tickets t ON t.ticket_id = sla.ticket_id
+            LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
+            WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
+              AND t.reported_date < :toDateExclusive
+            GROUP BY COALESCE(NULLIF(TRIM(it.name), ''), 'Unknown')
+            """, nativeQuery = true)
+    List<NagiosGroupedCountView> fetchIssueTypeCounts(@Param("fromDate") LocalDateTime fromDate,
+                                                      @Param("toDateExclusive") LocalDateTime toDateExclusive);
 
     long countByBreachedByMinutesGreaterThan(Long breachedByMinutes);
 }

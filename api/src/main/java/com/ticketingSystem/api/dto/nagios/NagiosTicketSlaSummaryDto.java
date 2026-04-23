@@ -3,6 +3,7 @@ package com.ticketingSystem.api.dto.nagios;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public record NagiosTicketSlaSummaryDto(String service,
                                         Instant generatedAt,
@@ -15,5 +16,7 @@ public record NagiosTicketSlaSummaryDto(String service,
                                         BigDecimal compliancePercentage,
                                         BigDecimal averageResolutionTimeMinutes,
                                         BigDecimal averageResponseTimeMinutes,
-                                        BigDecimal averageBreachMinutes) {
+                                        BigDecimal averageBreachMinutes,
+                                        Map<String, NagiosSeveritySlaMetricsDto> severitySummary,
+                                        Map<String, Long> detailedBreakdown) {
 }
