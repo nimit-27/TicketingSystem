@@ -3,7 +3,6 @@ package com.ticketingSystem.api.service;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRecordDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
-import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaMetricsDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryDto;
 import com.ticketingSystem.api.models.Ticket;
@@ -129,13 +128,13 @@ public class NagiosTicketSlaService {
         );
     }
 
-    private Map<String, NagiosSeveritySlaMetricsDto> buildSeveritySummary(LocalDateTime fromDateTime,
-                                                                          LocalDateTime toDateExclusive) {
-        Map<String, NagiosSeveritySlaMetricsDto> severitySummary = new LinkedHashMap<>();
-        severitySummary.put("S1", defaultSeverityMetrics());
-        severitySummary.put("S2", defaultSeverityMetrics());
-        severitySummary.put("S3", defaultSeverityMetrics());
-        severitySummary.put("S4", defaultSeverityMetrics());
+    private Map<String, Object> buildSeveritySummary(LocalDateTime fromDateTime,
+                                                     LocalDateTime toDateExclusive) {
+        Map<String, Object> severitySummary = new LinkedHashMap<>();
+        putSeverityMetrics(severitySummary, "S1", 0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        putSeverityMetrics(severitySummary, "S2", 0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        putSeverityMetrics(severitySummary, "S3", 0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        putSeverityMetrics(severitySummary, "S4", 0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 
         List<NagiosSeveritySlaAggregateView> severityAggregates = ticketSlaRepository.fetchSummaryBySeverity(fromDateTime, toDateExclusive);
         for (NagiosSeveritySlaAggregateView aggregate : severityAggregates) {
@@ -147,15 +146,14 @@ public class NagiosTicketSlaService {
             long totalCount = aggregate.getTotalCount() != null ? aggregate.getTotalCount() : 0L;
             long breachCount = aggregate.getBreachCount() != null ? aggregate.getBreachCount() : 0L;
 
-            severitySummary.put(
+            putSeverityMetrics(
+                    severitySummary,
                     normalizedSeverity,
-                    new NagiosSeveritySlaMetricsDto(
-                            totalCount,
-                            breachCount,
-                            calculatePercentage(breachCount, totalCount),
-                            toBigDecimal(aggregate.getAverageResolutionTimeMinutes()),
-                            toBigDecimal(aggregate.getAverageResponseTimeMinutes())
-                    )
+                    totalCount,
+                    breachCount,
+                    calculatePercentage(breachCount, totalCount),
+                    toBigDecimal(aggregate.getAverageResolutionTimeMinutes()),
+                    toBigDecimal(aggregate.getAverageResponseTimeMinutes())
             );
         }
         return severitySummary;
@@ -173,8 +171,18 @@ public class NagiosTicketSlaService {
         return detailedBreakdown;
     }
 
-    private NagiosSeveritySlaMetricsDto defaultSeverityMetrics() {
-        return new NagiosSeveritySlaMetricsDto(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+    private void putSeverityMetrics(Map<String, Object> severitySummary,
+                                    String severity,
+                                    long totalCount,
+                                    long breachCount,
+                                    BigDecimal breachPercentage,
+                                    BigDecimal averageResolutionTimeMinutes,
+                                    BigDecimal averageResponseTimeMinutes) {
+        severitySummary.put("totalCount" + severity, totalCount);
+        severitySummary.put("breachCount" + severity, breachCount);
+        severitySummary.put("breachPercentage" + severity, breachPercentage);
+        severitySummary.put("averageResolutionTimeMinutes" + severity, averageResolutionTimeMinutes);
+        severitySummary.put("averageResponseTimeMinutes" + severity, averageResponseTimeMinutes);
     }
 
     private String normalizeSeverity(String severity) {

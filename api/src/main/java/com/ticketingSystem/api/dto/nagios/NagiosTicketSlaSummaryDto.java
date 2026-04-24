@@ -17,6 +17,6 @@ public record NagiosTicketSlaSummaryDto(String service,
                                         BigDecimal averageResolutionTimeMinutes,
                                         BigDecimal averageResponseTimeMinutes,
                                         BigDecimal averageBreachMinutes,
-                                        Map<String, NagiosSeveritySlaMetricsDto> severitySummary,
+                                        Map<String, Object> severitySummary,
                                         Map<String, Long> detailedBreakdown) {
 }
