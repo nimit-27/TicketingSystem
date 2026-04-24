@@ -178,11 +178,11 @@ public class NagiosTicketSlaService {
                                     BigDecimal breachPercentage,
                                     BigDecimal averageResolutionTimeMinutes,
                                     BigDecimal averageResponseTimeMinutes) {
-        severitySummary.put("totalCount" + severity, totalCount);
-        severitySummary.put("breachCount" + severity, breachCount);
-        severitySummary.put("breachPercentage" + severity, breachPercentage);
-        severitySummary.put("averageResolutionTimeMinutes" + severity, averageResolutionTimeMinutes);
-        severitySummary.put("averageResponseTimeMinutes" + severity, averageResponseTimeMinutes);
+        severitySummary.put(severity + "TotalCount", totalCount);
+        severitySummary.put(severity + "BreachCount", breachCount);
+        severitySummary.put(severity + "BreachPercentage", breachPercentage);
+        severitySummary.put(severity + "AverageResolutionTimeMinutes", averageResolutionTimeMinutes);
+        severitySummary.put(severity + "AverageResponseTimeMinutes", averageResponseTimeMinutes);
     }
 
     private String normalizeSeverity(String severity) {
