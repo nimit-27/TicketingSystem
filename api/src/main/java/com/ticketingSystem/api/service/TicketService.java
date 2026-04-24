@@ -1630,6 +1630,9 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
         String actor = updatedBy != null && !updatedBy.isBlank() ? updatedBy : saved.getUpdatedBy();
+        if (actor == null || actor.isBlank()) {
+            actor = "SYSTEM";
+        }
         assignmentHistoryService.addHistory(
                 saved.getId(),
                 actor,
@@ -1650,7 +1653,7 @@ public class TicketService {
                 fromStatusId,
                 toStatusId,
                 slaFlag,
-                "duplicate/related"
+                "Linked to a Master ticket"
         );
 
         runNotificationAfterCommit(() -> sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy));

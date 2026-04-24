@@ -707,7 +707,7 @@ class TicketServiceTest {
     }
 
     @Test
-    void linkToMaster_closesChildTicket_andAddsDuplicateRelatedRemarkInStatusHistory() {
+    void linkToMaster_closesChildTicket_andAddsMasterLinkRemarkInStatusHistory() {
         String childId = "T-CHILD";
         String masterId = "T-MASTER";
 
@@ -743,7 +743,7 @@ class TicketServiceTest {
                 eq("OPEN_ID"),
                 eq("CLOSED_ID"),
                 eq(Boolean.FALSE),
-                eq("duplicate/related")
+                eq("Linked to a Master ticket")
         );
         verify(assignmentHistoryService).addHistory(
                 eq(childId),
