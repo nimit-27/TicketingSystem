@@ -10,17 +10,19 @@ interface UseApiResponse<R> {
     apiHandler: (apiCall: () => Promise<any>) => Promise<R>;
 }
 
-export const useApi = <R,>(): UseApiResponse<R> => {
+export const useApi = <R,>(name?: string): UseApiResponse<R> => {
     const [data, setData] = useState<R | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [pending, startTransition] = useTransition();
+    // const [pending, startTransition] = useTransition();
+    const [pending, setPending] = useState(true);
     const [success, setSuccess] = useState<boolean>(false);
 
     const { showMessage } = useSnackbar();
 
     const apiHandler = useCallback((apiCall: () => Promise<any>): Promise<R> => {
         return new Promise((resolve) => {
-            startTransition(() => {
+            // startTransition(() => {
+                setPending(true)
                 apiCall()
                     .then((response: any) => {
                         const rawPayload = response?.data ?? response;
@@ -35,6 +37,7 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                             setData(payload as R | null);
                             setSuccess(true);
                             resolve((payload ?? null) as R);
+                            setPending(false)
                         } else {
                             const message = resp?.error?.message || 'Something went wrong';
                             setError(message);
@@ -42,6 +45,7 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                             setData(null);
                             setSuccess(false);
                             resolve(null as R);
+                            setPending(false)
                         }
                     })
                     .catch((err: any) => {
@@ -55,10 +59,12 @@ export const useApi = <R,>(): UseApiResponse<R> => {
                         setData(null);
                         setSuccess(false);
                         resolve(null as R);
+                    })
+                    .finally(() => {
+                        setPending(false)
                     });
-            });
+            // });
         });
     }, [showMessage])
-
     return { data, pending, error, success, apiHandler };
 };

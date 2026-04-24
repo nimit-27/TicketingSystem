@@ -134,7 +134,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const { apiHandler: updateTicketHandler } = useApi<any>();
   // const { data: workflowData, apiHandler: workflowApiHandler } = useApi<Record<string, TicketStatusWorkflow[]>>();
   const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
-  const { data: attachmentsByTicketIdData, apiHandler: getAttachmentsByTicketIdHandler, success: isAttachmentsByTicketIdSuccess } = useApi<any>();
+  const { data: attachmentsByTicketIdData, apiHandler: getAttachmentsByTicketIdHandler, success: isAttachmentsByTicketIdSuccess, pending: isAttachmentsByTicketIdPending } = useApi<any>('getAttachmentsByTicketId');
   const { data, apiHandler } = useApi<any>();
 
   // USESTATE INITIALIZATIONS
@@ -214,7 +214,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     setAssignMasterTicketModalOpen(false);
   }, []);
 
-  const getAttachmentsByTicketIdHandlerApi = (ticketId: string) => {
+  const getAttachmentsByTicketIdHandlerApi = async (ticketId: string) => {
     getAttachmentsByTicketIdHandler(() => getAttachmentsByTicketId(ticketId))
   }
 
@@ -477,7 +477,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
   useEffect(() => {
     if (attachmentsByTicketIdData) setUploadedAttachments(attachmentsByTicketIdData)
-  }, [ticketId, isAttachmentsByTicketIdSuccess, attachmentsByTicketIdData?.length])
+  }, [isAttachmentsByTicketIdPending, isAttachmentsByTicketIdSuccess, attachmentsByTicketIdData?.length])
 
   useEffect(() => {
     if (ticketId) {
