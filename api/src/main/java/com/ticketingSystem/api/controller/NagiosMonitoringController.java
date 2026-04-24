@@ -41,6 +41,6 @@ public class NagiosMonitoringController {
     public NagiosTicketSlaSummaryDto getTicketSlaSummaryDetailed(
             @RequestParam(value = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
-        return nagiosTicketSlaService.fetchSummary(fromDate, toDate);
+        return nagiosTicketSlaService.fetchSummaryDetailed(fromDate, toDate);
     }
 }
