@@ -44,7 +44,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
     @Query(value = """
             SELECT
                 t.severity AS severity,
-                COUNT(sla.id) AS totalCount,
+                COUNT(ticket_sla_id) AS totalCount,
                 COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0 THEN 1 ELSE 0 END), 0) AS breachCount,
                 AVG(sla.resolution_time_minutes) AS averageResolutionTimeMinutes,
                 AVG(sla.response_time_minutes) AS averageResponseTimeMinutes
@@ -59,7 +59,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
 
     @Query(value = """
             SELECT COALESCE(NULLIF(TRIM(t.category), ''), 'Unknown') AS groupValue,
-                   COUNT(sla.id) AS totalCount
+                   COUNT(ticket_sla_id) AS totalCount
             FROM ticket_sla sla
             JOIN tickets t ON t.ticket_id = sla.ticket_id
             WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
@@ -71,7 +71,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
 
     @Query(value = """
             SELECT COALESCE(NULLIF(TRIM(it.name), ''), 'Unknown') AS groupValue,
-                   COUNT(sla.id) AS totalCount
+                   COUNT(ticket_sla_id) AS totalCount
             FROM ticket_sla sla
             JOIN tickets t ON t.ticket_id = sla.ticket_id
             LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
