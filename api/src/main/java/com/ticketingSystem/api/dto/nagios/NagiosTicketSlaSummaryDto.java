@@ -1,5 +1,8 @@
 package com.ticketingSystem.api.dto.nagios;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -17,6 +20,11 @@ public record NagiosTicketSlaSummaryDto(String service,
                                         BigDecimal averageResolutionTimeMinutes,
                                         BigDecimal averageResponseTimeMinutes,
                                         BigDecimal averageBreachMinutes,
-                                        Map<String, NagiosSeveritySlaMetricsDto> severitySummary,
+                                        @JsonIgnore
+                                        Map<String, Object> severitySummary,
                                         Map<String, Long> detailedBreakdown) {
+    @JsonAnyGetter
+    public Map<String, Object> flattenedSeveritySummary() {
+        return severitySummary;
+    }
 }
