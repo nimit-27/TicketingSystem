@@ -733,9 +733,7 @@ public class TicketService {
             }
         }
         if (updatedStatus == TicketStatus.CLOSED) {
-            if (existing.getFeedbackStatus() == null) {
-                existing.setFeedbackStatus(FeedbackStatus.PENDING);
-            }
+            applyClosedStatus(existing);
         }
         if (updated.getSubCategory() != null) {
             existing.setSubCategory(updated.getSubCategory());
@@ -1588,6 +1586,7 @@ public class TicketService {
         return mapWithStatusId(ticket);
     }
 
+    @Transactional
     public TicketDto linkToMaster(String id, String masterId, String updatedBy) {
         if (masterId == null || masterId.isBlank()) {
             throw new InvalidRequestException("Master ticket id is required.");
@@ -1613,15 +1612,8 @@ public class TicketService {
         }
 
         String previousStatusId = resolveCurrentStatusId(ticket);
-        String closedStatusId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
         ticket.setMasterId(masterId);
-        ticket.setTicketStatus(TicketStatus.CLOSED);
-        if (closedStatusId != null && !closedStatusId.isBlank()) {
-            statusMasterRepository.findById(closedStatusId).ifPresent(ticket::setStatus);
-        }
-        if (ticket.getFeedbackStatus() == null) {
-            ticket.setFeedbackStatus(FeedbackStatus.PENDING);
-        }
+        applyClosedStatus(ticket);
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
@@ -1658,6 +1650,20 @@ public class TicketService {
 
         runNotificationAfterCommit(() -> sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy));
         return mapWithStatusId(saved);
+    }
+
+    private void applyClosedStatus(Ticket ticket) {
+        if (ticket == null) {
+            return;
+        }
+        ticket.setTicketStatus(TicketStatus.CLOSED);
+        String closedStatusId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
+        if (closedStatusId != null && !closedStatusId.isBlank()) {
+            statusMasterRepository.findById(closedStatusId).ifPresent(ticket::setStatus);
+        }
+        if (ticket.getFeedbackStatus() == null) {
+            ticket.setFeedbackStatus(FeedbackStatus.PENDING);
+        }
     }
 
     public TicketDto unlinkFromMaster(String id, String updatedBy) {
