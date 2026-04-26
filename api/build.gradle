@@ -66,13 +66,13 @@ dependencies {
         implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.77.0'
         implementation 'org.springframework:spring-webflux'
         // JasperReports core engine (required for PDF, Excel, JRXML compilation)
-//        implementation 'net.sf.jasperreports:jasperreports:6.21.0'
-//        // Apache POI (required by Jasper for exporting reports to Excel .xlsx)
-//        implementation 'org.apache.poi:poi-ooxml:5.2.5'
-//        // JAXB API (mandatory for Jasper on Java 11+ / Java 17)
-//        implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
-//        // JAXB runtime implementation (required at runtime for XML binding)
-//        implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.3'
+        implementation 'net.sf.jasperreports:jasperreports:7.0.4'
+        // Apache POI (required by Jasper for exporting reports to Excel .xlsx)
+        implementation 'org.apache.poi:poi-ooxml:5.4.0'
+        // JAXB API (mandatory for Jasper on Java 11+ / Java 17)
+        implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
+        // JAXB runtime implementation (required at runtime for XML binding)
+        implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.3'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

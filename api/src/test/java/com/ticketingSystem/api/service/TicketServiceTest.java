@@ -735,7 +735,7 @@ class TicketServiceTest {
         TicketDto result = ticketService.linkToMaster(childId, masterId, "agent-linker");
 
         assertThat(result.getMasterId()).isEqualTo(masterId);
-        assertThat(result.getTicketStatus()).isEqualTo(TicketStatus.CLOSED);
+        assertThat(result.getStatus()).isEqualTo(TicketStatus.CLOSED);
 
         verify(statusHistoryService).addHistory(
                 eq(childId),
