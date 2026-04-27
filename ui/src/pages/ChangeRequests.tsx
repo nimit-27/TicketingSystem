@@ -60,7 +60,7 @@ const ChangeRequests: React.FC = () => {
     const filteredRows = useMemo(() => {
         const q = searchText.trim().toLowerCase();
 
-        const filtered = changeRequests.filter((row) => {
+        const filtered = changeRequests?.filter((row) => {
             const matchesSearch = !q || [row.ticketCrId, row.ticketId, row.subject, row.description]
                 .filter(Boolean)
                 .some((value) => String(value).toLowerCase().includes(q));
@@ -71,7 +71,7 @@ const ChangeRequests: React.FC = () => {
             return matchesSearch && matchesAssignee && matchesCrStatus;
         });
 
-        return filtered.sort((a, b) => {
+        return filtered?.sort((a, b) => {
             const first = sortBy === "createdOn" ? a.createdDate : a.updatedOn;
             const second = sortBy === "createdOn" ? b.createdDate : b.updatedOn;
             return new Date(second || 0).getTime() - new Date(first || 0).getTime();
