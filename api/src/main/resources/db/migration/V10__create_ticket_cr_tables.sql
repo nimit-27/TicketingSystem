@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS cr_status_master (
 );
 
 CREATE TABLE IF NOT EXISTS ticket_cr_sequences (
-    id BIGSERIAL PRIMARY KEY,
+    id VARCHAR(20) PRIMARY KEY,
     sequence_date DATE NOT NULL UNIQUE,
     last_value BIGINT NOT NULL,
     version BIGINT NOT NULL DEFAULT 0

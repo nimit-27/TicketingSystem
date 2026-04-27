@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "ticket_cr_sequences", uniqueConstraints = {
@@ -17,8 +18,8 @@ import java.time.LocalDate;
 public class TicketCrSequence {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, length = 20)
+    private String id;
 
     @Column(name = "sequence_date", nullable = false)
     private LocalDate sequenceDate;
@@ -28,4 +29,11 @@ public class TicketCrSequence {
 
     @Version
     private long version;
+
+    @PrePersist
+    private void assignIdIfMissing() {
+        if (id == null || id.isBlank()) {
+            id = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+        }
+    }
 }

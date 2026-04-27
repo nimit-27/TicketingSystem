@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import java.time.LocalDate;
 import java.util.Optional;
 
-public interface TicketCrSequenceRepository extends JpaRepository<TicketCrSequence, Long> {
+public interface TicketCrSequenceRepository extends JpaRepository<TicketCrSequence, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TicketCrSequence> findBySequenceDate(LocalDate sequenceDate);
