@@ -1625,13 +1625,6 @@ public class TicketService {
         if (actor == null || actor.isBlank()) {
             actor = "SYSTEM";
         }
-        assignmentHistoryService.addHistory(
-                saved.getId(),
-                actor,
-                saved.getAssignedTo(),
-                saved.getLevelId(),
-                String.format("Linked to master ticket %s", masterId)
-        );
 
         String currentStatusId = resolveCurrentStatusId(saved);
         Boolean slaFlag = currentStatusId != null
