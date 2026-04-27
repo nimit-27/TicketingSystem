@@ -39,7 +39,7 @@ const menuItems = [
     key: "changeRequests",
     label: "Change Requests",
     to: "/change-requests",
-    icon: "assignment",
+    icon: "changeCircle",
   },
   {
     key: "calendar",
