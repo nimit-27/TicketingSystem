@@ -36,6 +36,12 @@ const menuItems = [
     icon: "workOutline",
   },
   {
+    key: "changeRequests",
+    label: "Change Requests",
+    to: "/change-requests",
+    icon: "assignment",
+  },
+  {
     key: "calendar",
     label: "Calendar",
     to: "/calendar",
