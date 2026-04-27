@@ -35,6 +35,7 @@ export interface TicketsListFilterState {
     search: string;
     statusFilter: string;
     masterOnly: boolean;
+    assignedBackFromFciOnly: boolean;
     levelFilter?: string;
     sortBy: "reportedDate" | "lastModified";
     sortDirection: "asc" | "desc";
@@ -58,6 +59,7 @@ export interface TicketsListSearchOverrides {
     query?: string;
     statusName?: string;
     master?: boolean;
+    assignedBackFromFci?: boolean;
     page?: number;
     size?: number;
     assignedTo?: string;
@@ -102,6 +104,7 @@ interface TicketsListProps {
     getViewTicketProps?: (selectedTicketId: string | null) => Partial<React.ComponentProps<typeof ViewTicket>>;
     allowAll: boolean;
     headerRightContent?: React.ReactNode;
+    showAssignedBackFromFciToggle?: boolean;
 }
 
 const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
@@ -124,7 +127,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     tableOptions,
     getViewTicketProps,
     allowAll,
-    headerRightContent
+    headerRightContent,
+    showAssignedBackFromFciToggle = false,
 }) => {
     const { t } = useTranslation();
     const { data: allowedStatusData, pending: allowedStatusPending, success: allowedStatusSuccess, apiHandler: allowedStatusApiHandler } = useApi<any>();
@@ -162,6 +166,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [filteredTicketCount, setFilteredTicketCount] = useState(0);
     const [statusFilter, setStatusFilter] = useState("All");
     const [masterOnly, setMasterOnly] = useState(false);
+    const [assignedBackFromFciOnly, setAssignedBackFromFciOnly] = useState(false);
     const userDetails = getCurrentUserDetails();
     const levels = userDetails?.levels || [];
     const normalizedOfficeType = String(userDetails?.officeType ?? "").trim().toUpperCase();
@@ -294,6 +299,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setStatusFilter("All");
         setMasterOnly(false);
         setLevelFilter(undefined);
+        setAssignedBackFromFciOnly(false);
         setSortBy("reportedDate");
         setDateRange({ preset: "ALL" });
         setSelectedDateParam("reported_date");
@@ -328,6 +334,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             search,
             statusFilter,
             masterOnly,
+            assignedBackFromFciOnly,
             levelFilter,
             sortBy,
             sortDirection,
@@ -349,6 +356,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
             search,
             statusFilter,
             masterOnly,
+            assignedBackFromFciOnly,
             levelFilter,
             sortBy,
             sortDirection,
@@ -387,6 +395,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             }
 
             const masterParam = overrides?.master !== undefined ? overrides.master : masterOnly ? true : undefined;
+            const assignedBackFromFciParam = overrides?.assignedBackFromFci !== undefined
+                ? overrides.assignedBackFromFci
+                : assignedBackFromFciOnly ? true : undefined;
 
             const requestOverrides = buildSearchOverrides ? buildSearchOverrides({ ...filterState, page: effectivePage, allowedStatuses: allowedStatusData }) : {};
             const mergedOverrides: TicketsListSearchOverrides = {
@@ -427,6 +438,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     queryParam,
                     statusParamU,
                     masterParam,
+                    assignedBackFromFciParam,
                     pageParam,
                     sizeParam,
                     assignedToParam,
@@ -912,6 +924,21 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                 variant={masterOnly ? "filled" : "outlined"}
                                 onClick={() => {
                                     setMasterOnly((prev) => !prev);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {/* ASSIGNED BACK FROM FCI FILTER */}
+                    {showAssignedBackFromFciToggle && (
+                        <div className="col-auto">
+                            <Chip
+                                label={t("Assigned back from FCI")}
+                                color={assignedBackFromFciOnly ? "primary" : "default"}
+                                variant={assignedBackFromFciOnly ? "filled" : "outlined"}
+                                onClick={() => {
+                                    setAssignedBackFromFciOnly((prev) => !prev);
                                     setPage(1);
                                 }}
                             />

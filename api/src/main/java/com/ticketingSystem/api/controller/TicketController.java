@@ -226,6 +226,7 @@ public class TicketController {
             @RequestParam String query,
             @RequestParam(required = false, name = "status") String statusId,
             @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) Boolean assignedBackFromFci,
             @RequestParam(required = false) String assignedTo,
             @RequestParam(required = false) String assignedBy,
             @RequestParam(required = false) String requestorId,
@@ -249,12 +250,13 @@ public class TicketController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, page, size, sortBy, direction);
+        logger.info("Request to search tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, page, size, sortBy, direction);
         Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
                 master,
+                assignedBackFromFci,
                 assignedTo,
                 assignedBy,
                 requestorId,
@@ -286,6 +288,7 @@ public class TicketController {
             @RequestParam(defaultValue = "") String query,
             @RequestParam(required = false, name = "status") String statusId,
             @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) Boolean assignedBackFromFci,
             @RequestParam(required = false) String assignedTo,
             @RequestParam(required = false) String assignedBy,
             @RequestParam(required = false) String requestorId,
@@ -305,12 +308,13 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate) {
-        logger.info("Request to export tickets query={} status={} master={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
-                query, statusId, master, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
+        logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
         List<TicketDto> results = ticketService.searchTicketsList(
                 query,
                 statusId,
                 master,
+                assignedBackFromFci,
                 assignedTo,
                 assignedBy,
                 requestorId,

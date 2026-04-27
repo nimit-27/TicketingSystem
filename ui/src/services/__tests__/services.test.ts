@@ -655,6 +655,7 @@ describe("TicketService", () => {
       "query",
       "OPEN",
       true,
+      true,
       2,
       10,
       "assignee",
@@ -680,6 +681,7 @@ describe("TicketService", () => {
     expect(url).toContain("query=query");
     expect(url).toContain("status=OPEN");
     expect(url).toContain("master=true");
+    expect(url).toContain("assignedBackFromFci=true");
     expect(url).toContain("page=2");
     expect(url).toContain("size=10");
     expect(url).toContain("assignedTo=assignee");

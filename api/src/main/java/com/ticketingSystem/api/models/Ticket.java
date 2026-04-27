@@ -94,6 +94,10 @@ public class Ticket {
     private boolean isMaster;
     @Column(name = "master_id")
     private String masterId;
+
+    @JsonProperty("isAssignedBackFromFci")
+    @Column(name = "is_assigned_back_from_fci")
+    private boolean isAssignedBackFromFci;
     @Column(name = "last_modified")
     private LocalDateTime lastModified;
 

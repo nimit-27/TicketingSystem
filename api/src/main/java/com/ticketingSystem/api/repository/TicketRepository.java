@@ -421,6 +421,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 //            "WHERE (:statusId IS NULL OR function(FIND_IN_SET, s.statusId, :statusId) > 0)" +
             "WHERE (:statusIds IS NULL OR s.statusId IN (:statusIds))" +
             "AND (:master IS NULL OR t.isMaster = :master) " +
+            "AND (:assignedBackFromFci IS NULL OR t.isAssignedBackFromFci = :assignedBackFromFci) " +
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
             "AND (:priority IS NULL OR t.priority = :priority) " +
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
@@ -453,7 +454,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
     Page<Ticket> searchTickets(@Param("query") String query, @Param("statusIds") ArrayList<String> statusName,
-                               @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
+                               @Param("master") Boolean master, @Param("assignedBackFromFci") Boolean assignedBackFromFci, @Param("assignedTo") String assignedTo,
                                @Param("alternateAssignedTo") String alternateAssignedTo,
                                @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
                                @Param("levelId") String levelId, @Param("priority") String priority,
@@ -476,6 +477,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s LEFT JOIN t.issueType it " +
             "WHERE (:statusIds IS NULL OR s.statusId IN (:statusIds))" +
             "AND (:master IS NULL OR t.isMaster = :master) " +
+            "AND (:assignedBackFromFci IS NULL OR t.isAssignedBackFromFci = :assignedBackFromFci) " +
             "AND (:levelId IS NULL OR t.levelId = :levelId) " +
             "AND (:priority IS NULL OR t.priority = :priority) " +
             "AND (:severities IS NULL OR t.severity IN (:severities)) " +
@@ -508,7 +510,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "OR LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(t.id) LIKE LOWER(CONCAT('%', :query, '%')) )")
     List<Ticket> searchTicketsList(@Param("query") String query, @Param("statusIds") ArrayList<String> statusName,
-                                   @Param("master") Boolean master, @Param("assignedTo") String assignedTo,
+                                   @Param("master") Boolean master, @Param("assignedBackFromFci") Boolean assignedBackFromFci, @Param("assignedTo") String assignedTo,
                                    @Param("alternateAssignedTo") String alternateAssignedTo,
                                    @Param("assignedBy") String assignedBy, @Param("requestorId") String requestorId,
                                    @Param("levelId") String levelId, @Param("priority") String priority,

@@ -533,7 +533,7 @@ public class TicketService {
         };
     }
 
-    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master,
+    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master, Boolean assignedBackFromFci,
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
@@ -586,6 +586,7 @@ public class TicketService {
                 query,
                 statusIds,
                 master,
+                assignedBackFromFci,
                 assignedTo,
                 alternateAssignedTo,
                 assignedBy,
@@ -611,7 +612,7 @@ public class TicketService {
         return page.map(this::mapWithStatusId);
     }
 
-    public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master,
+    public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master, Boolean assignedBackFromFci,
                                              String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
@@ -658,6 +659,7 @@ public class TicketService {
                         query,
                         statusIds,
                         master,
+                        assignedBackFromFci,
                         assignedTo,
                         alternateAssignedTo,
                         assignedBy,
@@ -768,6 +770,9 @@ public class TicketService {
         boolean assignmentChanged = assignmentChangeAllowed && !Objects.equals(updated.getAssignedTo(), previousAssignedTo);
         if (assignmentChangeAllowed) {
             existing.setAssignedTo(updated.getAssignedTo());
+        if (assignmentChanged && previousStatus == TicketStatus.PENDING_WITH_FCI) {
+            existing.setAssignedBackFromFci(true);
+        }
             if (assignmentChanged && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
                 existing.setTicketStatus(TicketStatus.ASSIGNED);
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
