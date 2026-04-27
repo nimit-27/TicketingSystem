@@ -737,6 +737,9 @@ public class TicketService {
         if (updatedStatus == TicketStatus.CLOSED) {
             applyClosedStatus(existing);
         }
+        if (previousStatus == TicketStatus.PENDING_WITH_FCI) {
+            existing.setAssignedBackFromFci(true);
+        }
         if (updated.getSubCategory() != null) {
             existing.setSubCategory(updated.getSubCategory());
             if (updated.getSeverity() == null) {
@@ -770,9 +773,9 @@ public class TicketService {
         boolean assignmentChanged = assignmentChangeAllowed && !Objects.equals(updated.getAssignedTo(), previousAssignedTo);
         if (assignmentChangeAllowed) {
             existing.setAssignedTo(updated.getAssignedTo());
-        if (assignmentChanged && previousStatus == TicketStatus.PENDING_WITH_FCI) {
-            existing.setAssignedBackFromFci(true);
-        }
+//        if (assignmentChanged && previousStatus == TicketStatus.PENDING_WITH_FCI) {
+//            existing.setAssignedBackFromFci(true);
+//        }
             if (assignmentChanged && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
                 existing.setTicketStatus(TicketStatus.ASSIGNED);
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());

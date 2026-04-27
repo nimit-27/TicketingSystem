@@ -1,2 +1,2 @@
 ALTER TABLE tickets
-    ADD COLUMN IF NOT EXISTS is_assigned_back_from_fci BOOLEAN NOT NULL DEFAULT FALSE;
+    ADD COLUMN is_assigned_back_from_fci BOOLEAN NOT NULL DEFAULT FALSE;
