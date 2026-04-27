@@ -38,6 +38,7 @@ const AllTickets: React.FC = () => {
             onTicketSelectChange={handleTicketSelectChange}
             allowAll={true}
             headerRightContent={devMode ? <SlaCalculationTrigger buttonLabel="Trigger SLA Calculation" /> : undefined}
+            showAssignedBackFromFciToggle
         />
     );
 };

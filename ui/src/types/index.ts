@@ -58,6 +58,7 @@ export interface Ticket {
     priority: string;
     priorityId?: string;
     isMaster: boolean;
+    isAssignedBackFromFci?: boolean;
     masterId?: string;
     userId?: string;
     requestorName?: string;

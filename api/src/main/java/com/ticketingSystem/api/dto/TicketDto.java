@@ -66,6 +66,8 @@ public class TicketDto {
     private String updatedBy;
     @JsonProperty("isMaster")
     private boolean isMaster;
+    @JsonProperty("isAssignedBackFromFci")
+    private boolean isAssignedBackFromFci;
     private String masterId;
     private LocalDateTime lastModified;
     private LocalDateTime resolvedAt;

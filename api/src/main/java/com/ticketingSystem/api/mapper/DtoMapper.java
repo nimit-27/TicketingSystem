@@ -140,6 +140,7 @@ public class DtoMapper {
         dto.setLevelId(ticket.getLevelId());
         dto.setUpdatedBy(ticket.getUpdatedBy());
         dto.setMaster(ticket.isMaster());
+        dto.setAssignedBackFromFci(ticket.isAssignedBackFromFci());
         dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
         dto.setLastModified(ticket.getLastModified());
         dto.setResolvedAt(ticket.getResolvedAt());

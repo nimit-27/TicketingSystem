@@ -98,6 +98,7 @@ export function searchTicketsPaginated(
     query: string,
     statusName?: string,
     master?: string,
+    assignedBackFromFci?: boolean,
     page: number = 0,
     size: number = 5,
     assignedTo?: string,
@@ -124,6 +125,7 @@ export function searchTicketsPaginated(
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
     if (master !== undefined) params.append('master', String(master));
+    if (assignedBackFromFci !== undefined) params.append('assignedBackFromFci', String(assignedBackFromFci));
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (levelId) params.append('levelId', levelId);
     if (assignedBy) params.append('assignedBy', assignedBy);

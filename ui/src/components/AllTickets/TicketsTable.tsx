@@ -46,6 +46,7 @@ export interface TicketRow {
     priority: string;
     priorityId: string;
     isMaster: boolean;
+    isAssignedBackFromFci?: boolean;
     userId?: string;
     requestorName?: string;
     requestorEmailId?: string;
