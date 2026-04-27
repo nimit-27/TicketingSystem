@@ -13,15 +13,15 @@ CREATE TABLE IF NOT EXISTS cr_status_master (
 CREATE TABLE IF NOT EXISTS ticket_cr_sequences (
     id VARCHAR(20) PRIMARY KEY,
     sequence_date DATE NOT NULL UNIQUE,
-    last_value BIGINT NOT NULL,
+    `last_value` BIGINT NOT NULL,
     version BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS ticket_cr (
     ticket_cr_id VARCHAR(20) PRIMARY KEY,
     ticket_id VARCHAR(255) NOT NULL,
-    status_id VARCHAR(255) NOT NULL,
-    cr_status_id VARCHAR(255) NOT NULL,
+    status_id INT NOT NULL,
+    cr_status_id VARCHAR(10) NOT NULL,
     subject VARCHAR(500),
     description TEXT,
     requested_by VARCHAR(255),
@@ -37,6 +37,6 @@ CREATE TABLE IF NOT EXISTS ticket_cr (
     CONSTRAINT fk_ticket_cr_cr_status FOREIGN KEY (cr_status_id) REFERENCES cr_status_master(cr_status_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_ticket_cr_ticket_id ON ticket_cr(ticket_id);
-CREATE INDEX IF NOT EXISTS idx_ticket_cr_status_id ON ticket_cr(status_id);
-CREATE INDEX IF NOT EXISTS idx_ticket_cr_cr_status_id ON ticket_cr(cr_status_id);
+CREATE INDEX idx_ticket_cr_ticket_id ON ticket_cr(ticket_id);
+CREATE INDEX idx_ticket_cr_status_id ON ticket_cr(status_id);
+CREATE INDEX idx_ticket_cr_cr_status_id ON ticket_cr(cr_status_id);
