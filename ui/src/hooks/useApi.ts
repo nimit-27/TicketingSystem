@@ -14,7 +14,7 @@ export const useApi = <R,>(name?: string): UseApiResponse<R> => {
     const [data, setData] = useState<R | null>(null);
     const [error, setError] = useState<string | null>(null);
     // const [pending, startTransition] = useTransition();
-    const [pending, setPending] = useState(true);
+    const [pending, setPending] = useState(false);
     const [success, setSuccess] = useState<boolean>(false);
 
     const { showMessage } = useSnackbar();
