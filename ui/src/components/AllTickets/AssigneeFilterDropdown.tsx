@@ -23,6 +23,7 @@ interface User {
 
 interface AssigneeFilterDropdownProps {
     value: string;
+    className?: string; 
     onChange: (value: string) => void;
 }
 

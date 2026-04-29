@@ -437,7 +437,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 return searchTicketsPaginated(
                     queryParam,
                     statusParamU,
-                    masterParam,
+                    masterParam?.toString(),
                     assignedBackFromFciParam,
                     pageParam,
                     sizeParam,
