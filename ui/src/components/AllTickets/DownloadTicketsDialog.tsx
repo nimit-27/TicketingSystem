@@ -391,6 +391,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                     '',
                     status !== 'All' ? status : undefined,
                     undefined,
+                    undefined,
                     0,
                     1,
                     assignee !== 'All' ? assignee : undefined,
@@ -422,7 +423,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
 
         return () => clearTimeout(timer);
     }, [open, fromDate, toDate, zone, region, district, issueType, division, assignee, status, category, subCategory, isRangeInvalid, estimateCountApiHandler]);
-
+    console.log({ loading, l: selectedColumnKeys?.length })
     return (
         <>
             <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -440,7 +441,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             region={region}
                             district={district}
                             issueType={issueType}
-                    division={division}
+                            division={division}
                             assignee={assignee}
                             status={status}
                             yearOptions={yearOptions}
@@ -452,7 +453,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             districtOptions={districtOptions}
                             issueTypeOptions={issueTypeOptions}
                             statusOptions={statusOptions}
-                    divisionOptions={effectiveDivisionOptions}
+                            divisionOptions={effectiveDivisionOptions}
                             generationState={generationState}
                             estimateLoading={estimateLoading}
                             estimateCountPending={estimateCountPending}
@@ -477,7 +478,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             onDistrictChange={setDistrict}
                             onIssueTypeChange={setIssueType}
                             onAssigneeChange={setAssignee}
-                    onDivisionChange={setDivision}
+                            onDivisionChange={setDivision}
                             onStatusChange={setStatus}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
