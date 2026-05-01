@@ -395,7 +395,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const sendForCrApprovalAction = useMemo(
     () => availableStatusActions.find((action: TicketStatusWorkflow) => {
       const nextStatusName = getStatusNameById(String(action.nextStatus)) || '';
-      return nextStatusName.toLowerCase() === 'change request';
+      return nextStatusName.toLowerCase() === 'change requested';
     }) || null,
     [availableStatusActions]
   );
