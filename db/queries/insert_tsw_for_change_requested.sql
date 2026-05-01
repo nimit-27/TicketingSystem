@@ -1,0 +1,2 @@
+INSERT INTO `ticketing_system`.`ticket_status_workflow` (`TSW_Id`, `TSW_Action`, `TSW_Current_Status`, `TSW_Next_Status`) VALUES ('31', 'Send for CR Approval', '1', '12');
+INSERT INTO `ticketing_system`.`ticket_status_workflow` (`TSW_Id`, `TSW_Action`, `TSW_Current_Status`, `TSW_Next_Status`) VALUES ('32', 'Send for CR Approval', '2', '12');
