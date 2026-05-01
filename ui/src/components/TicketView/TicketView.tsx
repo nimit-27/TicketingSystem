@@ -392,6 +392,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     [availableStatusActions]
   );
 
+  const sendForCrApprovalAction = useMemo(
+    () => availableStatusActions.find((action: TicketStatusWorkflow) => {
+      const nextStatusName = getStatusNameById(String(action.nextStatus)) || '';
+      return nextStatusName.toLowerCase() === 'change request';
+    }) || null,
+    [availableStatusActions]
+  );
+
   const handleSlaDownloadMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setSlaDownloadAnchor(event.currentTarget);
   }, []);
@@ -898,6 +906,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const shouldShowClose = Boolean(closeAction && isResolvedStatus && isRequester);
   const shouldShowReopen = Boolean(reopenAction && isResolvedStatus && isRequester);
   const shouldShowRestore = Boolean(restoreAction && isCancelledStatus);
+  const shouldShowSendForCrApproval = Boolean(
+    sendForCrApprovalAction &&
+    ticket?.isAssignedBackFromFci &&
+    normalisedStatusName !== 'change request'
+  );
   const canShowFeedbackAction = ticket?.feedbackStatus !== 'NOT_PROVIDED';
   const shouldShowFeedbackButton = isClosedStatus && isRequester && canShowFeedbackAction;
   const shouldShowSubmitRcaButton = showSubmitRCAButton && rcaStatus === 'PENDING';
@@ -1052,7 +1065,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         shouldShowSubmitRcaButton ||
         shouldShowViewRcaButton ||
         (!ticket?.isMaster && shouldShowLinkToMasterTicketButton) ||
-        shouldShowAssignMasterTicketButton) && <Box
+        shouldShowAssignMasterTicketButton ||
+        shouldShowSendForCrApproval) && <Box
           sx={{
             backgroundColor: '#e8f5e9',
             borderRadius: 1,
@@ -1088,6 +1102,11 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               {shouldShowRestore && (
                 <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(restoreAction)}>
                   {t('Restore Ticket')}
+                </Button>
+              )}
+              {shouldShowSendForCrApproval && (
+                <Button size="small" variant="contained" color="success" onClick={() => handleStatusActionClick(sendForCrApprovalAction)}>
+                  {t('Send for CR Approval')}
                 </Button>
               )}
               {shouldShowFeedbackButton && (
