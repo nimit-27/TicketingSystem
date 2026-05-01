@@ -2,6 +2,7 @@ package com.ticketingSystem.api.dto.nagios;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -12,6 +13,7 @@ public record NagiosTicketSlaSummaryDto(String service,
                                         Instant generatedAt,
                                         LocalDateTime fromDate,
                                         LocalDateTime toDate,
+                                        @JsonProperty("totalTicketsRaisedTillNow")
                                         long totalTickets,
                                         long breachedTickets,
                                         long nonBreachedTickets,

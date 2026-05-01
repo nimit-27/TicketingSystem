@@ -933,7 +933,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
 
                     {/* ASSIGNED BACK FROM FCI FILTER */}
-                    {/* {showAssignedBackFromFciToggle && (
+                    {showAssignedBackFromFciToggle && (
                         <div className="col-auto">
                             <Chip
                                 label={t("Assigned back from FCI")}
@@ -945,7 +945,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                 }}
                             />
                         </div>
-                    )} */}
+                    )}
 
                     {/* VIEW TOGGLE */}
                     <div className="d-flex align-items-center ms-auto">
