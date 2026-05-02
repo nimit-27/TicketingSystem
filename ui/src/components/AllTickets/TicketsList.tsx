@@ -107,6 +107,32 @@ interface TicketsListProps {
     showAssignedBackFromFciToggle?: boolean;
 }
 
+
+interface PersistedTicketsListFilters {
+    search: string;
+    statusFilter: string;
+    masterOnly: boolean;
+    assignedBackFromFciOnly: boolean;
+    levelFilter?: string;
+    sortBy: "reportedDate" | "lastModified";
+    viewMode: "grid" | "table";
+    tablePageSize: number;
+    gridPageSize: number;
+    dateRange: DateRangeState;
+    selectedCategory: string;
+    selectedSubCategory: string;
+    selectedDateParam: string;
+    selectedZone: string;
+    selectedRegion: string;
+    selectedDistrict: string;
+    selectedIssueType: string;
+    selectedDivision: string;
+    selectedAssignee: string;
+    breachOption: string;
+    breachInHours: number;
+    breachInMinutes: number;
+}
+
 const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
     Low: { color: "success.light", count: 1, label: "Low" },
     Medium: { color: "warning.light", count: 2, label: "Medium" },
@@ -131,6 +157,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     showAssignedBackFromFciToggle = false,
 }) => {
     const { t } = useTranslation();
+    const filterStorageKey = `tickets-list-filters:${permissionPathPrefix}`;
+    const [filtersHydrated, setFiltersHydrated] = useState(false);
     const { data: allowedStatusData, pending: allowedStatusPending, success: allowedStatusSuccess, apiHandler: allowedStatusApiHandler } = useApi<any>();
     const { data, pending, apiHandler: searchTicketsPaginatedApiHandler } = useApi<any>();
     const { data: workflowData, apiHandler: workflowApiHandler } = useApi<any>();
@@ -318,6 +346,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setPage(1);
         resetSubCategories();
         loadSubCategories();
+        sessionStorage.removeItem(filterStorageKey);
     };
 
     const normalizedCategory = selectedCategory !== "All" ? selectedCategory : undefined;
@@ -570,6 +599,104 @@ const TicketsList: React.FC<TicketsListProps> = ({
     };
 
     useEffect(() => {
+        const raw = sessionStorage.getItem(filterStorageKey);
+        if (!raw) {
+            setFiltersHydrated(true);
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(raw) as Partial<PersistedTicketsListFilters>;
+            if (typeof parsed.search === "string") setSearch(parsed.search);
+            if (typeof parsed.statusFilter === "string") setStatusFilter(parsed.statusFilter);
+            if (typeof parsed.masterOnly === "boolean") setMasterOnly(parsed.masterOnly);
+            if (typeof parsed.assignedBackFromFciOnly === "boolean") setAssignedBackFromFciOnly(parsed.assignedBackFromFciOnly);
+            if (typeof parsed.levelFilter === "string") setLevelFilter(parsed.levelFilter);
+            if (parsed.levelFilter === null) setLevelFilter(undefined);
+            if (parsed.sortBy === "reportedDate" || parsed.sortBy === "lastModified") setSortBy(parsed.sortBy);
+            if ((parsed.viewMode === "grid" && showGridPermission) || (parsed.viewMode === "table" && showTablePermission)) {
+                setViewMode(parsed.viewMode);
+            }
+            if (typeof parsed.tablePageSize === "number") setTablePageSize(parsed.tablePageSize);
+            if (typeof parsed.gridPageSize === "number") setGridPageSize(parsed.gridPageSize);
+            if (parsed.dateRange && typeof parsed.dateRange === "object") setDateRange(parsed.dateRange as DateRangeState);
+            if (typeof parsed.selectedCategory === "string") setSelectedCategory(parsed.selectedCategory);
+            if (typeof parsed.selectedSubCategory === "string") setSelectedSubCategory(parsed.selectedSubCategory);
+            if (typeof parsed.selectedDateParam === "string") setSelectedDateParam(parsed.selectedDateParam);
+            if (typeof parsed.selectedZone === "string") setSelectedZone(parsed.selectedZone);
+            if (typeof parsed.selectedRegion === "string") setSelectedRegion(parsed.selectedRegion);
+            if (typeof parsed.selectedDistrict === "string") setSelectedDistrict(parsed.selectedDistrict);
+            if (typeof parsed.selectedIssueType === "string") setSelectedIssueType(parsed.selectedIssueType);
+            if (typeof parsed.selectedDivision === "string") setSelectedDivision(parsed.selectedDivision);
+            if (typeof parsed.selectedAssignee === "string") setSelectedAssignee(parsed.selectedAssignee);
+            if (typeof parsed.breachOption === "string") setBreachOption(parsed.breachOption);
+            if (typeof parsed.breachInHours === "number") setBreachInHours(parsed.breachInHours);
+            if (typeof parsed.breachInMinutes === "number") setBreachInMinutes(parsed.breachInMinutes);
+            setPage(1);
+        } catch (error) {
+            console.warn("Failed to hydrate ticket list filters from sessionStorage", error);
+            sessionStorage.removeItem(filterStorageKey);
+        } finally {
+            setFiltersHydrated(true);
+        }
+    }, [filterStorageKey, showGridPermission, showTablePermission]);
+
+    useEffect(() => {
+        if (!filtersHydrated) return;
+
+        const payload: PersistedTicketsListFilters = {
+            search,
+            statusFilter,
+            masterOnly,
+            assignedBackFromFciOnly,
+            levelFilter,
+            sortBy,
+            viewMode,
+            tablePageSize,
+            gridPageSize,
+            dateRange,
+            selectedCategory,
+            selectedSubCategory,
+            selectedDateParam,
+            selectedZone,
+            selectedRegion,
+            selectedDistrict,
+            selectedIssueType,
+            selectedDivision,
+            selectedAssignee,
+            breachOption,
+            breachInHours,
+            breachInMinutes,
+        };
+        sessionStorage.setItem(filterStorageKey, JSON.stringify(payload));
+    }, [
+        filtersHydrated,
+        filterStorageKey,
+        search,
+        statusFilter,
+        masterOnly,
+        assignedBackFromFciOnly,
+        levelFilter,
+        sortBy,
+        viewMode,
+        tablePageSize,
+        gridPageSize,
+        dateRange,
+        selectedCategory,
+        selectedSubCategory,
+        selectedDateParam,
+        selectedZone,
+        selectedRegion,
+        selectedDistrict,
+        selectedIssueType,
+        selectedDivision,
+        selectedAssignee,
+        breachOption,
+        breachInHours,
+        breachInMinutes,
+    ]);
+
+    useEffect(() => {
         const roles = getCurrentUserDetails()?.role || [];
         workflowApiHandler(() => getStatusWorkflowMappings(roles));
         getZonesApiHandler(() => getZones());
@@ -651,6 +778,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     }, [issueTypeOptions, selectedIssueType]);
 
     useEffect(() => {
+        if (!filtersHydrated) return;
         callSearch();
     }, [
         debouncedSearch,
@@ -676,6 +804,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         breachInMinutes,
         allowedStatusSuccess,
         assignedBackFromFciOnly,
+        filtersHydrated,
     ]);
 
     useEffect(() => {
