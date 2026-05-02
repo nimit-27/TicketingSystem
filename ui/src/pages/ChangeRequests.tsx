@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from "react-i18next";
 import { ColumnsType } from "antd/es/table";
 import GenericTable from "../components/UI/GenericTable";
@@ -23,6 +24,7 @@ interface ChangeRequestRow {
 }
 
 const ChangeRequests: React.FC = () => {
+    const navigate = useNavigate();
     const { t } = useTranslation();
     const { data: changeRequests = [], pending: loading, apiHandler: loadChangeRequests } = useApi<ChangeRequestRow[]>();
     const { data: crStatusList = [], apiHandler: loadCrStatusList } = useApi<any[]>();
@@ -83,6 +85,7 @@ const ChangeRequests: React.FC = () => {
             title: t("CR Id"),
             dataIndex: "ticketCrId",
             key: "ticketCrId",
+            render: (value: string) => (<a onClick={() => navigate(`/change-requests/${value}`)}>{value}</a>),
         },
         {
             title: t("Ticket Id"),
@@ -123,7 +126,7 @@ const ChangeRequests: React.FC = () => {
             key: "updatedOn",
             render: (value?: string) => (value ? new Date(value).toLocaleString() : "-"),
         },
-    ], [t]);
+    ], [t, navigate]);
 
     return (
         <div>

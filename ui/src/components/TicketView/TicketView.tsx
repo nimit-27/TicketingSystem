@@ -45,6 +45,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getStatusHistory } from '../../services/StatusHistoryService';
+import { createChangeRequest } from '../../services/TicketCrService';
 
 interface TicketViewProps {
   ticketId: string;
@@ -943,6 +944,23 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
     try {
       await updateTicketHandler(() => updateTicket(ticketId, payload));
+
+      if (selectedStatusAction.action === sendForCrApprovalAction?.action && ticket) {
+        await createChangeRequest({
+          ticketId: ticket.id,
+          statusId: String(selectedStatusAction.nextStatus),
+          crStatusId: 'CRS-1',
+          subject: ticket.subject,
+          description: ticket.description,
+          requestedBy: ticket.userId,
+          assignedTo: ticket.assignedTo,
+          assignedBy: currentUsername,
+          remarks: remark,
+          createdBy: currentUsername,
+          updatedBy: currentUsername,
+        });
+      }
+
       setShowStatusRemark(false);
       setSelectedStatusAction(null);
       await getTicketHandler(() => getTicket(ticketId));
