@@ -39,6 +39,7 @@ const AddUser = lazy(() => import('./pages/AddUser'));
 const SupportDashboard = lazy(() => import('./pages/SupportDashboard'));
 const FileManagementSystem = lazy(() => import('./pages/FileManagementSystem'));
 const ChangeRequests = lazy(() => import('./pages/ChangeRequests'));
+const ViewCrTicket = lazy(() => import('./pages/ViewCrTicket'));
 const PublicLayout = lazy(() => import('./components/Layout/PublicLayout'));
 const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage'));
 
@@ -82,6 +83,7 @@ function App() {
           <Route path="my-tickets" element={<MyTickets />} />
           <Route path="my-workload" element={<MyWorkload />} />
           <Route path="change-requests" element={<ChangeRequests />} />
+          <Route path="change-requests/:ticketCrId" element={<ViewCrTicket />} />
           <Route path="root-cause-analysis" element={<RootCauseAnalysis />} />
           <Route path="faq" element={<Faq />} />
           <Route path="faq/new" element={<FaqForm />} />
