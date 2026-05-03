@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Box, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
-import { getChangeRequestById } from '../services/TicketCrService';
+import { getChangeRequestActions, getChangeRequestById, updateChangeRequestStatus } from '../services/TicketCrService';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '-';
@@ -24,6 +24,27 @@ const ViewCrTicket: React.FC = () => {
       void apiHandler(() => getChangeRequestById(ticketCrId));
     }
   }, [ticketCrId, apiHandler]);
+
+
+  const [actions, setActions] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (changeRequest?.crStatusId) {
+      void getChangeRequestActions(changeRequest.crStatusId)
+        .then(res => setActions(Array.isArray(res.data) ? res.data : []))
+        .catch(() => setActions([]));
+    }
+  }, [changeRequest?.crStatusId]);
+
+  const handleCrActionClick = async (crswId: string) => {
+    if (!ticketCrId) return;
+    await apiHandler(() => updateChangeRequestStatus(ticketCrId, {
+      crswId,
+      remarks: changeRequest?.remarks,
+      updatedBy: 'SYSTEM',
+    }));
+    await apiHandler(() => getChangeRequestById(ticketCrId));
+  };
 
   const createdOnText = useMemo(() => formatDateTime(changeRequest?.createdDate), [changeRequest?.createdDate]);
   const updatedOnText = useMemo(() => formatDateTime(changeRequest?.updatedOn), [changeRequest?.updatedOn]);
@@ -118,6 +139,23 @@ const ViewCrTicket: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">Remarks</Typography>
                 <Typography variant="body2">{changeRequest.remarks || '-'}</Typography>
               </Box>
+
+            {actions.length > 0 && (
+              <Stack direction="row" spacing={1} mt={2}>
+                {actions.map(action => (
+                  <Button
+                    key={action.crswId}
+                    size="small"
+                    variant={action.action === 'Reject CR' ? 'outlined' : 'contained'}
+                    color="success"
+                    onClick={() => handleCrActionClick(action.crswId)}
+                  >
+                    {action.action}
+                  </Button>
+                ))}
+              </Stack>
+            )}
+
             </Stack>
           </Paper>
 
