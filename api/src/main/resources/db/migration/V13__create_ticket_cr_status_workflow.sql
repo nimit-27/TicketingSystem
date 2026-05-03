@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS ticket_cr_status_workflow (
-    crsf_id VARCHAR(20) PRIMARY KEY,
+    crsw_id VARCHAR(20) PRIMARY KEY,
     action VARCHAR(100) NOT NULL,
     current_status_id VARCHAR(20) NOT NULL,
     next_status_id VARCHAR(20) NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS ticket_cr_status_workflow (
 );
 
 INSERT INTO ticket_cr_status_workflow
-    (crsf_id, action, current_status_id, next_status_id)
+    (crsw_id, action, current_status_id, next_status_id)
 VALUES
-    ('CRSF-1', 'Reject CR', 'CRS-1', 'CRS-3'),
-    ('CRSF-2', 'Approve CR', 'CRS-1', 'CRS-2');
+    ('CRSW-1', 'Reject CR', 'CRS-1', 'CRS-3'),
+    ('CRSW-2', 'Approve CR', 'CRS-1', 'CRS-2');

@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class TicketCrStatusWorkflowDto {
-    private String id;
+    private String crswId;
     private String action;
     private String currentStatusId;
     private String nextStatusId;

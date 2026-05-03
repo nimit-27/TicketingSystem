@@ -36,10 +36,10 @@ const ViewCrTicket: React.FC = () => {
     }
   }, [changeRequest?.crStatusId]);
 
-  const handleCrActionClick = async (workflowId: string) => {
+  const handleCrActionClick = async (crswId: string) => {
     if (!ticketCrId) return;
     await apiHandler(() => updateChangeRequestStatus(ticketCrId, {
-      workflowId,
+      crswId,
       remarks: changeRequest?.remarks,
       updatedBy: 'SYSTEM',
     }));
@@ -144,11 +144,11 @@ const ViewCrTicket: React.FC = () => {
               <Stack direction="row" spacing={1} mt={2}>
                 {actions.map(action => (
                   <Button
-                    key={action.id}
+                    key={action.crswId}
                     size="small"
                     variant={action.action === 'Reject CR' ? 'outlined' : 'contained'}
                     color="success"
-                    onClick={() => handleCrActionClick(action.id)}
+                    onClick={() => handleCrActionClick(action.crswId)}
                   >
                     {action.action}
                   </Button>

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 public class TicketCrStatusWorkflow {
     @Id
-    @Column(name = "crsf_id", nullable = false, length = 20)
+    @Column(name = "crsw_id", nullable = false, length = 20)
     private String id;
 
     @Column(name = "action", nullable = false)

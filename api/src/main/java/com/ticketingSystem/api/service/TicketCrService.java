@@ -73,7 +73,7 @@ public class TicketCrService {
                 .stream()
                 .map(workflow -> {
                     TicketCrStatusWorkflowDto dto = new TicketCrStatusWorkflowDto();
-                    dto.setId(workflow.getId());
+                    dto.setCrswId(workflow.getId());
                     dto.setAction(workflow.getAction());
                     dto.setCurrentStatusId(workflow.getCurrentStatus().getCrStatusId());
                     dto.setNextStatusId(workflow.getNextStatus().getCrStatusId());
@@ -86,8 +86,8 @@ public class TicketCrService {
         TicketCr ticketCr = ticketCrRepository.findById(ticketCrId)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket CR not found: " + ticketCrId));
 
-        var workflow = ticketCrStatusWorkflowRepository.findById(request.getWorkflowId())
-                .orElseThrow(() -> new EntityNotFoundException("Ticket CR workflow not found: " + request.getWorkflowId()));
+        var workflow = ticketCrStatusWorkflowRepository.findById(request.getCrswId())
+                .orElseThrow(() -> new EntityNotFoundException("Ticket CR workflow not found: " + request.getCrswId()));
 
         if (!workflow.getCurrentStatus().getCrStatusId().equals(ticketCr.getCrStatus().getCrStatusId())) {
             throw new IllegalArgumentException("Invalid workflow for current CR status");
