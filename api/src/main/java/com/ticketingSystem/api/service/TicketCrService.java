@@ -2,6 +2,8 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.TicketCrCreateRequestDto;
 import com.ticketingSystem.api.dto.TicketCrDto;
+import com.ticketingSystem.api.dto.TicketCrStatusWorkflowDto;
+import com.ticketingSystem.api.dto.TicketCrUpdateStatusRequestDto;
 import com.ticketingSystem.api.models.CrStatusMaster;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.Ticket;
@@ -10,6 +12,7 @@ import com.ticketingSystem.api.repository.CrStatusMasterRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.TicketCrRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
+import com.ticketingSystem.api.repository.TicketCrStatusWorkflowRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ public class TicketCrService {
     private final StatusMasterRepository statusMasterRepository;
     private final CrStatusMasterRepository crStatusMasterRepository;
     private final TicketCrIdGenerator ticketCrIdGenerator;
+    private final TicketCrStatusWorkflowRepository ticketCrStatusWorkflowRepository;
 
     public TicketCrDto create(TicketCrCreateRequestDto request) {
         Ticket ticket = ticketRepository.findById(request.getTicketId())
@@ -61,6 +65,39 @@ public class TicketCrService {
 
     public List<TicketCrDto> getAll() {
         return ticketCrRepository.findAll().stream().map(this::toDto).toList();
+    }
+
+
+    public List<TicketCrStatusWorkflowDto> getAvailableActions(String currentCrStatusId) {
+        return ticketCrStatusWorkflowRepository.findByCurrentStatus_CrStatusIdAndActiveTrue(currentCrStatusId)
+                .stream()
+                .map(workflow -> {
+                    TicketCrStatusWorkflowDto dto = new TicketCrStatusWorkflowDto();
+                    dto.setId(workflow.getId());
+                    dto.setAction(workflow.getAction());
+                    dto.setCurrentStatusId(workflow.getCurrentStatus().getCrStatusId());
+                    dto.setNextStatusId(workflow.getNextStatus().getCrStatusId());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public TicketCrDto updateStatus(String ticketCrId, TicketCrUpdateStatusRequestDto request) {
+        TicketCr ticketCr = ticketCrRepository.findById(ticketCrId)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket CR not found: " + ticketCrId));
+
+        var workflow = ticketCrStatusWorkflowRepository.findById(request.getWorkflowId())
+                .orElseThrow(() -> new EntityNotFoundException("Ticket CR workflow not found: " + request.getWorkflowId()));
+
+        if (!workflow.getCurrentStatus().getCrStatusId().equals(ticketCr.getCrStatus().getCrStatusId())) {
+            throw new IllegalArgumentException("Invalid workflow for current CR status");
+        }
+
+        ticketCr.setCrStatus(workflow.getNextStatus());
+        ticketCr.setRemarks(request.getRemarks());
+        ticketCr.setUpdatedBy(request.getUpdatedBy());
+
+        return toDto(ticketCrRepository.save(ticketCr));
     }
 
     private TicketCrDto toDto(TicketCr ticketCr) {

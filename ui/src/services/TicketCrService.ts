@@ -16,3 +16,11 @@ export function createChangeRequest(payload: any) {
 export function getChangeRequestById(ticketCrId: string) {
     return apiClient.get(`${BASE_URL}/ticket-cr/${ticketCrId}`);
 }
+
+export function getChangeRequestActions(crStatusId: string) {
+    return apiClient.get(`${BASE_URL}/ticket-cr/actions/${crStatusId}`);
+}
+
+export function updateChangeRequestStatus(ticketCrId: string, payload: any) {
+    return apiClient.patch(`${BASE_URL}/ticket-cr/${ticketCrId}/status`, payload);
+}
