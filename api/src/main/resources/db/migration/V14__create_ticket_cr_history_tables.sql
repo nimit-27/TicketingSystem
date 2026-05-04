@@ -21,7 +21,7 @@ VALUES
 ('ticket_cr', 'requested_by', 'Requested By Changed', 'REQUESTED_BY_CHANGE', TRUE, TRUE, 50),
 ('ticket_cr', 'assigned_to', 'Assigned To Changed', 'ASSIGNED_TO_CHANGE', TRUE, TRUE, 60),
 ('ticket_cr', 'assigned_by', 'Assigned By Changed', 'ASSIGNED_BY_CHANGE', TRUE, TRUE, 70),
-('ticket_cr', 'remarks', 'Remarks Updated', 'REMARKS_CHANGE', TRUE, TRUE, 80),
+('ticket_cr', 'remarks', 'Remarks Updated', 'REMARKS_CHANGE', FALSE, TRUE, 80),
 ('ticket_cr', 'updated_by', 'Updated By', 'UPDATED_BY', FALSE, TRUE, 90),
 ('ticket_cr', 'updated_on', 'Updated On', 'UPDATED_ON', FALSE, TRUE, 100),
 ('ticket_cr', 'created_by', 'Created By', 'CREATED_BY', FALSE, TRUE, 110),
