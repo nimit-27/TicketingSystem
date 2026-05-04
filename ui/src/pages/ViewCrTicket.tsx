@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
-import { Alert, Box, Chip, CircularProgress, Divider, Grid, Link, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Divider, Link, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
 import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestStatus } from '../services/TicketCrService';
 import { getCurrentUserDetails } from '../config/config';
@@ -60,7 +60,6 @@ const ViewCrTicket: React.FC = () => {
   };
 
   const createdOnText = useMemo(() => formatDateTime(changeRequest?.createdDate), [changeRequest?.createdDate]);
-  const updatedOnText = useMemo(() => formatDateTime(changeRequest?.updatedOn), [changeRequest?.updatedOn]);
 
   if (!ticketCrId) return <Alert severity="error">Invalid CR Id.</Alert>;
 
@@ -78,9 +77,7 @@ const ViewCrTicket: React.FC = () => {
 
   return (
     <Box className="container" sx={{ py: 2 }}>
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} lg={8}>
-          <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
+      <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
             <Box sx={{ mb: 2 }}>
               {actions.length > 0 && (
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -150,53 +147,7 @@ const ViewCrTicket: React.FC = () => {
                 {changeRequest.description || '-'}
               </Typography>
             </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2, mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Details</Typography>
-            <Stack spacing={1.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Ticket Status</Typography>
-                <Typography variant="body2">{changeRequest.statusName || '-'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Requested By</Typography>
-                <Typography variant="body2">{changeRequest.requestedBy || '-'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Assigned To</Typography>
-                <Typography variant="body2">{changeRequest.assignedTo || '-'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Assigned By</Typography>
-                <Typography variant="body2">{changeRequest.assignedBy || '-'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Remarks</Typography>
-                <Typography variant="body2">{changeRequest.remarks || '-'}</Typography>
-              </Box>
-            </Stack>
-          </Paper>
-
-          <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Audit</Typography>
-            <Stack spacing={1.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Created By</Typography>
-                <Typography variant="body2">{changeRequest.createdBy || '-'}</Typography>
-                <Typography variant="caption" color="text.secondary">{createdOnText}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Updated By</Typography>
-                <Typography variant="body2">{changeRequest.updatedBy || '-'}</Typography>
-                <Typography variant="caption" color="text.secondary">{updatedOnText}</Typography>
-              </Box>
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
+      </Paper>
     </Box>
   );
 };
