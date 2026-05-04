@@ -26,6 +26,9 @@ public class Role {
     @Column(name = "allowed_status_action_ids")
     private String allowedStatusActionIds;
 
+    @Column(name = "allowed_cr_status_action_ids")
+    private String allowedCrStatusActionIds;
+
     @Column(name = "parameter_ids")
     private String parameterMaster;
 

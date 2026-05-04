@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
-import { getChangeRequestActions, getChangeRequestById, updateChangeRequestStatus } from '../services/TicketCrService';
+import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestStatus } from '../services/TicketCrService';
+import { getCurrentUserDetails } from '../config/config';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '-';
@@ -15,9 +16,17 @@ const formatDateTime = (value?: string) => {
 
 const statusColor = (crStatusColor?: string) => crStatusColor || '#94A3B8';
 
+
+const normalizeAllowedActionIds = (raw: unknown): Set<string> => {
+  if (Array.isArray(raw)) return new Set(raw.map((id) => String(id)));
+  if (typeof raw === 'string') return new Set(raw.split('|').map((id) => id.trim()).filter(Boolean));
+  return new Set<string>();
+};
+
 const ViewCrTicket: React.FC = () => {
   const { ticketCrId } = useParams<{ ticketCrId: string }>();
   const { data: changeRequest, apiHandler, pending } = useApi<any>();
+  const { data: workflowMappings, apiHandler: workflowApiHandler } = useApi<Record<string, any[]>>();
 
   useEffect(() => {
     if (ticketCrId) {
@@ -25,16 +34,20 @@ const ViewCrTicket: React.FC = () => {
     }
   }, [ticketCrId, apiHandler]);
 
-
-  const [actions, setActions] = useState<any[]>([]);
+  const userDetails = useMemo(() => getCurrentUserDetails(), []);
+  const allowedCrActionIds = useMemo(() => normalizeAllowedActionIds(userDetails?.allowedCrStatusActionIds), [userDetails]);
+  const roleList = userDetails?.role ?? [];
 
   useEffect(() => {
-    if (changeRequest?.crStatusId) {
-      void getChangeRequestActions(changeRequest.crStatusId)
-        .then(res => setActions(Array.isArray(res.data) ? res.data : []))
-        .catch(() => setActions([]));
-    }
-  }, [changeRequest?.crStatusId]);
+    if (!roleList.length) return;
+    void workflowApiHandler(() => getCrStatusWorkflowMappings(roleList));
+  }, [roleList, workflowApiHandler]);
+
+  const actions = useMemo(() => {
+    if (!changeRequest?.crStatusId) return [];
+    const workflows = workflowMappings?.[changeRequest.crStatusId] || [];
+    return workflows.filter((action) => allowedCrActionIds.has(String(action.crswId)));
+  }, [changeRequest?.crStatusId, workflowMappings, allowedCrActionIds]);
 
   const handleCrActionClick = async (crswId: string) => {
     if (!ticketCrId) return;

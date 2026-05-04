@@ -81,11 +81,19 @@ public class AuthController {
                     RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
 
                     Set<String> allowedStatusActionIds = new HashSet<>();
+                    Set<String> allowedCrStatusActionIds = new HashSet<>();
                     roleRepository.findAllById(roleIds).forEach(r -> {
                         if (r.getAllowedStatusActionIds() != null) {
                             for (String s : r.getAllowedStatusActionIds().split("\\|")) {
                                 if (!s.isBlank()) {
                                     allowedStatusActionIds.add(s.trim());
+                                }
+                            }
+                        }
+                        if (r.getAllowedCrStatusActionIds() != null) {
+                            for (String s : r.getAllowedCrStatusActionIds().split("\\|")) {
+                                if (!s.isBlank()) {
+                                    allowedCrStatusActionIds.add(s.trim());
                                 }
                             }
                         }
@@ -110,6 +118,7 @@ public class AuthController {
                             .levels(levels)
                             .permissions(permissions)
                             .allowedStatusActionIds(allowedStatusActionIds)
+                            .allowedCrStatusActionIds(allowedCrStatusActionIds)
                             .officeType(user.getOfficeType())
                             .officeCode(user.getOfficeCode())
                             .zoneCode(user.getZoneCode())
@@ -135,6 +144,7 @@ public class AuthController {
                     responseBody.put("permissions", permissions);
                     responseBody.put("levels", levels);
                     responseBody.put("allowedStatusActionIds", allowedStatusActionIds);
+                    responseBody.put("allowedCrStatusActionIds", allowedCrStatusActionIds);
                     responseBody.put("officeType", user.getOfficeType());
                     responseBody.put("officeCode", user.getOfficeCode());
                     responseBody.put("zoneCode", user.getZoneCode());
@@ -252,6 +262,7 @@ public class AuthController {
         responseBody.put("permissions", payload.getPermissions());
         responseBody.put("levels", payload.getLevels());
         responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+        responseBody.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
         responseBody.put("officeType", payload.getOfficeType());
         responseBody.put("officeCode", payload.getOfficeCode());
         responseBody.put("zoneCode", payload.getZoneCode());

@@ -24,3 +24,7 @@ export function getChangeRequestActions(crStatusId: string) {
 export function updateChangeRequestStatus(ticketCrId: string, payload: any) {
     return apiClient.patch(`${BASE_URL}/ticket-cr/${ticketCrId}/status`, payload);
 }
+
+export function getCrStatusWorkflowMappings(roles: string[]) {
+    return apiClient.post(`${BASE_URL}/ticket-cr/mappings`, roles);
+}

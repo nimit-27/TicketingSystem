@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/ticket-cr")
@@ -35,6 +36,13 @@ public class TicketCrController {
     @GetMapping("/actions/{crStatusId}")
     public ResponseEntity<List<TicketCrStatusWorkflowDto>> getAvailableActions(@PathVariable String crStatusId) {
         return ResponseEntity.ok(ticketCrService.getAvailableActions(crStatusId));
+    }
+
+
+    @PostMapping("/mappings")
+    public ResponseEntity<Map<String, List<TicketCrStatusWorkflowDto>>> getMappingsByRole(@RequestBody List<String> roles) {
+        List<Integer> ids = roles.stream().map(Integer::parseInt).toList();
+        return ResponseEntity.ok(ticketCrService.getMappingsByRoles(ids));
     }
 
     @PatchMapping("/{ticketCrId}/status")
