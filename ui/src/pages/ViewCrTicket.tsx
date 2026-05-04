@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Link as RouterLink, useParams } from 'react-router-dom';
+import { Alert, Box, CircularProgress, Divider, Link, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
 import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestStatus } from '../services/TicketCrService';
 import { getCurrentUserDetails } from '../config/config';
+import GenericButton from '../components/UI/Button';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '-';
@@ -15,7 +16,6 @@ const formatDateTime = (value?: string) => {
 };
 
 const statusColor = (crStatusColor?: string) => crStatusColor || '#94A3B8';
-
 
 const normalizeAllowedActionIds = (raw: unknown): Set<string> => {
   if (Array.isArray(raw)) return new Set(raw.map((id) => String(id)));
@@ -60,7 +60,6 @@ const ViewCrTicket: React.FC = () => {
   };
 
   const createdOnText = useMemo(() => formatDateTime(changeRequest?.createdDate), [changeRequest?.createdDate]);
-  const updatedOnText = useMemo(() => formatDateTime(changeRequest?.updatedOn), [changeRequest?.updatedOn]);
 
   if (!ticketCrId) return <Alert severity="error">Invalid CR Id.</Alert>;
 
@@ -78,17 +77,57 @@ const ViewCrTicket: React.FC = () => {
 
   return (
     <Box className="container" sx={{ py: 2 }}>
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} lg={8}>
-          <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1.5}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Chip color="primary" label={changeRequest.ticketCrId || '-'} />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  {changeRequest.subject || 'CR Ticket'}
-                </Typography>
+      <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
+            <Box sx={{ mb: 2 }}>
+              {actions.length > 0 && (
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  {actions.map(action => (
+                    <GenericButton
+                      key={action.crswId}
+                      size="small"
+                      variant={action.action === 'Reject CR' ? 'outlined' : 'contained'}
+                      color="success"
+                      onClick={() => handleCrActionClick(action.crswId)}
+                    >
+                      {action.action}
+                    </GenericButton>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{changeRequest.ticketCrId || '-'}</Typography>
+              </Box>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: statusColor(changeRequest.color), border: '1px solid #CBD5E1' }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{changeRequest.crStatusName || '-'}</Typography>
               </Stack>
             </Stack>
+
+            <Tooltip
+              placement="top-start"
+              title={
+                <Stack spacing={0.25}>
+                  <Typography variant="caption">Status: {changeRequest.statusName || '-'}</Typography>
+                  <Typography variant="caption">Created On: {createdOnText}</Typography>
+                </Stack>
+              }
+            >
+              <Link
+                component={RouterLink}
+                to={`/tickets/${changeRequest.ticketId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+                variant="body2"
+                color="text.secondary"
+                sx={{ display: 'inline-block', mb: 2 }}
+              >
+                {changeRequest.ticketId || '-'}
+              </Link>
+            </Tooltip>
 
             <Divider sx={{ mb: 2 }} />
 
@@ -108,87 +147,7 @@ const ViewCrTicket: React.FC = () => {
                 {changeRequest.description || '-'}
               </Typography>
             </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2, mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Details</Typography>
-            <Stack spacing={1.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">CR Id</Typography>
-                <Typography variant="body2">{changeRequest.ticketCrId || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">CR Status</Typography>
-                <Stack direction="row" alignItems="center" spacing={1} mt={0.4}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: statusColor(changeRequest.color), border: '1px solid #CBD5E1' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{changeRequest.crStatusName || '-'}</Typography>
-                </Stack>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Ticket Status</Typography>
-                <Typography variant="body2">{changeRequest.statusName || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Requested By</Typography>
-                <Typography variant="body2">{changeRequest.requestedBy || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Assigned To</Typography>
-                <Typography variant="body2">{changeRequest.assignedTo || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Assigned By</Typography>
-                <Typography variant="body2">{changeRequest.assignedBy || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Remarks</Typography>
-                <Typography variant="body2">{changeRequest.remarks || '-'}</Typography>
-              </Box>
-
-            {actions.length > 0 && (
-              <Stack direction="row" spacing={1} mt={2}>
-                {actions.map(action => (
-                  <Button
-                    key={action.crswId}
-                    size="small"
-                    variant={action.action === 'Reject CR' ? 'outlined' : 'contained'}
-                    color="success"
-                    onClick={() => handleCrActionClick(action.crswId)}
-                  >
-                    {action.action}
-                  </Button>
-                ))}
-              </Stack>
-            )}
-
-            </Stack>
-          </Paper>
-
-          <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Audit</Typography>
-            <Stack spacing={1.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Created By</Typography>
-                <Typography variant="body2">{changeRequest.createdBy || '-'}</Typography>
-                <Typography variant="caption" color="text.secondary">{createdOnText}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Updated By</Typography>
-                <Typography variant="body2">{changeRequest.updatedBy || '-'}</Typography>
-                <Typography variant="caption" color="text.secondary">{updatedOnText}</Typography>
-              </Box>
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
+      </Paper>
     </Box>
   );
 };
