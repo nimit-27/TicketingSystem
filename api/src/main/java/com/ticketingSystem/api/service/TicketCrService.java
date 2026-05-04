@@ -8,12 +8,14 @@ import com.ticketingSystem.api.models.CrStatusMaster;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketCr;
+import com.ticketingSystem.api.models.TicketCrHistory;
 import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.repository.CrStatusMasterRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.TicketCrRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketCrStatusWorkflowRepository;
+import com.ticketingSystem.api.repository.TicketCrHistoryRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class TicketCrService {
     private final CrStatusMasterRepository crStatusMasterRepository;
     private final TicketCrIdGenerator ticketCrIdGenerator;
     private final TicketCrStatusWorkflowRepository ticketCrStatusWorkflowRepository;
+    private final TicketCrHistoryRepository ticketCrHistoryRepository;
     private final RoleRepository roleRepository;
 
     public TicketCrDto create(TicketCrCreateRequestDto request) {
@@ -130,11 +133,23 @@ public class TicketCrService {
             throw new IllegalArgumentException("Invalid workflow for current CR status");
         }
 
+        CrStatusMaster previousStatus = ticketCr.getCrStatus();
+
         ticketCr.setCrStatus(workflow.getNextStatus());
         ticketCr.setRemarks(request.getRemarks());
         ticketCr.setUpdatedBy(request.getUpdatedBy());
 
-        return toDto(ticketCrRepository.save(ticketCr));
+        TicketCr saved = ticketCrRepository.save(ticketCr);
+
+        TicketCrHistory history = new TicketCrHistory();
+        history.setTicketCr(saved);
+        history.setPreviousCrStatus(previousStatus);
+        history.setCurrentCrStatus(saved.getCrStatus());
+        history.setRemarks(request.getRemarks());
+        history.setUpdatedBy(request.getUpdatedBy() != null && !request.getUpdatedBy().isBlank() ? request.getUpdatedBy() : "SYSTEM");
+        ticketCrHistoryRepository.save(history);
+
+        return toDto(saved);
     }
 
     private TicketCrDto toDto(TicketCr ticketCr) {
