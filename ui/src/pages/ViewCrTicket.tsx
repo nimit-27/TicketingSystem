@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
@@ -26,6 +26,7 @@ const normalizeAllowedActionIds = (raw: unknown): Set<string> => {
 const ViewCrTicket: React.FC = () => {
   const { ticketCrId } = useParams<{ ticketCrId: string }>();
   const { data: changeRequest, apiHandler, pending } = useApi<any>();
+  const { data: workflowMappings, apiHandler: workflowApiHandler } = useApi<Record<string, any[]>>();
 
   useEffect(() => {
     if (ticketCrId) {
@@ -33,25 +34,20 @@ const ViewCrTicket: React.FC = () => {
     }
   }, [ticketCrId, apiHandler]);
 
-
-  const [statusWorkflows, setStatusWorkflows] = useState<Record<string, any[]>>({});
-
   const userDetails = useMemo(() => getCurrentUserDetails(), []);
   const allowedCrActionIds = useMemo(() => normalizeAllowedActionIds(userDetails?.allowedCrStatusActionIds), [userDetails]);
   const roleList = userDetails?.role ?? [];
 
   useEffect(() => {
     if (!roleList.length) return;
-    void getCrStatusWorkflowMappings(roleList)
-      .then((res) => setStatusWorkflows(res.data && typeof res.data === "object" ? res.data : {}))
-      .catch(() => setStatusWorkflows({}));
-  }, [roleList]);
+    void workflowApiHandler(() => getCrStatusWorkflowMappings(roleList));
+  }, [roleList, workflowApiHandler]);
 
   const actions = useMemo(() => {
     if (!changeRequest?.crStatusId) return [];
-    const workflows = statusWorkflows[changeRequest.crStatusId] || [];
+    const workflows = workflowMappings?.[changeRequest.crStatusId] || [];
     return workflows.filter((action) => allowedCrActionIds.has(String(action.crswId)));
-  }, [changeRequest?.crStatusId, statusWorkflows, allowedCrActionIds]);
+  }, [changeRequest?.crStatusId, workflowMappings, allowedCrActionIds]);
 
   const handleCrActionClick = async (crswId: string) => {
     if (!ticketCrId) return;
