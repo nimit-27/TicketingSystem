@@ -62,6 +62,7 @@ public class JwtTokenService {
         claims.put("roles", payload.getRoles());
         claims.put("levels", payload.getLevels());
         claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+        claims.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
         claims.put("officeType", payload.getOfficeType());
         claims.put("officeCode", payload.getOfficeCode());
         claims.put("zoneCode", payload.getZoneCode());
@@ -163,6 +164,7 @@ public class JwtTokenService {
                 .roles(convertList(claims.get("roles")))
                 .levels(convertList(claims.get("levels")))
                 .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
+                .allowedCrStatusActionIds(convertSet(claims.get("allowedCrStatusActionIds")))
                 .officeType(claims.get("officeType", String.class))
                 .officeCode(claims.get("officeCode", String.class))
                 .zoneCode(claims.get("zoneCode", String.class))

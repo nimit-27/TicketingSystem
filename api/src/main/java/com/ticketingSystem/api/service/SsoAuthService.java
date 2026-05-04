@@ -61,11 +61,19 @@ public class SsoAuthService {
         RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
 
         Set<String> allowedStatusActionIds = new HashSet<>();
+        Set<String> allowedCrStatusActionIds = new HashSet<>();
         roleRepository.findAllById(roleIds).forEach(r -> {
             if (r.getAllowedStatusActionIds() != null) {
                 for (String s : r.getAllowedStatusActionIds().split("\\|")) {
                     if (!s.isBlank()) {
                         allowedStatusActionIds.add(s.trim());
+                    }
+                }
+            }
+            if (r.getAllowedCrStatusActionIds() != null) {
+                for (String s : r.getAllowedCrStatusActionIds().split("\\|")) {
+                    if (!s.isBlank()) {
+                        allowedCrStatusActionIds.add(s.trim());
                     }
                 }
             }
@@ -90,6 +98,7 @@ public class SsoAuthService {
                 .levels(levels)
                 .permissions(permissions)
                 .allowedStatusActionIds(allowedStatusActionIds)
+                .allowedCrStatusActionIds(allowedCrStatusActionIds)
                 .officeType(user.getOfficeType())
                 .officeCode(user.getOfficeCode())
                 .zoneCode(user.getZoneCode())
@@ -116,6 +125,7 @@ public class SsoAuthService {
         response.put("permissions", permissions);
         response.put("levels", levels);
         response.put("allowedStatusActionIds", allowedStatusActionIds);
+        response.put("allowedCrStatusActionIds", allowedCrStatusActionIds);
         response.put("officeType", user.getOfficeType());
         response.put("officeCode", user.getOfficeCode());
         response.put("zoneCode", user.getZoneCode());
