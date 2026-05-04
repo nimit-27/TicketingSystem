@@ -28,3 +28,7 @@ export function updateChangeRequestStatus(ticketCrId: string, payload: any) {
 export function getCrStatusWorkflowMappings(roles: string[]) {
     return apiClient.post(`${BASE_URL}/ticket-cr/mappings`, roles);
 }
+
+export function getChangeRequestHistory(ticketCrId: string, changeTypeCode?: string) {
+    return apiClient.get(`${BASE_URL}/ticket-cr/${ticketCrId}/history`, { params: changeTypeCode ? { changeTypeCode } : undefined });
+}

@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Divider, Link, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
 import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestStatus } from '../services/TicketCrService';
 import { getCurrentUserDetails } from '../config/config';
 import GenericButton from '../components/UI/Button';
+import RemarkComponent from '../components/UI/Remark/RemarkComponent';
+import CrTicketHistory from '../components/CrTicketHistory';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '-';
@@ -27,6 +29,7 @@ const ViewCrTicket: React.FC = () => {
   const { ticketCrId } = useParams<{ ticketCrId: string }>();
   const { data: changeRequest, apiHandler, pending } = useApi<any>();
   const { data: workflowMappings, apiHandler: workflowApiHandler } = useApi<Record<string, any[]>>();
+  const [selectedAction, setSelectedAction] = useState<any | null>(null);
 
   useEffect(() => {
     if (ticketCrId) {
@@ -49,13 +52,14 @@ const ViewCrTicket: React.FC = () => {
     return workflows.filter((action) => allowedCrActionIds.has(String(action.crswId)));
   }, [changeRequest?.crStatusId, workflowMappings, allowedCrActionIds]);
 
-  const handleCrActionClick = async (crswId: string) => {
-    if (!ticketCrId) return;
+  const handleCrActionSubmit = async (remark: string) => {
+    if (!ticketCrId || !selectedAction?.crswId) return;
     await apiHandler(() => updateChangeRequestStatus(ticketCrId, {
-      crswId,
-      remarks: changeRequest?.remarks,
-      updatedBy: 'SYSTEM',
+      crswId: selectedAction.crswId,
+      remarks: remark,
+      updatedBy: userDetails?.userId || 'SYSTEM',
     }));
+    setSelectedAction(null);
     await apiHandler(() => getChangeRequestById(ticketCrId));
   };
 
@@ -87,7 +91,7 @@ const ViewCrTicket: React.FC = () => {
                       size="small"
                       variant={action.action === 'Reject CR' ? 'outlined' : 'contained'}
                       color="success"
-                      onClick={() => handleCrActionClick(action.crswId)}
+                      onClick={() => setSelectedAction(action)}
                     >
                       {action.action}
                     </GenericButton>
@@ -95,6 +99,18 @@ const ViewCrTicket: React.FC = () => {
                 </Stack>
               )}
             </Box>
+
+
+              {selectedAction && (
+                <Box sx={{ mt: 2, mb: 2 }}>
+                  <RemarkComponent
+                    open
+                    actionName={selectedAction.action || 'Update CR status'}
+                    onSubmit={handleCrActionSubmit}
+                    onCancel={() => setSelectedAction(null)}
+                  />
+                </Box>
+              )}
 
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
               <Box>
@@ -147,6 +163,12 @@ const ViewCrTicket: React.FC = () => {
                 {changeRequest.description || '-'}
               </Typography>
             </Box>
+            <Divider sx={{ my: 3 }} />
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>CR History</Typography>
+              <CrTicketHistory ticketCrId={ticketCrId} />
+            </Box>
+
       </Paper>
     </Box>
   );
