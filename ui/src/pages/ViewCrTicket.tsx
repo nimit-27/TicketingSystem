@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
-import { getChangeRequestActions, getChangeRequestById, updateChangeRequestStatus } from '../services/TicketCrService';
+import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestStatus } from '../services/TicketCrService';
 import { getCurrentUserDetails } from '../config/config';
 
 const formatDateTime = (value?: string) => {
@@ -34,17 +34,24 @@ const ViewCrTicket: React.FC = () => {
   }, [ticketCrId, apiHandler]);
 
 
-  const [actions, setActions] = useState<any[]>([]);
+  const [statusWorkflows, setStatusWorkflows] = useState<Record<string, any[]>>({});
 
-  const allowedCrActionIds = useMemo(() => normalizeAllowedActionIds(getCurrentUserDetails()?.allowedCrStatusActionIds), []);
+  const userDetails = useMemo(() => getCurrentUserDetails(), []);
+  const allowedCrActionIds = useMemo(() => normalizeAllowedActionIds(userDetails?.allowedCrStatusActionIds), [userDetails]);
+  const roleList = userDetails?.role ?? [];
 
   useEffect(() => {
-    if (changeRequest?.crStatusId) {
-      void getChangeRequestActions(changeRequest.crStatusId)
-        .then(res => setActions(Array.isArray(res.data) ? res.data : []))
-        .catch(() => setActions([]));
-    }
-  }, [changeRequest?.crStatusId]);
+    if (!roleList.length) return;
+    void getCrStatusWorkflowMappings(roleList)
+      .then((res) => setStatusWorkflows(res.data && typeof res.data === "object" ? res.data : {}))
+      .catch(() => setStatusWorkflows({}));
+  }, [roleList]);
+
+  const actions = useMemo(() => {
+    if (!changeRequest?.crStatusId) return [];
+    const workflows = statusWorkflows[changeRequest.crStatusId] || [];
+    return workflows.filter((action) => allowedCrActionIds.has(String(action.crswId)));
+  }, [changeRequest?.crStatusId, statusWorkflows, allowedCrActionIds]);
 
   const handleCrActionClick = async (crswId: string) => {
     if (!ticketCrId) return;
@@ -152,9 +159,7 @@ const ViewCrTicket: React.FC = () => {
 
             {actions.length > 0 && (
               <Stack direction="row" spacing={1} mt={2}>
-                {actions
-                  .filter((action) => allowedCrActionIds.has(String(action.crswId)))
-                  .map(action => (
+                {actions.map(action => (
                   <Button
                     key={action.crswId}
                     size="small"

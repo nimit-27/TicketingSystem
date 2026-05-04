@@ -8,16 +8,22 @@ import com.ticketingSystem.api.models.CrStatusMaster;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketCr;
+import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.repository.CrStatusMasterRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.TicketCrRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketCrStatusWorkflowRepository;
+import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +35,7 @@ public class TicketCrService {
     private final CrStatusMasterRepository crStatusMasterRepository;
     private final TicketCrIdGenerator ticketCrIdGenerator;
     private final TicketCrStatusWorkflowRepository ticketCrStatusWorkflowRepository;
+    private final RoleRepository roleRepository;
 
     public TicketCrDto create(TicketCrCreateRequestDto request) {
         Ticket ticket = ticketRepository.findById(request.getTicketId())
@@ -82,6 +89,36 @@ public class TicketCrService {
                 .toList();
     }
 
+
+
+    public Map<String, List<TicketCrStatusWorkflowDto>> getMappingsByRoles(List<Integer> roles) {
+        Set<String> ids = new HashSet<>();
+        if (roles == null || roles.isEmpty()) {
+            return Map.of();
+        }
+
+        for (Role role : roleRepository.findAllById(roles)) {
+            String allowed = role.getAllowedCrStatusActionIds();
+            if (allowed != null && !allowed.isBlank()) {
+                for (String s : allowed.split("\\|")) {
+                    if (!s.isBlank()) {
+                        ids.add(s.trim());
+                    }
+                }
+            }
+        }
+
+        return ticketCrStatusWorkflowRepository.findAllById(ids).stream()
+                .map(workflow -> {
+                    TicketCrStatusWorkflowDto dto = new TicketCrStatusWorkflowDto();
+                    dto.setCrswId(workflow.getId());
+                    dto.setAction(workflow.getAction());
+                    dto.setCurrentStatusId(workflow.getCurrentStatus().getCrStatusId());
+                    dto.setNextStatusId(workflow.getNextStatus().getCrStatusId());
+                    return dto;
+                })
+                .collect(Collectors.groupingBy(TicketCrStatusWorkflowDto::getCurrentStatusId));
+    }
     public TicketCrDto updateStatus(String ticketCrId, TicketCrUpdateStatusRequestDto request) {
         TicketCr ticketCr = ticketCrRepository.findById(ticketCrId)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket CR not found: " + ticketCrId));
