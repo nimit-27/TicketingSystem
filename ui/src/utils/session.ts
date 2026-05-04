@@ -87,6 +87,9 @@ export async function persistLoginData(
     email: emailFromResponse,
     phone: phoneFromResponse,
     allowedStatusActionIds: data.allowedStatusActionIds ?? [],
+    allowedCrStatusActionIds: data.allowedCrStatusActionIds
+      ?? data.allowed_cr_status_action_ids
+      ?? [],
     officeCode: pickString(locationSources, ["officeCode", "office_code", "officeCd"]),
     officeType: pickString(locationSources, ["officeType", "office_type", "officeTypeCode"]),
     zoneCode: pickString(locationSources, ["zoneCode", "zone_code", "zoCode", "zo_code"]),

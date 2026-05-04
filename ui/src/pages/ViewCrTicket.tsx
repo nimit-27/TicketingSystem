@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useApi } from '../hooks/useApi';
 import { getChangeRequestActions, getChangeRequestById, updateChangeRequestStatus } from '../services/TicketCrService';
+import { getCurrentUserDetails } from '../config/config';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '-';
@@ -14,6 +15,13 @@ const formatDateTime = (value?: string) => {
 };
 
 const statusColor = (crStatusColor?: string) => crStatusColor || '#94A3B8';
+
+
+const normalizeAllowedActionIds = (raw: unknown): Set<string> => {
+  if (Array.isArray(raw)) return new Set(raw.map((id) => String(id)));
+  if (typeof raw === 'string') return new Set(raw.split('|').map((id) => id.trim()).filter(Boolean));
+  return new Set<string>();
+};
 
 const ViewCrTicket: React.FC = () => {
   const { ticketCrId } = useParams<{ ticketCrId: string }>();
@@ -27,6 +35,8 @@ const ViewCrTicket: React.FC = () => {
 
 
   const [actions, setActions] = useState<any[]>([]);
+
+  const allowedCrActionIds = useMemo(() => normalizeAllowedActionIds(getCurrentUserDetails()?.allowedCrStatusActionIds), []);
 
   useEffect(() => {
     if (changeRequest?.crStatusId) {
@@ -142,7 +152,9 @@ const ViewCrTicket: React.FC = () => {
 
             {actions.length > 0 && (
               <Stack direction="row" spacing={1} mt={2}>
-                {actions.map(action => (
+                {actions
+                  .filter((action) => allowedCrActionIds.has(String(action.crswId)))
+                  .map(action => (
                   <Button
                     key={action.crswId}
                     size="small"

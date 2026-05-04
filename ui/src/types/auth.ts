@@ -18,6 +18,7 @@ export interface UserDetails {
   email?: string;
   phone?: string;
   allowedStatusActionIds?: string[];
+  allowedCrStatusActionIds?: string[];
   officeCode?: string;
   officeType?: string;
   zoneCode?: string;
@@ -54,6 +55,7 @@ export interface LoginResponse {
     levels?: string[];
     name?: string;
     allowedStatusActionIds?: string[];
+    allowedCrStatusActionIds?: string[];
     email?: string;
     emailId?: string;
     emailID?: string;
