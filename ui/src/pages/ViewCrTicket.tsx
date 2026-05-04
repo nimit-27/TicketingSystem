@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
+import UserAvatar from '../components/UI/UserAvatar/UserAvatar';
 import { useApi } from '../hooks/useApi';
 import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestStatus } from '../services/TicketCrService';
 import { getCurrentUserDetails } from '../config/config';
@@ -16,11 +17,18 @@ const formatDateTime = (value?: string) => {
 
 const statusColor = (crStatusColor?: string) => crStatusColor || '#94A3B8';
 
-
 const normalizeAllowedActionIds = (raw: unknown): Set<string> => {
   if (Array.isArray(raw)) return new Set(raw.map((id) => String(id)));
   if (typeof raw === 'string') return new Set(raw.split('|').map((id) => id.trim()).filter(Boolean));
   return new Set<string>();
+};
+
+const infoRowSx = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  py: 0.9,
+  borderBottom: '1px solid #EEF2F7',
 };
 
 const ViewCrTicket: React.FC = () => {
@@ -81,81 +89,34 @@ const ViewCrTicket: React.FC = () => {
       <Grid container spacing={2.5}>
         <Grid item xs={12} lg={8}>
           <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1.5}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5} flexWrap="wrap" gap={1.5}>
               <Stack direction="row" alignItems="center" spacing={1.5}>
                 <Chip color="primary" label={changeRequest.ticketCrId || '-'} />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  {changeRequest.subject || 'CR Ticket'}
-                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{changeRequest.subject || 'CR Ticket'}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: statusColor(changeRequest.color), border: '1px solid #CBD5E1' }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{changeRequest.crStatusName || '-'}</Typography>
               </Stack>
             </Stack>
 
-            <Divider sx={{ mb: 2 }} />
+            <Typography variant="caption" color="text.secondary">
+              Created by {changeRequest.createdBy || '-'} on {createdOnText}
+            </Typography>
 
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="caption" color="text.secondary">Subject</Typography>
-              <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
-                {changeRequest.subject || '-'}
-              </Typography>
-            </Box>
+            <Divider sx={{ my: 2 }} />
 
-            <Box>
-              <Typography variant="caption" color="text.secondary">Description</Typography>
-              <Typography
-                variant="body1"
-                sx={{ mt: 0.75, whiteSpace: 'pre-wrap', lineHeight: 1.65, backgroundColor: '#F8FAFC', p: 1.5, borderRadius: 1.5 }}
-              >
-                {changeRequest.description || '-'}
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2, mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Details</Typography>
-            <Stack spacing={1.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">CR Id</Typography>
-                <Typography variant="body2">{changeRequest.ticketCrId || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">CR Status</Typography>
-                <Stack direction="row" alignItems="center" spacing={1} mt={0.4}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: statusColor(changeRequest.color), border: '1px solid #CBD5E1' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{changeRequest.crStatusName || '-'}</Typography>
-                </Stack>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Ticket Status</Typography>
-                <Typography variant="body2">{changeRequest.statusName || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Requested By</Typography>
-                <Typography variant="body2">{changeRequest.requestedBy || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Assigned To</Typography>
-                <Typography variant="body2">{changeRequest.assignedTo || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Assigned By</Typography>
-                <Typography variant="body2">{changeRequest.assignedBy || '-'}</Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">Remarks</Typography>
-                <Typography variant="body2">{changeRequest.remarks || '-'}</Typography>
-              </Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Description</Typography>
+            <Typography
+              variant="body1"
+              sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65, backgroundColor: '#F8FAFC', p: 1.5, borderRadius: 1.5 }}
+            >
+              {changeRequest.description || '-'}
+            </Typography>
 
             {actions.length > 0 && (
-              <Stack direction="row" spacing={1} mt={2}>
-                {actions.map(action => (
+              <Stack direction="row" spacing={1} mt={2.5} flexWrap="wrap" useFlexGap>
+                {actions.map((action) => (
                   <Button
                     key={action.crswId}
                     size="small"
@@ -168,22 +129,40 @@ const ViewCrTicket: React.FC = () => {
                 ))}
               </Stack>
             )}
+          </Paper>
+        </Grid>
 
-            </Stack>
+        <Grid item xs={12} lg={4}>
+          <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Ticket Details</Typography>
+            <Box sx={infoRowSx}><Typography variant="caption" color="text.secondary">CR Id</Typography><Typography variant="body2">{changeRequest.ticketCrId || '-'}</Typography></Box>
+            <Box sx={infoRowSx}><Typography variant="caption" color="text.secondary">Ticket Id</Typography><Typography variant="body2">{changeRequest.ticketId || '-'}</Typography></Box>
+            <Box sx={infoRowSx}><Typography variant="caption" color="text.secondary">Ticket Status</Typography><Typography variant="body2">{changeRequest.statusName || '-'}</Typography></Box>
+            <Box sx={infoRowSx}><Typography variant="caption" color="text.secondary">Requested By</Typography><Typography variant="body2">{changeRequest.requestedBy || '-'}</Typography></Box>
+            <Box sx={infoRowSx}><Typography variant="caption" color="text.secondary">Assigned To</Typography><Typography variant="body2">{changeRequest.assignedTo || '-'}</Typography></Box>
+            <Box sx={{ ...infoRowSx, borderBottom: 'none' }}><Typography variant="caption" color="text.secondary">Assigned By</Typography><Typography variant="body2">{changeRequest.assignedBy || '-'}</Typography></Box>
           </Paper>
 
           <Paper elevation={1} sx={{ p: 2.5, borderRadius: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Audit</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Audit & Remarks</Typography>
             <Stack spacing={1.5}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Created By</Typography>
-                <Typography variant="body2">{changeRequest.createdBy || '-'}</Typography>
-                <Typography variant="caption" color="text.secondary">{createdOnText}</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <UserAvatar userName={changeRequest.createdBy || '-'} />
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{changeRequest.createdBy || '-'}</Typography>
+                  <Typography variant="caption" color="text.secondary">Created • {createdOnText}</Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <UserAvatar userName={changeRequest.updatedBy || '-'} />
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{changeRequest.updatedBy || '-'}</Typography>
+                  <Typography variant="caption" color="text.secondary">Updated • {updatedOnText}</Typography>
+                </Box>
               </Box>
               <Box>
-                <Typography variant="caption" color="text.secondary">Updated By</Typography>
-                <Typography variant="body2">{changeRequest.updatedBy || '-'}</Typography>
-                <Typography variant="caption" color="text.secondary">{updatedOnText}</Typography>
+                <Typography variant="caption" color="text.secondary">Remarks</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>{changeRequest.remarks || '-'}</Typography>
               </Box>
             </Stack>
           </Paper>
