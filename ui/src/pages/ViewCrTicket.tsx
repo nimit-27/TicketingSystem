@@ -6,6 +6,7 @@ import { getChangeRequestById, getCrStatusWorkflowMappings, updateChangeRequestS
 import { getCurrentUserDetails } from '../config/config';
 import GenericButton from '../components/UI/Button';
 import RemarkComponent from '../components/UI/Remark/RemarkComponent';
+import CrTicketHistory from '../components/CrTicketHistory';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '-';
@@ -162,6 +163,12 @@ const ViewCrTicket: React.FC = () => {
                 {changeRequest.description || '-'}
               </Typography>
             </Box>
+            <Divider sx={{ my: 3 }} />
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>CR History</Typography>
+              <CrTicketHistory ticketCrId={ticketCrId} />
+            </Box>
+
       </Paper>
     </Box>
   );
