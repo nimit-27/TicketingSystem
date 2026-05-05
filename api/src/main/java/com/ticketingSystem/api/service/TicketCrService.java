@@ -95,7 +95,15 @@ public class TicketCrService {
 
     private String getColumnValue(TicketCr record, String col) {
         return switch (col) {
-            case "subject" -> record.getSubject(); case "description" -> record.getDescription(); case "status_id" -> record.getStatus() == null ? null : String.valueOf(record.getStatus().getStatusId()); case "cr_status_id" -> record.getCrStatus() == null ? null : record.getCrStatus().getCrStatusId(); case "requested_by" -> record.getRequestedBy(); case "assigned_to" -> record.getAssignedTo(); case "assigned_by" -> record.getAssignedBy(); case "remarks" -> record.getRemarks(); default -> null;
+            case "subject" -> record.getSubject();
+            case "description" -> record.getDescription();
+            case "status_id" -> record.getStatus() == null ? null : String.valueOf(record.getStatus().getStatusId());
+            case "cr_status_id" -> record.getCrStatus() == null ? null : record.getCrStatus().getCrStatusName();
+            case "requested_by" -> record.getRequestedBy();
+            case "assigned_to" -> record.getAssignedTo();
+            case "assigned_by" -> record.getAssignedBy();
+            case "remarks" -> record.getRemarks();
+            default -> null;
         };
     }
 

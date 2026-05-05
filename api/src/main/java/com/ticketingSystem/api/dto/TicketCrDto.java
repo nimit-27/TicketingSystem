@@ -16,6 +16,7 @@ public class TicketCrDto {
     private String crStatusId;
     private String crStatusName;
     private String crStatusCode;
+    private String color;
     private String subject;
     private String description;
     private String requestedBy;
