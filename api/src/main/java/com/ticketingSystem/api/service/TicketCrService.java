@@ -114,7 +114,7 @@ public class TicketCrService {
                 previousStatusId,
                 closedStatusId,
                 null,
-                (remark == null || remark.isBlank()) ? "Ticket closed due to CR rejection" : remark
+                "Auto-closed due to CR rejection"
         );
     }
 
@@ -138,7 +138,7 @@ public class TicketCrService {
         return switch (col) {
             case "subject" -> record.getSubject();
             case "description" -> record.getDescription();
-            case "status_id" -> record.getStatus() == null ? null : String.valueOf(record.getStatus().getStatusId());
+            case "status_id" -> record.getStatus() == null ? null : record.getStatus().getStatusName();
             case "cr_status_id" -> record.getCrStatus() == null ? null : record.getCrStatus().getCrStatusName();
             case "requested_by" -> record.getRequestedBy();
             case "assigned_to" -> record.getAssignedTo();
