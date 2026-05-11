@@ -5,6 +5,7 @@ import com.ticketingSystem.api.dto.TicketCrDto;
 import com.ticketingSystem.api.dto.TicketCrHistoryDto;
 import com.ticketingSystem.api.dto.TicketCrStatusWorkflowDto;
 import com.ticketingSystem.api.dto.TicketCrUpdateStatusRequestDto;
+import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.*;
 import com.ticketingSystem.api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,6 +28,8 @@ public class TicketCrService {
     private final RoleRepository roleRepository;
     private final TicketCrHistoryRepository ticketCrHistoryRepository;
     private final TicketCrHistoryConfigRepository ticketCrHistoryConfigRepository;
+    private final TicketStatusWorkflowService ticketStatusWorkflowService;
+    private final StatusHistoryService statusHistoryService;
 
     public TicketCrDto create(TicketCrCreateRequestDto request) { /* unchanged */
         Ticket ticket = ticketRepository.findById(request.getTicketId()).orElseThrow(() -> new EntityNotFoundException("Ticket not found: " + request.getTicketId()));
@@ -72,9 +75,47 @@ public class TicketCrService {
         oldRecord.setRequestedBy(ticketCr.getRequestedBy()); oldRecord.setAssignedTo(ticketCr.getAssignedTo()); oldRecord.setAssignedBy(ticketCr.getAssignedBy()); oldRecord.setRemarks(ticketCr.getRemarks());
 
         ticketCr.setCrStatus(workflow.getNextStatus()); ticketCr.setRemarks(request.getRemarks()); ticketCr.setUpdatedBy(request.getUpdatedBy());
+        syncTicketStatusOnCrRejection(ticketCr, request.getUpdatedBy(), request.getRemarks());
         TicketCr saved = ticketCrRepository.save(ticketCr);
         createHistoryEntries(oldRecord, saved, request.getUpdatedBy());
         return toDto(saved);
+    }
+
+    private void syncTicketStatusOnCrRejection(TicketCr ticketCr, String updatedBy, String remark) {
+        if (ticketCr.getCrStatus() == null || !"CR_REJECTED".equalsIgnoreCase(ticketCr.getCrStatus().getCrStatusCode())) {
+            return;
+        }
+
+        Status closedStatus = statusMasterRepository.findByStatusCode(TicketStatus.CLOSED.name());
+        if (closedStatus == null) {
+            throw new EntityNotFoundException("Status not found for code: " + TicketStatus.CLOSED.name());
+        }
+
+        ticketCr.setStatus(closedStatus);
+
+        Ticket ticket = ticketCr.getTicket();
+        if (ticket == null) {
+            return;
+        }
+
+        String previousStatusId = ticket.getStatus() != null
+                ? ticket.getStatus().getStatusId()
+                : (ticket.getTicketStatus() != null ? ticketStatusWorkflowService.getStatusIdByCode(ticket.getTicketStatus().name()) : null);
+
+        ticket.setTicketStatus(TicketStatus.CLOSED);
+        ticket.setStatus(closedStatus);
+        ticket.setUpdatedBy(updatedBy);
+        ticketRepository.save(ticket);
+
+        String closedStatusId = closedStatus.getStatusId();
+        statusHistoryService.addHistory(
+                ticket.getId(),
+                updatedBy,
+                previousStatusId,
+                closedStatusId,
+                null,
+                "Auto-closed due to CR rejection"
+        );
     }
 
     public List<TicketCrHistoryDto> getHistoryByTicketCrId(String ticketCrId, String changeTypeCode) {
@@ -97,7 +138,7 @@ public class TicketCrService {
         return switch (col) {
             case "subject" -> record.getSubject();
             case "description" -> record.getDescription();
-            case "status_id" -> record.getStatus() == null ? null : String.valueOf(record.getStatus().getStatusId());
+            case "status_id" -> record.getStatus() == null ? null : record.getStatus().getStatusName();
             case "cr_status_id" -> record.getCrStatus() == null ? null : record.getCrStatus().getCrStatusName();
             case "requested_by" -> record.getRequestedBy();
             case "assigned_to" -> record.getAssignedTo();
