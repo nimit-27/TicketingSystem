@@ -162,6 +162,8 @@ const LoginPage: FC = () => {
                     Use session storage (JWT bypass)
                 </label>
             )}
+            {process.env.REACT_APP_ENV !== 'prod' && <p className="text-center mt-5" style={{ fontSize: 14, opacity: 0.6 }}>Version {process.env.REACT_APP_VERSION}</p>}
+
         </form>
     );
 

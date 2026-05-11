@@ -51,19 +51,19 @@ There must be an existing image already of which tag has to be made.
 	docker tag <image name> <registry>/<namespace>/<repository>:<tag>
 
 Bulk Commands
-docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.66
-docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.66
-docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.66
-docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.66
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.75.2
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.75
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.75.1
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.75
 
 ====================================================================================================================================
 
 
 Creating tag for UI to be pushed to ad_test_repo repository
-docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.65
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.67
 
 Creating tag for API to be pushed to ad_test_repo repository
-docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.65
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.67
 
 ====================================================================================================================================
 
@@ -74,10 +74,10 @@ Command syntax
 
 
 Pushing UI image to ad_test_repo
-docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.65
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.67
 
 Pushing API image ad_test_repo
-docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.65
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.67
 
 ====================================================================================================================================
 
