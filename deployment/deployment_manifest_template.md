@@ -8,6 +8,12 @@ Environment:
 Deployment Version:
 <deployment-version>
 
+UI Version:
+<ui-version>
+
+API Version:
+<api-version>
+
 Release Line:
 <release-line>
 
@@ -28,7 +34,7 @@ SVN Revision:
 ### UI
 
 Image:
-<registry>/helpdesk-ui:<tag>
+<registry>/ticketing-ui:<tag>
 
 Changed:
 <Yes/No>
@@ -36,7 +42,7 @@ Changed:
 ### API
 
 Image:
-<registry>/helpdesk-api:<tag>
+<registry>/ticketing-api:<tag>
 
 Changed:
 <Yes/No>
@@ -73,14 +79,6 @@ Execute scripts in the order mentioned below.
 2.
 <db/script/path_2.sql>
 
-## 5. Deployment Order
-
-1. <step-1>
-2. <step-2>
-3. <step-3>
-4. <step-4>
-5. <step-5>
-6. <step-6>
 
 ---
 
@@ -116,7 +114,7 @@ r0000
 ### UI
 
 Image:
-oci-registry-url/helpdesk-ui:dev-x.xx.x
+oci-registry-url/ticketing-ui:dev-x.xx.x
 
 Changed:
 Yes
@@ -124,7 +122,7 @@ Yes
 ### API
 
 Image:
-oci-registry-url/helpdesk-api:dev-x.xx.x
+oci-registry-url/ticketing-api:dev-x.xx.x
 
 Changed:
 Yes
@@ -160,12 +158,3 @@ db/migrations/D000_sample_batch/V001__create_sample_table.sql
 
 2.
 db/migrations/D000_sample_batch/V002__insert_sample_config.sql
-
-## 5. Deployment Order
-
-1. Take DB backup
-2. Execute DB scripts
-3. Deploy API image
-4. Deploy UI image
-5. Verify application login
-6. Verify changed functionality
