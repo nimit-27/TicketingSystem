@@ -17,8 +17,8 @@ API Version:
 Release Line:
 <release-line>
 
-Deployment Date:
-<YYYY-MM-DD>
+Updated Date:
+<DD-MM-YYYY>
 
 Prepared By:
 <name>
@@ -29,7 +29,23 @@ SVN Branch/Path:
 SVN Revision:
 <revision>
 
-## 2. Docker Images
+---
+
+## 2. Manifest Environment Mapping
+
+The following manifests correspond to deployments sharing the same code base and version across environments:
+
+- DEV   → docs/manifests/dev/<deployment-version>.md
+- QA    → docs/manifests/qa/<deployment-version>.md
+- UAT   → docs/manifests/uat/<deployment-version>.md
+- STG   → docs/manifests/stg/<deployment-version>.md
+- PROD  → docs/manifests/prod/<deployment-version>.md
+
+> Note: All above environments are built from the same source (SVN branch/revision) and differ only in configuration.
+
+---
+
+## 3. Docker Images
 
 ### UI
 
@@ -47,7 +63,9 @@ Image:
 Changed:
 <Yes/No>
 
-## 3. Changes Included
+---
+
+## 4. Changes Included
 
 ### UI Changes
 
@@ -66,7 +84,9 @@ Changed:
 - <db-change-1>
 - <db-change-2>
 
-## 4. Database Scripts
+---
+
+## 5. Database Scripts
 
 DB Batch:
 <db-batch-name>
@@ -78,7 +98,6 @@ Execute scripts in the order mentioned below.
 
 2.
 <db/script/path_2.sql>
-
 
 ---
 
@@ -94,11 +113,17 @@ DEV
 Deployment Version:
 dev-x.xx.x
 
+UI Version:
+x.xx.x
+
+API Version:
+x.xx.x
+
 Release Line:
 X.XX
 
-Deployment Date:
-2026-01-01
+Updated Date:
+01-01-2026
 
 Prepared By:
 John Doe
@@ -109,7 +134,23 @@ SVN Branch/Path:
 SVN Revision:
 r0000
 
-## 2. Docker Images
+---
+
+## 2. Manifest Environment Mapping
+
+The following manifests correspond to deployments sharing the same code base and version across environments:
+
+- DEV   → docs/manifests/dev/dev-x.xx.x.md
+- QA    → docs/manifests/qa/qa-x.xx.x.md
+- UAT   → docs/manifests/uat/uat-x.xx.x.md
+- STG   → docs/manifests/stg/stg-x.xx.x.md
+- PROD  → docs/manifests/prod/prod-x.xx.x.md
+
+> Note: All environments use the same source code (SVN revision r0000). Differences are environment-specific configurations only.
+
+---
+
+## 3. Docker Images
 
 ### UI
 
@@ -127,7 +168,9 @@ oci-registry-url/ticketing-api:dev-x.xx.x
 Changed:
 Yes
 
-## 3. Changes Included
+---
+
+## 4. Changes Included
 
 ### UI Changes
 
@@ -146,7 +189,9 @@ Yes
 - Added sample history table
 - Added sample configuration entries
 
-## 4. Database Scripts
+---
+
+## 5. Database Scripts
 
 DB Batch:
 D000_sample_batch
