@@ -111,4 +111,4 @@ DB Batch:
 
 Execute scripts in the order mentioned below:
 
-- --NA--
+1. \api\src\main\resources\db\migration\V15_cr_bucket_flow_full_script_V10-V14.sql
