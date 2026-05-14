@@ -6,7 +6,7 @@ Environment:
 PRODUCTION
 
 Deployment Version:
-dev-1.15
+prod-1.15
 
 UI Version:
 1.15
@@ -77,12 +77,13 @@ Yes
 ### API Changes
 
 - Added app.version in application.properties files for each environment
+- Updated nagios api response objects's attribute 'totalTickets' -> 'totalTicketsRaisedTillNow'
 - Implemented CR approval flow (send for CR, status update, CR creation)
-- Added support for isAssignedBackFromFci flag in ticket processing
-- Created CR Approver role
-- Implemented role-based permissions using allowed_cr_status_action_ids
-- Added CR workflow handling using ticket_cr_status_workflow
-- Added CR history tracking logic
+    - Added support for isAssignedBackFromFci flag in ticket processing
+    - Created CR Approver role
+    - Implemented role-based permissions using allowed_cr_status_action_ids
+    - Added CR workflow handling using ticket_cr_status_workflow
+    - Added CR history tracking logic
 
 ### DB Changes
 
