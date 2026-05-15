@@ -4,13 +4,18 @@ import com.ticketingSystem.reportGenerator.api.ReportGenerator;
 import com.ticketingSystem.reportGenerator.enums.ReportFormat;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ReportGeneratorProvider {
-    @Value("${report.generate.pdf}")
-    private String pdfBeanName;
+    @Value("${report.engine:jasper}")
+    private String reportEngine;
 
-    @Value("${report.generate.excel}")
-    private String excelBeanName;
+    @Value("${report.generate.jasper.pdf:jasperPdf}")
+    private String jasperPdfBeanName;
+
+    @Value("${report.generate.jasper.excel:jasperExcel}")
+    private String jasperExcelBeanName;
 
     private final ApplicationContext ctx;
 
@@ -19,9 +24,14 @@ public class ReportGeneratorProvider {
     }
 
     public ReportGenerator getGenerator(ReportFormat format) {
+        String engine = reportEngine == null ? "jasper" : reportEngine.trim().toLowerCase();
+        if (!"jasper".equals(engine)) {
+            throw new IllegalArgumentException("Unsupported report.engine: " + reportEngine);
+        }
+
         return switch (format) {
-            case PDF -> ctx.getBean(pdfBeanName, ReportGenerator.class);
-            case EXCEL -> ctx.getBean(excelBeanName, ReportGenerator.class);
+            case PDF -> ctx.getBean(jasperPdfBeanName, ReportGenerator.class);
+            case EXCEL -> ctx.getBean(jasperExcelBeanName, ReportGenerator.class);
         };
     }
 }
