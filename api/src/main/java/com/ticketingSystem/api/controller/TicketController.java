@@ -13,6 +13,8 @@ import com.ticketingSystem.api.service.TicketAccessContext;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import com.ticketingSystem.api.service.UserService;
 import com.ticketingSystem.api.dto.AttachmentDownloadDto;
+import com.ticketingSystem.reportGenerator.enums.ReportFormat;
+import com.ticketingSystem.reportGenerator.service.ReportDownloadService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +49,7 @@ public class TicketController {
     private final TicketSlaService ticketSlaService;
     private final TicketAuthorizationService ticketAuthorizationService;
     private final UserService userService;
+    private final ReportDownloadService reportDownloadService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -337,6 +340,55 @@ public class TicketController {
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/search/export/download")
+    public ResponseEntity<byte[]> downloadTicketsReport(
+            @RequestParam String reportCode,
+            @RequestParam ReportFormat format,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false, name = "status") String statusId,
+            @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) Boolean assignedBackFromFci,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String assignedBy,
+            @RequestParam(required = false) String requestorId,
+            @RequestParam(required = false) String levelId,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subCategory,
+            @RequestParam(required = false) String zoneCode,
+            @RequestParam(required = false) String regionCode,
+            @RequestParam(required = false) String districtCode,
+            @RequestParam(required = false) String issueTypeId,
+            @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String breachOption,
+            @RequestParam(required = false) Integer breachInMinutes,
+            @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) throws Exception {
+        List<TicketDto> results = ticketService.searchTicketsList(
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId,
+                priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode,
+                issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate
+        );
+
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("generatedOn", java.time.LocalDateTime.now().toString());
+        params.put("fromDate", fromDate);
+        params.put("toDate", toDate);
+
+        byte[] file = reportDownloadService.generate(reportCode, format, results, params);
+        String ext = format == ReportFormat.PDF ? "pdf" : "xlsx";
+        String contentType = format == ReportFormat.PDF ? MediaType.APPLICATION_PDF_VALUE : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        String filename = reportCode.toLowerCase() + "_" + java.time.LocalDate.now() + "." + ext;
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="" + filename + """)
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(file);
     }
 
     @PutMapping("/comments/{commentId}")

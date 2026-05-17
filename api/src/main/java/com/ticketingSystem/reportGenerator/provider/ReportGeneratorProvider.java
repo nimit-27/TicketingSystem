@@ -42,7 +42,7 @@ public class ReportGeneratorProvider {
             throw new IllegalArgumentException("No report generator bean configured for an engine=" + engine + ", format=" + format);
         }
 
-        if(ctx.containsBean(beanName)) {
+        if(!ctx.containsBean(beanName)) {
             throw new IllegalArgumentException("Configured report generator bean not found: " + beanName);
         }
 

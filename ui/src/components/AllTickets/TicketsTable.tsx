@@ -23,7 +23,7 @@ import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
 import InfoIcon from '../UI/Icons/InfoIcon';
-import { searchTicketsForExport, updateTicket } from '../../services/TicketService';
+import { downloadTicketsReport, searchTicketsForExport, updateTicket } from '../../services/TicketService';
 import { getAllUsers } from '../../services/UserService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -608,7 +608,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         exportAbortRef.current = controller;
 
         try {
-            const response = await downloadTicketsApiHandler(() => searchTicketsForExport({
+            const response = await downloadTicketsApiHandler(() => downloadTicketsReport({
+                reportCode: 'TICKETS_RPT',
+                format: format === 'excel' ? 'EXCEL' : 'PDF',
                 fromDate: filters.fromDate,
                 toDate: filters.toDate,
                 categoryId: filters.categoryId,
@@ -623,28 +625,20 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 signal: controller.signal,
             }));
 
-            if (controller.signal.aborted) {
+            if (controller.signal.aborted || response === null) {
                 return;
             }
 
-            if (response === null) {
-                setExportGenerationState('error');
-                showMessage(t('Export failed. Range may be too large; narrow filters or request async report.'), 'error');
-                return;
-            }
-
-            const ticketsToExport = normalizeDownloadTickets(response);
-            if (!ticketsToExport.length) {
-                showMessage(t('No data available'), 'info');
-                setExportGenerationState('idle');
-                return;
-            }
-
-            if (format === 'excel') {
-                downloadAsExcel(ticketsToExport, filters);
-            } else {
-                downloadAsPdf(ticketsToExport, filters);
-            }
+            const blob = new Blob([response.data], { type: response.headers['content-type'] ?? 'application/octet-stream' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = response.headers['content-disposition']?.split('filename=')[1]?.replaceAll('"', '')
+                ?? `${buildFileName(filters)}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
 
             setExportGenerationState('idle');
             showMessage(t('Report generated successfully.'), 'success');
