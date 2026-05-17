@@ -149,6 +149,45 @@ export function searchTicketsPaginated(
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 
+
+export function downloadTicketsReport({
+    reportCode,
+    format,
+    fromDate,
+    dateParam,
+    toDate,
+    categoryId,
+    subCategoryId,
+    zoneCode,
+    regionCode,
+    districtCode,
+    issueTypeId,
+    assignedTo,
+    statusId,
+    divisionId,
+    signal,
+}: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
+    const params = new URLSearchParams();
+    params.append('reportCode', reportCode);
+    params.append('format', format);
+    if (dateParam) params.append('dateParam', dateParam);
+    if (fromDate) params.append('fromDate', fromDate);
+    if (toDate) params.append('toDate', toDate);
+    if (categoryId) params.append('category', categoryId);
+    if (subCategoryId) params.append('subCategory', subCategoryId);
+    if (zoneCode) params.append('zoneCode', zoneCode);
+    if (regionCode) params.append('regionCode', regionCode);
+    if (districtCode) params.append('districtCode', districtCode);
+    if (issueTypeId) params.append('issueTypeId', issueTypeId);
+    if (divisionId) params.append('divisionId', divisionId);
+    if (assignedTo) params.append('assignedTo', assignedTo);
+    if (statusId) params.append('status', statusId);
+    return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, {
+        responseType: 'blob',
+        ...(signal ? { signal } : {}),
+    });
+}
+
 interface SearchTicketsForExportParams {
     fromDate?: string;
     dateParam?: string;
