@@ -386,7 +386,7 @@ public class TicketController {
         String filename = reportCode.toLowerCase() + "_" + java.time.LocalDate.now() + "." + ext;
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="" + filename + """)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment filename=\"" + filename + "\"")
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(file);
     }
