@@ -629,19 +629,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 return;
             }
 
-            const blob = new Blob([response.data], { type: response.headers['content-type'] ?? 'application/octet-stream' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = response.headers['content-disposition']?.split('filename=')[1]?.replaceAll('"', '')
-                ?? `${buildFileName(filters)}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
             setExportGenerationState('idle');
-            showMessage(t('Report generated successfully.'), 'success');
+            showMessage(t('Report request queued. Please check Downloads page.'), 'success');
             handleDownloadDialogClose();
         } catch (error: any) {
             if (error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {

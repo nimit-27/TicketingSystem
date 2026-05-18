@@ -84,6 +84,12 @@ const menuItems = [
     icon: "timeline",
   },
   {
+    key: "downloads",
+    label: "Downloads",
+    to: "/downloads",
+    icon: "download",
+  },
+  {
     key: "categoriesMaster",
     label: "Modules Master",
     to: "/modules-master",
@@ -163,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         <img src="./menu-leaf.png" className="position-absolute" style={{ left: "0", bottom: "0", width: collapsed ? "80px" : "auto" }} />
         <List component="nav">
           {menuItems.map(({ key, label, to, icon }) => {
-            const alwaysVisible = key === 'myProfile';
+            const alwaysVisible = key === 'myProfile' || key === 'downloads';
             if (!alwaysVisible && !checkSidebarAccess(key)) {
               return null;
             }

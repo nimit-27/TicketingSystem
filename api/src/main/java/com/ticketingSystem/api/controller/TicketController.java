@@ -355,7 +355,7 @@ public class TicketController {
     }
 
     @GetMapping("/search/export/download")
-    public ResponseEntity<byte[]> downloadTicketsReport(
+    public ResponseEntity<Void> downloadTicketsReport(
             @RequestParam String reportCode,
             @RequestParam ReportFormat format,
             @RequestParam(defaultValue = "") String query,
@@ -380,27 +380,35 @@ public class TicketController {
             @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String toDate) throws Exception {
-        List<TicketDto> results = ticketService.searchTicketsList(
-                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId,
-                priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode,
-                issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate
-        );
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) Long requestedBy) {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("query", query);
+        filters.put("statusId", statusId);
+        filters.put("master", master);
+        filters.put("assignedBackFromFci", assignedBackFromFci);
+        filters.put("assignedTo", assignedTo);
+        filters.put("assignedBy", assignedBy);
+        filters.put("requestorId", requestorId);
+        filters.put("levelId", levelId);
+        filters.put("priority", priority);
+        filters.put("severity", severity);
+        filters.put("createdBy", createdBy);
+        filters.put("category", category);
+        filters.put("subCategory", subCategory);
+        filters.put("zoneCode", zoneCode);
+        filters.put("regionCode", regionCode);
+        filters.put("districtCode", districtCode);
+        filters.put("issueTypeId", issueTypeId);
+        filters.put("divisionId", divisionId);
+        filters.put("breachOption", breachOption);
+        filters.put("breachInMinutes", breachInMinutes);
+        filters.put("dateParam", dateParam);
+        filters.put("fromDate", fromDate);
+        filters.put("toDate", toDate);
 
-        java.util.Map<String, Object> params = new java.util.HashMap<>();
-        params.put("generatedOn", java.time.LocalDateTime.now().toString());
-        params.put("fromDate", fromDate);
-        params.put("toDate", toDate);
-
-        byte[] file = reportDownloadService.generate(reportCode, format, results, params);
-        String ext = format == ReportFormat.PDF ? "pdf" : "xlsx";
-        String contentType = format == ReportFormat.PDF ? MediaType.APPLICATION_PDF_VALUE : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        String filename = reportCode.toLowerCase() + "_" + java.time.LocalDate.now() + "." + ext;
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment filename=\"" + filename + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(file);
+        asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
+        return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/search/export/request")
