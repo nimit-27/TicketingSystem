@@ -14,6 +14,11 @@ import com.ticketingSystem.api.service.TicketAuthorizationService;
 import com.ticketingSystem.api.service.UserService;
 import com.ticketingSystem.api.dto.AttachmentDownloadDto;
 import com.ticketingSystem.reportGenerator.enums.ReportFormat;
+import com.ticketingSystem.reportGenerator.models.ReportArtifact;
+import com.ticketingSystem.reportGenerator.models.ReportRequestHistory;
+import com.ticketingSystem.reportGenerator.repository.ReportArtifactRepository;
+import com.ticketingSystem.reportGenerator.repository.ReportRequestHistoryRepository;
+import com.ticketingSystem.reportGenerator.service.AsyncReportService;
 import com.ticketingSystem.reportGenerator.service.ReportDownloadService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -34,7 +39,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import jakarta.servlet.http.HttpSession;
 
@@ -50,6 +57,9 @@ public class TicketController {
     private final TicketAuthorizationService ticketAuthorizationService;
     private final UserService userService;
     private final ReportDownloadService reportDownloadService;
+    private final AsyncReportService asyncReportService;
+    private final ReportRequestHistoryRepository reportRequestHistoryRepository;
+    private final ReportArtifactRepository reportArtifactRepository;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -389,6 +399,99 @@ public class TicketController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment filename=\"" + filename + "\"")
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(file);
+    }
+
+    @PostMapping("/search/export/request")
+    public ResponseEntity<Map<String, Object>> requestTicketsReport(
+            @RequestParam String reportCode,
+            @RequestParam ReportFormat format,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false, name = "status") String statusId,
+            @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) Boolean assignedBackFromFci,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String assignedBy,
+            @RequestParam(required = false) String requestorId,
+            @RequestParam(required = false) String levelId,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subCategory,
+            @RequestParam(required = false) String zoneCode,
+            @RequestParam(required = false) String regionCode,
+            @RequestParam(required = false) String districtCode,
+            @RequestParam(required = false) String issueTypeId,
+            @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String breachOption,
+            @RequestParam(required = false) Integer breachInMinutes,
+            @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) Long requestedBy) {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("query", query);
+        filters.put("statusId", statusId);
+        filters.put("master", master);
+        filters.put("assignedBackFromFci", assignedBackFromFci);
+        filters.put("assignedTo", assignedTo);
+        filters.put("assignedBy", assignedBy);
+        filters.put("requestorId", requestorId);
+        filters.put("levelId", levelId);
+        filters.put("priority", priority);
+        filters.put("severity", severity);
+        filters.put("createdBy", createdBy);
+        filters.put("category", category);
+        filters.put("subCategory", subCategory);
+        filters.put("zoneCode", zoneCode);
+        filters.put("regionCode", regionCode);
+        filters.put("districtCode", districtCode);
+        filters.put("issueTypeId", issueTypeId);
+        filters.put("divisionId", divisionId);
+        filters.put("breachOption", breachOption);
+        filters.put("breachInMinutes", breachInMinutes);
+        filters.put("dateParam", dateParam);
+        filters.put("fromDate", fromDate);
+        filters.put("toDate", toDate);
+
+        ReportRequestHistory req = asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
+        return ResponseEntity.accepted().body(Map.of("requestId", req.getRequestId(), "status", req.getStatus()));
+    }
+
+    @GetMapping("/search/export/requests")
+    public ResponseEntity<List<Map<String, Object>>> getReportRequests() {
+        List<Map<String, Object>> payload = reportRequestHistoryRepository.findTop50ByOrderByRequestedAtDesc()
+                .stream().map(req -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("requestId", req.getRequestId());
+                    row.put("reportCode", req.getReport() != null ? req.getReport().getReportCode() : null);
+                    row.put("status", req.getStatus());
+                    row.put("outputFormat", req.getOutputFormat());
+                    row.put("requestedAt", req.getRequestedAt());
+                    row.put("completedAt", req.getCompletedAt());
+                    row.put("failedAt", req.getFailedAt());
+                    row.put("errorMessage", req.getErrorMessage());
+                    row.put("expiresAt", req.getExpiresAt());
+                    reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> row.put("fileName", a.getFileName()));
+                    return row;
+                }).toList();
+        return ResponseEntity.ok(payload);
+    }
+
+    @GetMapping("/search/export/requests/{requestId}/artifact")
+    public ResponseEntity<Map<String, Object>> getReportArtifact(@PathVariable Long requestId) {
+        Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
+        if (artifact.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        ReportArtifact a = artifact.get();
+        return ResponseEntity.ok(Map.of(
+                "artifactId", a.getArtifactId(),
+                "fileName", a.getFileName(),
+                "storageLocation", a.getStorageLocation(),
+                "contentType", a.getContentType(),
+                "fileSize", a.getFileSize()
+        ));
     }
 
     @PutMapping("/comments/{commentId}")
