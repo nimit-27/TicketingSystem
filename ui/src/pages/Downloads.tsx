@@ -1,5 +1,8 @@
 import React from 'react';
-import { Box, Button, Chip, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, Chip, Typography } from '@mui/material';
+import type { ColumnsType } from 'antd/es/table';
+import GenericTable from '../components/UI/GenericTable';
+import { useApi } from '../hooks/useApi';
 import { getReportRequests } from '../services/TicketService';
 
 type ReportRequestRow = {
@@ -23,18 +26,12 @@ const statusColor = (status?: string): 'default' | 'warning' | 'success' | 'erro
 };
 
 const Downloads: React.FC = () => {
-  const [rows, setRows] = React.useState<ReportRequestRow[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const { data, pending, apiHandler } = useApi<ReportRequestRow[]>();
+  const rows = React.useMemo(() => data ?? [], [data]);
 
   const load = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getReportRequests();
-      setRows(response?.data ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    await apiHandler(() => getReportRequests());
+  }, [apiHandler]);
 
   React.useEffect(() => {
     load();
@@ -42,49 +39,48 @@ const Downloads: React.FC = () => {
     return () => clearInterval(id);
   }, [load]);
 
+  const columns = React.useMemo<ColumnsType<ReportRequestRow>>(
+    () => [
+      { title: 'Request ID', dataIndex: 'requestId', key: 'requestId', width: 120 },
+      { title: 'Report', dataIndex: 'reportCode', key: 'reportCode', render: (value) => value || '-' },
+      { title: 'Format', dataIndex: 'outputFormat', key: 'outputFormat', render: (value) => value || '-' },
+      {
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        render: (value) => <Chip label={value || 'UNKNOWN'} color={statusColor(value)} size="small" />,
+      },
+      { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => value || '-' },
+      {
+        title: 'Completed/Failed',
+        key: 'doneAt',
+        render: (_, row) => row.completedAt || row.failedAt || '-',
+      },
+      { title: 'File', dataIndex: 'fileName', key: 'fileName', render: (value) => value || '-' },
+      {
+        title: 'Action',
+        key: 'action',
+        render: (_, row) => (row.downloadPath && row.status === 'COMPLETED'
+          ? <Button size="small" variant="contained" onClick={() => window.open(row.downloadPath, '_blank')}>Download</Button>
+          : '-'),
+      },
+    ],
+    [],
+  );
+
   return (
     <Box p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Downloads</Typography>
-        <Button variant="outlined" onClick={load} disabled={loading}>Refresh</Button>
+        <Button variant="outlined" onClick={load} disabled={pending}>Refresh</Button>
       </Box>
-
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Request ID</TableCell>
-              <TableCell>Report</TableCell>
-              <TableCell>Format</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Requested At</TableCell>
-              <TableCell>Completed/Failed</TableCell>
-              <TableCell>File</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.requestId}>
-                <TableCell>{row.requestId}</TableCell>
-                <TableCell>{row.reportCode || '-'}</TableCell>
-                <TableCell>{row.outputFormat || '-'}</TableCell>
-                <TableCell><Chip label={row.status || 'UNKNOWN'} color={statusColor(row.status)} size="small" /></TableCell>
-                <TableCell>{row.requestedAt || '-'}</TableCell>
-                <TableCell>{row.completedAt || row.failedAt || '-'}</TableCell>
-                <TableCell>{row.fileName || '-'}</TableCell>
-                <TableCell>
-                  {row.downloadPath && row.status === 'COMPLETED' ? (
-                    <Button size="small" variant="contained" onClick={() => window.open(row.downloadPath, '_blank')}>Download</Button>
-                  ) : (
-                    '-'
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <GenericTable
+        rowKey="requestId"
+        dataSource={rows}
+        columns={columns}
+        loading={pending}
+        pagination={{ pageSize: 10, showSizeChanger: true }}
+      />
     </Box>
   );
 };
