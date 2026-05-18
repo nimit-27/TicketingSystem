@@ -4,6 +4,7 @@ import com.ticketingSystem.api.dto.ApiResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
@@ -26,7 +27,15 @@ public class ApiResponseBodyAdvice implements ResponseBodyAdvice {
         if (body instanceof SseEmitter) {
             return body;
         }
-        if (selectedContentType != null && MediaType.TEXT_EVENT_STREAM.isCompatibleWith(selectedContentType)) {
+        if (body instanceof ResponseEntity) {
+            return body;
+        }
+        if (selectedContentType != null && (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(selectedContentType)
+                || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(selectedContentType)
+                || MediaType.APPLICATION_PDF.isCompatibleWith(selectedContentType))) {
+            return body;
+        }
+        if (body instanceof byte[]) {
             return body;
         }
         if (body == null && response instanceof ServletServerHttpResponse) {
