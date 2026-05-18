@@ -34,46 +34,10 @@
 	<parameter name="showPriority" class="java.lang.Boolean"/>
 	<parameter name="showAssigneeName" class="java.lang.Boolean"/>
 	<parameter name="showStatus" class="java.lang.Boolean"/>
-	<queryString>
-		<![CDATA[SELECT
-            t.ticket_id AS ticket_id,
-            COALESCE(NULLIF(t.requestor_name, ''), '-') AS requestor,
-            t.reported_date AS created_date,
-            COALESCE(NULLIF(c.category, ''), NULLIF(t.category, ''), '-') AS module_name,
-            COALESCE(NULLIF(sc.sub_category, ''), NULLIF(t.sub_category, ''), '-') AS sub_module_name,
-            COALESCE(NULLIF(it.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issue_type,
-            COALESCE(NULLIF(zm.zone_name, ''), NULLIF(t.zone_code, ''), '-') AS zone_name,
-            COALESCE(NULLIF(t.district_name, ''), NULLIF(dm.district_name, ''), '-') AS district_name,
-            COALESCE(NULLIF(t.region_name, ''), NULLIF(rm.region_name, ''), '-') AS region_name,
-            COALESCE(NULLIF(t.severity, ''), '-') AS severity,
-            COALESCE(NULLIF(pm.tp_level, ''), NULLIF(t.priority, ''), '-') AS priority,
-            COALESCE(NULLIF(au.name, ''), NULLIF(t.assigned_to, ''), '-') AS assignee,
-            COALESCE(NULLIF(sm.label, ''), NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS status
-        FROM tickets t
-        LEFT JOIN categories c ON c.category_id = t.category
-        LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
-        LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
-        LEFT JOIN zone_master zm ON zm.zone_code = t.zone_code
-        LEFT JOIN region_master rm ON rm.region_code = t.region_code
-        LEFT JOIN district_master dm ON dm.district_code = t.district_code
-        LEFT JOIN priority_master pm ON pm.tp_id = t.priority
-        LEFT JOIN users au ON au.username = t.assigned_to
-        LEFT JOIN status_master sm ON sm.status_id = t.status_id
-        WHERE 1 = 1
-        AND ( $P{fromDate} IS NULL OR t.reported_date >= $P{fromDate} )
-  AND ( $P{toDate}   IS NULL OR t.reported_date <  DATE_ADD($P{toDate}, INTERVAL 1 DAY) )
-  AND ( $P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode} )
-  AND ( $P{regionCode} IS NULL OR t.region_code = $P{regionCode} )
-  AND ( $P{districtCode} IS NULL OR t.district_code = $P{districtCode} )
-  AND ( $P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId} )
-  AND ( $P{statusId} IS NULL OR t.status_id = $P{statusId} )
-  AND ( $P{priorityId} IS NULL OR t.priority = $P{priorityId} )
-  AND ( $P{assignee} IS NULL OR LOWER(t.assigned_to) = LOWER($P{assignee}) )
-ORDER BY t.ticket_id]]>
-	</queryString>
+	
 	<field name="id" class="java.lang.String"/>
 	<field name="requestorName" class="java.lang.String"/>
-	<field name="reportedDate" class="java.sql.Timestamp"/>
+	<field name="reportedDate" class="java.time.LocalDateTime"/>
 	<field name="category" class="java.lang.String"/>
 	<field name="subCategory" class="java.lang.String"/>
 	<field name="issueTypeLabel" class="java.lang.String"/>
