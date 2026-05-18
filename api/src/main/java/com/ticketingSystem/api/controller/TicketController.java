@@ -8,6 +8,7 @@ import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
+import com.ticketingSystem.api.service.OciUploadService;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.service.TicketAccessContext;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
@@ -60,6 +61,7 @@ public class TicketController {
     private final AsyncReportService asyncReportService;
     private final ReportRequestHistoryRepository reportRequestHistoryRepository;
     private final ReportArtifactRepository reportArtifactRepository;
+    private final OciUploadService ociUploadService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -472,7 +474,10 @@ public class TicketController {
                     row.put("failedAt", req.getFailedAt());
                     row.put("errorMessage", req.getErrorMessage());
                     row.put("expiresAt", req.getExpiresAt());
-                    reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> row.put("fileName", a.getFileName()));
+                    reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> {
+                        row.put("fileName", a.getFileName());
+                        row.put("downloadPath", "/tickets/search/export/requests/" + req.getRequestId() + "/download");
+                    });
                     return row;
                 }).toList();
         return ResponseEntity.ok(payload);
@@ -485,13 +490,35 @@ public class TicketController {
             return ResponseEntity.notFound().build();
         }
         ReportArtifact a = artifact.get();
+        String downloadPath = "/tickets/search/export/requests/" + requestId + "/download";
         return ResponseEntity.ok(Map.of(
                 "artifactId", a.getArtifactId(),
                 "fileName", a.getFileName(),
                 "storageLocation", a.getStorageLocation(),
+                "downloadPath", downloadPath,
                 "contentType", a.getContentType(),
                 "fileSize", a.getFileSize()
         ));
+    }
+
+    @GetMapping("/search/export/requests/{requestId}/download")
+    public ResponseEntity<Void> downloadReportArtifact(@PathVariable Long requestId) throws Exception {
+        Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
+        if (artifact.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ReportArtifact a = artifact.get();
+        String signedUrl = ociUploadService.createPreauthenticatedRequest(
+                a.getStorageLocation(),
+                "ObjectRead",
+                "report_download_" + requestId + "_" + System.currentTimeMillis(),
+                null
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.LOCATION, signedUrl);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     @PutMapping("/comments/{commentId}")
