@@ -97,7 +97,7 @@ public class JasperPdfReportGenerator implements ReportGenerator {
             throw new JRException(
                     "Failed to compile/fill Jasper report template '" + context.getTemplateLocation() + "'. "
                             + "Check JRXML structure, field names, and parameter mappings. Root cause: "
-                            + ex.getMessage(),
+                            + buildCauseChain(ex),
                     ex);
         }
     }
@@ -118,5 +118,20 @@ public class JasperPdfReportGenerator implements ReportGenerator {
             params.putIfAbsent(key, Boolean.TRUE);
         }
         return params;
+    }
+
+    private String buildCauseChain(Throwable throwable) {
+        StringBuilder sb = new StringBuilder();
+        Throwable current = throwable;
+        while (current != null) {
+            if (!sb.isEmpty()) {
+                sb.append(" -> ");
+            }
+            sb.append(current.getClass().getSimpleName())
+                    .append(": ")
+                    .append(current.getMessage());
+            current = current.getCause();
+        }
+        return sb.toString();
     }
 }
