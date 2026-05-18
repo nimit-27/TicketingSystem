@@ -20,7 +20,7 @@
 	<parameter name="issueTypeId" class="java.lang.String"/>
 	<parameter name="statusId" class="java.lang.String"/>
 	<parameter name="priorityId" class="java.lang.String"/>
-	<parameter name="assignee" class="java.lang.String"/>
+	<parameter name="assignedToName" class="java.lang.String"/>
 	<parameter name="showTicketId" class="java.lang.Boolean"/>
 	<parameter name="showRequestor" class="java.lang.Boolean"/>
 	<parameter name="showCreatedDate" class="java.lang.Boolean"/>
@@ -71,19 +71,19 @@
   AND ( $P{assignee} IS NULL OR LOWER(t.assigned_to) = LOWER($P{assignee}) )
 ORDER BY t.ticket_id]]>
 	</queryString>
-	<field name="ticket_id" class="java.lang.String"/>
-	<field name="requestor" class="java.lang.String"/>
-	<field name="created_date" class="java.sql.Timestamp"/>
-	<field name="module_name" class="java.lang.String"/>
-	<field name="sub_module_name" class="java.lang.String"/>
-	<field name="issue_type" class="java.lang.String"/>
-	<field name="zone_name" class="java.lang.String"/>
-	<field name="district_name" class="java.lang.String"/>
-	<field name="region_name" class="java.lang.String"/>
+	<field name="id" class="java.lang.String"/>
+	<field name="requestorName" class="java.lang.String"/>
+	<field name="reportedDate" class="java.sql.Timestamp"/>
+	<field name="category" class="java.lang.String"/>
+	<field name="subCategory" class="java.lang.String"/>
+	<field name="issueTypeLabel" class="java.lang.String"/>
+	<field name="zoneCode" class="java.lang.String"/>
+	<field name="districtName" class="java.lang.String"/>
+	<field name="regionName" class="java.lang.String"/>
 	<field name="severity" class="java.lang.String"/>
 	<field name="priority" class="java.lang.String"/>
-	<field name="assignee" class="java.lang.String"/>
-	<field name="status" class="java.lang.String"/>
+	<field name="assignedToName" class="java.lang.String"/>
+	<field name="statusLabel" class="java.lang.String"/>
 	<title>
 		<band height="40">
 			<staticText>
@@ -310,7 +310,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{ticket_id}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="60" y="0" width="80" height="20" uuid="c2e8c58b-f40b-4581-b5f9-fcae3526f267">
@@ -326,7 +326,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{requestor}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="140" y="0" width="90" height="20" uuid="10e754e7-ff36-4786-b5ff-d376d5463a93">
@@ -342,7 +342,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{created_date}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="230" y="0" width="80" height="20" uuid="95d5a1b4-6cd4-4a5b-a400-f54264f3becd">
@@ -358,7 +358,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{module_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="310" y="0" width="100" height="20" uuid="6d957fe1-b96c-469d-9c51-c5b9ff3b3750">
@@ -374,7 +374,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{sub_module_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
 				<reportElement x="410" y="0" width="210" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
@@ -390,7 +390,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{issue_type}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="620" y="0" width="80" height="20" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3">
@@ -406,7 +406,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{zone_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="700" y="0" width="80" height="20" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b">
@@ -422,7 +422,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{district_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="780" y="0" width="90" height="20" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf">
@@ -438,7 +438,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{region_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="870" y="0" width="60" height="20" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d">
@@ -486,7 +486,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{assignee}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="1090" y="0" width="90" height="20" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0">
@@ -502,7 +502,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
