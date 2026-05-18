@@ -7,6 +7,7 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
 import net.sf.jasperreports.engine.design.JRDesignField;
@@ -19,7 +20,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component("jasperPdf")
 public class JasperPdfReportGenerator implements ReportGenerator {
@@ -85,10 +88,35 @@ public class JasperPdfReportGenerator implements ReportGenerator {
     public byte[] generateReport(ReportContext context) throws Exception {
         ClassPathResource resource = new ClassPathResource(context.getTemplateLocation());
         try (InputStream jrxml = resource.getInputStream()) {
+            Map<String, Object> params = withDefaultColumnVisibility(context.getParams());
             JasperReport jasperReport = JasperCompileManager.compileReport(jrxml);
             JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, context.getParams(), datasource);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
             return JasperExportManager.exportReportToPdf(jasperPrint);
+        } catch (JRException ex) {
+            throw new JRException(
+                    "Failed to compile/fill Jasper report template '" + context.getTemplateLocation() + "'. "
+                            + "Check JRXML structure, field names, and parameter mappings. Root cause: "
+                            + ex.getMessage(),
+                    ex);
         }
+    }
+
+    private Map<String, Object> withDefaultColumnVisibility(Map<String, Object> incomingParams) {
+        Map<String, Object> params = new HashMap<>();
+        if (incomingParams != null) {
+            params.putAll(incomingParams);
+        }
+
+        String[] visibilityParams = {
+                "showTicketId", "showRequestor", "showCreatedDate", "showModule", "showSubModule",
+                "showIssueType", "showZone", "showDistrict", "showRegion", "showSeverity",
+                "showPriority", "showAssigneeName", "showStatus"
+        };
+
+        for (String key : visibilityParams) {
+            params.putIfAbsent(key, Boolean.TRUE);
+        }
+        return params;
     }
 }

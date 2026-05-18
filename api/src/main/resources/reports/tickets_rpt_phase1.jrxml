@@ -98,8 +98,9 @@ ORDER BY t.ticket_id]]>
 	<columnHeader>
 		<band height="20">
 			<staticText>
-				<reportElement mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC" uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showTicketId})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC" uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showTicketId})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -112,8 +113,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Ticket ID]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="60" y="0" width="80" height="20" backcolor="#ADACAC" uuid="f6b8f967-4c20-4440-b91d-6cff2ad78e5f"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRequestor})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="60" y="0" width="80" height="20" backcolor="#ADACAC" uuid="f6b8f967-4c20-4440-b91d-6cff2ad78e5f">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRequestor})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -126,8 +128,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Requestor]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="140" y="0" width="90" height="20" backcolor="#ADACAC" uuid="fe6758ca-a6f8-41d4-9ba2-d4b38325d552"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showCreatedDate})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="140" y="0" width="90" height="20" backcolor="#ADACAC" uuid="fe6758ca-a6f8-41d4-9ba2-d4b38325d552">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showCreatedDate})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -140,8 +143,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Created Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="230" y="0" width="80" height="20" backcolor="#ADACAC" uuid="68279be0-cc95-42ba-92dc-1322a1086382"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showModule})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="230" y="0" width="80" height="20" backcolor="#ADACAC" uuid="68279be0-cc95-42ba-92dc-1322a1086382">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showModule})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -154,8 +158,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Module]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="310" y="0" width="100" height="20" backcolor="#ADACAC" uuid="9f96db6b-13f0-4383-b476-ebc9262deb52"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSubModule})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="310" y="0" width="100" height="20" backcolor="#ADACAC" uuid="9f96db6b-13f0-4383-b476-ebc9262deb52">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSubModule})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -168,8 +173,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Sub Module]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="410" y="0" width="210" height="20" backcolor="#ADACAC" uuid="dafa238f-05ee-44d0-82be-504d2c323475"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="410" y="0" width="210" height="20" backcolor="#ADACAC" uuid="dafa238f-05ee-44d0-82be-504d2c323475">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -182,8 +188,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Issue Type]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="620" y="0" width="80" height="20" backcolor="#ADACAC" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="620" y="0" width="80" height="20" backcolor="#ADACAC" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -196,8 +203,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Zone]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="700" y="0" width="80" height="20" backcolor="#ADACAC" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="700" y="0" width="80" height="20" backcolor="#ADACAC" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -210,8 +218,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[District]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="780" y="0" width="90" height="20" backcolor="#ADACAC" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="780" y="0" width="90" height="20" backcolor="#ADACAC" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -224,8 +233,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Region]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="870" y="0" width="60" height="20" backcolor="#ADACAC" uuid="f58f6ee9-a144-4362-b012-639570bc6db8"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="870" y="0" width="60" height="20" backcolor="#ADACAC" uuid="f58f6ee9-a144-4362-b012-639570bc6db8">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -238,8 +248,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Severity]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="930" y="0" width="60" height="20" backcolor="#ADACAC" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="930" y="0" width="60" height="20" backcolor="#ADACAC" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -252,8 +263,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Priority]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="990" y="0" width="100" height="20" backcolor="#ADACAC" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="990" y="0" width="100" height="20" backcolor="#ADACAC" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -266,8 +278,9 @@ ORDER BY t.ticket_id]]>
 				<text><![CDATA[Assignee]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="1090" y="0" width="90" height="20" backcolor="#ADACAC" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
+				<reportElement mode="Opaque" x="1090" y="0" width="90" height="20" backcolor="#ADACAC" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -284,8 +297,9 @@ ORDER BY t.ticket_id]]>
 	<detail>
 		<band height="20">
 			<textField>
-				<reportElement x="0" y="0" width="60" height="20" uuid="9ce0cd5a-62fd-40fe-9b40-1f0c05fb7417"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showTicketId})]]></printWhenExpression>
+				<reportElement x="0" y="0" width="60" height="20" uuid="9ce0cd5a-62fd-40fe-9b40-1f0c05fb7417">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showTicketId})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -299,8 +313,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{ticket_id}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="60" y="0" width="80" height="20" uuid="c2e8c58b-f40b-4581-b5f9-fcae3526f267"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRequestor})]]></printWhenExpression>
+				<reportElement x="60" y="0" width="80" height="20" uuid="c2e8c58b-f40b-4581-b5f9-fcae3526f267">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRequestor})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -314,8 +329,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{requestor}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="140" y="0" width="90" height="20" uuid="10e754e7-ff36-4786-b5ff-d376d5463a93"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showCreatedDate})]]></printWhenExpression>
+				<reportElement x="140" y="0" width="90" height="20" uuid="10e754e7-ff36-4786-b5ff-d376d5463a93">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showCreatedDate})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -329,8 +345,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{created_date}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="230" y="0" width="80" height="20" uuid="95d5a1b4-6cd4-4a5b-a400-f54264f3becd"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showModule})]]></printWhenExpression>
+				<reportElement x="230" y="0" width="80" height="20" uuid="95d5a1b4-6cd4-4a5b-a400-f54264f3becd">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showModule})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -344,8 +361,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{module_name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="310" y="0" width="100" height="20" uuid="6d957fe1-b96c-469d-9c51-c5b9ff3b3750"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSubModule})]]></printWhenExpression>
+				<reportElement x="310" y="0" width="100" height="20" uuid="6d957fe1-b96c-469d-9c51-c5b9ff3b3750">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSubModule})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -359,8 +377,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{sub_module_name}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
-				<reportElement x="410" y="0" width="210" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
+				<reportElement x="410" y="0" width="210" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -374,8 +393,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{issue_type}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="620" y="0" width="80" height="20" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
+				<reportElement x="620" y="0" width="80" height="20" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -389,8 +409,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{zone_name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="700" y="0" width="80" height="20" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
+				<reportElement x="700" y="0" width="80" height="20" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -404,8 +425,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{district_name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="780" y="0" width="90" height="20" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
+				<reportElement x="780" y="0" width="90" height="20" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -419,8 +441,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{region_name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="870" y="0" width="60" height="20" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
+				<reportElement x="870" y="0" width="60" height="20" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -434,8 +457,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="930" y="0" width="60" height="20" uuid="4dc906c6-5eb7-410c-812e-6fae98f536ed"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
+				<reportElement x="930" y="0" width="60" height="20" uuid="4dc906c6-5eb7-410c-812e-6fae98f536ed">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -449,8 +473,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="990" y="0" width="100" height="20" uuid="bf46047b-98ce-45a3-9560-4e35d2710240"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
+				<reportElement x="990" y="0" width="100" height="20" uuid="bf46047b-98ce-45a3-9560-4e35d2710240">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -464,8 +489,9 @@ ORDER BY t.ticket_id]]>
 				<textFieldExpression><![CDATA[$F{assignee}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="1090" y="0" width="90" height="20" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0"/>
-				<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
+				<reportElement x="1090" y="0" width="90" height="20" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0">
+					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
