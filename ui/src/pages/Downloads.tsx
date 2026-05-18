@@ -3,7 +3,7 @@ import { Box, Button, Chip, Typography } from '@mui/material';
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
 import { useApi } from '../hooks/useApi';
-import { getReportRequests } from '../services/TicketService';
+import { getReportDownloadUrl, getReportRequests } from '../services/TicketService';
 
 type ReportRequestRow = {
   requestId: number;
@@ -61,7 +61,16 @@ const Downloads: React.FC = () => {
         title: 'Action',
         key: 'action',
         render: (_, row) => (row.downloadPath && row.status === 'COMPLETED'
-          ? <Button size="small" variant="contained" onClick={() => window.open(row.downloadPath, '_blank')}>Download</Button>
+          ? (
+            <Button
+              size="small"
+              variant="contained"
+              component="a"
+              href={getReportDownloadUrl(row.downloadPath)}
+            >
+              Download
+            </Button>
+          )
           : '-'),
       },
     ],
