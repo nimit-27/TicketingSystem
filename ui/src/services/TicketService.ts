@@ -182,10 +182,17 @@ export function downloadTicketsReport({
     if (divisionId) params.append('divisionId', divisionId);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
-    return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, {
-        responseType: 'blob',
-        ...(signal ? { signal } : {}),
-    });
+    return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
+}
+
+export function getReportRequests() {
+    return axios.get(`${BASE_URL}/tickets/search/export/requests`);
+}
+
+export function getReportDownloadUrl(downloadPath: string) {
+    if (!downloadPath) return '';
+    if (/^https?:\/\//i.test(downloadPath)) return downloadPath;
+    return `${BASE_URL}${downloadPath}`;
 }
 
 interface SearchTicketsForExportParams {
