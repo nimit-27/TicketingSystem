@@ -1,9 +1,11 @@
 import React from 'react';
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
 import { useApi } from '../hooks/useApi';
 import { getReportDownloadUrl, getReportRequests } from '../services/TicketService';
+import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
+import { formatDateTimeWithRelative } from '../utils/Utils';
 
 type ReportRequestRow = {
   requestId: number;
@@ -16,13 +18,6 @@ type ReportRequestRow = {
   errorMessage?: string;
   fileName?: string;
   downloadPath?: string;
-};
-
-const statusColor = (status?: string): 'default' | 'warning' | 'success' | 'error' => {
-  if (status === 'QUEUED' || status === 'IN_PROGRESS') return 'warning';
-  if (status === 'COMPLETED') return 'success';
-  if (status === 'FAILED') return 'error';
-  return 'default';
 };
 
 const Downloads: React.FC = () => {
@@ -39,49 +34,65 @@ const Downloads: React.FC = () => {
     return () => clearInterval(id);
   }, [load]);
 
+  const renderDateCell = React.useCallback((value?: string) => {
+    if (!value) return '-';
+    const { formatted, relative } = formatDateTimeWithRelative(value);
+    return (
+      <Box>
+        <Typography variant="body2">{formatted}</Typography>
+        {relative ? <Typography variant="caption" color="text.secondary">{relative}</Typography> : null}
+      </Box>
+    );
+  }, []);
+
   const columns = React.useMemo<ColumnsType<ReportRequestRow>>(
     () => [
       { title: 'Request ID', dataIndex: 'requestId', key: 'requestId', width: 120 },
       { title: 'Report', dataIndex: 'reportCode', key: 'reportCode', render: (value) => value || '-' },
       { title: 'Format', dataIndex: 'outputFormat', key: 'outputFormat', render: (value) => value || '-' },
+      { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => renderDateCell(value) },
       {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        render: (value) => <Chip label={value || 'UNKNOWN'} color={statusColor(value)} size="small" />,
-      },
-      { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => value || '-' },
-      {
-        title: 'Completed/Failed',
+        title: 'Completed At',
         key: 'doneAt',
-        render: (_, row) => row.completedAt || row.failedAt || '-',
+        render: (_, row) => renderDateCell(row.completedAt || row.failedAt),
       },
       { title: 'File', dataIndex: 'fileName', key: 'fileName', render: (value) => value || '-' },
       {
         title: 'Action',
         key: 'action',
-        render: (_, row) => (row.downloadPath && row.status === 'COMPLETED'
-          ? (
-            <Button
-              size="small"
-              variant="contained"
-              component="a"
-              href={getReportDownloadUrl(row.downloadPath)}
-            >
-              Download
-            </Button>
-          )
-          : '-'),
+        render: (_, row) => {
+          if (row.status === 'QUEUED' || row.status === 'IN_PROGRESS') {
+            return <CircularProgress size={18} />;
+          }
+
+          if (row.status === 'FAILED') {
+            return <CustomIconButton icon="error" size="small" disabled aria-label="Failed" />;
+          }
+
+          if (row.downloadPath && row.status === 'COMPLETED') {
+            return (
+              <CustomIconButton
+                icon="download"
+                size="small"
+                component="a"
+                href={getReportDownloadUrl(row.downloadPath)}
+                aria-label="Download"
+              />
+            );
+          }
+
+          return '-';
+        },
       },
     ],
-    [],
+    [renderDateCell],
   );
 
   return (
     <Box p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Downloads</Typography>
-        <Button variant="outlined" onClick={load} disabled={pending}>Refresh</Button>
+        <CustomIconButton icon="replay" onClick={load} disabled={pending} aria-label="Refresh" />
       </Box>
       <GenericTable
         rowKey="requestId"
