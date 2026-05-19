@@ -90,7 +90,7 @@ ORDER BY t.ticket_id]]>
 	<field name="statusLabel" class="java.lang.String"/>
 	<title>
 		<band height="40">
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" x="0" y="0" width="870" height="40" uuid="a7f0d976-ce8a-4587-b241-3dda2d8d5b39"/>
@@ -103,7 +103,7 @@ ORDER BY t.ticket_id]]>
 	</title>
 	<columnHeader>
 		<band height="20">
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC" uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead">
@@ -120,7 +120,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Ticket ID]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="60" y="0" width="80" height="20" backcolor="#ADACAC" uuid="f6b8f967-4c20-4440-b91d-6cff2ad78e5f">
@@ -137,7 +137,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Requestor]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="140" y="0" width="90" height="20" backcolor="#ADACAC" uuid="fe6758ca-a6f8-41d4-9ba2-d4b38325d552">
@@ -154,7 +154,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Created Date]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="230" y="0" width="80" height="20" backcolor="#ADACAC" uuid="68279be0-cc95-42ba-92dc-1322a1086382">
@@ -171,7 +171,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Module]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="310" y="0" width="100" height="20" backcolor="#ADACAC" uuid="9f96db6b-13f0-4383-b476-ebc9262deb52">
@@ -188,7 +188,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Sub Module]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="410" y="0" width="60" height="20" backcolor="#ADACAC" uuid="dafa238f-05ee-44d0-82be-504d2c323475">
@@ -205,7 +205,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Issue Type]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="620" y="0" width="45" height="20" backcolor="#ADACAC" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc">
@@ -222,7 +222,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Zone]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="665" y="0" width="80" height="20" backcolor="#ADACAC" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d">
@@ -239,7 +239,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[District]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="745" y="0" width="70" height="20" backcolor="#ADACAC" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47">
@@ -256,7 +256,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Region]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="815" y="0" width="60" height="20" backcolor="#ADACAC" uuid="f58f6ee9-a144-4362-b012-639570bc6db8">
@@ -273,7 +273,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Severity]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="875" y="0" width="60" height="20" backcolor="#ADACAC" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155">
@@ -290,7 +290,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Priority]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="935" y="0" width="80" height="20" backcolor="#ADACAC" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07">
@@ -307,7 +307,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<text><![CDATA[Assignee]]></text>
 			</staticText>
-			<staticText textAdjust="StretchHeight">
+			<staticText>
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" mode="Opaque" x="1015" y="0" width="60" height="20" backcolor="#ADACAC" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8">
@@ -418,7 +418,7 @@ ORDER BY t.ticket_id]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" textAdjust="StretchHeight">
+			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
     stretchType="RelativeToTallestObject" x="410" y="0" width="60" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
