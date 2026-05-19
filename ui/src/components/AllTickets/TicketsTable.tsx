@@ -575,15 +575,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         doc.save(`${fileName}.pdf`);
     };
 
-    const cancelExportGeneration = () => {
-        if (exportAbortRef.current) {
-            exportAbortRef.current.abort();
-            exportAbortRef.current = null;
-        }
-        setExportGenerationState('idle');
-        showMessage(t('Export cancelled.'), 'info');
-    };
-
     const handleGenerateSelection = async (format: 'pdf' | 'excel', filters: DownloadFilters) => {
         if (!filters.fromDate || !filters.toDate) {
             showMessage(t('Please select a valid date range.'), 'warning');
@@ -594,10 +585,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         if (!selectedRangeDays) {
             showMessage(t('Please select a valid date range.'), 'warning');
             return;
-        }
-
-        if (selectedRangeDays > 31) {
-            showMessage(t('Large date range selected. It may take some time to download this data.'), 'info');
         }
 
         setLastExportRequest({ format, filters });
@@ -1130,7 +1117,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     startIcon={<DownloadIcon fontSize="small" />}
                     onClick={handleDownloadDialogOpen}
                 >
-                    {t('Download')}
+                    {t('Generate Report')}
                 </Button>
             </div>
             {showColumnSelector && (
@@ -1182,7 +1169,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 open={downloadDialogOpen}
                 loading={downloadingTickets || exportGenerationState === 'generating'}
                 generationState={exportGenerationState}
-                onCancelExport={cancelExportGeneration}
                 onRetryExport={retryLastExport}
                 zoneOptions={zoneOptions}
                 issueTypeOptions={issueTypeOptions}
