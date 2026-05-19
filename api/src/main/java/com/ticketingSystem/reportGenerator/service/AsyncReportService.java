@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Slf4j
 public class AsyncReportService {
     private final ReportRequestHistoryRepository reportRequestHistoryRepository;
@@ -33,8 +33,27 @@ public class AsyncReportService {
     private final TicketService ticketService;
     private final ReportDownloadService reportDownloadService;
     private final OciUploadService ociUploadService;
-    @Qualifier("notificationTaskExecutor")
+//    @Qualifier("notificationTaskExecutor")
     private final TaskExecutor taskExecutor;
+
+    public AsyncReportService(
+    ReportRequestHistoryRepository reportRequestHistoryRepository,
+    ReportArtifactRepository reportArtifactRepository,
+    ReportMasterRepository reportMasterRepository,
+    TicketService ticketService,
+    ReportDownloadService reportDownloadService,
+    OciUploadService ociUploadService,
+    @Qualifier("notificationTaskExecutor") TaskExecutor taskExecutor
+    ) {
+        this.reportRequestHistoryRepository = reportRequestHistoryRepository;
+        this.reportArtifactRepository = reportArtifactRepository;
+        this.reportMasterRepository = reportMasterRepository;
+        this.ticketService = ticketService;
+        this.reportDownloadService = reportDownloadService;
+        this.ociUploadService = ociUploadService;
+        this.taskExecutor = taskExecutor;
+    }
+
 
     public ReportRequestHistory queueTicketExport(String reportCode, ReportFormat format, Map<String, Object> filters, Long requestedBy) {
         ReportMaster reportMaster = reportMasterRepository.findByReportCodeAndActiveTrue(reportCode)
