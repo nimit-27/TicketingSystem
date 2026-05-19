@@ -37,6 +37,22 @@
     <field name="assignedToName" class="java.lang.String"/>
     <field name="statusLabel" class="java.lang.String"/>
 
+    <subDataset name="TicketTableDataset">
+        <field name="id" class="java.lang.String"/>
+        <field name="requestorName" class="java.lang.String"/>
+        <field name="reportedDate" class="java.time.LocalDateTime"/>
+        <field name="category" class="java.lang.String"/>
+        <field name="subCategory" class="java.lang.String"/>
+        <field name="issueTypeLabel" class="java.lang.String"/>
+        <field name="zoneCode" class="java.lang.String"/>
+        <field name="districtName" class="java.lang.String"/>
+        <field name="regionName" class="java.lang.String"/>
+        <field name="severity" class="java.lang.String"/>
+        <field name="priority" class="java.lang.String"/>
+        <field name="assignedToName" class="java.lang.String"/>
+        <field name="statusLabel" class="java.lang.String"/>
+    </subDataset>
+
     <title>
         <band height="40">
             <staticText>
@@ -305,19 +321,4 @@
             </componentElement>
         </band>
     </detail>
-    <subDataset name="TicketTableDataset">
-        <field name="id" class="java.lang.String"/>
-        <field name="requestorName" class="java.lang.String"/>
-        <field name="reportedDate" class="java.time.LocalDateTime"/>
-        <field name="category" class="java.lang.String"/>
-        <field name="subCategory" class="java.lang.String"/>
-        <field name="issueTypeLabel" class="java.lang.String"/>
-        <field name="zoneCode" class="java.lang.String"/>
-        <field name="districtName" class="java.lang.String"/>
-        <field name="regionName" class="java.lang.String"/>
-        <field name="severity" class="java.lang.String"/>
-        <field name="priority" class="java.lang.String"/>
-        <field name="assignedToName" class="java.lang.String"/>
-        <field name="statusLabel" class="java.lang.String"/>
-    </subDataset>
 </jasperReport>
