@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" name="Ticket_Report_Table" pageWidth="1200" pageHeight="1000" orientation="Landscape" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+        <parameter name="fromDate" class="java.util.Date"/>
+    <parameter name="toDate" class="java.util.Date"/>
+    <parameter name="zoneCode" class="java.lang.String"/>
+    <parameter name="regionCode" class="java.lang.String"/>
+    <parameter name="districtCode" class="java.lang.String"/>
+    <parameter name="issueTypeId" class="java.lang.String"/>
+    <parameter name="statusId" class="java.lang.String"/>
+    <parameter name="priorityId" class="java.lang.String"/>
+    <parameter name="assignedToName" class="java.lang.String"/>
+    <parameter name="showTicketId" class="java.lang.Boolean"/>
+    <parameter name="showRequestor" class="java.lang.Boolean"/>
+    <parameter name="showCreatedDate" class="java.lang.Boolean"/>
+    <parameter name="showModule" class="java.lang.Boolean"/>
+    <parameter name="showSubModule" class="java.lang.Boolean"/>
+    <parameter name="showIssueType" class="java.lang.Boolean"/>
+    <parameter name="showZone" class="java.lang.Boolean"/>
+    <parameter name="showDistrict" class="java.lang.Boolean"/>
+    <parameter name="showRegion" class="java.lang.Boolean"/>
+    <parameter name="showSeverity" class="java.lang.Boolean"/>
+    <parameter name="showPriority" class="java.lang.Boolean"/>
+    <parameter name="showAssigneeName" class="java.lang.Boolean"/>
+    <parameter name="showStatus" class="java.lang.Boolean"/>
+
+    <field name="id" class="java.lang.String"/>
+    <field name="requestorName" class="java.lang.String"/>
+    <field name="reportedDate" class="java.time.LocalDateTime"/>
+    <field name="category" class="java.lang.String"/>
+    <field name="subCategory" class="java.lang.String"/>
+    <field name="issueTypeLabel" class="java.lang.String"/>
+    <field name="zoneCode" class="java.lang.String"/>
+    <field name="districtName" class="java.lang.String"/>
+    <field name="regionName" class="java.lang.String"/>
+    <field name="severity" class="java.lang.String"/>
+    <field name="priority" class="java.lang.String"/>
+    <field name="assignedToName" class="java.lang.String"/>
+    <field name="statusLabel" class="java.lang.String"/>
+
+    <title>
+        <band height="40">
+            <staticText>
+                <reportElement x="0" y="0" width="1160" height="40"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="19" isBold="true"/></textElement>
+                <text><![CDATA[Ticket Report]]></text>
+            </staticText>
+        </band>
+    </title>
+    <detail>
+        <band height="24" splitType="Stretch">
+            <componentElement>
+                <reportElement x="0" y="0" width="1160" height="24"/>
+                <jr:table>
+                    <datasetRun subDataset="TicketTableDataset">
+                        <dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}]]></dataSourceExpression>
+                    </datasetRun>
+                    <jr:column width="60">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showTicketId})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Ticket ID]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="60" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="80">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRequestor})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="80" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Requestor]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="90">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showCreatedDate})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="90" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Created Date]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="90" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="80">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showModule})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="80" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Module]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="100">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSubModule})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="100" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Sub Module]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="100" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="210">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="210" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Issue Type]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="210" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="80">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="80" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Zone]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="80">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="80" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[District]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="90">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="90" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Region]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="90" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="60">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Severity]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="60" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="60">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Priority]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="60" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="100">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="100" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Assignee]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="100" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="90">
+                        <printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
+                        <jr:columnHeader height="20">
+                            <staticText>
+                                <reportElement mode="Opaque" x="0" y="0" width="90" height="20" backcolor="#ADACAC"/>
+                                <box><pen lineWidth="0.75"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12" isBold="true"/></textElement>
+                                <text><![CDATA[Status]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                            <textField textAdjust="StretchHeight">
+                                <reportElement x="0" y="0" width="90" height="20" isStretchWithOverflow="true"/>
+                                <box><pen lineWidth="1.0"/></box>
+                                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/></textElement>
+                                <textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                </jr:table>
+            </componentElement>
+        </band>
+    </detail>
+    <subDataset name="TicketTableDataset">
+        <field name="id" class="java.lang.String"/>
+        <field name="requestorName" class="java.lang.String"/>
+        <field name="reportedDate" class="java.time.LocalDateTime"/>
+        <field name="category" class="java.lang.String"/>
+        <field name="subCategory" class="java.lang.String"/>
+        <field name="issueTypeLabel" class="java.lang.String"/>
+        <field name="zoneCode" class="java.lang.String"/>
+        <field name="districtName" class="java.lang.String"/>
+        <field name="regionName" class="java.lang.String"/>
+        <field name="severity" class="java.lang.String"/>
+        <field name="priority" class="java.lang.String"/>
+        <field name="assignedToName" class="java.lang.String"/>
+        <field name="statusLabel" class="java.lang.String"/>
+    </subDataset>
+</jasperReport>
