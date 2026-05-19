@@ -191,7 +191,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="410" y="0" width="60" height="20" backcolor="#ADACAC" uuid="dafa238f-05ee-44d0-82be-504d2c323475">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="410" y="0" width="100" height="20" backcolor="#ADACAC" uuid="dafa238f-05ee-44d0-82be-504d2c323475">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -208,7 +208,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="620" y="0" width="45" height="20" backcolor="#ADACAC" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="510" y="0" width="45" height="20" backcolor="#ADACAC" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -225,7 +225,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="665" y="0" width="80" height="20" backcolor="#ADACAC" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="555" y="0" width="80" height="20" backcolor="#ADACAC" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -242,7 +242,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="745" y="0" width="70" height="20" backcolor="#ADACAC" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="635" y="0" width="70" height="20" backcolor="#ADACAC" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -259,7 +259,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="815" y="0" width="60" height="20" backcolor="#ADACAC" uuid="f58f6ee9-a144-4362-b012-639570bc6db8">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="705" y="0" width="60" height="20" backcolor="#ADACAC" uuid="f58f6ee9-a144-4362-b012-639570bc6db8">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -276,7 +276,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="875" y="0" width="60" height="20" backcolor="#ADACAC" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="765" y="0" width="60" height="20" backcolor="#ADACAC" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -293,7 +293,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="935" y="0" width="80" height="20" backcolor="#ADACAC" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="825" y="0" width="80" height="20" backcolor="#ADACAC" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -310,7 +310,7 @@ ORDER BY t.ticket_id]]>
 			<staticText>
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" mode="Opaque" x="1015" y="0" width="60" height="20" backcolor="#ADACAC" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8">
+    stretchType="RelativeToTallestObject" mode="Opaque" x="905" y="0" width="60" height="20" backcolor="#ADACAC" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -421,7 +421,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="410" y="0" width="60" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
+    stretchType="RelativeToTallestObject" x="410" y="0" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -439,7 +439,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="620" y="0" width="45" height="20" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3">
+    stretchType="RelativeToTallestObject" x="510" y="0" width="45" height="20" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showZone})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -457,7 +457,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="665" y="0" width="80" height="20" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b">
+    stretchType="RelativeToTallestObject" x="555" y="0" width="80" height="20" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showDistrict})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -475,7 +475,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="745" y="0" width="70" height="20" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf">
+    stretchType="RelativeToTallestObject" x="635" y="0" width="70" height="20" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showRegion})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -493,7 +493,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="815" y="0" width="60" height="20" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d">
+    stretchType="RelativeToTallestObject" x="705" y="0" width="60" height="20" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showSeverity})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -511,7 +511,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="875" y="0" width="60" height="20" uuid="4dc906c6-5eb7-410c-812e-6fae98f536ed">
+    stretchType="RelativeToTallestObject" x="765" y="0" width="60" height="20" uuid="4dc906c6-5eb7-410c-812e-6fae98f536ed">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showPriority})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -529,7 +529,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="935" y="0" width="80" height="20" uuid="bf46047b-98ce-45a3-9560-4e35d2710240">
+    stretchType="RelativeToTallestObject" x="825" y="0" width="80" height="20" uuid="bf46047b-98ce-45a3-9560-4e35d2710240">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showAssigneeName})]]></printWhenExpression>
 				</reportElement>
 				<box>
@@ -547,7 +547,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="1015" y="0" width="60" height="20" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0">
+    stretchType="RelativeToTallestObject" x="905" y="0" width="60" height="20" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showStatus})]]></printWhenExpression>
 				</reportElement>
 				<box>
