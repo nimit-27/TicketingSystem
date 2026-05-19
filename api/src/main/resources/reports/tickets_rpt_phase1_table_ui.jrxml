@@ -66,7 +66,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="60" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="60" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
@@ -85,7 +85,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="80" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression>
@@ -104,7 +104,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="90" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="90" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression>
@@ -123,7 +123,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="80" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
@@ -142,7 +142,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="100" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="100" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression>
@@ -161,7 +161,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="210" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="210" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression>
@@ -180,7 +180,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="80" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression>
@@ -199,7 +199,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="80" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="80" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression>
@@ -218,7 +218,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="90" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="90" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression>
@@ -237,7 +237,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="60" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="60" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression>
@@ -256,7 +256,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="60" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="60" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression>
@@ -275,7 +275,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="100" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="100" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression>
@@ -294,7 +294,7 @@
                         </jr:columnHeader>
                         <jr:detailCell height="20">
                             <textField textAdjust="StretchHeight">
-                                <reportElement x="0" y="0" width="90" height="20" isStretchWithOverflow="true"/>
+                                <reportElement x="0" y="0" width="90" height="20"/>
                                 <box><pen lineWidth="0.75"/></box>
                                 <textElement textAlignment="Center" verticalAlignment="Middle"><font size="12"/><paragraph leftIndent="2" rightIndent="2"/></textElement>
                                 <textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression>
