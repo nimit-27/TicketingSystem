@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface ReportArtifactRepository extends JpaRepository<ReportArtifact, Long> {
-    Optional<ReportArtifact> findByRequestRequestId(Long requestId);
+    Optional<ReportArtifact> findByRequestRequestId(String requestId);
 }

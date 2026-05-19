@@ -609,6 +609,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 divisionId: filters.divisionId,
                 assignedTo: filters.assignedTo,
                 statusId: filters.statusId,
+                requestedBy: getCurrentUserDetails()?.userId,
                 signal: controller.signal,
             }));
 

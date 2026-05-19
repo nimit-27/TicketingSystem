@@ -3,6 +3,7 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.models.Ticket;
+import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
@@ -381,7 +382,7 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
-            @RequestParam(required = false) Long requestedBy) {
+            @RequestParam(required = false) String requestedBy) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("query", query);
         filters.put("statusId", statusId);
@@ -438,7 +439,7 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
-            @RequestParam(required = false) Long requestedBy) {
+            @RequestParam(required = false) String requestedBy) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("query", query);
         filters.put("statusId", statusId);
@@ -482,6 +483,15 @@ public class TicketController {
                     row.put("failedAt", req.getFailedAt());
                     row.put("errorMessage", req.getErrorMessage());
                     row.put("expiresAt", req.getExpiresAt());
+                    if (req.getRequestedBy() != null && !req.getRequestedBy().isBlank()) {
+                        userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> {
+                            Map<String, Object> requestedByDetails = new HashMap<>();
+                            requestedByDetails.put("userId", user.getUserId());
+                            requestedByDetails.put("username", user.getUsername());
+                            requestedByDetails.put("name", user.getName());
+                            row.put("requestedByDetails", requestedByDetails);
+                        });
+                    }
                     reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> {
                         row.put("fileName", a.getFileName());
                         row.put("downloadPath", "/tickets/search/export/requests/" + req.getRequestId() + "/download");
@@ -492,7 +502,7 @@ public class TicketController {
     }
 
     @GetMapping("/search/export/requests/{requestId}/artifact")
-    public ResponseEntity<Map<String, Object>> getReportArtifact(@PathVariable Long requestId) {
+    public ResponseEntity<Map<String, Object>> getReportArtifact(@PathVariable String requestId) {
         Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
         if (artifact.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -510,7 +520,7 @@ public class TicketController {
     }
 
     @GetMapping("/search/export/requests/{requestId}/download")
-    public ResponseEntity<Void> downloadReportArtifact(@PathVariable Long requestId) throws Exception {
+    public ResponseEntity<Void> downloadReportArtifact(@PathVariable String requestId) throws Exception {
         Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
         if (artifact.isEmpty()) {
             return ResponseEntity.notFound().build();

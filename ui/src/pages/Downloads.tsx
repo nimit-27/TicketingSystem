@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress, Tooltip, Typography } from '@mui/material';
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
 import { useApi } from '../hooks/useApi';
@@ -8,7 +8,7 @@ import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import { formatDateTimeWithRelative } from '../utils/Utils';
 
 type ReportRequestRow = {
-  requestId: number;
+  requestId: string;
   reportCode?: string;
   status?: string;
   outputFormat?: string;
@@ -18,6 +18,11 @@ type ReportRequestRow = {
   errorMessage?: string;
   fileName?: string;
   downloadPath?: string;
+  requestedByDetails?: {
+    userId?: string;
+    username?: string;
+    name?: string;
+  };
 };
 
 const Downloads: React.FC = () => {
@@ -47,16 +52,24 @@ const Downloads: React.FC = () => {
 
   const columns = React.useMemo<ColumnsType<ReportRequestRow>>(
     () => [
-      { title: 'Request ID', dataIndex: 'requestId', key: 'requestId', width: 120 },
       { title: 'Report', dataIndex: 'reportCode', key: 'reportCode', render: (value) => value || '-' },
       { title: 'Format', dataIndex: 'outputFormat', key: 'outputFormat', render: (value) => value || '-' },
+      {
+        title: 'Requested By',
+        key: 'requestedBy',
+        render: (_, row) => {
+          const name = row.requestedByDetails?.name || '-';
+          const username = row.requestedByDetails?.username;
+          if (!username || name === '-') return name;
+          return <Tooltip title={username}><span>{name}</span></Tooltip>;
+        },
+      },
       { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => renderDateCell(value) },
       {
         title: 'Completed At',
         key: 'doneAt',
         render: (_, row) => renderDateCell(row.completedAt || row.failedAt),
       },
-      { title: 'File', dataIndex: 'fileName', key: 'fileName', render: (value) => value || '-' },
       {
         title: 'Action',
         key: 'action',
@@ -66,7 +79,7 @@ const Downloads: React.FC = () => {
           }
 
           if (row.status === 'FAILED') {
-            return <CustomIconButton icon="error" size="small" disabled aria-label="Failed" />;
+            return <CustomIconButton icon="error" size="small" disabled aria-label="Failed" sx={{ color: "error.main" }} />;
           }
 
           if (row.downloadPath && row.status === 'COMPLETED') {
