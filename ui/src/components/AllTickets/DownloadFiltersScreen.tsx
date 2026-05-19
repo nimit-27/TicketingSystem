@@ -230,7 +230,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                     {' '}
                     {t('You will find your downloads on the Downloads page.')}
                     {' '}
-                    <Link href="/downloads" target="_blank" rel="noopener noreferrer">
+                    <Link href="downloads" target="_blank" rel="noopener noreferrer">
                         {t('Open Downloads')}
                     </Link>
                 </Alert>
