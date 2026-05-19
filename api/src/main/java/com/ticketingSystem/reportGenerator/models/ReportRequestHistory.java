@@ -12,16 +12,16 @@ import java.time.LocalDateTime;
 @Setter
 public class ReportRequestHistory {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "request_id")
-    private Long requestId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "request_id", length = 36)
+    private String requestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "report_id", nullable = false)
     private ReportMaster report;
 
-    @Column(name = "requested_by", nullable = false)
-    private Long requestedBy;
+    @Column(name = "requested_by", nullable = false, length = 36)
+    private String requestedBy;
 
     @Column(name = "status", nullable = false, length = 50)
     private String status;
