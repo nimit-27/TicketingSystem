@@ -71,7 +71,6 @@ interface DownloadTicketsDialogProps {
     exportableColumns: DownloadReportColumn[];
     onClose: () => void;
     onGenerate: (format: 'pdf' | 'excel', filters: DownloadFilters) => Promise<void> | void;
-    onCancelExport?: () => void;
     onRetryExport?: () => void;
 }
 
@@ -117,7 +116,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     exportableColumns,
     onClose,
     onGenerate,
-    onCancelExport,
     onRetryExport,
 }) => {
     const { t } = useTranslation();
@@ -460,7 +458,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             estimatedCount={estimatedCount}
                             selectedRangeDays={selectedRangeDays}
                             isRangeInvalid={isRangeInvalid}
-                            onCancelExport={onCancelExport}
                             onRetryExport={onRetryExport}
                             onYearChange={setYear}
                             onMonthChange={setMonth}

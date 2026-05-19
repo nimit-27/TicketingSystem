@@ -5,6 +5,7 @@ import {
     Chip,
     FormControl,
     InputLabel,
+    Link,
     MenuItem,
     Select,
     Stack,
@@ -44,7 +45,6 @@ interface DownloadFiltersScreenProps {
     estimatedCount: number | null;
     selectedRangeDays: number | null;
     isRangeInvalid: boolean;
-    onCancelExport?: () => void;
     onRetryExport?: () => void;
     onYearChange: (year: number | '') => void;
     onMonthChange: (month: number | '') => void;
@@ -93,7 +93,6 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     estimatedCount,
     selectedRangeDays,
     isRangeInvalid,
-    onCancelExport,
     onRetryExport,
     onYearChange,
     onMonthChange,
@@ -227,8 +226,13 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
 
             {generationState === 'generating' && (
                 <Alert severity="info">
-                    {t('Your report is being generated.')}
-                    {onCancelExport && <Button size="small" sx={{ ml: 1 }} onClick={onCancelExport}>{t('Cancel export')}</Button>}
+                    {t('Go to Downloads.')}
+                    {' '}
+                    {t('You will find your downloads on the Downloads page.')}
+                    {' '}
+                    <Link href="/downloads" target="_blank" rel="noopener noreferrer">
+                        {t('Open Downloads')}
+                    </Link>
                 </Alert>
             )}
 
@@ -240,7 +244,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
             )}
 
             {isRangeInvalid && <Alert severity="warning">{t('Please select a valid date range.')}</Alert>}
-            {selectedRangeDays !== null && selectedRangeDays > 31 && (
+            {estimatedCount !== null && estimatedCount > 2000 && (
                 <Alert severity="info">{t('Large date range selected. It may take some time to download this data.')}</Alert>
             )}
         </Stack>

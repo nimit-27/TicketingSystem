@@ -60,10 +60,9 @@ describe('DownloadFiltersScreen', () => {
         generationState: 'idle' as const,
         estimateLoading: false,
         estimateCountPending: false,
-        estimatedCount: 1234,
+        estimatedCount: 2345,
         selectedRangeDays: 45,
         isRangeInvalid: true,
-        onCancelExport: jest.fn(),
         onRetryExport: jest.fn(),
         onYearChange: jest.fn(),
         onMonthChange: jest.fn(),
@@ -130,7 +129,7 @@ describe('DownloadFiltersScreen', () => {
         expect(screen.getByTestId('alert-info')).toHaveTextContent('Large date range selected. It may take some time to download this data.');
     });
 
-    it('shows generating state with cancel and estimating label when loading', async () => {
+    it('shows generating state with downloads guidance and link when loading', async () => {
         render(
             <DownloadFiltersScreen
                 {...props}
@@ -143,10 +142,8 @@ describe('DownloadFiltersScreen', () => {
         );
 
         expect(screen.getByText('Estimating records...')).toBeInTheDocument();
-        expect(screen.getByTestId('alert-info')).toHaveTextContent('Your report is being generated.');
-
-        await userEvent.click(screen.getByRole('button', { name: 'Cancel export' }));
-        expect(props.onCancelExport).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId('alert-info')).toHaveTextContent('Go to Downloads.');
+        expect(screen.getByRole('link', { name: 'Open Downloads' })).toHaveAttribute('href', '/downloads');
     });
 
     it('shows error state with retry and unavailable estimate fallback', async () => {

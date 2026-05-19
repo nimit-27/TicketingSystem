@@ -353,7 +353,7 @@ describe('TicketsTable', () => {
         const initialProps = mockDownloadTicketsDialog.mock.calls[0][0];
         expect(initialProps.open).toBe(false);
 
-        await userEvent.click(screen.getByRole('button', { name: /Download/i }));
+        await userEvent.click(screen.getByRole('button', { name: /Generate Report/i }));
 
         const latestProps = mockDownloadTicketsDialog.mock.calls.at(-1)?.[0];
         expect(latestProps.open).toBe(true);
