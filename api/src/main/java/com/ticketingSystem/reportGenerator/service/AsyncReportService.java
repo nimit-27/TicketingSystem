@@ -55,23 +55,23 @@ public class AsyncReportService {
     }
 
 
-    public ReportRequestHistory queueTicketExport(String reportCode, ReportFormat format, Map<String, Object> filters, Long requestedBy) {
+    public ReportRequestHistory queueTicketExport(String reportCode, ReportFormat format, Map<String, Object> filters, String requestedBy) {
         ReportMaster reportMaster = reportMasterRepository.findByReportCodeAndActiveTrue(reportCode)
                 .orElseThrow(() -> new IllegalArgumentException("Report definition not found for code: " + reportCode));
 
         ReportRequestHistory request = new ReportRequestHistory();
         request.setReport(reportMaster);
-        request.setRequestedBy(requestedBy != null ? requestedBy : 0L);
+        request.setRequestedBy(requestedBy != null ? requestedBy : "SYSTEM");
         request.setStatus(RequestStatus.QUEUED.name());
         request.setOutputFormat(format.name());
         request = reportRequestHistoryRepository.save(request);
 
-        final Long requestId = request.getRequestId();
+        final String requestId = request.getRequestId();
         taskExecutor.execute(() -> processRequest(requestId, reportCode, format, filters));
         return request;
     }
 
-    private void processRequest(Long requestId, String reportCode, ReportFormat format, Map<String, Object> filters) {
+    private void processRequest(String requestId, String reportCode, ReportFormat format, Map<String, Object> filters) {
         ReportRequestHistory request = reportRequestHistoryRepository.findById(requestId).orElse(null);
         if (request == null) return;
         try {

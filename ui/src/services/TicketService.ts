@@ -165,6 +165,7 @@ export function downloadTicketsReport({
     assignedTo,
     statusId,
     divisionId,
+    requestedBy,
     signal,
 }: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
     const params = new URLSearchParams();
@@ -182,6 +183,7 @@ export function downloadTicketsReport({
     if (divisionId) params.append('divisionId', divisionId);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
+    if (requestedBy) params.append('requestedBy', requestedBy);
     return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
 }
 
@@ -208,6 +210,7 @@ interface SearchTicketsForExportParams {
     assignedTo?: string;
     statusId?: string;
     divisionId?: string;
+    requestedBy?: string;
     signal?: AbortSignal;
 }
 
@@ -239,6 +242,7 @@ export function searchTicketsForExport({
     if (divisionId) params.append('divisionId', divisionId);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
+    if (requestedBy) params.append('requestedBy', requestedBy);
     if (divisionId) params.append('divisionId', divisionId);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
 }

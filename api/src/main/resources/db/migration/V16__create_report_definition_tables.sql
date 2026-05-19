@@ -58,9 +58,9 @@ CREATE TABLE IF NOT EXISTS report_column_mapping (
 ------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS report_request_history (
-    request_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    request_id VARCHAR(36) PRIMARY KEY,
     report_id BIGINT NOT NULL,
-    requested_by BIGINT NOT NULL,
+    requested_by VARCHAR(36) NOT NULL,
     status VARCHAR(50) NOT NULL,
     output_format VARCHAR(50) NOT NULL,
     selected_columns_json JSON,
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS report_request_history (
 
 CREATE TABLE IF NOT EXISTS report_artifact (
     artifact_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    request_id BIGINT NOT NULL,
+    request_id VARCHAR(36) NOT NULL,
     file_name VARCHAR(512) NOT NULL,
     content_type VARCHAR(255),
     file_size BIGINT,
