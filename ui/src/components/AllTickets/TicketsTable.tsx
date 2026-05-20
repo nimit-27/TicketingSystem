@@ -617,7 +617,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 return;
             }
 
-            setExportGenerationState('idle');
             showMessage(t('Report request queued. Please check Downloads page.'), 'success');
             handleDownloadDialogClose();
         } catch (error: any) {
@@ -631,6 +630,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 : t('Export failed. Range may be too large; narrow filters or request async report.');
             showMessage(message, 'error');
         } finally {
+            setExportGenerationState('idle');
             exportAbortRef.current = null;
         }
     };
