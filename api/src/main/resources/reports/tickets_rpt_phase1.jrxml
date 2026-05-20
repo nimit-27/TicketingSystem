@@ -38,7 +38,7 @@
 		<![CDATA[SELECT
     t.ticket_id AS id,
     COALESCE(NULLIF(t.requestor_name, ''), '-') AS requestorName,
-    DATE_FORMAT(t.reported_date, "%d %b %Y, %H:%i") AS reportedDate,
+    t.reported_date AS reportedDate,
 
     COALESCE(NULLIF(t.subject, ''), '-') AS subject,
     COALESCE(NULLIF(t.description, ''), '-') AS description,
@@ -80,7 +80,7 @@ ORDER BY t.ticket_id]]>
 	</queryString>
 	<field name="id" class="java.lang.String"/>
 	<field name="requestorName" class="java.lang.String"/>
-	<field name="reportedDate" class="java.lang.String"/>
+	<field name="reportedDate" class="java.time.LocalDateTime"/>
 	<field name="subject" class="java.lang.String"/>
 	<field name="description" class="java.lang.String"/>
 	<field name="category" class="java.lang.String"/>
