@@ -11,6 +11,8 @@ import com.ticketingSystem.reportGenerator.models.ReportRequestHistory;
 import com.ticketingSystem.reportGenerator.repository.ReportArtifactRepository;
 import com.ticketingSystem.reportGenerator.repository.ReportMasterRepository;
 import com.ticketingSystem.reportGenerator.repository.ReportRequestHistoryRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,6 +24,9 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 @Service
 //@RequiredArgsConstructor
@@ -35,6 +40,7 @@ public class AsyncReportService {
     private final OciUploadService ociUploadService;
 //    @Qualifier("notificationTaskExecutor")
     private final TaskExecutor taskExecutor;
+    private final ObjectMapper objectMapper;
 
     public AsyncReportService(
     ReportRequestHistoryRepository reportRequestHistoryRepository,
@@ -43,7 +49,8 @@ public class AsyncReportService {
     TicketService ticketService,
     ReportDownloadService reportDownloadService,
     OciUploadService ociUploadService,
-    @Qualifier("notificationTaskExecutor") TaskExecutor taskExecutor
+    @Qualifier("notificationTaskExecutor") TaskExecutor taskExecutor,
+    ObjectMapper objectMapper
     ) {
         this.reportRequestHistoryRepository = reportRequestHistoryRepository;
         this.reportArtifactRepository = reportArtifactRepository;
@@ -52,6 +59,7 @@ public class AsyncReportService {
         this.reportDownloadService = reportDownloadService;
         this.ociUploadService = ociUploadService;
         this.taskExecutor = taskExecutor;
+        this.objectMapper = objectMapper;
     }
 
 
@@ -64,6 +72,7 @@ public class AsyncReportService {
         request.setRequestedBy(requestedBy != null ? requestedBy : "SYSTEM");
         request.setStatus(RequestStatus.QUEUED.name());
         request.setOutputFormat(format.name());
+        request.setFiltersJson(toFiltersJson(filters));
         request = reportRequestHistoryRepository.save(request);
 
         final String requestId = request.getRequestId();
@@ -109,6 +118,7 @@ public class AsyncReportService {
             params.put("generatedOn", LocalDateTime.now().toString());
             params.put("fromDate", filters.get("fromDate"));
             params.put("toDate", filters.get("toDate"));
+            params.put("filterSummary", buildFilterSummary(filters));
 
             byte[] file = reportDownloadService.generate(reportCode, format, results, params);
             String ext = format == ReportFormat.PDF ? "pdf" : "xlsx";
@@ -136,4 +146,62 @@ public class AsyncReportService {
             reportRequestHistoryRepository.save(request);
         }
     }
+
+    private String toFiltersJson(Map<String, Object> filters) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("filters", new ArrayList<>(filters.entrySet().stream()
+                .filter(entry -> entry.getKey() != null && !entry.getKey().equals("query") && !entry.getKey().equals("dateParam"))
+                .map(entry -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("key", entry.getKey());
+                    row.put("label", toLabel(entry.getKey()));
+                    row.put("type", inferType(entry.getValue()));
+                    row.put("value", entry.getValue());
+                    boolean isAll = isAllValue(entry.getValue());
+                    row.put("display_value", isAll ? "All" : formatValue(entry.getValue()));
+                    row.put("is_all", isAll);
+                    return row;
+                })
+                .collect(Collectors.toList())));
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize filters_json", e);
+            return "{\"filters\":[]}";
+        }
+    }
+
+    private String buildFilterSummary(Map<String, Object> filters) {
+        return filters.entrySet().stream()
+                .filter(entry -> entry.getKey() != null && !entry.getKey().equals("query") && !entry.getKey().equals("dateParam"))
+                .map(entry -> toLabel(entry.getKey()) + ": " + (isAllValue(entry.getValue()) ? "All" : formatValue(entry.getValue())))
+                .collect(Collectors.joining(" | "));
+    }
+
+    private boolean isAllValue(Object value) {
+        if (value == null) return true;
+        if (value instanceof String str) return str.trim().isEmpty();
+        if (value instanceof List<?> list) return list.isEmpty();
+        return false;
+    }
+
+    private String formatValue(Object value) {
+        if (value instanceof List<?> list) {
+            return list.stream().map(String::valueOf).collect(Collectors.joining(", "));
+        }
+        return String.valueOf(value);
+    }
+
+    private String inferType(Object value) {
+        if (value instanceof List<?>) return "multi_select";
+        if (value instanceof Boolean) return "boolean";
+        return "single_select";
+    }
+
+    private String toLabel(String key) {
+        String spaced = key.replaceAll("([a-z])([A-Z])", "$1 $2").replace('_', ' ').trim();
+        if (spaced.isEmpty()) return key;
+        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+    }
+
 }
