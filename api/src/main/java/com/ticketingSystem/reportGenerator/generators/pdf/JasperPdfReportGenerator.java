@@ -19,6 +19,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -93,7 +94,10 @@ public class JasperPdfReportGenerator implements ReportGenerator {
             JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
             return JasperExportManager.exportReportToPdf(jasperPrint);
-        } catch (JRException ex) {
+        } catch (FileNotFoundException ex) {
+            throw new FileNotFoundException("File not found or is not accessible. Root cause: " + ex.getMessage());
+        }
+        catch (JRException ex) {
             throw new JRException(
                     "Failed to compile/fill Jasper report template '" + context.getTemplateLocation() + "'. "
                             + "Check JRXML structure, field names, and parameter mappings. Root cause: "
