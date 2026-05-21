@@ -108,19 +108,45 @@ ORDER BY t.ticket_id]]>
 		</band>
 	</title>
 	<pageHeader>
-		<band height="70">
-			<staticText>
-				<reportElement x="0" y="0" width="240" height="20" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555551"/>
+		<band height="150" splitType="Stretch">
+			<frame>
+				<reportElement x="0" y="0" width="1565" height="150" stretchType="RelativeToBandHeight" uuid="11111111-2222-3333-4444-555555555550"/>
 				<box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box>
-				<textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement>
-				<text><![CDATA[Filters Used]]></text>
-			</staticText>
-			<textField isStretchWithOverflow="true">
-				<reportElement x="240" y="0" width="1325" height="20" stretchType="RelativeToBandHeight" uuid="11111111-2222-3333-4444-555555555552"/>
-				<box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box>
-				<textElement verticalAlignment="Middle"><font size="10"/></textElement>
-				<textFieldExpression><![CDATA[$P{filterSummary} == null || $P{filterSummary}.trim().isEmpty() ? "All" : $P{filterSummary}]]></textFieldExpression>
-			</textField>
+
+				<staticText>
+					<reportElement x="0" y="0" width="313" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555560"/>
+					<box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement>
+					<text><![CDATA[Date Range]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement x="0" y="18" width="313" height="52" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555561"/>
+					<box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box>
+					<textElement verticalAlignment="Top"><font size="9"/></textElement>
+					<textFieldExpression><![CDATA[($P{fromDate} == null && $P{toDate} == null) ? "All" : ((($P{fromDate} == null) ? "Any" : new java.text.SimpleDateFormat("dd-MMM-yyyy").format($P{fromDate})) + " to " + (($P{toDate} == null) ? "Any" : new java.text.SimpleDateFormat("dd-MMM-yyyy").format($P{toDate})))]]></textFieldExpression>
+				</textField>
+
+				<staticText><reportElement x="313" y="0" width="313" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555562"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Zone]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="313" y="18" width="313" height="52" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555563"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{zoneCode} == null || $P{zoneCode}.trim().isEmpty() ? "All" : $P{zoneCode}]]></textFieldExpression></textField>
+
+				<staticText><reportElement x="626" y="0" width="313" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555564"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Region]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="626" y="18" width="313" height="52" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555565"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{regionCode} == null || $P{regionCode}.trim().isEmpty() ? "All" : $P{regionCode}]]></textFieldExpression></textField>
+
+				<staticText><reportElement x="939" y="0" width="313" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555566"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[District]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="939" y="18" width="313" height="52" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555567"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{districtCode} == null || $P{districtCode}.trim().isEmpty() ? "All" : $P{districtCode}]]></textFieldExpression></textField>
+
+				<staticText><reportElement x="1252" y="0" width="313" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555568"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Issue Type]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="1252" y="18" width="313" height="52" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555569"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{issueTypeId} == null || $P{issueTypeId}.trim().isEmpty() ? "All" : $P{issueTypeId}]]></textFieldExpression></textField>
+
+				<staticText><reportElement x="0" y="70" width="391" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555570"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Status]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="0" y="88" width="391" height="62" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555571"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{statusId} == null || $P{statusId}.trim().isEmpty() ? "All" : $P{statusId}]]></textFieldExpression></textField>
+				<staticText><reportElement x="391" y="70" width="391" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555572"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Priority]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="391" y="88" width="391" height="62" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555573"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{priorityId} == null || $P{priorityId}.trim().isEmpty() ? "All" : $P{priorityId}]]></textFieldExpression></textField>
+				<staticText><reportElement x="782" y="70" width="391" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555574"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Assigned To]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="782" y="88" width="391" height="62" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555575"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{assignedToName} == null || $P{assignedToName}.trim().isEmpty() ? "All" : $P{assignedToName}]]></textFieldExpression></textField>
+				<staticText><reportElement x="1173" y="70" width="392" height="18" mode="Opaque" backcolor="#D9D9D9" uuid="11111111-2222-3333-4444-555555555576"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10" isBold="true"/></textElement><text><![CDATA[Other Filters]]></text></staticText>
+				<textField isStretchWithOverflow="true"><reportElement x="1173" y="88" width="392" height="62" stretchType="RelativeToTallestObject" uuid="11111111-2222-3333-4444-555555555577"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement verticalAlignment="Top"><font size="9"/></textElement><textFieldExpression><![CDATA[$P{filterSummary} == null || $P{filterSummary}.trim().isEmpty() ? "-" : $P{filterSummary}]]></textFieldExpression></textField>
+			</frame>
 		</band>
 	</pageHeader>
 
