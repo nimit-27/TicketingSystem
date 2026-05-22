@@ -2,10 +2,7 @@ package com.ticketingSystem.reportGenerator.generators.excel;
 
 import com.ticketingSystem.reportGenerator.api.ReportContext;
 import com.ticketingSystem.reportGenerator.api.ReportGenerator;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.export.SimpleExporterInput;
@@ -58,6 +55,8 @@ public class JasperExcelReportGenerator implements ReportGenerator {
         for (String key : visibilityParams) {
             params.putIfAbsent(key, Boolean.TRUE);
         }
+
+        params.put(JRParameter.IS_IGNORE_PAGINATION, Boolean.TRUE);
 
         return params;
     }

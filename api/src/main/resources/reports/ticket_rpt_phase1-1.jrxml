@@ -541,7 +541,7 @@ ORDER BY t.ticket_id]]>
 			<textField isStretchWithOverflow="true">
 				
 <reportElement  positionType="Float"
-    stretchType="RelativeToTallestObject" x="1010" y="0" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
+    stretchType="RelativeToTallestObject" x="1010" y="0" width="100" height="20" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5">
 					<printWhenExpression><![CDATA[Boolean.TRUE.equals($P{showIssueType})]]></printWhenExpression>
 				</reportElement>
 				<box>
