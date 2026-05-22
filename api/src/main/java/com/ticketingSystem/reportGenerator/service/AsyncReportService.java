@@ -118,6 +118,24 @@ public class AsyncReportService {
             params.put("generatedOn", LocalDateTime.now().toString());
             params.put("fromDate", filters.get("fromDate"));
             params.put("toDate", filters.get("toDate"));
+            params.put("fromDateLabel", formatValue(filters.get("fromDate")));
+            params.put("toDateLabel", formatValue(filters.get("toDate")));
+            params.put("zoneCodeLabel", formatValue(filters.get("zoneCode")));
+            params.put("regionCodeLabel", formatValue(filters.get("regionCode")));
+            params.put("districtCodeLabel", formatValue(filters.get("districtCode")));
+            params.put("issueTypeLabelFilter", formatValue(filters.get("issueTypeId")));
+            params.put("statusId", formatValue(filters.get("statusId")));
+            params.put("priorityId", formatValue(filters.get("priority")));
+            params.put("severityId", formatValue(filters.get("severity")));
+            params.put("assignedToName", formatValue(filters.get("assignedTo")));
+            params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
+            params.put("assignedBy", formatValue(filters.get("assignedBy")));
+            params.put("subCategoryLabel", formatValue(filters.get("subCategory")));
+            params.put("requestorId", formatValue(filters.get("requestorId")));
+            params.put("createdBy", formatValue(filters.get("createdBy")));
+            params.put("levelId", formatValue(filters.get("levelId")));
+            params.put("division", formatValue(filters.get("divisionId")));
+            params.put("categoryLabel", formatValue(filters.get("category")));
             params.put("filterSummary", buildFilterSummary(filters));
 
             byte[] file = reportDownloadService.generate(reportCode, format, results, params);
@@ -186,6 +204,7 @@ public class AsyncReportService {
     }
 
     private String formatValue(Object value) {
+        if (isAllValue(value)) return "";
         if (value instanceof List<?> list) {
             return list.stream().map(String::valueOf).collect(Collectors.joining(", "));
         }
