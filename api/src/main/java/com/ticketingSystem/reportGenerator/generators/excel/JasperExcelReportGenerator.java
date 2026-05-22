@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component("jasperExcel")
 public class JasperExcelReportGenerator implements ReportGenerator {
@@ -23,9 +25,10 @@ public class JasperExcelReportGenerator implements ReportGenerator {
     public byte[] generateReport(ReportContext context) throws Exception {
         ClassPathResource resource = new ClassPathResource(context.getTemplateLocation());
         try (InputStream jrxml = resource.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Map<String, Object> params = withDefaultColumnVisibility(context.getParams());
             JasperReport jasperReport = JasperCompileManager.compileReport(jrxml);
             JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, context.getParams(), datasource);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
 
             JRXlsxExporter exporter = new JRXlsxExporter();
             exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
@@ -38,5 +41,24 @@ public class JasperExcelReportGenerator implements ReportGenerator {
             exporter.exportReport();
             return out.toByteArray();
         }
+    }
+
+    private Map<String, Object> withDefaultColumnVisibility(Map<String, Object> incomingParams) {
+        Map<String, Object> params = new HashMap<>();
+        if (incomingParams != null) {
+            params.putAll(incomingParams);
+        }
+
+        String[] visibilityParams = {
+                "showTicketId", "showRequestor", "showCreatedDate", "showModule", "showSubModule",
+                "showIssueType", "showZone", "showDistrict", "showRegion", "showSeverity",
+                "showPriority", "showAssigneeName", "showStatus"
+        };
+
+        for (String key : visibilityParams) {
+            params.putIfAbsent(key, Boolean.TRUE);
+        }
+
+        return params;
     }
 }
