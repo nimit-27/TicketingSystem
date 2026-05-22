@@ -69,7 +69,7 @@
     COALESCE(NULLIF(t.region_name, ''), NULLIF(rm.region_name, ''), '-') AS regionName,
 
     COALESCE(NULLIF(t.severity, ''), '-') AS severity,
-    COALESCE(CAST(pm.tp_id AS CHAR), NULLIF(t.priority, ''), '-') AS priority,
+    COALESCE(NULLIF(pm.tp_id, ''), '-') AS priority,
 
     COALESCE(NULLIF(au.name, ''), NULLIF(t.assigned_to, ''), '-') AS assignedToName,
     COALESCE(NULLIF(sm.label, ''), NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel
@@ -107,7 +107,7 @@ ORDER BY t.ticket_id]]>
 	<field name="districtName" class="java.lang.String"/>
 	<field name="regionName" class="java.lang.String"/>
 	<field name="severity" class="java.lang.String"/>
-	<field name="priority" class="java.lang.String"/>
+	<field name="priorityId" class="java.lang.String"/>
 	<field name="assignedToName" class="java.lang.String"/>
 	<field name="statusLabel" class="java.lang.String"/>
 	<title>
@@ -644,7 +644,7 @@ ORDER BY t.ticket_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{priorityId}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
 				
