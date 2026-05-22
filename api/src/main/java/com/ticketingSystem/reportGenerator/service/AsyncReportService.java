@@ -1,6 +1,8 @@
 package com.ticketingSystem.reportGenerator.service;
 
 import com.ticketingSystem.api.dto.TicketDto;
+import com.ticketingSystem.api.repository.CategoryRepository;
+import com.ticketingSystem.api.repository.SubCategoryRepository;
 import com.ticketingSystem.api.service.OciUploadService;
 import com.ticketingSystem.api.service.TicketService;
 import com.ticketingSystem.reportGenerator.enums.ReportFormat;
@@ -41,6 +43,8 @@ public class AsyncReportService {
 //    @Qualifier("notificationTaskExecutor")
     private final TaskExecutor taskExecutor;
     private final ObjectMapper objectMapper;
+    private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
     public AsyncReportService(
     ReportRequestHistoryRepository reportRequestHistoryRepository,
@@ -50,7 +54,9 @@ public class AsyncReportService {
     ReportDownloadService reportDownloadService,
     OciUploadService ociUploadService,
     @Qualifier("notificationTaskExecutor") TaskExecutor taskExecutor,
-    ObjectMapper objectMapper
+    ObjectMapper objectMapper,
+    CategoryRepository categoryRepository,
+    SubCategoryRepository subCategoryRepository
     ) {
         this.reportRequestHistoryRepository = reportRequestHistoryRepository;
         this.reportArtifactRepository = reportArtifactRepository;
@@ -60,6 +66,8 @@ public class AsyncReportService {
         this.ociUploadService = ociUploadService;
         this.taskExecutor = taskExecutor;
         this.objectMapper = objectMapper;
+        this.categoryRepository = categoryRepository;
+        this.subCategoryRepository = subCategoryRepository;
     }
 
 
@@ -130,12 +138,12 @@ public class AsyncReportService {
             params.put("assignedToName", formatValue(filters.get("assignedTo")));
             params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
             params.put("assignedBy", formatValue(filters.get("assignedBy")));
-            params.put("subCategoryLabel", formatValue(filters.get("subCategory")));
+            params.put("subCategoryLabel", resolveSubCategoryLabel(filters.get("subCategory")));
             params.put("requestorId", formatValue(filters.get("requestorId")));
             params.put("createdBy", formatValue(filters.get("createdBy")));
             params.put("levelId", formatValue(filters.get("levelId")));
             params.put("division", formatValue(filters.get("divisionId")));
-            params.put("categoryLabel", formatValue(filters.get("category")));
+            params.put("categoryLabel", resolveCategoryLabel(filters.get("category")));
             params.put("filterSummary", buildFilterSummary(filters));
 
             byte[] file = reportDownloadService.generate(reportCode, format, results, params);
@@ -163,6 +171,27 @@ public class AsyncReportService {
             request.setErrorMessage(e.getMessage());
             reportRequestHistoryRepository.save(request);
         }
+    }
+
+
+    private String resolveCategoryLabel(Object categoryId) {
+        String value = formatValue(categoryId);
+        if ("Any".equals(value)) {
+            return value;
+        }
+        return categoryRepository.findById(value)
+                .map(category -> formatValue(category.getCategory()))
+                .orElse(value);
+    }
+
+    private String resolveSubCategoryLabel(Object subCategoryId) {
+        String value = formatValue(subCategoryId);
+        if ("Any".equals(value)) {
+            return value;
+        }
+        return subCategoryRepository.findById(value)
+                .map(subCategory -> formatValue(subCategory.getSubCategory()))
+                .orElse(value);
     }
 
     private String toFiltersJson(Map<String, Object> filters) {
