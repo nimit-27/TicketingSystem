@@ -19,12 +19,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
@@ -120,8 +123,8 @@ public class AsyncReportService {
             Map<String, Object> params = new HashMap<>();
             params.put("USE_TEMPLATE_SQL", "template_sql".equalsIgnoreCase(reportMaster.getSourceType()));
             params.put("generatedOn", LocalDateTime.now().toString());
-            params.put("fromDate", filters.get("fromDate"));
-            params.put("toDate", filters.get("toDate"));
+            params.put("fromDate", toJasperDate(filters.get("fromDate")));
+            params.put("toDate", toJasperDate(filters.get("toDate")));
             params.put("fromDateLabel", formatValue(filters.get("fromDate")));
             params.put("toDateLabel", formatValue(filters.get("toDate")));
             params.put("zoneCodeLabel", formatValue(filters.get("zoneCode")));
@@ -166,6 +169,34 @@ public class AsyncReportService {
             request.setFailedAt(LocalDateTime.now());
             request.setErrorMessage(e.getMessage());
             reportRequestHistoryRepository.save(request);
+        }
+    }
+
+
+    private Date toJasperDate(Object rawValue) {
+        if (rawValue == null) return null;
+        if (rawValue instanceof Date dateValue) return dateValue;
+
+        String text = String.valueOf(rawValue).trim();
+        if (text.isEmpty()) return null;
+
+        try {
+            return java.sql.Date.valueOf(LocalDate.parse(text));
+        } catch (DateTimeParseException ignored) {
+            // Try datetime parse fallback below.
+        }
+
+        try {
+            return Timestamp.valueOf(LocalDateTime.parse(text));
+        } catch (DateTimeParseException ignored) {
+            // Try ISO instant parse fallback below.
+        }
+
+        try {
+            return Date.from(java.time.Instant.parse(text));
+        } catch (DateTimeParseException ignored) {
+            log.warn("Unable to parse date filter '{}' into java.util.Date; passing null to Jasper parameter.", text);
+            return null;
         }
     }
 
