@@ -114,19 +114,23 @@ public class AsyncReportService {
                     (String) filters.get("toDate")
             );
 
+            ReportMaster reportMaster = reportMasterRepository.findByReportCodeAndActiveTrue(reportCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Report definition not found for code: " + reportCode));
+
             Map<String, Object> params = new HashMap<>();
+            params.put("USE_TEMPLATE_SQL", "template_sql".equalsIgnoreCase(reportMaster.getSourceType()));
             params.put("generatedOn", LocalDateTime.now().toString());
-            params.put("fromDate", filters.get("fromDate"));
-            params.put("toDate", filters.get("toDate"));
+            params.put("fromDate", toNullableParam(filters.get("fromDate")));
+            params.put("toDate", toNullableParam(filters.get("toDate")));
             params.put("fromDateLabel", formatValue(filters.get("fromDate")));
             params.put("toDateLabel", formatValue(filters.get("toDate")));
             params.put("zoneCodeLabel", formatValue(filters.get("zoneCode")));
             params.put("regionCodeLabel", formatValue(filters.get("regionCode")));
             params.put("districtCodeLabel", formatValue(filters.get("districtCode")));
             params.put("issueTypeLabelFilter", formatValue(filters.get("issueTypeId")));
-            params.put("statusId", formatValue(filters.get("statusId")));
-            params.put("priorityId", formatValue(filters.get("priority")));
-            params.put("severityId", formatValue(filters.get("severity")));
+            params.put("statusId", toNullableParam(filters.get("statusId")));
+            params.put("priorityId", toNullableParam(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
+            params.put("severityId", toNullableParam(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
             params.put("assignedToName", formatValue(filters.get("assignedTo")));
             params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
             params.put("assignedBy", formatValue(filters.get("assignedBy")));
@@ -137,6 +141,10 @@ public class AsyncReportService {
             params.put("division", formatValue(filters.get("divisionId")));
             params.put("categoryLabel", formatValue(filters.get("category")));
             params.put("filterSummary", buildFilterSummary(filters));
+            params.put("zoneCode", toNullableParam(filters.get("zoneCode")));
+            params.put("regionCode", toNullableParam(filters.get("regionCode")));
+            params.put("districtCode", toNullableParam(filters.get("districtCode")));
+            params.put("issueTypeId", toNullableParam(filters.get("issueTypeId")));
 
             byte[] file = reportDownloadService.generate(reportCode, format, results, params);
             String ext = format == ReportFormat.PDF ? "pdf" : "xlsx";
@@ -163,6 +171,25 @@ public class AsyncReportService {
             request.setErrorMessage(e.getMessage());
             reportRequestHistoryRepository.save(request);
         }
+    }
+
+
+
+    private Object toNullableParam(Object value) {
+        if (value == null) return null;
+        if (value instanceof String str) {
+            String trimmed = str.trim();
+            return trimmed.isEmpty() ? null : trimmed;
+        }
+        if (value instanceof List<?> list) {
+            return list.isEmpty() ? null : value;
+        }
+        return value;
+    }
+
+    private Object firstNonEmpty(Object preferred, Object fallback) {
+        Object first = toNullableParam(preferred);
+        return first != null ? first : toNullableParam(fallback);
     }
 
     private String toFiltersJson(Map<String, Object> filters) {
