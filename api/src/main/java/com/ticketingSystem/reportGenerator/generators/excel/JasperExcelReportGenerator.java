@@ -11,21 +11,36 @@ import net.sf.jasperreports.export.SimpleXlsxReportConfiguration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component("jasperExcel")
 public class JasperExcelReportGenerator implements ReportGenerator {
+
+    private final DataSource dataSource;
+
+    public JasperExcelReportGenerator(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
     @Override
     public byte[] generateReport(ReportContext context) throws Exception {
         ClassPathResource resource = new ClassPathResource(context.getTemplateLocation());
         try (InputStream jrxml = resource.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Map<String, Object> params = withDefaultColumnVisibility(context.getParams());
             JasperReport jasperReport = JasperCompileManager.compileReport(jrxml);
-            JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
+            JasperPrint jasperPrint;
+            if (Boolean.TRUE.equals(params.get("USE_TEMPLATE_SQL"))) {
+                try (Connection connection = dataSource.getConnection()) {
+                    jasperPrint = JasperFillManager.fillReport(jasperReport, params, connection);
+                }
+            } else {
+                JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
+                jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
+            }
 
             JRXlsxExporter exporter = new JRXlsxExporter();
             exporter.setExporterInput(new SimpleExporterInput(jasperPrint));

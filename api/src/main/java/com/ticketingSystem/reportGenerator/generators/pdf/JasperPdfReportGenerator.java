@@ -19,14 +19,22 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component("jasperPdf")
 public class JasperPdfReportGenerator implements ReportGenerator {
+
+    private final DataSource dataSource;
+
+    public JasperPdfReportGenerator(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     /**
      * Phase-2 placeholder for fully dynamic report construction.
@@ -91,8 +99,15 @@ public class JasperPdfReportGenerator implements ReportGenerator {
         try (InputStream jrxml = resource.getInputStream()) {
             Map<String, Object> params = withDefaultColumnVisibility(context.getParams());
             JasperReport jasperReport = JasperCompileManager.compileReport(jrxml);
-            JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
+            JasperPrint jasperPrint;
+            if (Boolean.TRUE.equals(params.get("USE_TEMPLATE_SQL"))) {
+                try (Connection connection = dataSource.getConnection()) {
+                    jasperPrint = JasperFillManager.fillReport(jasperReport, params, connection);
+                }
+            } else {
+                JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(context.getRows());
+                jasperPrint = JasperFillManager.fillReport(jasperReport, params, datasource);
+            }
             return JasperExportManager.exportReportToPdf(jasperPrint);
         } catch (FileNotFoundException ex) {
             throw new FileNotFoundException("File not found or is not accessible. Root cause: " + ex.getMessage());

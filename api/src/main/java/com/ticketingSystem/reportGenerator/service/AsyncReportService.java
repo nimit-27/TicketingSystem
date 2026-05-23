@@ -114,7 +114,11 @@ public class AsyncReportService {
                     (String) filters.get("toDate")
             );
 
+            ReportMaster reportMaster = reportMasterRepository.findByReportCodeAndActiveTrue(reportCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Report definition not found for code: " + reportCode));
+
             Map<String, Object> params = new HashMap<>();
+            params.put("USE_TEMPLATE_SQL", "template_sql".equalsIgnoreCase(reportMaster.getSourceType()));
             params.put("generatedOn", LocalDateTime.now().toString());
             params.put("fromDate", filters.get("fromDate"));
             params.put("toDate", filters.get("toDate"));
