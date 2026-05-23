@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,17 @@ public class ReportDownloadService {
         effectiveParams.putIfAbsent("REPORT_CODE", reportCode);
 
         ReportContext context = new ReportContext(rows, effectiveParams, reportMaster.getTemplateLocation());
-        return reportGeneratorProvider.getGenerator(format).generateReport(context);
+        try {
+            return reportGeneratorProvider.getGenerator(format).generateReport(context);
+        } catch (InvocationTargetException ex) {
+            Throwable rootCause = ex.getTargetException() != null ? ex.getTargetException() : ex;
+            throw new IllegalStateException("Report generation failed for code '" + reportCode
+                    + "' using template '" + reportMaster.getTemplateLocation() + "'. Root cause: "
+                    + rootCause.getClass().getSimpleName() + ": " + rootCause.getMessage(), rootCause);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Report generation failed for code '" + reportCode
+                    + "' using template '" + reportMaster.getTemplateLocation() + "'. Root cause: "
+                    + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
+        }
     }
 }
