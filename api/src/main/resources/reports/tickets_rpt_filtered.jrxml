@@ -38,7 +38,7 @@
                 COALESCE(NULLIF(t.severity, ''), '-') AS severity,
                 COALESCE(CAST(pm.tp_id AS CHAR), NULLIF(t.priority, ''), '-') AS priority,
                 COALESCE(NULLIF(au.name, ''), NULLIF(t.assigned_to, ''), '-') AS assignedToName,
-                COALESCE(NULLIF(sm.label, ''), NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel
+                COALESCE(NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel
             FROM tickets t
             LEFT JOIN categories c ON c.category_id = t.category
             LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
