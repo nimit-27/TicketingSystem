@@ -137,7 +137,6 @@ public class AsyncReportService {
                     row.put("type", inferType(entry.getValue()));
                     row.put("value", entry.getValue());
                     boolean isAll = isAllValue(entry.getValue());
-                    row.put("display_value", isAll ? "All" : toLabel(entry.getKey()));
                     row.put("is_all", isAll);
                     return row;
                 })
