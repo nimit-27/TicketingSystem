@@ -86,8 +86,10 @@ ORDER BY t.ticket_id
     <columnHeader>
         <band height="20">
             <staticText>
-                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0"
-                               width="60" height="20" backcolor="#ADACAC" uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="0" y="0" width="80" height="20"
+                               backcolor="#ADACAC"
+                               uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead"/>
                 <box>
                     <topPen lineWidth="0.75"/>
                     <leftPen lineWidth="0.75"/>
@@ -99,54 +101,211 @@ ORDER BY t.ticket_id
                 </textElement>
                 <text><![CDATA[Ticket ID]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="80" y="0" width="120" height="20" uuid="7f1c5d6d-eb27-4d71-8bf6-538f9780f95a"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="80" y="0" width="120" height="20"
+                               backcolor="#ADACAC"
+                               uuid="7f1c5d6d-eb27-4d71-8bf6-538f9780f95a"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Requestor]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="200" y="0" width="140" height="20" uuid="3a64100b-ab00-4962-ad0f-f2735ff8a2a0"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="200" y="0" width="140" height="20"
+                               backcolor="#ADACAC"
+                               uuid="3a64100b-ab00-4962-ad0f-f2735ff8a2a0"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Reported Date]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="340" y="0" width="100" height="20" uuid="f551264f-0ac2-4f73-ad03-2b1ea3247a1e"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="340" y="0" width="100" height="20"
+                               backcolor="#ADACAC"
+                               uuid="f551264f-0ac2-4f73-ad03-2b1ea3247a1e"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Category]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="440" y="0" width="100" height="20" uuid="2e88cc91-6f74-46a4-ac58-931748f4746f"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="440" y="0" width="100" height="20"
+                               backcolor="#ADACAC"
+                               uuid="2e88cc91-6f74-46a4-ac58-931748f4746f"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[SubCategory]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="540" y="0" width="100" height="20" uuid="3ccca767-df77-4a43-a291-26502291d96a"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="540" y="0" width="100" height="20"
+                               backcolor="#ADACAC"
+                               uuid="3ccca767-df77-4a43-a291-26502291d96a"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Issue Type]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="640" y="0" width="90" height="20" uuid="b31198f1-a7de-437e-9378-2e4b87fe7e90"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="640" y="0" width="90" height="20"
+                               backcolor="#ADACAC"
+                               uuid="b31198f1-a7de-437e-9378-2e4b87fe7e90"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Zone]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="730" y="0" width="90" height="20" uuid="8b20a734-1eef-4d35-9f81-9b0d5d701a99"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="730" y="0" width="90" height="20"
+                               backcolor="#ADACAC"
+                               uuid="8b20a734-1eef-4d35-9f81-9b0d5d701a99"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[District]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="820" y="0" width="90" height="20" uuid="2f3826ca-a5f6-4788-8fef-64f1b13b45da"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="820" y="0" width="90" height="20"
+                               backcolor="#ADACAC"
+                               uuid="2f3826ca-a5f6-4788-8fef-64f1b13b45da"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Region]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="910" y="0" width="60" height="20" uuid="7cfe7e6c-954c-4f80-962f-8d1f80cb31bf"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="910" y="0" width="60" height="20"
+                               backcolor="#ADACAC"
+                               uuid="7cfe7e6c-954c-4f80-962f-8d1f80cb31bf"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Severity]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="970" y="0" width="60" height="20" uuid="4bf9ad1c-b74f-47b8-8403-b39984a7ef4d"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="970" y="0" width="60" height="20"
+                               backcolor="#ADACAC"
+                               uuid="4bf9ad1c-b74f-47b8-8403-b39984a7ef4d"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Priority]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="1030" y="0" width="70" height="20" uuid="ea3a9738-d59d-4d75-89de-9d84df1787eb"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="1030" y="0" width="70" height="20"
+                               backcolor="#ADACAC"
+                               uuid="ea3a9738-d59d-4d75-89de-9d84df1787eb"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Assignee]]></text>
             </staticText>
+
             <staticText>
-                <reportElement x="1100" y="0" width="60" height="20" uuid="062cb96b-5937-4950-a10c-00bc988de82f"/>
+                <reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque"
+                               x="1100" y="0" width="60" height="20"
+                               backcolor="#ADACAC"
+                               uuid="062cb96b-5937-4950-a10c-00bc988de82f"/>
+                <box>
+                    <topPen lineWidth="0.75"/>
+                    <leftPen lineWidth="0.75"/>
+                    <bottomPen lineWidth="0.75"/>
+                    <rightPen lineWidth="0.75"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true"/>
+                </textElement>
                 <text><![CDATA[Status]]></text>
             </staticText>
+
         </band>
     </columnHeader>
 
