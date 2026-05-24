@@ -1,8 +1,6 @@
 package com.ticketingSystem.reportGenerator.service;
 
-import com.ticketingSystem.api.dto.TicketDto;
 import com.ticketingSystem.api.service.OciUploadService;
-import com.ticketingSystem.api.service.TicketService;
 import com.ticketingSystem.reportGenerator.enums.ReportFormat;
 import com.ticketingSystem.reportGenerator.enums.RequestStatus;
 import com.ticketingSystem.reportGenerator.models.ReportArtifact;
@@ -22,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
@@ -35,31 +34,31 @@ public class AsyncReportService {
     private final ReportRequestHistoryRepository reportRequestHistoryRepository;
     private final ReportArtifactRepository reportArtifactRepository;
     private final ReportMasterRepository reportMasterRepository;
-    private final TicketService ticketService;
     private final ReportDownloadService reportDownloadService;
     private final OciUploadService ociUploadService;
 //    @Qualifier("notificationTaskExecutor")
     private final TaskExecutor taskExecutor;
     private final ObjectMapper objectMapper;
+    private final List<ReportRequestDataProvider> reportRequestDataProviders;
 
     public AsyncReportService(
     ReportRequestHistoryRepository reportRequestHistoryRepository,
     ReportArtifactRepository reportArtifactRepository,
     ReportMasterRepository reportMasterRepository,
-    TicketService ticketService,
     ReportDownloadService reportDownloadService,
     OciUploadService ociUploadService,
     @Qualifier("notificationTaskExecutor") TaskExecutor taskExecutor,
-    ObjectMapper objectMapper
+    ObjectMapper objectMapper,
+    List<ReportRequestDataProvider> reportRequestDataProviders
     ) {
         this.reportRequestHistoryRepository = reportRequestHistoryRepository;
         this.reportArtifactRepository = reportArtifactRepository;
         this.reportMasterRepository = reportMasterRepository;
-        this.ticketService = ticketService;
         this.reportDownloadService = reportDownloadService;
         this.ociUploadService = ociUploadService;
         this.taskExecutor = taskExecutor;
         this.objectMapper = objectMapper;
+        this.reportRequestDataProviders = reportRequestDataProviders;
     }
 
 
@@ -88,65 +87,16 @@ public class AsyncReportService {
             request.setStartedAt(LocalDateTime.now());
             reportRequestHistoryRepository.save(request);
 
-            List<TicketDto> results = ticketService.searchTicketsList(
-                    (String) filters.getOrDefault("query", ""),
-                    (String) filters.get("statusId"),
-                    (Boolean) filters.get("master"),
-                    (Boolean) filters.get("assignedBackFromFci"),
-                    (String) filters.get("assignedTo"),
-                    (String) filters.get("assignedBy"),
-                    (String) filters.get("requestorId"),
-                    (String) filters.get("levelId"),
-                    (String) filters.get("priority"),
-                    (String) filters.get("severity"),
-                    (String) filters.get("createdBy"),
-                    (String) filters.get("category"),
-                    (String) filters.get("subCategory"),
-                    (String) filters.get("zoneCode"),
-                    (String) filters.get("regionCode"),
-                    (String) filters.get("districtCode"),
-                    (String) filters.get("issueTypeId"),
-                    (String) filters.get("divisionId"),
-                    (String) filters.get("breachOption"),
-                    (Integer) filters.get("breachInMinutes"),
-                    (String) filters.getOrDefault("dateParam", "reported_date"),
-                    (String) filters.get("fromDate"),
-                    (String) filters.get("toDate")
-            );
-
             ReportMaster reportMaster = reportMasterRepository.findByReportCodeAndActiveTrue(reportCode)
                     .orElseThrow(() -> new IllegalArgumentException("Report definition not found for code: " + reportCode));
 
-            Map<String, Object> params = new HashMap<>();
-            params.put("USE_TEMPLATE_SQL", "template_sql".equalsIgnoreCase(reportMaster.getSourceType()));
-            params.put("generatedOn", LocalDateTime.now().toString());
-            params.put("fromDate", toNullableParam(filters.get("fromDate")));
-            params.put("toDate", toNullableParam(filters.get("toDate")));
-            params.put("fromDateLabel", formatValue(filters.get("fromDate")));
-            params.put("toDateLabel", formatValue(filters.get("toDate")));
-            params.put("zoneCodeLabel", formatValue(filters.get("zoneCode")));
-            params.put("regionCodeLabel", formatValue(filters.get("regionCode")));
-            params.put("districtCodeLabel", formatValue(filters.get("districtCode")));
-            params.put("issueTypeLabelFilter", formatValue(filters.get("issueTypeId")));
-            params.put("statusId", toNullableParam(filters.get("statusId")));
-            params.put("priorityId", toNullableParam(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
-            params.put("severityId", toNullableParam(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
-            params.put("assignedToName", formatValue(filters.get("assignedToName")));
-            params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
-            params.put("assignedBy", formatValue(filters.get("assignedBy")));
-            params.put("subCategory", toNullableParam(formatValue(filters.get("subCategory"))));
-            params.put("subCategoryId", toNullableParam(formatValue(filters.get("subCategoryId"))));
-            params.put("requestorId", formatValue(filters.get("requestorId")));
-            params.put("createdBy", formatValue(filters.get("createdBy")));
-            params.put("levelId", formatValue(filters.get("levelId")));
-            params.put("division", formatValue(filters.get("divisionId")));
-            params.put("category", toNullableParam(formatValue(filters.get("category"))));
-            params.put("categoryId", toNullableParam(formatValue(filters.get("categoryId"))));
-            params.put("filterSummary", buildFilterSummary(filters));
-            params.put("zoneCode", toNullableParam(filters.get("zoneCode")));
-            params.put("regionCode", toNullableParam(filters.get("regionCode")));
-            params.put("districtCode", toNullableParam(filters.get("districtCode")));
-            params.put("issueTypeId", toNullableParam(filters.get("issueTypeId")));
+            ReportRequestDataProvider provider = reportRequestDataProviders.stream()
+                    .filter(candidate -> candidate.supports(reportCode, reportMaster, filters))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("No report data provider configured for code: " + reportCode));
+
+            List<?> results = provider.fetchRows(filters != null ? filters : Collections.emptyMap());
+            Map<String, Object> params = provider.buildParams(filters != null ? filters : Collections.emptyMap(), reportMaster, format);
 
             byte[] file = reportDownloadService.generate(reportCode, format, results, params);
             String ext = format == ReportFormat.PDF ? "pdf" : "xlsx";
@@ -176,24 +126,6 @@ public class AsyncReportService {
     }
 
 
-
-    private Object toNullableParam(Object value) {
-        if (value == null) return null;
-        if (value instanceof String str) {
-            String trimmed = str.trim();
-            return trimmed.isEmpty() ? null : trimmed;
-        }
-        if (value instanceof List<?> list) {
-            return list.isEmpty() ? null : value;
-        }
-        return value;
-    }
-
-    private Object firstNonEmpty(Object preferred, Object fallback) {
-        Object first = toNullableParam(preferred);
-        return first != null ? first : toNullableParam(fallback);
-    }
-
     private String toFiltersJson(Map<String, Object> filters) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("filters", new ArrayList<>(filters.entrySet().stream()
@@ -218,12 +150,6 @@ public class AsyncReportService {
         }
     }
 
-    private String buildFilterSummary(Map<String, Object> filters) {
-        return filters.entrySet().stream()
-                .filter(entry -> entry.getKey() != null && !entry.getKey().equals("query") && !entry.getKey().equals("dateParam"))
-                .map(entry -> toLabel(entry.getKey()) + ": " + (isAllValue(entry.getValue()) ? "All" : formatValue(entry.getValue())))
-                .collect(Collectors.joining(" | "));
-    }
 
     private boolean isAllValue(Object value) {
         if (value == null) return true;
@@ -232,13 +158,6 @@ public class AsyncReportService {
         return false;
     }
 
-    private String formatValue(Object value) {
-        if (isAllValue(value)) return "";
-        if (value instanceof List<?> list) {
-            return list.stream().map(String::valueOf).collect(Collectors.joining(", "));
-        }
-        return String.valueOf(value);
-    }
 
     private String inferType(Object value) {
         if (value instanceof List<?>) return "multi_select";
