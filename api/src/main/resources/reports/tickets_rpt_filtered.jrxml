@@ -49,6 +49,7 @@
             LEFT JOIN users au ON au.username = t.assigned_to
             LEFT JOIN status_master sm ON sm.status_id = t.status_id
                 WHERE 1 = 1
+                    AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
                     AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
                     AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
                     AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
