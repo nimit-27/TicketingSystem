@@ -395,8 +395,8 @@ public class TicketController {
         filters.put("priority", priority);
         filters.put("severity", severity);
         filters.put("createdBy", createdBy);
-        filters.put("category", category);
-        filters.put("subCategory", subCategory);
+        filters.put("categoryId", category);
+        filters.put("subCategoryId", subCategory);
         filters.put("zoneCode", zoneCode);
         filters.put("regionCode", regionCode);
         filters.put("districtCode", districtCode);
