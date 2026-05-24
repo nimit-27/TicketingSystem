@@ -165,6 +165,14 @@ export function downloadTicketsReport({
     assignedTo,
     statusId,
     divisionId,
+    zoneLabel,
+    regionLabel,
+    districtLabel,
+    issueTypeLabel,
+    divisionLabel,
+    categoryLabel,
+    subCategoryLabel,
+    statusLabel,
     requestedBy,
     signal,
 }: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
@@ -181,6 +189,14 @@ export function downloadTicketsReport({
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
     if (divisionId) params.append('divisionId', divisionId);
+    if (zoneLabel) params.append('zoneLabel', zoneLabel);
+    if (regionLabel) params.append('regionLabel', regionLabel);
+    if (districtLabel) params.append('districtLabel', districtLabel);
+    if (issueTypeLabel) params.append('issueTypeLabel', issueTypeLabel);
+    if (divisionLabel) params.append('divisionLabel', divisionLabel);
+    if (categoryLabel) params.append('categoryLabel', categoryLabel);
+    if (subCategoryLabel) params.append('subCategoryLabel', subCategoryLabel);
+    if (statusLabel) params.append('statusLabel', statusLabel);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
     if (requestedBy) params.append('requestedBy', requestedBy);
@@ -210,6 +226,14 @@ interface SearchTicketsForExportParams {
     assignedTo?: string;
     statusId?: string;
     divisionId?: string;
+    zoneLabel?: string;
+    regionLabel?: string;
+    districtLabel?: string;
+    issueTypeLabel?: string;
+    divisionLabel?: string;
+    categoryLabel?: string;
+    subCategoryLabel?: string;
+    statusLabel?: string;
     requestedBy?: string;
     signal?: AbortSignal;
 }
@@ -240,6 +264,14 @@ export function searchTicketsForExport({
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
     if (divisionId) params.append('divisionId', divisionId);
+    if (zoneLabel) params.append('zoneLabel', zoneLabel);
+    if (regionLabel) params.append('regionLabel', regionLabel);
+    if (districtLabel) params.append('districtLabel', districtLabel);
+    if (issueTypeLabel) params.append('issueTypeLabel', issueTypeLabel);
+    if (divisionLabel) params.append('divisionLabel', divisionLabel);
+    if (categoryLabel) params.append('categoryLabel', categoryLabel);
+    if (subCategoryLabel) params.append('subCategoryLabel', subCategoryLabel);
+    if (statusLabel) params.append('statusLabel', statusLabel);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
     if (requestedBy) params.append('requestedBy', requestedBy);

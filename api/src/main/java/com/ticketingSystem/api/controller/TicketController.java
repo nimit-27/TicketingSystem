@@ -382,6 +382,14 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String zoneLabel,
+            @RequestParam(required = false) String regionLabel,
+            @RequestParam(required = false) String districtLabel,
+            @RequestParam(required = false) String issueTypeLabel,
+            @RequestParam(required = false) String divisionLabel,
+            @RequestParam(required = false) String categoryLabel,
+            @RequestParam(required = false) String subCategoryLabel,
+            @RequestParam(required = false) String statusLabel,
             @RequestParam(required = false) String requestedBy) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("query", query);
@@ -407,6 +415,14 @@ public class TicketController {
         filters.put("dateParam", dateParam);
         filters.put("fromDate", fromDate);
         filters.put("toDate", toDate);
+        filters.put("zoneLabel", zoneLabel);
+        filters.put("regionLabel", regionLabel);
+        filters.put("districtLabel", districtLabel);
+        filters.put("issueTypeLabel", issueTypeLabel);
+        filters.put("divisionLabel", divisionLabel);
+        filters.put("categoryLabel", categoryLabel);
+        filters.put("subCategoryLabel", subCategoryLabel);
+        filters.put("statusLabel", statusLabel);
 
         asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
         return ResponseEntity.accepted().build();
@@ -439,6 +455,14 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String zoneLabel,
+            @RequestParam(required = false) String regionLabel,
+            @RequestParam(required = false) String districtLabel,
+            @RequestParam(required = false) String issueTypeLabel,
+            @RequestParam(required = false) String divisionLabel,
+            @RequestParam(required = false) String categoryLabel,
+            @RequestParam(required = false) String subCategoryLabel,
+            @RequestParam(required = false) String statusLabel,
             @RequestParam(required = false) String requestedBy) {
         Map<String, Object> filters = new HashMap<>();
         filters.put("query", query);
@@ -464,6 +488,14 @@ public class TicketController {
         filters.put("dateParam", dateParam);
         filters.put("fromDate", fromDate);
         filters.put("toDate", toDate);
+        filters.put("zoneLabel", zoneLabel);
+        filters.put("regionLabel", regionLabel);
+        filters.put("districtLabel", districtLabel);
+        filters.put("issueTypeLabel", issueTypeLabel);
+        filters.put("divisionLabel", divisionLabel);
+        filters.put("categoryLabel", categoryLabel);
+        filters.put("subCategoryLabel", subCategoryLabel);
+        filters.put("statusLabel", statusLabel);
 
         ReportRequestHistory req = asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
         return ResponseEntity.accepted().body(Map.of("requestId", req.getRequestId(), "status", req.getStatus()));

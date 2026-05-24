@@ -62,23 +62,23 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
         params.put("toDate", toNullableParam(filters.get("toDate")));
         params.put("fromDateLabel", formatValue(filters.get("fromDate")));
         params.put("toDateLabel", formatValue(filters.get("toDate")));
-        params.put("zoneCodeLabel", formatValue(filters.get("zoneCode")));
-        params.put("regionCodeLabel", formatValue(filters.get("regionCode")));
-        params.put("districtCodeLabel", formatValue(filters.get("districtCode")));
-        params.put("issueTypeLabelFilter", formatValue(filters.get("issueTypeId")));
+        params.put("zoneCodeLabel", preferredLabel(filters, "zoneLabel", "zoneCode"));
+        params.put("regionCodeLabel", preferredLabel(filters, "regionLabel", "regionCode"));
+        params.put("districtCodeLabel", preferredLabel(filters, "districtLabel", "districtCode"));
+        params.put("issueTypeLabelFilter", preferredLabel(filters, "issueTypeLabel", "issueTypeId"));
         params.put("statusId", toNullableParam(filters.get("statusId")));
         params.put("priorityId", toNullableParam(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
         params.put("severityId", toNullableParam(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
         params.put("assignedToName", formatValue(filters.get("assignedToName")));
         params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
         params.put("assignedBy", formatValue(filters.get("assignedBy")));
-        params.put("subCategory", toNullableParam(formatValue(filters.get("subCategoryId"))));
+        params.put("subCategory", toNullableParam(preferredLabel(filters, "subCategoryLabel", "subCategoryId")));
         params.put("subCategoryId", toNullableParam(formatValue(filters.get("subCategoryId"))));
         params.put("requestorId", formatValue(filters.get("requestorId")));
         params.put("createdBy", formatValue(filters.get("createdBy")));
         params.put("levelId", formatValue(filters.get("levelId")));
-        params.put("division", formatValue(filters.get("divisionId")));
-        params.put("category", toNullableParam(formatValue(filters.get("categoryId"))));
+        params.put("division", preferredLabel(filters, "divisionLabel", "divisionId"));
+        params.put("category", toNullableParam(preferredLabel(filters, "categoryLabel", "categoryId")));
         params.put("categoryId", toNullableParam(formatValue(filters.get("categoryId"))));
         params.put("filterSummary", buildFilterSummary(filters));
         params.put("zoneCode", toNullableParam(filters.get("zoneCode")));
@@ -108,8 +108,30 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
     private String buildFilterSummary(Map<String, Object> filters) {
         return filters.entrySet().stream()
                 .filter(entry -> entry.getKey() != null && !entry.getKey().equals("query") && !entry.getKey().equals("dateParam"))
-                .map(entry -> toLabel(entry.getKey()) + ": " + (isAllValue(entry.getValue()) ? "All" : formatValue(entry.getValue())))
+                .map(entry -> toLabel(entry.getKey()) + ": " + (isAllValue(resolveDisplayValue(entry.getKey(), filters)) ? "All" : formatValue(resolveDisplayValue(entry.getKey(), filters))))
                 .collect(Collectors.joining(" | "));
+    }
+
+
+    private Object resolveDisplayValue(String key, Map<String, Object> filters) {
+        if (key == null) return null;
+        return switch (key) {
+            case "categoryId" -> preferredLabel(filters, "categoryLabel", "categoryId");
+            case "subCategoryId" -> preferredLabel(filters, "subCategoryLabel", "subCategoryId");
+            case "statusId" -> preferredLabel(filters, "statusLabel", "statusId");
+            case "zoneCode" -> preferredLabel(filters, "zoneLabel", "zoneCode");
+            case "regionCode" -> preferredLabel(filters, "regionLabel", "regionCode");
+            case "districtCode" -> preferredLabel(filters, "districtLabel", "districtCode");
+            case "issueTypeId" -> preferredLabel(filters, "issueTypeLabel", "issueTypeId");
+            case "divisionId" -> preferredLabel(filters, "divisionLabel", "divisionId");
+            default -> filters.get(key);
+        };
+    }
+
+    private String preferredLabel(Map<String, Object> filters, String labelKey, String fallbackKey) {
+        String label = formatValue(filters.get(labelKey));
+        if (!label.isBlank()) return label;
+        return formatValue(filters.get(fallbackKey));
     }
 
     private boolean isAllValue(Object value) {
