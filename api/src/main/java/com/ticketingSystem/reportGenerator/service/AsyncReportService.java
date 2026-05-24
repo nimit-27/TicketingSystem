@@ -128,6 +128,8 @@ public class AsyncReportService {
 
     private String toFiltersJson(Map<String, Object> filters) {
         Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("fromDate", filters.get("fromDate"));
+        payload.put("toDate", filters.get("toDate"));
         payload.put("filters", new ArrayList<>(filters.entrySet().stream()
                 .filter(entry -> entry.getKey() != null && !entry.getKey().equals("query") && !entry.getKey().equals("dateParam"))
                 .map(entry -> {
@@ -138,6 +140,7 @@ public class AsyncReportService {
                     row.put("value", entry.getValue());
                     boolean isAll = isAllValue(entry.getValue());
                     row.put("is_all", isAll);
+                    row.put("show", shouldShow(entry.getKey()));
                     return row;
                 })
                 .collect(Collectors.toList())));
@@ -149,6 +152,10 @@ public class AsyncReportService {
         }
     }
 
+
+    private boolean shouldShow(String key) {
+        return key != null && key.endsWith("Label");
+    }
 
     private boolean isAllValue(Object value) {
         if (value == null) return true;
