@@ -130,14 +130,18 @@ public class AsyncReportService {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("filters", new ArrayList<>(filters.entrySet().stream()
                 .filter(entry -> entry.getKey() != null && !entry.getKey().equals("query") && !entry.getKey().equals("dateParam"))
+                .filter(entry -> !entry.getKey().endsWith("Label"))
                 .map(entry -> {
                     Map<String, Object> row = new LinkedHashMap<>();
+                    String key = entry.getKey();
+                    String displayKey = key + "Label";
+                    Object displaySource = filters.get(displayKey);
                     row.put("key", entry.getKey());
                     row.put("label", toLabel(entry.getKey()));
                     row.put("type", inferType(entry.getValue()));
                     row.put("value", entry.getValue());
                     boolean isAll = isAllValue(entry.getValue());
-                    row.put("display_value", isAll ? "All" : formatValue(entry.getValue()));
+                    row.put("display_value", isAll ? "All" : formatValue(displaySource != null ? displaySource : entry.getValue()));
                     row.put("is_all", isAll);
                     return row;
                 })
