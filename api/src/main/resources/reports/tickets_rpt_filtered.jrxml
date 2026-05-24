@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Ticket_Report_Simple" pageWidth="1200" pageHeight="595" orientation="Landscape" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c8f97d26-4a51-44ff-8ddd-2e31fd4f9847">
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="annadarpan_ticket_db"/>
+
+<!--    <parameter name="fromDate" class="java.util.Date"/>-->
+<!--    <parameter name="toDate" class="java.util.Date"/>-->
+    <parameter name="zoneCode" class="java.lang.String"/>
+    <parameter name="regionCode" class="java.lang.String"/>
+    <parameter name="districtCode" class="java.lang.String"/>
+    <parameter name="issueTypeId" class="java.lang.String"/>
+    <parameter name="statusId" class="java.lang.String"/>
+    <parameter name="priorityId" class="java.lang.String"/>
+    <parameter name="severityId" class="java.lang.String"/>
+    <parameter name="assignedToName" class="java.lang.String"/>
+<!--    <parameter name="generatedOn" class="java.lang.String"/>-->
+
+    <queryString>
+        <![CDATA[
+SELECT
+    t.ticket_id AS id,
+    COALESCE(NULLIF(t.requestor_name, ''), '-') AS requestorName,
+    t.reported_date AS reportedDate,
+    COALESCE(NULLIF(c.category, ''), NULLIF(t.category, ''), '-') AS category,
+    COALESCE(NULLIF(sc.sub_category, ''), NULLIF(t.sub_category, ''), '-') AS subCategory,
+    COALESCE(NULLIF(it.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issueTypeLabel,
+    COALESCE(NULLIF(zm.zone_name, ''), NULLIF(t.zone_code, ''), '-') AS zoneCode,
+    COALESCE(NULLIF(t.district_name, ''), NULLIF(dm.district_name, ''), '-') AS districtName,
+    COALESCE(NULLIF(t.region_name, ''), NULLIF(rm.region_name, ''), '-') AS regionName,
+    COALESCE(NULLIF(t.severity, ''), '-') AS severity,
+    COALESCE(CAST(pm.tp_id AS CHAR), NULLIF(t.priority, ''), '-') AS priority,
+    COALESCE(NULLIF(au.name, ''), NULLIF(t.assigned_to, ''), '-') AS assignedToName,
+    COALESCE(NULLIF(sm.label, ''), NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel
+FROM tickets t
+LEFT JOIN categories c ON c.category_id = t.category
+LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
+LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
+LEFT JOIN zone_master zm ON zm.zone_code = t.zone_code
+LEFT JOIN region_master rm ON rm.region_code = t.region_code
+LEFT JOIN district_master dm ON dm.district_code = t.district_code
+LEFT JOIN priority_master pm ON pm.tp_id = t.priority
+LEFT JOIN users au ON au.username = t.assigned_to
+LEFT JOIN status_master sm ON sm.status_id = t.status_id
+    WHERE 1 = 1
+        AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
+        AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
+        AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
+        AND ($P{statusId} IS NULL OR t.status_id = $P{statusId})
+        AND ($P{priorityId} IS NULL OR t.priority = $P{priorityId})
+        AND ($P{severityId} IS NULL OR t.severity = $P{severityId})
+        AND ($P{assignedToName} IS NULL OR au.username = $P{assignedToName})
+
+ORDER BY t.ticket_id
+        ]]>
+    </queryString>
+
+    <field name="id" class="java.lang.String"/>
+    <field name="requestorName" class="java.lang.String"/>
+    <field name="reportedDate" class="java.sql.Timestamp"/>
+    <field name="category" class="java.lang.String"/>
+    <field name="subCategory" class="java.lang.String"/>
+    <field name="issueTypeLabel" class="java.lang.String"/>
+    <field name="zoneCode" class="java.lang.String"/>
+    <field name="districtName" class="java.lang.String"/>
+    <field name="regionName" class="java.lang.String"/>
+    <field name="severity" class="java.lang.String"/>
+    <field name="priority" class="java.lang.String"/>
+    <field name="assignedToName" class="java.lang.String"/>
+    <field name="statusLabel" class="java.lang.String"/>
+
+    <title>
+        <band height="30">
+            <staticText>
+                <reportElement x="0" y="0" width="1160" height="30" uuid="6fb9296f-7dac-4460-8931-653c5d136369"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Tickets Report]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0" y="0" width="80" height="20" uuid="7ee464d1-a0d2-4867-819a-3fca4bdb91a0"/><text><![CDATA[Ticket ID]]></text></staticText>
+            <staticText><reportElement x="80" y="0" width="120" height="20" uuid="7f1c5d6d-eb27-4d71-8bf6-538f9780f95a"/><text><![CDATA[Requestor]]></text></staticText>
+            <staticText><reportElement x="200" y="0" width="140" height="20" uuid="3a64100b-ab00-4962-ad0f-f2735ff8a2a0"/><text><![CDATA[Reported Date]]></text></staticText>
+            <staticText><reportElement x="340" y="0" width="100" height="20" uuid="f551264f-0ac2-4f73-ad03-2b1ea3247a1e"/><text><![CDATA[Category]]></text></staticText>
+            <staticText><reportElement x="440" y="0" width="100" height="20" uuid="2e88cc91-6f74-46a4-ac58-931748f4746f"/><text><![CDATA[SubCategory]]></text></staticText>
+            <staticText><reportElement x="540" y="0" width="100" height="20" uuid="3ccca767-df77-4a43-a291-26502291d96a"/><text><![CDATA[Issue Type]]></text></staticText>
+            <staticText><reportElement x="640" y="0" width="90" height="20" uuid="b31198f1-a7de-437e-9378-2e4b87fe7e90"/><text><![CDATA[Zone]]></text></staticText>
+            <staticText><reportElement x="730" y="0" width="90" height="20" uuid="8b20a734-1eef-4d35-9f81-9b0d5d701a99"/><text><![CDATA[District]]></text></staticText>
+            <staticText><reportElement x="820" y="0" width="90" height="20" uuid="2f3826ca-a5f6-4788-8fef-64f1b13b45da"/><text><![CDATA[Region]]></text></staticText>
+            <staticText><reportElement x="910" y="0" width="60" height="20" uuid="7cfe7e6c-954c-4f80-962f-8d1f80cb31bf"/><text><![CDATA[Severity]]></text></staticText>
+            <staticText><reportElement x="970" y="0" width="60" height="20" uuid="4bf9ad1c-b74f-47b8-8403-b39984a7ef4d"/><text><![CDATA[Priority]]></text></staticText>
+            <staticText><reportElement x="1030" y="0" width="70" height="20" uuid="ea3a9738-d59d-4d75-89de-9d84df1787eb"/><text><![CDATA[Assignee]]></text></staticText>
+            <staticText><reportElement x="1100" y="0" width="60" height="20" uuid="062cb96b-5937-4950-a10c-00bc988de82f"/><text><![CDATA[Status]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="20">
+            <textField><reportElement x="0" y="0" width="80" height="20" uuid="fb2feddb-a5b2-4729-93e4-5b0a927d9f3b"/><textFieldExpression><![CDATA[$F{id}]]></textFieldExpression></textField>
+            <textField><reportElement x="80" y="0" width="120" height="20" uuid="7785b2d4-06ab-4a20-a4ef-c9f80cb220a9"/><textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression></textField>
+            <textField><reportElement x="200" y="0" width="140" height="20" uuid="adf2f781-67ee-4718-b345-57f39826655b"/><textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression></textField>
+            <textField><reportElement x="340" y="0" width="100" height="20" uuid="24c30d80-c90a-4b34-a75f-6a4a1bb88ba8"/><textFieldExpression><![CDATA[$F{category}]]></textFieldExpression></textField>
+            <textField><reportElement x="440" y="0" width="100" height="20" uuid="c4c30dab-31f6-4c3b-bfc7-43143f9d7ea9"/><textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression></textField>
+            <textField><reportElement x="540" y="0" width="100" height="20" uuid="fbadf2f7-e07c-4e9c-b439-98153471c50e"/><textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression></textField>
+            <textField><reportElement x="640" y="0" width="90" height="20" uuid="bf64e2b2-c518-4064-9f87-1110dd176663"/><textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression></textField>
+            <textField><reportElement x="730" y="0" width="90" height="20" uuid="43d2119c-610d-450b-8309-ba4ad418b4e8"/><textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression></textField>
+            <textField><reportElement x="820" y="0" width="90" height="20" uuid="5f46ecc8-c91c-4bdd-af8a-04ce6de8fcab"/><textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression></textField>
+            <textField><reportElement x="910" y="0" width="60" height="20" uuid="68053016-0749-4964-b4fc-9f2f6f4da434"/><textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression></textField>
+            <textField><reportElement x="970" y="0" width="60" height="20" uuid="1c0807cc-4dc8-4339-a4ef-5af7ff8f05ec"/><textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression></textField>
+            <textField><reportElement x="1030" y="0" width="70" height="20" uuid="a130e784-e166-46e5-a59c-c9fbe5c5a604"/><textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression></textField>
+            <textField><reportElement x="1100" y="0" width="60" height="20" uuid="1fd4f461-faed-4ba3-a727-aad59dffef42"/><textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+</jasperReport>
