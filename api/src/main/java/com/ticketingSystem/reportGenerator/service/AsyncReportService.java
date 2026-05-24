@@ -134,13 +134,14 @@ public class AsyncReportService {
             params.put("assignedToName", formatValue(filters.get("assignedToName")));
             params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
             params.put("assignedBy", formatValue(filters.get("assignedBy")));
-            params.put("subCategory", formatValue(filters.get("subCategory")));
-            params.put("subCategoryId", formatValue(filters.get("subCategoryId")));
+            params.put("subCategory", toNullableParam(formatValue(filters.get("subCategory"))));
+            params.put("subCategoryId", toNullableParam(formatValue(filters.get("subCategoryId"))));
             params.put("requestorId", formatValue(filters.get("requestorId")));
             params.put("createdBy", formatValue(filters.get("createdBy")));
             params.put("levelId", formatValue(filters.get("levelId")));
             params.put("division", formatValue(filters.get("divisionId")));
-            params.put("categoryLabel", formatValue(filters.get("category")));
+            params.put("category", formatValue(filters.get("category")));
+            params.put("categoryId", formatValue(filters.get("categoryId")));
             params.put("filterSummary", buildFilterSummary(filters));
             params.put("zoneCode", toNullableParam(filters.get("zoneCode")));
             params.put("regionCode", toNullableParam(filters.get("regionCode")));

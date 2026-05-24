@@ -10,6 +10,7 @@
     <!--    <parameter name="fromDate" class="java.util.Date"/>-->
     <!--    <parameter name="toDate" class="java.util.Date"/>-->
     <parameter name="category" class="java.lang.String"/>
+    <parameter name="categoryId" class="java.lang.String"/>
     <parameter name="subCategory" class="java.lang.String"/>
     <parameter name="subCategoryId" class="java.lang.String"/>
     <parameter name="zoneCode" class="java.lang.String"/>
@@ -28,7 +29,7 @@
                 t.ticket_id AS id,
                 COALESCE(NULLIF(t.requestor_name, ''), '-') AS requestorName,
                 t.reported_date AS reportedDate,
-                COALESCE(NULLIF(c.category, ''), NULLIF(t.category, ''), '-') AS category,
+                COALESCE(NULLIF(c.category, ''), '-') AS category,
                 COALESCE(NULLIF(sc.sub_category, ''), '-') AS subCategory,
                 COALESCE(NULLIF(it.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issueTypeLabel,
                 COALESCE(NULLIF(zm.zone_name, ''), NULLIF(t.zone_code, ''), '-') AS zoneCode,
@@ -314,8 +315,7 @@
     </columnHeader>
 
     <detail>
-        <band height="20">
-
+        <band height="20" splitType="Stretch">
             <textField>
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
