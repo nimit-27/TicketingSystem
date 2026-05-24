@@ -158,6 +158,13 @@ public class AsyncReportService {
         return false;
     }
 
+    private String formatValue(Object value) {
+        if (isAllValue(value)) return "";
+        if (value instanceof List<?> list) {
+            return list.stream().map(String::valueOf).collect(Collectors.joining(", "));
+        }
+        return String.valueOf(value);
+    }
 
     private String inferType(Object value) {
         if (value instanceof List<?>) return "multi_select";
