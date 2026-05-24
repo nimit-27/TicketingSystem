@@ -165,6 +165,15 @@ export function downloadTicketsReport({
     assignedTo,
     statusId,
     divisionId,
+    zoneLabel,
+    categoryLabel,
+    subCategoryLabel,
+    regionLabel,
+    districtLabel,
+    issueTypeLabel,
+    divisionLabel,
+    assignedToLabel,
+    statusLabel,
     requestedBy,
     signal,
 }: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
@@ -183,6 +192,15 @@ export function downloadTicketsReport({
     if (divisionId) params.append('divisionId', divisionId);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
+    if (zoneLabel) params.append('zoneLabel', zoneLabel);
+    if (categoryLabel) params.append('categoryLabel', categoryLabel);
+    if (subCategoryLabel) params.append('subCategoryLabel', subCategoryLabel);
+    if (regionLabel) params.append('regionLabel', regionLabel);
+    if (districtLabel) params.append('districtLabel', districtLabel);
+    if (issueTypeLabel) params.append('issueTypeLabel', issueTypeLabel);
+    if (divisionLabel) params.append('divisionLabel', divisionLabel);
+    if (assignedToLabel) params.append('assignedToLabel', assignedToLabel);
+    if (statusLabel) params.append('statusLabel', statusLabel);
     if (requestedBy) params.append('requestedBy', requestedBy);
     return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
 }
@@ -210,6 +228,15 @@ interface SearchTicketsForExportParams {
     assignedTo?: string;
     statusId?: string;
     divisionId?: string;
+    zoneLabel?: string;
+    categoryLabel?: string;
+    subCategoryLabel?: string;
+    regionLabel?: string;
+    districtLabel?: string;
+    issueTypeLabel?: string;
+    divisionLabel?: string;
+    assignedToLabel?: string;
+    statusLabel?: string;
     requestedBy?: string;
     signal?: AbortSignal;
 }

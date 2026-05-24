@@ -257,6 +257,15 @@ public class TicketController {
             @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String issueTypeId,
             @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String zoneLabel,
+            @RequestParam(required = false) String categoryLabel,
+            @RequestParam(required = false) String subCategoryLabel,
+            @RequestParam(required = false) String regionLabel,
+            @RequestParam(required = false) String districtLabel,
+            @RequestParam(required = false) String issueTypeLabel,
+            @RequestParam(required = false) String divisionLabel,
+            @RequestParam(required = false) String assignedToLabel,
+            @RequestParam(required = false) String statusLabel,
             @RequestParam(required = false) String breachOption,
             @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
@@ -319,6 +328,15 @@ public class TicketController {
             @RequestParam(required = false) String districtCode,
             @RequestParam(required = false) String issueTypeId,
             @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String zoneLabel,
+            @RequestParam(required = false) String categoryLabel,
+            @RequestParam(required = false) String subCategoryLabel,
+            @RequestParam(required = false) String regionLabel,
+            @RequestParam(required = false) String districtLabel,
+            @RequestParam(required = false) String issueTypeLabel,
+            @RequestParam(required = false) String divisionLabel,
+            @RequestParam(required = false) String assignedToLabel,
+            @RequestParam(required = false) String statusLabel,
             @RequestParam(required = false) String breachOption,
             @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
@@ -402,6 +420,24 @@ public class TicketController {
         filters.put("districtCode", districtCode);
         filters.put("issueTypeId", issueTypeId);
         filters.put("divisionId", divisionId);
+        filters.put("zoneLabel", zoneLabel);
+        filters.put("categoryLabel", categoryLabel);
+        filters.put("subCategoryLabel", subCategoryLabel);
+        filters.put("regionLabel", regionLabel);
+        filters.put("districtLabel", districtLabel);
+        filters.put("issueTypeLabel", issueTypeLabel);
+        filters.put("divisionLabel", divisionLabel);
+        filters.put("assignedToLabel", assignedToLabel);
+        filters.put("statusLabel", statusLabel);
+        filters.put("zoneLabel", zoneLabel);
+        filters.put("categoryLabel", categoryLabel);
+        filters.put("subCategoryLabel", subCategoryLabel);
+        filters.put("regionLabel", regionLabel);
+        filters.put("districtLabel", districtLabel);
+        filters.put("issueTypeLabel", issueTypeLabel);
+        filters.put("divisionLabel", divisionLabel);
+        filters.put("assignedToLabel", assignedToLabel);
+        filters.put("statusLabel", statusLabel);
         filters.put("breachOption", breachOption);
         filters.put("breachInMinutes", breachInMinutes);
         filters.put("dateParam", dateParam);
@@ -483,6 +519,7 @@ public class TicketController {
                     row.put("failedAt", req.getFailedAt());
                     row.put("errorMessage", req.getErrorMessage());
                     row.put("expiresAt", req.getExpiresAt());
+                    row.put("filtersJson", req.getFiltersJson());
                     if (req.getRequestedBy() != null && !req.getRequestedBy().isBlank()) {
                         userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> {
                             Map<String, Object> requestedByDetails = new HashMap<>();

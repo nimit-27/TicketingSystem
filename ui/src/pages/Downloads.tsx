@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, CircularProgress, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Tooltip, Typography } from '@mui/material';
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
 import { useApi } from '../hooks/useApi';
@@ -24,7 +24,10 @@ type ReportRequestRow = {
     username?: string;
     name?: string;
   };
+  filtersJson?: string;
 };
+type FilterItem = { key?: string; label?: string; value?: string | string[]; display_value?: string | string[]; is_all?: boolean };
+type ParsedFilters = { fromDate?: string; toDate?: string; otherFilters: FilterItem[] };
 
 const Downloads: React.FC = () => {
   const { data, pending, apiHandler } = useApi<ReportRequestRow[]>();
@@ -50,6 +53,48 @@ const Downloads: React.FC = () => {
       </Box>
     );
   }, []);
+  const [expandedFilters, setExpandedFilters] = React.useState<Record<string, boolean>>({});
+
+  const parseFilters = React.useCallback((filtersJson?: string): ParsedFilters => {
+    if (!filtersJson) return { otherFilters: [] };
+    try {
+      const parsed = typeof filtersJson === 'string' ? JSON.parse(filtersJson) : filtersJson;
+      const filters: FilterItem[] = Array.isArray(parsed?.filters) ? parsed.filters : [];
+      const visible = filters.filter((item) => !item?.is_all);
+      const fromDate = visible.find((item) => item?.key === 'fromDate')?.display_value as string | undefined;
+      const toDate = visible.find((item) => item?.key === 'toDate')?.display_value as string | undefined;
+      return {
+        fromDate,
+        toDate,
+        otherFilters: visible.filter((item) => item?.key !== 'fromDate' && item?.key !== 'toDate'),
+      };
+    } catch {
+      return { otherFilters: [] };
+    }
+  }, []);
+
+  const renderFilterChip = React.useCallback((filter: FilterItem, index: number) => {
+    const displayValues = Array.isArray(filter.display_value) ? filter.display_value : String(filter.display_value ?? '').split(',').map(v => v.trim()).filter(Boolean);
+    return (
+      <Chip
+        key={`${filter.key}-${index}`}
+        sx={{ bgcolor: '#e8f5e9', height: 'auto', '& .MuiChip-label': { py: 0.75 } }}
+        label={(
+          <Box>
+            <Typography variant="caption" sx={{ fontSize: 10, lineHeight: 1.1 }}>{filter.label || filter.key}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+              {displayValues.map((value, valueIndex) => (
+                <React.Fragment key={`${value}-${valueIndex}`}>
+                  {valueIndex > 0 && <Divider orientation="vertical" flexItem />}
+                  <Typography variant="body2">{value}</Typography>
+                </React.Fragment>
+              ))}
+            </Box>
+          </Box>
+        )}
+      />
+    );
+  }, []);
 
   const columns = React.useMemo<ColumnsType<ReportRequestRow>>(
     () => [
@@ -66,6 +111,39 @@ const Downloads: React.FC = () => {
         },
       },
       { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => renderDateCell(value) },
+      {
+        title: 'From Date',
+        key: 'fromDate',
+        render: (_, row) => renderDateCell(parseFilters(row.filtersJson).fromDate),
+      },
+      {
+        title: 'To Date',
+        key: 'toDate',
+        render: (_, row) => renderDateCell(parseFilters(row.filtersJson).toDate),
+      },
+      {
+        title: 'Other Filters',
+        key: 'otherFilters',
+        width: 360,
+        render: (_, row) => {
+          const filters = parseFilters(row.filtersJson).otherFilters;
+          if (!filters.length) return '-';
+          const expanded = expandedFilters[row.requestId];
+          const visibleFilters = expanded ? filters : filters.slice(0, 3);
+          return (
+            <Box sx={{ maxWidth: 340 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                {visibleFilters.map(renderFilterChip)}
+              </Box>
+              {filters.length > 3 && (
+                <Button size="small" onClick={() => setExpandedFilters((prev) => ({ ...prev, [row.requestId]: !expanded }))}>
+                  {expanded ? 'less...' : 'more...'}
+                </Button>
+              )}
+            </Box>
+          );
+        },
+      },
       {
         title: 'Completed At',
         key: 'doneAt',
@@ -99,7 +177,7 @@ const Downloads: React.FC = () => {
         },
       },
     ],
-    [renderDateCell],
+    [expandedFilters, parseFilters, renderDateCell, renderFilterChip],
   );
 
   return (
