@@ -134,7 +134,8 @@ public class AsyncReportService {
             params.put("assignedToName", formatValue(filters.get("assignedToName")));
             params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
             params.put("assignedBy", formatValue(filters.get("assignedBy")));
-            params.put("subCategoryLabel", formatValue(filters.get("subCategory")));
+            params.put("subCategory", formatValue(filters.get("subCategory")));
+            params.put("subCategoryId", formatValue(filters.get("subCategoryId")));
             params.put("requestorId", formatValue(filters.get("requestorId")));
             params.put("createdBy", formatValue(filters.get("createdBy")));
             params.put("levelId", formatValue(filters.get("levelId")));
