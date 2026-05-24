@@ -515,6 +515,7 @@ public class TicketController {
                     row.put("failedAt", req.getFailedAt());
                     row.put("errorMessage", req.getErrorMessage());
                     row.put("expiresAt", req.getExpiresAt());
+                    row.put("filters_json", req.getFiltersJson());
                     if (req.getRequestedBy() != null && !req.getRequestedBy().isBlank()) {
                         userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> {
                             Map<String, Object> requestedByDetails = new HashMap<>();
