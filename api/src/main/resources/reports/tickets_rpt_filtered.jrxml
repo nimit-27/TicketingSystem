@@ -70,11 +70,7 @@ ORDER BY t.ticket_id
     <title>
         <band height="30">
             <staticText>
-                <reportElement x="0" y="0" width="1160" height="30" uuid="6fb9296f-7dac-4460-8931-653c5d136369" stretchType="RelativeToTallestObject" positionType="Float">
-                    <box>
-                        <pen lineWidth="0.5"/>
-                    </box>
-                </reportElement>
+                <reportElement x="0" y="0" width="1160" height="30" uuid="6fb9296f-7dac-4460-8931-653c5d136369"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                     <font size="16" isBold="true"/>
                 </textElement>
@@ -85,69 +81,108 @@ ORDER BY t.ticket_id
 
     <columnHeader>
         <band height="20">
-            <staticText><reportElement x="0" y="0" width="80" height="20" uuid="7ee464d1-a0d2-4867-819a-3fca4bdb91a0" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="0" y="0" width="80" height="20" uuid="7ee464d1-a0d2-4867-819a-3fca4bdb91a0" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Ticket ID]]></text></staticText>
-            <staticText><reportElement x="80" y="0" width="120" height="20" uuid="7f1c5d6d-eb27-4d71-8bf6-538f9780f95a" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="80" y="0" width="120" height="20" uuid="7f1c5d6d-eb27-4d71-8bf6-538f9780f95a" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Requestor]]></text></staticText>
-            <staticText><reportElement x="200" y="0" width="140" height="20" uuid="3a64100b-ab00-4962-ad0f-f2735ff8a2a0" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="200" y="0" width="140" height="20" uuid="3a64100b-ab00-4962-ad0f-f2735ff8a2a0" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Reported Date]]></text></staticText>
-            <staticText><reportElement x="340" y="0" width="100" height="20" uuid="f551264f-0ac2-4f73-ad03-2b1ea3247a1e" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="340" y="0" width="100" height="20" uuid="f551264f-0ac2-4f73-ad03-2b1ea3247a1e" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Category]]></text></staticText>
-            <staticText><reportElement x="440" y="0" width="100" height="20" uuid="2e88cc91-6f74-46a4-ac58-931748f4746f" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="440" y="0" width="100" height="20" uuid="2e88cc91-6f74-46a4-ac58-931748f4746f" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[SubCategory]]></text></staticText>
-            <staticText><reportElement x="540" y="0" width="100" height="20" uuid="3ccca767-df77-4a43-a291-26502291d96a" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="540" y="0" width="100" height="20" uuid="3ccca767-df77-4a43-a291-26502291d96a" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Issue Type]]></text></staticText>
-            <staticText><reportElement x="640" y="0" width="90" height="20" uuid="b31198f1-a7de-437e-9378-2e4b87fe7e90" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="640" y="0" width="90" height="20" uuid="b31198f1-a7de-437e-9378-2e4b87fe7e90" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Zone]]></text></staticText>
-            <staticText><reportElement x="730" y="0" width="90" height="20" uuid="8b20a734-1eef-4d35-9f81-9b0d5d701a99" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="730" y="0" width="90" height="20" uuid="8b20a734-1eef-4d35-9f81-9b0d5d701a99" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[District]]></text></staticText>
-            <staticText><reportElement x="820" y="0" width="90" height="20" uuid="2f3826ca-a5f6-4788-8fef-64f1b13b45da" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="820" y="0" width="90" height="20" uuid="2f3826ca-a5f6-4788-8fef-64f1b13b45da" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Region]]></text></staticText>
-            <staticText><reportElement x="910" y="0" width="60" height="20" uuid="7cfe7e6c-954c-4f80-962f-8d1f80cb31bf" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="910" y="0" width="60" height="20" uuid="7cfe7e6c-954c-4f80-962f-8d1f80cb31bf" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Severity]]></text></staticText>
-            <staticText><reportElement x="970" y="0" width="60" height="20" uuid="4bf9ad1c-b74f-47b8-8403-b39984a7ef4d" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="970" y="0" width="60" height="20" uuid="4bf9ad1c-b74f-47b8-8403-b39984a7ef4d" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Priority]]></text></staticText>
-            <staticText><reportElement x="1030" y="0" width="70" height="20" uuid="ea3a9738-d59d-4d75-89de-9d84df1787eb" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="1030" y="0" width="70" height="20" uuid="ea3a9738-d59d-4d75-89de-9d84df1787eb" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Assignee]]></text></staticText>
-            <staticText><reportElement x="1100" y="0" width="60" height="20" uuid="062cb96b-5937-4950-a10c-00bc988de82f" stretchType="RelativeToTallestObject" positionType="Float">
+            <staticText><reportElement x="1100" y="0" width="60" height="20" uuid="062cb96b-5937-4950-a10c-00bc988de82f" positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" backcolor="#ADACAC">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><text><![CDATA[Status]]></text></staticText>
         </band>
@@ -155,69 +190,108 @@ ORDER BY t.ticket_id
 
     <detail>
         <band height="20" splitType="Stretch">
-            <textField isStretchWithOverflow="true"><reportElement x="0" y="0" width="80" height="20" uuid="fb2feddb-a5b2-4729-93e4-5b0a927d9f3b" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="0" y="0" width="80" height="20" uuid="fb2feddb-a5b2-4729-93e4-5b0a927d9f3b" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{id}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="80" y="0" width="120" height="20" uuid="7785b2d4-06ab-4a20-a4ef-c9f80cb220a9" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="80" y="0" width="120" height="20" uuid="7785b2d4-06ab-4a20-a4ef-c9f80cb220a9" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="200" y="0" width="140" height="20" uuid="adf2f781-67ee-4718-b345-57f39826655b" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="200" y="0" width="140" height="20" uuid="adf2f781-67ee-4718-b345-57f39826655b" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="340" y="0" width="100" height="20" uuid="24c30d80-c90a-4b34-a75f-6a4a1bb88ba8" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="340" y="0" width="100" height="20" uuid="24c30d80-c90a-4b34-a75f-6a4a1bb88ba8" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{category}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="440" y="0" width="100" height="20" uuid="c4c30dab-31f6-4c3b-bfc7-43143f9d7ea9" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="440" y="0" width="100" height="20" uuid="c4c30dab-31f6-4c3b-bfc7-43143f9d7ea9" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="540" y="0" width="100" height="20" uuid="fbadf2f7-e07c-4e9c-b439-98153471c50e" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="540" y="0" width="100" height="20" uuid="fbadf2f7-e07c-4e9c-b439-98153471c50e" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="640" y="0" width="90" height="20" uuid="bf64e2b2-c518-4064-9f87-1110dd176663" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="640" y="0" width="90" height="20" uuid="bf64e2b2-c518-4064-9f87-1110dd176663" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="730" y="0" width="90" height="20" uuid="43d2119c-610d-450b-8309-ba4ad418b4e8" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="730" y="0" width="90" height="20" uuid="43d2119c-610d-450b-8309-ba4ad418b4e8" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="820" y="0" width="90" height="20" uuid="5f46ecc8-c91c-4bdd-af8a-04ce6de8fcab" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="820" y="0" width="90" height="20" uuid="5f46ecc8-c91c-4bdd-af8a-04ce6de8fcab" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="910" y="0" width="60" height="20" uuid="68053016-0749-4964-b4fc-9f2f6f4da434" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="910" y="0" width="60" height="20" uuid="68053016-0749-4964-b4fc-9f2f6f4da434" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="970" y="0" width="60" height="20" uuid="1c0807cc-4dc8-4339-a4ef-5af7ff8f05ec" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="970" y="0" width="60" height="20" uuid="1c0807cc-4dc8-4339-a4ef-5af7ff8f05ec" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="1030" y="0" width="70" height="20" uuid="a130e784-e166-46e5-a59c-c9fbe5c5a604" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="1030" y="0" width="70" height="20" uuid="a130e784-e166-46e5-a59c-c9fbe5c5a604" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression></textField>
-            <textField isStretchWithOverflow="true"><reportElement x="1100" y="0" width="60" height="20" uuid="1fd4f461-faed-4ba3-a727-aad59dffef42" stretchType="RelativeToTallestObject" positionType="Float">
+            <textField isStretchWithOverflow="true"><reportElement x="1100" y="0" width="60" height="20" uuid="1fd4f461-faed-4ba3-a727-aad59dffef42" positionType="Float" stretchType="RelativeToTallestObject">
                     <box>
-                        <pen lineWidth="0.5"/>
+                        <topPen lineWidth="0.75"/>
+                        <leftPen lineWidth="0.75"/>
+                        <bottomPen lineWidth="0.75"/>
+                        <rightPen lineWidth="0.75"/>
                     </box>
                 </reportElement><textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression></textField>
         </band>
