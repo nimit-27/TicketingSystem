@@ -140,8 +140,8 @@ public class AsyncReportService {
             params.put("createdBy", formatValue(filters.get("createdBy")));
             params.put("levelId", formatValue(filters.get("levelId")));
             params.put("division", formatValue(filters.get("divisionId")));
-            params.put("category", formatValue(filters.get("category")));
-            params.put("categoryId", formatValue(filters.get("categoryId")));
+            params.put("category", toNullableParam(formatValue(filters.get("category"))));
+            params.put("categoryId", toNullableParam(formatValue(filters.get("categoryId"))));
             params.put("filterSummary", buildFilterSummary(filters));
             params.put("zoneCode", toNullableParam(filters.get("zoneCode")));
             params.put("regionCode", toNullableParam(filters.get("regionCode")));

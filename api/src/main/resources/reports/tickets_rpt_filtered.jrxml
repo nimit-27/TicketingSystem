@@ -50,6 +50,7 @@
             LEFT JOIN users au ON au.username = t.assigned_to
             LEFT JOIN status_master sm ON sm.status_id = t.status_id
                 WHERE 1 = 1
+                    AND ($P{categoryId} IS NULL OR t.category = $P{categoryId})
                     AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
                     AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
                     AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
@@ -316,7 +317,7 @@
 
     <detail>
         <band height="20" splitType="Stretch">
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="0" y="0" width="80" height="20"
@@ -334,7 +335,7 @@
                 <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="80" y="0" width="120" height="20"
@@ -352,7 +353,7 @@
                 <textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="200" y="0" width="140" height="20"
@@ -370,7 +371,7 @@
                 <textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="340" y="0" width="100" height="20"
@@ -388,7 +389,7 @@
                 <textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="440" y="0" width="100" height="20"
@@ -406,7 +407,7 @@
                 <textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="540" y="0" width="100" height="20"
@@ -424,7 +425,7 @@
                 <textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="640" y="0" width="90" height="20"
@@ -442,7 +443,7 @@
                 <textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="730" y="0" width="90" height="20"
@@ -460,7 +461,7 @@
                 <textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="820" y="0" width="90" height="20"
@@ -478,7 +479,7 @@
                 <textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="910" y="0" width="60" height="20"
@@ -496,7 +497,7 @@
                 <textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="970" y="0" width="60" height="20"
@@ -514,7 +515,7 @@
                 <textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="1030" y="0" width="70" height="20"
@@ -532,7 +533,7 @@
                 <textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression>
             </textField>
 
-            <textField>
+            <textField isStretchWithOverflow="true">
                 <reportElement positionType="Float"
                                stretchType="RelativeToTallestObject"
                                x="1100" y="0" width="60" height="20"
