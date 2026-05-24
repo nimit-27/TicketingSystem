@@ -24,6 +24,17 @@ describe("utils/dateUtils", () => {
     });
   });
 
+  it("uses current time when from/to are both today", () => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const expectedTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+
+    expect(buildApiDateParams({ preset: "CUSTOM", fromDate: today, toDate: today })).toEqual({
+      fromDate: `${today}T${expectedTime}`,
+      toDate: `${today}T${expectedTime}`,
+    });
+  });
+
   it("forces preset to custom and merges date values", () => {
     const state = { preset: "LAST_1_DAY" as const, fromDate: "2024-01-01", toDate: "2024-01-02" };
     expect(ensureCustomPreset(state, { fromDate: "2024-02-01" })).toEqual({

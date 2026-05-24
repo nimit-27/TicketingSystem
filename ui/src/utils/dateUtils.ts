@@ -68,8 +68,17 @@ export const buildApiDateParams = (state: DateRangeState | undefined): { fromDat
         return {};
     }
 
-    const from = state.fromDate ? `${state.fromDate}T00:00:00` : undefined;
-    const to = state.toDate ? `${state.toDate}T23:59:59` : undefined;
+    const now = new Date();
+    const today = formatDateInput(now);
+    const nowTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+    const useCurrentTimeForToday = state.fromDate === today && state.toDate === today;
+
+    const from = state.fromDate
+        ? `${state.fromDate}T${useCurrentTimeForToday ? nowTime : "00:00:00"}`
+        : undefined;
+    const to = state.toDate
+        ? `${state.toDate}T${useCurrentTimeForToday ? nowTime : "23:59:59"}`
+        : undefined;
 
     return {
         fromDate: from,
