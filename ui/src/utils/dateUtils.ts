@@ -72,12 +72,13 @@ export const buildApiDateParams = (state: DateRangeState | undefined): { fromDat
     const today = formatDateInput(now);
     const nowTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
     const useCurrentTimeForToday = state.fromDate === today && state.toDate === today;
+    const capToNow = !!state.toDate && state.toDate >= today;
 
     const from = state.fromDate
         ? `${state.fromDate}T${useCurrentTimeForToday ? nowTime : "00:00:00"}`
         : undefined;
     const to = state.toDate
-        ? `${state.toDate}T${useCurrentTimeForToday ? nowTime : "23:59:59"}`
+        ? `${capToNow ? today : state.toDate}T${useCurrentTimeForToday || capToNow ? nowTime : "23:59:59"}`
         : undefined;
 
     return {

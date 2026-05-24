@@ -27,6 +27,16 @@ describe('dateUtils', () => {
     ).toEqual({ fromDate: `${today}T${expectedTime}`, toDate: `${today}T${expectedTime}` });
   });
 
+  it('caps toDate to current datetime when selected toDate is in the future', () => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const expectedTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    expect(
+      buildApiDateParams({ preset: 'CUSTOM', fromDate: '2024-05-01', toDate: '2099-12-31' })
+    ).toEqual({ fromDate: '2024-05-01T00:00:00', toDate: `${today}T${expectedTime}` });
+  });
+
   it('merges updates into a custom preset', () => {
     const state = { preset: 'CUSTOM', fromDate: '2024-05-01', toDate: '2024-05-10' } as const;
 
