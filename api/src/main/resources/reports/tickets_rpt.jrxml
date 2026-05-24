@@ -1,16 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.21.5.final using JasperReports Library version 6.21.5-74d586df47b25dbd05bd0957999819196e59934a  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Ticket_Report" pageWidth="1200" pageHeight="1000" orientation="Landscape" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="49eb571f-0fd6-446d-ba14-d8096438ffca">
-	<property name="com.jaspersoft.studio.unit." value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="annadarpan_ticket_db"/>
+<!-- Created with Jaspersoft Studio version 7.0.6.final using JasperReports Library version 7.0.6-5d2a603fdc6b3db8f842a83383e594f41891534d  -->
+<jasperReport name="Ticket_Report" language="java" columnCount="1" pageWidth="1400" pageHeight="1000" columnWidth="1360" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="49eb571f-0fd6-446d-ba14-d8096438ffca">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ticket"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<parameter name="fromDate" class="java.util.Date"/>
 	<parameter name="toDate" class="java.util.Date"/>
@@ -21,21 +11,28 @@
 	<parameter name="statusId" class="java.lang.String"/>
 	<parameter name="priorityId" class="java.lang.String"/>
 	<parameter name="assignee" class="java.lang.String"/>
-	<queryString>
-		<![CDATA[SELECT
-            t.ticket_id AS ticket_id,
-            COALESCE(NULLIF(t.requestor_name, ''), '-') AS requestor,
-            t.reported_date AS created_date,
-            COALESCE(NULLIF(c.category, ''), NULLIF(t.category, ''), '-') AS module_name,
-            COALESCE(NULLIF(sc.sub_category, ''), NULLIF(t.sub_category, ''), '-') AS sub_module_name,
-            COALESCE(NULLIF(it.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issue_type,
-            COALESCE(NULLIF(zm.zone_name, ''), NULLIF(t.zone_code, ''), '-') AS zone_name,
-            COALESCE(NULLIF(t.district_name, ''), NULLIF(dm.district_name, ''), '-') AS district_name,
-            COALESCE(NULLIF(t.region_name, ''), NULLIF(rm.region_name, ''), '-') AS region_name,
-            COALESCE(NULLIF(t.severity, ''), '-') AS severity,
-            COALESCE(NULLIF(pm.tp_level, ''), NULLIF(t.priority, ''), '-') AS priority,
-            COALESCE(NULLIF(au.name, ''), NULLIF(t.assigned_to, ''), '-') AS assignee,
-            COALESCE(NULLIF(sm.label, ''), NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS status
+	<query language="sql"><![CDATA[SELECT
+    t.ticket_id AS id,
+    COALESCE(NULLIF(t.requestor_name, ''), '-') AS requestorName,
+    t.reported_date AS reportedDate,
+
+    COALESCE(NULLIF(c.category, ''), NULLIF(t.category, ''), '-') AS category,
+    COALESCE(NULLIF(sc.sub_category, ''), NULLIF(t.sub_category, ''), '-') AS subCategory,
+    
+    COALESCE(NULLIF(t.subject, ''), '-') AS subject,
+    COALESCE(NULLIF(t.description, ''), '-') AS description,
+    
+    COALESCE(NULLIF(it.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issueTypeLabel,
+	
+    COALESCE(NULLIF(zm.zone_name, ''), NULLIF(t.zone_code, ''), '-') AS zoneCode,
+    COALESCE(NULLIF(t.district_name, ''), NULLIF(dm.district_name, ''), '-') AS districtName,
+    COALESCE(NULLIF(t.region_name, ''), NULLIF(rm.region_name, ''), '-') AS regionName,
+
+    COALESCE(NULLIF(t.severity, ''), '-') AS severity,
+    COALESCE(NULLIF(pm.tp_level, ''), NULLIF(t.priority, ''), '-') AS priority,
+    COALESCE(NULLIF(au.name, ''), NULLIF(t.assigned_to, ''), '-') AS assignedToName,
+   
+    COALESCE(NULLIF(sm.label, ''), NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel
         FROM tickets t
         LEFT JOIN categories c ON c.category_id = t.category
         LEFT JOIN sub_categories sc ON sc.sub_category_id = t.sub_category
@@ -55,210 +52,150 @@
   AND ( $P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId} )
   AND ( $P{statusId} IS NULL OR t.status_id = $P{statusId} )
   AND ( $P{priorityId} IS NULL OR t.priority = $P{priorityId} )
-  AND ( $P{assignee} IS NULL OR LOWER(t.assigned_to) = LOWER($P{assignee}) )
-ORDER BY t.ticket_id]]>
-	</queryString>
-	<field name="ticket_id" class="java.lang.String"/>
-	<field name="requestor" class="java.lang.String"/>
-	<field name="created_date" class="java.sql.Timestamp"/>
-	<field name="module_name" class="java.lang.String"/>
-	<field name="sub_module_name" class="java.lang.String"/>
-	<field name="issue_type" class="java.lang.String"/>
-	<field name="zone_name" class="java.lang.String"/>
-	<field name="district_name" class="java.lang.String"/>
-	<field name="region_name" class="java.lang.String"/>
+ORDER BY t.ticket_id]]></query>
+	<field name="id" class="java.lang.String"/>
+	<field name="requestorName" class="java.lang.String"/>
+	<field name="reportedDate" class="java.time.LocalDateTime"/>
+	<field name="category" class="java.lang.String"/>
+	<field name="subCategory" class="java.lang.String"/>
+	<field name="issueTypeLabel" class="java.lang.String"/>
+	<field name="zoneCode" class="java.lang.String"/>
+	<field name="districtName" class="java.lang.String"/>
+	<field name="regionName" class="java.lang.String"/>
 	<field name="severity" class="java.lang.String"/>
 	<field name="priority" class="java.lang.String"/>
-	<field name="assignee" class="java.lang.String"/>
-	<field name="status" class="java.lang.String"/>
-	<title>
-		<band height="40">
-			<staticText>
-				<reportElement x="0" y="0" width="870" height="40" uuid="a7f0d976-ce8a-4587-b241-3dda2d8d5b39"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="19" isBold="true" isItalic="false"/>
-				</textElement>
-				<text><![CDATA[Ticket Report]]></text>
-			</staticText>
-		</band>
+	<field name="assignedToName" class="java.lang.String"/>
+	<field name="statusLabel" class="java.lang.String"/>
+	<field name="subject" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<title height="40">
+		<element kind="staticText" uuid="a7f0d976-ce8a-4587-b241-3dda2d8d5b39" x="0" y="0" width="870" height="40" fontSize="19.0" italic="false" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Ticket Report]]></text>
+		</element>
 	</title>
-	<columnHeader>
-		<band height="20">
-			<staticText>
-				<reportElement mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC" uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Ticket ID]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="60" y="0" width="80" height="20" backcolor="#ADACAC" uuid="f6b8f967-4c20-4440-b91d-6cff2ad78e5f"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Requestor]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="140" y="0" width="90" height="20" backcolor="#ADACAC" uuid="fe6758ca-a6f8-41d4-9ba2-d4b38325d552"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Created Date]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="230" y="0" width="80" height="20" backcolor="#ADACAC" uuid="68279be0-cc95-42ba-92dc-1322a1086382"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Module]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="310" y="0" width="100" height="20" backcolor="#ADACAC" uuid="9f96db6b-13f0-4383-b476-ebc9262deb52"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Sub Module]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="410" y="0" width="210" height="20" backcolor="#ADACAC" uuid="dafa238f-05ee-44d0-82be-504d2c323475"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Issue Type]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="620" y="0" width="80" height="20" backcolor="#ADACAC" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Zone]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="700" y="0" width="80" height="20" backcolor="#ADACAC" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[District]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="780" y="0" width="90" height="20" backcolor="#ADACAC" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Region]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="870" y="0" width="60" height="20" backcolor="#ADACAC" uuid="f58f6ee9-a144-4362-b012-639570bc6db8"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Severity]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="930" y="0" width="60" height="20" backcolor="#ADACAC" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Priority]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="990" y="0" width="100" height="20" backcolor="#ADACAC" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Assignee]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="1090" y="0" width="90" height="20" backcolor="#ADACAC" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8"/>
-				<box>
-					<topPen lineWidth="0.75"/>
-					<leftPen lineWidth="0.75"/>
-					<bottomPen lineWidth="0.75"/>
-					<rightPen lineWidth="0.75"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Status]]></text>
-			</staticText>
-		</band>
+	<columnHeader height="20">
+		<element kind="staticText" uuid="dbc8da2f-edcf-4920-a64a-ce46bf7a4ead" mode="Opaque" x="0" y="0" width="60" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Ticket ID]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="f6b8f967-4c20-4440-b91d-6cff2ad78e5f" mode="Opaque" x="60" y="0" width="80" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Requestor]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="fe6758ca-a6f8-41d4-9ba2-d4b38325d552" mode="Opaque" x="140" y="0" width="90" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Created Date]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="68279be0-cc95-42ba-92dc-1322a1086382" mode="Opaque" x="230" y="0" width="80" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Module]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="9f96db6b-13f0-4383-b476-ebc9262deb52" mode="Opaque" x="310" y="0" width="100" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Sub Module]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="dafa238f-05ee-44d0-82be-504d2c323475" mode="Opaque" x="410" y="0" width="210" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Issue Type]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="e21a4872-6783-4ce3-8505-1c82d57e8ccc" mode="Opaque" x="620" y="0" width="80" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Zone]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="58af303d-d3e7-4a38-9f57-235a847aec1d" mode="Opaque" x="700" y="0" width="80" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[District]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a59fa280-2683-43ef-8832-b60f2bea4e47" mode="Opaque" x="780" y="0" width="90" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Region]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="f58f6ee9-a144-4362-b012-639570bc6db8" mode="Opaque" x="870" y="0" width="60" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Severity]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="b8f9dfb4-2dd4-451c-ae21-8689bc48a155" mode="Opaque" x="930" y="0" width="60" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Priority]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="1c1d0fd7-2b2d-43fb-9f1b-967dbfef7e07" mode="Opaque" x="990" y="0" width="100" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Assignee]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="9d48cb1c-4209-4b1a-ba15-dac8745ba9d8" mode="Opaque" x="1090" y="0" width="90" height="20" backcolor="#ADACAC" fontSize="12.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Status]]></text>
+			<box>
+				<topPen lineWidth="0.75"/>
+				<leftPen lineWidth="0.75"/>
+				<bottomPen lineWidth="0.75"/>
+				<rightPen lineWidth="0.75"/>
+			</box>
+		</element>
 	</columnHeader>
 	<detail>
 		<band height="20">
-			<textField>
-				<reportElement x="0" y="0" width="60" height="20" uuid="9ce0cd5a-62fd-40fe-9b40-1f0c05fb7417"/>
+			<element kind="textField" uuid="9ce0cd5a-62fd-40fe-9b40-1f0c05fb7417" x="0" y="0" width="60" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{id}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -266,13 +203,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{ticket_id}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="60" y="0" width="80" height="20" uuid="c2e8c58b-f40b-4581-b5f9-fcae3526f267"/>
+			</element>
+			<element kind="textField" uuid="c2e8c58b-f40b-4581-b5f9-fcae3526f267" x="60" y="0" width="80" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{requestorName}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -280,13 +213,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{requestor}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="140" y="0" width="90" height="20" uuid="10e754e7-ff36-4786-b5ff-d376d5463a93"/>
+			</element>
+			<element kind="textField" uuid="10e754e7-ff36-4786-b5ff-d376d5463a93" x="140" y="0" width="90" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{reportedDate}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -294,13 +223,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{created_date}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="230" y="0" width="80" height="20" uuid="95d5a1b4-6cd4-4a5b-a400-f54264f3becd"/>
+			</element>
+			<element kind="textField" uuid="95d5a1b4-6cd4-4a5b-a400-f54264f3becd" x="230" y="0" width="80" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{category}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -308,13 +233,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{module_name}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="310" y="0" width="100" height="20" uuid="6d957fe1-b96c-469d-9c51-c5b9ff3b3750"/>
+			</element>
+			<element kind="textField" uuid="6d957fe1-b96c-469d-9c51-c5b9ff3b3750" x="310" y="0" width="100" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{subCategory}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -322,13 +243,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{sub_module_name}]]></textFieldExpression>
-			</textField>
-			<textField textAdjust="StretchHeight">
-				<reportElement x="410" y="0" width="210" height="20" isPrintWhenDetailOverflows="true" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5"/>
+			</element>
+			<element kind="textField" uuid="3f97e524-57b0-4953-aa54-203ddc55ffd5" x="410" y="0" width="210" height="20" fontSize="12.0" textAdjust="StretchHeight" printWhenDetailOverflows="true" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{issueTypeLabel}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -336,13 +253,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{issue_type}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="620" y="0" width="80" height="20" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3"/>
+			</element>
+			<element kind="textField" uuid="60ade26f-36bd-4e3c-9571-82ccab1882b3" x="620" y="0" width="80" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{zoneCode}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -350,13 +263,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{zone_name}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="700" y="0" width="80" height="20" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b"/>
+			</element>
+			<element kind="textField" uuid="da2a8f0e-5158-4da1-9f16-fc29c24e131b" x="700" y="0" width="80" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{districtName}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -364,13 +273,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{district_name}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="780" y="0" width="90" height="20" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf"/>
+			</element>
+			<element kind="textField" uuid="335a8af3-7ce7-4943-ac96-8f2aa81e3bbf" x="780" y="0" width="90" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{regionName}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -378,13 +283,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{region_name}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="870" y="0" width="60" height="20" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d"/>
+			</element>
+			<element kind="textField" uuid="c2a5678d-52cf-4500-a5c7-5e5ef428b00d" x="870" y="0" width="60" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{severity}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -392,13 +293,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="930" y="0" width="60" height="20" uuid="4dc906c6-5eb7-410c-812e-6fae98f536ed"/>
+			</element>
+			<element kind="textField" uuid="4dc906c6-5eb7-410c-812e-6fae98f536ed" x="930" y="0" width="60" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{priority}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -406,13 +303,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="990" y="0" width="100" height="20" uuid="bf46047b-98ce-45a3-9560-4e35d2710240"/>
+			</element>
+			<element kind="textField" uuid="bf46047b-98ce-45a3-9560-4e35d2710240" x="990" y="0" width="100" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{assignedToName}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -420,13 +313,9 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{assignee}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="1090" y="0" width="90" height="20" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0"/>
+			</element>
+			<element kind="textField" uuid="642dd5d1-4f29-4f83-b7f6-6e9d555ae2e0" x="1090" y="0" width="90" height="20" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{statusLabel}]]></expression>
 				<box>
 					<pen lineWidth="0.25"/>
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -434,11 +323,7 @@ ORDER BY t.ticket_id]]>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
-			</textField>
+			</element>
 		</band>
 	</detail>
 </jasperReport>

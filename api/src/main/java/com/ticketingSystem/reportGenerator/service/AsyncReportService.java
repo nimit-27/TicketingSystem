@@ -131,7 +131,7 @@ public class AsyncReportService {
             params.put("statusId", toNullableParam(filters.get("statusId")));
             params.put("priorityId", toNullableParam(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
             params.put("severityId", toNullableParam(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
-            params.put("assignedToName", formatValue(filters.get("assignedTo")));
+            params.put("assignedToName", formatValue(filters.get("assignedToName")));
             params.put("assignedBackFromFci", formatValue(filters.get("assignedBackFromFci")));
             params.put("assignedBy", formatValue(filters.get("assignedBy")));
             params.put("subCategoryLabel", formatValue(filters.get("subCategory")));
