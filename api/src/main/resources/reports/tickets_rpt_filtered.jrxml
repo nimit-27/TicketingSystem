@@ -7,8 +7,8 @@
               uuid="c8f97d26-4a51-44ff-8ddd-2e31fd4f9847">
     <property name="com.jaspersoft.studio.data.defaultdataadapter" value="annadarpan_ticket_db"/>
 
-    <!--    <parameter name="fromDate" class="java.util.Date"/>-->
-    <!--    <parameter name="toDate" class="java.util.Date"/>-->
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
     <parameter name="category" class="java.lang.String"/>
     <parameter name="categoryId" class="java.lang.String"/>
     <parameter name="subCategory" class="java.lang.String"/>
@@ -50,6 +50,8 @@
             LEFT JOIN users au ON au.username = t.assigned_to
             LEFT JOIN status_master sm ON sm.status_id = t.status_id
                 WHERE 1 = 1
+                    AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d %H:%i:%s'))
+                    AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d %H:%i:%s'), INTERVAL 1 DAY))
                     AND ($P{categoryId} IS NULL OR t.category = $P{categoryId})
                     AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
                     AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
