@@ -6,6 +6,7 @@ import { useApi } from '../hooks/useApi';
 import { getReportDownloadUrl, getReportRequests } from '../services/TicketService';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import { formatDateTimeWithRelative } from '../utils/Utils';
+import Title from '../components/Title';
 
 type ReportRequestRow = {
   requestId: string;
@@ -102,19 +103,21 @@ const Downloads: React.FC = () => {
   );
 
   return (
-    <Box p={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Downloads</Typography>
-        <CustomIconButton icon="replay" onClick={load} disabled={pending} aria-label="Refresh" />
-      </Box>
-      <GenericTable
-        rowKey="requestId"
-        dataSource={rows}
-        columns={columns}
-        loading={pending}
-        pagination={{ pageSize: 10, showSizeChanger: true }}
-      />
-    </Box>
+    <div className='d-flex w-100'>
+      <div flex-grow-1>
+        <Title textKey="Downloads" />
+        <div className='d-flex justify-content-end'>
+          <CustomIconButton icon="replay" onClick={load} disabled={pending} aria-label="Refresh" />
+        </div>
+        <GenericTable
+          rowKey="requestId"
+          dataSource={rows}
+          columns={columns}
+          loading={pending}
+          pagination={{ pageSize: 10, showSizeChanger: true }}
+        />
+      </div>
+    </div>
   );
 };
 
