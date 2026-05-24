@@ -140,6 +140,7 @@ public class AsyncReportService {
                     row.put("value", entry.getValue());
                     boolean isAll = isAllValue(entry.getValue());
                     row.put("is_all", isAll);
+                    row.put("show", shouldShow(entry.getKey()));
                     return row;
                 })
                 .collect(Collectors.toList())));
@@ -151,6 +152,10 @@ public class AsyncReportService {
         }
     }
 
+
+    private boolean shouldShow(String key) {
+        return key != null && key.endsWith("Label");
+    }
 
     private boolean isAllValue(Object value) {
         if (value == null) return true;

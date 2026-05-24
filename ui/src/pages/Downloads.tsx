@@ -13,6 +13,7 @@ type ReportFilter = {
   label?: string;
   value?: unknown;
   is_all?: boolean;
+  show?: boolean;
 };
 
 type FiltersPayload = {
@@ -76,6 +77,14 @@ const Downloads: React.FC = () => {
       }
     }
     return payload;
+  }, []);
+
+
+  const getFilterValueByKey = React.useCallback((filters: FiltersPayload, key: string): string | undefined => {
+    const match = (filters.filters ?? []).find((filter) => filter.key === key);
+    const value = match?.value;
+    if (typeof value === 'string') return value;
+    return undefined;
   }, []);
 
   const renderFilterValue = React.useCallback((value: unknown) => {
@@ -148,13 +157,19 @@ const Downloads: React.FC = () => {
           return <Tooltip title={username}><span>{name}</span></Tooltip>;
         },
       },
-      { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => renderDateCell(value) },
+            { title: 'Requested At', dataIndex: 'requestedAt', key: 'requestedAt', render: (value) => renderDateCell(value) },
+      {
+        title: 'Completed At',
+        key: 'doneAt',
+        render: (_, row) => renderDateCell(row.completedAt || row.failedAt),
+      },
       {
         title: 'From Date',
         key: 'fromDate',
         render: (_, row) => {
           const filters = parseFilters(row.filters_json);
-          return renderDateCell(filters.fromDate);
+          const fromDate = filters.fromDate || getFilterValueByKey(filters, 'fromDate');
+          return renderDateCell(fromDate);
         },
       },
       {
@@ -162,7 +177,8 @@ const Downloads: React.FC = () => {
         key: 'toDate',
         render: (_, row) => {
           const filters = parseFilters(row.filters_json);
-          return renderDateCell(filters.toDate);
+          const toDate = filters.toDate || getFilterValueByKey(filters, 'toDate');
+          return renderDateCell(toDate);
         },
       },
       {
@@ -170,7 +186,7 @@ const Downloads: React.FC = () => {
         key: 'otherFilters',
         render: (_, row) => {
           const filters = parseFilters(row.filters_json);
-          const chips = (filters.filters ?? []).filter((f) => f.is_all === false && f.key !== 'fromDate' && f.key !== 'toDate');
+          const chips = (filters.filters ?? []).filter((f) => f.is_all === false && f.show === true && f.key !== 'fromDate' && f.key !== 'toDate');
           if (!chips.length) return '-';
 
           const expanded = !!expandedRows[row.requestId];
@@ -192,11 +208,6 @@ const Downloads: React.FC = () => {
             </Box>
           );
         },
-      },
-      {
-        title: 'Completed At',
-        key: 'doneAt',
-        render: (_, row) => renderDateCell(row.completedAt || row.failedAt),
       },
       {
         title: 'Action',
@@ -226,7 +237,7 @@ const Downloads: React.FC = () => {
         },
       },
     ],
-    [expandedRows, parseFilters, renderDateCell, renderFilterChip],
+    [expandedRows, getFilterValueByKey, parseFilters, renderDateCell, renderFilterChip],
   );
 
   return (
