@@ -49,7 +49,7 @@ SELECT
     t.requestor_email_id                         AS requestor_email_id,
     t.requestor_mobile_no                        AS requestor_mobile_no,
     dm.division_name                             AS division
-FROM ad_prd_ticket_system.tickets t
+FROM tickets t
 LEFT JOIN categories        c   ON c.category_id      = t.category
 LEFT JOIN sub_categories    s   ON s.sub_category_id  = t.sub_category
 LEFT JOIN issue_type_master i   ON i.issue_type_id    = t.issue_type_id
@@ -61,7 +61,7 @@ LEFT JOIN district_master   d   ON d.district_code    = t.district_code
 LEFT JOIN division_master   dm  ON dm.division_id     = t.division
 LEFT JOIN (
     SELECT master_id, COUNT(*) AS child_ticket_count
-    FROM ad_prd_ticket_system.tickets
+    FROM tickets
     WHERE master_id IS NOT NULL
     GROUP BY master_id
 ) ct ON ct.master_id = t.ticket_id
@@ -83,7 +83,7 @@ WHERE 1 = 1
   AND ($P{regionCode} IS NULL OR t.region_code = $P{regionCode})
   AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
   AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
-  AND ($P{statusId} IS NULL OR t.status_id = $P{statusId})
+  AND ($P{statusId} IS NULL OR t.status_id = $P{statusId} OR t.status = $P{statusId} OR sm.status_name = $P{statusId})
   AND ($P{priorityId} IS NULL OR t.priority = $P{priorityId})
   AND ($P{severityId} IS NULL OR t.severity = $P{severityId})
 ORDER BY t.ticket_id DESC
