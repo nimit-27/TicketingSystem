@@ -5,6 +5,19 @@
               name="Master_Ticket_Report" pageWidth="2200" pageHeight="1000" orientation="Landscape" columnWidth="2160"
               leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 
+
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="categoryId" class="java.lang.String"/>
+    <parameter name="subCategoryId" class="java.lang.String"/>
+    <parameter name="zoneCode" class="java.lang.String"/>
+    <parameter name="regionCode" class="java.lang.String"/>
+    <parameter name="districtCode" class="java.lang.String"/>
+    <parameter name="issueTypeId" class="java.lang.String"/>
+    <parameter name="statusId" class="java.lang.String"/>
+    <parameter name="priorityId" class="java.lang.String"/>
+    <parameter name="severityId" class="java.lang.String"/>
+
     <queryString>
         <![CDATA[
 SELECT
@@ -61,6 +74,18 @@ LEFT JOIN status_history sh
     ON sh.ticket_id = t.ticket_id
    AND sh.`timestamp` = sh_max.max_ts
 LEFT JOIN status_master sm ON sm.status_id = sh.current_status
+WHERE 1 = 1
+  AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d %H:%i:%s'))
+  AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d %H:%i:%s'), INTERVAL 1 DAY))
+  AND ($P{categoryId} IS NULL OR t.category = $P{categoryId})
+  AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
+  AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
+  AND ($P{regionCode} IS NULL OR t.region_code = $P{regionCode})
+  AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
+  AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
+  AND ($P{statusId} IS NULL OR t.status_id = $P{statusId})
+  AND ($P{priorityId} IS NULL OR t.priority = $P{priorityId})
+  AND ($P{severityId} IS NULL OR t.severity = $P{severityId})
 ORDER BY t.ticket_id DESC
         ]]>
     </queryString>

@@ -34,6 +34,29 @@ public class MasterTicketReportRequestDataProvider implements ReportRequestDataP
         Map<String, Object> params = new HashMap<>();
         params.put("USE_TEMPLATE_SQL", Boolean.TRUE);
         params.put("generatedOn", LocalDateTime.now().toString());
+        params.put("fromDate", toNullableString(filters.get("fromDate")));
+        params.put("toDate", toNullableString(filters.get("toDate")));
+        params.put("categoryId", toNullableString(filters.get("categoryId")));
+        params.put("subCategoryId", toNullableString(filters.get("subCategoryId")));
+        params.put("zoneCode", toNullableString(filters.get("zoneCode")));
+        params.put("regionCode", toNullableString(filters.get("regionCode")));
+        params.put("districtCode", toNullableString(filters.get("districtCode")));
+        params.put("issueTypeId", toNullableString(filters.get("issueTypeId")));
+        params.put("statusId", toNullableString(filters.get("statusId")));
+        params.put("priorityId", toNullableString(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
+        params.put("severityId", toNullableString(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
         return params;
+    }
+
+    private Object firstNonEmpty(Object preferred, Object fallback) {
+        return toNullableString(preferred) != null ? preferred : fallback;
+    }
+
+    private String toNullableString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = String.valueOf(value).trim();
+        return text.isEmpty() ? null : text;
     }
 }
