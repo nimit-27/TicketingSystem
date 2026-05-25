@@ -63,6 +63,8 @@ public class AsyncReportService {
 
 
     public ReportRequestHistory queueTicketExport(String reportCode, ReportFormat format, Map<String, Object> filters, String requestedBy) {
+        log.info("AsyncReportService.queueTicketExport called reportCode={} format={} requestedBy={} filterKeys={}",
+                reportCode, format, requestedBy, filters != null ? filters.keySet() : null);
         ReportMaster reportMaster = reportMasterRepository.findByReportCodeAndActiveTrue(reportCode)
                 .orElseThrow(() -> new IllegalArgumentException("Report definition not found for code: " + reportCode));
 
@@ -75,13 +77,18 @@ public class AsyncReportService {
         request = reportRequestHistoryRepository.save(request);
 
         final String requestId = request.getRequestId();
+        log.info("AsyncReportService queued requestId={} for reportCode={} with status={}", requestId, reportCode, request.getStatus());
         taskExecutor.execute(() -> processRequest(requestId, reportCode, format, filters));
         return request;
     }
 
     private void processRequest(String requestId, String reportCode, ReportFormat format, Map<String, Object> filters) {
+        log.info("AsyncReportService.processRequest started requestId={} reportCode={} format={}", requestId, reportCode, format);
         ReportRequestHistory request = reportRequestHistoryRepository.findById(requestId).orElse(null);
-        if (request == null) return;
+        if (request == null) {
+            log.warn("AsyncReportService.processRequest request not found requestId={}", requestId);
+            return;
+        }
         try {
             request.setStatus(RequestStatus.IN_PROGRESS.name());
             request.setStartedAt(LocalDateTime.now());
@@ -94,15 +101,21 @@ public class AsyncReportService {
                     .filter(candidate -> candidate.supports(reportCode, reportMaster, filters))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("No report data provider configured for code: " + reportCode));
+            log.info("AsyncReportService.processRequest selected provider={} for requestId={}",
+                    provider.getClass().getSimpleName(), requestId);
 
             List<?> results = provider.fetchRows(filters != null ? filters : Collections.emptyMap());
             Map<String, Object> params = provider.buildParams(filters != null ? filters : Collections.emptyMap(), reportMaster, format);
+            log.info("AsyncReportService.processRequest fetched rows={} params={} for requestId={}",
+                    results != null ? results.size() : 0, params != null ? params.size() : 0, requestId);
 
             byte[] file = reportDownloadService.generate(reportCode, format, results, params);
             String ext = format == ReportFormat.PDF ? "pdf" : "xlsx";
             String filename = reportCode.toLowerCase() + "_" + LocalDate.now() + "_" + requestId + "." + ext;
             String objectName = "reports/" + filename;
             ociUploadService.uploadFile(objectName, file);
+            log.info("AsyncReportService.processRequest uploaded artifact objectName={} bytes={} requestId={}",
+                    objectName, file.length, requestId);
 
             ReportArtifact artifact = new ReportArtifact();
             artifact.setRequest(request);
@@ -116,6 +129,7 @@ public class AsyncReportService {
             request.setCompletedAt(LocalDateTime.now());
             request.setExpiresAt(LocalDateTime.now().plusDays(7));
             reportRequestHistoryRepository.save(request);
+            log.info("AsyncReportService.processRequest completed requestId={}", requestId);
         } catch (Exception e) {
             log.error("Async report generation failed for request {}", requestId, e);
             request.setStatus(RequestStatus.FAILED.name());

@@ -5,6 +5,7 @@ import com.ticketingSystem.api.service.TicketService;
 import com.ticketingSystem.reportGenerator.enums.ReportFormat;
 import com.ticketingSystem.reportGenerator.models.ReportMaster;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -15,16 +16,20 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class TicketSearchReportRequestDataProvider implements ReportRequestDataProvider {
     private final TicketService ticketService;
 
     @Override
     public boolean supports(String reportCode, ReportMaster reportMaster, Map<String, Object> filters) {
+        log.info("TicketSearchReportRequestDataProvider.supports reportCode={} reportMasterCode={} filterKeys={}",
+                reportCode, reportMaster != null ? reportMaster.getReportCode() : null, filters != null ? filters.keySet() : null);
         return true;
     }
 
     @Override
     public List<?> fetchRows(Map<String, Object> filters) {
+        log.info("TicketSearchReportRequestDataProvider.fetchRows called filterKeys={}", filters != null ? filters.keySet() : null);
         List<TicketDto> results = ticketService.searchTicketsList(
                 (String) filters.getOrDefault("query", ""),
                 (String) filters.get("statusId"),
@@ -50,11 +55,14 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
                 (String) filters.get("fromDate"),
                 (String) filters.get("toDate")
         );
+        log.info("TicketSearchReportRequestDataProvider.fetchRows returning {} rows", results.size());
         return results;
     }
 
     @Override
     public Map<String, Object> buildParams(Map<String, Object> filters, ReportMaster reportMaster, ReportFormat format) {
+        log.info("TicketSearchReportRequestDataProvider.buildParams called reportCode={} format={}",
+                reportMaster != null ? reportMaster.getReportCode() : null, format);
         Map<String, Object> params = new HashMap<>();
         params.put("USE_TEMPLATE_SQL", "template_sql".equalsIgnoreCase(reportMaster.getSourceType()));
         params.put("generatedOn", LocalDateTime.now().toString());
@@ -85,6 +93,7 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
         params.put("regionCode", toNullableParam(filters.get("regionCode")));
         params.put("districtCode", toNullableParam(filters.get("districtCode")));
         params.put("issueTypeId", toNullableParam(filters.get("issueTypeId")));
+        log.info("TicketSearchReportRequestDataProvider.buildParams built {} params", params.size());
         return params;
     }
 

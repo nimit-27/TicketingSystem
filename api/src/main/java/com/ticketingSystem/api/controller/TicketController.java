@@ -391,6 +391,8 @@ public class TicketController {
             @RequestParam(required = false) String subCategoryLabel,
             @RequestParam(required = false) String statusLabel,
             @RequestParam(required = false) String requestedBy) {
+        logger.info("Request to queue export reportCode={} format={} requestedBy={} query={} status={} fromDate={} toDate={}",
+                reportCode, format, requestedBy, query, statusId, fromDate, toDate);
         Map<String, Object> filters = new HashMap<>();
         filters.put("query", query);
         filters.put("statusId", statusId);
@@ -425,6 +427,7 @@ public class TicketController {
         filters.put("statusLabel", statusLabel);
 
         asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
+        logger.info("Queued export reportCode={} format={} requestedBy={}, returning {}", reportCode, format, requestedBy, HttpStatus.ACCEPTED);
         return ResponseEntity.accepted().build();
     }
 
@@ -464,6 +467,8 @@ public class TicketController {
             @RequestParam(required = false) String subCategoryLabel,
             @RequestParam(required = false) String statusLabel,
             @RequestParam(required = false) String requestedBy) {
+        logger.info("Request to create export request reportCode={} format={} requestedBy={} query={} status={} fromDate={} toDate={}",
+                reportCode, format, requestedBy, query, statusId, fromDate, toDate);
         Map<String, Object> filters = new HashMap<>();
         filters.put("query", query);
         filters.put("statusId", statusId);
@@ -498,11 +503,13 @@ public class TicketController {
         filters.put("statusLabel", statusLabel);
 
         ReportRequestHistory req = asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
+        logger.info("Created export requestId={} status={} for reportCode={}", req.getRequestId(), req.getStatus(), reportCode);
         return ResponseEntity.accepted().body(Map.of("requestId", req.getRequestId(), "status", req.getStatus()));
     }
 
     @GetMapping("/search/export/requests")
     public ResponseEntity<List<Map<String, Object>>> getReportRequests() {
+        logger.info("Request to fetch latest export report requests");
         List<Map<String, Object>> payload = reportRequestHistoryRepository.findTop50ByOrderByRequestedAtDesc()
                 .stream().map(req -> {
                     Map<String, Object> row = new HashMap<>();
@@ -531,13 +538,16 @@ public class TicketController {
                     });
                     return row;
                 }).toList();
+        logger.info("Returning {} export report requests with status {}", payload.size(), HttpStatus.OK);
         return ResponseEntity.ok(payload);
     }
 
     @GetMapping("/search/export/requests/{requestId}/artifact")
     public ResponseEntity<Map<String, Object>> getReportArtifact(@PathVariable String requestId) {
+        logger.info("Request to fetch export report artifact for requestId={}", requestId);
         Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
         if (artifact.isEmpty()) {
+            logger.warn("No export report artifact found for requestId={}", requestId);
             return ResponseEntity.notFound().build();
         }
         ReportArtifact a = artifact.get();
@@ -554,8 +564,10 @@ public class TicketController {
 
     @GetMapping("/search/export/requests/{requestId}/download")
     public ResponseEntity<Void> downloadReportArtifact(@PathVariable String requestId) throws Exception {
+        logger.info("Request to download export report artifact for requestId={}", requestId);
         Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
         if (artifact.isEmpty()) {
+            logger.warn("No export report artifact found for download requestId={}", requestId);
             return ResponseEntity.notFound().build();
         }
 
@@ -569,6 +581,7 @@ public class TicketController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.LOCATION, signedUrl);
+        logger.info("Generated signed URL and redirecting download for requestId={} with status {}", requestId, HttpStatus.FOUND);
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
