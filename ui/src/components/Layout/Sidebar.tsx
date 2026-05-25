@@ -149,8 +149,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     text: textColor
   } = useMemo(() => theme.palette.sidebar, [theme.palette.mode]);
 
-  console.log(selectedKey)
-
   return (
     <div
       className="p-0 position-relative"
@@ -169,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         <img src="./menu-leaf.png" className="position-absolute" style={{ left: "0", bottom: "0", width: collapsed ? "80px" : "auto" }} />
         <List component="nav">
           {menuItems.map(({ key, label, to, icon }) => {
-            const alwaysVisible = key === 'myProfile' || key === 'downloads';
+            const alwaysVisible = key === 'myProfile';
             if (!alwaysVisible && !checkSidebarAccess(key)) {
               return null;
             }
