@@ -23,7 +23,7 @@
                 SELECT
                     COALESCE(NULLIF(t.ticket_id, ''), '-')                AS id,
                     COALESCE(NULLIF(t.master_id, ''), '-')                AS masterId,
-                    COALESCE(NULLIF(t.is_master, 0), 0)                  AS isMaster,
+                    COALESCE(t.is_master, 0)                             AS isMaster,
                     COALESCE(ct.child_ticket_count, 0)                   AS childTicketCount,
 
                     t.reported_date                                       AS reportedDate,
@@ -31,7 +31,7 @@
                     COALESCE(NULLIF(t.requestor_name, ''), '-')          AS requestorName,
                     COALESCE(NULLIF(sh.remark, ''), '-')                 AS remark,
                     COALESCE(NULLIF(sh.updated_by, ''), '-')             AS updatedBy,
-                    COALESCE(NULLIF(t.status, ''), '-')                  AS statusLabel,
+                    COALESCE(NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel,
                     COALESCE(NULLIF(t.subject, ''), '-')                 AS subject,
                     COALESCE(NULLIF(t.description, ''), '-')             AS description,
 
@@ -93,7 +93,7 @@
               AND ($P{regionCode} IS NULL OR t.region_code = $P{regionCode})
               AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
               AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
-              AND ($P{statusId} IS NULL OR t.status_id = $P{statusId})
+              AND ($P{statusId} IS NULL OR sh.current_status = $P{statusId})
               AND ($P{priorityId} IS NULL OR t.priority = $P{priorityId})
               AND ($P{severityId} IS NULL OR t.severity = $P{severityId})
             ORDER BY t.ticket_id DESC
@@ -102,7 +102,7 @@
 
     <field name="id" class="java.lang.String"/>
     <field name="masterId" class="java.lang.String"/>
-    <field name="isMaster" class="java.lang.Boolean"/>
+    <field name="isMaster" class="java.lang.Integer"/>
     <field name="childTicketCount" class="java.lang.Integer"/>
     <field name="reportedDate" class="java.sql.Timestamp"/>
     <field name="requestorName" class="java.lang.String"/>
