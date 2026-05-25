@@ -5,6 +5,8 @@ import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.NotificationMaster;
 import com.ticketingSystem.notification.repository.NotificationMasterRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,13 +16,17 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
     private final List<Notifier> notifiers;
     private final NotificationProperties properties;
     private final NotificationRuntimeToggleService notificationRuntimeToggleService;
     private final NotificationMasterRepository notificationMasterRepository;
 
     public void sendNotification(ChannelType channel, String notificationCode, Map<String, Object> dataModel, String recipient) throws Exception {
-        if (!notificationRuntimeToggleService.isNotificationEnabled()) return; // Notification Globally disabled
+        if (!notificationRuntimeToggleService.isNotificationEnabled()) {
+            log.info("Notification dispatch skipped because notifications are globally disabled. channel={}, notificationCode={}, recipient={}", channel, notificationCode, recipient);
+            return;
+        }
 
         Notifier notifier = notifiers.stream()
                 .filter(n -> n.getChannel() == channel)
