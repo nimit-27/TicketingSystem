@@ -45,6 +45,7 @@ public class MasterTicketReportRequestDataProvider implements ReportRequestDataP
         params.put("statusId", toNullableString(filters.get("statusId")));
         params.put("priorityId", toNullableString(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
         params.put("severityId", toNullableString(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
+        params.put("divisionId", toNullableString(firstNonEmpty(filters.get("divisionId"), filters.get("division"))));
         return params;
     }
 
