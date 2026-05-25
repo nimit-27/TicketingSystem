@@ -112,122 +112,46 @@
     <field name="subject" class="java.lang.String"/>
     <field name="description" class="java.lang.String"/>
     <title>
-        <band height="24">
+        <band height="30">
             <staticText>
-                <reportElement x="0" y="0" width="2160" height="24"/>
+                <reportElement x="0" y="0" width="2160" height="30"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="14" isBold="true"/>
+                    <font size="16" isBold="true"/>
                 </textElement>
-                <text><![CDATA[Master Ticket Report]]></text>
+                <text><![CDATA[Tickets Report]]></text>
             </staticText>
         </band>
     </title>
 
     <columnHeader>
-        <band height="20">
-            <staticText>
-                <reportElement x="0" y="0" width="100" height="20"/>
-                <text><![CDATA[Ticket Id]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="100" y="0" width="100" height="20"/>
-                <text><![CDATA[Master Id]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="200" y="0" width="80" height="20"/>
-                <text><![CDATA[Is Master]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="280" y="0" width="100" height="20"/>
-                <text><![CDATA[Child Count]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="380" y="0" width="150" height="20"/>
-                <text><![CDATA[Reported Date]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="530" y="0" width="150" height="20"/>
-                <text><![CDATA[Requestor]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="680" y="0" width="150" height="20"/>
-                <text><![CDATA[Remark]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="830" y="0" width="130" height="20"/>
-                <text><![CDATA[Updated By]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="960" y="0" width="100" height="20"/>
-                <text><![CDATA[Status]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="1060" y="0" width="200" height="20"/>
-                <text><![CDATA[Subject]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="1260" y="0" width="300" height="20"/>
-                <text><![CDATA[Description]]></text>
-            </staticText>
+        <band height="24">
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Ticket Id]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="100" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Master Id]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="200" y="0" width="80" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Is Master]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="280" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Child Count]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="380" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Reported Date]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="530" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Requestor]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="680" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Remark]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="830" y="0" width="130" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Updated By]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="960" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Status]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1060" y="0" width="200" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Subject]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1260" y="0" width="300" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Description]]></text></staticText>
         </band>
     </columnHeader>
 
     <detail>
-        <band height="20">
-            <textField>
-                <reportElement x="0" y="0" width="100" height="20"/>
-                <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="100" y="0" width="100" height="20"/>
-                <textFieldExpression><![CDATA[$F{masterId}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="200" y="0" width="80" height="20"/>
-                <textFieldExpression><![CDATA[$F{isMaster}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="280" y="0" width="100" height="20"/>
-                <textFieldExpression><![CDATA[$F{childTicketCount}]]></textFieldExpression>
-            </textField>
-
-            <textField pattern="yyyy-MM-dd HH:mm:ss">
-                <reportElement x="380" y="0" width="150" height="20"/>
-                <textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="530" y="0" width="150" height="20"/>
-                <textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="680" y="0" width="150" height="20"/>
-                <textFieldExpression><![CDATA[$F{remark}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="830" y="0" width="130" height="20"/>
-                <textFieldExpression><![CDATA[$F{updatedBy}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="960" y="0" width="100" height="20"/>
-                <textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="1060" y="0" width="200" height="20"/>
-                <textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="1260" y="0" width="300" height="20"/>
-                <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
-            </textField>
+        <band height="32" splitType="Stretch">
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{id}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="100" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{masterId}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="200" y="0" width="80" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{isMaster}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="280" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{childTicketCount}]]></textFieldExpression></textField>
+            <textField pattern="yyyy-MM-dd HH:mm:ss" isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="380" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="530" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="680" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{remark}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="830" y="0" width="130" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{updatedBy}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="960" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1060" y="0" width="200" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1260" y="0" width="300" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{description}]]></textFieldExpression></textField>
         </band>
     </detail>
 </jasperReport>
