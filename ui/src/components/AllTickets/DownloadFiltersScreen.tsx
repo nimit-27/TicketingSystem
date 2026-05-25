@@ -196,7 +196,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                         {divisionOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
                     </Select>
                 </FormControl>
-                <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} />
+                {/* <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} /> */}
                 <FormControl fullWidth size="small">
                     <InputLabel id="download-status-label">{t('Status')}</InputLabel>
                     <Select labelId="download-status-label" label={t('Status')} value={status} onChange={(e) => onStatusChange(String(e.target.value))}>
