@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="Master_Ticket_Report" pageWidth="2200" pageHeight="1000" orientation="Landscape" columnWidth="2160"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+
+
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="categoryId" class="java.lang.String"/>
+    <parameter name="subCategoryId" class="java.lang.String"/>
+    <parameter name="zoneCode" class="java.lang.String"/>
+    <parameter name="regionCode" class="java.lang.String"/>
+    <parameter name="districtCode" class="java.lang.String"/>
+    <parameter name="issueTypeId" class="java.lang.String"/>
+    <parameter name="statusId" class="java.lang.String"/>
+    <parameter name="priorityId" class="java.lang.String"/>
+    <parameter name="severityId" class="java.lang.String"/>
+
+    <queryString>
+        <![CDATA[
+SELECT
+    t.ticket_id                                  AS ticket_id,
+    t.master_id                                  AS master_id,
+    t.is_master                                  AS is_master,
+    COALESCE(ct.child_ticket_count, 0)          AS child_ticket_count,
+    t.reported_date                              AS reported_date,
+    t.requestor_name                             AS requestor_name,
+    sh.remark                                    AS remark,
+    sh.updated_by                                AS updated_by,
+    t.status                                     AS status,
+    t.subject                                    AS subject,
+    t.description                                AS description,
+    c.category                                   AS module,
+    s.sub_category                               AS sub_module,
+    i.name                                       AS issue_type,
+    t.assigned_to                                AS assigned_to,
+    p.tp_level                                   AS priority,
+    sev.ts_level                                 AS severity,
+    t.office_code                                AS office_code,
+    d.district_name                              AS district_name,
+    d.district_code                              AS district_code,
+    z.zone_code                                  AS zone_code,
+    z.zone_name                                  AS zone,
+    r.region_name                                AS region_name,
+    r.region_code                                AS region_code,
+    t.user_id                                    AS requestor_user_id,
+    t.requestor_email_id                         AS requestor_email_id,
+    t.requestor_mobile_no                        AS requestor_mobile_no,
+    dm.division_name                             AS division
+FROM tickets t
+LEFT JOIN categories        c   ON c.category_id      = t.category
+LEFT JOIN sub_categories    s   ON s.sub_category_id  = t.sub_category
+LEFT JOIN issue_type_master i   ON i.issue_type_id    = t.issue_type_id
+LEFT JOIN priority_master   p   ON p.tp_id            = t.priority
+LEFT JOIN severity_master   sev ON sev.ts_id          = t.severity
+LEFT JOIN zone_master       z   ON z.zone_code        = t.zone_code
+LEFT JOIN region_master     r   ON r.region_code      = t.region_code
+LEFT JOIN district_master   d   ON d.district_code    = t.district_code
+LEFT JOIN division_master   dm  ON dm.division_id     = t.division
+LEFT JOIN (
+    SELECT master_id, COUNT(*) AS child_ticket_count
+    FROM tickets
+    WHERE master_id IS NOT NULL
+    GROUP BY master_id
+) ct ON ct.master_id = t.ticket_id
+LEFT JOIN (
+    SELECT ticket_id, MAX(`timestamp`) AS max_ts
+    FROM status_history
+    GROUP BY ticket_id
+) sh_max ON sh_max.ticket_id = t.ticket_id
+LEFT JOIN status_history sh
+    ON sh.ticket_id = t.ticket_id
+   AND sh.`timestamp` = sh_max.max_ts
+LEFT JOIN status_master sm ON sm.status_id = sh.current_status
+WHERE 1 = 1
+  AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d %H:%i:%s'))
+  AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d %H:%i:%s'), INTERVAL 1 DAY))
+  AND ($P{categoryId} IS NULL OR t.category = $P{categoryId})
+  AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
+  AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
+  AND ($P{regionCode} IS NULL OR t.region_code = $P{regionCode})
+  AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
+  AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
+  AND ($P{statusId} IS NULL OR t.status_id = $P{statusId} OR t.status = $P{statusId} OR sm.status_name = $P{statusId})
+  AND ($P{priorityId} IS NULL OR t.priority = $P{priorityId})
+  AND ($P{severityId} IS NULL OR t.severity = $P{severityId})
+ORDER BY t.ticket_id DESC
+        ]]>
+    </queryString>
+
+    <field name="ticket_id" class="java.lang.String"/>
+    <field name="master_id" class="java.lang.String"/>
+    <field name="is_master" class="java.lang.Boolean"/>
+    <field name="child_ticket_count" class="java.lang.Integer"/>
+    <field name="reported_date" class="java.sql.Timestamp"/>
+    <field name="requestor_name" class="java.lang.String"/>
+    <field name="remark" class="java.lang.String"/>
+    <field name="updated_by" class="java.lang.String"/>
+    <field name="status" class="java.lang.String"/>
+    <field name="subject" class="java.lang.String"/>
+    <field name="description" class="java.lang.String"/>
+
+    <title>
+        <band height="24">
+            <staticText>
+                <reportElement x="0" y="0" width="2160" height="24"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="14" isBold="true"/></textElement>
+                <text><![CDATA[Master Ticket Report]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0" y="0" width="100" height="20"/><text><![CDATA[Ticket Id]]></text></staticText>
+            <staticText><reportElement x="100" y="0" width="100" height="20"/><text><![CDATA[Master Id]]></text></staticText>
+            <staticText><reportElement x="200" y="0" width="80" height="20"/><text><![CDATA[Is Master]]></text></staticText>
+            <staticText><reportElement x="280" y="0" width="100" height="20"/><text><![CDATA[Child Count]]></text></staticText>
+            <staticText><reportElement x="380" y="0" width="150" height="20"/><text><![CDATA[Reported Date]]></text></staticText>
+            <staticText><reportElement x="530" y="0" width="150" height="20"/><text><![CDATA[Requestor]]></text></staticText>
+            <staticText><reportElement x="680" y="0" width="150" height="20"/><text><![CDATA[Remark]]></text></staticText>
+            <staticText><reportElement x="830" y="0" width="130" height="20"/><text><![CDATA[Updated By]]></text></staticText>
+            <staticText><reportElement x="960" y="0" width="100" height="20"/><text><![CDATA[Status]]></text></staticText>
+            <staticText><reportElement x="1060" y="0" width="200" height="20"/><text><![CDATA[Subject]]></text></staticText>
+            <staticText><reportElement x="1260" y="0" width="300" height="20"/><text><![CDATA[Description]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="20">
+            <textField><reportElement x="0" y="0" width="100" height="20"/><textFieldExpression><![CDATA[$F{ticket_id}]]></textFieldExpression></textField>
+            <textField><reportElement x="100" y="0" width="100" height="20"/><textFieldExpression><![CDATA[$F{master_id}]]></textFieldExpression></textField>
+            <textField><reportElement x="200" y="0" width="80" height="20"/><textFieldExpression><![CDATA[$F{is_master}]]></textFieldExpression></textField>
+            <textField><reportElement x="280" y="0" width="100" height="20"/><textFieldExpression><![CDATA[$F{child_ticket_count}]]></textFieldExpression></textField>
+            <textField pattern="yyyy-MM-dd HH:mm:ss"><reportElement x="380" y="0" width="150" height="20"/><textFieldExpression><![CDATA[$F{reported_date}]]></textFieldExpression></textField>
+            <textField><reportElement x="530" y="0" width="150" height="20"/><textFieldExpression><![CDATA[$F{requestor_name}]]></textFieldExpression></textField>
+            <textField><reportElement x="680" y="0" width="150" height="20"/><textFieldExpression><![CDATA[$F{remark}]]></textFieldExpression></textField>
+            <textField><reportElement x="830" y="0" width="130" height="20"/><textFieldExpression><![CDATA[$F{updated_by}]]></textFieldExpression></textField>
+            <textField><reportElement x="960" y="0" width="100" height="20"/><textFieldExpression><![CDATA[$F{status}]]></textFieldExpression></textField>
+            <textField><reportElement x="1060" y="0" width="200" height="20"/><textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression></textField>
+            <textField><reportElement x="1260" y="0" width="300" height="20"/><textFieldExpression><![CDATA[$F{description}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+</jasperReport>
