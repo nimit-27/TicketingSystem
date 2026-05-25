@@ -242,7 +242,7 @@ const Downloads: React.FC = () => {
 
   return (
     <div className='d-flex w-100'>
-      <div flex-grow-1>
+      <div className='flex-grow-1'>
         <Title textKey="Downloads" />
         <div className='d-flex justify-content-end'>
           <CustomIconButton icon="replay" onClick={load} disabled={pending} aria-label="Refresh" />

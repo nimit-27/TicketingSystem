@@ -224,17 +224,12 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                 />
             </Stack>
 
-            {generationState === 'generating' && (
-                <Alert severity="info">
-                    {t('Go to Downloads.')}
-                    {' '}
-                    {t('You will find your downloads on the Downloads page.')}
-                    {' '}
-                    <Link href="downloads" target="_blank" rel="noopener noreferrer">
-                        {t('Open Downloads')}
-                    </Link>
-                </Alert>
-            )}
+
+            <Alert severity="info">
+                <Link href="downloads" target="_blank" rel="noopener noreferrer">
+                    {t('You will find your generated reports on Downloads Page')}
+                </Link>
+            </Alert>
 
             {generationState === 'error' && (
                 <Alert severity="error">
