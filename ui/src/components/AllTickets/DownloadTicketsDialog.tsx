@@ -82,14 +82,24 @@ const formatInputDate = (value: Date) => {
 };
 
 const getDateRangeForSelection = (year: number, month?: number) => {
+    const today = new Date();
+    const todayKey = formatInputDate(today);
+
     if (month) {
         const from = new Date(year, month - 1, 1);
-        const to = new Date(year, month, 0);
+        const monthEnd = new Date(year, month, 0);
+        const to = monthEnd > today ? today : monthEnd;
         return { from: formatInputDate(from), to: formatInputDate(to) };
     }
 
     const from = new Date(year, 0, 1);
-    const to = new Date(year, 12, 0);
+    const yearEnd = new Date(year, 12, 0);
+    const to = yearEnd > today ? today : yearEnd;
+
+    if (from > today) {
+        return { from: todayKey, to: todayKey };
+    }
+
     return { from: formatInputDate(from), to: formatInputDate(to) };
 };
 
