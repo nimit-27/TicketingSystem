@@ -190,12 +190,12 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <FormControl fullWidth size="small">
+                {/* <FormControl fullWidth size="small">
                     <InputLabel id="download-division-label">{t('Division')}</InputLabel>
                     <Select labelId="download-division-label" label={t('Division')} value={division} onChange={(e) => onDivisionChange(String(e.target.value))}>
                         {divisionOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
                     </Select>
-                </FormControl>
+                </FormControl> */}
                 {/* <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} /> */}
                 <FormControl fullWidth size="small">
                     <InputLabel id="download-status-label">{t('Status')}</InputLabel>

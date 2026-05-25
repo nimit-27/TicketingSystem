@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-              name="Master_Ticket_Report" pageWidth="2360" pageHeight="1000" orientation="Landscape" columnWidth="2320"
+              name="Master_Ticket_Report" pageWidth="2400" pageHeight="1000" orientation="Landscape" columnWidth="2320"
               leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 
 
@@ -41,7 +41,7 @@
                     COALESCE(NULLIF(i.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issueTypeLabel,
 
                     COALESCE(NULLIF(t.assigned_to, ''), '-')             AS assignedToName,
-                    COALESCE(NULLIF(p.tp_level, ''), NULLIF(t.priority, ''), '-')  AS priority,
+                    COALESCE(NULLIF(p.tp_id, ''), NULLIF(t.priority, ''), '-')  AS priority,
                     COALESCE(NULLIF(sev.ts_level, ''), NULLIF(t.severity, ''), '-') AS severity,
 
                     COALESCE(NULLIF(t.office_code, ''), '-')             AS officeCode,
