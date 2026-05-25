@@ -125,13 +125,13 @@ const getCurrentDateTimeParts = () => {
 
 const getDateTimeRangeForRequest = (from: string, to: string) => {
     const { currentDate, currentTime } = getCurrentDateTimeParts();
-    const fromDateTime = `${from}T00:00:00`;
+    const fromDateTime = `${from} 00:00:00`;
 
     if (to < currentDate) {
-        return { from: fromDateTime, to: `${to}T23:59:59` };
+        return { from: fromDateTime, to: `${to} 23:59:59` };
     }
 
-    return { from: fromDateTime, to: `${currentDate}T${currentTime}` };
+    return { from: fromDateTime, to: `${currentDate} ${currentTime}` };
 };
 
 const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
