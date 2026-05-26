@@ -162,6 +162,7 @@ interface SearchTicketsForExportParams {
     assignedTo?: string;
     statusId?: string;
     divisionId?: string;
+    reportFormat?: string;
     signal?: AbortSignal;
 }
 
@@ -178,6 +179,7 @@ export function searchTicketsForExport({
     assignedTo,
     statusId,
     divisionId,
+    reportFormat,
     signal,
 }: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
@@ -194,5 +196,6 @@ export function searchTicketsForExport({
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
     if (divisionId) params.append('divisionId', divisionId);
+    if (reportFormat) params.append('reportFormat', reportFormat);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
 }

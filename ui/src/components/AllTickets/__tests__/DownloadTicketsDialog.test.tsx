@@ -61,6 +61,7 @@ const baseProps = {
     division: 'All',
     assignee: 'All',
     status: 'All',
+    reportFormat: 'All',
   },
   exportableColumns: [
     { key: 'id', label: 'Ticket Id' },

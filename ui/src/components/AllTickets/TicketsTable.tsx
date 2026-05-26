@@ -620,6 +620,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 divisionId: filters.divisionId,
                 assignedTo: filters.assignedTo,
                 statusId: filters.statusId,
+                reportFormat: filters.reportFormat,
                 signal: controller.signal,
             }));
 

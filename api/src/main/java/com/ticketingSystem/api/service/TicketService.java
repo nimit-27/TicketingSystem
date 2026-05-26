@@ -617,7 +617,7 @@ public class TicketService {
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                              String breachOption, Integer breachInMinutes,
-                                             String dateParam, String fromDate, String toDate) {
+                                             String dateParam, String fromDate, String toDate, ReportFormat reportFormat) {
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
