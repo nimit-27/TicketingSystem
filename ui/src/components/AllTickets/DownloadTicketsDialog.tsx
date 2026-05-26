@@ -44,6 +44,8 @@ interface DownloadFilters {
     assignedToLabel?: string;
     statusId?: string;
     statusLabel?: string;
+    reportFormat?: string;
+    reportFormatLabel?: string;
     selectedColumnKeys?: string[];
 }
 
@@ -57,6 +59,7 @@ interface DownloadDialogInitialFilters {
     division: string;
     assignee: string;
     status: string;
+    reportFormat: string;
 }
 
 interface DownloadTicketsDialogProps {
@@ -137,6 +140,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [assignee, setAssignee] = useState<string>('All');
     const [division, setDivision] = useState<string>('All');
     const [status, setStatus] = useState<string>('All');
+    const [reportFormat, setReportFormat] = useState<string>('All');
     const [regionOptions, setRegionOptions] = useState<Array<DropdownOption & { hrmsRegCode?: string }>>([{ label: 'All', value: 'All' }]);
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
@@ -444,6 +448,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             division={division}
                             assignee={assignee}
                             status={status}
+                            reportFormat={reportFormat}
                             yearOptions={yearOptions}
                             monthOptions={monthOptions}
                             categoryOptions={categoryOptions}
@@ -453,6 +458,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             districtOptions={districtOptions}
                             issueTypeOptions={issueTypeOptions}
                             statusOptions={statusOptions}
+                            reportFormatOptions={[{ label: 'All', value: 'All' }, { label: 'PDF', value: 'PDF' }, { label: 'EXCEL', value: 'EXCEL' }]}
                             divisionOptions={effectiveDivisionOptions}
                             generationState={generationState}
                             estimateLoading={estimateLoading}
@@ -480,6 +486,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             onAssigneeChange={setAssignee}
                             onDivisionChange={setDivision}
                             onStatusChange={setStatus}
+                            onReportFormatChange={setReportFormat}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
                             onApplyPresetRange={applyPresetRange}

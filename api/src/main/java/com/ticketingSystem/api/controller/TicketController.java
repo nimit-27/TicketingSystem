@@ -6,6 +6,7 @@ import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
+import com.ticketingSystem.reportGenerator.enums.ReportFormat;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
 import com.ticketingSystem.api.mapper.DtoMapper;
@@ -307,9 +308,10 @@ public class TicketController {
             @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String toDate) {
-        logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
-                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) ReportFormat reportFormat) {
+        logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} reportFormat={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, reportFormat);
         List<TicketDto> results = ticketService.searchTicketsList(
                 query,
                 statusId,
@@ -333,7 +335,8 @@ public class TicketController {
                 breachInMinutes,
                 dateParam,
                 fromDate,
-                toDate
+                toDate,
+                reportFormat
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);

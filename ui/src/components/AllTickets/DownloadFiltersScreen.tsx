@@ -28,6 +28,7 @@ interface DownloadFiltersScreenProps {
     division: string;
     assignee: string;
     status: string;
+    reportFormat: string;
     yearOptions: number[];
     monthOptions: Array<{ value: number; label: string }>;
     categoryOptions: DropdownOption[];
@@ -38,6 +39,7 @@ interface DownloadFiltersScreenProps {
     issueTypeOptions: DropdownOption[];
     divisionOptions: DropdownOption[];
     statusOptions: DropdownOption[];
+    reportFormatOptions: DropdownOption[];
     generationState: 'idle' | 'generating' | 'error';
     estimateLoading: boolean;
     estimateCountPending: boolean;
@@ -57,6 +59,7 @@ interface DownloadFiltersScreenProps {
     onDivisionChange: (division: string) => void;
     onAssigneeChange: (assignee: string) => void;
     onStatusChange: (status: string) => void;
+    onReportFormatChange: (reportFormat: string) => void;
     onFromDateChange: (fromDate: string) => void;
     onToDateChange: (toDate: string) => void;
     onApplyPresetRange: (days: number) => void;
@@ -77,6 +80,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     division,
     assignee,
     status,
+    reportFormat,
     yearOptions,
     monthOptions,
     categoryOptions,
@@ -87,6 +91,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     issueTypeOptions,
     divisionOptions,
     statusOptions,
+    reportFormatOptions,
     generationState,
     estimateLoading,
     estimateCountPending,
@@ -106,6 +111,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     onDivisionChange,
     onAssigneeChange,
     onStatusChange,
+    onReportFormatChange,
     onFromDateChange,
     onToDateChange,
     onApplyPresetRange,
@@ -202,6 +208,12 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                     <InputLabel id="download-status-label">{t('Status')}</InputLabel>
                     <Select labelId="download-status-label" label={t('Status')} value={status} onChange={(e) => onStatusChange(String(e.target.value))}>
                         {statusOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                    </Select>
+                </FormControl>
+                <FormControl fullWidth size="small">
+                    <InputLabel id="download-format-label">{t('Format')}</InputLabel>
+                    <Select labelId="download-format-label" label={t('Format')} value={reportFormat} onChange={(e) => onReportFormatChange(String(e.target.value))}>
+                        {reportFormatOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
                     </Select>
                 </FormControl>
             </Stack>
