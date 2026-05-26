@@ -3,10 +3,11 @@ import { Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography } from 
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
 import { useApi } from '../hooks/useApi';
-import { getReportDownloadUrl, getReportRequests } from '../services/TicketService';
+import { getReportDownloadUrl, getReportDownloads } from '../services/TicketService';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
 import { formatDateTimeWithRelative } from '../utils/Utils';
 import Title from '../components/Title';
+import PaginationControls from '../components/PaginationControls';
 
 type ReportFilter = {
   key?: string;
@@ -42,19 +43,50 @@ type ReportRequestRow = {
 };
 
 const Downloads: React.FC = () => {
-  const { data, pending, apiHandler } = useApi<ReportRequestRow[]>();
-  const rows = React.useMemo(() => data ?? [], [data]);
+  const { data, pending, apiHandler } = useApi<any>();
+  const [rows, setRows] = React.useState<ReportRequestRow[]>([]);
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [totalPages, setTotalPages] = React.useState(1);
   const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
 
   const load = React.useCallback(async () => {
-    await apiHandler(() => getReportRequests());
-  }, [apiHandler]);
+    await apiHandler(() => getReportDownloads({ page: page - 1, size: pageSize }));
+  }, [apiHandler, page, pageSize]);
 
   React.useEffect(() => {
     load();
     const id = setInterval(load, 10000);
     return () => clearInterval(id);
   }, [load]);
+
+  React.useEffect(() => {
+    const payload = data?.data;
+    const content = Array.isArray(payload?.content)
+      ? payload.content
+      : Array.isArray(payload?.items)
+        ? payload.items
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload)
+            ? payload
+            : [];
+
+    setRows(content);
+
+    const resolvedTotalPages =
+      typeof payload?.totalPages === 'number'
+        ? payload.totalPages
+        : typeof payload?.pages === 'number'
+          ? payload.pages
+          : Math.max(1, Math.ceil((payload?.totalElements || content.length || 0) / pageSize));
+
+    setTotalPages(Math.max(1, resolvedTotalPages));
+  }, [data, pageSize]);
+
+  React.useEffect(() => {
+    setExpandedRows({});
+  }, [rows]);
 
   const renderDateCell = React.useCallback((value?: string) => {
     if (!value) return '-';
@@ -252,8 +284,22 @@ const Downloads: React.FC = () => {
           dataSource={rows}
           columns={columns}
           loading={pending}
-          pagination={{ pageSize: 10, showSizeChanger: true }}
+          pagination={false}
         />
+        <div className="d-flex justify-content-end mt-3">
+          <PaginationControls
+            className="justify-content-between align-items-center mt-3 w-100"
+            page={page}
+            totalPages={totalPages}
+            onChange={(_, val) => setPage(val)}
+            pageSize={pageSize}
+            onPageSizeChange={(value) => {
+              setPage(1);
+              setPageSize(value);
+            }}
+            displayPagePosition
+          />
+        </div>
       </div>
     </div>
   );
