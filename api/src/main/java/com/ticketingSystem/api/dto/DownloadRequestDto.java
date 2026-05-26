@@ -1,10 +1,17 @@
 package com.ticketingSystem.api.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class DownloadRequestDto {
     private String requestId;
     private String reportCode;
     private String format;
-    private String requestedByDetails;
+    private RequestedByDetails requestedByDetails;
     private String requestedAt;
     private String completedAt;
     private String filtersJson;
@@ -13,4 +20,13 @@ public class DownloadRequestDto {
     private String expiresAt;
     private String filename;
     private String downloadPath;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RequestedByDetails {
+        private String userId;
+        private String username;
+        private String name;
+    }
 }
