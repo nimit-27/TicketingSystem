@@ -23,7 +23,7 @@ import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
 import PriorityIcon from '../UI/Icons/PriorityIcon';
 import InfoIcon from '../UI/Icons/InfoIcon';
-import { searchTicketsForExport, updateTicket } from '../../services/TicketService';
+import { downloadTicketsReport, searchTicketsForExport, updateTicket } from '../../services/TicketService';
 import { getAllUsers } from '../../services/UserService';
 import { useApi } from '../../hooks/useApi';
 import { getCurrentUserDetails } from '../../config/config';
@@ -575,15 +575,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         doc.save(`${fileName}.pdf`);
     };
 
-    const cancelExportGeneration = () => {
-        if (exportAbortRef.current) {
-            exportAbortRef.current.abort();
-            exportAbortRef.current = null;
-        }
-        setExportGenerationState('idle');
-        showMessage(t('Export cancelled.'), 'info');
-    };
-
     const handleGenerateSelection = async (format: 'pdf' | 'excel', filters: DownloadFilters) => {
         if (!filters.fromDate || !filters.toDate) {
             showMessage(t('Please select a valid date range.'), 'warning');
@@ -596,10 +587,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             return;
         }
 
-        if (selectedRangeDays > 31) {
-            showMessage(t('Large date range selected. It may take some time to download this data.'), 'info');
-        }
-
         setLastExportRequest({ format, filters });
         setExportGenerationState('generating');
         showMessage(t('Your report is being generated.'), 'info');
@@ -608,7 +595,9 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
         exportAbortRef.current = controller;
 
         try {
-            const response = await downloadTicketsApiHandler(() => searchTicketsForExport({
+            const response = await downloadTicketsApiHandler(() => downloadTicketsReport({
+                reportCode: 'TICKETS_RPT',
+                format: format === 'excel' ? 'EXCEL' : 'PDF',
                 fromDate: filters.fromDate,
                 toDate: filters.toDate,
                 categoryId: filters.categoryId,
@@ -618,36 +607,25 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 districtCode: filters.districtCode,
                 issueTypeId: filters.issueTypeId,
                 divisionId: filters.divisionId,
+                zoneLabel: filters.zoneLabel,
+                regionLabel: filters.regionLabel,
+                districtLabel: filters.districtLabel,
+                issueTypeLabel: filters.issueTypeLabel,
+                divisionLabel: filters.divisionLabel,
+                categoryLabel: filters.categoryLabel,
+                subCategoryLabel: filters.subCategoryLabel,
+                statusLabel: filters.statusLabel,
                 assignedTo: filters.assignedTo,
                 statusId: filters.statusId,
+                requestedBy: getCurrentUserDetails()?.userId,
                 signal: controller.signal,
             }));
 
-            if (controller.signal.aborted) {
+            if (controller.signal.aborted || response === null) {
                 return;
             }
 
-            if (response === null) {
-                setExportGenerationState('error');
-                showMessage(t('Export failed. Range may be too large; narrow filters or request async report.'), 'error');
-                return;
-            }
-
-            const ticketsToExport = normalizeDownloadTickets(response);
-            if (!ticketsToExport.length) {
-                showMessage(t('No data available'), 'info');
-                setExportGenerationState('idle');
-                return;
-            }
-
-            if (format === 'excel') {
-                downloadAsExcel(ticketsToExport, filters);
-            } else {
-                downloadAsPdf(ticketsToExport, filters);
-            }
-
-            setExportGenerationState('idle');
-            showMessage(t('Report generated successfully.'), 'success');
+            showMessage(t('Report request queued. Please check Downloads page.'), 'success');
             handleDownloadDialogClose();
         } catch (error: any) {
             if (error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {
@@ -660,6 +638,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 : t('Export failed. Range may be too large; narrow filters or request async report.');
             showMessage(message, 'error');
         } finally {
+            setExportGenerationState('idle');
             exportAbortRef.current = null;
         }
     };
@@ -1147,7 +1126,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                     startIcon={<DownloadIcon fontSize="small" />}
                     onClick={handleDownloadDialogOpen}
                 >
-                    {t('Download')}
+                    {t('Generate Report')}
                 </Button>
             </div>
             {showColumnSelector && (
@@ -1199,7 +1178,6 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 open={downloadDialogOpen}
                 loading={downloadingTickets || exportGenerationState === 'generating'}
                 generationState={exportGenerationState}
-                onCancelExport={cancelExportGeneration}
                 onRetryExport={retryLastExport}
                 zoneOptions={zoneOptions}
                 issueTypeOptions={issueTypeOptions}

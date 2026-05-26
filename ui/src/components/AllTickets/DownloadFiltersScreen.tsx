@@ -5,6 +5,7 @@ import {
     Chip,
     FormControl,
     InputLabel,
+    Link,
     MenuItem,
     Select,
     Stack,
@@ -44,7 +45,6 @@ interface DownloadFiltersScreenProps {
     estimatedCount: number | null;
     selectedRangeDays: number | null;
     isRangeInvalid: boolean;
-    onCancelExport?: () => void;
     onRetryExport?: () => void;
     onYearChange: (year: number | '') => void;
     onMonthChange: (month: number | '') => void;
@@ -93,7 +93,6 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     estimatedCount,
     selectedRangeDays,
     isRangeInvalid,
-    onCancelExport,
     onRetryExport,
     onYearChange,
     onMonthChange,
@@ -191,13 +190,13 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <FormControl fullWidth size="small">
+                {/* <FormControl fullWidth size="small">
                     <InputLabel id="download-division-label">{t('Division')}</InputLabel>
                     <Select labelId="download-division-label" label={t('Division')} value={division} onChange={(e) => onDivisionChange(String(e.target.value))}>
                         {divisionOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
                     </Select>
-                </FormControl>
-                <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} />
+                </FormControl> */}
+                {/* <AssigneeFilterDropdown value={assignee} onChange={onAssigneeChange} /> */}
                 <FormControl fullWidth size="small">
                     <InputLabel id="download-status-label">{t('Status')}</InputLabel>
                     <Select labelId="download-status-label" label={t('Status')} value={status} onChange={(e) => onStatusChange(String(e.target.value))}>
@@ -225,12 +224,12 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
                 />
             </Stack>
 
-            {generationState === 'generating' && (
-                <Alert severity="info">
-                    {t('Your report is being generated.')}
-                    {onCancelExport && <Button size="small" sx={{ ml: 1 }} onClick={onCancelExport}>{t('Cancel export')}</Button>}
-                </Alert>
-            )}
+
+            <Alert severity="info">
+                <Link href="downloads" target="_blank" rel="noopener noreferrer">
+                    {t('You will find your generated reports on Downloads Page')}
+                </Link>
+            </Alert>
 
             {generationState === 'error' && (
                 <Alert severity="error">
@@ -240,7 +239,7 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
             )}
 
             {isRangeInvalid && <Alert severity="warning">{t('Please select a valid date range.')}</Alert>}
-            {selectedRangeDays !== null && selectedRangeDays > 31 && (
+            {estimatedCount !== null && estimatedCount > 2000 && (
                 <Alert severity="info">{t('Large date range selected. It may take some time to download this data.')}</Alert>
             )}
         </Stack>

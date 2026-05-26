@@ -42,6 +42,7 @@ const ChangeRequests = lazy(() => import('./pages/ChangeRequests'));
 const ViewCrTicket = lazy(() => import('./pages/ViewCrTicket'));
 const PublicLayout = lazy(() => import('./components/Layout/PublicLayout'));
 const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage'));
+const Downloads = lazy(() => import('./pages/Downloads'));
 
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const user = getUserDetails();
@@ -114,6 +115,7 @@ function App() {
           <Route path="users/new" element={<AddUser />} />
           <Route path="my-profile" element={<MyProfile />} />
           <Route path="account/change-password" element={<ChangePasswordPage />} />
+          <Route path="downloads" element={<Downloads />} />
         </Route>
       </Routes>
     </Suspense>

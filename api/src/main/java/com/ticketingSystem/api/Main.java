@@ -20,13 +20,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         basePackages = {
             "com.ticketingSystem.api.repository",
             "com.ticketingSystem.notification.repository",
-//            "com.ticketingSystem.reportGenerator.repository"
+            "com.ticketingSystem.reportGenerator.repository"
         })
 @EntityScan(
         basePackages = {
             "com.ticketingSystem.api.models",
             "com.ticketingSystem.notification.models",
-//            "com.ticketingSystem.reportGenerator.models"
+            "com.ticketingSystem.reportGenerator.models"
         })
 @EnableScheduling
 @EnableFeignClients(basePackages = "com.ticketingSystem.api.service.feignClients")

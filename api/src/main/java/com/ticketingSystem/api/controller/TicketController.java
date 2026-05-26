@@ -3,16 +3,25 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.models.Ticket;
+import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
+import com.ticketingSystem.api.service.OciUploadService;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.service.TicketAccessContext;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import com.ticketingSystem.api.service.UserService;
 import com.ticketingSystem.api.dto.AttachmentDownloadDto;
+import com.ticketingSystem.reportGenerator.enums.ReportFormat;
+import com.ticketingSystem.reportGenerator.models.ReportArtifact;
+import com.ticketingSystem.reportGenerator.models.ReportRequestHistory;
+import com.ticketingSystem.reportGenerator.repository.ReportArtifactRepository;
+import com.ticketingSystem.reportGenerator.repository.ReportRequestHistoryRepository;
+import com.ticketingSystem.reportGenerator.service.AsyncReportService;
+import com.ticketingSystem.reportGenerator.service.ReportDownloadService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +41,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import jakarta.servlet.http.HttpSession;
 
@@ -47,6 +58,11 @@ public class TicketController {
     private final TicketSlaService ticketSlaService;
     private final TicketAuthorizationService ticketAuthorizationService;
     private final UserService userService;
+    private final ReportDownloadService reportDownloadService;
+    private final AsyncReportService asyncReportService;
+    private final ReportRequestHistoryRepository reportRequestHistoryRepository;
+    private final ReportArtifactRepository reportArtifactRepository;
+    private final OciUploadService ociUploadService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -337,6 +353,236 @@ public class TicketController {
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/search/export/download")
+    public ResponseEntity<Void> downloadTicketsReport(
+            @RequestParam String reportCode,
+            @RequestParam ReportFormat format,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false, name = "status") String statusId,
+            @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) Boolean assignedBackFromFci,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String assignedBy,
+            @RequestParam(required = false) String requestorId,
+            @RequestParam(required = false) String levelId,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subCategory,
+            @RequestParam(required = false) String zoneCode,
+            @RequestParam(required = false) String regionCode,
+            @RequestParam(required = false) String districtCode,
+            @RequestParam(required = false) String issueTypeId,
+            @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String breachOption,
+            @RequestParam(required = false) Integer breachInMinutes,
+            @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String zoneLabel,
+            @RequestParam(required = false) String regionLabel,
+            @RequestParam(required = false) String districtLabel,
+            @RequestParam(required = false) String issueTypeLabel,
+            @RequestParam(required = false) String divisionLabel,
+            @RequestParam(required = false) String categoryLabel,
+            @RequestParam(required = false) String subCategoryLabel,
+            @RequestParam(required = false) String statusLabel,
+            @RequestParam(required = false) String requestedBy) {
+        logger.info("Request to queue export reportCode={} format={} requestedBy={} query={} status={} fromDate={} toDate={}",
+                reportCode, format, requestedBy, query, statusId, fromDate, toDate);
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("query", query);
+        filters.put("statusId", statusId);
+        filters.put("master", master);
+        filters.put("assignedBackFromFci", assignedBackFromFci);
+        filters.put("assignedTo", assignedTo);
+        filters.put("assignedBy", assignedBy);
+        filters.put("requestorId", requestorId);
+        filters.put("levelId", levelId);
+        filters.put("priority", priority);
+        filters.put("severity", severity);
+        filters.put("createdBy", createdBy);
+        filters.put("categoryId", category);
+        filters.put("subCategoryId", subCategory);
+        filters.put("zoneCode", zoneCode);
+        filters.put("regionCode", regionCode);
+        filters.put("districtCode", districtCode);
+        filters.put("issueTypeId", issueTypeId);
+        filters.put("divisionId", divisionId);
+        filters.put("breachOption", breachOption);
+        filters.put("breachInMinutes", breachInMinutes);
+        filters.put("dateParam", dateParam);
+        filters.put("fromDate", fromDate);
+        filters.put("toDate", toDate);
+        filters.put("zoneLabel", zoneLabel);
+        filters.put("regionLabel", regionLabel);
+        filters.put("districtLabel", districtLabel);
+        filters.put("issueTypeLabel", issueTypeLabel);
+        filters.put("divisionLabel", divisionLabel);
+        filters.put("categoryLabel", categoryLabel);
+        filters.put("subCategoryLabel", subCategoryLabel);
+        filters.put("statusLabel", statusLabel);
+
+        asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
+        logger.info("Queued export reportCode={} format={} requestedBy={}, returning {}", reportCode, format, requestedBy, HttpStatus.ACCEPTED);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/search/export/request")
+    public ResponseEntity<Map<String, Object>> requestTicketsReport(
+            @RequestParam String reportCode,
+            @RequestParam ReportFormat format,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false, name = "status") String statusId,
+            @RequestParam(required = false) Boolean master,
+            @RequestParam(required = false) Boolean assignedBackFromFci,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String assignedBy,
+            @RequestParam(required = false) String requestorId,
+            @RequestParam(required = false) String levelId,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subCategory,
+            @RequestParam(required = false) String zoneCode,
+            @RequestParam(required = false) String regionCode,
+            @RequestParam(required = false) String districtCode,
+            @RequestParam(required = false) String issueTypeId,
+            @RequestParam(required = false) String divisionId,
+            @RequestParam(required = false) String breachOption,
+            @RequestParam(required = false) Integer breachInMinutes,
+            @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String zoneLabel,
+            @RequestParam(required = false) String regionLabel,
+            @RequestParam(required = false) String districtLabel,
+            @RequestParam(required = false) String issueTypeLabel,
+            @RequestParam(required = false) String divisionLabel,
+            @RequestParam(required = false) String categoryLabel,
+            @RequestParam(required = false) String subCategoryLabel,
+            @RequestParam(required = false) String statusLabel,
+            @RequestParam(required = false) String requestedBy) {
+        logger.info("Request to create export request reportCode={} format={} requestedBy={} query={} status={} fromDate={} toDate={}",
+                reportCode, format, requestedBy, query, statusId, fromDate, toDate);
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("query", query);
+        filters.put("statusId", statusId);
+        filters.put("master", master);
+        filters.put("assignedBackFromFci", assignedBackFromFci);
+        filters.put("assignedTo", assignedTo);
+        filters.put("assignedBy", assignedBy);
+        filters.put("requestorId", requestorId);
+        filters.put("levelId", levelId);
+        filters.put("priority", priority);
+        filters.put("severity", severity);
+        filters.put("createdBy", createdBy);
+        filters.put("categoryId", category);
+        filters.put("subCategoryId", subCategory);
+        filters.put("zoneCode", zoneCode);
+        filters.put("regionCode", regionCode);
+        filters.put("districtCode", districtCode);
+        filters.put("issueTypeId", issueTypeId);
+        filters.put("divisionId", divisionId);
+        filters.put("breachOption", breachOption);
+        filters.put("breachInMinutes", breachInMinutes);
+        filters.put("dateParam", dateParam);
+        filters.put("fromDate", fromDate);
+        filters.put("toDate", toDate);
+        filters.put("zoneLabel", zoneLabel);
+        filters.put("regionLabel", regionLabel);
+        filters.put("districtLabel", districtLabel);
+        filters.put("issueTypeLabel", issueTypeLabel);
+        filters.put("divisionLabel", divisionLabel);
+        filters.put("categoryLabel", categoryLabel);
+        filters.put("subCategoryLabel", subCategoryLabel);
+        filters.put("statusLabel", statusLabel);
+
+        ReportRequestHistory req = asyncReportService.queueTicketExport(reportCode, format, filters, requestedBy);
+        logger.info("Created export requestId={} status={} for reportCode={}", req.getRequestId(), req.getStatus(), reportCode);
+        return ResponseEntity.accepted().body(Map.of("requestId", req.getRequestId(), "status", req.getStatus()));
+    }
+
+    @GetMapping("/search/export/requests")
+    public ResponseEntity<List<Map<String, Object>>> getReportRequests() {
+        logger.info("Request to fetch latest export report requests");
+        List<Map<String, Object>> payload = reportRequestHistoryRepository.findTop50ByOrderByRequestedAtDesc()
+                .stream().map(req -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("requestId", req.getRequestId());
+                    row.put("reportCode", req.getReport() != null ? req.getReport().getReportCode() : null);
+                    row.put("status", req.getStatus());
+                    row.put("outputFormat", req.getOutputFormat());
+                    row.put("requestedAt", req.getRequestedAt());
+                    row.put("completedAt", req.getCompletedAt());
+                    row.put("failedAt", req.getFailedAt());
+                    row.put("errorMessage", req.getErrorMessage());
+                    row.put("expiresAt", req.getExpiresAt());
+                    row.put("filters_json", req.getFiltersJson());
+                    if (req.getRequestedBy() != null && !req.getRequestedBy().isBlank()) {
+                        userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> {
+                            Map<String, Object> requestedByDetails = new HashMap<>();
+                            requestedByDetails.put("userId", user.getUserId());
+                            requestedByDetails.put("username", user.getUsername());
+                            requestedByDetails.put("name", user.getName());
+                            row.put("requestedByDetails", requestedByDetails);
+                        });
+                    }
+                    reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> {
+                        row.put("fileName", a.getFileName());
+                        row.put("downloadPath", "/tickets/search/export/requests/" + req.getRequestId() + "/download");
+                    });
+                    return row;
+                }).toList();
+        logger.info("Returning {} export report requests with status {}", payload.size(), HttpStatus.OK);
+        return ResponseEntity.ok(payload);
+    }
+
+    @GetMapping("/search/export/requests/{requestId}/artifact")
+    public ResponseEntity<Map<String, Object>> getReportArtifact(@PathVariable String requestId) {
+        logger.info("Request to fetch export report artifact for requestId={}", requestId);
+        Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
+        if (artifact.isEmpty()) {
+            logger.warn("No export report artifact found for requestId={}", requestId);
+            return ResponseEntity.notFound().build();
+        }
+        ReportArtifact a = artifact.get();
+        String downloadPath = "/tickets/search/export/requests/" + requestId + "/download";
+        return ResponseEntity.ok(Map.of(
+                "artifactId", a.getArtifactId(),
+                "fileName", a.getFileName(),
+                "storageLocation", a.getStorageLocation(),
+                "downloadPath", downloadPath,
+                "contentType", a.getContentType(),
+                "fileSize", a.getFileSize()
+        ));
+    }
+
+    @GetMapping("/search/export/requests/{requestId}/download")
+    public ResponseEntity<Void> downloadReportArtifact(@PathVariable String requestId) throws Exception {
+        logger.info("Request to download export report artifact for requestId={}", requestId);
+        Optional<ReportArtifact> artifact = reportArtifactRepository.findByRequestRequestId(requestId);
+        if (artifact.isEmpty()) {
+            logger.warn("No export report artifact found for download requestId={}", requestId);
+            return ResponseEntity.notFound().build();
+        }
+
+        ReportArtifact a = artifact.get();
+        String signedUrl = ociUploadService.createPreauthenticatedRequest(
+                a.getStorageLocation(),
+                "ObjectRead",
+                "report_download_" + requestId + "_" + System.currentTimeMillis(),
+                null
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.LOCATION, signedUrl);
+        logger.info("Generated signed URL and redirecting download for requestId={} with status {}", requestId, HttpStatus.FOUND);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     @PutMapping("/comments/{commentId}")

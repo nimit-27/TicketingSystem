@@ -44,5 +44,6 @@ describe('Sidebar', () => {
 
     expect(screen.getByText('t:My Tickets')).toBeInTheDocument();
     expect(screen.queryByText('t:All Tickets')).not.toBeInTheDocument();
+    expect(screen.queryByText('t:Downloads')).not.toBeInTheDocument();
   });
 });
