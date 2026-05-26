@@ -31,6 +31,7 @@ import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.api.util.DateTimeUtils;
 import com.ticketingSystem.reportGenerator.repository.ReportRequestHistoryRepository;
+import com.ticketingSystem.reportGenerator.repository.ReportArtifactRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,6 +77,7 @@ public class ReportService {
     private final RoleService roleService;
     private final ParameterMasterService parameterMasterService;
     private final ReportRequestHistoryRepository reportRequestHistoryRepository;
+    private final ReportArtifactRepository reportArtifactRepository;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -105,11 +107,43 @@ public class ReportService {
     }
 
     public PaginationResponse<DownloadRequestDto> getDownloadRequests(String requestedBy, String reportCode, String format, String requestedAt, Pageable pageable) {
-        Page<DownloadRequestDto> p = reportRequestHistoryRepository.findDownloadRequests(requestedBy, reportCode, format, requestedAt, pageable);
-        PaginationResponse<DownloadRequestDto> response = new PaginationResponse<>(
-           p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()
-        );
-        return response;
+        LocalDateTime requestedFrom = null;
+        LocalDateTime requestedTo = null;
+        if (StringUtils.hasText(requestedAt)) {
+            LocalDate requestedDate = LocalDate.parse(requestedAt.trim());
+            requestedFrom = requestedDate.atStartOfDay();
+            requestedTo = requestedFrom.plusDays(1);
+        }
+
+        Page<DownloadRequestDto> p = reportRequestHistoryRepository
+                .findDownloadRequests(requestedBy, reportCode, format, requestedFrom, requestedTo, pageable)
+                .map(req -> {
+                    DownloadRequestDto dto = new DownloadRequestDto();
+                    dto.setRequestId(req.getRequestId());
+                    dto.setReportCode(req.getReport() != null ? req.getReport().getReportCode() : null);
+                    dto.setFormat(req.getOutputFormat());
+                    dto.setRequestedAt(req.getRequestedAt() != null ? req.getRequestedAt().toString() : null);
+                    dto.setCompletedAt(req.getCompletedAt() != null ? req.getCompletedAt().toString() : null);
+                    dto.setFiltersJson(req.getFiltersJson());
+                    dto.setFailedAt(req.getFailedAt() != null ? req.getFailedAt().toString() : null);
+                    dto.setErrorMessage(req.getErrorMessage());
+                    dto.setExpiresAt(req.getExpiresAt() != null ? req.getExpiresAt().toString() : null);
+
+                    if (StringUtils.hasText(req.getRequestedBy())) {
+                        userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> dto.setRequestedByDetails(
+                                new DownloadRequestDto.RequestedByDetails(user.getUserId(), user.getUsername(), user.getName())
+                        ));
+                    }
+
+                    reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> {
+                        dto.setFilename(a.getFileName());
+                        dto.setDownloadPath("/tickets/search/export/requests/" + req.getRequestId() + "/download");
+                    });
+
+                    return dto;
+                });
+
+        return new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
     }
 
     private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId, String zoneCode, String regionCode, String districtCode, String issueTypeId) {
@@ -1919,10 +1953,6 @@ public class ReportService {
     public void notifyBreachedSlaAssignees() {
         List<TicketSla> breachedTickets = ticketSlaRepository.findBreachedWithTicket();
         ticketSlaService.notifyAssigneesOfBreachedTickets(breachedTickets);
-    }
-
-    public PaginationResponse<DownloadRequestDto> getDownloadRequests(String re) {
-
     }
 
     private List<SlaPerformanceReportDto.SlaStatusBreakdownDto> buildStatusBreakdown(
