@@ -203,8 +203,19 @@ export function downloadTicketsReport({
     return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
 }
 
-export function getReportRequests() {
-    return axios.get(`${BASE_URL}/tickets/search/export/requests`);
+
+
+export interface ReportDownloadsParams {
+    page?: number;
+    size?: number;
+}
+
+export function getReportDownloads(params: ReportDownloadsParams = {}) {
+    const searchParams = new URLSearchParams();
+    if (typeof params.page === 'number') searchParams.append('page', String(params.page));
+    if (typeof params.size === 'number') searchParams.append('size', String(params.size));
+    const query = searchParams.toString();
+    return axios.get(`${BASE_URL}/reports/downloads${query ? `?${query}` : ''}`);
 }
 
 export function getReportDownloadUrl(downloadPath: string) {
