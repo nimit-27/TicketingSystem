@@ -1,8 +1,6 @@
 package com.ticketingSystem.api.service;
 
-import com.ticketingSystem.api.dto.HelpdeskUserDto;
-import com.ticketingSystem.api.dto.RoleDto;
-import com.ticketingSystem.api.dto.RequesterUserDto;
+import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
@@ -32,7 +30,10 @@ import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.api.util.DateTimeUtils;
+import com.ticketingSystem.reportGenerator.repository.ReportRequestHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -74,6 +75,7 @@ public class ReportService {
     private final RequesterUserService requesterUserService;
     private final RoleService roleService;
     private final ParameterMasterService parameterMasterService;
+    private final ReportRequestHistoryRepository reportRequestHistoryRepository;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -100,6 +102,14 @@ public class ReportService {
             case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue, null, null, null, null);
             default -> null;
         };
+    }
+
+    public PaginationResponse<DownloadRequestDto> getDownloadRequests(String requestedBy, String reportCode, String format, String requestedAt, Pageable pageable) {
+        Page<DownloadRequestDto> p = reportRequestHistoryRepository.findDownloadRequests(requestedBy, reportCode, format, requestedAt, pageable);
+        PaginationResponse<DownloadRequestDto> response = new PaginationResponse<>(
+           p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()
+        );
+        return response;
     }
 
     private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId, String zoneCode, String regionCode, String districtCode, String issueTypeId) {
@@ -1909,6 +1919,10 @@ public class ReportService {
     public void notifyBreachedSlaAssignees() {
         List<TicketSla> breachedTickets = ticketSlaRepository.findBreachedWithTicket();
         ticketSlaService.notifyAssigneesOfBreachedTickets(breachedTickets);
+    }
+
+    public PaginationResponse<DownloadRequestDto> getDownloadRequests(String re) {
+
     }
 
     private List<SlaPerformanceReportDto.SlaStatusBreakdownDto> buildStatusBreakdown(

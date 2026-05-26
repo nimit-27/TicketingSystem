@@ -1,6 +1,8 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.DownloadRequestDto;
 import com.ticketingSystem.api.dto.LoginPayload;
+import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobOverviewDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobRunDto;
@@ -16,6 +18,8 @@ import com.ticketingSystem.api.service.SlaCalculationJobService;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.MultiValueMap;
@@ -242,6 +246,28 @@ public class ReportsController {
         }
 
         return "SYSTEM";
+    }
+
+    @GetMapping("/downloads")
+    public ResponseEntity<PaginationResponse<DownloadRequestDto>> getReportRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String requestedBy,
+            @RequestParam(required = false) String reportCode,
+            @RequestParam(required = false) String format,
+            @RequestParam(required = false) String requestedAt
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        PaginationResponse<DownloadRequestDto> response = reportService.getDownloadRequests(
+                requestedBy,
+                reportCode,
+                format,
+                requestedAt,
+                pageable
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 }
