@@ -58,6 +58,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import DownloadIcon from '@mui/icons-material/Download';
 import TimerIcon from '@mui/icons-material/Timer';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 
 // Define the icon map
 const iconMap = {
@@ -121,6 +122,7 @@ const iconMap = {
     download: DownloadIcon,
     timer: TimerIcon,
     changeCircle: ChangeCircleIcon,
+    error: ErrorIcon,
 };
 
 // Valid keys for the icon map

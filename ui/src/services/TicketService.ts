@@ -149,6 +149,70 @@ export function searchTicketsPaginated(
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 
+
+export function downloadTicketsReport({
+    reportCode,
+    format,
+    fromDate,
+    dateParam,
+    toDate,
+    categoryId,
+    subCategoryId,
+    zoneCode,
+    regionCode,
+    districtCode,
+    issueTypeId,
+    assignedTo,
+    statusId,
+    divisionId,
+    zoneLabel,
+    regionLabel,
+    districtLabel,
+    issueTypeLabel,
+    divisionLabel,
+    categoryLabel,
+    subCategoryLabel,
+    statusLabel,
+    requestedBy,
+    signal,
+}: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
+    const params = new URLSearchParams();
+    params.append('reportCode', reportCode);
+    params.append('format', format);
+    if (dateParam) params.append('dateParam', dateParam);
+    if (fromDate) params.append('fromDate', fromDate);
+    if (toDate) params.append('toDate', toDate);
+    if (categoryId) params.append('category', categoryId);
+    if (subCategoryId) params.append('subCategory', subCategoryId);
+    if (zoneCode) params.append('zoneCode', zoneCode);
+    if (regionCode) params.append('regionCode', regionCode);
+    if (districtCode) params.append('districtCode', districtCode);
+    if (issueTypeId) params.append('issueTypeId', issueTypeId);
+    if (divisionId) params.append('divisionId', divisionId);
+    if (zoneLabel) params.append('zoneLabel', zoneLabel);
+    if (regionLabel) params.append('regionLabel', regionLabel);
+    if (districtLabel) params.append('districtLabel', districtLabel);
+    if (issueTypeLabel) params.append('issueTypeLabel', issueTypeLabel);
+    if (divisionLabel) params.append('divisionLabel', divisionLabel);
+    if (categoryLabel) params.append('categoryLabel', categoryLabel);
+    if (subCategoryLabel) params.append('subCategoryLabel', subCategoryLabel);
+    if (statusLabel) params.append('statusLabel', statusLabel);
+    if (assignedTo) params.append('assignedTo', assignedTo);
+    if (statusId) params.append('status', statusId);
+    if (requestedBy) params.append('requestedBy', requestedBy);
+    return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
+}
+
+export function getReportRequests() {
+    return axios.get(`${BASE_URL}/tickets/search/export/requests`);
+}
+
+export function getReportDownloadUrl(downloadPath: string) {
+    if (!downloadPath) return '';
+    if (/^https?:\/\//i.test(downloadPath)) return downloadPath;
+    return `${BASE_URL}${downloadPath}`;
+}
+
 interface SearchTicketsForExportParams {
     fromDate?: string;
     dateParam?: string;
@@ -162,6 +226,15 @@ interface SearchTicketsForExportParams {
     assignedTo?: string;
     statusId?: string;
     divisionId?: string;
+    zoneLabel?: string;
+    regionLabel?: string;
+    districtLabel?: string;
+    issueTypeLabel?: string;
+    divisionLabel?: string;
+    categoryLabel?: string;
+    subCategoryLabel?: string;
+    statusLabel?: string;
+    requestedBy?: string;
     signal?: AbortSignal;
 }
 
@@ -191,8 +264,17 @@ export function searchTicketsForExport({
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
     if (divisionId) params.append('divisionId', divisionId);
+    if (zoneLabel) params.append('zoneLabel', zoneLabel);
+    if (regionLabel) params.append('regionLabel', regionLabel);
+    if (districtLabel) params.append('districtLabel', districtLabel);
+    if (issueTypeLabel) params.append('issueTypeLabel', issueTypeLabel);
+    if (divisionLabel) params.append('divisionLabel', divisionLabel);
+    if (categoryLabel) params.append('categoryLabel', categoryLabel);
+    if (subCategoryLabel) params.append('subCategoryLabel', subCategoryLabel);
+    if (statusLabel) params.append('statusLabel', statusLabel);
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
+    if (requestedBy) params.append('requestedBy', requestedBy);
     if (divisionId) params.append('divisionId', divisionId);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
 }

@@ -66,7 +66,8 @@ dependencies {
         implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.77.0'
         implementation 'org.springframework:spring-webflux'
         // JasperReports core engine (required for PDF, Excel, JRXML compilation)
-        implementation 'net.sf.jasperreports:jasperreports:7.0.4'
+        // Keep JasperReports runtime aligned with JRXML templates authored in Jaspersoft Studio 6.21.5
+        implementation 'net.sf.jasperreports:jasperreports:6.21.5'
         // Apache POI (required by Jasper for exporting reports to Excel .xlsx)
         implementation 'org.apache.poi:poi-ooxml:5.4.0'
         // JAXB API (mandatory for Jasper on Java 11+ / Java 17)

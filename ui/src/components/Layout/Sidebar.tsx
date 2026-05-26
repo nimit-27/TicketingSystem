@@ -84,6 +84,12 @@ const menuItems = [
     icon: "timeline",
   },
   {
+    key: "downloads",
+    label: "Downloads",
+    to: "/downloads",
+    icon: "download",
+  },
+  {
     key: "categoriesMaster",
     label: "Modules Master",
     to: "/modules-master",
@@ -142,8 +148,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     border: sidebarBorder,
     text: textColor
   } = useMemo(() => theme.palette.sidebar, [theme.palette.mode]);
-
-  console.log(selectedKey)
 
   return (
     <div

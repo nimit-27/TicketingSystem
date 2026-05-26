@@ -52,6 +52,7 @@ public class EmailNotificationDispatcher {
             fixedDelayString = "${notification.email-dispatcher.fixedDelayMs:5000}",
             initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
     )
+//    @Transactional
     public void dispatchPendingEmails() {
         if (!notificationRuntimeToggleService.isNotificationEnabled()) {
             return;

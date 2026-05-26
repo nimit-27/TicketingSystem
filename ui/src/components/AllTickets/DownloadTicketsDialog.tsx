@@ -71,7 +71,6 @@ interface DownloadTicketsDialogProps {
     exportableColumns: DownloadReportColumn[];
     onClose: () => void;
     onGenerate: (format: 'pdf' | 'excel', filters: DownloadFilters) => Promise<void> | void;
-    onCancelExport?: () => void;
     onRetryExport?: () => void;
 }
 
@@ -83,14 +82,24 @@ const formatInputDate = (value: Date) => {
 };
 
 const getDateRangeForSelection = (year: number, month?: number) => {
+    const today = new Date();
+    const todayKey = formatInputDate(today);
+
     if (month) {
         const from = new Date(year, month - 1, 1);
-        const to = new Date(year, month, 0);
+        const monthEnd = new Date(year, month, 0);
+        const to = monthEnd > today ? today : monthEnd;
         return { from: formatInputDate(from), to: formatInputDate(to) };
     }
 
     const from = new Date(year, 0, 1);
-    const to = new Date(year, 12, 0);
+    const yearEnd = new Date(year, 12, 0);
+    const to = yearEnd > today ? today : yearEnd;
+
+    if (from > today) {
+        return { from: todayKey, to: todayKey };
+    }
+
     return { from: formatInputDate(from), to: formatInputDate(to) };
 };
 
@@ -105,6 +114,26 @@ const getDateRangeDays = (from: string, to: string): number | null => {
     return Math.floor(diffInMs / (1000 * 60 * 60 * 24)) + 1;
 };
 
+const formatTimePart = (value: number) => String(value).padStart(2, '0');
+
+const getCurrentDateTimeParts = () => {
+    const now = new Date();
+    const currentDate = formatInputDate(now);
+    const currentTime = `${formatTimePart(now.getHours())}:${formatTimePart(now.getMinutes())}:${formatTimePart(now.getSeconds())}`;
+    return { currentDate, currentTime };
+};
+
+const getDateTimeRangeForRequest = (from: string, to: string) => {
+    const { currentDate, currentTime } = getCurrentDateTimeParts();
+    const fromDateTime = `${from} 00:00:00`;
+
+    if (to < currentDate) {
+        return { from: fromDateTime, to: `${to} 23:59:59` };
+    }
+
+    return { from: fromDateTime, to: `${currentDate} ${currentTime}` };
+};
+
 const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     open,
     loading = false,
@@ -117,7 +146,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     exportableColumns,
     onClose,
     onGenerate,
-    onCancelExport,
     onRetryExport,
 }) => {
     const { t } = useTranslation();
@@ -329,6 +357,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     };
 
     const handleGenerateSelection = async (format: 'pdf' | 'excel') => {
+        const requestDateRange = getDateTimeRangeForRequest(fromDate, toDate);
         const selectedZone = zoneOptions.find((option) => option.value === zone);
         const selectedCategory = categoryOptions.find((option) => option.value === category);
         const selectedSubCategory = subCategoryOptions.find((option) => option.value === subCategory);
@@ -338,8 +367,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         const selectedDivision = effectiveDivisionOptions.find((option) => option.value === division);
         const selectedStatus = statusOptions.find((option) => option.value === status);
         await onGenerate(format, {
-            fromDate,
-            toDate,
+            fromDate: requestDateRange.from,
+            toDate: requestDateRange.to,
             zoneCode: zone !== 'All' ? zone : undefined,
             zoneLabel: zone !== 'All' ? selectedZone?.label || zone : undefined,
             categoryId: category !== 'All' ? category : undefined,
@@ -423,7 +452,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
 
         return () => clearTimeout(timer);
     }, [open, fromDate, toDate, zone, region, district, issueType, division, assignee, status, category, subCategory, isRangeInvalid, estimateCountApiHandler]);
-    console.log({ loading, l: selectedColumnKeys?.length })
     return (
         <>
             <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -460,7 +488,6 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             estimatedCount={estimatedCount}
                             selectedRangeDays={selectedRangeDays}
                             isRangeInvalid={isRangeInvalid}
-                            onCancelExport={onCancelExport}
                             onRetryExport={onRetryExport}
                             onYearChange={setYear}
                             onMonthChange={setMonth}

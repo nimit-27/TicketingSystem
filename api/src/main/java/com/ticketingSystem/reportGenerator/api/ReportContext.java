@@ -13,4 +13,5 @@ import java.util.Map;
 public class ReportContext {
     private List<?> rows;
     private Map<String, Object> params;
+    private String templateLocation;
 }

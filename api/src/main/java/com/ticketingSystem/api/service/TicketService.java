@@ -34,6 +34,8 @@ import com.ticketingSystem.notification.service.NotificationService;
 import com.ticketingSystem.api.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Service;
@@ -55,6 +57,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 @RequiredArgsConstructor
 public class TicketService {
+    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
     private static final int REMARK_MAX_LENGTH = 255;
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
     private static final String TICKET_ASSIGNED_NOTIFICATION_CODE = "TICKET_ASSIGNED";
@@ -539,6 +542,9 @@ public class TicketService {
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                          String breachOption, Integer breachInMinutes,
                                          String dateParam, String fromDate, String toDate, Pageable pageable) {
+        logger.info("TicketService.searchTickets called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, pageable.getPageNumber(), pageable.getPageSize());
+
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -609,7 +615,9 @@ public class TicketService {
                 to,
                 pageable
         );
-        return page.map(this::mapWithStatusId);
+        Page<TicketDto> result = page.map(this::mapWithStatusId);
+        logger.info("TicketService.searchTickets returning {} records (totalElements={})", result.getNumberOfElements(), result.getTotalElements());
+        return result;
     }
 
     public List<TicketDto> searchTicketsList(String query, String statusId, Boolean master, Boolean assignedBackFromFci,
@@ -618,6 +626,9 @@ public class TicketService {
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                              String breachOption, Integer breachInMinutes,
                                              String dateParam, String fromDate, String toDate) {
+        logger.info("TicketService.searchTicketsList called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
+
         ArrayList<String> statusIds = (statusId == null || statusId.isBlank())
                 ? null
                 : Arrays.stream(statusId.split(","))
@@ -655,7 +666,7 @@ public class TicketService {
         String normalizedBreachOption = normalizeBreachOption(breachOption);
         Integer normalizedBreachInMinutes = breachInMinutes != null ? Math.max(0, breachInMinutes) : null;
 
-        return ticketRepository.searchTicketsList(
+        List<TicketDto> results = ticketRepository.searchTicketsList(
                         query,
                         statusIds,
                         master,
@@ -683,6 +694,8 @@ public class TicketService {
                 .stream()
                 .map(this::mapWithStatusId)
                 .toList();
+        logger.info("TicketService.searchTicketsList returning {} records", results.size());
+        return results;
     }
 
     @Transactional

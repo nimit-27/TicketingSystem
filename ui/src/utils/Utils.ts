@@ -196,6 +196,49 @@ export function formatDateToDayMonthYear(date: string | Date): string {
   }).format(parsedDate);
 }
 
+export function formatDateTimeWithRelative(date: string | Date): { formatted: string; relative: string } {
+  const parsedDate = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(parsedDate.getTime())) {
+    return { formatted: '-', relative: '' };
+  }
+
+  const formatted = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(parsedDate);
+
+  const diffMs = Math.max(0, Date.now() - parsedDate.getTime());
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
+
+  let relative = 'Just now';
+  if (diffMinutes < 1) {
+    relative = 'Just now';
+  } else if (diffMinutes < 60) {
+    relative = `${diffMinutes} min${diffMinutes > 1 ? 's' : ''} ago`;
+  } else if (diffHours < 24) {
+    relative = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  } else if (diffDays < 7) {
+    relative = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  } else if (diffWeeks < 5) {
+    relative = `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+  } else if (diffMonths < 12) {
+    relative = `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+  } else {
+    relative = `${diffYears} year${diffYears > 1 ? 's' : ''} ago`;
+  }
+
+  return { formatted, relative };
+}
+
 export function logout() {
   void logoutUser()
     .then((res) => {
