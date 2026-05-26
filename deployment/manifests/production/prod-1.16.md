@@ -12,7 +12,7 @@ UI Version:
 1.16
 
 API Version:
-1.16
+1.16.1
 
 Release Line:
 1.16
@@ -56,7 +56,7 @@ Yes
 ### API
 
 Image:
-bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.16
+bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.16.1
 
 Changed:
 Yes
