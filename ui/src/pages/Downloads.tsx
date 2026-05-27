@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material';
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
@@ -34,7 +34,7 @@ type ReportRequestRow = {
   errorMessage?: string;
   fileName?: string;
   downloadPath?: string;
-  filters_json?: string | FiltersPayload;
+  filtersJson?: string | FiltersPayload;
   requestedByDetails?: {
     userId?: string;
     username?: string;
@@ -50,45 +50,35 @@ const Downloads: React.FC = () => {
   const [totalPages, setTotalPages] = React.useState(1);
   const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
 
-  const load = React.useCallback(async () => {
+  const load = useCallback(async () => {
     await apiHandler(() => getReportDownloads({ page: page - 1, size: pageSize }));
   }, [apiHandler, page, pageSize]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     load();
     const id = setInterval(load, 10000);
     return () => clearInterval(id);
   }, [load]);
 
-  React.useEffect(() => {
-    const payload = data?.data;
-    const content = Array.isArray(payload?.content)
-      ? payload.content
-      : Array.isArray(payload?.items)
-        ? payload.items
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : Array.isArray(payload)
-            ? payload
-            : [];
+  useEffect(() => {
 
-    setRows(content);
+    setRows(data?.items ?? []);
 
     const resolvedTotalPages =
-      typeof payload?.totalPages === 'number'
-        ? payload.totalPages
-        : typeof payload?.pages === 'number'
-          ? payload.pages
-          : Math.max(1, Math.ceil((payload?.totalElements || content.length || 0) / pageSize));
+      typeof data?.totalPages === 'number'
+        ? data.totalPages
+        : typeof data?.pages === 'number'
+          ? data.pages
+          : Math.max(1, Math.ceil((data?.totalElements || data?.items.length || 0) / pageSize));
 
     setTotalPages(Math.max(1, resolvedTotalPages));
   }, [data, pageSize]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setExpandedRows({});
   }, [rows]);
 
-  const renderDateCell = React.useCallback((value?: string) => {
+  const renderDateCell = useCallback((value?: string) => {
     if (!value) return '-';
     const { formatted, relative } = formatDateTimeWithRelative(value);
     return (
@@ -99,7 +89,7 @@ const Downloads: React.FC = () => {
     );
   }, []);
 
-  const parseFilters = React.useCallback((payload?: string | FiltersPayload): FiltersPayload => {
+  const parseFilters = useCallback((payload?: string | FiltersPayload): FiltersPayload => {
     if (!payload) return {};
     if (typeof payload === 'string') {
       try {
@@ -112,7 +102,7 @@ const Downloads: React.FC = () => {
   }, []);
 
 
-  const getFilterValueByKey = React.useCallback((filters: FiltersPayload, key: string): string | undefined => {
+  const getFilterValueByKey = useCallback((filters: FiltersPayload, key: string): string | undefined => {
     const match = (filters.filters ?? []).find((filter) => filter.key === key);
     const value = match?.value;
     if (typeof value === 'string') return value;
@@ -175,7 +165,7 @@ const Downloads: React.FC = () => {
     />
   ), [renderFilterValue]);
 
-  const columns = React.useMemo<ColumnsType<ReportRequestRow>>(
+  const columns = useMemo<ColumnsType<ReportRequestRow>>(
     () => [
       { title: 'Report', dataIndex: 'reportCode', key: 'reportCode', render: (value) => value || '-' },
       { title: 'Format', dataIndex: 'outputFormat', key: 'outputFormat', render: (value) => value || '-' },
@@ -199,7 +189,7 @@ const Downloads: React.FC = () => {
         title: 'From Date',
         key: 'fromDate',
         render: (_, row) => {
-          const filters = parseFilters(row.filters_json);
+          const filters = parseFilters(row.filtersJson);
           const fromDate = filters.fromDate || getFilterValueByKey(filters, 'fromDate');
           return renderDateCell(fromDate);
         },
@@ -208,7 +198,7 @@ const Downloads: React.FC = () => {
         title: 'To Date',
         key: 'toDate',
         render: (_, row) => {
-          const filters = parseFilters(row.filters_json);
+          const filters = parseFilters(row.filtersJson);
           const toDate = filters.toDate || getFilterValueByKey(filters, 'toDate');
           return renderDateCell(toDate);
         },
@@ -217,7 +207,7 @@ const Downloads: React.FC = () => {
         title: 'Other Filters',
         key: 'otherFilters',
         render: (_, row) => {
-          const filters = parseFilters(row.filters_json);
+          const filters = parseFilters(row.filtersJson);
           const chips = (filters.filters ?? []).filter((f) => f.is_all === false && f.show === true && f.key !== 'fromDate' && f.key !== 'toDate');
           if (!chips.length) return '-';
 

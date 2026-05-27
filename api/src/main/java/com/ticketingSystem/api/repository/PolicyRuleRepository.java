@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface PolicyRuleRepository extends JpaRepository<PolicyRule, Integer> {
     List<PolicyRule> findByPolicyPolicyIdAndIsActiveTrueOrderByPriorityAscRuleIdAsc(Integer policyId);
+    List<PolicyRule> findByPolicyPolicyIdInAndIsActiveTrueOrderByPriorityAscRuleIdAsc(List<Integer> policyIds);
     void deleteByPolicyPolicyId(Integer policyId);
 }

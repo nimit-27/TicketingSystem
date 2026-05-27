@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AccessPolicyRepository extends JpaRepository<AccessPolicy, Integer> {
     Optional<AccessPolicy> findByCodeIgnoreCase(String code);
     List<AccessPolicy> findByResourceIgnoreCaseAndIsActiveTrue(String resource);
+    List<AccessPolicy> findByResourceIgnoreCaseAndPolicyIdInAndIsActiveTrue(String resource, List<Integer> policyIds);
 }

@@ -13,6 +13,8 @@ import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
+import com.ticketingSystem.api.models.PolicyRule;
+import com.ticketingSystem.api.service.PolicyEvaluationService;
 import com.ticketingSystem.api.service.ReportService;
 import com.ticketingSystem.api.service.SlaCalculationJobService;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
@@ -35,6 +37,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/reports")
@@ -44,6 +49,7 @@ public class ReportsController {
     private final ReportService reportService;
     private final TicketAuthorizationService ticketAuthorizationService;
     private final SlaCalculationJobService slaCalculationJobService;
+    private final PolicyEvaluationService policyEvaluationService;
 
     @GetMapping("/support-dashboard-summary")
     public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary(
@@ -250,13 +256,20 @@ public class ReportsController {
 
     @GetMapping("/downloads")
     public ResponseEntity<PaginationResponse<DownloadRequestDto>> getReportRequests(
-            @RequestParam(defaultValue = "0") int page,
+            @AuthenticationPrincipal LoginPayload authenticatedUser,
+
+            @RequestParam(defaultValue = "0", name = "") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String requestedBy,
             @RequestParam(required = false) String reportCode,
             @RequestParam(required = false) String format,
-            @RequestParam(required = false) String requestedAt
+            @RequestParam(required = false) String requestedAt,
+
+            @RequestParam Map<String, String>allParams
     ) {
+        List<PolicyRule> policyRules = policyEvaluationService.resolveScopedParams(authenticatedUser, allParams);
+        Set<String> policyRulesParams = policyRules.stream().map(PolicyRule::getConditionKey).collect(Collectors.toSet());
+        Set<String> keys = allParams.keySet();
         Pageable pageable = PageRequest.of(page, size);
 
         PaginationResponse<DownloadRequestDto> response = reportService.getDownloadRequests(

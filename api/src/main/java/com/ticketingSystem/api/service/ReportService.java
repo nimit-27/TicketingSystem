@@ -128,7 +128,7 @@ public class ReportService {
                     dto.setFailedAt(req.getFailedAt() != null ? req.getFailedAt().toString() : null);
                     dto.setErrorMessage(req.getErrorMessage());
                     dto.setExpiresAt(req.getExpiresAt() != null ? req.getExpiresAt().toString() : null);
-
+                    dto.setStatus(req.getStatus());
                     if (StringUtils.hasText(req.getRequestedBy())) {
                         userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> dto.setRequestedByDetails(
                                 new DownloadRequestDto.RequestedByDetails(user.getUserId(), user.getUsername(), user.getName())

@@ -20,6 +20,7 @@ public class DownloadRequestDto {
     private String expiresAt;
     private String filename;
     private String downloadPath;
+    private String status;
 
     @Data
     @NoArgsConstructor

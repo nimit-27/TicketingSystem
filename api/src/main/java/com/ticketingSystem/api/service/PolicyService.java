@@ -96,6 +96,11 @@ public class PolicyService {
         return policies.stream().map(this::toDto).toList();
     }
 
+    public List<PolicyDto> getPoliciesByPolicyIdsAndResource(List<Integer> policyIds, String resource) {
+        List<AccessPolicy> accessPolicies = accessPolicyRepository.findByResourceIgnoreCaseAndPolicyIdInAndIsActiveTrue(resource, policyIds);
+        return accessPolicies.stream().map(this::toDto).toList();
+    }
+
     @Transactional
     public void assignPoliciesToRole(Integer roleId,
                                      List<Integer> policyIds,
