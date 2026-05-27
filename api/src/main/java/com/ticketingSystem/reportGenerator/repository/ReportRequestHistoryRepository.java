@@ -19,7 +19,8 @@ public interface ReportRequestHistoryRepository extends JpaRepository<ReportRequ
             "AND (:reportCode IS NULL OR rm.report_code = :reportCode) " +
             "AND (:format IS NULL OR rrh.output_format = :format) " +
             "AND (:requestedFrom IS NULL OR rrh.requested_at >= :requestedFrom) " +
-            "AND (:requestedTo IS NULL OR rrh.requested_at < :requestedTo)",
+            "AND (:requestedTo IS NULL OR rrh.requested_at < :requestedTo) " +
+            "ORDER BY rrh.requested_at DESC ",
             countQuery = "SELECT COUNT(*) FROM report_request_history rrh " +
                     "LEFT JOIN report_master rm ON rm.report_id = rrh.report_id " +
                     "WHERE (:requestedById IS NULL OR rrh.requested_by = :requestedById) " +
