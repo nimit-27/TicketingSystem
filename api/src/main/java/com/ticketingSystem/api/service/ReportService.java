@@ -106,7 +106,7 @@ public class ReportService {
         };
     }
 
-    public PaginationResponse<DownloadRequestDto> getDownloadRequests(String requestedBy, String reportCode, String format, String requestedAt, Pageable pageable) {
+    public PaginationResponse<DownloadReportResponseDto> getDownloadRequests(String requestedBy, String reportCode, String format, String requestedAt, Pageable pageable) {
         LocalDateTime requestedFrom = null;
         LocalDateTime requestedTo = null;
         if (StringUtils.hasText(requestedAt)) {
@@ -115,10 +115,10 @@ public class ReportService {
             requestedTo = requestedFrom.plusDays(1);
         }
 
-        Page<DownloadRequestDto> p = reportRequestHistoryRepository
+        Page<DownloadReportResponseDto> p = reportRequestHistoryRepository
                 .findDownloadRequests(requestedBy, reportCode, format, requestedFrom, requestedTo, pageable)
                 .map(req -> {
-                    DownloadRequestDto dto = new DownloadRequestDto();
+                    DownloadReportResponseDto dto = new DownloadReportResponseDto();
                     dto.setRequestId(req.getRequestId());
                     dto.setReportCode(req.getReport() != null ? req.getReport().getReportCode() : null);
                     dto.setFormat(req.getOutputFormat());
@@ -131,7 +131,7 @@ public class ReportService {
                     dto.setStatus(req.getStatus());
                     if (StringUtils.hasText(req.getRequestedBy())) {
                         userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> dto.setRequestedByDetails(
-                                new DownloadRequestDto.RequestedByDetails(user.getUserId(), user.getUsername(), user.getName())
+                                new DownloadReportResponseDto.RequestedByDetails(user.getUserId(), user.getUsername(), user.getName())
                         ));
                     }
 

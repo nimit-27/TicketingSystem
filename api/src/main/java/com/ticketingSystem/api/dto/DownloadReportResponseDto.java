@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DownloadRequestDto {
+public class DownloadReportResponseDto {
     private String requestId;
     private String reportCode;
     private String format;
