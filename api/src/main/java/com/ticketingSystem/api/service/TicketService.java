@@ -750,8 +750,23 @@ public class TicketService {
         if (updatedStatus == TicketStatus.CLOSED) {
             applyClosedStatus(existing);
         }
-        if (previousStatus == TicketStatus.PENDING_WITH_FCI) {
-            existing.setAssignedBackFromFci(true);
+        boolean movingToAssigned = updatedStatus == TicketStatus.ASSIGNED;
+        if (!movingToAssigned && updatedStatusId != null) {
+            String updatedStatusCode = workflowService.getStatusCodeById(updatedStatusId);
+            movingToAssigned = TicketStatus.ASSIGNED.name().equalsIgnoreCase(updatedStatusCode);
+        }
+        if (movingToAssigned) {
+            String pendingWithFciStatusId = workflowService.getStatusIdByCode(TicketStatus.PENDING_WITH_FCI.name());
+            boolean wasEverPendingWithFci = previousStatus == TicketStatus.PENDING_WITH_FCI;
+            if (!wasEverPendingWithFci) {
+                List<StatusHistory> statusHistories = statusHistoryRepository.findByTicketOrderByTimestampAsc(existing);
+                wasEverPendingWithFci = statusHistories.stream().anyMatch(history ->
+                        Objects.equals(history.getCurrentStatus(), pendingWithFciStatusId)
+                                || TicketStatus.PENDING_WITH_FCI.name().equalsIgnoreCase(history.getCurrentStatus()));
+            }
+            if (wasEverPendingWithFci) {
+                existing.setAssignedBackFromFci(true);
+            }
         }
         if (updated.getSubCategory() != null) {
             existing.setSubCategory(updated.getSubCategory());
