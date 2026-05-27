@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.controller;
 
-import com.ticketingSystem.api.dto.DownloadRequestDto;
+import com.ticketingSystem.api.dto.DownloadReportRequestDto;
+import com.ticketingSystem.api.dto.DownloadReportResponseDto;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
@@ -255,28 +256,23 @@ public class ReportsController {
     }
 
     @GetMapping("/downloads")
-    public ResponseEntity<PaginationResponse<DownloadRequestDto>> getReportRequests(
+    public ResponseEntity<PaginationResponse<DownloadReportResponseDto>> getReportRequests(
             @AuthenticationPrincipal LoginPayload authenticatedUser,
 
-            @RequestParam(defaultValue = "0", name = "") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String requestedBy,
-            @RequestParam(required = false) String reportCode,
-            @RequestParam(required = false) String format,
-            @RequestParam(required = false) String requestedAt,
-
+            DownloadReportRequestDto requestDto,
             @RequestParam Map<String, String>allParams
     ) {
         List<PolicyRule> policyRules = policyEvaluationService.resolveScopedParams(authenticatedUser, allParams);
         Set<String> policyRulesParams = policyRules.stream().map(PolicyRule::getConditionKey).collect(Collectors.toSet());
-        Set<String> keys = allParams.keySet();
-        Pageable pageable = PageRequest.of(page, size);
+        requestDto.applyPolicyRuleParams(policyRulesParams, authenticatedUser);
 
-        PaginationResponse<DownloadRequestDto> response = reportService.getDownloadRequests(
-                requestedBy,
-                reportCode,
-                format,
-                requestedAt,
+        Pageable pageable = PageRequest.of(requestDto.getPage(), requestDto.getSize());
+
+        PaginationResponse<DownloadReportResponseDto> response = reportService.getDownloadRequests(
+                requestDto.getRequestedBy(),
+                requestDto.getReportCode(),
+                requestDto.getFormat(),
+                requestDto.getRequestedAt(),
                 pageable
         );
 
