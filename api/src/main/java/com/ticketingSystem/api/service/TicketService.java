@@ -764,9 +764,7 @@ public class TicketService {
                         Objects.equals(history.getCurrentStatus(), pendingWithFciStatusId)
                                 || TicketStatus.PENDING_WITH_FCI.name().equalsIgnoreCase(history.getCurrentStatus()));
             }
-            if (wasEverPendingWithFci) {
-                existing.setAssignedBackFromFci(true);
-            }
+            existing.setAssignedBackFromFci(wasEverPendingWithFci);
         }
         if (updated.getSubCategory() != null) {
             existing.setSubCategory(updated.getSubCategory());
