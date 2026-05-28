@@ -27,7 +27,7 @@ type ReportRequestRow = {
   requestId: string;
   reportCode?: string;
   status?: string;
-  outputFormat?: string;
+  format?: string;
   requestedAt?: string;
   completedAt?: string;
   failedAt?: string;
@@ -168,7 +168,7 @@ const Downloads: React.FC = () => {
   const columns = useMemo<ColumnsType<ReportRequestRow>>(
     () => [
       { title: 'Report', dataIndex: 'reportCode', key: 'reportCode', render: (value) => value || '-' },
-      { title: 'Format', dataIndex: 'outputFormat', key: 'outputFormat', render: (value) => value || '-' },
+      { title: 'Format', dataIndex: 'format', key: 'format', render: (value) => value || '-' },
       {
         title: 'Requested By',
         key: 'requestedBy',
