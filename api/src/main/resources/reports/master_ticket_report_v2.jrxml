@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="Master_Ticket_Report" pageWidth="2700" pageHeight="1000" orientation="Landscape" columnWidth="2620"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+
+
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="categoryId" class="java.lang.String"/>
+    <parameter name="subCategoryId" class="java.lang.String"/>
+    <parameter name="zoneCode" class="java.lang.String"/>
+    <parameter name="regionCode" class="java.lang.String"/>
+    <parameter name="districtCode" class="java.lang.String"/>
+    <parameter name="issueTypeId" class="java.lang.String"/>
+    <parameter name="statusId" class="java.lang.String"/>
+    <parameter name="priorityId" class="java.lang.String"/>
+    <parameter name="severityId" class="java.lang.String"/>
+    <parameter name="divisionId" class="java.lang.String"/>
+    <parameter name="requestorPhoneNumber" class="java.lang.String"/>
+    <parameter name="requestorUserId" class="java.lang.String"/>
+    <parameter name="requestorEmailId" class="java.lang.String"/>
+
+    <queryString>
+        <![CDATA[
+                SELECT
+                    COALESCE(NULLIF(t.ticket_id, ''), '-')                AS id,
+                    COALESCE(NULLIF(t.master_id, ''), '-')                AS masterId,
+                    COALESCE(t.is_master, 0)                             AS isMaster,
+                    COALESCE(ct.child_ticket_count, 0)                   AS childTicketCount,
+
+                    t.reported_date                                       AS reportedDate,
+
+                    COALESCE(NULLIF(t.requestor_name, ''), '-')          AS requestorName,
+                    COALESCE(NULLIF(sh.remark, ''), '-')                 AS remark,
+                    COALESCE(NULLIF(sh.updated_by, ''), '-')             AS updatedBy,
+                    COALESCE(NULLIF(sm.status_name, ''), NULLIF(t.status, ''), '-') AS statusLabel,
+                    COALESCE(NULLIF(t.subject, ''), '-')                 AS subject,
+                    COALESCE(NULLIF(t.description, ''), '-')             AS description,
+
+                    COALESCE(NULLIF(c.category, ''), '-')                AS category,
+                    COALESCE(NULLIF(s.sub_category, ''), '-')            AS subCategory,
+                    COALESCE(NULLIF(i.name, ''), NULLIF(t.issue_type_id, ''), '-') AS issueTypeLabel,
+
+                    COALESCE(NULLIF(t.assigned_to, ''), '-')             AS assignedToName,
+                    COALESCE(NULLIF(p.tp_id, ''), NULLIF(t.priority, ''), '-')  AS priority,
+                    COALESCE(NULLIF(sev.ts_level, ''), NULLIF(t.severity, ''), '-') AS severity,
+
+                    COALESCE(NULLIF(t.office_code, ''), '-')             AS officeCode,
+
+                    COALESCE(NULLIF(d.district_name, ''), NULLIF(t.district_name, ''), '-') AS districtName,
+                    COALESCE(NULLIF(d.district_code, ''), '-')           AS districtCode,
+
+                    COALESCE(NULLIF(z.zone_code, ''), NULLIF(t.zone_code, ''), '-') AS zoneCode,
+                    COALESCE(NULLIF(z.zone_name, ''), '-')               AS zoneName,
+
+                    COALESCE(NULLIF(r.region_name, ''), NULLIF(t.region_name, ''), '-') AS regionName,
+                    COALESCE(NULLIF(r.region_code, ''), '-')             AS regionCode,
+
+                    COALESCE(NULLIF(t.user_id, ''), '-')                 AS requestorUserId,
+                    COALESCE(NULLIF(t.requestor_email_id, ''), '-')     AS requestorEmailId,
+                    COALESCE(NULLIF(t.requestor_mobile_no, ''), '-')    AS requestorMobileNo,
+
+                    COALESCE(NULLIF(dm.division_name, ''), '-')         AS division
+            FROM tickets t
+            LEFT JOIN categories        c   ON c.category_id      = t.category
+            LEFT JOIN sub_categories    s   ON s.sub_category_id  = t.sub_category
+            LEFT JOIN issue_type_master i   ON i.issue_type_id    = t.issue_type_id
+            LEFT JOIN priority_master   p   ON p.tp_id            = t.priority
+            LEFT JOIN severity_master   sev ON sev.ts_id          = t.severity
+            LEFT JOIN zone_master       z   ON z.zone_code        = t.zone_code
+            LEFT JOIN region_master     r   ON r.region_code      = t.region_code
+            LEFT JOIN district_master   d   ON d.district_code    = t.district_code
+            LEFT JOIN division_master   dm  ON dm.division_id     = t.division
+            LEFT JOIN (
+                SELECT master_id, COUNT(*) AS child_ticket_count
+                FROM tickets
+                WHERE master_id IS NOT NULL
+                GROUP BY master_id
+            ) ct ON ct.master_id = t.ticket_id
+            LEFT JOIN (
+                SELECT ticket_id, MAX(`timestamp`) AS max_ts
+                FROM status_history
+                GROUP BY ticket_id
+            ) sh_max ON sh_max.ticket_id = t.ticket_id
+            LEFT JOIN status_history sh
+                ON sh.ticket_id = t.ticket_id
+               AND sh.`timestamp` = sh_max.max_ts
+            LEFT JOIN status_master sm ON sm.status_id = sh.current_status
+            WHERE 1 = 1
+              AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d %H:%i:%s'))
+              AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d %H:%i:%s'), INTERVAL 1 DAY))
+              AND ($P{categoryId} IS NULL OR t.category = $P{categoryId})
+              AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
+              AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
+              AND ($P{regionCode} IS NULL OR t.region_code = $P{regionCode})
+              AND ($P{districtCode} IS NULL OR t.district_code = $P{districtCode})
+              AND ($P{issueTypeId} IS NULL OR t.issue_type_id = $P{issueTypeId})
+              AND ($P{statusId} IS NULL OR sh.current_status = $P{statusId})
+              AND ($P{priorityId} IS NULL OR t.priority = $P{priorityId})
+              AND ($P{severityId} IS NULL OR t.severity = $P{severityId})
+              AND ($P{divisionId} IS NULL OR t.division = $P{divisionId})
+              AND ($P{requestorPhoneNumber} IS NULL OR t.requestor_mobile_no = $P{requestorPhoneNumber})
+              AND ($P{requestorUserId} IS NULL OR t.user_id = $P{requestorUserId})
+              AND ($P{requestorEmailId} IS NULL OR t.requestor_email_id = $P{requestorEmailId})
+            ORDER BY t.ticket_id DESC
+        ]]>
+    </queryString>
+
+    <field name="id" class="java.lang.String"/>
+    <field name="masterId" class="java.lang.String"/>
+    <field name="isMaster" class="java.lang.Integer"/>
+    <field name="childTicketCount" class="java.lang.Integer"/>
+    <field name="reportedDate" class="java.sql.Timestamp"/>
+    <field name="requestorName" class="java.lang.String"/>
+    <field name="remark" class="java.lang.String"/>
+    <field name="updatedBy" class="java.lang.String"/>
+    <field name="statusLabel" class="java.lang.String"/>
+    <field name="subject" class="java.lang.String"/>
+    <field name="description" class="java.lang.String"/>
+    <field name="category" class="java.lang.String"/>
+    <field name="subCategory" class="java.lang.String"/>
+    <field name="issueTypeLabel" class="java.lang.String"/>
+    <field name="zoneCode" class="java.lang.String"/>
+    <field name="districtName" class="java.lang.String"/>
+    <field name="regionName" class="java.lang.String"/>
+    <field name="severity" class="java.lang.String"/>
+    <field name="priority" class="java.lang.String"/>
+    <field name="assignedToName" class="java.lang.String"/>
+    <field name="division" class="java.lang.String"/>
+    <field name="requestorUserId" class="java.lang.String"/>
+    <field name="requestorEmailId" class="java.lang.String"/>
+    <field name="requestorMobileNo" class="java.lang.String"/>
+    <title>
+        <band height="30">
+            <staticText>
+                <reportElement x="0" y="0" width="2620" height="30"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Tickets Report]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="24">
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Ticket Id]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="100" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Master Id]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="200" y="0" width="80" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Is Master]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="280" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Child Count]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="380" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Reported Date]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="530" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Requestor]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="680" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Remark]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="830" y="0" width="130" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Updated By]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="960" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Status]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1060" y="0" width="200" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Subject]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1260" y="0" width="210" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Description]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1470" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Category]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1570" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[SubCategory]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1670" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Issue Type]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1770" y="0" width="90" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Zone]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1860" y="0" width="90" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[District]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="1950" y="0" width="90" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Region]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2040" y="0" width="90" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Division]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2130" y="0" width="60" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Severity]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2190" y="0" width="60" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Priority]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2250" y="0" width="70" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Assignee]]></text></staticText>
+                    <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2320" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Req User Id]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2420" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Req Email]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2520" y="0" width="100" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Req Phone]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="32" splitType="Stretch">
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{id}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="100" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{masterId}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="200" y="0" width="80" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{isMaster}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="280" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{childTicketCount}]]></textFieldExpression></textField>
+            <textField pattern="yyyy-MM-dd HH:mm:ss" isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="380" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="530" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{requestorName}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="680" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{remark}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="830" y="0" width="130" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{updatedBy}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="960" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{statusLabel}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1060" y="0" width="200" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{subject}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1260" y="0" width="210" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{description}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1470" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{category}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1570" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{subCategory}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1670" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{issueTypeLabel}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1770" y="0" width="90" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{zoneCode}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1860" y="0" width="90" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="1950" y="0" width="90" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{regionName}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2040" y="0" width="90" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{division}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2130" y="0" width="60" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2190" y="0" width="60" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2250" y="0" width="70" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression></textField>
+                    <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2320" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{requestorUserId}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2420" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Left" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{requestorEmailId}]]></textFieldExpression></textField>
+            <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2520" y="0" width="100" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{requestorMobileNo}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+</jasperReport>
