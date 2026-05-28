@@ -18,6 +18,7 @@ public interface ReportRequestHistoryRepository extends JpaRepository<ReportRequ
             "WHERE (:requestedById IS NULL OR rrh.requested_by = :requestedById) " +
             "AND (:reportCode IS NULL OR rm.report_code = :reportCode) " +
             "AND (:format IS NULL OR rrh.output_format = :format) " +
+            "AND (:status IS NULL OR rrh.status = :status) " +
             "AND (:requestedFrom IS NULL OR rrh.requested_at >= :requestedFrom) " +
             "AND (:requestedTo IS NULL OR rrh.requested_at < :requestedTo) " +
             "ORDER BY rrh.requested_at DESC ",
@@ -26,12 +27,14 @@ public interface ReportRequestHistoryRepository extends JpaRepository<ReportRequ
                     "WHERE (:requestedById IS NULL OR rrh.requested_by = :requestedById) " +
                     "AND (:reportCode IS NULL OR rm.report_code = :reportCode) " +
                     "AND (:format IS NULL OR rrh.output_format = :format) " +
+                    "AND (:status IS NULL OR rrh.status = :status) " +
                     "AND (:requestedFrom IS NULL OR rrh.requested_at >= :requestedFrom) " +
                     "AND (:requestedTo IS NULL OR rrh.requested_at < :requestedTo)",
             nativeQuery = true)
     Page<ReportRequestHistory> findDownloadRequests(@Param("requestedById") String requestedBy,
                                                     @Param("reportCode") String reportCode,
                                                     @Param("format") String format,
+                                                    @Param("status") String status,
                                                     @Param("requestedFrom") LocalDateTime requestedFrom,
                                                     @Param("requestedTo") LocalDateTime requestedTo,
                                                   Pageable pageable);

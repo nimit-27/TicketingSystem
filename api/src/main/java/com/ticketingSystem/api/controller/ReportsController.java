@@ -272,6 +272,7 @@ public class ReportsController {
                 requestDto.getRequestedBy(),
                 requestDto.getReportCode(),
                 requestDto.getFormat(),
+                requestDto.getStatus(),
                 requestDto.getRequestedAt(),
                 pageable
         );

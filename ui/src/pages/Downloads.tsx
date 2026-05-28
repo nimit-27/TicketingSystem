@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, SelectChangeEvent, Stack, Tooltip, Typography } from '@mui/material';
 import type { ColumnsType } from 'antd/es/table';
 import GenericTable from '../components/UI/GenericTable';
 import { useApi } from '../hooks/useApi';
 import { getReportDownloadUrl, getReportDownloads } from '../services/TicketService';
+import { fetchReportDefinitions } from '../services/ReportDefinitionService';
 import CustomIconButton from '../components/UI/IconButton/CustomIconButton';
-import { formatDateTimeWithRelative } from '../utils/Utils';
+import { formatDateTimeWithRelative, getDropdownOptions, getStatuses, getUserDetails } from '../utils/Utils';
 import Title from '../components/Title';
 import PaginationControls from '../components/PaginationControls';
+import GenericDropdown, { DropdownOption } from '../components/UI/Dropdown/GenericDropdown';
+import { checkFieldAccess } from '../utils/permissions';
 
 type ReportFilter = {
   key?: string;
@@ -44,15 +47,30 @@ type ReportRequestRow = {
 
 const Downloads: React.FC = () => {
   const { data, pending, apiHandler } = useApi<any>();
+  const { apiHandler: reportDefinitionsApiHandler } = useApi<any[]>();
   const [rows, setRows] = React.useState<ReportRequestRow[]>([]);
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [totalPages, setTotalPages] = React.useState(1);
   const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
+  const [reportOptions, setReportOptions] = React.useState<DropdownOption[]>([]);
+  const [statusOptions, setStatusOptions] = React.useState<DropdownOption[]>([]);
+  const [filters, setFilters] = React.useState({ reportCode: '', format: '', status: '', requestedBy: '' });
+  const showReportFilter = checkFieldAccess('downloads', 'report');
+  const showFormatFilter = checkFieldAccess('downloads', 'format');
+  const showStatusFilter = checkFieldAccess('downloads', 'status');
+  const showRequestedByFilter = checkFieldAccess('downloads', 'requestedBy');
 
   const load = useCallback(async () => {
-    await apiHandler(() => getReportDownloads({ page: page - 1, size: pageSize }));
-  }, [apiHandler, page, pageSize]);
+    await apiHandler(() => getReportDownloads({
+      page: page - 1,
+      size: pageSize,
+      reportCode: filters.reportCode || undefined,
+      format: filters.format || undefined,
+      status: filters.status || undefined,
+      requestedBy: filters.requestedBy || undefined,
+    }));
+  }, [apiHandler, filters, page, pageSize]);
 
   useEffect(() => {
     load();
@@ -77,6 +95,19 @@ const Downloads: React.FC = () => {
   useEffect(() => {
     setExpandedRows({});
   }, [rows]);
+  
+  useEffect(() => {
+    reportDefinitionsApiHandler(() => fetchReportDefinitions()).then((reportList) => {
+      setReportOptions([{ label: 'All', value: '' }, ...getDropdownOptions(reportList, 'reportCode', 'reportCode')]);
+    });
+    getStatuses().then((list) => {
+      setStatusOptions([{ label: 'All', value: '' }, ...getDropdownOptions(list, 'statusName', 'statusName')]);
+    });
+    const user = getUserDetails();
+    if (showRequestedByFilter && user?.userId) {
+      setFilters((prev) => ({ ...prev, requestedBy: user.userId }));
+    }
+  }, [showRequestedByFilter]);
 
   const renderDateCell = useCallback((value?: string) => {
     if (!value) return '-';
@@ -261,6 +292,10 @@ const Downloads: React.FC = () => {
     ],
     [expandedRows, getFilterValueByKey, parseFilters, renderDateCell, renderFilterChip],
   );
+  const handleFilterChange = (key: keyof typeof filters) => (event: SelectChangeEvent) => {
+    setPage(1);
+    setFilters((prev) => ({ ...prev, [key]: event.target.value }));
+  };
 
   return (
     <div className='d-flex w-100'>
@@ -269,6 +304,32 @@ const Downloads: React.FC = () => {
         <div className='d-flex justify-content-end'>
           <CustomIconButton icon="replay" onClick={load} disabled={pending} aria-label="Refresh" />
         </div>
+        <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+          {showReportFilter && (
+            <GenericDropdown label="Report" value={filters.reportCode} onChange={handleFilterChange('reportCode')} options={reportOptions} style={{ minWidth: 220 }} />
+          )}
+          {showFormatFilter && (
+            <GenericDropdown
+              label="Format"
+              value={filters.format}
+              onChange={handleFilterChange('format')}
+              options={[{ label: 'All', value: '' }, ...getDropdownOptions([{ label: 'PDF', value: 'PDF' }, { label: 'EXCEL', value: 'EXCEL' }], 'label', 'value')]}
+              style={{ minWidth: 180 }}
+            />
+          )}
+          {showStatusFilter && (
+            <GenericDropdown label="Status" value={filters.status} onChange={handleFilterChange('status')} options={statusOptions} style={{ minWidth: 220 }} />
+          )}
+          {showRequestedByFilter && (
+            <GenericDropdown
+              label="Requested By"
+              value={filters.requestedBy}
+              onChange={handleFilterChange('requestedBy')}
+              options={[{ label: 'My Requests', value: getUserDetails()?.userId || '' }, { label: 'All', value: '' }]}
+              style={{ minWidth: 220 }}
+            />
+          )}
+        </Stack>
         <GenericTable
           rowKey="requestId"
           dataSource={rows}
