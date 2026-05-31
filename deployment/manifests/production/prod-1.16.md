@@ -33,12 +33,24 @@ r2351
 
 ## 2. Version Index
 
-This file is the single manifest for the `1.16` release line in `PRODUCTION`. Subversions are captured in this same file so readers can review the base release and follow-up UI/API subversions without opening separate manifest files.
+- **Release line:** `1.16` (PRODUCTION)
+- **Manifest purpose:** Single reference for the base release and follow-up UI/API subversions.
 
-| Version Type | Deployment Version | UI Version | API Version | Updated Date | Details Section |
-| --- | --- | --- | --- | --- | --- |
-| Base Version | prod-1.16 | 1.16 | 1.16.1 | 25-05-2026 | [Base Release Details](#5-changes-included) |
-| UI/API Sub Version | prod-1.16.2 | 1.16.2 | 1.16.3 | 30-05-2026 | [Sub Version Details](#6-sub-version-details) |
+### Version entries
+
+- **Base Version**
+  - Deployment Version: `prod-1.16`
+  - UI Version: `1.16`
+  - API Version: `1.16.1`
+  - Updated Date: 25-05-2026
+  - Details: [Base Release Details](#5-changes-included)
+
+- **UI/API Sub Version**
+  - Deployment Version: `prod-1.16.2`
+  - UI Version: `1.16.2`
+  - API Version: `1.16.3`
+  - Updated Date: 30-05-2026
+  - Details: [Sub Version Details](#6-sub-version-details)
 
 ---
 
