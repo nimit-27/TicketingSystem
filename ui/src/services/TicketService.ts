@@ -208,12 +208,20 @@ export function downloadTicketsReport({
 export interface ReportDownloadsParams {
     page?: number;
     size?: number;
+    reportCode?: string;
+    format?: string;
+    status?: string;
+    requestedBy?: string;
 }
 
 export function getReportDownloads(params: ReportDownloadsParams = {}) {
     const searchParams = new URLSearchParams();
     if (typeof params.page === 'number') searchParams.append('page', String(params.page));
     if (typeof params.size === 'number') searchParams.append('size', String(params.size));
+    if (params.reportCode) searchParams.append('reportCode', params.reportCode);
+    if (params.format) searchParams.append('format', params.format);
+    if (params.status) searchParams.append('status', params.status);
+    if (params.requestedBy) searchParams.append('requestedBy', params.requestedBy);
     const query = searchParams.toString();
     return axios.get(`${BASE_URL}/reports/downloads${query ? `?${query}` : ''}`);
 }

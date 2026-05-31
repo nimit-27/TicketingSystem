@@ -17,6 +17,7 @@ public class DownloadReportRequestDto {
     private String requestedBy;
     private String reportCode;
     private String format;
+    private String status;
     private String requestedAt;
 
     public void applyPolicyRuleParams(Set<String> policyRulesParams, LoginPayload authenticatedUser) {
