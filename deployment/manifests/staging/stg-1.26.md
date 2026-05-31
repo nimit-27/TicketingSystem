@@ -27,7 +27,7 @@ SVN Branch/Path:
 https://172.18.50.113/svn/CH-GEBIZ-Synergy_Base/FCI/Source/Web/Development
 
 SVN Revision:
-r2351
+r2353
 
 ---
 
@@ -62,7 +62,7 @@ The following manifests correspond to deployments sharing the same code base and
 - STG   → deployment/manifests/staging/stg-1.26.md
 - PROD  → deployment/manifests/production/prod-1.16.md
 
-> Note: All environments use the same source code (SVN revision r2351). Differences are environment-specific configurations only.
+> Note: All environments use the same source code (SVN revision r2353). Differences are environment-specific configurations only.
 
 ---
 
@@ -145,7 +145,7 @@ SVN Branch/Path:
 https://172.18.50.113/svn/CH-GEBIZ-Synergy_Base/FCI/Source/Web/Development
 
 SVN Revision:
-r2351
+r2353
 
 #### Manifest Environment Mapping
 
@@ -155,7 +155,7 @@ The following subversion deployments share the same code base and version across
 - STG   → deployment/manifests/staging/stg-1.26.md (sub version stg-1.26.1)
 - PROD  → deployment/manifests/production/prod-1.16.md (sub version prod-1.16.2)
 
-> Note: All subversion deployments use the same source code (SVN revision r2351). Differences are environment-specific configurations only.
+> Note: All subversion deployments use the same source code (SVN revision r2353). Differences are environment-specific configurations only.
 
 #### Docker Images
 
@@ -179,16 +179,15 @@ Yes
 
 ##### UI Changes
 
-- Updated Downloads page to consume paginated API data from `useApi` state.
-- Updated report download request payload to send `format` instead of `outputFormat`.
+- Added pagination on Downloads page.
 - Added role-based access handling for Downloads page visibility and report requests.
 
 ##### API Changes
 
-- Added paginated download request retrieval using snake_case native query mapping.
+- Added paginated download request retrieval.
 - Added policy-scoped access checks for download report requests.
-- Updated assigned-back-from-FCI flag handling when tickets transition to Assigned.
-- Added v2 master ticket JRXML template with requestor contact filters.
+- Resolved bug for assignedBackFromFci flag handling when tickets transition to Assigned.
+- Added user details related column in the tickets download report.
 
 ##### DB Changes
 
