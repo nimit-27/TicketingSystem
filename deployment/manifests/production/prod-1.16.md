@@ -179,16 +179,15 @@ Yes
 
 ##### UI Changes
 
-- Updated Downloads page to consume paginated API data from `useApi` state.
-- Updated report download request payload to send `format` instead of `outputFormat`.
+- Added pagination on Downloads page.
 - Added role-based access handling for Downloads page visibility and report requests.
 
 ##### API Changes
 
-- Added paginated download request retrieval using snake_case native query mapping.
+- Added paginated download request retrieval.
 - Added policy-scoped access checks for download report requests.
-- Updated assigned-back-from-FCI flag handling when tickets transition to Assigned.
-- Added v2 master ticket JRXML template with requestor contact filters.
+- Resolved bug for assignedBackFromFci flag handling when tickets transition to Assigned.
+- Added user details related column in the tickets download report.
 
 ##### DB Changes
 
