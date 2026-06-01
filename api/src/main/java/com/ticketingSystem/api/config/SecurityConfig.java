@@ -56,7 +56,8 @@ public class SecurityConfig {
                         "auth/login/sso", "auth/sso", "auth/session",
                         "/m/auth/token", "/helpdesk/m/auth/token",
                         "/ext/auth/token", "/helpdesk/ext/auth/token",
-                        "/ext/nagios/ticket-sla", "/helpdesk/ext/nagios/ticket-sla").permitAll()
+                        "/ext/nagios/ticket-sla", "/helpdesk/ext/nagios/ticket-sla",
+                        "/ext/nagios/ticket-sla/**", "/helpdesk/ext/nagios/ticket-sla/**").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()

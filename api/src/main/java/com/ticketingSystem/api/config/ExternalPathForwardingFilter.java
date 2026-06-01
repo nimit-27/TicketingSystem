@@ -22,7 +22,10 @@ public class ExternalPathForwardingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        return !path.startsWith("/ext/") || path.startsWith("/ext/auth") || path.startsWith("/ext/ping");
+        return !path.startsWith("/ext/")
+                || path.startsWith("/ext/auth")
+                || path.startsWith("/ext/nagios")
+                || path.startsWith("/ext/ping");
     }
 
     @Override
