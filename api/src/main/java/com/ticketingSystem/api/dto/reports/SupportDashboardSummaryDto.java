@@ -20,5 +20,6 @@ public class SupportDashboardSummaryDto {
     private List<SupportDashboardSlaCompliancePointDto> slaCompliance;
     private List<SupportDashboardTicketVolumePointDto> ticketVolume;
     private List<SupportDashboardAssigneeCountDto> assignedTicketsByAssignee;
+    private List<SupportDashboardDivisionPendingCountDto> pendingTicketsByDivision;
     private Long unresolvedBreachedTickets;
 }

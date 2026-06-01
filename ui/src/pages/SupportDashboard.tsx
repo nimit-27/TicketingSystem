@@ -856,6 +856,11 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           tickets: typeof entry?.tickets === "number" ? entry.tickets : 0,
         }));
 
+        const pendingTicketsByDivision = (dashboardData.pendingTicketsByDivision ?? []).map((entry: any) => ({
+          division: typeof entry?.division === "string" && entry.division.trim().length > 0 ? entry.division : "Unassigned",
+          count: typeof entry?.count === "number" ? entry.count : 0,
+        }));
+
         const formatDisplayDate = (value: string | Date) =>
           new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
@@ -909,6 +914,10 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
           ["Ticket Volume"],
           ["Period", "Tickets"],
           ...(ticketVolume.length ? ticketVolume.map((row) => [row.label, row.tickets]) : [["No data", 0]]),
+          [],
+          ["Division-wise Pending Tickets"],
+          ["Division", "Pending Tickets"],
+          ...(pendingTicketsByDivision.length ? pendingTicketsByDivision.map((row) => [row.division, row.count]) : [["No data", 0]]),
         );
 
         const downloadExcel = () => {
@@ -1000,6 +1009,12 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
             title: "Ticket Volume",
             head: ["Period", "Tickets"],
             rows: ticketVolume.length ? ticketVolume.map((row) => [row.label, row.tickets]) : [["No data", 0]],
+          });
+
+          sections.push({
+            title: "Division-wise Pending Tickets",
+            head: ["Division", "Pending Tickets"],
+            rows: pendingTicketsByDivision.length ? pendingTicketsByDivision.map((row) => [row.division, row.count]) : [["No data", 0]],
           });
 
           let startY = 24;
@@ -1610,6 +1625,40 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
     [ticketVolumeSeries, t],
   );
 
+  const divisionPendingTicketsBarOptions = React.useMemo(() => {
+    const data = (summaryData?.pendingTicketsByDivision ?? [])
+      .map((entry: any) => ({
+        division: typeof entry?.division === "string" && entry.division.trim().length > 0 ? entry.division : "Unassigned",
+        count: typeof entry?.count === "number" ? entry.count : 0,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15);
+
+    return {
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      grid: { top: 20, bottom: 20, left: 160, right: 40 },
+      xAxis: { type: "value" },
+      yAxis: {
+        type: "category",
+        inverse: true,
+        data: data.map((entry) => entry.division),
+        axisTick: { show: false },
+      },
+      series: [
+        {
+          name: "Pending Tickets",
+          type: "bar",
+          data: data.map((entry) => entry.count),
+          label: {
+            show: true,
+            position: "right",
+          },
+          itemStyle: { color: "#ff9800" },
+        },
+      ],
+    };
+  }, [summaryData?.pendingTicketsByDivision]);
+
   const activeScopeLabel = t(scopeLabels[activeScope]);
 
   const misReportGeneratorComponent = <MISReportGenerator
@@ -1916,6 +1965,18 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 </Card>
               </div>
             ) : null}
+            <div className="col-12 col-xl-6">
+              <Card className="h-100 border-0 shadow-sm">
+                <CardContent className="h-100" style={{ minHeight: 320 }}>
+                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                    Division-wise Pending Tickets
+                  </Typography>
+                  <Box sx={{ height: "90%", minHeight: 260 }}>
+                    <ReactECharts option={divisionPendingTicketsBarOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                  </Box>
+                </CardContent>
+              </Card>
+            </div>
             {showAssignedTicketsBarRace ? (
               <div className="col-12 col-xl-6">
                 <Card className="h-100 border-0 shadow-sm">
