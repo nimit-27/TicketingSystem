@@ -115,7 +115,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                     COUNT(*) AS count
                 FROM tickets t
                 LEFT JOIN division_master dm ON dm.division_id = t.division
-                WHERE t.status IN (:statuses)
+                WHERE t.status NOT IN (:statuses)
                   AND (:assignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:assignedTo))
                   AND (:parameterAssignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:parameterAssignedTo))
                   AND (:parameterAssignedBy IS NULL OR LOWER(t.assigned_by) = LOWER(:parameterAssignedBy))

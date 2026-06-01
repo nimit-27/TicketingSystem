@@ -88,13 +88,12 @@ public class ReportService {
 
     private static final DateTimeFormatter DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-    private static final List<String> PENDING_TICKET_STATUS_NAMES = List.of(
-            TicketStatus.PENDING.name(),
-            TicketStatus.ON_HOLD.name(),
-            TicketStatus.PENDING_WITH_REQUESTER.name(),
-            TicketStatus.PENDING_WITH_SERVICE_PROVIDER.name(),
-            TicketStatus.PENDING_WITH_FCI.name()
+    private static final List<String> CLOSED_RESOLVED_CANCELLED = List.of(
+            TicketStatus.CLOSED.name(),
+            TicketStatus.RESOLVED.name(),
+            TicketStatus.CANCELLED.name()
     );
+
 
     private ParameterCriteria resolveParameterCriteria(String parameterKey, String parameterValue) {
         if (!StringUtils.hasText(parameterKey) || !StringUtils.hasText(parameterValue)) {
@@ -323,7 +322,7 @@ public class ReportService {
                                                                                                   String subCategoryId,
                                                                                                   String divisionId) {
         List<TicketRepository.DivisionPendingCountProjection> projections = ticketRepository.countPendingTicketsByDivisionWithFilters(
-                PENDING_TICKET_STATUS_NAMES,
+                CLOSED_RESOLVED_CANCELLED,
                 null,
                 dateRange.from(),
                 dateRange.to(),
