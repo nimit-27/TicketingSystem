@@ -16,12 +16,14 @@ import java.util.Map;
 public class MasterTicketReportRequestDataProvider implements ReportRequestDataProvider {
 
     private static final String TEMPLATE_LOCATION = "reports/master_ticket_report.jrxml";
+    private static final String TEMPLATE_LOCATION_V2 = "reports/master_ticket_report_v2.jrxml";
 
     @Override
     public boolean supports(String reportCode, ReportMaster reportMaster, Map<String, Object> filters) {
         return reportMaster != null
                 && reportMaster.getTemplateLocation() != null
-                && TEMPLATE_LOCATION.equalsIgnoreCase(reportMaster.getTemplateLocation());
+                && (TEMPLATE_LOCATION.equalsIgnoreCase(reportMaster.getTemplateLocation())
+                || TEMPLATE_LOCATION_V2.equalsIgnoreCase(reportMaster.getTemplateLocation()));
     }
 
     @Override
@@ -46,6 +48,9 @@ public class MasterTicketReportRequestDataProvider implements ReportRequestDataP
         params.put("priorityId", toNullableString(firstNonEmpty(filters.get("priorityId"), filters.get("priority"))));
         params.put("severityId", toNullableString(firstNonEmpty(filters.get("severityId"), filters.get("severity"))));
         params.put("divisionId", toNullableString(firstNonEmpty(filters.get("divisionId"), filters.get("division"))));
+        params.put("requestorPhoneNumber", toNullableString(firstNonEmpty(filters.get("requestorPhoneNumber"), filters.get("requestorMobileNo"))));
+        params.put("requestorUserId", toNullableString(firstNonEmpty(filters.get("requestorUserId"), filters.get("userId"))));
+        params.put("requestorEmailId", toNullableString(firstNonEmpty(filters.get("requestorEmailId"), filters.get("emailId"))));
         return params;
     }
 

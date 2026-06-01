@@ -1,6 +1,9 @@
 package com.ticketingSystem.api.controller;
 
+import com.ticketingSystem.api.dto.DownloadReportRequestDto;
+import com.ticketingSystem.api.dto.DownloadReportResponseDto;
 import com.ticketingSystem.api.dto.LoginPayload;
+import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobOverviewDto;
 import com.ticketingSystem.api.dto.sla.SlaCalculationJobRunDto;
@@ -11,11 +14,15 @@ import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
 import com.ticketingSystem.api.dto.reports.TicketResolutionTimeReportDto;
 import com.ticketingSystem.api.dto.reports.TicketSummaryReportDto;
+import com.ticketingSystem.api.models.PolicyRule;
+import com.ticketingSystem.api.service.PolicyEvaluationService;
 import com.ticketingSystem.api.service.ReportService;
 import com.ticketingSystem.api.service.SlaCalculationJobService;
 import com.ticketingSystem.api.service.TicketAuthorizationService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.MultiValueMap;
@@ -31,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/reports")
@@ -40,6 +50,7 @@ public class ReportsController {
     private final ReportService reportService;
     private final TicketAuthorizationService ticketAuthorizationService;
     private final SlaCalculationJobService slaCalculationJobService;
+    private final PolicyEvaluationService policyEvaluationService;
 
     @GetMapping("/support-dashboard-summary")
     public ResponseEntity<SupportDashboardSummaryDto> getSupportDashboardSummary(
@@ -242,6 +253,30 @@ public class ReportsController {
         }
 
         return "SYSTEM";
+    }
+
+    @GetMapping("/downloads")
+    public ResponseEntity<PaginationResponse<DownloadReportResponseDto>> getReportRequests(
+            @AuthenticationPrincipal LoginPayload authenticatedUser,
+
+            DownloadReportRequestDto requestDto,
+            @RequestParam Map<String, String>allParams
+    ) {
+        List<PolicyRule> policyRules = policyEvaluationService.resolveScopedParams(authenticatedUser, allParams);
+        Set<String> policyRulesParams = policyRules.stream().map(PolicyRule::getConditionKey).collect(Collectors.toSet());
+        requestDto.applyPolicyRuleParams(policyRulesParams, authenticatedUser);
+
+        Pageable pageable = PageRequest.of(requestDto.getPage(), requestDto.getSize());
+
+        PaginationResponse<DownloadReportResponseDto> response = reportService.getDownloadRequests(
+                requestDto.getRequestedBy(),
+                requestDto.getReportCode(),
+                requestDto.getFormat(),
+                requestDto.getRequestedAt(),
+                pageable
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 }

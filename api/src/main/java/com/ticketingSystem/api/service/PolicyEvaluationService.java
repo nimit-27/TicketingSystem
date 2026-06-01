@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.LoginPayload;
+import com.ticketingSystem.api.dto.PolicyDto;
 import com.ticketingSystem.api.models.AccessPolicy;
 import com.ticketingSystem.api.models.PolicyRule;
 import com.ticketingSystem.api.models.Role;
@@ -19,13 +20,15 @@ public class PolicyEvaluationService {
     private final RolePolicyMapRepository rolePolicyMapRepository;
     private final PolicyRuleRepository policyRuleRepository;
     private final RoleRepository roleRepository;
+    private final PolicyService policyService;
 
     public PolicyEvaluationService(RolePolicyMapRepository rolePolicyMapRepository,
                                    PolicyRuleRepository policyRuleRepository,
-                                   RoleRepository roleRepository) {
+                                   RoleRepository roleRepository, PolicyService policyService) {
         this.rolePolicyMapRepository = rolePolicyMapRepository;
         this.policyRuleRepository = policyRuleRepository;
         this.roleRepository = roleRepository;
+        this.policyService = policyService;
     }
 
     public PolicyDecision evaluateTicketView(List<String> roleIdentifiers,
@@ -62,6 +65,16 @@ public class PolicyEvaluationService {
             hasAllow = true;
         }
         return hasAllow ? PolicyDecision.ALLOW : PolicyDecision.ABSTAIN;
+    }
+
+    public List<PolicyRule> resolveScopedParams(LoginPayload authenticatedUser, Map<String, String> allParams) {
+        List<String> roles = authenticatedUser.getRoles();
+        List<Integer> rolesInteger = roles.stream().map(Integer::valueOf).toList();
+        List<RolePolicyMap> rolePolicyMapList = rolePolicyMapRepository.findByRoleRoleIdInAndIsActiveTrue(rolesInteger);
+        List<Integer> policyIds = rolePolicyMapList.stream().map(item -> item.getId().getPolicyId()).toList();
+        List<PolicyDto> accessPolicies = policyService.getPoliciesByPolicyIdsAndResource(policyIds, "downloads");
+        List<Integer> filteredPolicyIds = accessPolicies.stream().map(PolicyDto::getPolicyId).toList();
+        return policyRuleRepository.findByPolicyPolicyIdInAndIsActiveTrueOrderByPriorityAscRuleIdAsc(filteredPolicyIds);
     }
 
     private boolean evaluateRule(PolicyRule rule, LoginPayload user, TicketAccessContext ticketContext) {

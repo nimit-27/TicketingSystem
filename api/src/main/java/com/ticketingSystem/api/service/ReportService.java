@@ -1,8 +1,6 @@
 package com.ticketingSystem.api.service;
 
-import com.ticketingSystem.api.dto.HelpdeskUserDto;
-import com.ticketingSystem.api.dto.RoleDto;
-import com.ticketingSystem.api.dto.RequesterUserDto;
+import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
 import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
@@ -32,7 +30,11 @@ import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.api.util.DateTimeUtils;
+import com.ticketingSystem.reportGenerator.repository.ReportRequestHistoryRepository;
+import com.ticketingSystem.reportGenerator.repository.ReportArtifactRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -74,6 +76,8 @@ public class ReportService {
     private final RequesterUserService requesterUserService;
     private final RoleService roleService;
     private final ParameterMasterService parameterMasterService;
+    private final ReportRequestHistoryRepository reportRequestHistoryRepository;
+    private final ReportArtifactRepository reportArtifactRepository;
 
     private static final EnumSet<TicketStatus> RESOLVED_STATUSES = EnumSet.of(
             TicketStatus.RESOLVED,
@@ -100,6 +104,46 @@ public class ReportService {
             case "requester", "requestor", "user", "user_id" -> new ParameterCriteria(null, null, null, null, normalizedValue, null, null, null, null);
             default -> null;
         };
+    }
+
+    public PaginationResponse<DownloadReportResponseDto> getDownloadRequests(String requestedBy, String reportCode, String format, String requestedAt, Pageable pageable) {
+        LocalDateTime requestedFrom = null;
+        LocalDateTime requestedTo = null;
+        if (StringUtils.hasText(requestedAt)) {
+            LocalDate requestedDate = LocalDate.parse(requestedAt.trim());
+            requestedFrom = requestedDate.atStartOfDay();
+            requestedTo = requestedFrom.plusDays(1);
+        }
+
+        Page<DownloadReportResponseDto> p = reportRequestHistoryRepository
+                .findDownloadRequests(requestedBy, reportCode, format, requestedFrom, requestedTo, pageable)
+                .map(req -> {
+                    DownloadReportResponseDto dto = new DownloadReportResponseDto();
+                    dto.setRequestId(req.getRequestId());
+                    dto.setReportCode(req.getReport() != null ? req.getReport().getReportCode() : null);
+                    dto.setFormat(req.getOutputFormat());
+                    dto.setRequestedAt(req.getRequestedAt() != null ? req.getRequestedAt().toString() : null);
+                    dto.setCompletedAt(req.getCompletedAt() != null ? req.getCompletedAt().toString() : null);
+                    dto.setFiltersJson(req.getFiltersJson());
+                    dto.setFailedAt(req.getFailedAt() != null ? req.getFailedAt().toString() : null);
+                    dto.setErrorMessage(req.getErrorMessage());
+                    dto.setExpiresAt(req.getExpiresAt() != null ? req.getExpiresAt().toString() : null);
+                    dto.setStatus(req.getStatus());
+                    if (StringUtils.hasText(req.getRequestedBy())) {
+                        userService.getUserDetails(req.getRequestedBy()).ifPresent(user -> dto.setRequestedByDetails(
+                                new DownloadReportResponseDto.RequestedByDetails(user.getUserId(), user.getUsername(), user.getName())
+                        ));
+                    }
+
+                    reportArtifactRepository.findByRequestRequestId(req.getRequestId()).ifPresent(a -> {
+                        dto.setFilename(a.getFileName());
+                        dto.setDownloadPath("/tickets/search/export/requests/" + req.getRequestId() + "/download");
+                    });
+
+                    return dto;
+                });
+
+        return new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
     }
 
     private record ParameterCriteria(String assignedTo, String assignedBy, String updatedBy, String createdBy, String userId, String zoneCode, String regionCode, String districtCode, String issueTypeId) {
