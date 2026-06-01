@@ -108,6 +108,50 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             @Param("districtCode") String districtCode,
             @Param("issueTypeId") String issueTypeId);
 
+
+    @Query(value = """
+                SELECT
+                    COALESCE(NULLIF(dm.division_name, ''), NULLIF(t.division, ''), 'Unassigned') AS division,
+                    COUNT(*) AS count
+                FROM tickets t
+                LEFT JOIN division_master dm ON dm.division_id = t.division
+                WHERE t.status IN (:statuses)
+                  AND (:assignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:assignedTo))
+                  AND (:parameterAssignedTo IS NULL OR LOWER(t.assigned_to) = LOWER(:parameterAssignedTo))
+                  AND (:parameterAssignedBy IS NULL OR LOWER(t.assigned_by) = LOWER(:parameterAssignedBy))
+                  AND (:parameterUpdatedBy IS NULL OR LOWER(t.updated_by) = LOWER(:parameterUpdatedBy))
+                  AND (:parameterCreatedBy IS NULL OR LOWER(t.created_by) = LOWER(:parameterCreatedBy))
+                  AND (:parameterRequestedBy IS NULL OR LOWER(t.user_id) = LOWER(:parameterRequestedBy))
+                  AND (:zoneCode IS NULL OR LOWER(t.zone_code) = LOWER(:zoneCode))
+                  AND (:regionCode IS NULL OR LOWER(t.region_code) = LOWER(:regionCode))
+                  AND (:districtCode IS NULL OR LOWER(t.district_code) = LOWER(:districtCode))
+                  AND (:issueTypeId IS NULL OR LOWER(t.issue_type_id) = LOWER(:issueTypeId))
+                  AND (:categoryId IS NULL OR LOWER(t.category) = LOWER(:categoryId))
+                  AND (:subCategoryId IS NULL OR LOWER(t.sub_category) = LOWER(:subCategoryId))
+                  AND (:divisionId IS NULL OR LOWER(t.division) = LOWER(:divisionId))
+                  AND (:fromDate IS NULL OR t.reported_date >= :fromDate)
+                  AND (:toDate IS NULL OR t.reported_date <= :toDate)
+                GROUP BY COALESCE(NULLIF(dm.division_name, ''), NULLIF(t.division, ''), 'Unassigned')
+                ORDER BY count DESC, division ASC
+            """, nativeQuery = true)
+    List<DivisionPendingCountProjection> countPendingTicketsByDivisionWithFilters(
+            @Param("statuses") Collection<String> statuses,
+            @Param("assignedTo") String assignedTo,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            @Param("parameterAssignedTo") String parameterAssignedTo,
+            @Param("parameterAssignedBy") String parameterAssignedBy,
+            @Param("parameterUpdatedBy") String parameterUpdatedBy,
+            @Param("parameterCreatedBy") String parameterCreatedBy,
+            @Param("parameterRequestedBy") String userId,
+            @Param("zoneCode") String zoneCode,
+            @Param("regionCode") String regionCode,
+            @Param("districtCode") String districtCode,
+            @Param("issueTypeId") String issueTypeId,
+            @Param("categoryId") String categoryId,
+            @Param("subCategoryId") String subCategoryId,
+            @Param("divisionId") String divisionId);
+
     @Query("SELECT t.mode AS mode, COUNT(t) AS count FROM Ticket t GROUP BY t.mode")
     List<ModeCountProjection> countTicketsByMode();
 
@@ -551,6 +595,12 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     interface AssignedToCountProjection {
         String getAssignedTo();
+
+        Long getCount();
+    }
+
+    interface DivisionPendingCountProjection {
+        String getDivision();
 
         Long getCount();
     }

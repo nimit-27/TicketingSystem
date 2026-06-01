@@ -201,6 +201,11 @@ export interface SupportDashboardAssigneeCount {
     count: number;
 }
 
+export interface SupportDashboardDivisionPendingCount {
+    division: string;
+    count: number;
+}
+
 export interface SupportDashboardSummaryResponse {
     allTickets?: SupportDashboardSummarySectionDto | null;
     myWorkload?: SupportDashboardSummarySectionDto | null;
@@ -210,6 +215,7 @@ export interface SupportDashboardSummaryResponse {
     slaCompliance?: SupportDashboardSlaCompliancePoint[];
     ticketVolume?: SupportDashboardTicketVolumePoint[];
     assignedTicketsByAssignee?: SupportDashboardAssigneeCount[];
+    pendingTicketsByDivision?: SupportDashboardDivisionPendingCount[];
     unresolvedBreachedTickets?: number;
 }
 

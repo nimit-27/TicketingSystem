@@ -9,6 +9,7 @@ import com.ticketingSystem.api.dto.reports.ResolutionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardCategorySummaryDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardAssigneeCountDto;
+import com.ticketingSystem.api.dto.reports.SupportDashboardDivisionPendingCountDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardOpenResolvedDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSlaCompliancePointDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardSummaryDto;
@@ -87,6 +88,13 @@ public class ReportService {
 
     private static final DateTimeFormatter DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
     private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
+    private static final List<String> PENDING_TICKET_STATUS_NAMES = List.of(
+            TicketStatus.PENDING.name(),
+            TicketStatus.ON_HOLD.name(),
+            TicketStatus.PENDING_WITH_REQUESTER.name(),
+            TicketStatus.PENDING_WITH_SERVICE_PROVIDER.name(),
+            TicketStatus.PENDING_WITH_FCI.name()
+    );
 
     private ParameterCriteria resolveParameterCriteria(String parameterKey, String parameterValue) {
         if (!StringUtils.hasText(parameterKey) || !StringUtils.hasText(parameterValue)) {
@@ -223,6 +231,7 @@ public class ReportService {
         List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries);
         List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries);
         List<SupportDashboardAssigneeCountDto> assignedTicketsByAssignee = buildAssignedTicketsByAssignee(dateRange, null);
+        List<SupportDashboardDivisionPendingCountDto> pendingTicketsByDivision = buildPendingTicketsByDivision(dateRange, null, null, null, null);
         long unresolvedBreachedTickets = buildUnresolvedBreachedCount(dateRange, null);
 
         return SupportDashboardSummaryDto.builder()
@@ -234,6 +243,7 @@ public class ReportService {
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
                 .assignedTicketsByAssignee(assignedTicketsByAssignee)
+                .pendingTicketsByDivision(pendingTicketsByDivision)
                 .unresolvedBreachedTickets(unresolvedBreachedTickets)
                 .build();
     }
@@ -284,6 +294,13 @@ public class ReportService {
         List<SupportDashboardSlaCompliancePointDto> slaCompliance = buildSlaComplianceTrend(timeSeries, parameterCriteria);
         List<SupportDashboardTicketVolumePointDto> ticketVolume = buildTicketVolumeTrend(timeSeries, parameterCriteria);
         List<SupportDashboardAssigneeCountDto> assignedTicketsByAssignee = buildAssignedTicketsByAssignee(dateRange, parameterCriteria);
+        List<SupportDashboardDivisionPendingCountDto> pendingTicketsByDivision = buildPendingTicketsByDivision(
+                dateRange,
+                parameterCriteria,
+                optionalParam(allParams, "categoryId"),
+                optionalParam(allParams, "subCategoryId"),
+                optionalParam(allParams, "divisionId")
+        );
         long unresolvedBreachedTickets = buildUnresolvedBreachedCount(dateRange, parameterCriteria);
 
         return SupportDashboardSummaryDto.builder()
@@ -295,8 +312,51 @@ public class ReportService {
                 .slaCompliance(slaCompliance)
                 .ticketVolume(ticketVolume)
                 .assignedTicketsByAssignee(assignedTicketsByAssignee)
+                .pendingTicketsByDivision(pendingTicketsByDivision)
                 .unresolvedBreachedTickets(unresolvedBreachedTickets)
                 .build();
+    }
+
+    private List<SupportDashboardDivisionPendingCountDto> buildPendingTicketsByDivision(DateRange dateRange,
+                                                                                                  ParameterCriteria parameterCriteria,
+                                                                                                  String categoryId,
+                                                                                                  String subCategoryId,
+                                                                                                  String divisionId) {
+        List<TicketRepository.DivisionPendingCountProjection> projections = ticketRepository.countPendingTicketsByDivisionWithFilters(
+                PENDING_TICKET_STATUS_NAMES,
+                null,
+                dateRange.from(),
+                dateRange.to(),
+                parameterCriteria != null ? parameterCriteria.assignedTo() : null,
+                parameterCriteria != null ? parameterCriteria.assignedBy() : null,
+                parameterCriteria != null ? parameterCriteria.updatedBy() : null,
+                parameterCriteria != null ? parameterCriteria.createdBy() : null,
+                parameterCriteria != null ? parameterCriteria.userId() : null,
+                parameterCriteria != null ? parameterCriteria.zoneCode() : null,
+                parameterCriteria != null ? parameterCriteria.regionCode() : null,
+                parameterCriteria != null ? parameterCriteria.districtCode() : null,
+                parameterCriteria != null ? parameterCriteria.issueTypeId() : null,
+                categoryId,
+                subCategoryId,
+                divisionId
+        );
+
+        return projections.stream()
+                .map(projection -> SupportDashboardDivisionPendingCountDto.builder()
+                        .division(StringUtils.hasText(projection.getDivision()) ? projection.getDivision() : "Unassigned")
+                        .count(Optional.ofNullable(projection.getCount()).orElse(0L))
+                        .build())
+                .sorted(Comparator.comparingLong(SupportDashboardDivisionPendingCountDto::getCount).reversed())
+                .toList();
+    }
+
+    private String optionalParam(MultiValueMap<String, String> allParams, String key) {
+        if (allParams == null || !StringUtils.hasText(key)) {
+            return null;
+        }
+
+        String value = allParams.getFirst(key);
+        return StringUtils.hasText(value) ? value : null;
     }
 
     private List<SupportDashboardAssigneeCountDto> buildAssignedTicketsByAssignee(DateRange dateRange,
