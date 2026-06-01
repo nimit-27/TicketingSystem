@@ -83,4 +83,15 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
                                                       @Param("toDateExclusive") LocalDateTime toDateExclusive);
 
     long countByBreachedByMinutesGreaterThan(Long breachedByMinutes);
+
+    @Query("""
+            SELECT COUNT(sla)
+            FROM TicketSla sla
+            JOIN sla.ticket t
+            WHERE COALESCE(sla.breachedByMinutes, 0) > 0
+              AND t.reportedDate >= :fromDate
+              AND t.reportedDate < :toDateExclusive
+            """)
+    long countBreachedTicketsReportedBetween(@Param("fromDate") LocalDateTime fromDate,
+                                             @Param("toDateExclusive") LocalDateTime toDateExclusive);
 }

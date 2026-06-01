@@ -1,5 +1,6 @@
 package com.ticketingSystem.api.service;
 
+import com.ticketingSystem.api.dto.nagios.NagiosBreachedTicketsCountDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRecordDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
@@ -61,6 +62,8 @@ public class NagiosTicketSlaService {
 
         long totalTickets = aggregate.totalTickets();
         long breachedTickets = aggregate.breachedTickets();
+        long breachedTicketsInLast1Day = getBreachedTicketsCountInLastNDays(1);
+        long breachedTicketsInLast3Days = getBreachedTicketsCountInLastNDays(3);
         long nonBreachedTickets = Math.max(totalTickets - breachedTickets, 0);
 
         BigDecimal breachPercentage = calculatePercentage(breachedTickets, totalTickets);
@@ -78,6 +81,8 @@ public class NagiosTicketSlaService {
                 toDateInclusive,
                 totalTickets,
                 breachedTickets,
+                breachedTicketsInLast1Day,
+                breachedTicketsInLast3Days,
                 nonBreachedTickets,
                 breachPercentage,
                 compliancePercentage,
@@ -89,6 +94,23 @@ public class NagiosTicketSlaService {
         );
     }
 
+    public NagiosBreachedTicketsCountDto fetchBreachedTicketsCountInLastNDays(int days) {
+        return new NagiosBreachedTicketsCountDto(
+                "ticketing-system",
+                Instant.now(),
+                days,
+                getBreachedTicketsCountInLastNDays(days)
+        );
+    }
+
+    public long getBreachedTicketsCountInLastNDays(int days) {
+        if (days <= 0) {
+            throw new IllegalArgumentException("days must be greater than 0");
+        }
+        LocalDateTime toDateExclusive = LocalDateTime.now();
+        LocalDateTime fromDateTime = toDateExclusive.minusDays(days);
+        return ticketSlaRepository.countBreachedTicketsReportedBetween(fromDateTime, toDateExclusive);
+    }
 
     public NagiosTicketSlaSummaryDto fetchSummaryDetailed(LocalDate fromDate, LocalDate toDate) {
         LocalDate effectiveToDate = toDate != null ? toDate : LocalDate.now();
@@ -100,6 +122,8 @@ public class NagiosTicketSlaService {
 
         long totalTickets = aggregate.totalTickets();
         long breachedTickets = aggregate.breachedTickets();
+        long breachedTicketsInLast1Day = getBreachedTicketsCountInLastNDays(1);
+        long breachedTicketsInLast3Days = getBreachedTicketsCountInLastNDays(3);
         long nonBreachedTickets = Math.max(totalTickets - breachedTickets, 0);
 
         BigDecimal breachPercentage = calculatePercentage(breachedTickets, totalTickets);
@@ -117,6 +141,8 @@ public class NagiosTicketSlaService {
                 toDateInclusive,
                 totalTickets,
                 breachedTickets,
+                breachedTicketsInLast1Day,
+                breachedTicketsInLast3Days,
                 nonBreachedTickets,
                 breachPercentage,
                 compliancePercentage,
