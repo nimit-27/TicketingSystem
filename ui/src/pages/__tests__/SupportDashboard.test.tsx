@@ -4,12 +4,14 @@ import { renderWithTheme } from "../../test/testUtils";
 
 import SupportDashboard from "../SupportDashboard";
 import { getDropdownOptions, getUserDetails } from "../../utils/Utils";
+import { checkAccessMaster } from "../../utils/permissions";
 
 const mockSummaryApiHandler = jest.fn((fn: () => Promise<any>) => fn());
 const mockParameterApiHandler = jest.fn((fn: () => Promise<any>) => fn());
 const mockUseApi = jest.fn();
 const mockGetUserDetails = getUserDetails as jest.Mock;
 const mockGetDropdownOptions = getDropdownOptions as jest.Mock;
+const mockCheckAccessMaster = checkAccessMaster as jest.Mock;
 
 jest.mock("../../hooks/useApi", () => ({
   useApi: (...args: unknown[]) => mockUseApi(...args),
@@ -175,6 +177,7 @@ describe("SupportDashboard", () => {
     mockParameterApiHandler.mockImplementation((fn: () => Promise<any>) => fn());
     mockGetUserDetails.mockReturnValue({ role: [] });
     mockGetDropdownOptions.mockReturnValue([]);
+    mockCheckAccessMaster.mockReturnValue(true);
   });
 
   it("requests dashboard data on mount with default filters", async () => {
@@ -308,6 +311,17 @@ describe("SupportDashboard", () => {
 
     await waitFor(() => expect(mockSummaryApiHandler).toHaveBeenCalled());
     expect(screen.getByLabelText("supportDashboard.filters.interval.label")).toBeInTheDocument();
+  });
+
+
+  it("hides the division-wise pending tickets graph when permission is disabled", async () => {
+    mockCheckAccessMaster.mockImplementation((keys: string[]) => keys[1] !== "divisionWisePendingTickets");
+
+    renderWithTheme(<SupportDashboard />);
+
+    await waitFor(() => expect(mockSummaryApiHandler).toHaveBeenCalled());
+    expect(screen.queryByText("Division-wise Pending Tickets")).not.toBeInTheDocument();
+    expect(mockCheckAccessMaster).toHaveBeenCalledWith(["dashboard", "divisionWisePendingTickets"]);
   });
 
   it("shows an error message when custom month range is invalid", async () => {

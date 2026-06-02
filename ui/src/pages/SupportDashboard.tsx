@@ -528,6 +528,7 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
   const showLowSeverityCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "lowSeverityCard"]), []);
   const showTicketsCreatedPerMonth = React.useMemo(() => checkAccessMaster(["dashboard", "ticketsCreatedPerMonth"]), []);
   const showAssignedTicketsBarRace = React.useMemo(() => checkAccessMaster(["dashboard", "assignedTicketsCount"]), []);
+  const showDivisionWisePendingTickets = React.useMemo(() => checkAccessMaster(["dashboard", "divisionWisePendingTickets"]), []);
   const showTotalTicketsRaisedCard = React.useMemo(() => checkAccessMaster(["dashboard", "keyMetrics", "totalTicketsRaisedCard"]), []);
 
 
@@ -1965,18 +1966,20 @@ const SupportDashboard: React.FC<SupportDashboardProps> = ({
                 </Card>
               </div>
             ) : null}
-            <div className="col-12 col-xl-6">
-              <Card className="h-100 border-0 shadow-sm">
-                <CardContent className="h-100" style={{ minHeight: 320 }}>
-                  <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
-                    Division-wise Pending Tickets
-                  </Typography>
-                  <Box sx={{ height: "90%", minHeight: 260 }}>
-                    <ReactECharts option={divisionPendingTicketsBarOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
-                  </Box>
-                </CardContent>
-              </Card>
-            </div>
+            {showDivisionWisePendingTickets ? (
+              <div className="col-12 col-xl-6">
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardContent className="h-100" style={{ minHeight: 320 }}>
+                    <Typography variant="h6" className="fw-semibold mb-3" sx={{ fontSize: 18 }}>
+                      Division-wise Pending Tickets
+                    </Typography>
+                    <Box sx={{ height: "90%", minHeight: 260 }}>
+                      <ReactECharts option={divisionPendingTicketsBarOptions} style={{ height: "100%", width: "100%" }} notMerge lazyUpdate />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
             {showAssignedTicketsBarRace ? (
               <div className="col-12 col-xl-6">
                 <Card className="h-100 border-0 shadow-sm">
