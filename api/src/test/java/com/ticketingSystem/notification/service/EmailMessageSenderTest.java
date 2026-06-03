@@ -1,6 +1,7 @@
 package com.ticketingSystem.notification.service;
 
 import com.ticketingSystem.notification.config.NotificationProperties;
+import com.ticketingSystem.notification.config.SmtpMailProperties;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,10 @@ class EmailMessageSenderTest {
     void setUp() {
         NotificationProperties properties = new NotificationProperties();
         properties.setSenderEmail("sender@example.com");
+        SmtpMailProperties smtpMailProperties = new SmtpMailProperties();
+        smtpMailProperties.setUserid("sender@example.com");
         mailSender = mock(JavaMailSender.class);
-        sender = new EmailMessageSender(mailSender, properties, new EmailAddressValidator());
+        sender = new EmailMessageSender(mailSender, properties, smtpMailProperties, new EmailAddressValidator(), "FCI - Anna Darpan");
     }
 
     @Test
