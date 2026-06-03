@@ -14,13 +14,20 @@ import java.util.List;
 public class EmailMessageSender {
     private final JavaMailSender mailSender;
     private final NotificationProperties properties;
+    private final EmailAddressValidator emailAddressValidator;
 
-    public EmailMessageSender(JavaMailSender mailSender, NotificationProperties properties) {
+    public EmailMessageSender(JavaMailSender mailSender, NotificationProperties properties, EmailAddressValidator emailAddressValidator) {
         this.mailSender = mailSender;
         this.properties = properties;
+        this.emailAddressValidator = emailAddressValidator;
     }
 
     public void send(EmailMessage message) throws MailException, MessagingException {
+        validateEmail("from", properties.getSenderEmail());
+        validateEmail("to", message.to());
+        message.cc().forEach(email -> validateEmail("cc", email));
+        message.bcc().forEach(email -> validateEmail("bcc", email));
+
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setFrom(properties.getSenderEmail());
@@ -34,6 +41,12 @@ public class EmailMessageSender {
         helper.setSubject(message.subject());
         helper.setText(message.body(), true);
         mailSender.send(mimeMessage);
+    }
+
+    private void validateEmail(String fieldName, String email) {
+        if (!emailAddressValidator.isValid(email)) {
+            throw new IllegalArgumentException("Invalid " + fieldName + " email address: " + email);
+        }
     }
 
     public record EmailMessage(String to, String subject, String body, List<String> cc, List<String> bcc) {
