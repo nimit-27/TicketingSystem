@@ -17,14 +17,12 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +43,7 @@ public class EmailNotificationDispatcher {
     private final ObjectMapper objectMapper;
     private final NotificationProperties properties;
     private final NotificationRuntimeToggleService notificationRuntimeToggleService;
+    private final EmailNotificationDispatchTransactionService transactionService;
     @Qualifier("emailNotificationExecutor")
     private final TaskExecutor emailNotificationExecutor;
 
@@ -52,7 +51,6 @@ public class EmailNotificationDispatcher {
             fixedDelayString = "${notification.email-dispatcher.fixedDelayMs:5000}",
             initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
     )
-//    @Transactional
     public void dispatchPendingEmails() {
         if (!notificationRuntimeToggleService.isNotificationEnabled()) {
             return;
@@ -64,7 +62,13 @@ public class EmailNotificationDispatcher {
         recoverStuckProcessing(staleBefore, now);
         expireRetries(emailSettings.getMaxRetries());
 
-        List<Long> claimedIds = claimBatch(emailSettings.getBatchSize(), now, staleBefore);
+        List<Long> claimedIds = transactionService.claimBatch(
+                emailSettings.getBatchSize(),
+                now,
+                staleBefore,
+                emailSettings.getMaxRetries(),
+                resolveInstanceId()
+        );
         if (claimedIds.isEmpty()) {
             return;
         }
@@ -289,39 +293,18 @@ public class EmailNotificationDispatcher {
         return Duration.ofSeconds(delay);
     }
 
-    @Transactional
-    protected List<Long> claimBatch(int limit, LocalDateTime now, LocalDateTime staleBefore) {
-        if (limit <= 0) {
-            return Collections.emptyList();
-        }
-        List<Long> ids = notificationRecipientRepository.findClaimableIds(
-                now,
-                staleBefore,
-                properties.getEmailDispatcher().getMaxRetries(),
-                limit
-        );
-        if (ids.isEmpty()) {
-            return ids;
-        }
-        notificationRecipientRepository.markProcessing(ids, resolveInstanceId(), now);
-        return ids;
-    }
-
-    @Transactional
     private void recoverStuckProcessing(LocalDateTime staleBefore, LocalDateTime now) {
-        int updated = notificationRecipientRepository.markProcessingAsFailed(
+        int updated = transactionService.recoverStuckProcessing(
                 staleBefore,
-                now.plusSeconds(properties.getEmailDispatcher().getRetryBaseSeconds()),
-                "Processing timeout"
+                now.plusSeconds(properties.getEmailDispatcher().getRetryBaseSeconds())
         );
         if (updated > 0) {
             log.warn("email.dispatch.recovered count={} staleBefore={}", updated, staleBefore);
         }
     }
 
-    @Transactional
     private void expireRetries(int maxRetries) {
-        int updated = notificationRecipientRepository.markRetriesExhausted(maxRetries);
+        int updated = transactionService.expireRetries(maxRetries);
         if (updated > 0) {
             log.warn("email.dispatch.expired count={} maxRetries={}", updated, maxRetries);
         }
