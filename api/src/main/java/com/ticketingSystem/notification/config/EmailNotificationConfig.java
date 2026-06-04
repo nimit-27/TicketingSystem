@@ -25,7 +25,7 @@ public class EmailNotificationConfig {
         if (smtpProperties.getPort() != null) {
             mailSender.setPort(smtpProperties.getPort());
         }
-        mailSender.setUsername(firstNonBlank(smtpProperties.getUserKey(), smtpProperties.getUserid()));
+        mailSender.setUsername(firstNonBlank(smtpProperties.getUserKey()));
         mailSender.setPassword(smtpProperties.getUser().getPassword());
 
         Properties javaMailProperties = mailSender.getJavaMailProperties();
