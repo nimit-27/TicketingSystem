@@ -75,46 +75,42 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChange, styl
     };
 
     return (
-        <Box
-            display="flex"
-            flexDirection={"row"}
-            alignItems={isCustomPresetSelected ? "flex-start" : "center"}
-            className={className}
-            style={style}
-        >
+        <div className={`d-flex ${className}`} style={style}>
             <DropdownController
                 label={t("Date Range")}
                 value={value.preset}
-                className="mt-2"
+                className="col-4"
                 onChange={handlePresetChange}
                 options={DATE_RANGE_OPTIONS.map(option => ({
                     ...option,
                     label: t(option.label),
                 }))}
-                style={{ width: 200, marginRight: 8 }}
+                style={{ marginRight: 8 }}
             />
             {isCustomPresetSelected && (
-                <Box display="flex" alignItems="center" gap={1} mt={1}>
-                    <GenericInput
-                        type="date"
-                        label={t("From")}
-                        value={customRange.fromDate}
-                        onChange={(event) => handleFromDateChange(event.target.value)}
-                        size="small"
-                        InputLabelProps={{ shrink: true }}
-                    />
-                    <GenericInput
-                        type="date"
-                        label={t("To")}
-                        value={customRange.toDate}
-                        onChange={(event) => handleToDateChange(event.target.value)}
-                        size="small"
-                        InputLabelProps={{ shrink: true }}
-                    />
+                <Box className="d-flex col-8" gap={1}>
+                    <Box className="d-flex col-11" gap={1}>
+                        <GenericInput
+                            className="w-100"
+                            type="date"
+                            label={t("From")}
+                            value={customRange.fromDate}
+                            onChange={(event) => handleFromDateChange(event.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                        <GenericInput
+                            className="w-100"
+                            type="date"
+                            label={t("To")}
+                            value={customRange.toDate}
+                            onChange={(event) => handleToDateChange(event.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Box>
                     <CustomIconButton icon="check" size="small" onClick={handleSubmit} />
                 </Box>
             )}
-        </Box>
+        </div>
     );
 };
 
