@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class NotificationPersistenceService {
     private final InAppNotificationPayloadFactory payloadFactory;
     private final ObjectMapper objectMapper;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public InAppNotificationPayload persistInAppNotification(NotificationRequest request) {
         if (request == null) {
             return null;
