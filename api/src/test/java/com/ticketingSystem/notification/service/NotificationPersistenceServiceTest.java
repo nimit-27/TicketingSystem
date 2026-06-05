@@ -21,6 +21,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +53,14 @@ class NotificationPersistenceServiceTest {
                 objectMapper
         );
 
-        when(notificationRepository.save(any(Notification.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(notificationRepository.saveAndFlush(any(Notification.class)))
+                .thenAnswer(invocation -> {
+                    Notification notification = invocation.getArgument(0);
+                    if (notification.getId() == null) {
+                        notification.setId(99L);
+                    }
+                    return notification;
+                });
     }
 
     @Test
@@ -79,19 +88,22 @@ class NotificationPersistenceServiceTest {
                 data
         );
 
-        persistenceService.persistInAppNotification(request);
+        InAppNotificationPayload payload = persistenceService.persistInAppNotification(request);
 
         Notification notification = captureNotification();
         assertThat(notification.getTitle()).isEqualTo("Ticket assigned to Alex");
         assertThat(notification.getMessage()).isEqualTo("Ticket T-100 assigned by System");
         assertThat(notification.getTicketId()).isEqualTo("T-100");
+        assertThat(payload).isNotNull();
+        assertThat(payload.getData()).containsEntry("notificationId", 99L);
 
         Map<String, Object> persistedData = objectMapper.readValue(notification.getData(), Map.class);
         assertThat(persistedData)
                 .containsEntry("ticketId", "T-100")
                 .containsEntry("assigneeName", "Alex")
                 .containsEntry("assignedBy", "System")
-                .containsEntry("redirectUrl", "/tickets/T-100");
+                .containsEntry("redirectUrl", "/tickets/T-100")
+                .containsEntry("notificationId", 99);
 
         List<NotificationRecipient> recipients = captureRecipients();
         assertThat(recipients).hasSize(1);
@@ -179,6 +191,31 @@ class NotificationPersistenceServiceTest {
         assertThat(captureRecipients()).hasSize(1);
     }
 
+    @Test
+    void returnsNullAndDoesNotSaveWhenRecipientCannotBeResolved() {
+        NotificationMaster master = buildMaster(
+                "TICKET_ASSIGNED",
+                "Ticket assigned",
+                "Ticket assigned"
+        );
+
+        NotificationRequest request = new NotificationRequest(
+                ChannelType.IN_APP,
+                master,
+                "missing-user",
+                null,
+                Map.of("ticketId", "T-400")
+        );
+
+        when(recipientResolver.resolveRecipients("missing-user")).thenReturn(List.of());
+
+        InAppNotificationPayload payload = persistenceService.persistInAppNotification(request);
+
+        assertThat(payload).isNull();
+        verify(notificationRepository, never()).saveAndFlush(any(Notification.class));
+        verify(notificationRecipientRepository, never()).saveAll(any());
+    }
+
     private NotificationMaster buildMaster(String code, String titleTemplate, String messageTemplate) {
         NotificationMaster master = new NotificationMaster();
         master.setCode(code);
@@ -191,8 +228,8 @@ class NotificationPersistenceServiceTest {
 
     private Notification captureNotification() {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository).save(notificationCaptor.capture());
-        return notificationCaptor.getValue();
+        verify(notificationRepository, times(2)).saveAndFlush(notificationCaptor.capture());
+        return notificationCaptor.getAllValues().get(1);
     }
 
     private List<NotificationRecipient> captureRecipients() {

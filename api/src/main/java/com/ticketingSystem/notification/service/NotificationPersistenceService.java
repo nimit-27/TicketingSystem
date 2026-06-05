@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,27 +30,31 @@ public class NotificationPersistenceService {
     private final InAppNotificationPayloadFactory payloadFactory;
     private final ObjectMapper objectMapper;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public InAppNotificationPayload persistInAppNotification(NotificationRequest request) {
+        if (request == null) {
+            return null;
+        }
+
         InAppNotificationPayload payload = payloadFactory.buildPayload(request);
-        persistNotification(request, payload);
-        return payload;
+        return persistNotification(request, payload) ? payload : null;
     }
 
-    private void persistNotification(NotificationRequest request, InAppNotificationPayload payload) {
-        if (request == null || payload == null) {
-            return;
+    private boolean persistNotification(NotificationRequest request, InAppNotificationPayload payload) {
+        if (payload == null) {
+            return false;
         }
 
         NotificationMaster master = request.getNotificationMaster();
         if (master == null) {
             log.warn("Unable to persist notification without notification master");
-            return;
+            return false;
         }
 
         List<User> recipients = recipientResolver.resolveRecipients(request.getRecipient());
         if (recipients.isEmpty()) {
             log.warn("Unable to resolve recipients for in-app notification: {}", request.getRecipient());
-            return;
+            return false;
         }
 
         Notification notification = new Notification();
@@ -58,13 +64,17 @@ public class NotificationPersistenceService {
         notification.setData(serializeData(payload.getData()));
         notification.setTicketId(resolveTicketId(payload.getData()));
 
-        Notification savedNotification = notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.saveAndFlush(notification);
+        payload.getData().put("notificationId", savedNotification.getId());
+        savedNotification.setData(serializeData(payload.getData()));
+        Notification persistedNotification = notificationRepository.saveAndFlush(savedNotification);
 
         List<NotificationRecipient> recipientEntities = recipients.stream()
-                .map(user -> createRecipient(savedNotification, user))
+                .map(user -> createRecipient(persistedNotification, user))
                 .toList();
 
         notificationRecipientRepository.saveAll(recipientEntities);
+        return true;
     }
 
     private NotificationRecipient createRecipient(Notification notification, User recipient) {
