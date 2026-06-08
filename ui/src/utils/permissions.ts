@@ -17,6 +17,15 @@ export function checkSidebarAccess(key: string): boolean {
   return false;
 }
 
+export function checkHeaderAccess(key: string): boolean {
+  const perms = getUserPermissions() as RolePermission | null;
+  const fromConfig = perms?.header?.children?.[key]?.show;
+  if (typeof fromConfig === "boolean") {
+    return fromConfig;
+  }
+  return false;
+}
+
 export function checkFormAccess(
   section: string,
   type: 'view' | 'create' | 'update',

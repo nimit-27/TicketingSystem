@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link PermissionService}.
@@ -30,6 +31,13 @@ class PermissionServiceTest {
         sidebar1.put("knowledgeBase", kb1);
         sidebar1.put("faq", faq1);
         role1.setSidebar(sidebar1);
+        Map<String, Object> notifications1 = new HashMap<>();
+        notifications1.put("show", false);
+        Map<String, Object> headerChildren1 = new HashMap<>();
+        headerChildren1.put("notifications", notifications1);
+        Map<String, Object> header1 = new HashMap<>();
+        header1.put("children", headerChildren1);
+        role1.setHeader(header1);
 
         // Role 2 grants FAQ but not Knowledge Base
         RolePermission role2 = new RolePermission();
@@ -41,6 +49,13 @@ class PermissionServiceTest {
         sidebar2.put("knowledgeBase", kb2);
         sidebar2.put("faq", faq2);
         role2.setSidebar(sidebar2);
+        Map<String, Object> notifications2 = new HashMap<>();
+        notifications2.put("show", true);
+        Map<String, Object> headerChildren2 = new HashMap<>();
+        headerChildren2.put("notifications", notifications2);
+        Map<String, Object> header2 = new HashMap<>();
+        header2.put("children", headerChildren2);
+        role2.setHeader(header2);
 
         Map<Integer, RolePermission> roles = new HashMap<>();
         roles.put(1, role1);
@@ -58,6 +73,11 @@ class PermissionServiceTest {
         Map<String, Object> sidebar = merged.getSidebar();
         assertEquals(Boolean.TRUE, ((Map<?, ?>) sidebar.get("knowledgeBase")).get("show"));
         assertEquals(Boolean.TRUE, ((Map<?, ?>) sidebar.get("faq")).get("show"));
+
+        Map<String, Object> header = merged.getHeader();
+        Map<?, ?> headerChildren = (Map<?, ?>) header.get("children");
+        assertEquals(Boolean.TRUE, ((Map<?, ?>) headerChildren.get("notifications")).get("show"));
+        assertTrue(service.hasHeaderAccess(Arrays.asList(1, 2), "notifications"));
     }
 }
 

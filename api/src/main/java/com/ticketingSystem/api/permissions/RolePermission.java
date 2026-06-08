@@ -20,4 +20,10 @@ public class RolePermission {
      * therefore we use a generic map.
      */
     private Map<String, Object> pages;
+
+    /**
+     * Structure containing header permissions. Header items follow the same
+     * flexible permission-tree shape as sidebar items.
+     */
+    private Map<String, Object> header;
 }
