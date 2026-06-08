@@ -841,7 +841,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
                     {/* SEARCH FILTER */}
                     {showSearchBar && (
-                        <div className="col-3">
+                        <div className="col-md-3 col-12">
                             <GenericInput
                                 className="w-100"
                                 label="Search"
@@ -854,7 +854,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
 
                     {/* STATUS FILTER */}
                     {showStatusFilter && (
-                        <div className="col-3">
+                        <div className="col-md-3 col-12">
                             <DropdownController
                                 className="w-100"
                                 label="Status"
@@ -869,7 +869,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
 
                     {/* CATEGORY */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Module"
@@ -880,7 +880,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* SUB CATEGORY */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Sub Module"
@@ -892,7 +892,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* ZONE */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Zone"
@@ -903,7 +903,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* REGION */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Region"
@@ -915,7 +915,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* DISTRICT */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="District"
@@ -927,7 +927,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* ISSUE TYPE */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Issue Type"
@@ -938,7 +938,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* DIVISION */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Division"
@@ -948,17 +948,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                         />
                     </div>
 
-                    {/* ASSIGNEE */}
-                    <div className="col-3">
-                        <AssigneeFilterDropdown
-                            className="w-100"
-                            value={selectedAssignee}
-                            onChange={handleAssigneeChange}
-                        />
-                    </div>
-
                     {/* BREACH OPTION */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Breach Option"
@@ -975,7 +966,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     {/* BREACH IN */}
                     {breachOption === "BREACH_IN" && (
                         <>
-                            <div className="col-3">
+                            <div className="col-md-3 col-12">
                                 <GenericInput
                                     className="w-100"
                                     label="Breach In (Hours)"
@@ -990,7 +981,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                 />
                             </div>
 
-                            <div className="col-3">
+                            <div className="col-md-3 col-12">
                                 <GenericInput
                                     className="w-100"
                                     label="Breach In (Minutes)"
@@ -1008,7 +999,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
 
                     {/* DATE PARAMETER */}
-                    <div className="col-3">
+                    <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label={t("Date Parameter")}
@@ -1022,7 +1013,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* DATE RANGE */}
-                    <div className="col-3">
+                    <div className="col-md-9 col-12">
                         <DateRangeFilter
                             className="w-100"
                             value={dateRange}
@@ -1045,6 +1036,15 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                 />
                             </div>
                         ))}
+
+                    {/* ASSIGNEE */}
+                    <div className="col-3">
+                        <AssigneeFilterDropdown
+                            className="w-100"
+                            value={selectedAssignee}
+                            onChange={handleAssigneeChange}
+                        />
+                    </div>
 
                     {/* MASTER FILTER */}
                     {showMasterFilterToggle && (

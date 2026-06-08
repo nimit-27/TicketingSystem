@@ -46,11 +46,25 @@ r2353
   - Details: [Base Release Details](#5-changes-included)
 
 - **UI/API Sub Version**
-  - Deployment Version: `dev-1.78.2`
   - UI Version: `1.78.2`
   - API Version: `1.78.2`
   - Updated Date: 30-05-2026
   - Details: [Sub Version Details](#6-sub-version-details)
+
+  - UI Version: `1.78.3`
+  - API Version: `1.78.3`
+  - Updated Date: 01-06-2026
+  - Details: [Sub Version Details](#7-sub-version-details)
+
+  - UI Version: `1.78.4`
+  - API Version: `1.78.4`
+  - Updated Date: 02-06-2026
+  - Details: [Sub Version Details](#8-sub-version-details)
+
+  - UI Version: `1.78.5`
+  - API Version: `1.78.5`
+  - Updated Date: 08-06-2026
+  - Details: [Sub Version Details](#9-sub-version-details)
 
 ---
 
@@ -114,7 +128,7 @@ Yes
 
 ## 6. Sub Version Details
 
-### UI/API Sub Version: dev-1.78.2
+### 6.1 UI/API Sub Version: dev-1.78.2
 
 This subversion belongs to the `1.78` release line and is intentionally documented inside `dev-1.78.md`.
 
@@ -204,6 +218,242 @@ Execute scripts in the order mentioned below:
 1. db/commonScripts/query_to_update_role_based_access_for_downloads_page.sql
 
 ---
+
+
+### 6.2 UI/API Sub Version: dev-1.78.3
+
+This subversion belongs to the `1.78` release line and is intentionally documented inside `dev-1.78.md`.
+
+#### Basic Details
+
+Environment:
+DEVELOPMENT
+
+UI Version:
+1.78.3
+
+API Version:
+1.78.3
+
+Release Line:
+1.78
+
+Updated Date:
+02-06-2026
+
+Prepared By:
+Nimit Jain
+
+SVN Branch/Path:
+https://172.18.50.113/svn/CH-GEBIZ-Synergy_Base/FCI/Source/Web/Development
+
+SVN Revision:
+r2353
+
+#### Manifest Environment Mapping
+
+The following subversion deployments share the same code base and version across environments:
+
+- DEV   → deployment/manifests/dev/dev-1.78.md (sub version dev-1.78.3)
+- STG   → deployment/manifests/staging/stg-1.26.md (sub version stg-1.26.2)
+
+> Note: All subversion deployments use the same source code (SVN revision r2353). Differences are environment-specific configurations only.
+
+#### Docker Images
+
+##### UI
+
+Image:
+bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.3
+
+Changed:
+Yes
+
+##### API
+
+Image:
+bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.3
+
+Changed:
+Yes
+
+#### Changes Included
+
+##### UI Changes
+
+- --NA--
+
+##### API Changes
+
+- Added attribute for fetching breached tickets in the last 1/3 in nagios api.
+
+##### DB Changes
+
+- --NA--
+
+#### Database Scripts
+
+DB Batch:
+--NA--
+
+---
+
+### 6.3 UI/API Sub Version: dev-1.78.4
+
+This subversion belongs to the `1.78` release line and is intentionally documented inside `dev-1.78.md`.
+
+#### Basic Details
+
+Environment:
+DEVELOPMENT
+
+UI Version:
+1.78.4
+
+API Version:
+1.78.4
+
+Release Line:
+1.78
+
+Updated Date:
+03-06-2026
+
+Prepared By:
+Nimit Jain
+
+SVN Branch/Path:
+https://172.18.50.113/svn/CH-GEBIZ-Synergy_Base/FCI/Source/Web/Development
+
+SVN Revision:
+r2353
+
+#### Manifest Environment Mapping
+
+The following subversion deployments share the same code base and version across environments:
+
+- DEV   → deployment/manifests/dev/dev-1.78.md (sub version dev-1.78.4)
+
+> Note: All subversion deployments use the same source code (SVN revision r2353). Differences are environment-specific configurations only.
+
+#### Docker Images
+
+##### UI
+
+Image:
+bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.4
+
+Changed:
+Yes
+
+##### API
+
+Image:
+bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.4
+
+Changed:
+Yes
+
+#### Changes Included
+
+##### UI Changes
+
+- --NA--
+
+##### API Changes
+
+- Rectified breach count on "All Tickets" page.
+
+##### DB Changes
+
+- --NA--
+
+#### Database Scripts
+
+DB Batch:
+--NA--
+
+---
+
+### 6.4 UI/API Sub Version: dev-1.78.5
+
+This subversion belongs to the `1.78` release line and is intentionally documented inside `dev-1.78.md`.
+
+#### Basic Details
+
+Environment:
+DEVELOPMENT
+
+UI Version:
+1.78.5
+
+API Version:
+1.78.5
+
+Release Line:
+1.78
+
+Updated Date:
+08-06-2026
+
+Prepared By:
+Nimit Jain
+
+SVN Branch/Path:
+https://172.18.50.113/svn/CH-GEBIZ-Synergy_Base/FCI/Source/Web/Development
+
+SVN Revision:
+r2353
+
+#### Manifest Environment Mapping
+
+The following subversion deployments share the same code base and version across environments:
+
+- DEV   → deployment/manifests/dev/dev-1.78.md (sub version dev-1.78.5)
+
+> Note: All subversion deployments use the same source code (SVN revision r2353). Differences are environment-specific configurations only.
+
+#### Docker Images
+
+##### UI
+
+Image:
+bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.5
+
+Changed:
+Yes
+
+##### API
+
+Image:
+bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.5
+
+Changed:
+Yes
+
+#### Changes Included
+
+##### UI Changes
+
+- --NA--
+
+##### API Changes
+
+- Rectified status discrepancy in the Tickets Report being generated.
+- Cosmetic changes on All Tickets page. 
+  - Alignment of "From Date" and "To Date" filters.
+
+##### DB Changes
+
+- --NA--
+
+#### Database Scripts
+
+DB Batch:
+--NA--
+
+---
+
 
 ## 7. Database Scripts
 
