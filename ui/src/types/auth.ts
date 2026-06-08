@@ -7,6 +7,7 @@ export interface SidebarItemPermission {
 export interface RolePermission {
   sidebar?: { [key: string]: SidebarItemPermission };
   pages?: { [form: string]: { [key: string]: any } };
+  header?: { [key: string]: SidebarItemPermission };
 }
 
 export interface UserDetails {
