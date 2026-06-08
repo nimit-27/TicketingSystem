@@ -51,10 +51,10 @@ There must be an existing image already of which tag has to be made.
 	docker tag <image name> <registry>/<namespace>/<repository>:<tag>
 
 Bulk Commands
-docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.4
-docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.4 
-docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.4
-docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.4
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.5
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.5 
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.78.5
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.78.5
 
 ====================================================================================================================================
 
