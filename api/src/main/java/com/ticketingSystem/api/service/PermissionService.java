@@ -129,6 +129,7 @@ public class PermissionService {
         RolePermission result = new RolePermission();
         result.setSidebar(syncSection(template.getSidebar(), existing != null ? existing.getSidebar() : null));
         result.setPages(syncSection(template.getPages(), existing != null ? existing.getPages() : null));
+        result.setHeader(syncSection(template.getHeader(), existing != null ? existing.getHeader() : null));
         return result;
     }
 
@@ -214,14 +215,36 @@ public class PermissionService {
         return getRolePermissions(roles).stream()
                 .map(RolePermission::getSidebar)
                 .filter(Objects::nonNull)
-                .map(m -> m.get(key))
-                .anyMatch(obj -> {
-                    if (obj instanceof Map<?, ?> mp) {
-                        Object show = mp.get("show");
-                        return Boolean.TRUE.equals(show);
-                    }
-                    return Boolean.TRUE.equals(obj);
-                });
+                .map(section -> getSectionItem(section, key))
+                .anyMatch(this::isPermissionShown);
+    }
+
+    public boolean hasHeaderAccess(List<Integer> roles, String key) {
+        return getRolePermissions(roles).stream()
+                .map(RolePermission::getHeader)
+                .filter(Objects::nonNull)
+                .map(section -> getSectionItem(section, key))
+                .anyMatch(this::isPermissionShown);
+    }
+
+    private Object getSectionItem(Map<String, Object> section, String key) {
+        Object direct = section.get(key);
+        if (direct != null) {
+            return direct;
+        }
+        Object children = section.get("children");
+        if (children instanceof Map<?, ?> childrenMap) {
+            return childrenMap.get(key);
+        }
+        return null;
+    }
+
+    private boolean isPermissionShown(Object obj) {
+        if (obj instanceof Map<?, ?> mp) {
+            Object show = mp.get("show");
+            return Boolean.TRUE.equals(show);
+        }
+        return Boolean.TRUE.equals(obj);
     }
 
     public boolean hasFormAccess(List<Integer> roles, String form, String action) {
@@ -262,9 +285,11 @@ public class PermissionService {
         RolePermission result = new RolePermission();
         result.setSidebar(new HashMap<>());
         result.setPages(new HashMap<>());
+        result.setHeader(new HashMap<>());
         for (RolePermission rp : getRolePermissions(roles)) {
             mergeOuter(result.getSidebar(), rp.getSidebar());
             mergeOuter(result.getPages(), rp.getPages());
+            mergeOuter(result.getHeader(), rp.getHeader());
         }
         return result;
     }
