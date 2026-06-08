@@ -6,13 +6,20 @@ import { LanguageContext } from '../../../context/LanguageContext';
 import { DevModeContext } from '../../../context/DevModeContext';
 import { renderWithTheme, createTestTheme } from '../../../test/testUtils';
 import * as config from '../../../config/config';
+import { setUserPermissions } from '../../../utils/Utils';
 
 jest.mock('../UserMenu', () => ({ open }: { open: boolean }) => (
   <div data-testid="user-menu" data-open={open} />
 ));
 
-jest.mock('../../Notifications/NotificationBell', () => ({ iconColor }: { iconColor: string }) => (
-  <div data-testid="notification-bell" data-icon-color={iconColor} />
+jest.mock('../../Notifications/NotificationBell', () => ({
+  iconColor,
+  showDropdown,
+}: {
+  iconColor: string;
+  showDropdown?: boolean;
+}) => (
+  <div data-testid="notification-bell" data-icon-color={iconColor} data-show-dropdown={showDropdown} />
 ));
 
 import Header from '../Header';
@@ -61,6 +68,30 @@ describe('Header', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
+    setUserPermissions({
+      header: {
+        show: true,
+        children: {
+          devModeIcon: { show: true },
+          lightDarkModeIcon: { show: true },
+          translateIcon: { show: true },
+          notifications: {
+            show: true,
+            children: {
+              icon: { show: true },
+              dropdown: { show: true },
+            },
+          },
+          userProfile: {
+            show: true,
+            children: {
+              icon: { show: true },
+              dropdown: { show: true },
+            },
+          },
+        },
+      },
+    });
     jest.spyOn(config, 'getCurrentUserDetails').mockReturnValue({
       name: 'John Doe',
       username: 'johnd',
@@ -104,6 +135,62 @@ describe('Header', () => {
     expect(toggleDevMode).toHaveBeenCalledTimes(1);
     expect(toggleJwtBypass).toHaveBeenCalledTimes(1);
     expect(toggleLayout).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides header controls when permission flags are disabled', () => {
+    setUserPermissions({
+      header: {
+        show: true,
+        children: {
+          devModeIcon: { show: false },
+          lightDarkModeIcon: { show: false },
+          translateIcon: { show: false },
+          notifications: {
+            show: true,
+            children: { icon: { show: false }, dropdown: { show: true } },
+          },
+          userProfile: {
+            show: true,
+            children: { icon: { show: false }, dropdown: { show: true } },
+          },
+        },
+      },
+    });
+
+    renderHeader({ devMode: true, jwtBypass: true });
+
+    expect(screen.queryByTestId('DarkModeIcon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('TranslateIcon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('CodeIcon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('LockOpenIcon')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('notification-bell')).not.toBeInTheDocument();
+    expect(screen.queryByText('JD')).not.toBeInTheDocument();
+  });
+
+  it('passes the notification dropdown permission to the bell', () => {
+    setUserPermissions({
+      header: {
+        show: true,
+        children: {
+          devModeIcon: { show: true },
+          lightDarkModeIcon: { show: true },
+          translateIcon: { show: true },
+          notifications: {
+            show: true,
+            children: { icon: { show: true }, dropdown: { show: false } },
+          },
+          userProfile: {
+            show: true,
+            children: { icon: { show: true }, dropdown: { show: true } },
+          },
+        },
+      },
+    });
+
+    renderHeader();
+
+    expect(screen.getByTestId('notification-bell')).toHaveAttribute('data-show-dropdown', 'false');
   });
 
   it('renders appropriate logo for light and dark themes', () => {

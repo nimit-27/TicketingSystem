@@ -17,13 +17,21 @@ export function checkSidebarAccess(key: string): boolean {
   return false;
 }
 
-export function checkHeaderAccess(key: string): boolean {
+export function checkHeaderAccess(path: string | string[]): boolean {
   const perms = getUserPermissions() as RolePermission | null;
-  const fromConfig = perms?.header?.children?.[key]?.show;
-  if (typeof fromConfig === "boolean") {
-    return fromConfig;
+  const header = perms?.header as SidebarItemPermission | undefined;
+
+  if (header?.show === false) {
+    return false;
   }
-  return false;
+
+  const keys = Array.isArray(path) ? path : path.split('.').filter(Boolean);
+  const current = keys.reduce<SidebarItemPermission | undefined>(
+    (node, key) => node?.children?.[key],
+    header,
+  );
+
+  return current?.show === true;
 }
 
 export function checkFormAccess(

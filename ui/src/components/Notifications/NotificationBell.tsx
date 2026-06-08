@@ -84,9 +84,10 @@ const renderNotification = (
 
 interface NotificationBellProps {
   iconColor: string;
+  showDropdown?: boolean;
 }
 
-const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
+const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor, showDropdown = true }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const {
@@ -104,7 +105,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarNotification, setSnackbarNotification] = useState<NotificationItem | null>(null);
 
-  const menuOpen = Boolean(anchorEl);
+  const menuOpen = showDropdown && Boolean(anchorEl);
 
   const sortedNotifications = useMemo(
     () =>
@@ -115,7 +116,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
   );
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+    if (showDropdown) {
+      setAnchorEl(event.currentTarget);
+    }
   };
 
   const handleClose = () => {
@@ -179,64 +182,66 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ iconColor }) => {
           <NotificationsNoneOutlinedIcon />
         </Badge>
       </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            width: 360,
-            maxHeight: 420,
-            mt: 1,
-          },
-        }}
-      >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            Notifications
-          </Typography>
-        </Box>
-        <Divider />
-        {sortedNotifications.length === 0 ? (
-          <Box sx={{ px: 2, py: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              You're all caught up!
+      {showDropdown && (
+        <Menu
+          anchorEl={anchorEl}
+          open={menuOpen}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            sx: {
+              width: 360,
+              maxHeight: 420,
+              mt: 1,
+            },
+          }}
+        >
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Notifications
             </Typography>
           </Box>
-        ) : (
-          <>
-            <List
-              dense
-              disablePadding
-              sx={{ maxHeight: 56 * 7, overflowY: 'auto' }}
-            >
-              {sortedNotifications.map((notification, index) => (
-                <React.Fragment key={notification.id}>
-                  {renderNotification(notification, theme, handleNotificationClick)}
-                  {index < sortedNotifications.length - 1 && <Divider component="li" />}
-                </React.Fragment>
-              ))}
-            </List>
-            {(hasMore || loading) && (
-              <>
-                <Divider />
-                <Box sx={{ px: 2, py: 1 }}>
-                  <Button
-                    size="small"
-                    onClick={handleShowMore}
-                    disabled={loading}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    {loading ? 'Loading…' : 'Show more'}
-                  </Button>
-                </Box>
-              </>
-            )}
-          </>
-        )}
-      </Menu>
+          <Divider />
+          {sortedNotifications.length === 0 ? (
+            <Box sx={{ px: 2, py: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                You're all caught up!
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              <List
+                dense
+                disablePadding
+                sx={{ maxHeight: 56 * 7, overflowY: 'auto' }}
+              >
+                {sortedNotifications.map((notification, index) => (
+                  <React.Fragment key={notification.id}>
+                    {renderNotification(notification, theme, handleNotificationClick)}
+                    {index < sortedNotifications.length - 1 && <Divider component="li" />}
+                  </React.Fragment>
+                ))}
+              </List>
+              {(hasMore || loading) && (
+                <>
+                  <Divider />
+                  <Box sx={{ px: 2, py: 1 }}>
+                    <Button
+                      size="small"
+                      onClick={handleShowMore}
+                      disabled={loading}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      {loading ? 'Loading…' : 'Show more'}
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </>
+          )}
+        </Menu>
+      )}
       <Snackbar
         open={snackbarOpen && Boolean(snackbarNotification)}
         autoHideDuration={6000}
