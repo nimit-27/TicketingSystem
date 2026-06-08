@@ -9,6 +9,7 @@ import { DevModeContext } from "../../context/DevModeContext";
 import UserMenu from "./UserMenu";
 import NotificationBell from "../Notifications/NotificationBell";
 import { useTranslation } from "react-i18next";
+import { checkHeaderAccess } from "../../utils/permissions";
 
 interface HeaderProps {
   collapsed?: boolean;
@@ -58,6 +59,26 @@ const Header: React.FC<HeaderProps> = ({
     else if (theme.palette.mode === "dark") return "./fciLogo.png"
   }, [theme.palette.mode])
 
+  const showLightDarkModeIcon = checkHeaderAccess("lightDarkModeIcon");
+  const showTranslateIcon = checkHeaderAccess("translateIcon");
+  const showDevModeIcon = checkHeaderAccess("devModeIcon");
+  const showNotificationIcon =
+    showNotifications &&
+    checkHeaderAccess("notifications") &&
+    checkHeaderAccess(["notifications", "icon"]);
+  const showNotificationDropdown =
+    checkHeaderAccess("notifications") &&
+    checkHeaderAccess(["notifications", "dropdown"]);
+  const showUserProfileIcon =
+    showProfile &&
+    Boolean(user) &&
+    checkHeaderAccess("userProfile") &&
+    checkHeaderAccess(["userProfile", "icon"]);
+  const showUserProfileDropdown =
+    showProfile &&
+    checkHeaderAccess("userProfile") &&
+    checkHeaderAccess(["userProfile", "dropdown"]);
+
   return (
     <header
       className="d-flex py-1 px-2 align-items-center"
@@ -97,24 +118,28 @@ const Header: React.FC<HeaderProps> = ({
         {t("Ticketing System")}
       </div>
       <div className="d-flex align-items-center" style={{ marginLeft: "auto", gap: "8px" }}>
-        <CustomIconButton
-          style={{ color: iconColor }}
-          icon={mode === "light" ? "darkmode" : "lightmode"}
-          onClick={toggle}
-        />
-        <CustomIconButton
-          style={{ color: iconColor }}
-          icon="translate"
-          onClick={toggleLanguage}
-        />
-        {envDevMode && (
+        {showLightDarkModeIcon && (
+          <CustomIconButton
+            style={{ color: iconColor }}
+            icon={mode === "light" ? "darkmode" : "lightmode"}
+            onClick={toggle}
+          />
+        )}
+        {showTranslateIcon && (
+          <CustomIconButton
+            style={{ color: iconColor }}
+            icon="translate"
+            onClick={toggleLanguage}
+          />
+        )}
+        {envDevMode && showDevModeIcon && (
           <CustomIconButton
             style={{ color: devMode ? theme.palette.warning.main : iconColor }}
             icon="code"
             onClick={toggleDevMode}
           />
         )}
-        {envDevMode && devMode && (
+        {envDevMode && showDevModeIcon && devMode && (
           <CustomIconButton
             style={{
               color: jwtBypass
@@ -126,14 +151,16 @@ const Header: React.FC<HeaderProps> = ({
             title={jwtBypass ? "JWT bypass enabled" : "JWT protection active"}
           />
         )}
-        {envDevMode && devMode && <CustomIconButton
+        {envDevMode && showDevModeIcon && devMode && <CustomIconButton
           style={{ color: iconColor, fontSize: 14 }}
           icon={layout.toString()}
           // icon="code"
           onClick={toggleLayout}
         />}
-        {showNotifications && <NotificationBell iconColor={iconColor} />}
-        {showProfile && user && (
+        {showNotificationIcon && (
+          <NotificationBell iconColor={iconColor} showDropdown={showNotificationDropdown} />
+        )}
+        {showUserProfileIcon && (
           <Avatar
             sx={{
               bgcolor: "white",
@@ -149,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({
           </Avatar>
         )}
       </div>
-      {showProfile && (
+      {showUserProfileDropdown && (
         <UserMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose} />
       )}
     </header>

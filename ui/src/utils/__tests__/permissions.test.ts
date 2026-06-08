@@ -5,6 +5,7 @@ import {
   checkMyTicketsAccess,
   checkMyTicketsColumnAccess,
   checkSidebarAccess,
+  checkHeaderAccess,
   getFieldChildren,
   setPermissions,
 } from "../permissions";
@@ -33,6 +34,37 @@ describe("utils/permissions", () => {
     expect(checkSidebarAccess("reports")).toBe(true);
     expect(checkSidebarAccess("fileManagement")).toBe(true);
     expect(checkSidebarAccess("missing")).toBe(false);
+  });
+
+  it("checks header access from top-level and nested permission flags", () => {
+    getUserPermissions.mockReturnValue({
+      header: {
+        show: true,
+        children: {
+          lightDarkModeIcon: { show: true },
+          translateIcon: { show: false },
+          notifications: {
+            show: true,
+            children: { icon: { show: true }, dropdown: { show: false } },
+          },
+        },
+      },
+    });
+
+    expect(checkHeaderAccess("lightDarkModeIcon")).toBe(true);
+    expect(checkHeaderAccess("translateIcon")).toBe(false);
+    expect(checkHeaderAccess(["notifications", "icon"])).toBe(true);
+    expect(checkHeaderAccess("notifications.dropdown")).toBe(false);
+    expect(checkHeaderAccess("missing")).toBe(false);
+
+    getUserPermissions.mockReturnValue({
+      header: {
+        show: false,
+        children: { lightDarkModeIcon: { show: true } },
+      },
+    });
+
+    expect(checkHeaderAccess("lightDarkModeIcon")).toBe(false);
   });
 
   it("checks form/field and nested children access", () => {
