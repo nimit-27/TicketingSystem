@@ -1,5 +1,5 @@
 export const envConfig = {
-    devMode: true,
+    devMode: false,
     FciTheme: true,
     filegatorEnabled: false
 };
