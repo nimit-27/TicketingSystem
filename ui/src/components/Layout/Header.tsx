@@ -132,14 +132,14 @@ const Header: React.FC<HeaderProps> = ({
             onClick={toggleLanguage}
           />
         )}
-        {envDevMode && showDevModeIcon && (
+        {showDevModeIcon && (
           <CustomIconButton
             style={{ color: devMode ? theme.palette.warning.main : iconColor }}
             icon="code"
             onClick={toggleDevMode}
           />
         )}
-        {envDevMode && showDevModeIcon && devMode && (
+        {showDevModeIcon && devMode && (
           <CustomIconButton
             style={{
               color: jwtBypass
@@ -151,7 +151,7 @@ const Header: React.FC<HeaderProps> = ({
             title={jwtBypass ? "JWT bypass enabled" : "JWT protection active"}
           />
         )}
-        {envDevMode && showDevModeIcon && devMode && <CustomIconButton
+        {showDevModeIcon && devMode && <CustomIconButton
           style={{ color: iconColor, fontSize: 14 }}
           icon={layout.toString()}
           // icon="code"
