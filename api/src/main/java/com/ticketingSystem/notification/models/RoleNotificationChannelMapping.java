@@ -11,17 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "role_notification_channel_mapping",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uq_role_notification_channel_mapping",
-                columnNames = {"role_id", "notification_type_id", "channel_code"}
-        ),
-        indexes = {
-                @Index(name = "idx_rncm_role_notification_active", columnList = "role_id,notification_type_id,is_active"),
-                @Index(name = "idx_rncm_notification_channel_active", columnList = "notification_type_id,channel_code,is_active")
-        }
-)
+@Table(name = "role_notification_channel_mapping")
 @Getter
 @Setter
 public class RoleNotificationChannelMapping {
