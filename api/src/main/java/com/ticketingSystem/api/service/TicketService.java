@@ -961,22 +961,15 @@ public class TicketService {
         Optional<User> assignee = findUserByIdOrUsername(assignedTo);
         Map<String, Object> data = buildAssignmentNotificationDataModel(ticket, assignedTo, assignedBy, assignee);
 
+        if (assignee.isEmpty()) {
+            return;
+        }
+
         try {
-            String recipient = resolveRecipientIdentifier(
-                    assignee.orElse(null),
-                    assignedTo
-            );
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_ASSIGNED_NOTIFICATION_CODE,
                     data,
-                    recipient
-            );
-            notificationService.sendNotification(
-                    ChannelType.EMAIL,
-                    TICKET_ASSIGNED_NOTIFICATION_CODE,
-                    data,
-                    recipient
+                    assignee.get()
             );
         } catch (Exception e) {
             e.printStackTrace();

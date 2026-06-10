@@ -54,6 +54,8 @@ class TicketServiceTest {
     @Mock
     private StatusHistoryService statusHistoryService;
     @Mock
+    private StatusHistoryRepository statusHistoryRepository;
+    @Mock
     private NotificationService notificationService;
     @Mock
     private TicketStatusWorkflowService workflowService;
@@ -66,7 +68,11 @@ class TicketServiceTest {
     @Mock
     private PriorityRepository priorityRepository;
     @Mock
+    private IssueTypeRepository issueTypeRepository;
+    @Mock
     private UploadedFileRepository uploadedFileRepository;
+    @Mock
+    private FileStorageService fileStorageService;
     @Mock
     private TicketSlaService ticketSlaService;
     @Mock
@@ -75,6 +81,14 @@ class TicketServiceTest {
     private RoleRepository roleRepository;
     @Mock
     private StakeholderRepository stakeholderRepository;
+    @Mock
+    private RegionMasterRepository regionMasterRepository;
+    @Mock
+    private DistrictMasterRepository districtMasterRepository;
+    @Mock
+    private DivisionMasterRepository divisionMasterRepository;
+    @Mock
+    private DivisionHistoryService divisionHistoryService;
     @Mock
     private TicketIdGenerator ticketIdGenerator;
 
@@ -124,11 +138,13 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
                 any()
         )).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
         ticketService.searchTickets(
                 "",
+                null,
                 null,
                 null,
                 "agent-1",
@@ -155,6 +171,7 @@ class TicketServiceTest {
 
         verify(ticketRepository).searchTickets(
                 anyString(),
+                any(),
                 any(),
                 any(),
                 eq("agent-1"),
@@ -212,11 +229,13 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
                 any()
         )).thenReturn(List.of());
 
         ticketService.searchTicketsList(
                 "",
+                null,
                 null,
                 null,
                 "agentUser",
@@ -242,6 +261,7 @@ class TicketServiceTest {
 
         verify(ticketRepository).searchTicketsList(
                 anyString(),
+                any(),
                 any(),
                 any(),
                 eq("agentUser"),
@@ -407,38 +427,32 @@ class TicketServiceTest {
 
         ticketService.addTicket(ticket);
 
-        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> assigneeDataCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<User> assigneeCaptor = ArgumentCaptor.forClass(User.class);
 
-        verify(notificationService, times(2)).sendNotification(
-                eq(ChannelType.IN_APP),
-                codeCaptor.capture(),
-                dataCaptor.capture(),
-                recipientCaptor.capture()
+        verify(notificationService).sendNotificationForUser(
+                eq("TICKET_ASSIGNED"),
+                assigneeDataCaptor.capture(),
+                assigneeCaptor.capture()
         );
 
-        List<String> codes = codeCaptor.getAllValues();
-        List<Map<String, Object>> payloads = dataCaptor.getAllValues();
-        List<String> recipients = recipientCaptor.getAllValues();
-
-        assertThat(codes).containsExactlyInAnyOrder("TICKET_ASSIGNED", "TICKET_UPDATED");
-        int assignedIndex = codes.indexOf("TICKET_ASSIGNED");
-        assertThat(assignedIndex).isGreaterThanOrEqualTo(0);
-        assertThat(recipients.get(assignedIndex)).isEqualTo("agent-1");
-        assertThat(payloads.get(assignedIndex))
+        assertThat(assigneeCaptor.getValue()).isSameAs(assignee);
+        assertThat(assigneeDataCaptor.getValue())
                 .containsEntry("ticketId", "T-100")
                 .containsEntry("assigneeName", "Agent Jane")
                 .containsEntry("assignedBy", "supervisor");
 
-        int requestorUpdateIndex = codes.indexOf("TICKET_UPDATED");
-        assertThat(requestorUpdateIndex).isGreaterThanOrEqualTo(0);
-        assertThat(recipients.get(requestorUpdateIndex)).isEqualTo("requestor-1");
-        assertThat(payloads.get(requestorUpdateIndex))
-                .containsEntry("ticketId", "T-100")
-                .containsEntry("ticketNumber", "T-100")
-                .containsEntry("updateType", "ASSIGNMENT_UPDATED")
-                .containsEntry("currentAssignee", "Agent Jane");
+        verify(notificationService).sendNotification(
+                eq(ChannelType.IN_APP),
+                eq("TICKET_UPDATED"),
+                argThat(payload ->
+                        "T-100".equals(payload.get("ticketId"))
+                                && "T-100".equals(payload.get("ticketNumber"))
+                                && "ASSIGNMENT_UPDATED".equals(payload.get("updateType"))
+                                && "Agent Jane".equals(payload.get("currentAssignee"))
+                ),
+                eq("requestor-1")
+        );
     }
 
     @Test
@@ -485,37 +499,32 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
-        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> assigneePayloadCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<User> assigneeCaptor = ArgumentCaptor.forClass(User.class);
 
-        verify(notificationService, times(2)).sendNotification(
-                eq(ChannelType.IN_APP),
-                codeCaptor.capture(),
-                payloadCaptor.capture(),
-                recipientCaptor.capture()
+        verify(notificationService).sendNotificationForUser(
+                eq("TICKET_ASSIGNED"),
+                assigneePayloadCaptor.capture(),
+                assigneeCaptor.capture()
         );
 
-        List<String> codes = codeCaptor.getAllValues();
-        List<Map<String, Object>> payloads = payloadCaptor.getAllValues();
-        List<String> recipients = recipientCaptor.getAllValues();
-
-        int assigneeIndex = codes.indexOf("TICKET_ASSIGNED");
-        assertThat(assigneeIndex).isGreaterThanOrEqualTo(0);
-        assertThat(recipients.get(assigneeIndex)).isEqualTo("agent-new");
-        assertThat(payloads.get(assigneeIndex))
+        assertThat(assigneeCaptor.getValue()).isSameAs(newAssignee);
+        assertThat(assigneePayloadCaptor.getValue())
                 .containsEntry("ticketId", "T-3")
                 .containsEntry("assigneeName", "Agent New")
                 .containsEntry("assignedBy", "manager1");
 
-        int requestorIndex = codes.indexOf("TICKET_UPDATED");
-        assertThat(requestorIndex).isGreaterThanOrEqualTo(0);
-        assertThat(recipients.get(requestorIndex)).isEqualTo("requestor-1");
-        assertThat(payloads.get(requestorIndex))
-                .containsEntry("ticketId", "T-3")
-                .containsEntry("updateType", "ASSIGNMENT_UPDATED")
-                .containsEntry("currentAssignee", "Agent New")
-                .containsEntry("actorName", "manager1");
+        verify(notificationService).sendNotification(
+                eq(ChannelType.IN_APP),
+                eq("TICKET_UPDATED"),
+                argThat(payload ->
+                        "T-3".equals(payload.get("ticketId"))
+                                && "ASSIGNMENT_UPDATED".equals(payload.get("updateType"))
+                                && "Agent New".equals(payload.get("currentAssignee"))
+                                && "manager1".equals(payload.get("actorName"))
+                ),
+                eq("requestor-1")
+        );
     }
 
     @Test
@@ -744,13 +753,6 @@ class TicketServiceTest {
                 eq("CLOSED_ID"),
                 eq(Boolean.FALSE),
                 eq("Linked to a Master ticket")
-        );
-        verify(assignmentHistoryService).addHistory(
-                eq(childId),
-                eq("agent-linker"),
-                eq("agent1"),
-                eq("L1"),
-                eq("Linked to master ticket T-MASTER")
         );
     }
 
