@@ -26,6 +26,7 @@ const ROUTE_TITLES: RouteTitle[] = [
   { path: '/calendar', title: 'Calendar' },
   { path: '/categories-master', title: 'Categories Master' },
   { path: '/escalation-master', title: 'Escalation Master' },
+  { path: '/role-master/notifications', title: 'Role - Notification' },
   { path: '/role-master/:roleId', title: 'Role Details' },
   { path: '/role-master', title: 'Role Master' },
   { path: '/users/new', title: 'Add New User' },

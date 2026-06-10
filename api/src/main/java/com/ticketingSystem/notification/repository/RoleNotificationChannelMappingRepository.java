@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface RoleNotificationChannelMappingRepository extends JpaRepository<RoleNotificationChannelMapping, Long> {
     @Query("""
@@ -19,4 +20,20 @@ public interface RoleNotificationChannelMappingRepository extends JpaRepository<
             """)
     List<ChannelType> findActiveChannelsForRoles(@Param("roleIds") Collection<Integer> roleIds,
                                                   @Param("notificationTypeId") Integer notificationTypeId);
+
+    @Query("""
+            SELECT mapping
+            FROM RoleNotificationChannelMapping mapping
+            JOIN FETCH mapping.role role
+            JOIN FETCH mapping.notificationType notificationType
+            WHERE role.isDeleted = false
+              AND notificationType.isActive = true
+            """)
+    List<RoleNotificationChannelMapping> findGridMappings();
+
+    Optional<RoleNotificationChannelMapping> findByRoleRoleIdAndNotificationTypeIdAndChannelCode(
+            Integer roleId,
+            Integer notificationTypeId,
+            ChannelType channelCode
+    );
 }

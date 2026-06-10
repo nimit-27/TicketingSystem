@@ -76,13 +76,11 @@ jest.mock('../CreateRole', () => ({
   ),
 }));
 
-jest.mock('react-router-dom', () => ({
-  useNavigate: jest.fn(),
-}));
+const mockNavigate = jest.fn();
 
-const navigateMock = jest.fn();
-const useNavigateMock = jest.requireMock('react-router-dom').useNavigate as jest.Mock;
-useNavigateMock.mockReturnValue(navigateMock);
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}));
 
 import RoleMaster from '../RoleMaster';
 
@@ -99,7 +97,7 @@ describe('RoleMaster', () => {
     mockGetStatusActions.mockClear();
     mockGetParameters.mockClear();
     capturedTableProps = null;
-    navigateMock.mockClear();
+    mockNavigate.mockClear();
     window.confirm = jest.fn(() => true);
     mockUseApi.mockReset();
 
@@ -154,6 +152,17 @@ describe('RoleMaster', () => {
       expect(mockAddRole).toHaveBeenCalledWith({ role: 'NewRole' });
       expect(mockGetAllRoles).toHaveBeenCalledTimes(2);
     });
+  });
+
+
+  it('opens role notification mapping page from the toolbar', async () => {
+    const { getByText } = renderWithTheme(<RoleMaster />);
+
+    await act(async () => {
+      fireEvent.click(getByText('Role - Notification'));
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('/role-master/notifications');
   });
 
   it('deletes selected roles', async () => {
