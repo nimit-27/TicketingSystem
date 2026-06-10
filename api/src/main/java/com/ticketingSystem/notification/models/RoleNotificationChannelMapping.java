@@ -11,7 +11,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "role_notification_channel_mapping")
+@Table(name = "role_notification_channel_mapping",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_role_notification_channel_mapping",
+                columnNames = {"role_id", "notification_type_id", "channel_code"}
+        ))
 @Getter
 @Setter
 public class RoleNotificationChannelMapping {

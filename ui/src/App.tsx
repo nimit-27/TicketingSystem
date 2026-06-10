@@ -17,6 +17,7 @@ const CategoriesMaster = lazy(() => import('./pages/CategoriesMaster'));
 const EscalationMaster = lazy(() => import('./pages/EscalationMaster'));
 const RoleMaster = lazy(() => import('./pages/RoleMaster'));
 const RoleDetails = lazy(() => import('./pages/RoleDetails'));
+const RoleNotification = lazy(() => import('./pages/RoleNotification'));
 const Login = lazy(() => import('./pages/Login'));
 const DevLogin = lazy(() => import('./pages/DevLogin'));
 const Users = lazy(() => import('./pages/Users'));
@@ -109,6 +110,7 @@ function App() {
           <Route path="modules-master" element={<CategoriesMaster />} />
           <Route path="escalation-master" element={<EscalationMaster />} />
           <Route path="role-master" element={<RoleMaster />} />
+          <Route path="role-master/notifications" element={<RoleNotification />} />
           <Route path="role-master/:roleId" element={<RoleDetails />} />
           <Route path="users" element={<Users />} />
           <Route path="users/:type/:userId" element={<UserProfile />} />
