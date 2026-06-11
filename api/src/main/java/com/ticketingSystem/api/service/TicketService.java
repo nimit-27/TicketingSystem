@@ -44,6 +44,7 @@ import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
 import org.typesense.model.SearchRequestParams;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -350,12 +351,17 @@ public class TicketService {
         }
 
         LocalDateTime now = LocalDateTime.now();
+        Instant nowUtc = Instant.now();
         // SETTING Reported Date
         if(ticket.getReportedDate() == null) {
             ticket.setReportedDate(now);
         }
-        // SETTING Last Modified
-        ticket.setLastModified(now);
+        // SETTING UTC audit and last modified timestamps
+        if (ticket.getCreatedAtUtc() == null) {
+            ticket.setCreatedAtUtc(nowUtc);
+        }
+        ticket.setUpdatedAtUtc(nowUtc);
+        setLastModified(ticket);
 
         // SAVING TICKET IN REPOSITORY
         System.out.println("TicketService: Saving the ticket to repository now...");
@@ -740,8 +746,14 @@ public class TicketService {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
-        if (updatedStatus != null) existing.setTicketStatus(updatedStatus);
-        if (updatedStatusId != null) statusMasterRepository.findById(updatedStatusId).ifPresent(existing::setStatus);
+        if (updatedStatusId != null) {
+            applyTicketStatus(existing, updatedStatusId);
+            if (updatedStatus != null && existing.getTicketStatus() != updatedStatus) {
+                existing.setTicketStatus(updatedStatus);
+            }
+        } else if (updatedStatus != null) {
+            existing.setTicketStatus(updatedStatus);
+        }
         if (updatedStatus == TicketStatus.RESOLVED) {
             if (existing.getResolvedAt() == null) {
                 existing.setResolvedAt(LocalDateTime.now());
@@ -803,9 +815,13 @@ public class TicketService {
 //            existing.setAssignedBackFromFci(true);
 //        }
             if (assignmentChanged && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
-                existing.setTicketStatus(TicketStatus.ASSIGNED);
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
-                statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
+                if (assignId != null) {
+                    updatedStatus = TicketStatus.ASSIGNED;
+                    updatedStatusId = assignId;
+                    applyTicketStatus(existing, assignId);
+                    existing.setTicketStatus(TicketStatus.ASSIGNED);
+                }
             }
 //            try {
 //                notificationService.sendNotification(
@@ -835,7 +851,7 @@ public class TicketService {
             existing.setLevelId(null);
         }
         if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
-        existing.setLastModified(LocalDateTime.now());
+        setLastModified(existing);
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
         if (updated.getDivision() != null && !Objects.equals(previousDivision, saved.getDivision())) {
@@ -847,15 +863,6 @@ public class TicketService {
                     updated.getAssignedTo(),
                     updated.getLevelId() != null ? updated.getLevelId() : existing.getLevelId(),
                     remark);
-            if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
-                String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
-                boolean slaAssigned = workflowService.getSlaFlagByStatusAndIssueType(assignedId, saved.getIssueTypeId());
-                String prevId = previousStatusId;
-                statusHistoryService.addHistory(id, updatedBy, prevId, assignedId, slaAssigned, remark);
-                previousStatus = TicketStatus.ASSIGNED;
-                previousStatusId = assignedId;
-            }
-
             Ticket finalSaved = saved;
 
 // NOTIFY ASSIGNEE
@@ -886,12 +893,11 @@ public class TicketService {
         }
         boolean statusChanged = updatedStatusId != null && !updatedStatusId.equals(previousStatusId);
         if (statusChanged) {
-            existing.setLastModifiedStatusDate(LocalDateTime.now());
+            setLastModifiedStatus(existing);
             saved = ticketRepository.save(existing);
         }
         if (statusChanged) {
-            boolean slaCurr = workflowService.getSlaFlagByStatusAndIssueType(updatedStatusId, saved.getIssueTypeId());
-            statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
+            addStatusTransitionHistory(saved, updatedBy, previousStatusId, updatedStatusId, remark);
 
             TicketStatus finalPreviousStatus = previousStatus;
             String finalPreviousStatusId = previousStatusId;
@@ -1542,7 +1548,7 @@ public class TicketService {
                             }
                         });
             }
-            ticket.setLastModified(LocalDateTime.now());
+            setLastModified(ticket);
             ticket = ticketRepository.save(ticket);
         }
         return mapWithStatusId(ticket);
@@ -1614,7 +1620,7 @@ public class TicketService {
                 })
                 .orElse(false);
         if (attachmentUpdated) {
-            ticket.setLastModified(LocalDateTime.now());
+            setLastModified(ticket);
             ticket = ticketRepository.save(ticket);
         }
         return mapWithStatusId(ticket);
@@ -1651,8 +1657,8 @@ public class TicketService {
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
-        ticket.setLastModified(LocalDateTime.now());
-        ticket.setLastModifiedStatusDate(LocalDateTime.now());
+        setLastModified(ticket);
+        setLastModifiedStatus(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
         String actor = updatedBy != null && !updatedBy.isBlank() ? updatedBy : saved.getUpdatedBy();
@@ -1666,14 +1672,7 @@ public class TicketService {
                 : null;
         String fromStatusId = previousStatusId != null ? previousStatusId : currentStatusId;
         String toStatusId = currentStatusId != null ? currentStatusId : previousStatusId;
-        statusHistoryService.addHistory(
-                saved.getId(),
-                actor,
-                fromStatusId,
-                toStatusId,
-                slaFlag,
-                "Linked to a Master ticket"
-        );
+        addStatusTransitionHistory(saved, actor, fromStatusId, toStatusId, "Linked to a Master ticket");
 
         runNotificationAfterCommit(() -> sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy));
         return mapWithStatusId(saved);
@@ -1706,7 +1705,7 @@ public class TicketService {
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
-        ticket.setLastModified(LocalDateTime.now());
+        setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
         addLinkingHistory(saved, updatedBy, String.format("Unlinked from master ticket %s", existingMasterId));
@@ -1719,7 +1718,7 @@ public class TicketService {
 
         ticket.setMaster(true);
         ticket.setMasterId(null);
-        ticket.setLastModified(LocalDateTime.now());
+        setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
         return mapWithStatusId(saved);
@@ -1782,6 +1781,42 @@ public class TicketService {
                 .stream()
                 .map(this::mapWithStatusId)
                 .collect(Collectors.toList());
+    }
+
+    private void setLastModified(Ticket ticket) {
+        if (ticket == null) {
+            return;
+        }
+        ticket.setLastModified(LocalDateTime.now());
+        ticket.setLastModifiedUtc(Instant.now());
+    }
+
+    private void setLastModifiedStatus(Ticket ticket) {
+        if (ticket == null) {
+            return;
+        }
+        ticket.setLastModifiedStatusDate(LocalDateTime.now());
+        ticket.setLastModifiedStatusDateUtc(Instant.now());
+    }
+
+    private void applyTicketStatus(Ticket ticket, String statusId) {
+        if (ticket == null || statusId == null || statusId.isBlank()) {
+            return;
+        }
+        statusMasterRepository.findById(statusId).ifPresent(status -> {
+            ticket.setStatus(status);
+            if (status.getStatusCode() != null && !status.getStatusCode().isBlank()) {
+                ticket.setTicketStatus(TicketStatus.valueOf(status.getStatusCode()));
+            }
+        });
+    }
+
+    private void addStatusTransitionHistory(Ticket ticket, String updatedBy, String previousStatusId, String currentStatusId, String remark) {
+        if (ticket == null || currentStatusId == null || currentStatusId.isBlank()) {
+            return;
+        }
+        boolean slaFlag = workflowService.getSlaFlagByStatusAndIssueType(currentStatusId, ticket.getIssueTypeId());
+        statusHistoryService.addHistory(ticket.getId(), updatedBy, previousStatusId, currentStatusId, slaFlag, remark);
     }
 
     private void refreshTicketSla(Ticket ticket) {

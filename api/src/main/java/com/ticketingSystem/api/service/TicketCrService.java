@@ -12,6 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -105,6 +107,12 @@ public class TicketCrService {
         ticket.setTicketStatus(TicketStatus.CLOSED);
         ticket.setStatus(closedStatus);
         ticket.setUpdatedBy(updatedBy);
+        ticket.setLastModified(LocalDateTime.now());
+        ticket.setLastModifiedUtc(Instant.now());
+        if (previousStatusId == null || !closedStatus.getStatusId().equals(previousStatusId)) {
+            ticket.setLastModifiedStatusDate(LocalDateTime.now());
+            ticket.setLastModifiedStatusDateUtc(Instant.now());
+        }
         ticketRepository.save(ticket);
 
         String closedStatusId = closedStatus.getStatusId();

@@ -6,8 +6,7 @@ import com.ticketingSystem.api.enums.FeedbackStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -101,8 +100,24 @@ public class Ticket {
     @Column(name = "last_modified")
     private LocalDateTime lastModified;
 
+    @Column(name = "last_modified_utc")
+    private Instant lastModifiedUtc;
+
     @Column(name = "last_modified_status_date")
     private LocalDateTime lastModifiedStatusDate;
+
+    @Column(name = "last_modified_status_date_utc")
+    private Instant lastModifiedStatusDateUtc;
+
+    @Column(name = "created_at_utc", updatable = false)
+    private Instant createdAtUtc;
+
+    @Column(name = "updated_at_utc")
+    private Instant updatedAtUtc;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
@@ -128,6 +143,17 @@ public class Ticket {
     private void syncModeId() {
         if (mode != null) {
             this.modeId = mode.getId();
+        }
+        Instant now = Instant.now();
+        if (createdAtUtc == null) {
+            createdAtUtc = now;
+        }
+        updatedAtUtc = now;
+        if (lastModified != null && lastModifiedUtc == null) {
+            lastModifiedUtc = now;
+        }
+        if (lastModifiedStatusDate != null && lastModifiedStatusDateUtc == null) {
+            lastModifiedStatusDateUtc = now;
         }
     }
 }

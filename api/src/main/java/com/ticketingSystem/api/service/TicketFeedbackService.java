@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -94,9 +95,13 @@ public class TicketFeedbackService {
 
             ticket.setTicketStatus(TicketStatus.CLOSED);
             ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
+            ticket.setLastModified(LocalDateTime.now());
+            ticket.setLastModifiedUtc(Instant.now());
             String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
             if (closedId != null) {
                 statusMasterRepository.findById(closedId).ifPresent(ticket::setStatus);
+                ticket.setLastModifiedStatusDate(LocalDateTime.now());
+                ticket.setLastModifiedStatusDateUtc(Instant.now());
             }
             ticketRepository.save(ticket);
 

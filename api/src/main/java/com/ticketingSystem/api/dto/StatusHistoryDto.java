@@ -3,6 +3,7 @@ package com.ticketingSystem.api.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,6 +17,9 @@ public class StatusHistoryDto {
     private String statusName;
     private String label;
     private LocalDateTime timestamp;
+    private Instant timestampUtc;
+    private Instant createdAtUtc;
+    private Instant updatedAtUtc;
     private Boolean slaFlag;
     private String remark;
 }

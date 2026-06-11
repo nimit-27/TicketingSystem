@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -70,6 +71,10 @@ public class TicketDto {
     private boolean isAssignedBackFromFci;
     private String masterId;
     private LocalDateTime lastModified;
+    private Instant createdAtUtc;
+    private Instant updatedAtUtc;
+    private Instant lastModifiedUtc;
+    private Instant lastModifiedStatusDateUtc;
     private LocalDateTime resolvedAt;
     private FeedbackStatus feedbackStatus;
     private String rcaStatus;

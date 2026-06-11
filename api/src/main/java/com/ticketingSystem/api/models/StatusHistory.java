@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,9 +33,31 @@ public class StatusHistory {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
+    @Column(name = "timestamp_utc")
+    private Instant timestampUtc;
+
+    @Column(name = "created_at_utc", updatable = false)
+    private Instant createdAtUtc;
+
+    @Column(name = "updated_at_utc")
+    private Instant updatedAtUtc;
+
     @Column(name = "sla_flag")
     private Boolean slaFlag;
 
     @Column(name = "remark")
     private String remark;
+
+    @PrePersist
+    @PreUpdate
+    private void maintainUtcAuditColumns() {
+        Instant now = Instant.now();
+        if (createdAtUtc == null) {
+            createdAtUtc = now;
+        }
+        updatedAtUtc = now;
+        if (timestamp != null && timestampUtc == null) {
+            timestampUtc = now;
+        }
+    }
 }
