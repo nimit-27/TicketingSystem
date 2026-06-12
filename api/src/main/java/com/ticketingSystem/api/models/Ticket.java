@@ -115,9 +115,6 @@ public class Ticket {
     @Column(name = "created_at_utc", updatable = false)
     private Instant createdAtUtc;
 
-    @Column(name = "updated_at_utc")
-    private Instant updatedAtUtc;
-
     @Version
     @Column(name = "version")
     private Long version;
@@ -152,16 +149,15 @@ public class Ticket {
         if (createdAtUtc == null) {
             createdAtUtc = nowUtc;
         }
-        maintainUpdateAuditFields(nowUtc);
+        backfillMissingUtcPairs(nowUtc);
     }
 
     @PreUpdate
     private void preUpdate() {
-        maintainUpdateAuditFields(Instant.now());
+        backfillMissingUtcPairs(Instant.now());
     }
 
-    private void maintainUpdateAuditFields(Instant nowUtc) {
-        updatedAtUtc = nowUtc;
+    private void backfillMissingUtcPairs(Instant nowUtc) {
         if (lastModified != null && lastModifiedUtc == null) {
             lastModifiedUtc = nowUtc;
         }

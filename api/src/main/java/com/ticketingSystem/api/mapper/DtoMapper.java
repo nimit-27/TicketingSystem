@@ -144,7 +144,6 @@ public class DtoMapper {
         dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
         dto.setLastModified(ticket.getLastModified());
         dto.setCreatedAtUtc(ticket.getCreatedAtUtc());
-        dto.setUpdatedAtUtc(ticket.getUpdatedAtUtc());
         dto.setLastModifiedUtc(ticket.getLastModifiedUtc());
         dto.setLastModifiedStatusDateUtc(ticket.getLastModifiedStatusDateUtc());
         dto.setResolvedAt(ticket.getResolvedAt());
@@ -261,7 +260,6 @@ public class DtoMapper {
         dto.setTimestamp(statusHistory.getTimestamp());
         dto.setTimestampUtc(statusHistory.getTimestampUtc());
         dto.setCreatedAtUtc(statusHistory.getCreatedAtUtc());
-        dto.setUpdatedAtUtc(statusHistory.getUpdatedAtUtc());
         dto.setSlaFlag(statusHistory.getSlaFlag());
         dto.setRemark(statusHistory.getRemark());
         return dto;

@@ -19,7 +19,6 @@ public class StatusHistoryDto {
     private LocalDateTime timestamp;
     private Instant timestampUtc;
     private Instant createdAtUtc;
-    private Instant updatedAtUtc;
     private Boolean slaFlag;
     private String remark;
 }

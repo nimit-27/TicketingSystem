@@ -72,7 +72,6 @@ public class TicketDto {
     private String masterId;
     private LocalDateTime lastModified;
     private Instant createdAtUtc;
-    private Instant updatedAtUtc;
     private Instant lastModifiedUtc;
     private Instant lastModifiedStatusDateUtc;
     private LocalDateTime resolvedAt;

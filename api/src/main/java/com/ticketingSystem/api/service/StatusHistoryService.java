@@ -52,7 +52,6 @@ public class StatusHistoryService {
         history.setTimestamp(timestamp);
         history.setTimestampUtc(timestampUtc);
         history.setCreatedAtUtc(timestampUtc);
-        history.setUpdatedAtUtc(timestampUtc);
         history.setSlaFlag(slaFlag);
         history.setRemark(remark);
         return historyRepository.save(history);

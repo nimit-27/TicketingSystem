@@ -42,9 +42,6 @@ public class StatusHistory {
     @Column(name = "created_at_utc", updatable = false)
     private Instant createdAtUtc;
 
-    @Column(name = "updated_at_utc")
-    private Instant updatedAtUtc;
-
     @Column(name = "sla_flag")
     private Boolean slaFlag;
 
@@ -63,9 +60,6 @@ public class StatusHistory {
         }
         if (createdAtUtc == null) {
             createdAtUtc = nowUtc;
-        }
-        if (updatedAtUtc == null) {
-            updatedAtUtc = nowUtc;
         }
     }
 }

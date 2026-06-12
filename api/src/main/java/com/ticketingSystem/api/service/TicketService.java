@@ -352,7 +352,7 @@ public class TicketService {
                     .ifPresent(ticket::setSeverity);
         }
 
-        // Creation defaults such as reportedDate, createdAtUtc, and updatedAtUtc
+        // Creation defaults such as reportedDate and createdAtUtc
         // are handled by Ticket.@PrePersist. lastModified remains a business timestamp.
         setLastModified(ticket);
 
