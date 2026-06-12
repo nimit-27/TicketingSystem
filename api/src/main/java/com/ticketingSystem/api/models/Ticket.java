@@ -144,6 +144,8 @@ public class Ticket {
         if (mode != null) {
             this.modeId = mode.getId();
         }
+        // Maintain UTC audit fields for all persistence paths, including legacy services
+        // that only update LocalDateTime fields directly.
         Instant now = Instant.now();
         if (createdAtUtc == null) {
             createdAtUtc = now;

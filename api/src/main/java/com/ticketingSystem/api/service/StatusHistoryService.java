@@ -42,6 +42,8 @@ public class StatusHistoryService {
         history.setUpdatedBy(updatedBy);
         history.setPreviousStatus(previousStatus);
         history.setCurrentStatus(currentStatus);
+        // Keep the existing local timestamp for backward compatibility, and also persist
+        // an Instant-based UTC timestamp for reliable ordering/comparison across time zones.
         LocalDateTime timestamp = LocalDateTime.now();
         Instant timestampUtc = Instant.now();
         history.setTimestamp(timestamp);

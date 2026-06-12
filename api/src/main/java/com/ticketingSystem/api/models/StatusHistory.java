@@ -51,6 +51,7 @@ public class StatusHistory {
     @PrePersist
     @PreUpdate
     private void maintainUtcAuditColumns() {
+        // Backstop for history writes that do not go through StatusHistoryService.addHistory.
         Instant now = Instant.now();
         if (createdAtUtc == null) {
             createdAtUtc = now;

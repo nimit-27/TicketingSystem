@@ -715,6 +715,8 @@ public class TicketService {
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
         String previousAssignedTo = existing.getAssignedTo();
         String previousDivision = existing.getDivision();
+        // Capture the status before mutating the entity. This id is the baseline used later
+        // to decide whether a status_history row must be created for this update.
         TicketStatus previousStatus = existing.getTicketStatus();
         Status previousStatusEntity = existing.getStatus();
         String previousStatusId = existing.getStatus() != null ? existing.getStatus().getStatusId()
@@ -732,6 +734,9 @@ public class TicketService {
         TicketStatus updatedStatus = null;
         String updatedStatusId = updated.getStatus() != null ? updated.getStatus().getStatusId() : null;
         String remark = updated.getRemark();
+        // Requests may send either status_id (Status entity) or the legacy enum field.
+        // Resolve both representations up front so the ticket row and status_history use
+        // the same canonical status id for comparison and persistence.
         if (updatedStatus == null && updatedStatusId != null) {
             String code = workflowService.getStatusCodeById(updatedStatusId);
             if (code != null) {
@@ -746,6 +751,8 @@ public class TicketService {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
+        // Keep the legacy tickets.status enum and tickets.status_id relationship in sync.
+        // status_id remains the canonical value used for history comparisons.
         if (updatedStatusId != null) {
             applyTicketStatus(existing, updatedStatusId);
             if (updatedStatus != null && existing.getTicketStatus() != updatedStatus) {
@@ -814,6 +821,9 @@ public class TicketService {
 //        if (assignmentChanged && previousStatus == TicketStatus.PENDING_WITH_FCI) {
 //            existing.setAssignedBackFromFci(true);
 //        }
+            // Assignment-only requests previously set the ticket row to ASSIGNED without
+            // always creating a matching status_history row. Treat assignment-driven ASSIGNED
+            // as a normal status transition so the common statusChanged block below records it.
             if (assignmentChanged && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
                 if (assignId != null) {
@@ -887,7 +897,8 @@ public class TicketService {
                     remark != null ? remark : "Unassigned on reopen"
             );
         }
-        // ensure status history is recorded whenever status changes via actions
+        // The single status-history gate for updateTicket. Any explicit status change or
+        // implicit assignment-to-ASSIGNED change must arrive here with updatedStatusId set.
         if (updatedStatusId == null && updatedStatus != null) {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
@@ -1783,6 +1794,9 @@ public class TicketService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Updates both the legacy local timestamp and the new UTC timestamp for general ticket edits.
+     */
     private void setLastModified(Ticket ticket) {
         if (ticket == null) {
             return;
@@ -1791,6 +1805,9 @@ public class TicketService {
         ticket.setLastModifiedUtc(Instant.now());
     }
 
+    /**
+     * Updates both local and UTC status-modified timestamps. Call only when status_id changes.
+     */
     private void setLastModifiedStatus(Ticket ticket) {
         if (ticket == null) {
             return;
@@ -1799,6 +1816,9 @@ public class TicketService {
         ticket.setLastModifiedStatusDateUtc(Instant.now());
     }
 
+    /**
+     * Applies the canonical status_id and mirrors its status_code into the legacy enum column.
+     */
     private void applyTicketStatus(Ticket ticket, String statusId) {
         if (ticket == null || statusId == null || statusId.isBlank()) {
             return;
@@ -1811,6 +1831,9 @@ public class TicketService {
         });
     }
 
+    /**
+     * Writes one status_history row for an actual status transition using status ids.
+     */
     private void addStatusTransitionHistory(Ticket ticket, String updatedBy, String previousStatusId, String currentStatusId, String remark) {
         if (ticket == null || currentStatusId == null || currentStatusId.isBlank()) {
             return;
