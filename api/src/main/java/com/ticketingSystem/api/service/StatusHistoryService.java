@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class StatusHistoryService {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+
     private final StatusHistoryRepository historyRepository;
     private final TicketRepository ticketRepository;
     private final StatusMasterRepository statusMasterRepository;
@@ -44,8 +47,8 @@ public class StatusHistoryService {
         history.setCurrentStatus(currentStatus);
         // Keep the existing local timestamp for backward compatibility, and also persist
         // an Instant-based UTC timestamp for reliable ordering/comparison across time zones.
-        LocalDateTime timestamp = LocalDateTime.now();
         Instant timestampUtc = Instant.now();
+        LocalDateTime timestamp = LocalDateTime.ofInstant(timestampUtc, BUSINESS_ZONE);
         history.setTimestamp(timestamp);
         history.setTimestampUtc(timestampUtc);
         history.setCreatedAtUtc(timestampUtc);

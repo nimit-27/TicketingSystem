@@ -6,12 +6,15 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "status_history")
 @Getter
 @Setter
 public class StatusHistory {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "status_history_id")
@@ -49,16 +52,20 @@ public class StatusHistory {
     private String remark;
 
     @PrePersist
-    @PreUpdate
-    private void maintainUtcAuditColumns() {
+    private void prePersist() {
         // Backstop for history writes that do not go through StatusHistoryService.addHistory.
-        Instant now = Instant.now();
-        if (createdAtUtc == null) {
-            createdAtUtc = now;
+        Instant nowUtc = Instant.now();
+        if (timestamp == null) {
+            timestamp = LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE);
         }
-        updatedAtUtc = now;
-        if (timestamp != null && timestampUtc == null) {
-            timestampUtc = now;
+        if (timestampUtc == null) {
+            timestampUtc = nowUtc;
+        }
+        if (createdAtUtc == null) {
+            createdAtUtc = nowUtc;
+        }
+        if (updatedAtUtc == null) {
+            updatedAtUtc = nowUtc;
         }
     }
 }

@@ -8,11 +8,14 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "tickets")
 @Data
 public class Ticket {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+
     @Id
     @Column(name="ticket_id")
     private String id;
@@ -139,23 +142,31 @@ public class Ticket {
     }
 
     @PrePersist
-    @PreUpdate
-    private void syncModeId() {
-        if (mode != null) {
-            this.modeId = mode.getId();
+    private void prePersist() {
+        Instant nowUtc = Instant.now();
+        LocalDateTime nowLocal = LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE);
+
+        if (reportedDate == null) {
+            reportedDate = nowLocal;
         }
-        // Maintain UTC audit fields for all persistence paths, including legacy services
-        // that only update LocalDateTime fields directly.
-        Instant now = Instant.now();
         if (createdAtUtc == null) {
-            createdAtUtc = now;
+            createdAtUtc = nowUtc;
         }
-        updatedAtUtc = now;
+        maintainUpdateAuditFields(nowUtc);
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        maintainUpdateAuditFields(Instant.now());
+    }
+
+    private void maintainUpdateAuditFields(Instant nowUtc) {
+        updatedAtUtc = nowUtc;
         if (lastModified != null && lastModifiedUtc == null) {
-            lastModifiedUtc = now;
+            lastModifiedUtc = nowUtc;
         }
         if (lastModifiedStatusDate != null && lastModifiedStatusDateUtc == null) {
-            lastModifiedStatusDateUtc = now;
+            lastModifiedStatusDateUtc = nowUtc;
         }
     }
 }

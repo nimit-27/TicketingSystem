@@ -46,6 +46,7 @@ import org.typesense.model.SearchRequestParams;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,6 +59,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 @RequiredArgsConstructor
 public class TicketService {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
     private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
     private static final int REMARK_MAX_LENGTH = 255;
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
@@ -350,17 +352,8 @@ public class TicketService {
                     .ifPresent(ticket::setSeverity);
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        Instant nowUtc = Instant.now();
-        // SETTING Reported Date
-        if(ticket.getReportedDate() == null) {
-            ticket.setReportedDate(now);
-        }
-        // SETTING UTC audit and last modified timestamps
-        if (ticket.getCreatedAtUtc() == null) {
-            ticket.setCreatedAtUtc(nowUtc);
-        }
-        ticket.setUpdatedAtUtc(nowUtc);
+        // Creation defaults such as reportedDate, createdAtUtc, and updatedAtUtc
+        // are handled by Ticket.@PrePersist. lastModified remains a business timestamp.
         setLastModified(ticket);
 
         // SAVING TICKET IN REPOSITORY
@@ -1801,8 +1794,9 @@ public class TicketService {
         if (ticket == null) {
             return;
         }
-        ticket.setLastModified(LocalDateTime.now());
-        ticket.setLastModifiedUtc(Instant.now());
+        Instant nowUtc = Instant.now();
+        ticket.setLastModified(LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE));
+        ticket.setLastModifiedUtc(nowUtc);
     }
 
     /**
@@ -1812,8 +1806,9 @@ public class TicketService {
         if (ticket == null) {
             return;
         }
-        ticket.setLastModifiedStatusDate(LocalDateTime.now());
-        ticket.setLastModifiedStatusDateUtc(Instant.now());
+        Instant nowUtc = Instant.now();
+        ticket.setLastModifiedStatusDate(LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE));
+        ticket.setLastModifiedStatusDateUtc(nowUtc);
     }
 
     /**
