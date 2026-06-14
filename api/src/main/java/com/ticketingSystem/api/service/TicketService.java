@@ -44,7 +44,9 @@ import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
 import org.typesense.model.SearchRequestParams;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 @RequiredArgsConstructor
 public class TicketService {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
     private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
     private static final int REMARK_MAX_LENGTH = 255;
     private static final String TICKET_CREATED_NOTIFICATION_CODE = "TICKET_CREATED";
@@ -349,13 +352,9 @@ public class TicketService {
                     .ifPresent(ticket::setSeverity);
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        // SETTING Reported Date
-        if(ticket.getReportedDate() == null) {
-            ticket.setReportedDate(now);
-        }
-        // SETTING Last Modified
-        ticket.setLastModified(now);
+        // Creation defaults such as reportedDate and createdAtUtc
+        // are handled by Ticket.@PrePersist. lastModified remains a business timestamp.
+        setLastModified(ticket);
 
         // SAVING TICKET IN REPOSITORY
         System.out.println("TicketService: Saving the ticket to repository now...");
@@ -709,6 +708,8 @@ public class TicketService {
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
         String previousAssignedTo = existing.getAssignedTo();
         String previousDivision = existing.getDivision();
+        // Capture the status before mutating the entity. This id is the baseline used later
+        // to decide whether a status_history row must be created for this update.
         TicketStatus previousStatus = existing.getTicketStatus();
         Status previousStatusEntity = existing.getStatus();
         String previousStatusId = existing.getStatus() != null ? existing.getStatus().getStatusId()
@@ -726,6 +727,9 @@ public class TicketService {
         TicketStatus updatedStatus = null;
         String updatedStatusId = updated.getStatus() != null ? updated.getStatus().getStatusId() : null;
         String remark = updated.getRemark();
+        // Requests may send either status_id (Status entity) or the legacy enum field.
+        // Resolve both representations up front so the ticket row and status_history use
+        // the same canonical status id for comparison and persistence.
         if (updatedStatus == null && updatedStatusId != null) {
             String code = workflowService.getStatusCodeById(updatedStatusId);
             if (code != null) {
@@ -740,8 +744,16 @@ public class TicketService {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
         if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
-        if (updatedStatus != null) existing.setTicketStatus(updatedStatus);
-        if (updatedStatusId != null) statusMasterRepository.findById(updatedStatusId).ifPresent(existing::setStatus);
+        // Keep the legacy tickets.status enum and tickets.status_id relationship in sync.
+        // status_id remains the canonical value used for history comparisons.
+        if (updatedStatusId != null) {
+            applyTicketStatus(existing, updatedStatusId);
+            if (updatedStatus != null && existing.getTicketStatus() != updatedStatus) {
+                existing.setTicketStatus(updatedStatus);
+            }
+        } else if (updatedStatus != null) {
+            existing.setTicketStatus(updatedStatus);
+        }
         if (updatedStatus == TicketStatus.RESOLVED) {
             if (existing.getResolvedAt() == null) {
                 existing.setResolvedAt(LocalDateTime.now());
@@ -802,10 +814,17 @@ public class TicketService {
 //        if (assignmentChanged && previousStatus == TicketStatus.PENDING_WITH_FCI) {
 //            existing.setAssignedBackFromFci(true);
 //        }
+            // Assignment-only requests previously set the ticket row to ASSIGNED without
+            // always creating a matching status_history row. Treat assignment-driven ASSIGNED
+            // as a normal status transition so the common statusChanged block below records it.
             if (assignmentChanged && existing.getAssignedTo() != null && updatedStatus == null && updatedStatusId == null) {
-                existing.setTicketStatus(TicketStatus.ASSIGNED);
                 String assignId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
-                statusMasterRepository.findById(assignId).ifPresent(existing::setStatus);
+                if (assignId != null) {
+                    updatedStatus = TicketStatus.ASSIGNED;
+                    updatedStatusId = assignId;
+                    applyTicketStatus(existing, assignId);
+                    existing.setTicketStatus(TicketStatus.ASSIGNED);
+                }
             }
 //            try {
 //                notificationService.sendNotification(
@@ -835,7 +854,7 @@ public class TicketService {
             existing.setLevelId(null);
         }
         if (updated.getUpdatedBy() != null) existing.setUpdatedBy(updated.getUpdatedBy());
-        existing.setLastModified(LocalDateTime.now());
+        setLastModified(existing);
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
         if (updated.getDivision() != null && !Objects.equals(previousDivision, saved.getDivision())) {
@@ -847,15 +866,6 @@ public class TicketService {
                     updated.getAssignedTo(),
                     updated.getLevelId() != null ? updated.getLevelId() : existing.getLevelId(),
                     remark);
-            if (updatedStatusId == null && updatedStatus == null && previousStatus != TicketStatus.ASSIGNED) {
-                String assignedId = workflowService.getStatusIdByCode(TicketStatus.ASSIGNED.name());
-                boolean slaAssigned = workflowService.getSlaFlagByStatusAndIssueType(assignedId, saved.getIssueTypeId());
-                String prevId = previousStatusId;
-                statusHistoryService.addHistory(id, updatedBy, prevId, assignedId, slaAssigned, remark);
-                previousStatus = TicketStatus.ASSIGNED;
-                previousStatusId = assignedId;
-            }
-
             Ticket finalSaved = saved;
 
 // NOTIFY ASSIGNEE
@@ -880,18 +890,18 @@ public class TicketService {
                     remark != null ? remark : "Unassigned on reopen"
             );
         }
-        // ensure status history is recorded whenever status changes via actions
+        // The single status-history gate for updateTicket. Any explicit status change or
+        // implicit assignment-to-ASSIGNED change must arrive here with updatedStatusId set.
         if (updatedStatusId == null && updatedStatus != null) {
             updatedStatusId = workflowService.getStatusIdByCode(updatedStatus.name());
         }
         boolean statusChanged = updatedStatusId != null && !updatedStatusId.equals(previousStatusId);
         if (statusChanged) {
-            existing.setLastModifiedStatusDate(LocalDateTime.now());
+            setLastModifiedStatus(existing);
             saved = ticketRepository.save(existing);
         }
         if (statusChanged) {
-            boolean slaCurr = workflowService.getSlaFlagByStatusAndIssueType(updatedStatusId, saved.getIssueTypeId());
-            statusHistoryService.addHistory(id, updatedBy, previousStatusId, updatedStatusId, slaCurr, remark);
+            addStatusTransitionHistory(saved, updatedBy, previousStatusId, updatedStatusId, remark);
 
             TicketStatus finalPreviousStatus = previousStatus;
             String finalPreviousStatusId = previousStatusId;
@@ -1535,7 +1545,7 @@ public class TicketService {
                             }
                         });
             }
-            ticket.setLastModified(LocalDateTime.now());
+            setLastModified(ticket);
             ticket = ticketRepository.save(ticket);
         }
         return mapWithStatusId(ticket);
@@ -1607,7 +1617,7 @@ public class TicketService {
                 })
                 .orElse(false);
         if (attachmentUpdated) {
-            ticket.setLastModified(LocalDateTime.now());
+            setLastModified(ticket);
             ticket = ticketRepository.save(ticket);
         }
         return mapWithStatusId(ticket);
@@ -1644,8 +1654,8 @@ public class TicketService {
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
-        ticket.setLastModified(LocalDateTime.now());
-        ticket.setLastModifiedStatusDate(LocalDateTime.now());
+        setLastModified(ticket);
+        setLastModifiedStatus(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
         String actor = updatedBy != null && !updatedBy.isBlank() ? updatedBy : saved.getUpdatedBy();
@@ -1659,14 +1669,7 @@ public class TicketService {
                 : null;
         String fromStatusId = previousStatusId != null ? previousStatusId : currentStatusId;
         String toStatusId = currentStatusId != null ? currentStatusId : previousStatusId;
-        statusHistoryService.addHistory(
-                saved.getId(),
-                actor,
-                fromStatusId,
-                toStatusId,
-                slaFlag,
-                "Linked to a Master ticket"
-        );
+        addStatusTransitionHistory(saved, actor, fromStatusId, toStatusId, "Linked to a Master ticket");
 
         runNotificationAfterCommit(() -> sendRequestorMasterLinkNotification(saved, masterTicket, updatedBy));
         return mapWithStatusId(saved);
@@ -1699,7 +1702,7 @@ public class TicketService {
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
-        ticket.setLastModified(LocalDateTime.now());
+        setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
         addLinkingHistory(saved, updatedBy, String.format("Unlinked from master ticket %s", existingMasterId));
@@ -1712,7 +1715,7 @@ public class TicketService {
 
         ticket.setMaster(true);
         ticket.setMasterId(null);
-        ticket.setLastModified(LocalDateTime.now());
+        setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
         return mapWithStatusId(saved);
@@ -1775,6 +1778,56 @@ public class TicketService {
                 .stream()
                 .map(this::mapWithStatusId)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Updates both the legacy local timestamp and the new UTC timestamp for general ticket edits.
+     */
+    private void setLastModified(Ticket ticket) {
+        if (ticket == null) {
+            return;
+        }
+        Instant nowUtc = Instant.now();
+        ticket.setLastModified(LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE));
+        ticket.setLastModifiedUtc(nowUtc);
+    }
+
+    /**
+     * Updates both local and UTC status-modified timestamps. Call only when status_id changes.
+     */
+    private void setLastModifiedStatus(Ticket ticket) {
+        if (ticket == null) {
+            return;
+        }
+        Instant nowUtc = Instant.now();
+        ticket.setLastModifiedStatusDate(LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE));
+        ticket.setLastModifiedStatusDateUtc(nowUtc);
+    }
+
+    /**
+     * Applies the canonical status_id and mirrors its status_code into the legacy enum column.
+     */
+    private void applyTicketStatus(Ticket ticket, String statusId) {
+        if (ticket == null || statusId == null || statusId.isBlank()) {
+            return;
+        }
+        statusMasterRepository.findById(statusId).ifPresent(status -> {
+            ticket.setStatus(status);
+            if (status.getStatusCode() != null && !status.getStatusCode().isBlank()) {
+                ticket.setTicketStatus(TicketStatus.valueOf(status.getStatusCode()));
+            }
+        });
+    }
+
+    /**
+     * Writes one status_history row for an actual status transition using status ids.
+     */
+    private void addStatusTransitionHistory(Ticket ticket, String updatedBy, String previousStatusId, String currentStatusId, String remark) {
+        if (ticket == null || currentStatusId == null || currentStatusId.isBlank()) {
+            return;
+        }
+        boolean slaFlag = workflowService.getSlaFlagByStatusAndIssueType(currentStatusId, ticket.getIssueTypeId());
+        statusHistoryService.addHistory(ticket.getId(), updatedBy, previousStatusId, currentStatusId, slaFlag, remark);
     }
 
     private void refreshTicketSla(Ticket ticket) {

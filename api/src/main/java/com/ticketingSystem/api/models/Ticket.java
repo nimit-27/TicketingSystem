@@ -6,14 +6,16 @@ import com.ticketingSystem.api.enums.FeedbackStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "tickets")
 @Data
 public class Ticket {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+
     @Id
     @Column(name="ticket_id")
     private String id;
@@ -101,8 +103,21 @@ public class Ticket {
     @Column(name = "last_modified")
     private LocalDateTime lastModified;
 
+    @Column(name = "last_modified_utc")
+    private Instant lastModifiedUtc;
+
     @Column(name = "last_modified_status_date")
     private LocalDateTime lastModifiedStatusDate;
+
+    @Column(name = "last_modified_status_date_utc")
+    private Instant lastModifiedStatusDateUtc;
+
+    @Column(name = "created_at_utc", updatable = false)
+    private Instant createdAtUtc;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
@@ -124,10 +139,30 @@ public class Ticket {
     }
 
     @PrePersist
+    private void prePersist() {
+        Instant nowUtc = Instant.now();
+        LocalDateTime nowLocal = LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE);
+
+        if (reportedDate == null) {
+            reportedDate = nowLocal;
+        }
+        if (createdAtUtc == null) {
+            createdAtUtc = nowUtc;
+        }
+        backfillMissingUtcPairs();
+    }
+
     @PreUpdate
-    private void syncModeId() {
-        if (mode != null) {
-            this.modeId = mode.getId();
+    private void preUpdate() {
+        backfillMissingUtcPairs();
+    }
+
+    private void backfillMissingUtcPairs() {
+        if (lastModified != null && lastModifiedUtc == null) {
+            lastModifiedUtc = lastModified.atZone(BUSINESS_ZONE).toInstant();
+        }
+        if (lastModifiedStatusDate != null && lastModifiedStatusDateUtc == null) {
+            lastModifiedStatusDateUtc = lastModifiedStatusDate.atZone(BUSINESS_ZONE).toInstant();
         }
     }
 }

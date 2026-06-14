@@ -12,12 +12,16 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TicketCrService {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
 
     private final TicketCrRepository ticketCrRepository;
     private final TicketRepository ticketRepository;
@@ -105,6 +109,14 @@ public class TicketCrService {
         ticket.setTicketStatus(TicketStatus.CLOSED);
         ticket.setStatus(closedStatus);
         ticket.setUpdatedBy(updatedBy);
+        Instant modifiedAtUtc = Instant.now();
+        LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
+        ticket.setLastModified(modifiedAt);
+        ticket.setLastModifiedUtc(modifiedAtUtc);
+        if (previousStatusId == null || !closedStatus.getStatusId().equals(previousStatusId)) {
+            ticket.setLastModifiedStatusDate(modifiedAt);
+            ticket.setLastModifiedStatusDateUtc(modifiedAtUtc);
+        }
         ticketRepository.save(ticket);
 
         String closedStatusId = closedStatus.getStatusId();
