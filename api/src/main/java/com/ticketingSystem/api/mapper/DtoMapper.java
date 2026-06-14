@@ -143,6 +143,9 @@ public class DtoMapper {
         dto.setAssignedBackFromFci(ticket.isAssignedBackFromFci());
         dto.setMasterId(ticket.getMasterId() != null ? String.valueOf(ticket.getMasterId()) : null);
         dto.setLastModified(ticket.getLastModified());
+        dto.setCreatedAtUtc(ticket.getCreatedAtUtc());
+        dto.setLastModifiedUtc(ticket.getLastModifiedUtc());
+        dto.setLastModifiedStatusDateUtc(ticket.getLastModifiedStatusDateUtc());
         dto.setResolvedAt(ticket.getResolvedAt());
         dto.setFeedbackStatus(ticket.getFeedbackStatus());
         return dto;
@@ -255,6 +258,8 @@ public class DtoMapper {
         dto.setPreviousStatus(statusHistory.getPreviousStatus());
         dto.setCurrentStatus(statusHistory.getCurrentStatus());
         dto.setTimestamp(statusHistory.getTimestamp());
+        dto.setTimestampUtc(statusHistory.getTimestampUtc());
+        dto.setCreatedAtUtc(statusHistory.getCreatedAtUtc());
         dto.setSlaFlag(statusHistory.getSlaFlag());
         dto.setRemark(statusHistory.getRemark());
         return dto;

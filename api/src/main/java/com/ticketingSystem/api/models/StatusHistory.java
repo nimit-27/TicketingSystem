@@ -4,13 +4,17 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "status_history")
 @Getter
 @Setter
 public class StatusHistory {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "status_history_id")
@@ -32,9 +36,30 @@ public class StatusHistory {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
+    @Column(name = "timestamp_utc")
+    private Instant timestampUtc;
+
+    @Column(name = "created_at_utc", updatable = false)
+    private Instant createdAtUtc;
+
     @Column(name = "sla_flag")
     private Boolean slaFlag;
 
     @Column(name = "remark")
     private String remark;
+
+    @PrePersist
+    private void prePersist() {
+        // Backstop for history writes that do not go through StatusHistoryService.addHistory.
+        Instant nowUtc = Instant.now();
+        if (timestamp == null) {
+            timestamp = LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE);
+        }
+        if (timestampUtc == null) {
+            timestampUtc = timestamp.atZone(BUSINESS_ZONE).toInstant();
+        }
+        if (createdAtUtc == null) {
+            createdAtUtc = nowUtc;
+        }
+    }
 }
