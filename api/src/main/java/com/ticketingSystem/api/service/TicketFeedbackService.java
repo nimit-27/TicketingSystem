@@ -24,10 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
 public class TicketFeedbackService {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
     private final TicketRepository ticketRepository;
     private final TicketFeedbackRepository feedbackRepository;
     private final TicketStatusWorkflowService workflowService;
@@ -95,13 +97,15 @@ public class TicketFeedbackService {
 
             ticket.setTicketStatus(TicketStatus.CLOSED);
             ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
-            ticket.setLastModified(LocalDateTime.now());
-            ticket.setLastModifiedUtc(Instant.now());
+            Instant modifiedAtUtc = Instant.now();
+            LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
+            ticket.setLastModified(modifiedAt);
+            ticket.setLastModifiedUtc(modifiedAtUtc);
             String closedId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
             if (closedId != null) {
                 statusMasterRepository.findById(closedId).ifPresent(ticket::setStatus);
-                ticket.setLastModifiedStatusDate(LocalDateTime.now());
-                ticket.setLastModifiedStatusDateUtc(Instant.now());
+                ticket.setLastModifiedStatusDate(modifiedAt);
+                ticket.setLastModifiedStatusDateUtc(modifiedAtUtc);
             }
             ticketRepository.save(ticket);
 

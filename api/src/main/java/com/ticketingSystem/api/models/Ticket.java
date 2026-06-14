@@ -149,20 +149,20 @@ public class Ticket {
         if (createdAtUtc == null) {
             createdAtUtc = nowUtc;
         }
-        backfillMissingUtcPairs(nowUtc);
+        backfillMissingUtcPairs();
     }
 
     @PreUpdate
     private void preUpdate() {
-        backfillMissingUtcPairs(Instant.now());
+        backfillMissingUtcPairs();
     }
 
-    private void backfillMissingUtcPairs(Instant nowUtc) {
+    private void backfillMissingUtcPairs() {
         if (lastModified != null && lastModifiedUtc == null) {
-            lastModifiedUtc = nowUtc;
+            lastModifiedUtc = lastModified.atZone(BUSINESS_ZONE).toInstant();
         }
         if (lastModifiedStatusDate != null && lastModifiedStatusDateUtc == null) {
-            lastModifiedStatusDateUtc = nowUtc;
+            lastModifiedStatusDateUtc = lastModifiedStatusDate.atZone(BUSINESS_ZONE).toInstant();
         }
     }
 }

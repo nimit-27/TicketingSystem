@@ -56,7 +56,7 @@ public class StatusHistory {
             timestamp = LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE);
         }
         if (timestampUtc == null) {
-            timestampUtc = nowUtc;
+            timestampUtc = timestamp.atZone(BUSINESS_ZONE).toInstant();
         }
         if (createdAtUtc == null) {
             createdAtUtc = nowUtc;

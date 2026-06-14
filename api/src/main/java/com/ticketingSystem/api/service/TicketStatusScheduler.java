@@ -12,10 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
 public class TicketStatusScheduler {
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
     private final TicketRepository ticketRepository;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
@@ -54,8 +56,10 @@ public class TicketStatusScheduler {
 
             t.setTicketStatus(TicketStatus.CLOSED);
             t.setUpdatedBy("SYSTEM");
-            t.setLastModified(LocalDateTime.now());
-            t.setLastModifiedUtc(Instant.now());
+            Instant modifiedAtUtc = Instant.now();
+            LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
+            t.setLastModified(modifiedAt);
+            t.setLastModifiedUtc(modifiedAtUtc);
             if (t.getResolvedAt() == null) {
                 t.setResolvedAt(LocalDateTime.now());
             }
@@ -65,8 +69,8 @@ public class TicketStatusScheduler {
             if (closedId != null) {
                 statusMasterRepository.findById(closedId).ifPresent(t::setStatus);
                 if (previousStatusId == null || !closedId.equals(previousStatusId)) {
-                    t.setLastModifiedStatusDate(LocalDateTime.now());
-                    t.setLastModifiedStatusDateUtc(Instant.now());
+                    t.setLastModifiedStatusDate(modifiedAt);
+                    t.setLastModifiedStatusDateUtc(modifiedAtUtc);
                     Boolean slaFlag = workflowService.getSlaFlagByStatusAndIssueType(closedId, t.getIssueTypeId());
                     statusHistoryService.addHistory(
                             t.getId(),
