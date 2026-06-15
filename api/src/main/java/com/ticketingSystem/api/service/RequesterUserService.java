@@ -8,7 +8,7 @@ import com.ticketingSystem.api.models.Stakeholder;
 import com.ticketingSystem.api.repository.RequesterUserRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.StakeholderRepository;
-import com.ticketingSystem.notification.enums.ChannelType;
+import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -126,14 +126,26 @@ public class RequesterUserService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     RNO_APPOINTMENT_NOTIFICATION_CODE,
                     data,
-                    requesterUser.getRequesterUserId()
+                    toNotificationUser(requesterUser)
             );
         } catch (Exception ignored) {
         }
+    }
+
+    private User toNotificationUser(RequesterUser requesterUser) {
+        User user = new User();
+        user.setUserId(requesterUser.getRequesterUserId());
+        user.setUsername(requesterUser.getUsername());
+        user.setName(requesterUser.getName());
+        user.setEmailId(requesterUser.getEmailId());
+        user.setMobileNo(requesterUser.getMobileNo());
+        user.setOffice(requesterUser.getOffice());
+        user.setRoles(requesterUser.getRoles());
+        user.setStakeholder(requesterUser.getStakeholder());
+        return user;
     }
 
     private String resolveStakeholderName(String stakeholderId) {

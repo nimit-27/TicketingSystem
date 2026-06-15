@@ -12,7 +12,6 @@ import com.ticketingSystem.api.repository.TicketSlaRepository;
 import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.calendar.service.SlaCalculatorService;
 import com.ticketingSystem.calendar.util.TimeUtils;
-import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.service.NotificationService;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
@@ -390,57 +389,33 @@ public class TicketSlaService {
             data.put("assigneeName", assigneeIdentifier);
         }
 
-        Map<String, String> recipients = new LinkedHashMap<>();
-        String primaryRecipient = assignee
-                .map(this::resolveRecipientIdentifier)
-                .orElse(assigneeIdentifier);
-        if (primaryRecipient != null && !primaryRecipient.isBlank()) {
-            recipients.put(primaryRecipient, assigneeDisplayName);
-        }
+        Map<String, User> recipients = new LinkedHashMap<>();
+        assignee.ifPresent(user -> recipients.put(user.getUserId(), user));
 
         List<User> escalationUsers = userRepository.findAll();
         for (User escalationUser : escalationUsers) {
-            if (escalationUser == null || isRequestorOnly(escalationUser)) {
+            if (escalationUser == null || isRequestorOnly(escalationUser)
+                    || escalationUser.getUserId() == null || escalationUser.getUserId().isBlank()) {
                 continue;
             }
-            String escalationRecipient = resolveRecipientIdentifier(escalationUser);
-            if (escalationRecipient == null || escalationRecipient.isBlank()) {
-                continue;
-            }
-
-            String displayName = resolveUserDisplayName(escalationUser);
-            if (!recipients.containsKey(escalationRecipient)) {
-                recipients.put(escalationRecipient, displayName);
-            } else {
-                String existingName = recipients.get(escalationRecipient);
-                if ((existingName == null || existingName.isBlank())
-                        && displayName != null && !displayName.isBlank()) {
-                    recipients.put(escalationRecipient, displayName);
-                }
-            }
+            recipients.putIfAbsent(escalationUser.getUserId(), escalationUser);
         }
 
-        for (Map.Entry<String, String> entry : recipients.entrySet()) {
-            String recipient = entry.getKey();
-            if (recipient == null || recipient.isBlank()) {
-                continue;
-            }
-
+        for (User recipientUser : recipients.values()) {
             Map<String, Object> recipientData = new HashMap<>(data);
-            String recipientName = entry.getValue();
+            String recipientName = resolveUserDisplayName(recipientUser);
             if (recipientName != null && !recipientName.isBlank()) {
                 recipientData.put("recipientName", recipientName);
             }
 
             try {
-                notificationService.sendNotification(
-                        ChannelType.IN_APP,
+                notificationService.sendNotificationForUser(
                         SLA_BREACHED_NOTIFICATION_CODE,
                         recipientData,
-                        recipient
+                        recipientUser
                 );
             } catch (Exception ex) {
-                log.warn("Failed to send SLA breach notification for ticket {} to recipient {}", ticket.getId(), recipient, ex);
+                log.warn("Failed to send SLA breach notification for ticket {} to user {}", ticket.getId(), recipientUser.getUserId(), ex);
             }
         }
     }
