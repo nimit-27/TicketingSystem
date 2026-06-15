@@ -29,7 +29,6 @@ import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.enums.FeedbackStatus;
 import com.ticketingSystem.api.enums.RecommendedSeverityStatus;
 import com.ticketingSystem.api.typesense.TypesenseClient;
-import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.service.NotificationService;
 import com.ticketingSystem.api.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
@@ -826,16 +825,6 @@ public class TicketService {
                     existing.setTicketStatus(TicketStatus.ASSIGNED);
                 }
             }
-//            try {
-//                notificationService.sendNotification(
-//                        ChannelType.IN_APP,
-//                        TICKET_CREATED_NOTIFICATION_CODE,
-//                        data,
-//                        recipientIdentifier
-//                );
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
         }
 
         boolean isReopenedStatus = updatedStatus == TicketStatus.REOPENED;
@@ -1032,19 +1021,6 @@ public class TicketService {
             }
         }
 
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return;
-        }
-
         Map<String, Object> data = new HashMap<>();
         data.put("ticketId", ticket.getId());
         data.put("ticketNumber", ticket.getId());
@@ -1079,11 +1055,10 @@ public class TicketService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_UPDATED_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1109,19 +1084,6 @@ public class TicketService {
             }
         }
 
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return;
-        }
-
         Map<String, Object> data = new HashMap<>();
         data.put("ticketId", ticket.getId());
         data.put("ticketNumber", ticket.getId());
@@ -1142,11 +1104,10 @@ public class TicketService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1188,17 +1149,15 @@ public class TicketService {
 
         for (User member : roleMembers) {
             try {
-                String recipientIdentifier = resolveRecipientIdentifier(member);
                 Map<String, Object> notificationData = new HashMap<>(baseData);
                 String memberName = resolveUserName(member);
                 if (memberName != null && !memberName.isBlank()) {
                     notificationData.put("recipientName", memberName);
                 }
-                notificationService.sendNotification(
-                        ChannelType.IN_APP,
+                notificationService.sendNotificationForUser(
                         TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
                         notificationData,
-                        recipientIdentifier
+                        member
                 );
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -1231,7 +1190,6 @@ public class TicketService {
 
         for (User member : roleMembers) {
             try {
-                String recipientIdentifier = resolveRecipientIdentifier(member);
                 Map<String, Object> notificationData = new HashMap<>();
                 notificationData.put("ticketId", ticket.getId());
                 notificationData.put("ticketNumber", ticket.getId());
@@ -1247,11 +1205,10 @@ public class TicketService {
                     notificationData.put("recipientName", memberName);
                 }
 
-                notificationService.sendNotification(
-                        ChannelType.IN_APP,
+                notificationService.sendNotificationForUser(
                         TICKET_UPDATED_NOTIFICATION_CODE,
                         notificationData,
-                        recipientIdentifier
+                        member
                 );
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -1467,19 +1424,6 @@ public class TicketService {
             }
         }
 
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return;
-        }
-
         Map<String, Object> data = new HashMap<>();
         data.put("ticketId", ticket.getId());
         data.put("ticketNumber", ticket.getId());
@@ -1521,11 +1465,10 @@ public class TicketService {
         data.put("updateMessage", updateMessage);
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_UPDATED_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception ex) {
             ex.printStackTrace();
