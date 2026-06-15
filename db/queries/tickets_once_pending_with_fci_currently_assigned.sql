@@ -11,6 +11,10 @@
 --   3. Run the update.
 --   4. Verify the updated rows.
 --   5. If required, run the rollback section at the bottom.
+--
+-- Note: status IDs are cast to CHAR in joins so bad legacy values such as
+-- 'undefined' in varchar status columns do not trigger MySQL numeric
+-- conversion errors like "Truncated incorrect DOUBLE value".
 
 -- 1) Preview candidate tickets before updating the flag.
 SELECT DISTINCT
@@ -33,14 +37,14 @@ SELECT DISTINCT
     latest_assigned_history.latest_assigned_status_at
 FROM ad_prd_ticket_system.tickets t
 JOIN ad_prd_ticket_system.status_master current_sm
-    ON current_sm.status_id = t.status_id
+    ON CAST(current_sm.status_id AS CHAR) = t.status_id
 JOIN (
     SELECT
         sh.ticket_id,
         MIN(sh.`timestamp`) AS first_fci_status_at
     FROM ad_prd_ticket_system.status_history sh
     JOIN ad_prd_ticket_system.status_master sh_current_sm
-        ON sh_current_sm.status_id = sh.current_status
+        ON CAST(sh_current_sm.status_id AS CHAR) = sh.current_status
     WHERE sh_current_sm.status_code = 'PENDING_WITH_FCI'
     GROUP BY sh.ticket_id
 ) first_fci_history
@@ -51,7 +55,7 @@ LEFT JOIN (
         MAX(sh.`timestamp`) AS latest_assigned_status_at
     FROM ad_prd_ticket_system.status_history sh
     JOIN ad_prd_ticket_system.status_master sh_current_sm
-        ON sh_current_sm.status_id = sh.current_status
+        ON CAST(sh_current_sm.status_id AS CHAR) = sh.current_status
     WHERE sh_current_sm.status_code = 'ASSIGNED'
     GROUP BY sh.ticket_id
 ) latest_assigned_history
@@ -77,7 +81,7 @@ SELECT DISTINCT
     t.is_assigned_back_from_fci
 FROM ad_prd_ticket_system.tickets t
 JOIN ad_prd_ticket_system.status_master current_sm
-    ON current_sm.status_id = t.status_id
+    ON CAST(current_sm.status_id AS CHAR) = t.status_id
 WHERE current_sm.status_code = 'ASSIGNED'
   AND t.assigned_to IS NOT NULL
   AND TRIM(t.assigned_to) <> ''
@@ -86,7 +90,7 @@ WHERE current_sm.status_code = 'ASSIGNED'
       SELECT 1
       FROM ad_prd_ticket_system.status_history sh
       JOIN ad_prd_ticket_system.status_master sh_current_sm
-          ON sh_current_sm.status_id = sh.current_status
+          ON CAST(sh_current_sm.status_id AS CHAR) = sh.current_status
       WHERE sh.ticket_id = t.ticket_id
         AND sh_current_sm.status_code = 'PENDING_WITH_FCI'
   );
@@ -94,7 +98,7 @@ WHERE current_sm.status_code = 'ASSIGNED'
 -- 3) Update candidate tickets to mark them as assigned back from FCI.
 UPDATE ad_prd_ticket_system.tickets t
 JOIN ad_prd_ticket_system.status_master current_sm
-    ON current_sm.status_id = t.status_id
+    ON CAST(current_sm.status_id AS CHAR) = t.status_id
 SET t.is_assigned_back_from_fci = 1
 WHERE current_sm.status_code = 'ASSIGNED'
   AND t.assigned_to IS NOT NULL
@@ -104,7 +108,7 @@ WHERE current_sm.status_code = 'ASSIGNED'
       SELECT 1
       FROM ad_prd_ticket_system.status_history sh
       JOIN ad_prd_ticket_system.status_master sh_current_sm
-          ON sh_current_sm.status_id = sh.current_status
+          ON CAST(sh_current_sm.status_id AS CHAR) = sh.current_status
       WHERE sh.ticket_id = t.ticket_id
         AND sh_current_sm.status_code = 'PENDING_WITH_FCI'
   );
