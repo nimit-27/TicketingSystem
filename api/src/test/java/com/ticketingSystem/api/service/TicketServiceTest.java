@@ -366,8 +366,7 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_STATUS_UPDATE"),
                 argThat(map ->
                         ticketId.equals(map.get("ticketId"))
@@ -377,7 +376,7 @@ class TicketServiceTest {
                                 && "agent2".equals(map.get("actorName"))
                                 && "Requester Name".equals(map.get("recipientName"))
                 ),
-                eq("requestor-1")
+                same(requestor)
         );
     }
 
@@ -443,8 +442,7 @@ class TicketServiceTest {
                 .containsEntry("assigneeName", "Agent Jane")
                 .containsEntry("assignedBy", "supervisor");
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_UPDATED"),
                 argThat(payload ->
                         "T-100".equals(payload.get("ticketId"))
@@ -452,7 +450,7 @@ class TicketServiceTest {
                                 && "ASSIGNMENT_UPDATED".equals(payload.get("updateType"))
                                 && "Agent Jane".equals(payload.get("currentAssignee"))
                 ),
-                eq("requestor-1")
+                same(requestor)
         );
     }
 
@@ -492,15 +490,14 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_STATUS_UPDATE"),
                 argThat(map ->
                         ticketId.equals(map.get("ticketId"))
                                 && "Resolved".equals(map.get("newStatus"))
                                 && "Requester User Name".equals(map.get("recipientName"))
                 ),
-                eq("requester-1")
+                same(requesterUser)
         );
     }
 
@@ -563,8 +560,7 @@ class TicketServiceTest {
                 .containsEntry("assigneeName", "Agent New")
                 .containsEntry("assignedBy", "manager1");
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_UPDATED"),
                 argThat(payload ->
                         "T-3".equals(payload.get("ticketId"))
@@ -572,7 +568,7 @@ class TicketServiceTest {
                                 && "Agent New".equals(payload.get("currentAssignee"))
                                 && "manager1".equals(payload.get("actorName"))
                 ),
-                eq("requestor-1")
+                same(requestor)
         );
     }
 

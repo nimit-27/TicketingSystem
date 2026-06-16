@@ -995,18 +995,7 @@ public class TicketService {
         }
 
         GenericUser requestor = resolveRequestor(ticket);
-
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    requestor instanceof User user ? user : null,
-                    requestor != null ? requestor.getGenericUserId() : null,
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if (requestor == null) {
             return;
         }
 
@@ -1044,11 +1033,10 @@ public class TicketService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_UPDATED_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1067,18 +1055,7 @@ public class TicketService {
         }
 
         GenericUser requestor = resolveRequestor(ticket);
-
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    requestor instanceof User user ? user : null,
-                    requestor != null ? requestor.getGenericUserId() : null,
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if (requestor == null) {
             return;
         }
 
@@ -1102,11 +1079,10 @@ public class TicketService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1497,18 +1473,7 @@ public class TicketService {
         }
 
         GenericUser requestor = resolveRequestor(ticket);
-
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    requestor instanceof User user ? user : null,
-                    requestor != null ? requestor.getGenericUserId() : null,
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if (requestor == null) {
             return;
         }
 
@@ -1553,11 +1518,10 @@ public class TicketService {
         data.put("updateMessage", updateMessage);
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_UPDATED_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception ex) {
             ex.printStackTrace();
