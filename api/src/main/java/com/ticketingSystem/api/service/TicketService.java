@@ -282,37 +282,7 @@ public class TicketService {
 
         // SETTING User Details if userId exists
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
-            userRepository.findById(ticket.getUserId()).ifPresentOrElse(user -> {
-                ticket.setUser(user);
-                ticket.setUserId(user.getUserId());
-                if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
-                    ticket.setRequestorName(user.getUsername());
-                }
-                if (ticket.getRequestorEmailId() == null) {
-                    ticket.setRequestorEmailId(user.getEmailId());
-                }
-                if (ticket.getRequestorMobileNo() == null) {
-                    ticket.setRequestorMobileNo(user.getMobileNo());
-                }
-                if (ticket.getOffice() == null) {
-                    ticket.setOffice(user.getOffice());
-                }
-            }, () -> requesterUserRepository.findById(ticket.getUserId()).ifPresent(requester -> {
-                if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
-                    ticket.setRequestorName(requester.getName());
-                }
-                if (ticket.getRequestorEmailId() == null) {
-                    ticket.setRequestorEmailId(requester.getEmailId());
-                }
-                if (ticket.getRequestorMobileNo() == null) {
-                    ticket.setRequestorMobileNo(requester.getMobileNo());
-                }
-                ticket.setOffice(firstNonBlank(ticket.getOffice(), requester.getOffice()));
-                ticket.setOfficeCode(firstNonBlank(ticket.getOfficeCode(), requester.getOfficeCode()));
-                ticket.setRegionCode(firstNonBlank(ticket.getRegionCode(), requester.getRegionCode()));
-                ticket.setZoneCode(firstNonBlank(ticket.getZoneCode(), requester.getZoneCode()));
-                ticket.setDistrictCode(firstNonBlank(ticket.getDistrictCode(), requester.getDistrictCode()));
-            }));
+            findGenericUserById(ticket.getUserId()).ifPresent(requestor -> applyRequestorDetails(ticket, requestor));
         }
 
         // TO DO: Remove TicketStatus during Code Cleaning
@@ -1024,18 +994,13 @@ public class TicketService {
             return;
         }
 
-        User requestor = ticket.getUser();
-        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
-            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
-            if (requestor != null) {
-                ticket.setUser(requestor);
-            }
-        }
+        GenericUser requestor = resolveRequestor(ticket);
 
         String recipientIdentifier;
         try {
             recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
+                    requestor instanceof User user ? user : null,
+                    requestor != null ? requestor.getGenericUserId() : null,
                     ticket.getUserId(),
                     ticket.getRequestorEmailId(),
                     ticket.getRequestorName()
@@ -1050,7 +1015,7 @@ public class TicketService {
         data.put("ticketNumber", ticket.getId());
         data.put("updateType", "ASSIGNMENT_UPDATED");
 
-        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
         }
@@ -1101,18 +1066,13 @@ public class TicketService {
             return;
         }
 
-        User requestor = ticket.getUser();
-        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
-            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
-            if (requestor != null) {
-                ticket.setUser(requestor);
-            }
-        }
+        GenericUser requestor = resolveRequestor(ticket);
 
         String recipientIdentifier;
         try {
             recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
+                    requestor instanceof User user ? user : null,
+                    requestor != null ? requestor.getGenericUserId() : null,
                     ticket.getUserId(),
                     ticket.getRequestorEmailId(),
                     ticket.getRequestorName()
@@ -1131,7 +1091,7 @@ public class TicketService {
 //            data.put("remark", remark);
 //        }
 
-        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
             data.put("requestorName", recipientName);
@@ -1385,6 +1345,83 @@ public class TicketService {
         return builder.toString();
     }
 
+    private Optional<GenericUser> findGenericUserById(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return Optional.empty();
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            return user.map(genericUser -> genericUser);
+        }
+
+        return requesterUserRepository.findById(userId)
+                .map(requester -> requester);
+    }
+
+    private void applyRequestorDetails(Ticket ticket, GenericUser requestor) {
+        if (ticket == null || requestor == null) {
+            return;
+        }
+
+        if (requestor instanceof User user) {
+            ticket.setUser(user);
+            ticket.setUserId(user.getUserId());
+        }
+
+        if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
+            ticket.setRequestorName(firstNonBlank(requestor.getName(), requestor.getUsername()));
+        }
+        if (ticket.getRequestorEmailId() == null) {
+            ticket.setRequestorEmailId(requestor.getEmailId());
+        }
+        if (ticket.getRequestorMobileNo() == null) {
+            ticket.setRequestorMobileNo(requestor.getMobileNo());
+        }
+        ticket.setOffice(firstNonBlank(ticket.getOffice(), requestor.getOffice()));
+
+        if (requestor instanceof RequesterUser requester) {
+            ticket.setOfficeCode(firstNonBlank(ticket.getOfficeCode(), requester.getOfficeCode()));
+            ticket.setRegionCode(firstNonBlank(ticket.getRegionCode(), requester.getRegionCode()));
+            ticket.setZoneCode(firstNonBlank(ticket.getZoneCode(), requester.getZoneCode()));
+            ticket.setDistrictCode(firstNonBlank(ticket.getDistrictCode(), requester.getDistrictCode()));
+        }
+    }
+
+    private GenericUser resolveRequestor(Ticket ticket) {
+        if (ticket == null) {
+            return null;
+        }
+
+        User requestor = ticket.getUser();
+        if (requestor != null) {
+            return requestor;
+        }
+
+        String ticketUserId = ticket.getUserId();
+        if (ticketUserId == null || ticketUserId.isBlank()) {
+            return null;
+        }
+
+        Optional<GenericUser> resolvedRequestor = findGenericUserById(ticketUserId);
+        resolvedRequestor.ifPresent(resolved -> {
+            if (resolved instanceof User user) {
+                ticket.setUser(user);
+            }
+        });
+        return resolvedRequestor.orElse(null);
+    }
+
+    private String resolveGenericUserName(GenericUser user, String... fallbacks) {
+        if (user != null) {
+            String resolved = firstNonBlank(user.getName(), user.getUsername(), user.getGenericUserId());
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        return firstNonBlank(fallbacks);
+    }
+
     private String resolveUserName(User user, String... fallbacks) {
         if (user != null) {
             String resolved = firstNonBlank(user.getName(), user.getUsername(), user.getUserId());
@@ -1459,18 +1496,13 @@ public class TicketService {
             return;
         }
 
-        User requestor = ticket.getUser();
-        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
-            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
-            if (requestor != null) {
-                ticket.setUser(requestor);
-            }
-        }
+        GenericUser requestor = resolveRequestor(ticket);
 
         String recipientIdentifier;
         try {
             recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
+                    requestor instanceof User user ? user : null,
+                    requestor != null ? requestor.getGenericUserId() : null,
                     ticket.getUserId(),
                     ticket.getRequestorEmailId(),
                     ticket.getRequestorName()
@@ -1485,7 +1517,7 @@ public class TicketService {
         data.put("ticketNumber", ticket.getId());
         data.put("updateType", "MASTER_LINKED");
 
-        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
         }
