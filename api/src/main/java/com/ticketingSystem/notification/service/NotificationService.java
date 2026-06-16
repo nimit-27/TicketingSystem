@@ -1,6 +1,6 @@
 package com.ticketingSystem.notification.service;
 
-import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.GenericUser;
 import com.ticketingSystem.notification.config.NotificationProperties;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.NotificationMaster;
@@ -73,14 +73,14 @@ public class NotificationService {
      * Sends all channels configured for the recipient user's roles and notification code.
      * If no active role/channel mapping exists, the notification is not sent.
      */
-    public void sendNotificationForUser(String notificationCode, Map<String, Object> dataModel, User recipientUser) throws Exception {
+    public void sendNotificationForUser(String notificationCode, Map<String, Object> dataModel, GenericUser recipientUser) throws Exception {
         if (!notificationRuntimeToggleService.isNotificationEnabled()) {
             log.info("Role-aware notification dispatch skipped because notifications are globally disabled. notificationCode={}, userId={}",
-                    notificationCode, recipientUser != null ? recipientUser.getUserId() : null);
+                    notificationCode, recipientUser != null ? recipientUser.getGenericUserId() : null);
             return;
         }
 
-        if (recipientUser == null || recipientUser.getUserId() == null || recipientUser.getUserId().isBlank()) {
+        if (recipientUser == null || recipientUser.getGenericUserId() == null || recipientUser.getGenericUserId().isBlank()) {
             log.warn("Role-aware notification dispatch skipped because recipient user/userId is missing. notificationCode={}", notificationCode);
             return;
         }
@@ -92,7 +92,7 @@ public class NotificationService {
         Set<Integer> roleIds = resolveRoleIds(recipientUser);
         if (roleIds.isEmpty()) {
             log.info("Role-aware notification dispatch skipped because user has no role ids. notificationCode={}, userId={}",
-                    notificationCode, recipientUser.getUserId());
+                    notificationCode, recipientUser.getGenericUserId());
             return;
         }
 
@@ -101,7 +101,7 @@ public class NotificationService {
 
         if (channels.isEmpty()) {
             log.info("Role-aware notification dispatch skipped because no active role/channel mapping exists. notificationCode={}, userId={}, roleIds={}",
-                    notificationCode, recipientUser.getUserId(), roleIds);
+                    notificationCode, recipientUser.getGenericUserId(), roleIds);
             return;
         }
 
@@ -109,14 +109,14 @@ public class NotificationService {
             String recipient = resolveRecipientIdentifier(recipientUser, channel);
             if (recipient == null || recipient.isBlank()) {
                 log.warn("Role-aware notification channel skipped because recipient identifier is missing. channel={}, notificationCode={}, userId={}",
-                        channel, notificationCode, recipientUser.getUserId());
+                        channel, notificationCode, recipientUser.getGenericUserId());
                 continue;
             }
             sendNotification(channel, notificationCode, dataModel, recipient);
         }
     }
 
-    private Set<Integer> resolveRoleIds(User user) {
+    private Set<Integer> resolveRoleIds(GenericUser user) {
         if (user == null || user.getRoles() == null || user.getRoles().isBlank()) {
             return Set.of();
         }
@@ -140,14 +140,14 @@ public class NotificationService {
         }
     }
 
-    private String resolveRecipientIdentifier(User user, ChannelType channel) {
+    private String resolveRecipientIdentifier(GenericUser user, ChannelType channel) {
         if (user == null) {
             return null;
         }
         if (channel == ChannelType.SMS) {
-            return firstNonBlank(user.getMobileNo(), user.getUserId());
+            return firstNonBlank(user.getMobileNo(), user.getGenericUserId());
         }
-        return firstNonBlank(user.getUserId(), user.getUsername(), user.getEmailId());
+        return firstNonBlank(user.getGenericUserId(), user.getUsername(), user.getEmailId());
     }
 
     private String firstNonBlank(String... values) {

@@ -9,6 +9,7 @@ import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.RecommendedSeverityFlow;
 import com.ticketingSystem.api.models.Role;
+import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.repository.*;
 import com.ticketingSystem.api.typesense.TypesenseClient;
 import com.ticketingSystem.api.models.User;
@@ -365,8 +366,7 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_STATUS_UPDATE"),
                 argThat(map ->
                         ticketId.equals(map.get("ticketId"))
@@ -376,7 +376,7 @@ class TicketServiceTest {
                                 && "agent2".equals(map.get("actorName"))
                                 && "Requester Name".equals(map.get("recipientName"))
                 ),
-                eq("requestor-1")
+                same(requestor)
         );
     }
 
@@ -442,8 +442,7 @@ class TicketServiceTest {
                 .containsEntry("assigneeName", "Agent Jane")
                 .containsEntry("assignedBy", "supervisor");
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_UPDATED"),
                 argThat(payload ->
                         "T-100".equals(payload.get("ticketId"))
@@ -451,7 +450,54 @@ class TicketServiceTest {
                                 && "ASSIGNMENT_UPDATED".equals(payload.get("updateType"))
                                 && "Agent Jane".equals(payload.get("currentAssignee"))
                 ),
-                eq("requestor-1")
+                same(requestor)
+        );
+    }
+
+    @Test
+    void updateTicket_statusChange_sendsNotificationToRequesterUserWhenUserIsAbsent() throws Exception {
+        String ticketId = "T-REQUESTER-STATUS";
+        Ticket existing = buildExistingTicket(ticketId, "agent1");
+        existing.setUser(null);
+        existing.setUserId("requester-1");
+        existing.setRequestorEmailId("requester@ticketingSystem.com");
+
+        RequesterUser requesterUser = new RequesterUser();
+        requesterUser.setRequesterUserId("requester-1");
+        requesterUser.setUsername("requesterUser");
+        requesterUser.setName("Requester User Name");
+        requesterUser.setEmailId("requester@ticketingSystem.com");
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.findById("requester-1")).thenReturn(Optional.empty());
+        when(requesterUserRepository.findById("requester-1")).thenReturn(Optional.of(requesterUser));
+
+        Status resolvedStatus = new Status();
+        resolvedStatus.setStatusId("RESOLVED_ID");
+        resolvedStatus.setStatusCode(TicketStatus.RESOLVED.name());
+        resolvedStatus.setStatusName("Resolved");
+
+        when(workflowService.getStatusIdByCode(TicketStatus.RESOLVED.name())).thenReturn("RESOLVED_ID");
+        when(statusMasterRepository.findById("RESOLVED_ID")).thenReturn(Optional.of(resolvedStatus));
+        when(workflowService.getSlaFlagByStatusId("RESOLVED_ID")).thenReturn(true);
+        when(statusHistoryService.addHistory(eq(ticketId), anyString(), any(), any(), anyBoolean(), any()))
+                .thenReturn(new StatusHistory());
+
+        Ticket update = new Ticket();
+        update.setTicketStatus(TicketStatus.RESOLVED);
+        update.setUpdatedBy("agent2");
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(notificationService).sendNotificationForUser(
+                eq("TICKET_STATUS_UPDATE"),
+                argThat(map ->
+                        ticketId.equals(map.get("ticketId"))
+                                && "Resolved".equals(map.get("newStatus"))
+                                && "Requester User Name".equals(map.get("recipientName"))
+                ),
+                same(requesterUser)
         );
     }
 
@@ -514,8 +560,7 @@ class TicketServiceTest {
                 .containsEntry("assigneeName", "Agent New")
                 .containsEntry("assignedBy", "manager1");
 
-        verify(notificationService).sendNotification(
-                eq(ChannelType.IN_APP),
+        verify(notificationService).sendNotificationForUser(
                 eq("TICKET_UPDATED"),
                 argThat(payload ->
                         "T-3".equals(payload.get("ticketId"))
@@ -523,7 +568,7 @@ class TicketServiceTest {
                                 && "Agent New".equals(payload.get("currentAssignee"))
                                 && "manager1".equals(payload.get("actorName"))
                 ),
-                eq("requestor-1")
+                same(requestor)
         );
     }
 

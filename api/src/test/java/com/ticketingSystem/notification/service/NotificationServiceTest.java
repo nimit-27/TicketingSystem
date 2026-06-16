@@ -1,6 +1,7 @@
 package com.ticketingSystem.notification.service;
 
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.notification.config.NotificationProperties;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.NotificationMaster;
@@ -101,6 +102,32 @@ class NotificationServiceTest {
         assertThat(capturedRequest.getRecipient()).isEqualTo("user-1");
         assertThat(capturedRequest.getChannel()).isEqualTo(ChannelType.EMAIL);
         assertThat(capturedRequest.getTemplateName()).isEqualTo("email/TicketCreated");
+    }
+
+    @Test
+    void shouldSendRoleAwareNotificationForRequesterUserWhenRoleChannelMappingExists() throws Exception {
+        NotificationMaster notificationMaster = new NotificationMaster();
+        notificationMaster.setId(1);
+        notificationMaster.setCode("TICKET_CREATED");
+        notificationMaster.setEmailTemplate("email/TicketCreated");
+        when(notificationMasterRepository.findByCodeAndIsActiveTrue("TICKET_CREATED"))
+                .thenReturn(Optional.of(notificationMaster));
+        when(roleNotificationChannelMappingRepository.findActiveChannelsForRoles(anyCollection(), eq(1)))
+                .thenReturn(List.of(ChannelType.EMAIL));
+
+        RequesterUser requesterUser = new RequesterUser();
+        requesterUser.setRequesterUserId("requester-1");
+        requesterUser.setUsername("requester.one");
+        requesterUser.setEmailId("requester@ticketingSystem.com");
+        requesterUser.setRoles("3");
+
+        notificationService.sendNotificationForUser("TICKET_CREATED", Map.of("key", "value"), requesterUser);
+
+        ArgumentCaptor<NotificationRequest> requestCaptor = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notifier).send(requestCaptor.capture());
+        NotificationRequest capturedRequest = requestCaptor.getValue();
+        assertThat(capturedRequest.getRecipient()).isEqualTo("requester-1");
+        assertThat(capturedRequest.getChannel()).isEqualTo(ChannelType.EMAIL);
     }
 
     @Test
