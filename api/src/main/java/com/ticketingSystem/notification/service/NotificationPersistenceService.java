@@ -1,7 +1,7 @@
 package com.ticketingSystem.notification.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.GenericUser;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.Notification;
 import com.ticketingSystem.notification.models.NotificationMaster;
@@ -51,7 +51,7 @@ public class NotificationPersistenceService {
             return false;
         }
 
-        List<User> recipients = recipientResolver.resolveRecipients(request.getRecipient());
+        List<GenericUser> recipients = recipientResolver.resolveRecipients(request.getRecipient());
         if (recipients.isEmpty()) {
             log.warn("Unable to resolve recipients for in-app notification: {}", request.getRecipient());
             return false;
@@ -77,10 +77,10 @@ public class NotificationPersistenceService {
         return true;
     }
 
-    private NotificationRecipient createRecipient(Notification notification, User recipient) {
+    private NotificationRecipient createRecipient(Notification notification, GenericUser recipient) {
         NotificationRecipient recipientEntity = new NotificationRecipient();
         recipientEntity.setNotification(notification);
-        recipientEntity.setRecipient(recipient);
+        recipientEntity.setGenericRecipient(recipient);
         recipientEntity.setChannel(ChannelType.IN_APP);
         return recipientEntity;
     }
