@@ -67,6 +67,8 @@ public class TicketService {
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
     private static final String TICKET_RESOLVED_NOTIFICATION_CODE = "TICKET_RESOLVED";
+    private static final String TICKET_CLOSED_NOTIFICATION_CODE = "TICKET_CLOSED";
+    private static final String TICKET_ASSIGNED_REQUESTER_NOTIFICATION_CODE = "TICKET_ASSIGNED_REQUESTER";
     private static final String TICKET_LINKED_TO_MASTER_NOTIFICATION_CODE = "TICKET_LINKED_TO_MASTER";
     private static final String IT_MANAGER_ROLE_NAME = "IT Manager";
     private static final String TEAM_LEAD_ROLE_NAME = "Team Lead";
@@ -75,6 +77,8 @@ public class TicketService {
     private final TypesenseClient typesenseClient;
     @Value("${app.search.engine:default}")
     private String searchEngine;
+    @Value("${app.frontend.base-url:http://localhost:3000/helpdesk}")
+    private String frontendBaseUrl;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final RequesterUserRepository requesterUserRepository;
@@ -1035,7 +1039,7 @@ public class TicketService {
 
         try {
             notificationService.sendNotificationForUser(
-                    TICKET_UPDATED_NOTIFICATION_CODE,
+                    TICKET_ASSIGNED_REQUESTER_NOTIFICATION_CODE,
                     data,
                     requestor
             );
@@ -1070,8 +1074,8 @@ public class TicketService {
         if (remark != null && !remark.isBlank()) {
             data.put("remark", remark);
         }
-        if (effectiveUpdatedStatus == TicketStatus.RESOLVED) {
-            enrichResolvedNotificationData(ticket, data, remark);
+        if (effectiveUpdatedStatus == TicketStatus.RESOLVED || effectiveUpdatedStatus == TicketStatus.CLOSED) {
+            enrichFeedbackNotificationData(ticket, data);
         }
 
         String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
@@ -1085,9 +1089,15 @@ public class TicketService {
         }
 
         try {
-            if(ticket.getTicketStatus() == TicketStatus.RESOLVED) {
+            if (effectiveUpdatedStatus == TicketStatus.RESOLVED) {
                 notificationService.sendNotificationForUser(
                         TICKET_RESOLVED_NOTIFICATION_CODE,
+                        data,
+                        requestor
+                );
+            } else if (effectiveUpdatedStatus == TicketStatus.CLOSED) {
+                notificationService.sendNotificationForUser(
+                        TICKET_CLOSED_NOTIFICATION_CODE,
                         data,
                         requestor
                 );
@@ -1105,13 +1115,19 @@ public class TicketService {
         sendRoleStatusUpdateNotifications(ticket, effectiveStatus, data);
     }
 
-    private void enrichResolvedNotificationData(Ticket ticket, Map<String, Object> data, String remark) {
+    private void enrichFeedbackNotificationData(Ticket ticket, Map<String, Object> data) {
         if (ticket == null || data == null) {
             return;
         }
-        data.put("issue", firstNonBlank(ticket.getSubject(), ticket.getDescription(), ticket.getCategory(), ticket.getSubCategory(), ticket.getId()));
-        data.put("resolution", firstNonBlank(remark, "Resolved"));
-        data.put("feedbackLink", "/tickets/" + ticket.getId() + "/feedback");
+        data.put("feedbackLink", buildFeedbackLink(ticket.getId()));
+    }
+
+    private String buildFeedbackLink(String ticketId) {
+        String normalizedBaseUrl = frontendBaseUrl != null ? frontendBaseUrl.trim() : "";
+        if (normalizedBaseUrl.endsWith("/")) {
+            normalizedBaseUrl = normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1);
+        }
+        return normalizedBaseUrl + "/tickets/" + ticketId + "/feedback";
     }
 
     private void sendRoleStatusUpdateNotifications(Ticket ticket,
