@@ -1,5 +1,7 @@
 package com.ticketingSystem.notification.models;
 
+import com.ticketingSystem.api.models.GenericUser;
+import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
@@ -18,7 +20,8 @@ import java.time.LocalDateTime;
                 columnNames = {"notification_id", "recipient_user_id"}
         ),
         indexes = {
-                @Index(name = "idx_nr_inbox", columnList = "recipient_user_id,is_read,created_at")
+                @Index(name = "idx_nr_inbox", columnList = "recipient_user_id,is_read,created_at"),
+                @Index(name = "idx_nr_requester_inbox", columnList = "requester_recipient_user_id,is_read,created_at")
         }
 )
 @Getter @Setter
@@ -34,9 +37,32 @@ public class NotificationRecipient {
     private Notification notification;
 
     // Target user (recipient)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "recipient_user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_user_id")
     private User recipient;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requester_recipient_user_id")
+    private RequesterUser requesterRecipient;
+
+    public GenericUser getGenericRecipient() {
+        return recipient != null ? recipient : requesterRecipient;
+    }
+
+    public void setGenericRecipient(GenericUser recipient) {
+        if (recipient instanceof User user) {
+            this.recipient = user;
+            this.requesterRecipient = null;
+        } else if (recipient instanceof RequesterUser requesterUser) {
+            this.recipient = null;
+            this.requesterRecipient = requesterUser;
+        } else if (recipient == null) {
+            this.recipient = null;
+            this.requesterRecipient = null;
+        } else {
+            throw new IllegalArgumentException("Unsupported notification recipient type: " + recipient.getClass().getName());
+        }
+    }
 
     // Read state
     @Column(name = "is_read", nullable = false)

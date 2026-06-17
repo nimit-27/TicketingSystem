@@ -1,6 +1,7 @@
 package com.ticketingSystem.notification.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.models.Notification;
@@ -109,6 +110,34 @@ class NotificationPersistenceServiceTest {
         assertThat(recipients).hasSize(1);
         assertThat(recipients.get(0).getRecipient()).isEqualTo(recipient);
         assertThat(recipients.get(0).getNotification()).isEqualTo(notification);
+    }
+
+    @Test
+    void persistsRequesterUserNotificationRecipient() {
+        NotificationMaster master = buildMaster(
+                "REQUESTER_NOTICE",
+                "Requester notice",
+                "Requester message"
+        );
+
+        RequesterUser recipient = new RequesterUser();
+        recipient.setRequesterUserId("requester-1");
+        when(recipientResolver.resolveRecipients("requester-1")).thenReturn(List.of(recipient));
+
+        NotificationRequest request = new NotificationRequest(
+                ChannelType.IN_APP,
+                master,
+                "requester-1",
+                null,
+                new HashMap<>()
+        );
+
+        persistenceService.persistInAppNotification(request);
+
+        List<NotificationRecipient> recipients = captureRecipients();
+        assertThat(recipients).hasSize(1);
+        assertThat(recipients.get(0).getRequesterRecipient()).isEqualTo(recipient);
+        assertThat(recipients.get(0).getRecipient()).isNull();
     }
 
     @Test

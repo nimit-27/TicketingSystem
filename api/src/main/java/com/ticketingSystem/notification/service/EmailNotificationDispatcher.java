@@ -2,7 +2,7 @@ package com.ticketingSystem.notification.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.GenericUser;
 import com.ticketingSystem.notification.config.NotificationProperties;
 import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
 import com.ticketingSystem.notification.models.Notification;
@@ -146,7 +146,7 @@ public class EmailNotificationDispatcher {
                            Notification notification,
                            EmailContent content,
                            QueueProcessingResult processingResult) {
-        String to = resolveRecipientEmail(recipient.getRecipient());
+        String to = resolveRecipientEmail(recipient.getGenericRecipient());
         if (to == null || to.isBlank()) {
             markRecipientFailed(recipient, "Missing recipient email", true, processingResult);
             return;
@@ -187,13 +187,13 @@ public class EmailNotificationDispatcher {
     }
 
     private void enrichRecipientModel(Map<String, Object> model, NotificationRecipient recipient) {
-        User user = recipient.getRecipient();
+        GenericUser user = recipient.getGenericRecipient();
         if (user == null) {
             return;
         }
         String name = Optional.ofNullable(user.getName())
                 .filter(value -> !value.isBlank())
-                .orElseGet(() -> Optional.ofNullable(user.getUsername()).orElse(user.getUserId()));
+                .orElseGet(() -> Optional.ofNullable(user.getUsername()).orElse(user.getGenericUserId()));
         if (!model.containsKey("userName")) {
             model.put("userName", name);
         }
@@ -202,7 +202,7 @@ public class EmailNotificationDispatcher {
         }
     }
 
-    private String resolveRecipientEmail(User user) {
+    private String resolveRecipientEmail(GenericUser user) {
         if (user == null) {
             return null;
         }

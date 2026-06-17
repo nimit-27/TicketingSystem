@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface RequesterUserRepository extends JpaRepository<RequesterUser, String> {
     Optional<RequesterUser> findByUsername(String username);
 
+    Optional<RequesterUser> findByEmailId(String emailId);
+
     @Query("SELECT r FROM RequesterUser r WHERE " +
             "(:query IS NULL OR :query = '' OR LOWER(r.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(r.emailId) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(r.mobileNo) LIKE LOWER(CONCAT('%', :query, '%'))) " +

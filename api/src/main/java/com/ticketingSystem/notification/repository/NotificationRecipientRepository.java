@@ -17,7 +17,9 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
             SELECT nr FROM NotificationRecipient nr
             JOIN FETCH nr.notification n
             JOIN FETCH n.type t
-            WHERE nr.recipient.userId = :userId
+            LEFT JOIN FETCH nr.recipient r
+            LEFT JOIN FETCH nr.requesterRecipient rr
+            WHERE (nr.recipient.userId = :userId OR nr.requesterRecipient.requesterUserId = :userId)
                 AND nr.channel = :channel
                 AND (:unreadOnly = false OR nr.isRead = false)
                 AND nr.softDeleted = false
@@ -30,15 +32,30 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                                           @Param("typeCodes") List<String> typeCodes,
                                           Pageable pageable);
 
-    long countByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalseAndChannel(String userId, ChannelType channel);
+    @Query("""
+            SELECT COUNT(nr) FROM NotificationRecipient nr
+            WHERE (nr.recipient.userId = :userId OR nr.requesterRecipient.requesterUserId = :userId)
+                AND nr.isRead = false
+                AND nr.softDeleted = false
+                AND nr.channel = :channel
+           """)
+    long countUnreadForGenericUser(@Param("userId") String userId, @Param("channel") ChannelType channel);
 
-    List<NotificationRecipient> findByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalseAndChannel(String userId, ChannelType channel);
+    @Query("""
+            SELECT nr FROM NotificationRecipient nr
+            WHERE (nr.recipient.userId = :userId OR nr.requesterRecipient.requesterUserId = :userId)
+                AND nr.isRead = false
+                AND nr.softDeleted = false
+                AND nr.channel = :channel
+           """)
+    List<NotificationRecipient> findUnreadForGenericUser(@Param("userId") String userId, @Param("channel") ChannelType channel);
 
     @Query("""
             SELECT nr FROM NotificationRecipient nr
             JOIN FETCH nr.notification n
             JOIN FETCH n.type t
-            JOIN FETCH nr.recipient r
+            LEFT JOIN FETCH nr.recipient r
+            LEFT JOIN FETCH nr.requesterRecipient rr
             WHERE nr.id IN :ids
            """)
     List<NotificationRecipient> findByIdInWithNotification(@Param("ids") List<Long> ids);
