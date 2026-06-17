@@ -62,7 +62,7 @@ public class NotificationQueryService {
         }
 
         List<NotificationRecipient> unreadRecipients = notificationRecipientRepository
-                .findByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalse(userId);
+                .findByRecipientUserIdAndIsReadFalseAndSoftDeletedFalse(userId);
 
         if (unreadRecipients.isEmpty()) {
             return 0;

@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter // Replaces @Data for setters
 // IMPORTANT: Configure EqualsAndHashCode to only use the ID field
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+public class User extends GenericUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -19,23 +19,14 @@ public class User {
     @EqualsAndHashCode.Include
     private String userId;
 
-    @Column(name = "username")
-    private String username;
-    private String name;
-    @Column(name = "email_id")
-    private String emailId;
-    private String mobileNo;
-    private String office;
-
-    // Stores the user's password for authentication
-    @Column(name = "password")
-    private String password;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private UserLevel userLevel;
 
-    private String roles;
 
-    @Column(name = "stakeholder")
-    private String stakeholder;
+
+    @Override
+    public String getNotificationRecipientId() {
+        return userId;
+    }
 }

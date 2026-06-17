@@ -1,7 +1,12 @@
 package com.ticketingSystem.notification.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketingSystem.notification.enums.ChannelType;
+import com.ticketingSystem.notification.models.Notification;
 import com.ticketingSystem.notification.models.NotificationMaster;
+import com.ticketingSystem.notification.models.NotificationRecipient;
+import com.ticketingSystem.notification.repository.NotificationRecipientRepository;
+import com.ticketingSystem.notification.repository.NotificationRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,9 +19,21 @@ import java.util.Objects;
 public class InAppNotifier implements Notifier {
 
     private final List<InAppNotificationPublisher> publishers;
+    private final NotificationRepository notificationRepository;
+    private final NotificationRecipientRepository notificationRecipientRepository;
+    private final NotificationRecipientResolver recipientResolver;
+    private final ObjectMapper objectMapper;
 
-    public InAppNotifier(List<InAppNotificationPublisher> publishers) {
+    public InAppNotifier(List<InAppNotificationPublisher> publishers,
+                         NotificationRepository notificationRepository,
+                         NotificationRecipientRepository notificationRecipientRepository,
+                         NotificationRecipientResolver recipientResolver,
+                         ObjectMapper objectMapper) {
         this.publishers = publishers;
+        this.notificationRepository = notificationRepository;
+        this.notificationRecipientRepository = notificationRecipientRepository;
+        this.recipientResolver = recipientResolver;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -51,7 +68,34 @@ public class InAppNotifier implements Notifier {
                 .timestamp(Instant.now().toString())
                 .build();
 
+        persistNotification(request, payload, payloadData);
         publishers.forEach(publisher -> publisher.publish(request.getRecipient(), payload));
+    }
+
+    private void persistNotification(NotificationRequest request, InAppNotificationPayload payload, Map<String, Object> payloadData) {
+        recipientResolver.resolveRecipient(request.getRecipient()).ifPresent(recipient -> {
+            Notification notification = new Notification();
+            notification.setType(request.getNotificationMaster());
+            notification.setTitle(payload.getTitle());
+            notification.setMessage(payload.getMessage());
+            notification.setTicketId(extractString(payloadData.get("ticketId")));
+            notification.setData(serializeData(payloadData));
+
+            Notification savedNotification = notificationRepository.save(notification);
+
+            NotificationRecipient notificationRecipient = new NotificationRecipient();
+            notificationRecipient.setNotification(savedNotification);
+            notificationRecipient.setRecipient(recipient);
+            notificationRecipientRepository.save(notificationRecipient);
+        });
+    }
+
+    private String serializeData(Map<String, Object> payloadData) {
+        try {
+            return objectMapper.writeValueAsString(payloadData);
+        } catch (Exception ex) {
+            return "{}";
+        }
     }
 
     private String resolveTemplate(String template, String fallback, Map<String, Object> data) {
