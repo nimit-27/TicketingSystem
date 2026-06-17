@@ -885,7 +885,8 @@ public class TicketService {
                     finalPreviousStatusId,
                     finalUpdatedStatus,
                     finalUpdatedStatusId,
-                    updatedBy
+                    updatedBy,
+                    remark
             ));
         }
 
@@ -1049,7 +1050,8 @@ public class TicketService {
                                               String previousStatusId,
                                               TicketStatus updatedStatus,
                                               String updatedStatusId,
-                                              String updatedBy) {
+                                              String updatedBy,
+                                              String remark) {
         if (ticket == null) {
             return;
         }
@@ -1063,10 +1065,14 @@ public class TicketService {
         data.put("ticketId", ticket.getId());
         data.put("ticketNumber", ticket.getId());
         data.put("oldStatus", resolveStatusDisplay(previousStatus, previousStatusEntity, previousStatusId));
-        data.put("newStatus", resolveStatusDisplay(updatedStatus != null ? updatedStatus : ticket.getTicketStatus(), ticket.getStatus(), updatedStatusId));
-//        if (remark != null && !remark.isBlank()) {
-//            data.put("remark", remark);
-//        }
+        TicketStatus effectiveUpdatedStatus = updatedStatus != null ? updatedStatus : ticket.getTicketStatus();
+        data.put("newStatus", resolveStatusDisplay(effectiveUpdatedStatus, ticket.getStatus(), updatedStatusId));
+        if (remark != null && !remark.isBlank()) {
+            data.put("remark", remark);
+        }
+        if (effectiveUpdatedStatus == TicketStatus.RESOLVED) {
+            enrichResolvedNotificationData(ticket, data, remark);
+        }
 
         String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
@@ -1090,6 +1096,15 @@ public class TicketService {
 
         TicketStatus effectiveStatus = updatedStatus != null ? updatedStatus : ticket.getTicketStatus();
         sendRoleStatusUpdateNotifications(ticket, effectiveStatus, data);
+    }
+
+    private void enrichResolvedNotificationData(Ticket ticket, Map<String, Object> data, String remark) {
+        if (ticket == null || data == null) {
+            return;
+        }
+        data.put("issue", firstNonBlank(ticket.getSubject(), ticket.getDescription(), ticket.getCategory(), ticket.getSubCategory(), ticket.getId()));
+        data.put("resolution", firstNonBlank(remark, "Resolved"));
+        data.put("feedbackLink", "/tickets/" + ticket.getId() + "/feedback");
     }
 
     private void sendRoleStatusUpdateNotifications(Ticket ticket,

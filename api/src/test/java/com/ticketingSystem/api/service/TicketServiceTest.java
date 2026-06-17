@@ -343,6 +343,7 @@ class TicketServiceTest {
         existing.setUserId(requestor.getUserId());
         existing.setRequestorName("Requester Name");
         existing.setRequestorEmailId("requestor@ticketingSystem.com");
+        existing.setSubject("Login issue");
 
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -375,6 +376,9 @@ class TicketServiceTest {
                                 && map.containsKey("oldStatus")
                                 && "agent2".equals(map.get("actorName"))
                                 && "Requester Name".equals(map.get("recipientName"))
+                                && "Login issue".equals(map.get("issue"))
+                                && "Resolved now".equals(map.get("resolution"))
+                                && ("/tickets/" + ticketId + "/feedback").equals(map.get("feedbackLink"))
                 ),
                 same(requestor)
         );
@@ -461,6 +465,7 @@ class TicketServiceTest {
         existing.setUser(null);
         existing.setUserId("requester-1");
         existing.setRequestorEmailId("requester@ticketingSystem.com");
+        existing.setDescription("Requester cannot submit form");
 
         RequesterUser requesterUser = new RequesterUser();
         requesterUser.setRequesterUserId("requester-1");
@@ -496,6 +501,9 @@ class TicketServiceTest {
                         ticketId.equals(map.get("ticketId"))
                                 && "Resolved".equals(map.get("newStatus"))
                                 && "Requester User Name".equals(map.get("recipientName"))
+                                && "Requester cannot submit form".equals(map.get("issue"))
+                                && "Resolved".equals(map.get("resolution"))
+                                && ("/tickets/" + ticketId + "/feedback").equals(map.get("feedbackLink"))
                 ),
                 same(requesterUser)
         );
