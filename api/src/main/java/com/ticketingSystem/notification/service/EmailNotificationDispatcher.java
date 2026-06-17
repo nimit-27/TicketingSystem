@@ -38,6 +38,7 @@ public class EmailNotificationDispatcher {
     private static final Logger log = LoggerFactory.getLogger(EmailNotificationDispatcher.class);
 
     private final NotificationRecipientRepository notificationRecipientRepository;
+    private final NotificationRecipientResolver recipientResolver;
     private final EmailTemplateRenderer templateRenderer;
     private final EmailMessageSender messageSender;
     private final ObjectMapper objectMapper;
@@ -146,7 +147,7 @@ public class EmailNotificationDispatcher {
                            Notification notification,
                            EmailContent content,
                            QueueProcessingResult processingResult) {
-        String to = resolveRecipientEmail(recipient.getGenericRecipient());
+        String to = resolveRecipientEmail(resolveGenericRecipient(recipient));
         if (to == null || to.isBlank()) {
             markRecipientFailed(recipient, "Missing recipient email", true, processingResult);
             return;
@@ -187,7 +188,7 @@ public class EmailNotificationDispatcher {
     }
 
     private void enrichRecipientModel(Map<String, Object> model, NotificationRecipient recipient) {
-        GenericUser user = recipient.getGenericRecipient();
+        GenericUser user = resolveGenericRecipient(recipient);
         if (user == null) {
             return;
         }
@@ -200,6 +201,21 @@ public class EmailNotificationDispatcher {
         if (!model.containsKey("recipientName")) {
             model.put("recipientName", name);
         }
+    }
+
+    private GenericUser resolveGenericRecipient(NotificationRecipient recipient) {
+        if (recipient == null) {
+            return null;
+        }
+        GenericUser recipientUser = recipient.getGenericRecipient();
+        if (recipientUser != null) {
+            return recipientUser;
+        }
+        String recipientUserId = recipient.getRecipientUserId();
+        if (recipientUserId == null || recipientUserId.isBlank()) {
+            return null;
+        }
+        return recipientResolver.resolveRecipient(recipientUserId).orElse(null);
     }
 
     private String resolveRecipientEmail(GenericUser user) {

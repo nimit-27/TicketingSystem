@@ -1,7 +1,6 @@
 package com.ticketingSystem.notification.models;
 
 import com.ticketingSystem.api.models.GenericUser;
-import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
@@ -20,8 +19,7 @@ import java.time.LocalDateTime;
                 columnNames = {"notification_id", "recipient_user_id"}
         ),
         indexes = {
-                @Index(name = "idx_nr_inbox", columnList = "recipient_user_id,is_read,created_at"),
-                @Index(name = "idx_nr_requester_inbox", columnList = "requester_recipient_user_id,is_read,created_at")
+                @Index(name = "idx_nr_inbox", columnList = "recipient_user_id,is_read,created_at")
         }
 )
 @Getter @Setter
@@ -36,32 +34,25 @@ public class NotificationRecipient {
     @JoinColumn(name = "notification_id", nullable = false)
     private Notification notification;
 
-    // Target user (recipient)
+    @Column(name = "recipient_user_id", nullable = false)
+    private String recipientUserId;
+
+    // Target helpdesk user when recipient_user_id belongs to users. Requester users are resolved by id as needed.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_user_id")
+    @JoinColumn(name = "recipient_user_id", insertable = false, updatable = false)
     private User recipient;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_recipient_user_id")
-    private RequesterUser requesterRecipient;
+    @Transient
+    private GenericUser genericRecipient;
 
     public GenericUser getGenericRecipient() {
-        return recipient != null ? recipient : requesterRecipient;
+        return genericRecipient != null ? genericRecipient : recipient;
     }
 
     public void setGenericRecipient(GenericUser recipient) {
-        if (recipient instanceof User user) {
-            this.recipient = user;
-            this.requesterRecipient = null;
-        } else if (recipient instanceof RequesterUser requesterUser) {
-            this.recipient = null;
-            this.requesterRecipient = requesterUser;
-        } else if (recipient == null) {
-            this.recipient = null;
-            this.requesterRecipient = null;
-        } else {
-            throw new IllegalArgumentException("Unsupported notification recipient type: " + recipient.getClass().getName());
-        }
+        this.genericRecipient = recipient;
+        this.recipientUserId = recipient != null ? recipient.getGenericUserId() : null;
+        this.recipient = recipient instanceof User user ? user : null;
     }
 
     // Read state

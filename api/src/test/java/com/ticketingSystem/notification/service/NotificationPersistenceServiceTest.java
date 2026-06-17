@@ -136,7 +136,8 @@ class NotificationPersistenceServiceTest {
 
         List<NotificationRecipient> recipients = captureRecipients();
         assertThat(recipients).hasSize(1);
-        assertThat(recipients.get(0).getRequesterRecipient()).isEqualTo(recipient);
+        assertThat(recipients.get(0).getRecipientUserId()).isEqualTo("requester-1");
+        assertThat(recipients.get(0).getGenericRecipient()).isEqualTo(recipient);
         assertThat(recipients.get(0).getRecipient()).isNull();
     }
 

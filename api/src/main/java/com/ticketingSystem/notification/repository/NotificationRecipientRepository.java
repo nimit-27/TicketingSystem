@@ -18,8 +18,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
             JOIN FETCH nr.notification n
             JOIN FETCH n.type t
             LEFT JOIN FETCH nr.recipient r
-            LEFT JOIN FETCH nr.requesterRecipient rr
-            WHERE (nr.recipient.userId = :userId OR nr.requesterRecipient.requesterUserId = :userId)
+            WHERE nr.recipientUserId = :userId
                 AND nr.channel = :channel
                 AND (:unreadOnly = false OR nr.isRead = false)
                 AND nr.softDeleted = false
@@ -34,7 +33,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
 
     @Query("""
             SELECT COUNT(nr) FROM NotificationRecipient nr
-            WHERE (nr.recipient.userId = :userId OR nr.requesterRecipient.requesterUserId = :userId)
+            WHERE nr.recipientUserId = :userId
                 AND nr.isRead = false
                 AND nr.softDeleted = false
                 AND nr.channel = :channel
@@ -43,7 +42,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
 
     @Query("""
             SELECT nr FROM NotificationRecipient nr
-            WHERE (nr.recipient.userId = :userId OR nr.requesterRecipient.requesterUserId = :userId)
+            WHERE nr.recipientUserId = :userId
                 AND nr.isRead = false
                 AND nr.softDeleted = false
                 AND nr.channel = :channel
@@ -55,7 +54,6 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
             JOIN FETCH nr.notification n
             JOIN FETCH n.type t
             LEFT JOIN FETCH nr.recipient r
-            LEFT JOIN FETCH nr.requesterRecipient rr
             WHERE nr.id IN :ids
            """)
     List<NotificationRecipient> findByIdInWithNotification(@Param("ids") List<Long> ids);
