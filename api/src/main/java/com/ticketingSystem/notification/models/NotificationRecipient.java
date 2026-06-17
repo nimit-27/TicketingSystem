@@ -1,6 +1,6 @@
 package com.ticketingSystem.notification.models;
 
-import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.GenericUser;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -31,10 +31,17 @@ public class NotificationRecipient {
     @JoinColumn(name = "notification_id", nullable = false)
     private Notification notification;
 
-    // Target user (recipient)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "recipient_user_id", nullable = false)
-    private User recipient;
+    // Target user identifier (can point to either users.user_id or requester_users.requester_user_id)
+    @Column(name = "recipient_user_id", nullable = false, length = 100)
+    private String recipientUserId;
+
+    @Transient
+    private GenericUser recipient;
+
+    public void setRecipient(GenericUser recipient) {
+        this.recipient = recipient;
+        this.recipientUserId = recipient != null ? recipient.getNotificationRecipientId() : null;
+    }
 
     // Read state
     @Column(name = "is_read", nullable = false)
