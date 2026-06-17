@@ -1085,6 +1085,13 @@ public class TicketService {
         }
 
         try {
+            if(ticket.getTicketStatus() == TicketStatus.RESOLVED) {
+                notificationService.sendNotificationForUser(
+                        TICKET_RESOLVED_NOTIFICATION_CODE,
+                        data,
+                        requestor
+                );
+            }
             notificationService.sendNotificationForUser(
                     TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
                     data,

@@ -1,0 +1,21 @@
+STAGING (HYDERABAD) IMAGE PUSH COMMANDS
+
+https://stg.annadarpan.in/helpdesk/login
+
+docker tag ticketing-ui:latest hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-ui_stg_hyd_v1.0.0
+docker tag ticketing-api:latest hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-api_stg_hyd_v1.0.1
+docker push hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-ui_stg_hyd_v1.0.0
+docker push hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-api_stg_hyd_v1.0.1
+
+
+Creating tag for UI to be pushed to tms_stg_repo_hyd repository
+docker tag ticketing-ui:latest hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-ui_stg_hyd_v1.0.0
+
+Creating tag for API to be pushed to tms_stg_repo_hyd repository
+docker tag ticketing-api:latest hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-api_stg_hyd_v1.0.1
+
+Pushing UI image to tms_stg_repo_hyd
+docker push hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-ui_stg_hyd_v1.0.0
+
+Pushing API image tms_stg_repo_hyd
+docker push hyd.ocir.io/bmozxse0db74/tms_stg_repo_hyd:ticketing-api_stg_hyd_v1.0.1
