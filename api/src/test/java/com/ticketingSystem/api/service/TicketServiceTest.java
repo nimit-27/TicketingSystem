@@ -92,6 +92,8 @@ class TicketServiceTest {
     private DivisionHistoryService divisionHistoryService;
     @Mock
     private TicketIdGenerator ticketIdGenerator;
+    @Mock
+    private TicketCrService ticketCrService;
 
     @InjectMocks
     private TicketService ticketService;
@@ -328,6 +330,38 @@ class TicketServiceTest {
         ticketService.updateTicket(ticketId, update);
 
         verify(assignmentHistoryService, never()).addHistory(anyString(), anyString(), any(), any(), any());
+    }
+
+    @Test
+    void updateTicket_changeRequestedCreatesCrWithinUpdateFlow() {
+        String ticketId = "T-CR";
+        Ticket existing = buildExistingTicket(ticketId, "agent1");
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Status changeRequestedStatus = new Status();
+        changeRequestedStatus.setStatusId("CHANGE_REQUESTED_ID");
+        changeRequestedStatus.setStatusCode(TicketStatus.CHANGE_REQUESTED.name());
+        changeRequestedStatus.setStatusName("Change Requested");
+        when(workflowService.getStatusCodeById("CHANGE_REQUESTED_ID"))
+                .thenReturn(TicketStatus.CHANGE_REQUESTED.name());
+        when(statusMasterRepository.findById("CHANGE_REQUESTED_ID"))
+                .thenReturn(Optional.of(changeRequestedStatus));
+        when(statusHistoryService.addHistory(eq(ticketId), anyString(), any(), any(), anyBoolean(), any()))
+                .thenReturn(new StatusHistory());
+
+        Ticket update = new Ticket();
+        update.setStatus(changeRequestedStatus);
+        update.setUpdatedBy("agent2");
+        update.setRemark("Needs production change");
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(ticketCrService).createForTicketIfMissing(
+                ticketId,
+                "Needs production change",
+                "agent2"
+        );
     }
 
     @Test

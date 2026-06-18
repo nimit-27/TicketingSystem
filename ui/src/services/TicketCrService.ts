@@ -13,6 +13,18 @@ export function createChangeRequest(payload: any) {
     return apiClient.post(`${BASE_URL}/ticket-cr`, payload);
 }
 
+export function getTicketsMissingChangeRequest() {
+    return apiClient.get(`${BASE_URL}/ticket-cr/missing`);
+}
+
+export function createMissingChangeRequest(ticketId: string, updatedBy?: string) {
+    return apiClient.post(`${BASE_URL}/ticket-cr/missing/${ticketId}`, { updatedBy });
+}
+
+export function createAllMissingChangeRequests(updatedBy?: string) {
+    return apiClient.post(`${BASE_URL}/ticket-cr/missing`, { updatedBy });
+}
+
 export function getChangeRequestById(ticketCrId: string) {
     return apiClient.get(`${BASE_URL}/ticket-cr/${ticketCrId}`);
 }

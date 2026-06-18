@@ -352,5 +352,16 @@
   },
   "Change Requests": "Change Requests"
 ,
-  "Assigned back from FCI": "Assigned back from FCI"
+  "Assigned back from FCI": "Assigned back from FCI",
+  "Change Requested Tickets Pending CR Creation": "Change Requested Tickets Pending CR Creation",
+  "Send for CR Approval": "Send for CR Approval",
+  "Send All for CR Approval": "Send All for CR Approval",
+  "Sending...": "Sending...",
+  "Change request created successfully": "Change request created successfully",
+  "All change requests created successfully": "All change requests created successfully",
+  "Unable to create change request": "Unable to create change request",
+  "Unable to create change requests": "Unable to create change requests",
+  "Created {{createdCount}} change requests; {{failedCount}} failed": "Created {{createdCount}} change requests; {{failedCount}} failed",
+  "Requested By": "Requested By",
+  "Reported On": "Reported On"
 }

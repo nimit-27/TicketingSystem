@@ -344,5 +344,16 @@
   },
   "Change Requests": "चेंज रिक्वेस्ट्स"
 ,
-  "Assigned back from FCI": "एफसीआई से वापस असाइन किया गया"
+  "Assigned back from FCI": "एफसीआई से वापस असाइन किया गया",
+  "Change Requested Tickets Pending CR Creation": "सीआर निर्माण हेतु लंबित चेंज रिक्वेस्टेड टिकट",
+  "Send for CR Approval": "सीआर अनुमोदन के लिए भेजें",
+  "Send All for CR Approval": "सभी को सीआर अनुमोदन के लिए भेजें",
+  "Sending...": "भेजा जा रहा है...",
+  "Change request created successfully": "चेंज रिक्वेस्ट सफलतापूर्वक बनाई गई",
+  "All change requests created successfully": "सभी चेंज रिक्वेस्ट सफलतापूर्वक बनाई गईं",
+  "Unable to create change request": "चेंज रिक्वेस्ट नहीं बनाई जा सकी",
+  "Unable to create change requests": "चेंज रिक्वेस्ट नहीं बनाई जा सकीं",
+  "Created {{createdCount}} change requests; {{failedCount}} failed": "{{createdCount}} चेंज रिक्वेस्ट बनाई गईं; {{failedCount}} विफल रहीं",
+  "Requested By": "अनुरोधकर्ता",
+  "Reported On": "रिपोर्ट की तिथि"
 }
