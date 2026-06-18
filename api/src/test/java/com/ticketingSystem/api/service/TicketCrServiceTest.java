@@ -2,6 +2,7 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.TicketCrDto;
 import com.ticketingSystem.api.dto.TicketCrUpdateStatusRequestDto;
+import com.ticketingSystem.api.dto.MissingTicketCrDto;
 import com.ticketingSystem.api.models.CrStatusMaster;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.Ticket;
@@ -30,6 +31,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class TicketCrServiceTest {
@@ -52,6 +54,10 @@ class TicketCrServiceTest {
     private TicketCrHistoryRepository ticketCrHistoryRepository;
     @Mock
     private TicketCrHistoryConfigRepository ticketCrHistoryConfigRepository;
+    @Mock
+    private TicketStatusWorkflowService ticketStatusWorkflowService;
+    @Mock
+    private StatusHistoryService statusHistoryService;
 
     @InjectMocks
     private TicketCrService service;
@@ -109,6 +115,82 @@ class TicketCrServiceTest {
         assertThat(history.getOldValue()).isEqualTo("Draft");
         assertThat(history.getNewValue()).isEqualTo("Submitted");
         assertThat(history.getChangedBy()).isEqualTo("approver");
+    }
+
+    @Test
+    void createForTicketIfMissingShouldBuildCrFromAuthoritativeTicketData() {
+        Status changeRequested = new Status();
+        changeRequested.setStatusId("12");
+        changeRequested.setStatusCode("CHANGE_REQUESTED");
+
+        Ticket ticket = new Ticket();
+        ticket.setId("TICKET-1");
+        ticket.setStatus(changeRequested);
+        ticket.setSubject("Production issue");
+        ticket.setDescription("Needs a controlled change");
+        ticket.setUserId("requester");
+        ticket.setAssignedTo("engineer");
+
+        CrStatusMaster pendingApproval = crStatus("CRS-1", "CR Pending for approval", "#FFA726");
+        pendingApproval.setCrStatusCode("CR_PENDING_APPROVAL");
+
+        when(ticketRepository.findByIdForUpdate("TICKET-1")).thenReturn(Optional.of(ticket));
+        when(ticketCrRepository.findByTicket_Id("TICKET-1")).thenReturn(Optional.empty());
+        when(crStatusMasterRepository.findByCrStatusCodeIgnoreCase("CR_PENDING_APPROVAL"))
+                .thenReturn(Optional.of(pendingApproval));
+        when(ticketCrIdGenerator.generateTicketCrId()).thenReturn("CR-1");
+        when(ticketCrRepository.save(org.mockito.ArgumentMatchers.any(TicketCr.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        TicketCrDto result = service.createForTicketIfMissing("TICKET-1", "Please approve", "operator");
+
+        assertThat(result.getTicketCrId()).isEqualTo("CR-1");
+        assertThat(result.getTicketId()).isEqualTo("TICKET-1");
+        assertThat(result.getCrStatusId()).isEqualTo("CRS-1");
+        assertThat(result.getSubject()).isEqualTo("Production issue");
+        assertThat(result.getRequestedBy()).isEqualTo("requester");
+        assertThat(result.getAssignedTo()).isEqualTo("engineer");
+        assertThat(result.getCreatedBy()).isEqualTo("operator");
+        assertThat(result.getRemarks()).isEqualTo("Please approve");
+    }
+
+    @Test
+    void createForTicketIfMissingShouldReturnExistingCrWithoutCreatingDuplicate() {
+        Status changeRequested = new Status();
+        changeRequested.setStatusCode("CHANGE_REQUESTED");
+        Ticket ticket = new Ticket();
+        ticket.setId("TICKET-1");
+        ticket.setStatus(changeRequested);
+
+        TicketCr existing = new TicketCr();
+        existing.setTicketCrId("CR-1");
+        existing.setTicket(ticket);
+
+        when(ticketRepository.findByIdForUpdate("TICKET-1")).thenReturn(Optional.of(ticket));
+        when(ticketCrRepository.findByTicket_Id("TICKET-1")).thenReturn(Optional.of(existing));
+
+        TicketCrDto result = service.createForTicketIfMissing("TICKET-1", null, "operator");
+
+        assertThat(result.getTicketCrId()).isEqualTo("CR-1");
+        verify(ticketCrRepository, never()).save(org.mockito.ArgumentMatchers.any(TicketCr.class));
+    }
+
+    @Test
+    void getTicketsMissingChangeRequestShouldMapTicketRows() {
+        Ticket ticket = new Ticket();
+        ticket.setId("TICKET-1");
+        ticket.setSubject("Missing CR");
+        ticket.setAssignedTo("engineer");
+        when(ticketRepository.findByStatusCodeWithoutChangeRequest("CHANGE_REQUESTED"))
+                .thenReturn(List.of(ticket));
+
+        List<MissingTicketCrDto> result = service.getTicketsMissingChangeRequest();
+
+        assertThat(result).singleElement().satisfies(row -> {
+            assertThat(row.getTicketId()).isEqualTo("TICKET-1");
+            assertThat(row.getSubject()).isEqualTo("Missing CR");
+            assertThat(row.getAssignedTo()).isEqualTo("engineer");
+        });
     }
 
     private CrStatusMaster crStatus(String id, String name, String color) {

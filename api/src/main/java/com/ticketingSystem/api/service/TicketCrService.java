@@ -5,12 +5,14 @@ import com.ticketingSystem.api.dto.TicketCrDto;
 import com.ticketingSystem.api.dto.TicketCrHistoryDto;
 import com.ticketingSystem.api.dto.TicketCrStatusWorkflowDto;
 import com.ticketingSystem.api.dto.TicketCrUpdateStatusRequestDto;
+import com.ticketingSystem.api.dto.MissingTicketCrDto;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.*;
 import com.ticketingSystem.api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -22,6 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TicketCrService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+    private static final String CHANGE_REQUESTED_STATUS_CODE = TicketStatus.CHANGE_REQUESTED.name();
+    private static final String INITIAL_CR_STATUS_CODE = "CR_PENDING_APPROVAL";
+    private static final String SYSTEM_USER = "SYSTEM";
 
     private final TicketCrRepository ticketCrRepository;
     private final TicketRepository ticketRepository;
@@ -45,6 +50,49 @@ public class TicketCrService {
         ticketCr.setSubject(request.getSubject()); ticketCr.setDescription(request.getDescription());
         ticketCr.setRequestedBy(request.getRequestedBy()); ticketCr.setAssignedTo(request.getAssignedTo()); ticketCr.setAssignedBy(request.getAssignedBy());
         ticketCr.setRemarks(request.getRemarks()); ticketCr.setCreatedBy(request.getCreatedBy()); ticketCr.setUpdatedBy(request.getUpdatedBy());
+        return toDto(ticketCrRepository.save(ticketCr));
+    }
+
+    public List<MissingTicketCrDto> getTicketsMissingChangeRequest() {
+        return ticketRepository.findByStatusCodeWithoutChangeRequest(CHANGE_REQUESTED_STATUS_CODE)
+                .stream()
+                .map(this::toMissingTicketCrDto)
+                .toList();
+    }
+
+    @Transactional
+    public TicketCrDto createForTicketIfMissing(String ticketId, String remarks, String updatedBy) {
+        Ticket ticket = ticketRepository.findByIdForUpdate(ticketId)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket not found: " + ticketId));
+
+        String statusCode = ticket.getStatus() != null ? ticket.getStatus().getStatusCode() : null;
+        if (!CHANGE_REQUESTED_STATUS_CODE.equalsIgnoreCase(statusCode)) {
+            throw new IllegalStateException("Ticket is not in Change Requested status: " + ticketId);
+        }
+
+        Optional<TicketCr> existing = ticketCrRepository.findByTicket_Id(ticketId);
+        if (existing.isPresent()) {
+            return toDto(existing.get());
+        }
+
+        CrStatusMaster initialCrStatus = crStatusMasterRepository
+                .findByCrStatusCodeIgnoreCase(INITIAL_CR_STATUS_CODE)
+                .orElseThrow(() -> new EntityNotFoundException("CR status not found for code: " + INITIAL_CR_STATUS_CODE));
+        String actor = updatedBy == null || updatedBy.isBlank() ? SYSTEM_USER : updatedBy;
+
+        TicketCr ticketCr = new TicketCr();
+        ticketCr.setTicketCrId(ticketCrIdGenerator.generateTicketCrId());
+        ticketCr.setTicket(ticket);
+        ticketCr.setStatus(ticket.getStatus());
+        ticketCr.setCrStatus(initialCrStatus);
+        ticketCr.setSubject(ticket.getSubject());
+        ticketCr.setDescription(ticket.getDescription());
+        ticketCr.setRequestedBy(ticket.getUserId());
+        ticketCr.setAssignedTo(ticket.getAssignedTo());
+        ticketCr.setAssignedBy(actor);
+        ticketCr.setRemarks(remarks);
+        ticketCr.setCreatedBy(actor);
+        ticketCr.setUpdatedBy(actor);
         return toDto(ticketCrRepository.save(ticketCr));
     }
 
@@ -167,5 +215,16 @@ public class TicketCrService {
         if (ticketCr.getStatus() != null) { dto.setStatusId(ticketCr.getStatus().getStatusId()); dto.setStatusName(ticketCr.getStatus().getStatusName()); dto.setStatusCode(ticketCr.getStatus().getStatusCode()); }
         if (ticketCr.getCrStatus() != null) { dto.setCrStatusId(ticketCr.getCrStatus().getCrStatusId()); dto.setCrStatusName(ticketCr.getCrStatus().getCrStatusName()); dto.setCrStatusCode(ticketCr.getCrStatus().getCrStatusCode()); dto.setColor(ticketCr.getCrStatus().getColor()); }
         dto.setSubject(ticketCr.getSubject()); dto.setDescription(ticketCr.getDescription()); dto.setRequestedBy(ticketCr.getRequestedBy()); dto.setAssignedTo(ticketCr.getAssignedTo()); dto.setAssignedBy(ticketCr.getAssignedBy()); dto.setRemarks(ticketCr.getRemarks()); dto.setCreatedDate(ticketCr.getCreatedDate()); dto.setCreatedBy(ticketCr.getCreatedBy()); dto.setUpdatedOn(ticketCr.getUpdatedOn()); dto.setUpdatedBy(ticketCr.getUpdatedBy()); return dto;
+    }
+
+    private MissingTicketCrDto toMissingTicketCrDto(Ticket ticket) {
+        MissingTicketCrDto dto = new MissingTicketCrDto();
+        dto.setTicketId(ticket.getId());
+        dto.setSubject(ticket.getSubject());
+        dto.setDescription(ticket.getDescription());
+        dto.setRequestedBy(ticket.getUserId());
+        dto.setAssignedTo(ticket.getAssignedTo());
+        dto.setReportedDate(ticket.getReportedDate());
+        return dto;
     }
 }

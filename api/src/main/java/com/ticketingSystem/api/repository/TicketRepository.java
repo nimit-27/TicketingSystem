@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +20,23 @@ import java.util.Optional;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, String> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Ticket t WHERE t.id = :id")
+    Optional<Ticket> findByIdForUpdate(@Param("id") String id);
+
+    @Query("""
+            SELECT t
+            FROM Ticket t
+            WHERE UPPER(t.status.statusCode) = UPPER(:statusCode)
+              AND NOT EXISTS (
+                  SELECT cr.ticketCrId
+                  FROM TicketCr cr
+                  WHERE cr.ticket = t
+              )
+            ORDER BY t.reportedDate ASC
+            """)
+    List<Ticket> findByStatusCodeWithoutChangeRequest(@Param("statusCode") String statusCode);
+
     public List<Ticket> findByIsMasterTrue();
 
     List<Ticket> findByMasterId(String masterId);

@@ -29,6 +29,34 @@ public class TicketCrController {
     public ResponseEntity<TicketCrDto> updateStatus(@PathVariable String ticketCrId, @RequestBody TicketCrUpdateStatusRequestDto request) { return ResponseEntity.ok(ticketCrService.updateStatus(ticketCrId, request)); }
     @GetMapping("/{ticketCrId}/history")
     public ResponseEntity<List<TicketCrHistoryDto>> getHistory(@PathVariable String ticketCrId, @RequestParam(required = false) String changeTypeCode) { return ResponseEntity.ok(ticketCrService.getHistoryByTicketCrId(ticketCrId, changeTypeCode)); }
+    @GetMapping("/missing")
+    public ResponseEntity<List<MissingTicketCrDto>> getTicketsMissingChangeRequest() {
+        return ResponseEntity.ok(ticketCrService.getTicketsMissingChangeRequest());
+    }
+    @PostMapping("/missing/{ticketId}")
+    public ResponseEntity<TicketCrDto> createMissingChangeRequest(
+            @PathVariable String ticketId,
+            @RequestBody(required = false) TicketCrRepairRequestDto request) {
+        String updatedBy = request == null ? null : request.getUpdatedBy();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ticketCrService.createForTicketIfMissing(ticketId, null, updatedBy));
+    }
+    @PostMapping("/missing")
+    public ResponseEntity<TicketCrBulkRepairResultDto> createAllMissingChangeRequests(
+            @RequestBody(required = false) TicketCrRepairRequestDto request) {
+        String updatedBy = request == null ? null : request.getUpdatedBy();
+        List<String> failedTicketIds = new java.util.ArrayList<>();
+        int createdCount = 0;
+        for (MissingTicketCrDto ticket : ticketCrService.getTicketsMissingChangeRequest()) {
+            try {
+                ticketCrService.createForTicketIfMissing(ticket.getTicketId(), null, updatedBy);
+                createdCount++;
+            } catch (RuntimeException exception) {
+                failedTicketIds.add(ticket.getTicketId());
+            }
+        }
+        return ResponseEntity.ok(new TicketCrBulkRepairResultDto(createdCount, failedTicketIds));
+    }
     @GetMapping
     public ResponseEntity<List<TicketCrDto>> getAll() { return ResponseEntity.ok(ticketCrService.getAll()); }
 }
