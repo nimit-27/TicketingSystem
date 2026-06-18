@@ -16,9 +16,7 @@ public record NagiosTicketSlaSummaryDto(String service,
                                         @JsonProperty("totalTicketsRaisedTillNow")
                                         long totalTickets,
                                         long breachedTickets,
-                                        @JsonProperty("Breached tickets in last 1 day")
                                         long breachedTicketsInLast1Day,
-                                        @JsonProperty("Breached tickets in last 3 days")
                                         long breachedTicketsInLast3Days,
                                         long nonBreachedTickets,
                                         BigDecimal breachPercentage,

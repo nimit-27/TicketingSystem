@@ -393,10 +393,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   );
 
   const sendForCrApprovalAction = useMemo(
-    () => availableStatusActions.find((action: TicketStatusWorkflow) => {
-      const nextStatusName = getStatusNameById(String(action.nextStatus)) || '';
-      return nextStatusName.toLowerCase() === 'change requested';
-    }) || null,
+    () => availableStatusActions.find((action: TicketStatusWorkflow) =>
+      action.action.toLowerCase().includes('change') ||
+      action.action.toLowerCase().includes('cr')
+    ) || null,
     [availableStatusActions]
   );
 

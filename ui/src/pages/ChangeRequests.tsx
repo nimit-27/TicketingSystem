@@ -261,27 +261,6 @@ const ChangeRequests: React.FC = () => {
         <div>
             <Title textKey="Change Requests" />
 
-            <div className="d-flex align-items-center justify-content-between mb-2">
-                <h5 className="mb-0">{t("Change Requested Tickets Pending CR Creation")}</h5>
-                <GenericButton
-                    variant="contained"
-                    disabled={submittingAll || submittingTicketId !== null || missingChangeRequests.length === 0}
-                    onClick={() => void handleSendAllForCrApproval()}
-                >
-                    {submittingAll ? t("Sending...") : t("Send All for CR Approval")}
-                </GenericButton>
-            </div>
-
-            <GenericTable
-                rowKey="ticketId"
-                columns={missingColumns}
-                dataSource={missingChangeRequests}
-                loading={missingLoading}
-                pagination={{ pageSize: 10 }}
-            />
-
-            <h5 className="mt-4 mb-3">{t("Change Requests")}</h5>
-
             <div className="row g-2 mb-3">
                 <div className="col-3">
                     <GenericInput
@@ -331,6 +310,29 @@ const ChangeRequests: React.FC = () => {
                 loading={loading}
                 pagination={{ pageSize: 20 }}
             />
+
+            {missingChangeRequests?.length
+                ? <>
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                        <h5 className="mb-0">{t("Change Requested Tickets Pending CR Creation")}</h5>
+                        <GenericButton
+                            variant="contained"
+                            disabled={submittingAll || submittingTicketId !== null || missingChangeRequests.length === 0}
+                            onClick={() => void handleSendAllForCrApproval()}
+                        >
+                            {submittingAll ? t("Sending...") : t("Send All for CR Approval")}
+                        </GenericButton>
+                    </div>
+
+                    <GenericTable
+                        rowKey="ticketId"
+                        columns={missingColumns}
+                        dataSource={missingChangeRequests}
+                        loading={missingLoading}
+                        pagination={{ pageSize: 10 }}
+                    />
+                </>
+                : null}
         </div>
     );
 };
