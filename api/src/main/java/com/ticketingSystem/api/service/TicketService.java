@@ -100,6 +100,7 @@ public class TicketService {
     private final TicketSlaService ticketSlaService;
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
+    private final TicketCrService ticketCrService;
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
@@ -902,6 +903,11 @@ public class TicketService {
         }
         if (statusChanged) {
             addStatusTransitionHistory(saved, updatedBy, previousStatusId, updatedStatusId, remark);
+
+            String updatedStatusCode = workflowService.getStatusCodeById(updatedStatusId);
+            if (TicketStatus.CHANGE_REQUESTED.name().equalsIgnoreCase(updatedStatusCode)) {
+                ticketCrService.createForTicketIfMissing(saved.getId(), remark, updatedBy);
+            }
 
             TicketStatus finalPreviousStatus = previousStatus;
             String finalPreviousStatusId = previousStatusId;
