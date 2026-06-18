@@ -1,14 +1,10 @@
 Subject: Anna Darpan: Ticket Resolved – ${ticketId!""}
 
-Dear ${userName!"User"},
+<p>Dear ${userName!recipientName!"User"},</p>
 
-Your ticket has been resolved. Please review the resolution and submit feedback within 72 hours.
+<p>Your ticket ${ticketId!ticketNumber!""} has been resolved. Please review the resolution within 72 hours and kindly provide the feedback.</p>
 
-Resolution Summary:
-- Issue: ${issue!(ticketId!"Ticket")}
-- Resolution: ${resolution!"Resolved"}
+<p><a href="${feedbackLink!""}">Submit feedback</a></p>
 
-Click here to submit feedback: ${feedbackLink!("/tickets/" + (ticketId!"") + "/feedback")}
-
-Regards,
-Anna Darpan Support Team
+<p>Regards,<br>
+Anna Darpan Support Team</p>
