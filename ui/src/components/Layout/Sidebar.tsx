@@ -107,6 +107,13 @@ const menuItems = [
     to: "/role-master",
     icon: "manageAccounts",
   },
+  // NOTIFICATION_MASTER_CHANGE: Render Notification Master only when its role permission object is enabled.
+  {
+    key: "notificationMaster",
+    label: "Notification Master",
+    to: "/notification-master",
+    icon: "notifications",
+  },
   {
     key: "users",
     label: "Users",

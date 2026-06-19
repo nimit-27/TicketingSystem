@@ -290,9 +290,10 @@ const RoleNotification: React.FC = () => {
                 </Alert>
             )}
 
+            {/* NOTIFICATION_MASTER_CHANGE: Keep horizontal overflow inside the grid and expose a persistent scrollbar. */}
             {!pending && Boolean(gridData?.roles?.length) && Boolean(gridData?.notifications?.length) && (
-                <TableContainer component={Paper} sx={{ maxHeight: '65vh', overflow: 'auto' }}>
-                    <Table stickyHeader size="small" aria-label="Role notification channel mapping grid">
+                <TableContainer component={Paper} sx={{ maxHeight: '65vh', width: '100%', overflowX: 'scroll', overflowY: 'auto' }}>
+                    <Table stickyHeader size="small" aria-label="Role notification channel mapping grid" sx={{ minWidth: 'max-content' }}>
                         <TableHead>
                             <TableRow>
                                 <TableCell
