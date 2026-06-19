@@ -112,7 +112,7 @@ const menuItems = [
     key: "notificationMaster",
     label: "Notification Master",
     to: "/notification-master",
-    icon: "notifications",
+    icon: "editNotifications",
   },
   {
     key: "users",

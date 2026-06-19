@@ -59,7 +59,7 @@
     "start:staging": "dotenv -e .env.staging -- react-scripts start",
     "start:production": "dotenv -e .env.production -- react-scripts start",
     "build": "react-scripts build",
-    "build:development": "dotenv -e .env.development -- react-scripts build",
+    "build:development": "set NODE_OPTIONS=--max-old-space-size=8192 && set GENERATE_SOURCEMAP=false && dotenv -e .env.development -- react-scripts build",
     "build:qa": "dotenv -e .env.qa -- react-scripts build",
     "build:uat": "dotenv -e .env.uat -- react-scripts build",
     "build:staging": "dotenv -e .env.staging -- react-scripts build",
