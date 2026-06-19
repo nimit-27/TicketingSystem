@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "requester_users")
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class RequesterUser {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+public class RequesterUser extends GenericUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -20,27 +20,12 @@ public class RequesterUser {
     @EqualsAndHashCode.Include
     private String requesterUserId;
 
-    @Column(name = "username")
-    private String username;
-    private String name;
     @Column(name = "first_name")
     private String firstName;
     @Column(name = "middle_name")
     private String middleName;
     @Column(name = "last_name")
     private String lastName;
-    @Column(name = "email_id")
-    private String emailId;
-    private String mobileNo;
-    private String office;
-
-    @Column(name = "password")
-    private String password;
-
-    private String roles;
-
-    @Column(name = "stakeholder")
-    private String stakeholder;
 
     @Column(name = "date_of_joining")
     private LocalDateTime dateOfJoining;
@@ -62,4 +47,9 @@ public class RequesterUser {
 
     @Column(name = "district_code")
     private String districtCode;
+
+    @Override
+    public String getGenericUserId() {
+        return requesterUserId;
+    }
 }

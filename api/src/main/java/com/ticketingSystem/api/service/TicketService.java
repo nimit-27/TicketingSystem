@@ -67,6 +67,8 @@ public class TicketService {
     private static final String TICKET_STATUS_UPDATE_NOTIFICATION_CODE = "TICKET_STATUS_UPDATE";
     private static final String TICKET_UPDATED_NOTIFICATION_CODE = "TICKET_UPDATED";
     private static final String TICKET_RESOLVED_NOTIFICATION_CODE = "TICKET_RESOLVED";
+    private static final String TICKET_CLOSED_NOTIFICATION_CODE = "TICKET_CLOSED";
+    private static final String TICKET_ASSIGNED_REQUESTER_NOTIFICATION_CODE = "TICKET_ASSIGNED_REQUESTER";
     private static final String TICKET_LINKED_TO_MASTER_NOTIFICATION_CODE = "TICKET_LINKED_TO_MASTER";
     private static final String IT_MANAGER_ROLE_NAME = "IT Manager";
     private static final String TEAM_LEAD_ROLE_NAME = "Team Lead";
@@ -75,6 +77,8 @@ public class TicketService {
     private final TypesenseClient typesenseClient;
     @Value("${app.search.engine:default}")
     private String searchEngine;
+    @Value("${app.frontend.base-url:http://localhost:3000/helpdesk}")
+    private String frontendBaseUrl;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final RequesterUserRepository requesterUserRepository;
@@ -283,37 +287,7 @@ public class TicketService {
 
         // SETTING User Details if userId exists
         if (ticket.getUserId() != null && !ticket.getUserId().isEmpty()) {
-            userRepository.findById(ticket.getUserId()).ifPresentOrElse(user -> {
-                ticket.setUser(user);
-                ticket.setUserId(user.getUserId());
-                if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
-                    ticket.setRequestorName(user.getUsername());
-                }
-                if (ticket.getRequestorEmailId() == null) {
-                    ticket.setRequestorEmailId(user.getEmailId());
-                }
-                if (ticket.getRequestorMobileNo() == null) {
-                    ticket.setRequestorMobileNo(user.getMobileNo());
-                }
-                if (ticket.getOffice() == null) {
-                    ticket.setOffice(user.getOffice());
-                }
-            }, () -> requesterUserRepository.findById(ticket.getUserId()).ifPresent(requester -> {
-                if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
-                    ticket.setRequestorName(requester.getName());
-                }
-                if (ticket.getRequestorEmailId() == null) {
-                    ticket.setRequestorEmailId(requester.getEmailId());
-                }
-                if (ticket.getRequestorMobileNo() == null) {
-                    ticket.setRequestorMobileNo(requester.getMobileNo());
-                }
-                ticket.setOffice(firstNonBlank(ticket.getOffice(), requester.getOffice()));
-                ticket.setOfficeCode(firstNonBlank(ticket.getOfficeCode(), requester.getOfficeCode()));
-                ticket.setRegionCode(firstNonBlank(ticket.getRegionCode(), requester.getRegionCode()));
-                ticket.setZoneCode(firstNonBlank(ticket.getZoneCode(), requester.getZoneCode()));
-                ticket.setDistrictCode(firstNonBlank(ticket.getDistrictCode(), requester.getDistrictCode()));
-            }));
+            findGenericUserById(ticket.getUserId()).ifPresent(requestor -> applyRequestorDetails(ticket, requestor));
         }
 
         // TO DO: Remove TicketStatus during Code Cleaning
@@ -921,7 +895,8 @@ public class TicketService {
                     finalPreviousStatusId,
                     finalUpdatedStatus,
                     finalUpdatedStatusId,
-                    updatedBy
+                    updatedBy,
+                    remark
             ));
         }
 
@@ -977,22 +952,15 @@ public class TicketService {
         Optional<User> assignee = findUserByIdOrUsername(assignedTo);
         Map<String, Object> data = buildAssignmentNotificationDataModel(ticket, assignedTo, assignedBy, assignee);
 
+        if (assignee.isEmpty()) {
+            return;
+        }
+
         try {
-            String recipient = resolveRecipientIdentifier(
-                    assignee.orElse(null),
-                    assignedTo
-            );
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_ASSIGNED_NOTIFICATION_CODE,
                     data,
-                    recipient
-            );
-            notificationService.sendNotification(
-                    ChannelType.EMAIL,
-                    TICKET_ASSIGNED_NOTIFICATION_CODE,
-                    data,
-                    recipient
+                    assignee.get()
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1037,24 +1005,8 @@ public class TicketService {
             return;
         }
 
-        User requestor = ticket.getUser();
-        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
-            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
-            if (requestor != null) {
-                ticket.setUser(requestor);
-            }
-        }
-
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        GenericUser requestor = resolveRequestor(ticket);
+        if (requestor == null) {
             return;
         }
 
@@ -1063,7 +1015,7 @@ public class TicketService {
         data.put("ticketNumber", ticket.getId());
         data.put("updateType", "ASSIGNMENT_UPDATED");
 
-        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
         }
@@ -1092,11 +1044,10 @@ public class TicketService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
-                    TICKET_UPDATED_NOTIFICATION_CODE,
+            notificationService.sendNotificationForUser(
+                    TICKET_ASSIGNED_REQUESTER_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1109,29 +1060,14 @@ public class TicketService {
                                               String previousStatusId,
                                               TicketStatus updatedStatus,
                                               String updatedStatusId,
-                                              String updatedBy) {
+                                              String updatedBy,
+                                              String remark) {
         if (ticket == null) {
             return;
         }
 
-        User requestor = ticket.getUser();
-        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
-            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
-            if (requestor != null) {
-                ticket.setUser(requestor);
-            }
-        }
-
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        GenericUser requestor = resolveRequestor(ticket);
+        if (requestor == null) {
             return;
         }
 
@@ -1139,12 +1075,16 @@ public class TicketService {
         data.put("ticketId", ticket.getId());
         data.put("ticketNumber", ticket.getId());
         data.put("oldStatus", resolveStatusDisplay(previousStatus, previousStatusEntity, previousStatusId));
-        data.put("newStatus", resolveStatusDisplay(updatedStatus != null ? updatedStatus : ticket.getTicketStatus(), ticket.getStatus(), updatedStatusId));
-//        if (remark != null && !remark.isBlank()) {
-//            data.put("remark", remark);
-//        }
+        TicketStatus effectiveUpdatedStatus = updatedStatus != null ? updatedStatus : ticket.getTicketStatus();
+        data.put("newStatus", resolveStatusDisplay(effectiveUpdatedStatus, ticket.getStatus(), updatedStatusId));
+        if (remark != null && !remark.isBlank()) {
+            data.put("remark", remark);
+        }
+        if (effectiveUpdatedStatus == TicketStatus.RESOLVED || effectiveUpdatedStatus == TicketStatus.CLOSED) {
+            enrichFeedbackNotificationData(ticket, data);
+        }
 
-        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
             data.put("requestorName", recipientName);
@@ -1155,11 +1095,23 @@ public class TicketService {
         }
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            if (effectiveUpdatedStatus == TicketStatus.RESOLVED) {
+                notificationService.sendNotificationForUser(
+                        TICKET_RESOLVED_NOTIFICATION_CODE,
+                        data,
+                        requestor
+                );
+            } else if (effectiveUpdatedStatus == TicketStatus.CLOSED) {
+                notificationService.sendNotificationForUser(
+                        TICKET_CLOSED_NOTIFICATION_CODE,
+                        data,
+                        requestor
+                );
+            }
+            notificationService.sendNotificationForUser(
                     TICKET_STATUS_UPDATE_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -1167,6 +1119,21 @@ public class TicketService {
 
         TicketStatus effectiveStatus = updatedStatus != null ? updatedStatus : ticket.getTicketStatus();
         sendRoleStatusUpdateNotifications(ticket, effectiveStatus, data);
+    }
+
+    private void enrichFeedbackNotificationData(Ticket ticket, Map<String, Object> data) {
+        if (ticket == null || data == null) {
+            return;
+        }
+        data.put("feedbackLink", buildFeedbackLink(ticket.getId()));
+    }
+
+    private String buildFeedbackLink(String ticketId) {
+        String normalizedBaseUrl = frontendBaseUrl != null ? frontendBaseUrl.trim() : "";
+        if (normalizedBaseUrl.endsWith("/")) {
+            normalizedBaseUrl = normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1);
+        }
+        return normalizedBaseUrl + "/tickets/" + ticketId + "/feedback";
     }
 
     private void sendRoleStatusUpdateNotifications(Ticket ticket,
@@ -1398,6 +1365,83 @@ public class TicketService {
         return builder.toString();
     }
 
+    private Optional<GenericUser> findGenericUserById(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return Optional.empty();
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            return user.map(genericUser -> genericUser);
+        }
+
+        return requesterUserRepository.findById(userId)
+                .map(requester -> requester);
+    }
+
+    private void applyRequestorDetails(Ticket ticket, GenericUser requestor) {
+        if (ticket == null || requestor == null) {
+            return;
+        }
+
+        if (requestor instanceof User user) {
+            ticket.setUser(user);
+            ticket.setUserId(user.getUserId());
+        }
+
+        if (ticket.getRequestorName() == null || ticket.getRequestorName().isBlank()) {
+            ticket.setRequestorName(firstNonBlank(requestor.getName(), requestor.getUsername()));
+        }
+        if (ticket.getRequestorEmailId() == null) {
+            ticket.setRequestorEmailId(requestor.getEmailId());
+        }
+        if (ticket.getRequestorMobileNo() == null) {
+            ticket.setRequestorMobileNo(requestor.getMobileNo());
+        }
+        ticket.setOffice(firstNonBlank(ticket.getOffice(), requestor.getOffice()));
+
+        if (requestor instanceof RequesterUser requester) {
+            ticket.setOfficeCode(firstNonBlank(ticket.getOfficeCode(), requester.getOfficeCode()));
+            ticket.setRegionCode(firstNonBlank(ticket.getRegionCode(), requester.getRegionCode()));
+            ticket.setZoneCode(firstNonBlank(ticket.getZoneCode(), requester.getZoneCode()));
+            ticket.setDistrictCode(firstNonBlank(ticket.getDistrictCode(), requester.getDistrictCode()));
+        }
+    }
+
+    private GenericUser resolveRequestor(Ticket ticket) {
+        if (ticket == null) {
+            return null;
+        }
+
+        User requestor = ticket.getUser();
+        if (requestor != null) {
+            return requestor;
+        }
+
+        String ticketUserId = ticket.getUserId();
+        if (ticketUserId == null || ticketUserId.isBlank()) {
+            return null;
+        }
+
+        Optional<GenericUser> resolvedRequestor = findGenericUserById(ticketUserId);
+        resolvedRequestor.ifPresent(resolved -> {
+            if (resolved instanceof User user) {
+                ticket.setUser(user);
+            }
+        });
+        return resolvedRequestor.orElse(null);
+    }
+
+    private String resolveGenericUserName(GenericUser user, String... fallbacks) {
+        if (user != null) {
+            String resolved = firstNonBlank(user.getName(), user.getUsername(), user.getGenericUserId());
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        return firstNonBlank(fallbacks);
+    }
+
     private String resolveUserName(User user, String... fallbacks) {
         if (user != null) {
             String resolved = firstNonBlank(user.getName(), user.getUsername(), user.getUserId());
@@ -1472,24 +1516,8 @@ public class TicketService {
             return;
         }
 
-        User requestor = ticket.getUser();
-        if (requestor == null && ticket.getUserId() != null && !ticket.getUserId().isBlank()) {
-            requestor = userRepository.findById(ticket.getUserId()).orElse(null);
-            if (requestor != null) {
-                ticket.setUser(requestor);
-            }
-        }
-
-        String recipientIdentifier;
-        try {
-            recipientIdentifier = resolveRecipientIdentifier(
-                    ticket.getUser(),
-                    ticket.getUserId(),
-                    ticket.getRequestorEmailId(),
-                    ticket.getRequestorName()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        GenericUser requestor = resolveRequestor(ticket);
+        if (requestor == null) {
             return;
         }
 
@@ -1498,7 +1526,7 @@ public class TicketService {
         data.put("ticketNumber", ticket.getId());
         data.put("updateType", "MASTER_LINKED");
 
-        String recipientName = resolveUserName(ticket.getUser(), ticket.getRequestorName(), ticket.getRequestorEmailId());
+        String recipientName = resolveGenericUserName(requestor, ticket.getRequestorName(), ticket.getRequestorEmailId());
         if (recipientName != null && !recipientName.isBlank()) {
             data.put("recipientName", recipientName);
         }
@@ -1534,11 +1562,10 @@ public class TicketService {
         data.put("updateMessage", updateMessage);
 
         try {
-            notificationService.sendNotification(
-                    ChannelType.IN_APP,
+            notificationService.sendNotificationForUser(
                     TICKET_UPDATED_NOTIFICATION_CODE,
                     data,
-                    recipientIdentifier
+                    requestor
             );
         } catch (Exception ex) {
             ex.printStackTrace();

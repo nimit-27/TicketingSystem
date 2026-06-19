@@ -17,6 +17,9 @@ const CategoriesMaster = lazy(() => import('./pages/CategoriesMaster'));
 const EscalationMaster = lazy(() => import('./pages/EscalationMaster'));
 const RoleMaster = lazy(() => import('./pages/RoleMaster'));
 const RoleDetails = lazy(() => import('./pages/RoleDetails'));
+const RoleNotification = lazy(() => import('./pages/RoleNotification'));
+// NOTIFICATION_MASTER_CHANGE: Lazy-load the application-wide Notification Master page.
+const NotificationMaster = lazy(() => import('./pages/NotificationMaster'));
 const Login = lazy(() => import('./pages/Login'));
 const DevLogin = lazy(() => import('./pages/DevLogin'));
 const Users = lazy(() => import('./pages/Users'));
@@ -109,6 +112,9 @@ function App() {
           <Route path="modules-master" element={<CategoriesMaster />} />
           <Route path="escalation-master" element={<EscalationMaster />} />
           <Route path="role-master" element={<RoleMaster />} />
+          <Route path="role-master/notifications" element={<RoleNotification />} />
+          {/* NOTIFICATION_MASTER_CHANGE: Register the Notification Master route used by the permission-aware sidebar. */}
+          <Route path="notification-master" element={<NotificationMaster />} />
           <Route path="role-master/:roleId" element={<RoleDetails />} />
           <Route path="users" element={<Users />} />
           <Route path="users/:type/:userId" element={<UserProfile />} />

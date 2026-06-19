@@ -1,0 +1,63 @@
+jcHLlY6<7hydUa0(0c.Q
+
+bmozxse0db74/FCI-identity-domain/nimit.jain@coforge.com
+
+ticketing-api
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_dev_repo:ticketing-api_v1.6
+
+ticketing-ui
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_dev_repo:ticketing-ui_v1.6
+
+
+API
+docker push bom.ocir.io/bmozxse0db74/ad_dev_repo:ticketing-api_v1.6
+
+UI
+docker push bom.ocir.io/bmozxse0db74/ad_dev_repo:ticketing-ui_v1.6
+
+
+
+ad_test_repo
+
+ticketing-api
+docker tag ticketing-api:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.8
+
+ticketing-ui
+docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.8
+
+
+API
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-api_v1.8
+
+UI
+docker push bom.ocir.io/bmozxse0db74/ad_test_repo:ticketing-ui_v1.8
+
+
+
+
+
+
+docker push bom.ocir.io/bmozxse0db74/ad_dev_repo:hello-world_v1.0
+
+
+docker compose -f docker-compose.full.yml build api
+
+oci artifacts container repository list --compartment-id <compartment-ocid>
+
+oci artifacts container image list --compartment-id ocid1.compartment.oc1..aaaaaaaaplz2yamkqgfsx7hvrn357a7cqf4qg6i3rzkakyp7pxkt3gtzutna --repository-name ad_test_repo
+
+
+
+oci artifacts container image list \
+  --compartment-id ocid1.compartment.oc1..aaaaaaaaplz2yamkqgfsx7hvrn357a7cqf4qg6i3rzkakyp7pxkt3gtzutna \
+  --repository-name ad_dev_repo \
+  --all | grep 'ticketing-api_v'
+
+
+"C:\Users\Nimit.Jain\Downloads\nimit.jain@coforge.com-2025-11-04T07_22_03.636Z.pem"
+
+1. docker tag ticketing-ui:latest bom.ocir.io/bmozxse0db74/ad_dev_repo:ticketing-ui_v0.1
+
+2. A new image should be created, check with docker images
+3. RUN docker push <repository>:<tag>
+ 	docker push bom.ocir.io/bmozxse0db74/ad_dev_repo:ticketing-ui_v0.1

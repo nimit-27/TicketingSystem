@@ -1,5 +1,6 @@
 package com.ticketingSystem.notification.models;
 
+import com.ticketingSystem.api.models.GenericUser;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
@@ -33,10 +34,26 @@ public class NotificationRecipient {
     @JoinColumn(name = "notification_id", nullable = false)
     private Notification notification;
 
-    // Target user (recipient)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "recipient_user_id", nullable = false)
+    @Column(name = "recipient_user_id", nullable = false)
+    private String recipientUserId;
+
+    // Target helpdesk user when recipient_user_id belongs to users. Requester users are resolved by id as needed.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_user_id", insertable = false, updatable = false)
     private User recipient;
+
+    @Transient
+    private GenericUser genericRecipient;
+
+    public GenericUser getGenericRecipient() {
+        return genericRecipient != null ? genericRecipient : recipient;
+    }
+
+    public void setGenericRecipient(GenericUser recipient) {
+        this.genericRecipient = recipient;
+        this.recipientUserId = recipient != null ? recipient.getGenericUserId() : null;
+        this.recipient = recipient instanceof User user ? user : null;
+    }
 
     // Read state
     @Column(name = "is_read", nullable = false)

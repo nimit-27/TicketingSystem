@@ -1,7 +1,7 @@
 package com.ticketingSystem.notification.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.GenericUser;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
 import com.ticketingSystem.notification.models.Notification;
@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,6 +31,7 @@ public class EmailNotificationPersistenceService {
     private final NotificationRecipientResolver recipientResolver;
     private final ObjectMapper objectMapper;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void queueEmailNotification(NotificationRequest request) {
         if (request == null) {
             return;
@@ -40,7 +43,7 @@ public class EmailNotificationPersistenceService {
             return;
         }
 
-        List<User> recipients = recipientResolver.resolveRecipients(request.getRecipient());
+        List<GenericUser> recipients = recipientResolver.resolveRecipients(request.getRecipient());
         if (recipients.isEmpty()) {
             log.warn("Unable to resolve recipients for email notification: {}", request.getRecipient());
             return;
@@ -53,7 +56,7 @@ public class EmailNotificationPersistenceService {
         notification.setData(serializeData(request.getDataModel()));
         notification.setTicketId(resolveTicketId(request.getDataModel()));
 
-        Notification savedNotification = notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.saveAndFlush(notification);
 
         String cc = extractEmailList(request.getDataModel().get("cc"));
         String bcc = extractEmailList(request.getDataModel().get("bcc"));
@@ -67,13 +70,13 @@ public class EmailNotificationPersistenceService {
     }
 
     private NotificationRecipient createRecipient(Notification notification,
-                                                  User recipient,
+                                                  GenericUser recipient,
                                                   String cc,
                                                   String bcc,
                                                   LocalDateTime now) {
         NotificationRecipient recipientEntity = new NotificationRecipient();
         recipientEntity.setNotification(notification);
-        recipientEntity.setRecipient(recipient);
+        recipientEntity.setGenericRecipient(recipient);
         recipientEntity.setChannel(ChannelType.EMAIL);
         recipientEntity.setStatus(NotificationDeliveryStatus.PENDING);
         recipientEntity.setNextRetryAt(now);

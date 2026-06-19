@@ -2,7 +2,7 @@ package com.ticketingSystem.notification.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.models.GenericUser;
 import com.ticketingSystem.notification.config.NotificationProperties;
 import com.ticketingSystem.notification.enums.NotificationDeliveryStatus;
 import com.ticketingSystem.notification.models.Notification;
@@ -17,14 +17,12 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +38,13 @@ public class EmailNotificationDispatcher {
     private static final Logger log = LoggerFactory.getLogger(EmailNotificationDispatcher.class);
 
     private final NotificationRecipientRepository notificationRecipientRepository;
+    private final NotificationRecipientResolver recipientResolver;
     private final EmailTemplateRenderer templateRenderer;
     private final EmailMessageSender messageSender;
     private final ObjectMapper objectMapper;
     private final NotificationProperties properties;
     private final NotificationRuntimeToggleService notificationRuntimeToggleService;
+    private final EmailNotificationDispatchTransactionService transactionService;
     @Qualifier("emailNotificationExecutor")
     private final TaskExecutor emailNotificationExecutor;
 
@@ -52,9 +52,9 @@ public class EmailNotificationDispatcher {
             fixedDelayString = "${notification.email-dispatcher.fixedDelayMs:5000}",
             initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
     )
-//    @Transactional
     public void dispatchPendingEmails() {
-        if (!notificationRuntimeToggleService.isNotificationEnabled()) {
+        // NOTIFICATION_MASTER_CHANGE: Stop queued email delivery while the application-wide email channel is disabled.
+        if (!notificationRuntimeToggleService.isChannelEnabled(com.ticketingSystem.notification.enums.ChannelType.EMAIL)) {
             return;
         }
         NotificationProperties.EmailDispatcher emailSettings = properties.getEmailDispatcher();
@@ -64,7 +64,13 @@ public class EmailNotificationDispatcher {
         recoverStuckProcessing(staleBefore, now);
         expireRetries(emailSettings.getMaxRetries());
 
-        List<Long> claimedIds = claimBatch(emailSettings.getBatchSize(), now, staleBefore);
+        List<Long> claimedIds = transactionService.claimBatch(
+                emailSettings.getBatchSize(),
+                now,
+                staleBefore,
+                emailSettings.getMaxRetries(),
+                resolveInstanceId()
+        );
         if (claimedIds.isEmpty()) {
             return;
         }
@@ -142,7 +148,7 @@ public class EmailNotificationDispatcher {
                            Notification notification,
                            EmailContent content,
                            QueueProcessingResult processingResult) {
-        String to = resolveRecipientEmail(recipient.getRecipient());
+        String to = resolveRecipientEmail(resolveGenericRecipient(recipient));
         if (to == null || to.isBlank()) {
             markRecipientFailed(recipient, "Missing recipient email", true, processingResult);
             return;
@@ -183,13 +189,13 @@ public class EmailNotificationDispatcher {
     }
 
     private void enrichRecipientModel(Map<String, Object> model, NotificationRecipient recipient) {
-        User user = recipient.getRecipient();
+        GenericUser user = resolveGenericRecipient(recipient);
         if (user == null) {
             return;
         }
         String name = Optional.ofNullable(user.getName())
                 .filter(value -> !value.isBlank())
-                .orElseGet(() -> Optional.ofNullable(user.getUsername()).orElse(user.getUserId()));
+                .orElseGet(() -> Optional.ofNullable(user.getUsername()).orElse(user.getGenericUserId()));
         if (!model.containsKey("userName")) {
             model.put("userName", name);
         }
@@ -198,7 +204,22 @@ public class EmailNotificationDispatcher {
         }
     }
 
-    private String resolveRecipientEmail(User user) {
+    private GenericUser resolveGenericRecipient(NotificationRecipient recipient) {
+        if (recipient == null) {
+            return null;
+        }
+        GenericUser recipientUser = recipient.getGenericRecipient();
+        if (recipientUser != null) {
+            return recipientUser;
+        }
+        String recipientUserId = recipient.getRecipientUserId();
+        if (recipientUserId == null || recipientUserId.isBlank()) {
+            return null;
+        }
+        return recipientResolver.resolveRecipient(recipientUserId).orElse(null);
+    }
+
+    private String resolveRecipientEmail(GenericUser user) {
         if (user == null) {
             return null;
         }
@@ -289,39 +310,18 @@ public class EmailNotificationDispatcher {
         return Duration.ofSeconds(delay);
     }
 
-    @Transactional
-    protected List<Long> claimBatch(int limit, LocalDateTime now, LocalDateTime staleBefore) {
-        if (limit <= 0) {
-            return Collections.emptyList();
-        }
-        List<Long> ids = notificationRecipientRepository.findClaimableIds(
-                now,
-                staleBefore,
-                properties.getEmailDispatcher().getMaxRetries(),
-                limit
-        );
-        if (ids.isEmpty()) {
-            return ids;
-        }
-        notificationRecipientRepository.markProcessing(ids, resolveInstanceId(), now);
-        return ids;
-    }
-
-    @Transactional
     private void recoverStuckProcessing(LocalDateTime staleBefore, LocalDateTime now) {
-        int updated = notificationRecipientRepository.markProcessingAsFailed(
+        int updated = transactionService.recoverStuckProcessing(
                 staleBefore,
-                now.plusSeconds(properties.getEmailDispatcher().getRetryBaseSeconds()),
-                "Processing timeout"
+                now.plusSeconds(properties.getEmailDispatcher().getRetryBaseSeconds())
         );
         if (updated > 0) {
             log.warn("email.dispatch.recovered count={} staleBefore={}", updated, staleBefore);
         }
     }
 
-    @Transactional
     private void expireRetries(int maxRetries) {
-        int updated = notificationRecipientRepository.markRetriesExhausted(maxRetries);
+        int updated = transactionService.expireRetries(maxRetries);
         if (updated > 0) {
             log.warn("email.dispatch.expired count={} maxRetries={}", updated, maxRetries);
         }

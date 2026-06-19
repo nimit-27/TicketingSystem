@@ -63,7 +63,7 @@ public class NotificationQueryService {
         }
 
         List<NotificationRecipient> unreadRecipients = notificationRecipientRepository
-                .findByRecipient_UserIdAndIsReadFalseAndSoftDeletedFalseAndChannel(userId, ChannelType.IN_APP);
+                .findUnreadForGenericUser(userId, ChannelType.IN_APP);
 
         if (unreadRecipients.isEmpty()) {
             return 0;

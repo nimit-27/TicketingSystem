@@ -107,7 +107,10 @@ const RoleMaster: React.FC = () => {
         <div className="">
             <Title textKey="Role Master" />
             <div className="d-flex justify-content-between mb-3">
-                {!creating && <Button variant="contained" onClick={handleCreate}>Create Role</Button>}
+                <div className="d-flex gap-2">
+                    {!creating && <Button variant="contained" onClick={handleCreate}>Create Role</Button>}
+                    {!creating && <Button variant="outlined" onClick={() => navigate('/role-master/notifications')}>Role - Notification</Button>}
+                </div>
                 <ViewToggle value={view} onChange={setView} options={[{ icon: 'grid', value: 'grid' }, { icon: 'table', value: 'table' }]} />
             </div>
             {creating && (
