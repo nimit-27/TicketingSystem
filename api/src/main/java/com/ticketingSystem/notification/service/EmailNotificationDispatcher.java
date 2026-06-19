@@ -53,7 +53,8 @@ public class EmailNotificationDispatcher {
             initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
     )
     public void dispatchPendingEmails() {
-        if (!notificationRuntimeToggleService.isNotificationEnabled()) {
+        // NOTIFICATION_MASTER_CHANGE: Stop queued email delivery while the application-wide email channel is disabled.
+        if (!notificationRuntimeToggleService.isChannelEnabled(com.ticketingSystem.notification.enums.ChannelType.EMAIL)) {
             return;
         }
         NotificationProperties.EmailDispatcher emailSettings = properties.getEmailDispatcher();

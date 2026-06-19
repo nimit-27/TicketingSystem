@@ -30,8 +30,9 @@ public class NotificationService {
     private final RoleNotificationChannelMappingRepository roleNotificationChannelMappingRepository;
 
     public void sendNotification(ChannelType channel, String notificationCode, Map<String, Object> dataModel, String recipient) throws Exception {
-        if (!notificationRuntimeToggleService.isNotificationEnabled()) {
-            log.info("Notification dispatch skipped because notifications are globally disabled. channel={}, notificationCode={}, recipient={}", channel, notificationCode, recipient);
+        // NOTIFICATION_MASTER_CHANGE: Enforce the application-wide switch for the requested delivery channel.
+        if (!notificationRuntimeToggleService.isChannelEnabled(channel)) {
+            log.info("Notification dispatch skipped because the channel is globally disabled. channel={}, notificationCode={}, recipient={}", channel, notificationCode, recipient);
             return;
         }
 
