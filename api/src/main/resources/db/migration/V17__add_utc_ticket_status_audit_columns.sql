@@ -1,12 +1,12 @@
 ALTER TABLE tickets
-    ADD COLUMN IF NOT EXISTS created_at_utc TIMESTAMP(6) NULL,
-    ADD COLUMN IF NOT EXISTS last_modified_utc TIMESTAMP(6) NULL,
-    ADD COLUMN IF NOT EXISTS last_modified_status_date_utc TIMESTAMP(6) NULL,
-    ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+    ADD COLUMN created_at_utc TIMESTAMP(6) NULL,
+    ADD COLUMN last_modified_utc TIMESTAMP(6) NULL,
+    ADD COLUMN last_modified_status_date_utc TIMESTAMP(6) NULL,
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
 
 ALTER TABLE status_history
-    ADD COLUMN IF NOT EXISTS timestamp_utc TIMESTAMP(6) NULL,
-    ADD COLUMN IF NOT EXISTS created_at_utc TIMESTAMP(6) NULL;
+    ADD COLUMN timestamp_utc TIMESTAMP(6) NULL,
+    ADD COLUMN created_at_utc TIMESTAMP(6) NULL;
 
 UPDATE tickets
 SET created_at_utc = COALESCE(
