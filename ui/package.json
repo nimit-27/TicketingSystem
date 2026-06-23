@@ -62,7 +62,7 @@
     "build:development": "set NODE_OPTIONS=--max-old-space-size=8192 && set GENERATE_SOURCEMAP=false && dotenv -e .env.development -- react-scripts build",
     "build:qa": "dotenv -e .env.qa -- react-scripts build",
     "build:uat": "dotenv -e .env.uat -- react-scripts build",
-    "build:staging": "dotenv -e .env.staging -- react-scripts build",
+    "build:staging": "set NODE_OPTIONS=--max-old-space-size=8192 && set GENERATE_SOURCEMAP=false && dotenv -e .env.staging -- react-scripts build",
     "build:production": "dotenv -e .env.production -- react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

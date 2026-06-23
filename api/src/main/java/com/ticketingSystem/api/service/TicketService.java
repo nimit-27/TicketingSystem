@@ -737,12 +737,12 @@ public class TicketService {
         if (updatedStatus == TicketStatus.CLOSED) {
             applyClosedStatus(existing);
         }
-        boolean movingToAssigned = updatedStatus == TicketStatus.ASSIGNED;
-        if (!movingToAssigned && updatedStatusId != null) {
+        boolean movingToAssignedOrOpened = updatedStatus == TicketStatus.ASSIGNED || updatedStatus == TicketStatus.OPEN;
+        if (!movingToAssignedOrOpened && updatedStatusId != null) {
             String updatedStatusCode = workflowService.getStatusCodeById(updatedStatusId);
-            movingToAssigned = TicketStatus.ASSIGNED.name().equalsIgnoreCase(updatedStatusCode);
+            movingToAssignedOrOpened = TicketStatus.ASSIGNED.name().equalsIgnoreCase(updatedStatusCode);
         }
-        if (movingToAssigned) {
+        if (movingToAssignedOrOpened) {
             String pendingWithFciStatusId = workflowService.getStatusIdByCode(TicketStatus.PENDING_WITH_FCI.name());
             boolean wasEverPendingWithFci = previousStatus == TicketStatus.PENDING_WITH_FCI;
             if (!wasEverPendingWithFci) {
