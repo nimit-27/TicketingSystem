@@ -1,6 +1,5 @@
 package com.ticketingSystem.api.repository;
 
-import com.ticketingSystem.api.enums.RequesterUserSyncStatus;
 import com.ticketingSystem.api.models.RequesterUserSyncStaging;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
@@ -18,14 +17,14 @@ public interface RequesterUserSyncStagingRepository extends JpaRepository<Reques
 
     Optional<RequesterUserSyncStaging> findByIdempotencyKey(String idempotencyKey);
 
-    long countBySourceSystemAndBatchIdAndStatus(String sourceSystem, String batchId, RequesterUserSyncStatus status);
+    long countBySourceSystemAndBatchIdAndStatus(String sourceSystem, String batchId, String status);
 
     List<RequesterUserSyncStaging> findBySourceSystemAndBatchIdAndStatusIn(String sourceSystem,
                                                                             String batchId,
-                                                                            Collection<RequesterUserSyncStatus> statuses);
+                                                                            Collection<String> statuses);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM RequesterUserSyncStaging s WHERE s.status IN :statuses AND s.retryCount < s.maxRetries ORDER BY s.updatedAt ASC")
-    List<RequesterUserSyncStaging> findProcessableRows(@Param("statuses") Collection<RequesterUserSyncStatus> statuses,
+    List<RequesterUserSyncStaging> findProcessableRows(@Param("statuses") Collection<String> statuses,
                                                        Pageable pageable);
 }

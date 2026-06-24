@@ -1,3 +1,34 @@
+CREATE TABLE IF NOT EXISTS requester_user_sync_status_master (
+    status_code VARCHAR(30) NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    description VARCHAR(255) DEFAULT NULL,
+    terminal TINYINT(1) NOT NULL DEFAULT 0,
+    retryable TINYINT(1) NOT NULL DEFAULT 0,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (status_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO requester_user_sync_status_master
+(status_code, display_name, description, terminal, retryable, active, sort_order) VALUES
+('RECEIVED', 'Received', 'Record was received by the ingestion endpoint', 0, 0, 1, 10),
+('VALIDATION_FAILED', 'Validation Failed', 'Record failed validation before or during processing', 1, 0, 1, 20),
+('PENDING', 'Pending', 'Record is ready for scheduler processing', 0, 0, 1, 30),
+('PROCESSING', 'Processing', 'Record is currently being processed by the scheduler', 0, 0, 1, 40),
+('SUCCESS', 'Success', 'Record was successfully applied to requester_users', 1, 0, 1, 50),
+('RETRYABLE_FAILED', 'Retryable Failed', 'Record processing failed and can be retried', 0, 1, 1, 60),
+('PERMANENT_FAILED', 'Permanent Failed', 'Record failed permanently and will not be retried', 1, 0, 1, 70),
+('SKIPPED_NO_CHANGE', 'Skipped No Change', 'Record was valid but did not change requester_users', 1, 0, 1, 80)
+ON DUPLICATE KEY UPDATE
+    display_name = VALUES(display_name),
+    description = VALUES(description),
+    terminal = VALUES(terminal),
+    retryable = VALUES(retryable),
+    active = VALUES(active),
+    sort_order = VALUES(sort_order);
+
 CREATE TABLE IF NOT EXISTS requester_user_external_identity (
     id BIGINT NOT NULL AUTO_INCREMENT,
     source_system VARCHAR(50) NOT NULL,
@@ -45,5 +76,7 @@ CREATE TABLE IF NOT EXISTS requester_user_sync_staging (
     KEY idx_requester_user_sync_staging_external_user (source_system, external_user_id),
     KEY idx_requester_user_sync_staging_username (username),
     CONSTRAINT fk_requester_user_sync_staging_requester
-        FOREIGN KEY (requester_user_id) REFERENCES requester_users (requester_user_id)
+        FOREIGN KEY (requester_user_id) REFERENCES requester_users (requester_user_id),
+    CONSTRAINT fk_requester_user_sync_staging_status
+        FOREIGN KEY (status) REFERENCES requester_user_sync_status_master (status_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

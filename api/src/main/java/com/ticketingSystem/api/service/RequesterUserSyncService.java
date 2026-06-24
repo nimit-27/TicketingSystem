@@ -3,7 +3,6 @@ package com.ticketingSystem.api.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketingSystem.api.dto.requestersync.*;
-import com.ticketingSystem.api.enums.RequesterUserSyncStatus;
 import com.ticketingSystem.api.models.RequesterUser;
 import com.ticketingSystem.api.models.RequesterUserExternalIdentity;
 import com.ticketingSystem.api.models.RequesterUserSyncStaging;
@@ -30,14 +29,20 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class RequesterUserSyncService {
-    private static final List<RequesterUserSyncStatus> FAILURE_STATUSES = List.of(
-            RequesterUserSyncStatus.VALIDATION_FAILED,
-            RequesterUserSyncStatus.RETRYABLE_FAILED,
-            RequesterUserSyncStatus.PERMANENT_FAILED
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_PROCESSING = "PROCESSING";
+    private static final String STATUS_SUCCESS = "SUCCESS";
+    private static final String STATUS_RETRYABLE_FAILED = "RETRYABLE_FAILED";
+    private static final String STATUS_PERMANENT_FAILED = "PERMANENT_FAILED";
+
+    private static final List<String> FAILURE_STATUSES = List.of(
+            "VALIDATION_FAILED",
+            STATUS_RETRYABLE_FAILED,
+            STATUS_PERMANENT_FAILED
     );
-    private static final List<RequesterUserSyncStatus> PROCESSABLE_STATUSES = List.of(
-            RequesterUserSyncStatus.PENDING,
-            RequesterUserSyncStatus.RETRYABLE_FAILED
+    private static final List<String> PROCESSABLE_STATUSES = List.of(
+            STATUS_PENDING,
+            STATUS_RETRYABLE_FAILED
     );
 
     private final RequesterUserSyncStagingRepository stagingRepository;
@@ -76,7 +81,7 @@ public class RequesterUserSyncService {
                 staging.setPayloadHash(sha256(staging.getPayloadJson()));
                 staging.setIdempotencyKey(idempotencyKey);
                 staging.setMaxRetries(maxRetries);
-                staging.setStatus(RequesterUserSyncStatus.PENDING);
+                staging.setStatus(STATUS_PENDING);
                 stagingRepository.save(staging);
                 accepted++;
             } catch (JsonProcessingException | IllegalArgumentException ex) {
@@ -99,7 +104,7 @@ public class RequesterUserSyncService {
     @Transactional
     public int processNextBatch(int batchSize) {
         List<RequesterUserSyncStaging> rows = stagingRepository.findProcessableRows(PROCESSABLE_STATUSES, PageRequest.of(0, batchSize));
-        rows.forEach(row -> row.setStatus(RequesterUserSyncStatus.PROCESSING));
+        rows.forEach(row -> row.setStatus(STATUS_PROCESSING));
         stagingRepository.flush();
 
         int processed = 0;
@@ -119,7 +124,7 @@ public class RequesterUserSyncService {
                         row.getSourceRecordId(),
                         row.getExternalUserId(),
                         row.getRequesterUserId(),
-                        row.getStatus().name(),
+                        row.getStatus(),
                         row.getErrorCode(),
                         row.getErrorMessage()))
                 .toList();
@@ -151,7 +156,7 @@ public class RequesterUserSyncService {
             existingIdentity.orElseGet(() -> createExternalIdentity(row.getSourceSystem(), row.getExternalUserId(), saved));
 
             row.setRequesterUserId(saved.getRequesterUserId());
-            row.setStatus(RequesterUserSyncStatus.SUCCESS);
+            row.setStatus(STATUS_SUCCESS);
             row.setErrorCode(null);
             row.setErrorMessage(null);
             row.setProcessedAt(LocalDateTime.now());
@@ -162,7 +167,7 @@ public class RequesterUserSyncService {
             if (row.getRetryCount() >= row.getMaxRetries()) {
                 markPermanentFailure(row, "MAX_RETRIES_EXHAUSTED", ex.getMessage());
             } else {
-                row.setStatus(RequesterUserSyncStatus.RETRYABLE_FAILED);
+                row.setStatus(STATUS_RETRYABLE_FAILED);
                 row.setErrorCode("PROCESSING_FAILED");
                 row.setErrorMessage(truncate(ex.getMessage(), 1000));
                 row.setProcessedAt(LocalDateTime.now());
@@ -211,7 +216,7 @@ public class RequesterUserSyncService {
     }
 
     private void markPermanentFailure(RequesterUserSyncStaging row, String code, String message) {
-        row.setStatus(RequesterUserSyncStatus.PERMANENT_FAILED);
+        row.setStatus(STATUS_PERMANENT_FAILED);
         row.setErrorCode(code);
         row.setErrorMessage(truncate(message, 1000));
         row.setProcessedAt(LocalDateTime.now());

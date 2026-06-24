@@ -1,6 +1,5 @@
 package com.ticketingSystem.api.models;
 
-import com.ticketingSystem.api.enums.RequesterUserSyncStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,9 +54,8 @@ public class RequesterUserSyncStaging {
     @Column(name = "idempotency_key", nullable = false, length = 255)
     private String idempotencyKey;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    private RequesterUserSyncStatus status;
+    private String status;
 
     @Column(name = "retry_count", nullable = false)
     private Integer retryCount = 0;

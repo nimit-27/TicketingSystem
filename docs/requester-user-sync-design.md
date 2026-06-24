@@ -53,7 +53,7 @@ Suggested columns:
 - `external_user_id`.
 - `payload_json` containing the raw inbound user object.
 - Optional normalized columns used for querying, such as `username`, `email_id`, `mobile_no`, and `office_code`.
-- `status`: `RECEIVED`, `VALIDATION_FAILED`, `PENDING`, `PROCESSING`, `SUCCESS`, `RETRYABLE_FAILED`, `PERMANENT_FAILED`, `SKIPPED_NO_CHANGE`.
+- `status`: references `requester_user_sync_status_master.status_code` with seeded values such as `RECEIVED`, `VALIDATION_FAILED`, `PENDING`, `PROCESSING`, `SUCCESS`, `RETRYABLE_FAILED`, `PERMANENT_FAILED`, and `SKIPPED_NO_CHANGE`.
 - `retry_count` and `max_retries`.
 - `error_code`, `error_message`, and optional `error_details_json`.
 - `requester_user_id` once mapped/upserted.
@@ -151,7 +151,7 @@ The staging table can act as audit, but keep it intentionally audit-friendly:
 - Mask or minimize sensitive personal data if long-term retention is required.
 - Define retention, archival, and purge policies because staging tables can grow quickly.
 
-If full status transitions are important, add a second table such as `requester_user_sync_stage_events` with one row per status change.
+Keep allowed staging statuses in `requester_user_sync_status_master` so operational labels, terminal/retryable flags, and active/inactive controls can be managed as master data. If full status transitions are important, add a second table such as `requester_user_sync_stage_events` with one row per status change.
 
 ## Failed Ticket/User Update Reporting
 
