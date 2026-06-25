@@ -47,12 +47,12 @@ Create a staging table such as `requester_user_sync_staging` with both raw data 
 Suggested columns:
 
 - `id` primary key.
-- `batch_id` from the external request.
+- `request_id` from the external request and derived `batch_id`.
 - `source_system`.
 - `source_record_id`.
-- `external_user_id`.
+- `external_user_id` / `emp_id`, using the external `empId`.
 - `payload_json` containing the raw inbound user object.
-- Optional normalized columns used for querying, such as `username`, `email_id`, `mobile_no`, and `office_code`.
+- Optional normalized columns used for querying, such as `username`, `first_name`, `last_name`, `email_id`, `mobile_no`, `designation`, `reporting_manager_code`, `reporting_manager_name`, `office_type`, and `office_code`.
 - `status`: references `requester_user_sync_status_master.status_code` with seeded values such as `RECEIVED`, `VALIDATION_FAILED`, `PENDING`, `PROCESSING`, `SUCCESS`, `RETRYABLE_FAILED`, `PERMANENT_FAILED`, and `SKIPPED_NO_CHANGE`.
 - `retry_count` and `max_retries`.
 - `error_code`, `error_message`, and optional `error_details_json`.
@@ -71,39 +71,46 @@ Add indexes for scheduler pickup and de-duplication:
 
 Expose a bulk ingestion endpoint, for example:
 
-`POST /api/integrations/requester-users/batches`
+`POST /ext/requester-users/batches`
 
-Request envelope:
+Request envelope now matches the external source payload:
 
 ```json
 {
-  "sourceSystem": "HRMS",
-  "batchId": "HRMS-2026-06-24-0001",
-  "schemaVersion": "1.0",
-  "records": [
+  "requestId": 6947,
+  "users": [
     {
-      "sourceRecordId": "12345-v3",
-      "externalUserId": "12345",
-      "username": "user12345",
-      "fullName": "Example User",
-      "email": "example.user@example.com",
-      "mobile": "9999999999",
-      "officeCode": "NF23",
-      "active": true
+      "empId": "user1_MD_DHANBAD",
+      "firstName": "user1_MD_DHANBAD",
+      "middleName": null,
+      "lastName": "NA",
+      "reportingManagerCode": "admin",
+      "reportingManagerName": "admin",
+      "mobileNumber": "1212341256",
+      "emailId": "user1_MD_DHANBAD256@stg.com",
+      "designation": "DEPOT_MANAGER",
+      "dateOfJoining": "23042026",
+      "dateOfRetirement": "01012036",
+      "officeType": "DO",
+      "officeCode": "ED12"
     }
   ]
 }
 ```
 
+The API derives `batchId` from `requestId`, uses `empId` as the external user id and username, and expects external dates in `ddMMyyyy` format. `sourceSystem` is optional and defaults to the configured requester-user sync source.
+
 Response:
 
 ```json
 {
-  "batchId": "HRMS-2026-06-24-0001",
+  "requestId": 6947,
+  "sourceSystem": "EXTERNAL",
+  "batchId": "6947",
   "accepted": 100,
   "rejected": 2,
   "duplicate": 1,
-  "statusUrl": "/api/integrations/requester-users/batches/HRMS-2026-06-24-0001"
+  "statusUrl": "/ext/requester-users/batches/6947"
 }
 ```
 
@@ -159,7 +166,7 @@ For failures, expose a status endpoint and optionally a callback.
 
 Suggested endpoint:
 
-`GET /api/integrations/requester-users/batches/{batchId}/failures`
+`GET /ext/requester-users/batches/{batchId}/failures`
 
 Response shape:
 
@@ -168,8 +175,8 @@ Response shape:
   "batchId": "HRMS-2026-06-24-0001",
   "failures": [
     {
-      "sourceRecordId": "12345-v3",
-      "externalUserId": "12345",
+      "requestId": 6947,
+      "empId": "user1_MD_DHANBAD",
       "requesterUserId": null,
       "ticketId": "TKT-1-202606-00001",
       "status": "PERMANENT_FAILED",

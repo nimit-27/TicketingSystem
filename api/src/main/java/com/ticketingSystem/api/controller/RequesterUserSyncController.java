@@ -22,7 +22,7 @@ public class RequesterUserSyncController {
     }
 
     @GetMapping("/batches/{batchId}/failures")
-    public ResponseEntity<RequesterUserSyncFailureResponse> getFailures(@RequestParam String sourceSystem,
+    public ResponseEntity<RequesterUserSyncFailureResponse> getFailures(@RequestParam(required = false) String sourceSystem,
                                                                         @PathVariable String batchId) {
         return ResponseEntity.ok(requesterUserSyncService.getFailures(sourceSystem, batchId));
     }

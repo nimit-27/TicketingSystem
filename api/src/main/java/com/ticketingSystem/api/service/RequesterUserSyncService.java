@@ -19,7 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +37,7 @@ public class RequesterUserSyncService {
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_RETRYABLE_FAILED = "RETRYABLE_FAILED";
     private static final String STATUS_PERMANENT_FAILED = "PERMANENT_FAILED";
+    private static final DateTimeFormatter EXTERNAL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMMyyyy");
 
     private static final List<String> FAILURE_STATUSES = List.of(
             "VALIDATION_FAILED",
@@ -53,29 +57,45 @@ public class RequesterUserSyncService {
     @Value("${app.requester-user-sync.max-retries:3}")
     private int maxRetries;
 
+    @Value("${app.requester-user-sync.default-source-system:EXTERNAL}")
+    private String defaultSourceSystem;
+
     @Transactional
     public RequesterUserSyncBatchResponse ingestBatch(RequesterUserSyncBatchRequest request) {
         int accepted = 0;
         int duplicate = 0;
         int rejected = 0;
 
-        for (RequesterUserSyncRecordRequest record : request.getRecords()) {
-            String idempotencyKey = buildIdempotencyKey(request.getSourceSystem(), request.getBatchId(), record.getSourceRecordId());
-            if (stagingRepository.existsByIdempotencyKey(idempotencyKey)) {
-                duplicate++;
-                continue;
-            }
+        String sourceSystem = resolveSourceSystem(request);
+        String batchId = String.valueOf(request.getRequestId());
 
+        for (RequesterUserSyncRecordRequest record : request.getUsers()) {
             try {
+                validate(record);
+                String empId = trim(record.getEmpId());
+                String idempotencyKey = buildIdempotencyKey(sourceSystem, batchId, empId);
+                if (stagingRepository.existsByIdempotencyKey(idempotencyKey)) {
+                    duplicate++;
+                    continue;
+                }
+
                 RequesterUserSyncStaging staging = new RequesterUserSyncStaging();
-                staging.setBatchId(request.getBatchId());
-                staging.setSourceSystem(request.getSourceSystem());
-                staging.setSourceRecordId(record.getSourceRecordId());
-                staging.setExternalUserId(record.getExternalUserId());
-                staging.setSchemaVersion(request.getSchemaVersion());
-                staging.setUsername(trim(record.getUsername()));
-                staging.setEmailId(firstNonBlank(record.getEmailId(), record.getEmail()));
-                staging.setMobileNo(firstNonBlank(record.getMobileNo(), record.getMobile()));
+                staging.setRequestId(request.getRequestId());
+                staging.setBatchId(batchId);
+                staging.setSourceSystem(sourceSystem);
+                staging.setSourceRecordId(empId);
+                staging.setExternalUserId(empId);
+                staging.setEmpId(empId);
+                staging.setUsername(empId);
+                staging.setFirstName(trim(record.getFirstName()));
+                staging.setMiddleName(trim(record.getMiddleName()));
+                staging.setLastName(trim(record.getLastName()));
+                staging.setEmailId(trim(record.getEmailId()));
+                staging.setMobileNo(trim(record.getMobileNumber()));
+                staging.setDesignation(trim(record.getDesignation()));
+                staging.setReportingManagerCode(trim(record.getReportingManagerCode()));
+                staging.setReportingManagerName(trim(record.getReportingManagerName()));
+                staging.setOfficeType(trim(record.getOfficeType()));
                 staging.setOfficeCode(trim(record.getOfficeCode()));
                 staging.setPayloadJson(objectMapper.writeValueAsString(record));
                 staging.setPayloadHash(sha256(staging.getPayloadJson()));
@@ -86,18 +106,19 @@ public class RequesterUserSyncService {
                 accepted++;
             } catch (JsonProcessingException | IllegalArgumentException ex) {
                 rejected++;
-                log.warn("Rejected requester user sync record sourceSystem={} batchId={} sourceRecordId={}: {}",
-                        request.getSourceSystem(), request.getBatchId(), record.getSourceRecordId(), ex.getMessage());
+                log.warn("Rejected requester user sync record sourceSystem={} batchId={} empId={}: {}",
+                        sourceSystem, batchId, record.getEmpId(), ex.getMessage());
             }
         }
 
         return new RequesterUserSyncBatchResponse(
-                request.getSourceSystem(),
-                request.getBatchId(),
+                request.getRequestId(),
+                sourceSystem,
+                batchId,
                 accepted,
                 duplicate,
                 rejected,
-                "/ext/requester-users/batches/" + request.getBatchId()
+                "/ext/requester-users/batches/" + batchId
         );
     }
 
@@ -117,18 +138,20 @@ public class RequesterUserSyncService {
 
     @Transactional(readOnly = true)
     public RequesterUserSyncFailureResponse getFailures(String sourceSystem, String batchId) {
+        String resolvedSourceSystem = isBlank(sourceSystem) ? defaultSourceSystem : sourceSystem.trim();
         List<RequesterUserSyncFailureDto> failures = stagingRepository
-                .findBySourceSystemAndBatchIdAndStatusIn(sourceSystem, batchId, FAILURE_STATUSES)
+                .findBySourceSystemAndBatchIdAndStatusIn(resolvedSourceSystem, batchId, FAILURE_STATUSES)
                 .stream()
                 .map(row -> new RequesterUserSyncFailureDto(
-                        row.getSourceRecordId(),
-                        row.getExternalUserId(),
+                        row.getRequestId(),
+                        row.getEmpId(),
                         row.getRequesterUserId(),
                         row.getStatus(),
                         row.getErrorCode(),
                         row.getErrorMessage()))
                 .toList();
-        return new RequesterUserSyncFailureResponse(sourceSystem, batchId, failures);
+        Long requestId = failures.isEmpty() ? null : failures.get(0).getRequestId();
+        return new RequesterUserSyncFailureResponse(resolvedSourceSystem, batchId, requestId, failures);
     }
 
     private void processRow(RequesterUserSyncStaging row) {
@@ -138,12 +161,12 @@ public class RequesterUserSyncService {
             validate(payload);
 
             Optional<RequesterUserExternalIdentity> existingIdentity = externalIdentityRepository
-                    .findBySourceSystemAndExternalUserId(row.getSourceSystem(), row.getExternalUserId());
+                    .findBySourceSystemAndExternalUserId(row.getSourceSystem(), row.getEmpId());
             RequesterUser requesterUser = existingIdentity
                     .map(RequesterUserExternalIdentity::getRequesterUser)
-                    .orElseGet(() -> requesterUserRepository.findByUsername(payload.getUsername()).orElseGet(RequesterUser::new));
+                    .orElseGet(() -> requesterUserRepository.findByUsername(payload.getEmpId()).orElseGet(RequesterUser::new));
 
-            Optional<RequesterUser> usernameOwner = requesterUserRepository.findByUsername(payload.getUsername());
+            Optional<RequesterUser> usernameOwner = requesterUserRepository.findByUsername(payload.getEmpId());
             if (usernameOwner.isPresent()
                     && requesterUser.getRequesterUserId() != null
                     && !Objects.equals(usernameOwner.get().getRequesterUserId(), requesterUser.getRequesterUserId())) {
@@ -153,7 +176,7 @@ public class RequesterUserSyncService {
 
             applyPayload(requesterUser, payload);
             RequesterUser saved = requesterUserRepository.save(requesterUser);
-            existingIdentity.orElseGet(() -> createExternalIdentity(row.getSourceSystem(), row.getExternalUserId(), saved));
+            existingIdentity.orElseGet(() -> createExternalIdentity(row.getSourceSystem(), row.getEmpId(), saved));
 
             row.setRequesterUserId(saved.getRequesterUserId());
             row.setStatus(STATUS_SUCCESS);
@@ -184,35 +207,26 @@ public class RequesterUserSyncService {
     }
 
     private void applyPayload(RequesterUser user, RequesterUserSyncRecordRequest payload) {
-        user.setUsername(trim(payload.getUsername()));
-        user.setName(firstNonBlank(payload.getName(), payload.getFullName(), buildName(payload)));
+        user.setUsername(trim(payload.getEmpId()));
+        user.setName(buildName(payload));
         user.setFirstName(trim(payload.getFirstName()));
         user.setMiddleName(trim(payload.getMiddleName()));
         user.setLastName(trim(payload.getLastName()));
-        user.setEmailId(firstNonBlank(payload.getEmailId(), payload.getEmail()));
-        user.setMobileNo(firstNonBlank(payload.getMobileNo(), payload.getMobile()));
-        user.setOffice(trim(payload.getOffice()));
-        user.setRoles(trim(payload.getRoles()));
-        user.setStakeholder(trim(payload.getStakeholder()));
-        user.setDateOfJoining(payload.getDateOfJoining());
-        user.setDateOfRetirement(payload.getDateOfRetirement());
+        user.setEmailId(trim(payload.getEmailId()));
+        user.setMobileNo(trim(payload.getMobileNumber()));
+        user.setOffice(trim(payload.getOfficeCode()));
+        user.setDateOfJoining(parseExternalDate(payload.getDateOfJoining(), "dateOfJoining"));
+        user.setDateOfRetirement(parseExternalDate(payload.getDateOfRetirement(), "dateOfRetirement"));
         user.setOfficeType(trim(payload.getOfficeType()));
         user.setOfficeCode(trim(payload.getOfficeCode()));
-        user.setZoneCode(trim(payload.getZoneCode()));
-        user.setRegionCode(trim(payload.getRegionCode()));
-        user.setDistrictCode(trim(payload.getDistrictCode()));
     }
 
     private void validate(RequesterUserSyncRecordRequest payload) {
-        if (isBlank(payload.getExternalUserId())) {
-            throw new IllegalArgumentException("externalUserId is required");
+        if (isBlank(payload.getEmpId())) {
+            throw new IllegalArgumentException("empId is required");
         }
-        if (isBlank(payload.getSourceRecordId())) {
-            throw new IllegalArgumentException("sourceRecordId is required");
-        }
-        if (isBlank(payload.getUsername())) {
-            throw new IllegalArgumentException("username is required");
-        }
+        parseExternalDate(payload.getDateOfJoining(), "dateOfJoining");
+        parseExternalDate(payload.getDateOfRetirement(), "dateOfRetirement");
     }
 
     private void markPermanentFailure(RequesterUserSyncStaging row, String code, String message) {
@@ -236,16 +250,24 @@ public class RequesterUserSyncService {
     }
 
     private String buildName(RequesterUserSyncRecordRequest payload) {
-        return String.join(" ", List.of(trim(payload.getFirstName()), trim(payload.getMiddleName()), trim(payload.getLastName()))).trim();
+        String name = String.join(" ", List.of(trim(payload.getFirstName()), trim(payload.getMiddleName()), trim(payload.getLastName()))).trim();
+        return name.isBlank() ? trim(payload.getEmpId()) : name;
     }
 
-    private String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (!isBlank(value)) {
-                return value.trim();
-            }
+    private LocalDateTime parseExternalDate(String value, String fieldName) {
+        if (isBlank(value)) {
+            return null;
         }
-        return null;
+        try {
+            LocalDate date = LocalDate.parse(value.trim(), EXTERNAL_DATE_FORMAT);
+            return date.atStartOfDay();
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(fieldName + " must use ddMMyyyy format");
+        }
+    }
+
+    private String resolveSourceSystem(RequesterUserSyncBatchRequest request) {
+        return isBlank(request.getSourceSystem()) ? defaultSourceSystem : request.getSourceSystem().trim();
     }
 
     private boolean isBlank(String value) {

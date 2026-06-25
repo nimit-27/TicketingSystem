@@ -10,5 +10,6 @@ import java.util.List;
 public class RequesterUserSyncFailureResponse {
     private String sourceSystem;
     private String batchId;
+    private Long requestId;
     private List<RequesterUserSyncFailureDto> failures;
 }

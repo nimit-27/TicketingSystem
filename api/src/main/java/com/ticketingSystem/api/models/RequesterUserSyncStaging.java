@@ -15,6 +15,9 @@ public class RequesterUserSyncStaging {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "request_id", nullable = false)
+    private Long requestId;
+
     @Column(name = "batch_id", nullable = false, length = 100)
     private String batchId;
 
@@ -27,8 +30,8 @@ public class RequesterUserSyncStaging {
     @Column(name = "external_user_id", nullable = false, length = 100)
     private String externalUserId;
 
-    @Column(name = "schema_version", length = 20)
-    private String schemaVersion;
+    @Column(name = "emp_id", nullable = false, length = 100)
+    private String empId;
 
     @Column(name = "requester_user_id", length = 100)
     private String requesterUserId;
@@ -36,11 +39,32 @@ public class RequesterUserSyncStaging {
     @Column(name = "username", length = 50)
     private String username;
 
+    @Column(name = "first_name", length = 100)
+    private String firstName;
+
+    @Column(name = "middle_name", length = 100)
+    private String middleName;
+
+    @Column(name = "last_name", length = 100)
+    private String lastName;
+
     @Column(name = "email_id", length = 100)
     private String emailId;
 
     @Column(name = "mobile_no", length = 15)
     private String mobileNo;
+
+    @Column(name = "designation", length = 100)
+    private String designation;
+
+    @Column(name = "reporting_manager_code", length = 100)
+    private String reportingManagerCode;
+
+    @Column(name = "reporting_manager_name", length = 100)
+    private String reportingManagerName;
+
+    @Column(name = "office_type", length = 20)
+    private String officeType;
 
     @Column(name = "office_code", length = 20)
     private String officeCode;

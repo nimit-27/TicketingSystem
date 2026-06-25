@@ -6,8 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class RequesterUserSyncFailureDto {
-    private String sourceRecordId;
-    private String externalUserId;
+    private Long requestId;
+    private String empId;
     private String requesterUserId;
     private String status;
     private String errorCode;

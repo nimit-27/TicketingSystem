@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class RequesterUserSyncBatchResponse {
+    private Long requestId;
     private String sourceSystem;
     private String batchId;
     private int accepted;
