@@ -13,6 +13,7 @@ import { loginUser } from "../services/AuthService";
 import { useApi } from "../hooks/useApi";
 import { LoginPayload, LoginResponse } from "../types/auth";
 import { persistLoginData, startSessionDetection } from "../utils/session";
+import { setLastLoginPortal } from "../utils/sessionPortal";
 import colors from "../themes/colors";
 import { ThemeModeContext } from "../context/ThemeContext";
 import { LanguageContext } from "../context/LanguageContext";
@@ -68,6 +69,7 @@ const LoginPage: FC = () => {
             portal: selectedPortal,
         };
 
+        setLastLoginPortal(selectedPortal);
         loginApiHandler(() => loginUser(payload));
     };
 

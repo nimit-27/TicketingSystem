@@ -48,6 +48,7 @@ public class SecurityConfig {
         }
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.exceptionHandling(handling -> handling.authenticationEntryPoint(new SessionExpiredAuthenticationEntryPoint()));
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("helpdesk/auth/login", "helpdesk/auth/logout", "helpdesk/auth/refresh",
                         "helpdesk/auth/login/sso", "helpdesk/auth/sso",

@@ -6,6 +6,7 @@ import { checkAccessMaster } from './utils/permissions';
 import { NotificationProvider } from './context/NotificationContext';
 import { DevModeContext } from './context/DevModeContext';
 import ExternalCallback from './pages/ExternalCallback';
+import SessionExpiredModal from './components/SessionExpired/SessionExpiredModal';
 
 const SidebarLayout = lazy(() => import('./components/Layout/SidebarLayout'));
 const RaiseTicket = lazy(() => import('./pages/RaiseTicket'));
@@ -64,6 +65,7 @@ const LoginRoute: React.FC = () => {
 function App() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
+      <SessionExpiredModal />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/login" element={<LoginRoute />} />
