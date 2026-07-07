@@ -121,6 +121,8 @@ export function searchTicketsPaginated(
     divisionId?: string,
     breachOption?: string,
     breachInMinutes?: number,
+    breachedOnFromDate?: string,
+    breachedOnToDate?: string,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -146,6 +148,8 @@ export function searchTicketsPaginated(
     if (divisionId) params.append('divisionId', divisionId);
     if (breachOption) params.append('breachOption', breachOption);
     if (breachInMinutes !== undefined) params.append('breachInMinutes', String(breachInMinutes));
+    if (breachedOnFromDate) params.append('breachedOnFromDate', breachedOnFromDate);
+    if (breachedOnToDate) params.append('breachedOnToDate', breachedOnToDate);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 

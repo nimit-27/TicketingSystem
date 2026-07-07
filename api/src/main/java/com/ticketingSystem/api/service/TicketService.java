@@ -499,6 +499,23 @@ public class TicketService {
         };
     }
 
+    private LocalDateTime parseDateStart(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return DateTimeUtils.parseToLocalDateTime(value).toLocalDate().atStartOfDay();
+    }
+
+    private LocalDateTime parseDateEndExclusive(String value, LocalDateTime from) {
+        if (value != null && !value.isBlank()) {
+            return DateTimeUtils.parseToLocalDateTime(value).toLocalDate().plusDays(1).atStartOfDay();
+        }
+        if (from != null) {
+            return from.toLocalDate().plusDays(1).atStartOfDay();
+        }
+        return null;
+    }
+
     private String normalizeBreachOption(String breachOption) {
         if (breachOption == null || breachOption.isBlank()) {
             return null;
@@ -515,7 +532,7 @@ public class TicketService {
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                          String breachOption, Integer breachInMinutes,
-                                         String dateParam, String fromDate, String toDate, Pageable pageable) {
+                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, Pageable pageable) {
         logger.info("TicketService.searchTickets called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, pageable.getPageNumber(), pageable.getPageSize());
 
@@ -558,6 +575,9 @@ public class TicketService {
         }
 
 
+        LocalDateTime breachedOnFrom = parseDateStart(breachedOnFromDate);
+        LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
+
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
         String normalizedBreachOption = normalizeBreachOption(breachOption);
@@ -587,6 +607,8 @@ public class TicketService {
                 normalizedDateParam,
                 from,
                 to,
+                breachedOnFrom,
+                breachedOnTo,
                 pageable
         );
         Page<TicketDto> result = page.map(this::mapWithStatusId);
@@ -599,7 +621,7 @@ public class TicketService {
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                              String breachOption, Integer breachInMinutes,
-                                             String dateParam, String fromDate, String toDate) {
+                                             String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate) {
         logger.info("TicketService.searchTicketsList called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
 
@@ -635,6 +657,9 @@ public class TicketService {
                     .atStartOfDay();
         }
 
+        LocalDateTime breachedOnFrom = parseDateStart(breachedOnFromDate);
+        LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
+
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
         String normalizedBreachOption = normalizeBreachOption(breachOption);
@@ -664,7 +689,9 @@ public class TicketService {
                         normalizedBreachInMinutes,
                         normalizedDateParam,
                         from,
-                        to)
+                        to,
+                        breachedOnFrom,
+                        breachedOnTo)
                 .stream()
                 .map(this::mapWithStatusId)
                 .toList();
