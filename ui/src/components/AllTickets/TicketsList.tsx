@@ -52,6 +52,8 @@ export interface TicketsListFilterState {
     breachOption: string;
     breachInHours: number;
     breachInMinutes: number;
+    breachedOnFromDate: string;
+    breachedOnToDate: string;
     allowedStatuses?: string[];
 }
 
@@ -83,6 +85,8 @@ export interface TicketsListSearchOverrides {
     divisionId?: string;
     breachOption?: string;
     breachInMinutes?: number;
+    breachedOnFromDate?: string;
+    breachedOnToDate?: string;
 }
 
 interface TicketsListProps {
@@ -131,6 +135,8 @@ interface PersistedTicketsListFilters {
     breachOption: string;
     breachInHours: number;
     breachInMinutes: number;
+    breachedOnFromDate: string;
+    breachedOnToDate: string;
 }
 
 const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
@@ -233,6 +239,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [breachOption, setBreachOption] = useState<string>("All");
     const [breachInHours, setBreachInHours] = useState<number>(0);
     const [breachInMinutes, setBreachInMinutes] = useState<number>(0);
+    const [breachedOnFromDate, setBreachedOnFromDate] = useState<string>("");
+    const [breachedOnToDate, setBreachedOnToDate] = useState<string>("");
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -240,6 +248,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const showStatusFilter = checkMyTicketsAccess("statusFilter", permissionPathPrefix);
     const showMasterFilterToggle = checkMyTicketsAccess("masterFilterToggle", permissionPathPrefix);
     const showGridTableViewToggle = checkMyTicketsAccess("gridTableViewToggle", permissionPathPrefix);
+    const showBreachedOnDateFilters = permissionPathPrefix === "allTickets";
 
     const statusFilterOptions: DropdownOption[] = useMemo(
         () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
@@ -343,6 +352,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setBreachOption("All");
         setBreachInHours(0);
         setBreachInMinutes(0);
+        setBreachedOnFromDate("");
+        setBreachedOnToDate("");
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -380,6 +391,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachOption,
             breachInHours,
             breachInMinutes,
+            breachedOnFromDate,
+            breachedOnToDate,
         }),
         [
             search,
@@ -402,6 +415,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachOption,
             breachInHours,
             breachInMinutes,
+            breachedOnFromDate,
+            breachedOnToDate,
         ],
     );
 
@@ -460,6 +475,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     ? computedBreachInMinutes
                     : undefined
             );
+            const breachedOnFromDateParam = mergedOverrides.breachedOnFromDate ?? (breachedOnFromDate ? `${breachedOnFromDate}T00:00:00` : undefined);
+            const breachedOnToDateParam = mergedOverrides.breachedOnToDate ?? (breachedOnToDate ? `${breachedOnToDate}T23:59:59` : undefined);
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -490,6 +507,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     divisionParam,
                     breachOptionParam,
                     breachInMinutesParam,
+                    breachedOnFromDateParam,
+                    breachedOnToDateParam,
                 )
             }
             );
@@ -515,6 +534,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachOption,
             breachInHours,
             breachInMinutes,
+            breachedOnFromDate,
+            breachedOnToDate,
             page,
             pageSize,
             sortBy,
@@ -632,6 +653,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             if (typeof parsed.breachOption === "string") setBreachOption(parsed.breachOption);
             if (typeof parsed.breachInHours === "number") setBreachInHours(parsed.breachInHours);
             if (typeof parsed.breachInMinutes === "number") setBreachInMinutes(parsed.breachInMinutes);
+            if (typeof parsed.breachedOnFromDate === "string") setBreachedOnFromDate(parsed.breachedOnFromDate);
+            if (typeof parsed.breachedOnToDate === "string") setBreachedOnToDate(parsed.breachedOnToDate);
             setPage(1);
         } catch (error) {
             console.warn("Failed to hydrate ticket list filters from sessionStorage", error);
@@ -667,6 +690,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachOption,
             breachInHours,
             breachInMinutes,
+            breachedOnFromDate,
+            breachedOnToDate,
         };
         sessionStorage.setItem(filterStorageKey, JSON.stringify(payload));
     }, [
@@ -694,6 +719,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         breachOption,
         breachInHours,
         breachInMinutes,
+        breachedOnFromDate,
+        breachedOnToDate,
     ]);
 
     useEffect(() => {
@@ -802,6 +829,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         breachOption,
         breachInHours,
         breachInMinutes,
+        breachedOnFromDate,
+        breachedOnToDate,
         allowedStatusSuccess,
         assignedBackFromFciOnly,
         filtersHydrated,
@@ -993,6 +1022,40 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                         setPage(1);
                                     }}
                                     placeholder="0"
+                                />
+                            </div>
+                        </>
+                    )}
+
+
+
+                    {/* BREACHED ON DATE RANGE */}
+                    {showBreachedOnDateFilters && (
+                        <>
+                            <div className="col-md-3 col-12">
+                                <GenericInput
+                                    className="w-100"
+                                    label="Breached On - From Date"
+                                    type="date"
+                                    value={breachedOnFromDate}
+                                    InputLabelProps={{ shrink: true }}
+                                    onChange={(e) => {
+                                        setBreachedOnFromDate(e.target.value);
+                                        setPage(1);
+                                    }}
+                                />
+                            </div>
+                            <div className="col-md-3 col-12">
+                                <GenericInput
+                                    className="w-100"
+                                    label="Breached On - To Date"
+                                    type="date"
+                                    value={breachedOnToDate}
+                                    InputLabelProps={{ shrink: true }}
+                                    onChange={(e) => {
+                                        setBreachedOnToDate(e.target.value);
+                                        setPage(1);
+                                    }}
                                 />
                             </div>
                         </>

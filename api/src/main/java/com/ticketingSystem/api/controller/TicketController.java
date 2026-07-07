@@ -262,12 +262,14 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String breachedOnFromDate,
+            @RequestParam(required = false) String breachedOnToDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
-        logger.info("Request to search tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={} sortBy={} direction={}",
-                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, page, size, sortBy, direction);
+        logger.info("Request to search tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} breachedOnFromDate={} breachedOnToDate={} page={} size={} sortBy={} direction={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, breachedOnFromDate, breachedOnToDate, page, size, sortBy, direction);
         Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
@@ -292,6 +294,8 @@ public class TicketController {
                 dateParam,
                 fromDate,
                 toDate,
+                breachedOnFromDate,
+                breachedOnToDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
         );
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
@@ -323,9 +327,11 @@ public class TicketController {
             @RequestParam(required = false) Integer breachInMinutes,
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String toDate) {
-        logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
-                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String breachedOnFromDate,
+            @RequestParam(required = false) String breachedOnToDate) {
+        logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} breachedOnFromDate={} breachedOnToDate={}",
+                query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, breachedOnFromDate, breachedOnToDate);
         List<TicketDto> results = ticketService.searchTicketsList(
                 query,
                 statusId,
@@ -349,7 +355,9 @@ public class TicketController {
                 breachInMinutes,
                 dateParam,
                 fromDate,
-                toDate
+                toDate,
+                breachedOnFromDate,
+                breachedOnToDate
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);
