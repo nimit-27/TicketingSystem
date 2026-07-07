@@ -3,6 +3,7 @@ package com.ticketingSystem.api.repository;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
 import com.ticketingSystem.api.dto.nagios.NagiosGroupedCountView;
+import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.TicketSla;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -94,4 +95,18 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             """)
     long countBreachedTicketsReportedBetween(@Param("fromDate") LocalDateTime fromDate,
                                              @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+    @Query("""
+            SELECT COUNT(sla)
+            FROM TicketSla sla
+            JOIN sla.ticket t
+            WHERE COALESCE(sla.breachedByMinutes, 0) > 0
+              AND (:fromDate IS NULL OR t.reportedDate >= :fromDate)
+              AND t.reportedDate < :toDateExclusive
+              AND t.ticketStatus IN :statuses
+            """)
+    long countBreachedTicketsByStatuses(@Param("fromDate") LocalDateTime fromDate,
+                                         @Param("toDateExclusive") LocalDateTime toDateExclusive,
+                                         @Param("statuses") List<TicketStatus> statuses);
 }
+
