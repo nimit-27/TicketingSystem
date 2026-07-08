@@ -69,7 +69,6 @@ Yes
 
 - Added UI to manage role-based notifications.
 - Added Notification Master page.
-- Added dashboard graph to fetch and display data from notification recipients.
 - Updated Change Requests page with a table listing tickets in `Change Requested` status where the CR has not yet been created.
 - Rectified notification template logic.
 
@@ -79,14 +78,12 @@ Yes
 - Built CR creation and ticket status update logic inside a transaction.
 - Added notification framework changes and notification trigger calls.
 - Added notification call for Resolved, Closed, and Assign to Requestor flows for the Requestor role.
-- Updated `notification_master` and role notification channel mapping data for ENH-48.3.
 - Added UTC audit columns in `tickets` and `status_history` tables.
 - Fixed `assignBackFromFci` not becoming true when the ticket status was `OPEN`.
 
 ### DB Changes
 
 - Created table `role_notification_channel_mapping`.
-- Updated `notification_master` seed/configuration data for ENH-48.3.
 - Seeded `role_notification_channel_mapping` for role-based notification channel preferences.
 - Added UTC columns in `tickets` and `status_history` tables.
 - Dropped redundant UTC update columns after audit column refinement.
