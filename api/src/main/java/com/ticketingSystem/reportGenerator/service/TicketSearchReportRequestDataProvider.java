@@ -53,7 +53,9 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
                 (Integer) filters.get("breachInMinutes"),
                 (String) filters.getOrDefault("dateParam", "reported_date"),
                 (String) filters.get("fromDate"),
-                (String) filters.get("toDate")
+                (String) filters.get("toDate"),
+                (String) filters.get("breachedOnFromDate"),
+                (String) filters.get("breachedOnToDate")
         );
         log.info("TicketSearchReportRequestDataProvider.fetchRows returning {} rows", results.size());
         return results;

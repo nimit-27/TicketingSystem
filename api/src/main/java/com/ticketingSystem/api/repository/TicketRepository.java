@@ -496,8 +496,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:divisionId IS NULL OR t.division = :divisionId) " +
             "AND (:breachOption IS NULL " +
-            "OR (:breachOption = 'BREACHED' AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0)) " +
-            "OR (:breachOption = 'BREACH_IN' AND :breachInMinutes IS NOT NULL AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) < 0 AND COALESCE(ts.breachedByMinutes, 0) >= (0 - :breachInMinutes)))) " +
+            "OR (:breachOption = 'BREACHED' AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0)) " +
+            "OR (:breachOption = 'BREACH_IN' AND :breachInMinutes IS NOT NULL AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) < 0 AND COALESCE(ts.breachedByMinutes, 0) >= (0 - :breachInMinutes)))) " +
             "AND ((:breachedOnFromDate IS NULL AND :breachedOnToDate IS NULL) OR EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0 AND (:breachedOnFromDate IS NULL OR ts.dueAt >= :breachedOnFromDate) AND (:breachedOnToDate IS NULL OR ts.dueAt < :breachedOnToDate))) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
@@ -555,8 +555,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND (:issueTypeId IS NULL OR t.issueTypeId = :issueTypeId) " +
             "AND (:divisionId IS NULL OR t.division = :divisionId) " +
             "AND (:breachOption IS NULL " +
-            "OR (:breachOption = 'BREACHED' AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0)) " +
-            "OR (:breachOption = 'BREACH_IN' AND :breachInMinutes IS NOT NULL AND COALESCE(it.slaFlag, false) = true AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) < 0 AND COALESCE(ts.breachedByMinutes, 0) >= (0 - :breachInMinutes)))) " +
+            "OR (:breachOption = 'BREACHED' AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0)) " +
+            "OR (:breachOption = 'BREACH_IN' AND :breachInMinutes IS NOT NULL AND EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) < 0 AND COALESCE(ts.breachedByMinutes, 0) >= (0 - :breachInMinutes)))) " +
             "AND ((:breachedOnFromDate IS NULL AND :breachedOnToDate IS NULL) OR EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0 AND (:breachedOnFromDate IS NULL OR ts.dueAt >= :breachedOnFromDate) AND (:breachedOnToDate IS NULL OR ts.dueAt < :breachedOnToDate))) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +

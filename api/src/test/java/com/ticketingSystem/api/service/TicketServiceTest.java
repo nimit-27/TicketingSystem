@@ -142,6 +142,8 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
                 any()
         )).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
@@ -197,6 +199,8 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
                 any()
         );
     }
@@ -211,6 +215,8 @@ class TicketServiceTest {
         when(userRepository.findByUsername("agentUser")).thenReturn(Optional.of(assignee));
         when(ticketRepository.searchTicketsList(
                 anyString(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -259,6 +265,8 @@ class TicketServiceTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 null
         );
 
@@ -269,6 +277,8 @@ class TicketServiceTest {
                 any(),
                 eq("agentUser"),
                 eq("agent-1"),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
