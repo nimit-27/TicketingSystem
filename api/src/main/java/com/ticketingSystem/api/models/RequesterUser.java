@@ -48,6 +48,9 @@ public class RequesterUser extends GenericUser {
     @Column(name = "district_code")
     private String districtCode;
 
+    @Column(name = "depot_code")
+    private String depotCode;
+
     @Override
     public String getGenericUserId() {
         return requesterUserId;

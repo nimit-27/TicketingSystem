@@ -50,6 +50,8 @@ public class Ticket {
     private String zoneCode;
     @Column(name = "district_code")
     private String districtCode;
+    @Column(name = "depot_code")
+    private String depotCode;
     @Column(name = "region_name")
     private String regionName;
     @Column(name = "district_name")
