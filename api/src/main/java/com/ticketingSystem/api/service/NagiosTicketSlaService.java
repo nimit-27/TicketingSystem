@@ -6,6 +6,7 @@ import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryDto;
+import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
@@ -64,6 +65,9 @@ public class NagiosTicketSlaService {
         long breachedTickets = aggregate.breachedTickets();
         long breachedTicketsInLast1Day = getBreachedTicketsCountInLastNDays(1);
         long breachedTicketsInLast3Days = getBreachedTicketsCountInLastNDays(3);
+        long breachedTicketsInLast15Days = getBreachedTicketsCountInLastNDays(15);
+        long breachedTicketsInLast30Days = getBreachedTicketsCountInLastNDays(30);
+        BreachedTicketStatusCounts statusCounts = buildBreachedTicketStatusCounts(fromDateTime, toDateExclusive);
         long nonBreachedTickets = Math.max(totalTickets - breachedTickets, 0);
 
         BigDecimal breachPercentage = calculatePercentage(breachedTickets, totalTickets);
@@ -83,6 +87,14 @@ public class NagiosTicketSlaService {
                 breachedTickets,
                 breachedTicketsInLast1Day,
                 breachedTicketsInLast3Days,
+                breachedTicketsInLast15Days,
+                breachedTicketsInLast30Days,
+                statusCounts.resolvedOrClosedBreachedTickets(),
+                statusCounts.onHoldBreachedTickets(),
+                statusCounts.pendingWithRequestorBreachedTickets(),
+                statusCounts.pendingWithFciBreachedTickets(),
+                statusCounts.pendingWithServiceProviderBreachedTickets(),
+                statusCounts.openReopenedAssignedBreachedTickets(),
                 nonBreachedTickets,
                 breachPercentage,
                 compliancePercentage,
@@ -124,6 +136,9 @@ public class NagiosTicketSlaService {
         long breachedTickets = aggregate.breachedTickets();
         long breachedTicketsInLast1Day = getBreachedTicketsCountInLastNDays(1);
         long breachedTicketsInLast3Days = getBreachedTicketsCountInLastNDays(3);
+        long breachedTicketsInLast15Days = getBreachedTicketsCountInLastNDays(15);
+        long breachedTicketsInLast30Days = getBreachedTicketsCountInLastNDays(30);
+        BreachedTicketStatusCounts statusCounts = buildBreachedTicketStatusCounts(fromDateTime, toDateExclusive);
         long nonBreachedTickets = Math.max(totalTickets - breachedTickets, 0);
 
         BigDecimal breachPercentage = calculatePercentage(breachedTickets, totalTickets);
@@ -143,6 +158,14 @@ public class NagiosTicketSlaService {
                 breachedTickets,
                 breachedTicketsInLast1Day,
                 breachedTicketsInLast3Days,
+                breachedTicketsInLast15Days,
+                breachedTicketsInLast30Days,
+                statusCounts.resolvedOrClosedBreachedTickets(),
+                statusCounts.onHoldBreachedTickets(),
+                statusCounts.pendingWithRequestorBreachedTickets(),
+                statusCounts.pendingWithFciBreachedTickets(),
+                statusCounts.pendingWithServiceProviderBreachedTickets(),
+                statusCounts.openReopenedAssignedBreachedTickets(),
                 nonBreachedTickets,
                 breachPercentage,
                 compliancePercentage,
@@ -152,6 +175,50 @@ public class NagiosTicketSlaService {
                 buildSeveritySummary(fromDateTime, toDateExclusive),
                 buildDetailedBreakdown(fromDateTime, toDateExclusive)
         );
+    }
+
+    private BreachedTicketStatusCounts buildBreachedTicketStatusCounts(LocalDateTime fromDateTime,
+                                                                       LocalDateTime toDateExclusive) {
+        return new BreachedTicketStatusCounts(
+                ticketSlaRepository.countBreachedTicketsByStatuses(
+                        fromDateTime,
+                        toDateExclusive,
+                        List.of(TicketStatus.RESOLVED, TicketStatus.CLOSED)
+                ),
+                ticketSlaRepository.countBreachedTicketsByStatuses(
+                        fromDateTime,
+                        toDateExclusive,
+                        List.of(TicketStatus.ON_HOLD)
+                ),
+                ticketSlaRepository.countBreachedTicketsByStatuses(
+                        fromDateTime,
+                        toDateExclusive,
+                        List.of(TicketStatus.PENDING_WITH_REQUESTER)
+                ),
+                ticketSlaRepository.countBreachedTicketsByStatuses(
+                        fromDateTime,
+                        toDateExclusive,
+                        List.of(TicketStatus.PENDING_WITH_FCI)
+                ),
+                ticketSlaRepository.countBreachedTicketsByStatuses(
+                        fromDateTime,
+                        toDateExclusive,
+                        List.of(TicketStatus.PENDING_WITH_SERVICE_PROVIDER)
+                ),
+                ticketSlaRepository.countBreachedTicketsByStatuses(
+                        fromDateTime,
+                        toDateExclusive,
+                        List.of(TicketStatus.OPEN, TicketStatus.REOPENED, TicketStatus.ASSIGNED)
+                )
+        );
+    }
+
+    private record BreachedTicketStatusCounts(long resolvedOrClosedBreachedTickets,
+                                              long onHoldBreachedTickets,
+                                              long pendingWithRequestorBreachedTickets,
+                                              long pendingWithFciBreachedTickets,
+                                              long pendingWithServiceProviderBreachedTickets,
+                                              long openReopenedAssignedBreachedTickets) {
     }
 
     private Map<String, Object> buildSeveritySummary(LocalDateTime fromDateTime,
