@@ -28,6 +28,7 @@ public class TicketDto {
     private String regionCode;
     private String zoneCode;
     private String districtCode;
+    private String depotCode;
     private String regionName;
     private String districtName;
     private String stakeholder;

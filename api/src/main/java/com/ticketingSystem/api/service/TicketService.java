@@ -1432,6 +1432,7 @@ public class TicketService {
             ticket.setRegionCode(firstNonBlank(ticket.getRegionCode(), requester.getRegionCode()));
             ticket.setZoneCode(firstNonBlank(ticket.getZoneCode(), requester.getZoneCode()));
             ticket.setDistrictCode(firstNonBlank(ticket.getDistrictCode(), requester.getDistrictCode()));
+            ticket.setDepotCode(firstNonBlank(ticket.getDepotCode(), requester.getDepotCode()));
         }
     }
 
