@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.dto.nagios;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,7 +12,9 @@ import java.util.Map;
 
 public record NagiosTicketSlaSummaryDto(String service,
                                         Instant generatedAt,
+                                        @JsonFormat(pattern = "dd MMM yyyy HH:mm")
                                         LocalDateTime fromDate,
+                                        @JsonFormat(pattern = "dd MMM yyyy HH:mm")
                                         LocalDateTime toDate,
                                         @JsonProperty("totalTicketsRaisedTillNow")
                                         long totalTickets,

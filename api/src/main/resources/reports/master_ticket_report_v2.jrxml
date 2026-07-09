@@ -87,7 +87,7 @@
             LEFT JOIN status_history sh
                 ON sh.ticket_id = t.ticket_id
                AND sh.`timestamp` = sh_max.max_ts
-            LEFT JOIN status_master sm ON sm.status_code = t.current
+            LEFT JOIN status_master sm ON sm.status_code = COALESCE(sh.current_status, t.status)
             WHERE 1 = 1
               AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d %H:%i:%s'))
               AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d %H:%i:%s'), INTERVAL 1 DAY))
