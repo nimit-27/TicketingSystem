@@ -3,6 +3,7 @@ package com.ticketingSystem.api.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -38,6 +39,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.headers(headers -> headers
+                .contentTypeOptions(Customizer.withDefaults())
                 .contentSecurityPolicy(csp -> csp.policyDirectives(
                         "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"))
         );
