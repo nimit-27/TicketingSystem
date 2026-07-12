@@ -26,6 +26,7 @@ public class TicketCrService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
     private static final String CHANGE_REQUESTED_STATUS_CODE = TicketStatus.CHANGE_REQUESTED.name();
     private static final String INITIAL_CR_STATUS_CODE = "CR_PENDING_APPROVAL";
+    private static final String CHANGE_REQUEST_ISSUE_TYPE_LABEL = "Change Request";
     private static final String SYSTEM_USER = "SYSTEM";
 
     private final TicketCrRepository ticketCrRepository;
@@ -39,6 +40,7 @@ public class TicketCrService {
     private final TicketCrHistoryConfigRepository ticketCrHistoryConfigRepository;
     private final TicketStatusWorkflowService ticketStatusWorkflowService;
     private final StatusHistoryService statusHistoryService;
+    private final IssueTypeRepository issueTypeRepository;
 
     public TicketCrDto create(TicketCrCreateRequestDto request) { /* unchanged */
         Ticket ticket = ticketRepository.findById(request.getTicketId()).orElseThrow(() -> new EntityNotFoundException("Ticket not found: " + request.getTicketId()));
@@ -47,6 +49,7 @@ public class TicketCrService {
         TicketCr ticketCr = new TicketCr();
         ticketCr.setTicketCrId(ticketCrIdGenerator.generateTicketCrId());
         ticketCr.setTicket(ticket); ticketCr.setStatus(status); ticketCr.setCrStatus(crStatus);
+        ensureTicketIssueTypeIsChangeRequest(ticket);
         ticketCr.setSubject(request.getSubject()); ticketCr.setDescription(request.getDescription());
         ticketCr.setRequestedBy(request.getRequestedBy()); ticketCr.setAssignedTo(request.getAssignedTo()); ticketCr.setAssignedBy(request.getAssignedBy());
         ticketCr.setRemarks(request.getRemarks()); ticketCr.setCreatedBy(request.getCreatedBy()); ticketCr.setUpdatedBy(request.getUpdatedBy());
@@ -69,6 +72,8 @@ public class TicketCrService {
         if (!CHANGE_REQUESTED_STATUS_CODE.equalsIgnoreCase(statusCode)) {
             throw new IllegalStateException("Ticket is not in Change Requested status: " + ticketId);
         }
+
+        ensureTicketIssueTypeIsChangeRequest(ticket);
 
         Optional<TicketCr> existing = ticketCrRepository.findByTicket_Id(ticketId);
         if (existing.isPresent()) {
@@ -94,6 +99,24 @@ public class TicketCrService {
         ticketCr.setCreatedBy(actor);
         ticketCr.setUpdatedBy(actor);
         return toDto(ticketCrRepository.save(ticketCr));
+    }
+
+
+    private void ensureTicketIssueTypeIsChangeRequest(Ticket ticket) {
+        if (ticket == null) {
+            return;
+        }
+
+        IssueType changeRequestIssueType = issueTypeRepository
+                .findFirstByIssueTypeLabelIgnoreCase(CHANGE_REQUEST_ISSUE_TYPE_LABEL)
+                .orElseThrow(() -> new EntityNotFoundException("Issue type not found for label: " + CHANGE_REQUEST_ISSUE_TYPE_LABEL));
+
+        if (Objects.equals(ticket.getIssueTypeId(), changeRequestIssueType.getIssueTypeId())) {
+            return;
+        }
+
+        ticket.setIssueTypeId(changeRequestIssueType.getIssueTypeId());
+        ticketRepository.save(ticket);
     }
 
     public TicketCrDto getById(String ticketCrId) { return toDto(ticketCrRepository.findById(ticketCrId).orElseThrow(() -> new EntityNotFoundException("Ticket CR not found: " + ticketCrId))); }
