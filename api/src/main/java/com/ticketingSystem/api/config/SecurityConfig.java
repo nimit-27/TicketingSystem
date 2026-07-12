@@ -19,6 +19,19 @@ import java.util.List;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+    private static final String API_CONTENT_SECURITY_POLICY = String
+            .join("; ",
+                    "defualt-src 'none'",
+                    "script-src 'none'",
+                    "style-src 'none'",
+                    "img-src 'none'",
+                    "font-src 'none'",
+                    "connect-src 'self'",
+                    "object-src 'none'",
+                    "base-uri 'none'",
+                    "form-action 'self'",
+                    "frame-ancestors 'none'"
+            );
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtProperties jwtProperties;
     private final CorsProperties corsProperties;
