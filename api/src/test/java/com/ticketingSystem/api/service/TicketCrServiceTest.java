@@ -5,12 +5,14 @@ import com.ticketingSystem.api.dto.TicketCrUpdateStatusRequestDto;
 import com.ticketingSystem.api.dto.MissingTicketCrDto;
 import com.ticketingSystem.api.models.CrStatusMaster;
 import com.ticketingSystem.api.models.Status;
+import com.ticketingSystem.api.models.IssueType;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketCr;
 import com.ticketingSystem.api.models.TicketCrHistory;
 import com.ticketingSystem.api.models.TicketCrHistoryConfig;
 import com.ticketingSystem.api.models.TicketCrStatusWorkflow;
 import com.ticketingSystem.api.repository.CrStatusMasterRepository;
+import com.ticketingSystem.api.repository.IssueTypeRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.TicketCrHistoryConfigRepository;
@@ -58,6 +60,8 @@ class TicketCrServiceTest {
     private TicketStatusWorkflowService ticketStatusWorkflowService;
     @Mock
     private StatusHistoryService statusHistoryService;
+    @Mock
+    private IssueTypeRepository issueTypeRepository;
 
     @InjectMocks
     private TicketCrService service;
@@ -130,6 +134,9 @@ class TicketCrServiceTest {
         ticket.setDescription("Needs a controlled change");
         ticket.setUserId("requester");
         ticket.setAssignedTo("engineer");
+        ticket.setIssueTypeId("1");
+        IssueType changeRequestIssueType = new IssueType();
+        changeRequestIssueType.setIssueTypeId("4");
 
         CrStatusMaster pendingApproval = crStatus("CRS-1", "CR Pending for approval", "#FFA726");
         pendingApproval.setCrStatusCode("CR_PENDING_APPROVAL");
@@ -138,6 +145,8 @@ class TicketCrServiceTest {
         when(ticketCrRepository.findByTicket_Id("TICKET-1")).thenReturn(Optional.empty());
         when(crStatusMasterRepository.findByCrStatusCodeIgnoreCase("CR_PENDING_APPROVAL"))
                 .thenReturn(Optional.of(pendingApproval));
+        when(issueTypeRepository.findFirstByIssueTypeLabelIgnoreCase("Change Request"))
+                .thenReturn(Optional.of(changeRequestIssueType));
         when(ticketCrIdGenerator.generateTicketCrId()).thenReturn("CR-1");
         when(ticketCrRepository.save(org.mockito.ArgumentMatchers.any(TicketCr.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -152,6 +161,8 @@ class TicketCrServiceTest {
         assertThat(result.getAssignedTo()).isEqualTo("engineer");
         assertThat(result.getCreatedBy()).isEqualTo("operator");
         assertThat(result.getRemarks()).isEqualTo("Please approve");
+        assertThat(ticket.getIssueTypeId()).isEqualTo("4");
+        verify(ticketRepository).save(ticket);
     }
 
     @Test
@@ -161,6 +172,9 @@ class TicketCrServiceTest {
         Ticket ticket = new Ticket();
         ticket.setId("TICKET-1");
         ticket.setStatus(changeRequested);
+        ticket.setIssueTypeId("4");
+        IssueType changeRequestIssueType = new IssueType();
+        changeRequestIssueType.setIssueTypeId("4");
 
         TicketCr existing = new TicketCr();
         existing.setTicketCrId("CR-1");
@@ -168,6 +182,8 @@ class TicketCrServiceTest {
 
         when(ticketRepository.findByIdForUpdate("TICKET-1")).thenReturn(Optional.of(ticket));
         when(ticketCrRepository.findByTicket_Id("TICKET-1")).thenReturn(Optional.of(existing));
+        when(issueTypeRepository.findFirstByIssueTypeLabelIgnoreCase("Change Request"))
+                .thenReturn(Optional.of(changeRequestIssueType));
 
         TicketCrDto result = service.createForTicketIfMissing("TICKET-1", null, "operator");
 
