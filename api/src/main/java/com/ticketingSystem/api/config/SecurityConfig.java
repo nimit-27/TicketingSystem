@@ -6,9 +6,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,16 +24,31 @@ import java.util.List;
 public class SecurityConfig {
     private static final String API_CONTENT_SECURITY_POLICY = String
             .join("; ",
-                    "defualt-src 'none'",
-                    "script-src 'none'",
-                    "style-src 'none'",
-                    "img-src 'none'",
-                    "font-src 'none'",
+                    "default-src 'none'",
                     "connect-src 'self'",
                     "object-src 'none'",
                     "base-uri 'none'",
                     "form-action 'self'",
-                    "frame-ancestors 'none'"
+                    "frame-ancestors 'self'"
+            );
+    private static final String API_PERMISSION_POLICY = String.join(", ",
+            "accelerometer=()",
+            "autoplay=()",
+            "camera=()",
+            "clipboard-read=()",
+            "clipboard-write=(self)",
+            "display-capture=()",
+            "encrypted-media=()",
+            "fullscreen=(self)",
+            "geolocation=()",
+            "gyroscope=()",
+            "magnetometer=()",
+            "microphone=()",
+            "midi=()",
+            "payment=()",
+            "picture-in-picture=()",
+            "publickey-credentials-get=()",
+            "usb=()"
             );
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtProperties jwtProperties;
@@ -49,12 +67,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(AbstractHttpConfigurer::disable);
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.headers(headers -> headers
                 .contentTypeOptions(Customizer.withDefaults())
-                .contentSecurityPolicy(csp -> csp.policyDirectives(
-                        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"))
+                .contentSecurityPolicy(csp -> csp.policyDirectives(API_CONTENT_SECURITY_POLICY))
+                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .permissionsPolicyHeader(permissions -> permissions.policy(API_PERMISSION_POLICY))
         );
 
         if (jwtProperties.isBypassEnabled()) {
