@@ -5,16 +5,14 @@ import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.LoginRequest;
 import com.ticketingSystem.api.dto.RefreshTokenRequest;
 import com.ticketingSystem.api.dto.TokenPair;
-import com.ticketingSystem.api.enums.ClientType;
 import com.ticketingSystem.api.models.SsoLoginPayload;
-import com.ticketingSystem.api.permissions.RolePermission;
 import com.ticketingSystem.api.service.AuthService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
 import com.ticketingSystem.api.service.PermissionService;
+import com.ticketingSystem.api.service.LoginPayloadService;
 import com.ticketingSystem.api.service.SsoAuthService;
 import com.ticketingSystem.api.service.TokenCookieService;
-import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -34,7 +32,7 @@ import java.util.*;
 public class AuthController {
     private final AuthService authService;
     private final PermissionService permissionService;
-    private final RoleRepository roleRepository;
+    private final LoginPayloadService loginPayloadService;
     private final JwtTokenService jwtTokenService;
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
@@ -67,37 +65,9 @@ public class AuthController {
 
         return authService.authenticate(request.getUsername(), request.getPassword(), request.getPortal())
                 .map(user -> {
-                    List<String> roles = user.getRoles() == null ? List.of()
-                            : Arrays.asList(user.getRoles().split("\\|"));
-                    List<Integer> roleIds = roles.stream()
-                            .filter(r -> !r.isBlank())
-                            .map(Integer::parseInt)
-                            .toList();
-
-                    List<String> levels = user.getUserLevel() == null || user.getUserLevel().getLevelIds() == null
-                            ? List.of()
-                            : Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
-
-                    RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
-
-                    Set<String> allowedStatusActionIds = new HashSet<>();
-                    Set<String> allowedCrStatusActionIds = new HashSet<>();
-                    roleRepository.findAllById(roleIds).forEach(r -> {
-                        if (r.getAllowedStatusActionIds() != null) {
-                            for (String s : r.getAllowedStatusActionIds().split("\\|")) {
-                                if (!s.isBlank()) {
-                                    allowedStatusActionIds.add(s.trim());
-                                }
-                            }
-                        }
-                        if (r.getAllowedCrStatusActionIds() != null) {
-                            for (String s : r.getAllowedCrStatusActionIds().split("\\|")) {
-                                if (!s.isBlank()) {
-                                    allowedCrStatusActionIds.add(s.trim());
-                                }
-                            }
-                        }
-                    });
+                    LoginPayload payload = loginPayloadService.buildPayload(user);
+                    List<String> roles = payload.getRoles();
+                    List<String> levels = payload.getLevels();
 
                     if (jwtProperties.isBypassEnabled()) {
                         session.setAttribute("userId", user.getUserId());
@@ -105,28 +75,6 @@ public class AuthController {
                         session.setAttribute("roles", user.getRoles());
                         session.setAttribute("levels", user.getUserLevel() != null ? user.getUserLevel().getLevelIds() : null);
                     }
-
-                    ClientType clientType = ClientType.INTERNAL;
-
-                    LoginPayload payload = LoginPayload.builder()
-                            .userId(user.getUserId())
-                            .name(user.getName())
-                            .firstName(user.getFirstName())
-                            .lastName(user.getLastName())
-                            .username(user.getUsername())
-                            .roles(roles)
-                            .passwordChangeRequired(user.isPasswordChangeRequired())
-                            .levels(levels)
-                            .permissions(permissions)
-                            .allowedStatusActionIds(allowedStatusActionIds)
-                            .allowedCrStatusActionIds(allowedCrStatusActionIds)
-                            .officeType(user.getOfficeType())
-                            .officeCode(user.getOfficeCode())
-                            .zoneCode(user.getZoneCode())
-                            .regionCode(user.getRegionCode())
-                            .districtCode(user.getDistrictCode())
-                            .clientType(clientType)
-                            .build();
 
                     TokenPair tokenPair = tokenPairService.issueTokens(payload);
                     tokenCookieService.addTokenCookies(response, tokenPair);
@@ -142,11 +90,13 @@ public class AuthController {
                     responseBody.put("firstName", user.getFirstName());
                     responseBody.put("lastName", user.getLastName());
                     responseBody.put("roles", roles);
+                    responseBody.put("stakeholderId", payload.getStakeholderId());
+                    responseBody.put("permissions", payload.getPermissions());
                     responseBody.put("passwordChangeRequired", user.isPasswordChangeRequired());
                     responseBody.put("permissions", permissions);
                     responseBody.put("levels", levels);
-                    responseBody.put("allowedStatusActionIds", allowedStatusActionIds);
-                    responseBody.put("allowedCrStatusActionIds", allowedCrStatusActionIds);
+                    responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+                    responseBody.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
                     responseBody.put("officeType", user.getOfficeType());
                     responseBody.put("officeCode", user.getOfficeCode());
                     responseBody.put("zoneCode", user.getZoneCode());
@@ -155,7 +105,7 @@ public class AuthController {
                     responseBody.put("zoCode", user.getZoneCode());
                     responseBody.put("roCode", user.getRegionCode());
                     responseBody.put("doCode", user.getDistrictCode());
-                    responseBody.put("clientType", clientType.name());
+                    responseBody.put("clientType", payload.getClientType() != null ? payload.getClientType().name() : null);
 
                     return ResponseEntity.ok(responseBody);
 //                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -216,6 +166,7 @@ public class AuthController {
 
         String finalRefreshToken = refreshToken;
         return jwtTokenService.parseRefreshToken(refreshToken)
+                .flatMap(loginPayloadService::hydrate)
                 .flatMap(payload -> tokenPairService.rotateUsingProvidedRefreshToken(payload, finalRefreshToken)
                         .map(tokenPair -> Map.<String, Object>of(
                                 "token", tokenPair.token(),
@@ -261,6 +212,7 @@ public class AuthController {
         responseBody.put("lastName", payload.getLastName());
         responseBody.put("username", payload.getUsername());
         responseBody.put("roles", payload.getRoles());
+        responseBody.put("stakeholderId", payload.getStakeholderId());
         responseBody.put("permissions", payload.getPermissions());
         responseBody.put("levels", payload.getLevels());
         responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
@@ -281,6 +233,7 @@ public class AuthController {
         return tokenCookieService.readAccessToken(httpRequest)
                 .map(jwtTokenService::verifyAccessToken)
                 .filter(JwtTokenService.TokenVerificationResult::valid)
-                .map(JwtTokenService.TokenVerificationResult::payload);
+                .map(JwtTokenService.TokenVerificationResult::payload)
+                .flatMap(loginPayloadService::hydrate);
     }
 }

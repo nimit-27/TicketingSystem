@@ -56,19 +56,6 @@ public class JwtTokenService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", payload.getUserId());
         claims.put("username", payload.getUsername());
-        claims.put("name", payload.getName());
-        claims.put("firstName", payload.getFirstName());
-        claims.put("lastName", payload.getLastName());
-        claims.put("roles", payload.getRoles());
-        claims.put("passwordChangeRequired", payload.isPasswordChangeRequired());
-        claims.put("levels", payload.getLevels());
-        claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
-        claims.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
-        claims.put("officeType", payload.getOfficeType());
-        claims.put("officeCode", payload.getOfficeCode());
-        claims.put("zoneCode", payload.getZoneCode());
-        claims.put("regionCode", payload.getRegionCode());
-        claims.put("districtCode", payload.getDistrictCode());
         if (payload.getClientType() != null) {
             claims.put("clientType", payload.getClientType().name());
         }
@@ -165,6 +152,7 @@ public class JwtTokenService {
                 .roles(convertList(claims.get("roles")))
                 .passwordChangeRequired(Boolean.TRUE.equals(claims.get("passwordChangeRequired", Boolean.class)))
                 .levels(convertList(claims.get("levels")))
+                .stakeholderId(claims.get("stakeholderId", String.class))
                 .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
                 .allowedCrStatusActionIds(convertSet(claims.get("allowedCrStatusActionIds")))
                 .officeType(claims.get("officeType", String.class))

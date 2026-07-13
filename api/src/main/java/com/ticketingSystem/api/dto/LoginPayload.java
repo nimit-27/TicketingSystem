@@ -25,6 +25,7 @@ public class LoginPayload {
     private List<String> roles;
     private boolean passwordChangeRequired;
     private List<String> levels;
+    private String stakeholderId;
     private RolePermission permissions;
     private Set<String> allowedStatusActionIds;
     private Set<String> allowedCrStatusActionIds;

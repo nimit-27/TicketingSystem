@@ -22,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import jakarta.validation.Valid;
 
@@ -32,7 +31,7 @@ import jakarta.validation.Valid;
 @AllArgsConstructor
 public class UserController {
     private static final int MAX_USER_LIST_PAGE_SIZE = 100;
-    private static final String USER_LIST_ACCESS = "@jwtProperties.isBypassEnabled() or @policyEvaluationService.hasResourceAccess(authentication, 'users')";
+    private static final String USER_LIST_ACCESS = "@jwtProperties.isBypassEnabled() or @policyEvaluationService.hasPolicyCodeAccess(authentication, 'USER_LIST_ACCESS')";
 
     private final UserService userService;
     private final RequesterUserService requesterUserService;
@@ -57,7 +56,6 @@ public class UserController {
             @RequestParam(required = false) String stakeholderId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        requireSearchCriteria(query, roleId, stakeholderId);
         return ResponseEntity.ok(userService.searchHelpdeskUsers(query, roleId, stakeholderId, securePageRequest(page, size)));
     }
 
@@ -88,7 +86,6 @@ public class UserController {
             @RequestParam(required = false) String districtCode,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        requireSearchCriteria(query, roleId, stakeholderId, officeCode, officeType, zoneCode, regionCode, districtCode);
         return ResponseEntity.ok(requesterUserService.searchRequesterUsers(query, roleId, stakeholderId, officeCode, officeType, zoneCode, regionCode, districtCode, securePageRequest(page, size)));
     }
 
@@ -159,7 +156,6 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
     private Pageable securePageRequest(int page, int size) {
         if (page < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page index must not be negative");
@@ -168,15 +164,6 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page size must be between 1 and " + MAX_USER_LIST_PAGE_SIZE);
         }
         return PageRequest.of(page, size);
-    }
-
-    private void requireSearchCriteria(String... criteria) {
-        boolean hasCriteria = Stream.of(criteria)
-                .anyMatch(value -> value != null && !value.trim().isEmpty());
-        if (!hasCriteria) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "At least one search or filter parameter is required");
-        }
     }
 
     @PutMapping("/{userId}/password")

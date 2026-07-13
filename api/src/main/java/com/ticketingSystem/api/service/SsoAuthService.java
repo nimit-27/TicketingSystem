@@ -4,10 +4,7 @@ import com.ticketingSystem.api.config.JwtProperties;
 import com.ticketingSystem.api.dto.AuthenticatedUser;
 import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.TokenPair;
-import com.ticketingSystem.api.enums.ClientType;
 import com.ticketingSystem.api.models.SsoLoginPayload;
-import com.ticketingSystem.api.permissions.RolePermission;
-import com.ticketingSystem.api.repository.RoleRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
@@ -17,23 +14,20 @@ import java.util.*;
 public class SsoAuthService {
     private final AuthService authService;
     private final ExternalSsoTokenService externalSsoTokenService;
-    private final PermissionService permissionService;
-    private final RoleRepository roleRepository;
+    private final LoginPayloadService loginPayloadService;
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
     private final JwtTokenService jwtTokenService;
 
     public SsoAuthService(AuthService authService,
                           ExternalSsoTokenService externalSsoTokenService,
-                          PermissionService permissionService,
-                          RoleRepository roleRepository,
+                          LoginPayloadService loginPayloadService,
                           JwtProperties jwtProperties,
                           TokenPairService tokenPairService,
                           JwtTokenService jwtTokenService) {
         this.authService = authService;
         this.externalSsoTokenService = externalSsoTokenService;
-        this.permissionService = permissionService;
-        this.roleRepository = roleRepository;
+        this.loginPayloadService = loginPayloadService;
         this.jwtProperties = jwtProperties;
         this.tokenPairService = tokenPairService;
         this.jwtTokenService = jwtTokenService;
@@ -47,37 +41,9 @@ public class SsoAuthService {
     }
 
     private Map<String, Object> buildLoginResponse(AuthenticatedUser user, HttpSession session, String externalToken) {
-        List<String> roles = user.getRoles() == null ? List.of()
-                : Arrays.asList(user.getRoles().split("\\|"));
-        List<Integer> roleIds = roles.stream()
-                .filter(r -> !r.isBlank())
-                .map(Integer::parseInt)
-                .toList();
-
-        List<String> levels = user.getUserLevel() == null || user.getUserLevel().getLevelIds() == null
-                ? List.of()
-                : Arrays.asList(user.getUserLevel().getLevelIds().split("\\|"));
-
-        RolePermission permissions = permissionService.mergeRolePermissions(roleIds);
-
-        Set<String> allowedStatusActionIds = new HashSet<>();
-        Set<String> allowedCrStatusActionIds = new HashSet<>();
-        roleRepository.findAllById(roleIds).forEach(r -> {
-            if (r.getAllowedStatusActionIds() != null) {
-                for (String s : r.getAllowedStatusActionIds().split("\\|")) {
-                    if (!s.isBlank()) {
-                        allowedStatusActionIds.add(s.trim());
-                    }
-                }
-            }
-            if (r.getAllowedCrStatusActionIds() != null) {
-                for (String s : r.getAllowedCrStatusActionIds().split("\\|")) {
-                    if (!s.isBlank()) {
-                        allowedCrStatusActionIds.add(s.trim());
-                    }
-                }
-            }
-        });
+        LoginPayload payload = loginPayloadService.buildPayload(user);
+        List<String> roles = payload.getRoles();
+        List<String> levels = payload.getLevels();
 
         if (jwtProperties.isBypassEnabled()) {
             session.setAttribute("userId", user.getUserId());
@@ -85,27 +51,6 @@ public class SsoAuthService {
             session.setAttribute("roles", user.getRoles());
             session.setAttribute("levels", user.getUserLevel() != null ? user.getUserLevel().getLevelIds() : null);
         }
-
-        ClientType clientType = ClientType.INTERNAL;
-
-        LoginPayload payload = LoginPayload.builder()
-                .userId(user.getUserId())
-                .name(user.getName())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .username(user.getUsername())
-                .roles(roles)
-                .levels(levels)
-                .permissions(permissions)
-                .allowedStatusActionIds(allowedStatusActionIds)
-                .allowedCrStatusActionIds(allowedCrStatusActionIds)
-                .officeType(user.getOfficeType())
-                .officeCode(user.getOfficeCode())
-                .zoneCode(user.getZoneCode())
-                .regionCode(user.getRegionCode())
-                .districtCode(user.getDistrictCode())
-                .clientType(clientType)
-                .build();
 
         TokenPair tokenPair = tokenPairService.issueTokens(payload);
         String accessToken = jwtTokenService.regenerateAccessToken(externalToken)
@@ -122,10 +67,11 @@ public class SsoAuthService {
         response.put("firstName", user.getFirstName());
         response.put("lastName", user.getLastName());
         response.put("roles", roles);
-        response.put("permissions", permissions);
+        response.put("stakeholderId", payload.getStakeholderId());
+        response.put("permissions", payload.getPermissions());
         response.put("levels", levels);
-        response.put("allowedStatusActionIds", allowedStatusActionIds);
-        response.put("allowedCrStatusActionIds", allowedCrStatusActionIds);
+        response.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
+        response.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
         response.put("officeType", user.getOfficeType());
         response.put("officeCode", user.getOfficeCode());
         response.put("zoneCode", user.getZoneCode());
@@ -134,7 +80,7 @@ public class SsoAuthService {
         response.put("zoCode", user.getZoneCode());
         response.put("roCode", user.getRegionCode());
         response.put("doCode", user.getDistrictCode());
-        response.put("clientType", clientType.name());
+        response.put("clientType", payload.getClientType() != null ? payload.getClientType().name() : null);
         return response;
     }
 }
