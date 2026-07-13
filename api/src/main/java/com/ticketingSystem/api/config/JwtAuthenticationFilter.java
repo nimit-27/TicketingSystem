@@ -5,6 +5,7 @@ import com.ticketingSystem.api.dto.TokenPair;
 import com.ticketingSystem.api.service.TokenCookieService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
+import com.ticketingSystem.api.service.LoginPayloadService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,15 +57,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
     private final TokenCookieService tokenCookieService;
+    private final LoginPayloadService loginPayloadService;
 
     public JwtAuthenticationFilter(JwtTokenService jwtTokenService,
                                    JwtProperties jwtProperties,
                                    TokenPairService tokenPairService,
-                                   TokenCookieService tokenCookieService) {
+                                   TokenCookieService tokenCookieService,
+                                   LoginPayloadService loginPayloadService) {
         this.jwtTokenService = jwtTokenService;
         this.jwtProperties = jwtProperties;
         this.tokenPairService = tokenPairService;
         this.tokenCookieService = tokenCookieService;
+        this.loginPayloadService = loginPayloadService;
     }
 
     @Override
@@ -82,9 +86,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null) {
             JwtTokenService.TokenVerificationResult result = jwtTokenService.verifyAccessToken(token);
             if (result.valid()) {
-                authenticate(result.payload(), request);
+                loginPayloadService.hydrate(result.payload())
+                        .ifPresent(payload -> authenticate(payload, request));
             } else if (result.expired()) {
-                handleExpiredAccessToken(result.payload(), request, response);
+                loginPayloadService.hydrate(result.payload())
+                        .ifPresent(payload -> handleExpiredAccessToken(payload, request, response));
             }
         }
 

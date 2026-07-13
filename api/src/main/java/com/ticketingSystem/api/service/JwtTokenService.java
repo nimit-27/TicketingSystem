@@ -56,18 +56,6 @@ public class JwtTokenService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", payload.getUserId());
         claims.put("username", payload.getUsername());
-        claims.put("name", payload.getName());
-        claims.put("firstName", payload.getFirstName());
-        claims.put("lastName", payload.getLastName());
-        claims.put("roles", payload.getRoles());
-        claims.put("levels", payload.getLevels());
-        claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
-        claims.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
-        claims.put("officeType", payload.getOfficeType());
-        claims.put("officeCode", payload.getOfficeCode());
-        claims.put("zoneCode", payload.getZoneCode());
-        claims.put("regionCode", payload.getRegionCode());
-        claims.put("districtCode", payload.getDistrictCode());
         if (payload.getClientType() != null) {
             claims.put("clientType", payload.getClientType().name());
         }
