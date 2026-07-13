@@ -9,9 +9,11 @@ import com.ticketingSystem.api.models.RolePolicyMap;
 import com.ticketingSystem.api.repository.PolicyRuleRepository;
 import com.ticketingSystem.api.repository.RolePolicyMapRepository;
 import com.ticketingSystem.api.repository.RoleRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PolicyEvaluationService {
@@ -67,6 +69,39 @@ public class PolicyEvaluationService {
         return hasAllow ? PolicyDecision.ALLOW : PolicyDecision.ABSTAIN;
     }
 
+    public boolean hasResourceAccess(Authentication authentication, String resource) {
+        if (authentication == null || !authentication.isAuthenticated() || resource == null || resource.isBlank()) {
+            return false;
+        }
+
+        Set<Integer> roleIds = resolveRoleIds(resolveRoleIdentifiers(authentication));
+        if (roleIds.isEmpty()) {
+            return false;
+        }
+
+        List<RolePolicyMap> mappings = rolePolicyMapRepository.findByRoleRoleIdInAndIsActiveTrue(roleIds);
+        if (mappings.isEmpty()) {
+            return false;
+        }
+
+        boolean hasAllow = false;
+        for (RolePolicyMap mapping : mappings) {
+            AccessPolicy policy = mapping.getPolicy();
+            if (policy == null || !policy.isActive() || policy.getResource() == null
+                    || !resource.equalsIgnoreCase(policy.getResource())) {
+                continue;
+            }
+
+            if ("deny".equalsIgnoreCase(policy.getEffect())) {
+                return false;
+            }
+            if ("allow".equalsIgnoreCase(policy.getEffect())) {
+                hasAllow = true;
+            }
+        }
+        return hasAllow;
+    }
+
     public List<PolicyRule> resolveScopedParams(LoginPayload authenticatedUser, Map<String, String> allParams) {
         List<String> roles = authenticatedUser.getRoles();
         List<Integer> rolesInteger = roles.stream().map(Integer::valueOf).toList();
@@ -75,6 +110,19 @@ public class PolicyEvaluationService {
         List<PolicyDto> accessPolicies = policyService.getPoliciesByPolicyIdsAndResource(policyIds, "downloads");
         List<Integer> filteredPolicyIds = accessPolicies.stream().map(PolicyDto::getPolicyId).toList();
         return policyRuleRepository.findByPolicyPolicyIdInAndIsActiveTrueOrderByPriorityAscRuleIdAsc(filteredPolicyIds);
+    }
+
+    private List<String> resolveRoleIdentifiers(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof LoginPayload loginPayload && loginPayload.getRoles() != null) {
+            return loginPayload.getRoles();
+        }
+
+        return authentication.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .filter(Objects::nonNull)
+                .map(authority -> authority.startsWith("ROLE_") ? authority.substring("ROLE_".length()) : authority)
+                .collect(Collectors.toList());
     }
 
     private boolean evaluateRule(PolicyRule rule, LoginPayload user, TicketAccessContext ticketContext) {
