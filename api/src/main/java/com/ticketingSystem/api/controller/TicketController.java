@@ -2,11 +2,13 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.exception.CustomGenericException;
+import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
+import com.ticketingSystem.api.service.RateLimiterService;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
 import com.ticketingSystem.api.service.OciUploadService;
@@ -38,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @RequestMapping("/tickets")
@@ -53,6 +57,11 @@ import jakarta.servlet.http.HttpSession;
 @AllArgsConstructor
 public class TicketController {
     private static final Logger logger = LoggerFactory.getLogger(TicketController.class);
+    /**
+     * Limit applies per authenticated user (or per ticket requester/remote IP fallback), not globally across all users.
+     */
+    private static final int CREATE_TICKET_RATE_LIMIT = 20;
+    private static final Duration CREATE_TICKET_RATE_WINDOW = Duration.ofMinutes(1);
     private final TicketService ticketService;
     private final FileStorageService fileStorageService;
     private final TicketSlaService ticketSlaService;
@@ -63,6 +72,7 @@ public class TicketController {
     private final ReportRequestHistoryRepository reportRequestHistoryRepository;
     private final ReportArtifactRepository reportArtifactRepository;
     private final OciUploadService ociUploadService;
+    private final RateLimiterService rateLimiterService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -145,10 +155,20 @@ public class TicketController {
     }
 
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<TicketDto> addTicket(
+    public ResponseEntity<?> addTicket(
             @ModelAttribute Ticket ticket,
-            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws Exception {
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments,
+            HttpServletRequest request) throws Exception {
         logger.info("Request to add a new ticket");
+        try {
+            rateLimiterService.check(createTicketRateLimitKey(request, ticket), CREATE_TICKET_RATE_LIMIT, CREATE_TICKET_RATE_WINDOW,
+                    "Too many create ticket requests. Please try again later.");
+        } catch (RateLimitExceededException ex) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                    .body(Map.of("message", ex.getMessage()));
+        }
+
         TicketDto addedTicket = ticketService.addTicket(ticket);
 
 //        MANAGING ATTACHMENTS
@@ -166,6 +186,19 @@ public class TicketController {
         }
         logger.info("Ticket {} created successfully, returning {}", addedTicket.getId(), HttpStatus.OK);
         return ResponseEntity.ok(addedTicket);
+    }
+
+    private String createTicketRateLimitKey(HttpServletRequest request, Ticket ticket) {
+        String principalName = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (principalName != null && !principalName.isBlank()) {
+            return "tickets:create:" + principalName.trim();
+        }
+        String requesterUserId = ticket != null ? ticket.getUserId() : null;
+        if (requesterUserId != null && !requesterUserId.isBlank()) {
+            return "tickets:create:user:" + requesterUserId.trim();
+        }
+        String remoteAddress = request.getRemoteAddr();
+        return "tickets:create:ip:" + (remoteAddress == null || remoteAddress.isBlank() ? "unknown" : remoteAddress.trim());
     }
 
     @PostMapping(value = "/{id}/attachments", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
