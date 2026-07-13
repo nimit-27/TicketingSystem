@@ -260,14 +260,14 @@ public class UserService {
             stakeholderGroupId = resolveStakeholderGroupId(requesterUserOptional.get().getStakeholder());
         }
 
-        if (Integer.valueOf(3).equals(stakeholderGroupId)) {
+        if (Integer.valueOf(1).equals(stakeholderGroupId)) {
             RequesterUser requesterUser = requesterUserOptional
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requester user not found"));
             return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
                     requesterUser::setPasswordChangeRequired, () -> requesterUserRepository.save(requesterUser));
         }
 
-        if (Integer.valueOf(1).equals(stakeholderGroupId)) {
+        if (Integer.valueOf(3).equals(stakeholderGroupId)) {
             User user = userOptional
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
             return new AccountTarget(user::getPassword, user::setPassword,
