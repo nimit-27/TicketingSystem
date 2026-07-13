@@ -171,6 +171,8 @@ class TicketServiceTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 PageRequest.of(0, 10)
         );
 

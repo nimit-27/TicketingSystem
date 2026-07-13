@@ -8,6 +8,7 @@ import com.ticketingSystem.api.dto.RequesterUserDto;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.service.RateLimiterService;
 import com.ticketingSystem.api.service.RequesterUserService;
 import com.ticketingSystem.api.service.UserService;
 import lombok.AllArgsConstructor;
@@ -16,9 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -26,8 +29,15 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "http://localhost:3000")
 @AllArgsConstructor
 public class UserController {
+    /**
+     * Limit applies per authenticated user (or per remote IP when unauthenticated), not globally across all users.
+     */
+    private static final int ADD_USER_RATE_LIMIT = 20;
+    private static final Duration ADD_USER_RATE_WINDOW = Duration.ofMinutes(1);
+
     private final UserService userService;
     private final RequesterUserService requesterUserService;
+    private final RateLimiterService rateLimiterService;
 
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {
@@ -110,9 +120,27 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addUser(@RequestBody User user) {
+    public ResponseEntity<?> addUser(@RequestBody User user, HttpServletRequest request) {
+        try {
+            rateLimiterService.check(addUserRateLimitKey(request), ADD_USER_RATE_LIMIT, ADD_USER_RATE_WINDOW,
+                    "Too many add user requests. Please try again later.");
+        } catch (RateLimitExceededException ex) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                    .body(Map.of("message", ex.getMessage()));
+        }
+
         User saved = userService.saveUser(user);
         return ResponseEntity.ok(java.util.Map.of("message", "User " + saved.getName() + " added successfully"));
+    }
+
+    private String addUserRateLimitKey(HttpServletRequest request) {
+        String principalName = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        String remoteAddress = request.getRemoteAddr();
+        if (principalName != null && !principalName.isBlank()) {
+            return "users:add:" + principalName.trim();
+        }
+        return "users:add:" + (remoteAddress == null || remoteAddress.isBlank() ? "unknown" : remoteAddress.trim());
     }
 
     @GetMapping("/check-username")
