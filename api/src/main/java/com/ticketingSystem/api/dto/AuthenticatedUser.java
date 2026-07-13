@@ -15,6 +15,7 @@ public class AuthenticatedUser {
     private final String firstName;
     private final String lastName;
     private final String password;
+    private final boolean passwordChangeRequired;
     private final String roles;
     private final UserLevel userLevel;
     private final String stakeholder;
@@ -32,6 +33,7 @@ public class AuthenticatedUser {
                 .firstName(null)
                 .lastName(null)
                 .password(user.getPassword())
+                .passwordChangeRequired(user.isPasswordChangeRequired())
                 .roles(user.getRoles())
                 .userLevel(user.getUserLevel())
                 .stakeholder(user.getStakeholder())
@@ -51,6 +53,7 @@ public class AuthenticatedUser {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .password(user.getPassword())
+                .passwordChangeRequired(user.isPasswordChangeRequired())
                 .roles(user.getRoles())
                 .userLevel(null)
                 .stakeholder(user.getStakeholder())

@@ -5,11 +5,13 @@ import com.ticketingSystem.api.dto.TokenPair;
 import com.ticketingSystem.api.service.TokenCookieService;
 import com.ticketingSystem.api.service.JwtTokenService;
 import com.ticketingSystem.api.service.TokenPairService;
+import com.ticketingSystem.api.service.LoginPayloadService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -56,15 +58,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProperties jwtProperties;
     private final TokenPairService tokenPairService;
     private final TokenCookieService tokenCookieService;
+    private final LoginPayloadService loginPayloadService;
 
     public JwtAuthenticationFilter(JwtTokenService jwtTokenService,
                                    JwtProperties jwtProperties,
                                    TokenPairService tokenPairService,
-                                   TokenCookieService tokenCookieService) {
+                                   TokenCookieService tokenCookieService,
+                                   LoginPayloadService loginPayloadService) {
         this.jwtTokenService = jwtTokenService;
         this.jwtProperties = jwtProperties;
         this.tokenPairService = tokenPairService;
         this.tokenCookieService = tokenCookieService;
+        this.loginPayloadService = loginPayloadService;
     }
 
     @Override
@@ -82,13 +87,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null) {
             JwtTokenService.TokenVerificationResult result = jwtTokenService.verifyAccessToken(token);
             if (result.valid()) {
+                loginPayloadService.hydrate(result.payload())
+                        .ifPresent(payload -> authenticate(payload, request));
+            } else if (result.expired()) {
+                loginPayloadService.hydrate(result.payload())
+                        .ifPresent(payload -> handleExpiredAccessToken(payload, request, response));
                 authenticate(result.payload(), request);
+                if (shouldRestrictToPasswordChange(result.payload(), request)) {
+                    rejectUntilPasswordChanged(response);
+                    return;
+                }
             } else if (result.expired()) {
                 handleExpiredAccessToken(result.payload(), request, response);
+                if (shouldRestrictToPasswordChange(result.payload(), request)) {
+                    rejectUntilPasswordChanged(response);
+                    return;
+                }
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+
+    private boolean shouldRestrictToPasswordChange(LoginPayload payload, HttpServletRequest request) {
+        if (payload == null || !payload.isPasswordChangeRequired()) {
+            return false;
+        }
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+        if ("POST".equalsIgnoreCase(method) && (path.endsWith("/auth/logout") || path.endsWith("/helpdesk/auth/logout"))) {
+            return false;
+        }
+        return !("PUT".equalsIgnoreCase(method) && path.matches(".*/users/[^/]+/password$"));
+    }
+
+    private void rejectUntilPasswordChanged(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.PRECONDITION_REQUIRED.value());
+        response.setContentType("application/json");
+        response.getWriter().write("{\"message\":\"Password change required before continuing.\",\"passwordChangeRequired\":true}");
     }
 
     private void handleExpiredAccessToken(LoginPayload payload,

@@ -28,7 +28,7 @@ class JwtTokenServiceTest {
     }
 
     @Test
-    void accessTokenRoundTripShouldPreserveClaims() {
+    void accessTokenRoundTripShouldPreserveMinimalIdentityClaims() {
         LoginPayload payload = payload();
 
         String token = service.generateAccessToken(payload);
@@ -37,8 +37,10 @@ class JwtTokenServiceTest {
         assertThat(verification.valid()).isTrue();
         assertThat(verification.expired()).isFalse();
         assertThat(verification.payload().getUsername()).isEqualTo("admin");
-        assertThat(verification.payload().getRoles()).containsExactly("ROLE_ADMIN");
-        assertThat(verification.payload().getAllowedStatusActionIds()).containsExactly("A1", "A2");
+        assertThat(verification.payload().getUserId()).isEqualTo("u1");
+        assertThat(verification.payload().getClientType()).isEqualTo(ClientType.EXTERNAL);
+        assertThat(verification.payload().getRoles()).isEmpty();
+        assertThat(verification.payload().getAllowedStatusActionIds()).isEmpty();
     }
 
     @Test
