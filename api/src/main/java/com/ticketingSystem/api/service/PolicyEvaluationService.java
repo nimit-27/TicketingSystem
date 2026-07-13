@@ -69,6 +69,39 @@ public class PolicyEvaluationService {
         return hasAllow ? PolicyDecision.ALLOW : PolicyDecision.ABSTAIN;
     }
 
+    public boolean hasPolicyCodeAccess(Authentication authentication, String policyCode) {
+        if (authentication == null || !authentication.isAuthenticated() || policyCode == null || policyCode.isBlank()) {
+            return false;
+        }
+
+        Set<Integer> roleIds = resolveRoleIds(resolveRoleIdentifiers(authentication));
+        if (roleIds.isEmpty()) {
+            return false;
+        }
+
+        List<RolePolicyMap> mappings = rolePolicyMapRepository.findByRoleRoleIdInAndIsActiveTrue(roleIds);
+        if (mappings.isEmpty()) {
+            return false;
+        }
+
+        boolean hasAllow = false;
+        for (RolePolicyMap mapping : mappings) {
+            AccessPolicy policy = mapping.getPolicy();
+            if (policy == null || !policy.isActive() || policy.getCode() == null
+                    || !policyCode.equalsIgnoreCase(policy.getCode())) {
+                continue;
+            }
+
+            if ("deny".equalsIgnoreCase(policy.getEffect())) {
+                return false;
+            }
+            if ("allow".equalsIgnoreCase(policy.getEffect())) {
+                hasAllow = true;
+            }
+        }
+        return hasAllow;
+    }
+
     public boolean hasResourceAccess(Authentication authentication, String resource) {
         if (authentication == null || !authentication.isAuthenticated() || resource == null || resource.isBlank()) {
             return false;
