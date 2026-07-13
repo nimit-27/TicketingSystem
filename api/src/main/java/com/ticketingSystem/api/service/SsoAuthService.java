@@ -67,6 +67,7 @@ public class SsoAuthService {
         response.put("firstName", user.getFirstName());
         response.put("lastName", user.getLastName());
         response.put("roles", roles);
+        response.put("stakeholderId", payload.getStakeholderId());
         response.put("permissions", payload.getPermissions());
         response.put("levels", levels);
         response.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());

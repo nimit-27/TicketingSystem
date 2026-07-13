@@ -55,6 +55,7 @@ public class LoginPayloadService {
                 .username(user.getUsername())
                 .roles(roles)
                 .levels(levels)
+                .stakeholderId(user.getStakeholder())
                 .permissions(permissions)
                 .allowedStatusActionIds(allowedStatusActionIds)
                 .allowedCrStatusActionIds(allowedCrStatusActionIds)

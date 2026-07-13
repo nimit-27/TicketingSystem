@@ -90,6 +90,7 @@ public class AuthController {
                     responseBody.put("firstName", user.getFirstName());
                     responseBody.put("lastName", user.getLastName());
                     responseBody.put("roles", roles);
+                    responseBody.put("stakeholderId", payload.getStakeholderId());
                     responseBody.put("permissions", payload.getPermissions());
                     responseBody.put("levels", levels);
                     responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
@@ -209,6 +210,7 @@ public class AuthController {
         responseBody.put("lastName", payload.getLastName());
         responseBody.put("username", payload.getUsername());
         responseBody.put("roles", payload.getRoles());
+        responseBody.put("stakeholderId", payload.getStakeholderId());
         responseBody.put("permissions", payload.getPermissions());
         responseBody.put("levels", payload.getLevels());
         responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());

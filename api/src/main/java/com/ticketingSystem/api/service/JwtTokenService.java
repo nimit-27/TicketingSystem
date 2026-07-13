@@ -151,6 +151,7 @@ public class JwtTokenService {
                 .lastName(claims.get("lastName", String.class))
                 .roles(convertList(claims.get("roles")))
                 .levels(convertList(claims.get("levels")))
+                .stakeholderId(claims.get("stakeholderId", String.class))
                 .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
                 .allowedCrStatusActionIds(convertSet(claims.get("allowedCrStatusActionIds")))
                 .officeType(claims.get("officeType", String.class))

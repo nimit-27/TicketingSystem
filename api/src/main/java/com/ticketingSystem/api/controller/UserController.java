@@ -3,6 +3,7 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.dto.ChangePasswordRequest;
 import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
+import com.ticketingSystem.api.dto.LoginPayload;
 import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.RequesterUserDto;
 import com.ticketingSystem.api.dto.UserDto;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -55,9 +57,12 @@ public class UserController {
             @RequestParam(required = false) String roleId,
             @RequestParam(required = false) String stakeholderId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        requireSearchCriteria(query, roleId, stakeholderId);
-        return ResponseEntity.ok(userService.searchHelpdeskUsers(query, roleId, stakeholderId, securePageRequest(page, size)));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal LoginPayload authenticatedUser) {
+        String resolvedRoleId = resolveRoleId(roleId, authenticatedUser);
+        String resolvedStakeholderId = resolveStakeholderId(stakeholderId, authenticatedUser);
+        requireSearchCriteria(query, resolvedRoleId, resolvedStakeholderId);
+        return ResponseEntity.ok(userService.searchHelpdeskUsers(query, resolvedRoleId, resolvedStakeholderId, securePageRequest(page, size)));
     }
 
     @GetMapping("/helpdesk/{userId}")
@@ -86,9 +91,17 @@ public class UserController {
             @RequestParam(required = false) String regionCode,
             @RequestParam(required = false) String districtCode,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        requireSearchCriteria(query, roleId, stakeholderId, officeCode, officeType, zoneCode, regionCode, districtCode);
-        return ResponseEntity.ok(requesterUserService.searchRequesterUsers(query, roleId, stakeholderId, officeCode, officeType, zoneCode, regionCode, districtCode, securePageRequest(page, size)));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal LoginPayload authenticatedUser) {
+        String resolvedRoleId = resolveRoleId(roleId, authenticatedUser);
+        String resolvedStakeholderId = resolveStakeholderId(stakeholderId, authenticatedUser);
+        String resolvedOfficeCode = resolveValue(officeCode, authenticatedUser != null ? authenticatedUser.getOfficeCode() : null);
+        String resolvedOfficeType = resolveValue(officeType, authenticatedUser != null ? authenticatedUser.getOfficeType() : null);
+        String resolvedZoneCode = resolveValue(zoneCode, authenticatedUser != null ? authenticatedUser.getZoneCode() : null);
+        String resolvedRegionCode = resolveValue(regionCode, authenticatedUser != null ? authenticatedUser.getRegionCode() : null);
+        String resolvedDistrictCode = resolveValue(districtCode, authenticatedUser != null ? authenticatedUser.getDistrictCode() : null);
+        requireSearchCriteria(query, resolvedRoleId, resolvedStakeholderId, resolvedOfficeCode, resolvedOfficeType, resolvedZoneCode, resolvedRegionCode, resolvedDistrictCode);
+        return ResponseEntity.ok(requesterUserService.searchRequesterUsers(query, resolvedRoleId, resolvedStakeholderId, resolvedOfficeCode, resolvedOfficeType, resolvedZoneCode, resolvedRegionCode, resolvedDistrictCode, securePageRequest(page, size)));
     }
 
     @GetMapping("/requesters/office-types")
@@ -113,8 +126,12 @@ public class UserController {
 
     @PostMapping("/by-roles")
     @PreAuthorize(USER_LIST_ACCESS)
-    public ResponseEntity<List<UserDto>> getUsersByRoles(@RequestBody List<String> roleIds) {
-        return ResponseEntity.ok(userService.getUsersByRoles(roleIds));
+    public ResponseEntity<List<UserDto>> getUsersByRoles(@RequestBody(required = false) List<String> roleIds,
+                                                         @AuthenticationPrincipal LoginPayload authenticatedUser) {
+        List<String> resolvedRoleIds = roleIds == null || roleIds.isEmpty()
+                ? authenticatedUser != null ? authenticatedUser.getRoles() : List.of()
+                : roleIds;
+        return ResponseEntity.ok(userService.getUsersByRoles(resolvedRoleIds));
     }
 
     @GetMapping("/{userId}")
@@ -158,6 +175,30 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    private String resolveRoleId(String requestedRoleId, LoginPayload authenticatedUser) {
+        if (hasText(requestedRoleId) || authenticatedUser == null || authenticatedUser.getRoles() == null) {
+            return requestedRoleId;
+        }
+        return authenticatedUser.getRoles().stream()
+                .filter(this::hasText)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String resolveStakeholderId(String requestedStakeholderId, LoginPayload authenticatedUser) {
+        if (hasText(requestedStakeholderId) || authenticatedUser == null) {
+            return requestedStakeholderId;
+        }
+        return authenticatedUser.getStakeholderId();
+    }
+
+    private String resolveValue(String requestedValue, String authenticatedValue) {
+        return hasText(requestedValue) ? requestedValue : authenticatedValue;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
 
     private Pageable securePageRequest(int page, int size) {
         if (page < 0) {
@@ -171,7 +212,7 @@ public class UserController {
 
     private void requireSearchCriteria(String... criteria) {
         boolean hasCriteria = Stream.of(criteria)
-                .anyMatch(value -> value != null && !value.trim().isEmpty());
+                .anyMatch(this::hasText);
         if (!hasCriteria) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "At least one search or filter parameter is required");
