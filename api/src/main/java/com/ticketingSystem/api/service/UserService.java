@@ -146,6 +146,7 @@ public class UserService {
         user.setRoles(String.join("|", roleIds));
         user.setStakeholder(String.join("|", stakeholderIds));
         user.setPassword(encodePassword(DEFAULT_PASSWORD));
+        user.setPasswordChangeRequired(true);
 
         UserLevel userLevel = new UserLevel();
         userLevel.setLevelIds(String.join("|", levelIds));
@@ -191,16 +192,8 @@ public class UserService {
         }
 
         assertNotRateLimited(userId);
-        Optional<User> userOptional = Optional.empty();
-        Optional<RequesterUser> requesterUserOptional = Optional.empty();
-
-        String stakeholderId = getUserDetails(userId).get().getStakeholderId();
-        if("1".equals(stakeholderId)) {
-            userOptional = userRepository.findById(userId);
-        } else {
-            requesterUserOptional = requesterUserRepository.findById(userId);
-        }
-
+        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<RequesterUser> requesterUserOptional = requesterUserRepository.findById(userId);
 
         if (userOptional.isEmpty() && requesterUserOptional.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -229,6 +222,30 @@ public class UserService {
         validatePasswordStrength(newPassword);
 
         target.passwordUpdater().accept(encodePassword(newPassword));
+        target.passwordChangeRequiredUpdater().accept(false);
+        target.persistAction().run();
+        passwordAttempts.remove(userId);
+    }
+
+    public void resetPassword(String userId, String newPassword) {
+        if (userId == null || userId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required");
+        }
+        String sanitized = trimToNull(newPassword);
+        if (sanitized == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password is required");
+        }
+        validatePasswordStrength(sanitized);
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        Optional<RequesterUser> requesterUserOptional = requesterUserRepository.findById(userId);
+        if (userOptional.isEmpty() && requesterUserOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        AccountTarget target = resolveAccountTarget(userOptional, requesterUserOptional);
+        target.passwordUpdater().accept(encodePassword(sanitized));
+        target.passwordChangeRequiredUpdater().accept(true);
         target.persistAction().run();
         passwordAttempts.remove(userId);
     }
@@ -247,36 +264,39 @@ public class UserService {
             RequesterUser requesterUser = requesterUserOptional
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requester user not found"));
             return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
-                    () -> requesterUserRepository.save(requesterUser));
+                    requesterUser::setPasswordChangeRequired, () -> requesterUserRepository.save(requesterUser));
         }
 
         if (Integer.valueOf(1).equals(stakeholderGroupId)) {
             User user = userOptional
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-            return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+            return new AccountTarget(user::getPassword, user::setPassword,
+                    user::setPasswordChangeRequired, () -> userRepository.save(user));
         }
 
         if (stakeholderGroupId == null) {
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+                return new AccountTarget(user::getPassword, user::setPassword,
+                    user::setPasswordChangeRequired, () -> userRepository.save(user));
             }
             if (requesterUserOptional.isPresent()) {
                 RequesterUser requesterUser = requesterUserOptional.get();
                 return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
-                        () -> requesterUserRepository.save(requesterUser));
+                        requesterUser::setPasswordChangeRequired, () -> requesterUserRepository.save(requesterUser));
             }
         }
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            return new AccountTarget(user::getPassword, user::setPassword, () -> userRepository.save(user));
+            return new AccountTarget(user::getPassword, user::setPassword,
+                    user::setPasswordChangeRequired, () -> userRepository.save(user));
         }
 
         RequesterUser requesterUser = requesterUserOptional
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return new AccountTarget(requesterUser::getPassword, requesterUser::setPassword,
-                () -> requesterUserRepository.save(requesterUser));
+                requesterUser::setPasswordChangeRequired, () -> requesterUserRepository.save(requesterUser));
     }
 
     private Integer resolveStakeholderGroupId(String stakeholderIds) {
@@ -402,6 +422,7 @@ public class UserService {
 
     private record AccountTarget(Supplier<String> currentPasswordSupplier,
                                  Consumer<String> passwordUpdater,
+                                 Consumer<Boolean> passwordChangeRequiredUpdater,
                                  Runnable persistAction) {
     }
 

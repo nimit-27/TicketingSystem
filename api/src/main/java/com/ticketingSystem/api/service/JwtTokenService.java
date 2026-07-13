@@ -60,6 +60,7 @@ public class JwtTokenService {
         claims.put("firstName", payload.getFirstName());
         claims.put("lastName", payload.getLastName());
         claims.put("roles", payload.getRoles());
+        claims.put("passwordChangeRequired", payload.isPasswordChangeRequired());
         claims.put("levels", payload.getLevels());
         claims.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
         claims.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());
@@ -162,6 +163,7 @@ public class JwtTokenService {
                 .firstName(claims.get("firstName", String.class))
                 .lastName(claims.get("lastName", String.class))
                 .roles(convertList(claims.get("roles")))
+                .passwordChangeRequired(Boolean.TRUE.equals(claims.get("passwordChangeRequired", Boolean.class)))
                 .levels(convertList(claims.get("levels")))
                 .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))
                 .allowedCrStatusActionIds(convertSet(claims.get("allowedCrStatusActionIds")))

@@ -1,6 +1,6 @@
 import React, { JSX, Suspense, lazy, useContext } from 'react';
 import './App.css';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { getUserDetails, getUserPermissions } from './utils/Utils';
 import { checkAccessMaster } from './utils/permissions';
 import { NotificationProvider } from './context/NotificationContext';
@@ -50,8 +50,12 @@ const Downloads = lazy(() => import('./pages/Downloads'));
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const user = getUserDetails();
   const perms = getUserPermissions();
+  const location = useLocation();
   if (!user?.userId || !perms) {
     return <Navigate to="/login" replace />;
+  }
+  if (user.passwordChangeRequired && location.pathname !== "/account/change-password") {
+    return <Navigate to="/account/change-password" replace />;
   }
   return children;
 };

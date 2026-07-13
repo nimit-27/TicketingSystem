@@ -115,6 +115,7 @@ public class AuthController {
                             .lastName(user.getLastName())
                             .username(user.getUsername())
                             .roles(roles)
+                            .passwordChangeRequired(user.isPasswordChangeRequired())
                             .levels(levels)
                             .permissions(permissions)
                             .allowedStatusActionIds(allowedStatusActionIds)
@@ -141,6 +142,7 @@ public class AuthController {
                     responseBody.put("firstName", user.getFirstName());
                     responseBody.put("lastName", user.getLastName());
                     responseBody.put("roles", roles);
+                    responseBody.put("passwordChangeRequired", user.isPasswordChangeRequired());
                     responseBody.put("permissions", permissions);
                     responseBody.put("levels", levels);
                     responseBody.put("allowedStatusActionIds", allowedStatusActionIds);

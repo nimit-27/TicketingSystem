@@ -25,6 +25,9 @@ public abstract class GenericUser {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "password_change_required", nullable = false)
+    private boolean passwordChangeRequired = true;
+
     private String roles;
 
     @Column(name = "stakeholder")
