@@ -131,8 +131,8 @@ public class AuthController {
                     tokenCookieService.addTokenCookies(response, tokenPair);
 
                     Map<String, Object> responseBody = new LinkedHashMap<>();
-                    responseBody.put("token", tokenPair.token());
-                    responseBody.put("refreshToken", tokenPair.refreshToken());
+//                    responseBody.put("token", tokenPair.token());
+//                    responseBody.put("refreshToken", tokenPair.refreshToken());
                     responseBody.put("expiresInMinutes", tokenPair.expiresInMinutes());
                     responseBody.put("refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes());
                     responseBody.put("userId", user.getUserId());
