@@ -92,6 +92,8 @@ public class AuthController {
                     responseBody.put("roles", roles);
                     responseBody.put("stakeholderId", payload.getStakeholderId());
                     responseBody.put("permissions", payload.getPermissions());
+                    responseBody.put("passwordChangeRequired", user.isPasswordChangeRequired());
+                    responseBody.put("permissions", permissions);
                     responseBody.put("levels", levels);
                     responseBody.put("allowedStatusActionIds", payload.getAllowedStatusActionIds());
                     responseBody.put("allowedCrStatusActionIds", payload.getAllowedCrStatusActionIds());

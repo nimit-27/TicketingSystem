@@ -150,6 +150,7 @@ public class JwtTokenService {
                 .firstName(claims.get("firstName", String.class))
                 .lastName(claims.get("lastName", String.class))
                 .roles(convertList(claims.get("roles")))
+                .passwordChangeRequired(Boolean.TRUE.equals(claims.get("passwordChangeRequired", Boolean.class)))
                 .levels(convertList(claims.get("levels")))
                 .stakeholderId(claims.get("stakeholderId", String.class))
                 .allowedStatusActionIds(convertSet(claims.get("allowedStatusActionIds")))

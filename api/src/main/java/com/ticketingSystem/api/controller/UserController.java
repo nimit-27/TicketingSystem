@@ -5,6 +5,7 @@ import com.ticketingSystem.api.dto.CreateUserRequest;
 import com.ticketingSystem.api.dto.HelpdeskUserDto;
 import com.ticketingSystem.api.dto.PaginationResponse;
 import com.ticketingSystem.api.dto.RequesterUserDto;
+import com.ticketingSystem.api.dto.ResetPasswordRequest;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.models.User;
@@ -176,6 +177,13 @@ public class UserController {
                     .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
                     .body(Map.of("message", ex.getMessage()));
         }
+    }
+
+    @PutMapping("/{userId}/password/reset")
+    public ResponseEntity<Map<String, String>> resetPassword(@PathVariable String userId,
+                                                             @Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(userId, request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
 
     @DeleteMapping("/{userId}")

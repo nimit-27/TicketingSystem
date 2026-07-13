@@ -73,6 +73,7 @@ class UserServicePasswordTest {
         User saved = captor.getValue();
         assertThat(BCrypt.checkpw("NewPass@1!", saved.getPassword())).isTrue();
         assertThat(BCrypt.checkpw("OldPass@1", saved.getPassword())).isFalse();
+        assertThat(saved.isPasswordChangeRequired()).isFalse();
     }
 
     @Test
@@ -112,6 +113,29 @@ class UserServicePasswordTest {
         RequesterUser saved = captor.getValue();
         assertThat(BCrypt.checkpw("NewPass@1!", saved.getPassword())).isTrue();
         assertThat(BCrypt.checkpw("OldPass@1", saved.getPassword())).isFalse();
+        assertThat(saved.isPasswordChangeRequired()).isFalse();
+    }
+
+
+    @Test
+    void resetPasswordMarksUserForForcedChange() {
+        User user = new User();
+        user.setUserId("user-1");
+        user.setUsername("demo");
+        user.setStakeholder("1");
+        user.setPassword(BCrypt.hashpw("OldPass@1", BCrypt.gensalt()));
+        user.setPasswordChangeRequired(false);
+
+        when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.resetPassword("user-1", "ResetPass@1");
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(captor.capture());
+        User saved = captor.getValue();
+        assertThat(BCrypt.checkpw("ResetPass@1", saved.getPassword())).isTrue();
+        assertThat(saved.isPasswordChangeRequired()).isTrue();
     }
 
     @Test

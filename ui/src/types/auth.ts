@@ -28,6 +28,7 @@ export interface UserDetails {
   zoCode?: string;
   roCode?: string;
   doCode?: string;
+  passwordChangeRequired?: boolean;
 }
 
 export interface DecodedAuthDetails {
@@ -53,6 +54,7 @@ export interface LoginResponse {
     userId?: string;
     username?: string;
     roles?: string[];
+    passwordChangeRequired?: boolean;
     levels?: string[];
     name?: string;
     allowedStatusActionIds?: string[];

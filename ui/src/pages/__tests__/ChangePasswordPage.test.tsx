@@ -32,6 +32,7 @@ jest.mock('../../config/config', () => ({
 
 jest.mock('../../utils/Utils', () => ({
   logout: () => mockLogout(),
+  setUserDetails: jest.fn(),
 }));
 
 
