@@ -23,6 +23,7 @@ public class LoginPayload {
     private String firstName;
     private String lastName;
     private List<String> roles;
+    private boolean passwordChangeRequired;
     private List<String> levels;
     private RolePermission permissions;
     private Set<String> allowedStatusActionIds;

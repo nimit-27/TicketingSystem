@@ -16,8 +16,9 @@ import GenericButton from '../components/UI/Button';
 import SuccessModal from '../components/UI/SuccessModal';
 import { changeUserPassword } from '../services/UserService';
 import { getCurrentUserDetails } from '../config/config';
-import { logout } from '../utils/Utils';
+import { logout, setUserDetails } from '../utils/Utils';
 import { useSnackbar } from '../context/SnackbarContext';
+import { useNavigate } from 'react-router-dom';
 import { LanguageContext } from '../context/LanguageContext';
 import { ThemeModeContext } from '../context/ThemeContext';
 import './ChangePasswordPage.scss';
@@ -108,6 +109,7 @@ const ChangePasswordPage: React.FC = () => {
     const theme = useTheme();
     const { t } = useTranslation();
     const { showMessage } = useSnackbar();
+    const navigate = useNavigate();
     const { toggleLanguage, language } = useContext(LanguageContext);
     const { toggle: toggleTheme, mode } = useContext(ThemeModeContext);
 
@@ -258,6 +260,9 @@ const ChangePasswordPage: React.FC = () => {
 
         try {
             await changeUserPassword(userId, { oldPassword, newPassword });
+            if (userDetails) {
+                setUserDetails({ ...userDetails, passwordChangeRequired: false });
+            }
             showMessage(t('Password changed successfully'), 'success');
             setSuccessModalOpen(true);
             setFailedAttempts(0);
@@ -347,7 +352,9 @@ const ChangePasswordPage: React.FC = () => {
                             {t('Change Password')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {t('Keep your account secure by updating your password regularly.')}
+                            {userDetails?.passwordChangeRequired
+                                ? t('You must change your password before continuing.')
+                                : t('Keep your account secure by updating your password regularly.')}
                         </Typography>
                     </div>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -555,12 +562,15 @@ const ChangePasswordPage: React.FC = () => {
                             {t('Re-login')}
                         </GenericButton>
                         <GenericButton
-                            onClick={() => setSuccessModalOpen(false)}
+                            onClick={() => {
+                                setSuccessModalOpen(false);
+                                navigate('/');
+                            }}
                             color="success"
                             variant="contained"
                             sx={{ fontWeight: 700, borderRadius: 2 }}
                         >
-                            {t('Keep me logged in')}
+                            {t('Continue')}
                         </GenericButton>
                     </>
                 )}

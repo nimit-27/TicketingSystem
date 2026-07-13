@@ -7,6 +7,7 @@ const mockUseApi = jest.fn();
 
 jest.mock('../../services/AuthService', () => ({
   loginUser: (...args: unknown[]) => mockLoginUser(...args),
+  getActiveSession: jest.fn(() => Promise.resolve({ status: 204 })),
 }));
 
 jest.mock('../../services/RoleService', () => ({

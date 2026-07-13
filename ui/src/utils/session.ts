@@ -49,7 +49,7 @@ export async function persistLoginData(
     return;
   }
 
-  const decoded = null;
+  const decoded: { user?: UserDetails } | null = null;
   const permissions: RolePermission | undefined = data.permissions;
   if (permissions) {
     setPermissions(permissions);
@@ -82,6 +82,7 @@ export async function persistLoginData(
     userId: resolvedUserId,
     username: data.username || resolvedUserId,
     role: data.roles ?? [],
+    passwordChangeRequired: Boolean(data.passwordChangeRequired),
     levels: data.levels ?? [],
     name: data.name,
     email: emailFromResponse,
@@ -119,7 +120,7 @@ export async function persistLoginData(
     console.error("Failed to load role summaries", error);
   }
 
-  navigate(redirectPath);
+  navigate(data.passwordChangeRequired ? "/account/change-password" : redirectPath);
 }
 
 export function startSessionDetection({
