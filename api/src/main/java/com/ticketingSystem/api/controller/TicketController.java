@@ -297,6 +297,8 @@ public class TicketController {
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String breachedOnFromDate,
             @RequestParam(required = false) String breachedOnToDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -329,6 +331,8 @@ public class TicketController {
                 toDate,
                 breachedOnFromDate,
                 breachedOnToDate,
+                lastModifiedStatusFromDate,
+                lastModifiedStatusToDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
         );
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
@@ -362,7 +366,9 @@ public class TicketController {
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String breachedOnFromDate,
-            @RequestParam(required = false) String breachedOnToDate) {
+            @RequestParam(required = false) String breachedOnToDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate) {
         logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} breachedOnFromDate={} breachedOnToDate={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, breachedOnFromDate, breachedOnToDate);
         List<TicketDto> results = ticketService.searchTicketsList(
@@ -390,7 +396,9 @@ public class TicketController {
                 fromDate,
                 toDate,
                 breachedOnFromDate,
-                breachedOnToDate
+                breachedOnToDate,
+                lastModifiedStatusFromDate,
+                lastModifiedStatusToDate
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);
@@ -423,6 +431,8 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(required = false) String zoneLabel,
             @RequestParam(required = false) String regionLabel,
             @RequestParam(required = false) String districtLabel,
@@ -458,6 +468,8 @@ public class TicketController {
         filters.put("dateParam", dateParam);
         filters.put("fromDate", fromDate);
         filters.put("toDate", toDate);
+        filters.put("lastModifiedStatusFromDate", lastModifiedStatusFromDate);
+        filters.put("lastModifiedStatusToDate", lastModifiedStatusToDate);
         filters.put("zoneLabel", zoneLabel);
         filters.put("regionLabel", regionLabel);
         filters.put("districtLabel", districtLabel);
@@ -499,6 +511,8 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(required = false) String zoneLabel,
             @RequestParam(required = false) String regionLabel,
             @RequestParam(required = false) String districtLabel,
@@ -534,6 +548,8 @@ public class TicketController {
         filters.put("dateParam", dateParam);
         filters.put("fromDate", fromDate);
         filters.put("toDate", toDate);
+        filters.put("lastModifiedStatusFromDate", lastModifiedStatusFromDate);
+        filters.put("lastModifiedStatusToDate", lastModifiedStatusToDate);
         filters.put("zoneLabel", zoneLabel);
         filters.put("regionLabel", regionLabel);
         filters.put("districtLabel", districtLabel);

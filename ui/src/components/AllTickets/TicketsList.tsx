@@ -54,6 +54,8 @@ export interface TicketsListFilterState {
     breachInMinutes: number;
     breachedOnFromDate: string;
     breachedOnToDate: string;
+    lastModifiedStatusFromDate: string;
+    lastModifiedStatusToDate: string;
     allowedStatuses?: string[];
 }
 
@@ -87,6 +89,8 @@ export interface TicketsListSearchOverrides {
     breachInMinutes?: number;
     breachedOnFromDate?: string;
     breachedOnToDate?: string;
+    lastModifiedStatusFromDate?: string;
+    lastModifiedStatusToDate?: string;
 }
 
 interface TicketsListProps {
@@ -137,6 +141,8 @@ interface PersistedTicketsListFilters {
     breachInMinutes: number;
     breachedOnFromDate: string;
     breachedOnToDate: string;
+    lastModifiedStatusFromDate: string;
+    lastModifiedStatusToDate: string;
 }
 
 const priorityConfig: Record<string, { color: string; count: number; label: string }> = {
@@ -241,6 +247,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [breachInMinutes, setBreachInMinutes] = useState<number>(0);
     const [breachedOnFromDate, setBreachedOnFromDate] = useState<string>("");
     const [breachedOnToDate, setBreachedOnToDate] = useState<string>("");
+    const [lastModifiedStatusFromDate, setLastModifiedStatusFromDate] = useState<string>("");
+    const [lastModifiedStatusToDate, setLastModifiedStatusToDate] = useState<string>("");
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -254,6 +262,14 @@ const TicketsList: React.FC<TicketsListProps> = ({
         () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
         [statusList],
     );
+
+    const selectedStatusLabel = useMemo(
+        () => statusFilterOptions.find((option) => option.value === statusFilter)?.label ?? "Status",
+        [statusFilterOptions, statusFilter],
+    );
+
+    const lastModifiedStatusFromLabel = statusFilter === "All" ? "Last Modified Status From Date" : `${selectedStatusLabel} On From Date`;
+    const lastModifiedStatusToLabel = statusFilter === "All" ? "Last Modified Status To Date" : `${selectedStatusLabel} On To Date`;
 
     const sortOptions: DropdownOption[] = useMemo(
         () => [
@@ -354,6 +370,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         setBreachInMinutes(0);
         setBreachedOnFromDate("");
         setBreachedOnToDate("");
+        setLastModifiedStatusFromDate("");
+        setLastModifiedStatusToDate("");
         setPage(1);
         resetSubCategories();
         loadSubCategories();
@@ -393,6 +411,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachInMinutes,
             breachedOnFromDate,
             breachedOnToDate,
+            lastModifiedStatusFromDate,
+            lastModifiedStatusToDate,
         }),
         [
             search,
@@ -417,6 +437,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachInMinutes,
             breachedOnFromDate,
             breachedOnToDate,
+            lastModifiedStatusFromDate,
+            lastModifiedStatusToDate,
         ],
     );
 
@@ -477,6 +499,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             );
             const breachedOnFromDateParam = mergedOverrides.breachedOnFromDate ?? (breachedOnFromDate ? `${breachedOnFromDate}T00:00:00` : undefined);
             const breachedOnToDateParam = mergedOverrides.breachedOnToDate ?? (breachedOnToDate ? `${breachedOnToDate}T23:59:59` : undefined);
+            const lastModifiedStatusFromDateParam = mergedOverrides.lastModifiedStatusFromDate ?? (lastModifiedStatusFromDate ? `${lastModifiedStatusFromDate}T00:00:00` : undefined);
+            const lastModifiedStatusToDateParam = mergedOverrides.lastModifiedStatusToDate ?? (lastModifiedStatusToDate ? `${lastModifiedStatusToDate}T23:59:59` : undefined);
 
             return searchTicketsPaginatedApiHandler(() => {
                 console.log({ allowedStatusSuccess })
@@ -509,6 +533,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     breachInMinutesParam,
                     breachedOnFromDateParam,
                     breachedOnToDateParam,
+                    lastModifiedStatusFromDateParam,
+                    lastModifiedStatusToDateParam,
                 )
             }
             );
@@ -536,6 +562,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachInMinutes,
             breachedOnFromDate,
             breachedOnToDate,
+            lastModifiedStatusFromDate,
+            lastModifiedStatusToDate,
             page,
             pageSize,
             sortBy,
@@ -655,6 +683,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             if (typeof parsed.breachInMinutes === "number") setBreachInMinutes(parsed.breachInMinutes);
             if (typeof parsed.breachedOnFromDate === "string") setBreachedOnFromDate(parsed.breachedOnFromDate);
             if (typeof parsed.breachedOnToDate === "string") setBreachedOnToDate(parsed.breachedOnToDate);
+            if (typeof parsed.lastModifiedStatusFromDate === "string") setLastModifiedStatusFromDate(parsed.lastModifiedStatusFromDate);
+            if (typeof parsed.lastModifiedStatusToDate === "string") setLastModifiedStatusToDate(parsed.lastModifiedStatusToDate);
             setPage(1);
         } catch (error) {
             console.warn("Failed to hydrate ticket list filters from sessionStorage", error);
@@ -692,6 +722,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachInMinutes,
             breachedOnFromDate,
             breachedOnToDate,
+            lastModifiedStatusFromDate,
+            lastModifiedStatusToDate,
         };
         sessionStorage.setItem(filterStorageKey, JSON.stringify(payload));
     }, [
@@ -721,6 +753,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         breachInMinutes,
         breachedOnFromDate,
         breachedOnToDate,
+        lastModifiedStatusFromDate,
+        lastModifiedStatusToDate,
     ]);
 
     useEffect(() => {
@@ -831,6 +865,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
         breachInMinutes,
         breachedOnFromDate,
         breachedOnToDate,
+        lastModifiedStatusFromDate,
+        lastModifiedStatusToDate,
         allowedStatusSuccess,
         assignedBackFromFciOnly,
         filtersHydrated,
@@ -896,6 +932,34 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             />
                         </div>
                     )}
+
+                    {/* LAST MODIFIED STATUS DATE RANGE */}
+                    <div className="col-md-3 col-12">
+                        <GenericInput
+                            className="w-100"
+                            label={lastModifiedStatusFromLabel}
+                            type="date"
+                            value={lastModifiedStatusFromDate}
+                            InputLabelProps={{ shrink: true }}
+                            onChange={(e) => {
+                                setLastModifiedStatusFromDate(e.target.value);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
+                    <div className="col-md-3 col-12">
+                        <GenericInput
+                            className="w-100"
+                            label={lastModifiedStatusToLabel}
+                            type="date"
+                            value={lastModifiedStatusToDate}
+                            InputLabelProps={{ shrink: true }}
+                            onChange={(e) => {
+                                setLastModifiedStatusToDate(e.target.value);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
 
                     {/* CATEGORY */}
                     <div className="col-md-3 col-12">

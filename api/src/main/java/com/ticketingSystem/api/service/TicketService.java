@@ -532,7 +532,7 @@ public class TicketService {
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                          String breachOption, Integer breachInMinutes,
-                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, Pageable pageable) {
+                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate, String lastModifiedStatusToDate, Pageable pageable) {
         logger.info("TicketService.searchTickets called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, pageable.getPageNumber(), pageable.getPageSize());
 
@@ -577,6 +577,8 @@ public class TicketService {
 
         LocalDateTime breachedOnFrom = parseDateStart(breachedOnFromDate);
         LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
+        LocalDateTime lastModifiedStatusFrom = parseDateStart(lastModifiedStatusFromDate);
+        LocalDateTime lastModifiedStatusTo = parseDateEndExclusive(lastModifiedStatusToDate, lastModifiedStatusFrom);
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
@@ -609,6 +611,8 @@ public class TicketService {
                 to,
                 breachedOnFrom,
                 breachedOnTo,
+                lastModifiedStatusFrom,
+                lastModifiedStatusTo,
                 pageable
         );
         Page<TicketDto> result = page.map(this::mapWithStatusId);
@@ -621,7 +625,7 @@ public class TicketService {
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                              String breachOption, Integer breachInMinutes,
-                                             String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate) {
+                                             String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate, String lastModifiedStatusToDate) {
         logger.info("TicketService.searchTicketsList called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
 
@@ -659,6 +663,8 @@ public class TicketService {
 
         LocalDateTime breachedOnFrom = parseDateStart(breachedOnFromDate);
         LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
+        LocalDateTime lastModifiedStatusFrom = parseDateStart(lastModifiedStatusFromDate);
+        LocalDateTime lastModifiedStatusTo = parseDateEndExclusive(lastModifiedStatusToDate, lastModifiedStatusFrom);
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
@@ -691,7 +697,9 @@ public class TicketService {
                         from,
                         to,
                         breachedOnFrom,
-                        breachedOnTo)
+                        breachedOnTo,
+                        lastModifiedStatusFrom,
+                        lastModifiedStatusTo)
                 .stream()
                 .map(this::mapWithStatusId)
                 .toList();
