@@ -146,12 +146,10 @@ public class UserController {
                     .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
                     .body(Map.of("message", ex.getMessage()));
         }
-
-    @PreAuthorize(USER_LIST_ACCESS)
-    public ResponseEntity<?> addUser(@RequestBody User user) {
         User saved = userService.saveUser(user);
         return ResponseEntity.ok(java.util.Map.of("message", "User " + saved.getName() + " added successfully"));
     }
+    
 
     private String addUserRateLimitKey(HttpServletRequest request) {
         String principalName = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
