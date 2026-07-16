@@ -7,6 +7,8 @@ SELECT
     t.requestor_name                             AS 'Requestor Name', 
     sh.remark                                    AS 'Remark',
     sh.updated_by                                AS 'Updated By',
+    t.last_modified								 AS 'Last Modified Date',
+    t.last_modified_status_date					 AS 'Last Modified Status Date',
     t.status                                      AS 'Status',
     t.subject                                    AS 'Subject', 
     t.description                                AS 'Description',
@@ -23,6 +25,7 @@ SELECT
     z.zone_name                                  AS 'Zone',
     r.region_name                                AS 'Region Name',
     r.region_code                                AS 'Region Code',
+    t.depot_code								 AS 'Depot Code',
     t.user_id                                    AS 'Requestor User Id', 
     t.requestor_email_id                         AS 'Requestor Email Id', 
     t.requestor_mobile_no                        AS 'Requestor Mobile No.',
@@ -38,6 +41,7 @@ LEFT JOIN zone_master       z   ON z.zone_code        = t.zone_code
 LEFT JOIN region_master     r   ON r.region_code      = t.region_code
 LEFT JOIN district_master   d   ON d.district_code    = t.district_code 
 LEFT JOIN division_master   dm  ON dm.division_id     = t.division
+LEFT JOIN depot_master 		de  ON de.depot_code 	  = t.depot_code
 
 /* ✅ Child ticket count per master */
 LEFT JOIN (
@@ -64,7 +68,8 @@ LEFT JOIN status_history sh
 
 LEFT JOIN status_master sm
     ON sm.status_id = sh.current_status
-
+WHERE t.last_modified_status_date >= '2026-07-12 00:00:00'
+AND t.status IN ('RESOLVED', 'CLOSED');
 -- Optional filters
 -- WHERE t.status = 'PENDING_WITH_FCI'
 -- WHERE t.status_id IN ('3')

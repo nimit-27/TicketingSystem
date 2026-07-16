@@ -57,8 +57,8 @@ public class SsoAuthService {
                 .orElse(tokenPair.token());
 
         Map<String, Object> response = new LinkedHashMap<>();
-//        response.put("token", accessToken);
-//        response.put("refreshToken", tokenPair.refreshToken());
+        response.put("token", accessToken);
+        response.put("refreshToken", tokenPair.refreshToken());
         response.put("expiresInMinutes", tokenPair.expiresInMinutes());
         response.put("refreshExpiresInMinutes", tokenPair.refreshExpiresInMinutes());
         response.put("userId", user.getUserId());
