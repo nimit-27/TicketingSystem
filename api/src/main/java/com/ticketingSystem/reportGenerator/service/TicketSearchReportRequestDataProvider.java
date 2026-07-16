@@ -55,7 +55,9 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
                 (String) filters.get("fromDate"),
                 (String) filters.get("toDate"),
                 (String) filters.get("breachedOnFromDate"),
-                (String) filters.get("breachedOnToDate")
+                (String) filters.get("breachedOnToDate"),
+                (String) filters.get("lastModifiedStatusFromDate"),
+                (String) filters.get("lastModifiedStatusToDate")
         );
         log.info("TicketSearchReportRequestDataProvider.fetchRows returning {} rows", results.size());
         return results;
