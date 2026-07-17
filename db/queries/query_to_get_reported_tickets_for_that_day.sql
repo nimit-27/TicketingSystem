@@ -74,9 +74,8 @@ LEFT JOIN status_history sh
    AND sh.`timestamp` = sh_max.max_ts
 
 LEFT JOIN status_master sm
-    ON sm.status_id = sh.current_status;
-WHERE t.last_modified_status_date >= '2026-07-15 00:00:00'
-AND t.status IN ('RESOLVED', 'CLOSED');
+    ON sm.status_id = sh.current_status
+WHERE DATE(t.reported_date) >= CURDATE();
 -- Optional filters
 -- WHERE t.status = 'PENDING_WITH_FCI'
 -- WHERE t.status_id IN ('3')
