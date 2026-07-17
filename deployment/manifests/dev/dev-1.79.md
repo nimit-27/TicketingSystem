@@ -46,8 +46,8 @@ VERSION -U
   - Details: [Base Release Details](#5-changes-included)
 
 - **UI/API Sub Version**
-  - Deployment Version: `dev-1.79.1`
-  - UI Version: `1.79.1`
+  - Deployment Version: `dev-1.79.2`
+  - UI Version: `1.79.2`
   - API Version: `1.79.8`
   - Updated Date: 17-07-2026
   - Details: [Sub Version Details](#6-sub-version-details)
@@ -136,7 +136,7 @@ Execute scripts in the order mentioned below:
 
 ## 6. Sub Version Details
 
-### UI/API Sub Version: dev-1.79.1
+### UI/API Sub Version: dev-1.79.2
 
 This subversion belongs to the `1.79` release line and is intentionally documented inside `dev-1.79.md`.
 
@@ -146,10 +146,10 @@ Environment:
 DEVELOPMENT
 
 Deployment Version:
-dev-1.79.1
+dev-1.79.2
 
 UI Version:
-1.79.1
+1.79.2
 
 API Version:
 1.79.8
@@ -173,7 +173,7 @@ VERSION -U
 
 The following subversion deployments contain the same release changes with environment-specific versions and configuration:
 
-- DEV   → deployment/manifests/dev/dev-1.79.md (sub version dev-1.79.1)
+- DEV   → deployment/manifests/dev/dev-1.79.md (sub version dev-1.79.2)
 - STG   → deployment/manifests/staging/stg-1.27.md (sub version stg-1.27.4)
 - PROD  → deployment/manifests/production/prod-1.17.md (sub version prod-1.17.1)
 
@@ -210,7 +210,6 @@ Yes
 
 ###### Access Control & Security Enhancements
 
-- Implemented input validation across API endpoints.
 - Added rate limiting to the Add User Escalation API.
 - Fixed broken access control that allowed unauthorized user enumeration via pagination.
 - Enforced strict Role-Based Access Control (RBAC) on user listing APIs.

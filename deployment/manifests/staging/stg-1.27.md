@@ -210,7 +210,6 @@ Yes
 
 ###### Access Control & Security Enhancements
 
-- Implemented input validation across API endpoints.
 - Added rate limiting to the Add User Escalation API.
 - Fixed broken access control that allowed unauthorized user enumeration via pagination.
 - Enforced strict Role-Based Access Control (RBAC) on user listing APIs.
