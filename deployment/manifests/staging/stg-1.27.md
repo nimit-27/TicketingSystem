@@ -1,21 +1,21 @@
-# Deployment Manifest: prod-1.17
+# Deployment Manifest: stg-1.27
 
 ## 1. Basic Details
 
 Environment:
-PRODUCTION
+STAGING
 
 Deployment Version:
-prod-1.17
+stg-1.27
 
 UI Version:
-1.17
+1.27.1
 
 API Version:
-1.17
+1.27.1
 
 Release Line:
-1.17
+1.27
 
 Updated Date:
 03-07-2026
@@ -33,22 +33,22 @@ VERSION -U
 
 ## 2. Version Index
 
-- **Release line:** `1.17` (PRODUCTION)
+- **Release line:** `1.27` (STAGING)
 - **Manifest purpose:** Single reference for the base release and follow-up UI/API subversions.
 
 ### Version entries
 
 - **Base Version**
-  - Deployment Version: `prod-1.17`
-  - UI Version: `1.17`
-  - API Version: `1.17`
+  - Deployment Version: `stg-1.27`
+  - UI Version: `1.27.1`
+  - API Version: `1.27.1`
   - Updated Date: 03-07-2026
   - Details: [Base Release Details](#5-changes-included)
 
 - **UI/API Sub Version**
-  - Deployment Version: `prod-1.17.1`
-  - UI Version: `1.17.1`
-  - API Version: `1.17.2`
+  - Deployment Version: `stg-1.27.4`
+  - UI Version: `1.27.4`
+  - API Version: `1.27.4`
   - Updated Date: 17-07-2026
   - Details: [Sub Version Details](#6-sub-version-details)
 
@@ -71,7 +71,7 @@ The following manifests correspond to deployments sharing the same code base and
 ### UI
 
 Image:
-bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-ui_prod_v1.17
+bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-ui_stg_v1.27.1
 
 Changed:
 Yes
@@ -79,7 +79,7 @@ Yes
 ### API
 
 Image:
-bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.17
+bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-api_stg_v1.27.1
 
 Changed:
 Yes
@@ -136,26 +136,26 @@ Execute scripts in the order mentioned below:
 
 ## 6. Sub Version Details
 
-### UI/API Sub Version: prod-1.17.1
+### UI/API Sub Version: stg-1.27.4
 
-This subversion belongs to the `1.17` release line and is intentionally documented inside `prod-1.17.md`.
+This subversion belongs to the `1.27` release line and is intentionally documented inside `stg-1.27.md`.
 
 #### Basic Details
 
 Environment:
-PRODUCTION
+STAGING
 
 Deployment Version:
-prod-1.17.1
+stg-1.27.4
 
 UI Version:
-1.17.1
+1.27.4
 
 API Version:
-1.17.2
+1.27.4
 
 Release Line:
-1.17
+1.27
 
 Updated Date:
 17-07-2026
@@ -182,7 +182,7 @@ The following subversion deployments contain the same release changes with envir
 ##### UI
 
 Image:
-bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-ui_prod_v1.17.1
+bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-ui_stg_v1.27.4
 
 Changed:
 Yes
@@ -190,7 +190,7 @@ Yes
 ##### API
 
 Image:
-bom.ocir.io/bmozxse0db74/prod_ticketing_system:ticketing-api_prod_v1.17.2
+bom.ocir.io/bmozxse0db74/stg_ticketing_system:ticketing-api_stg_v1.27.4
 
 Changed:
 Yes
