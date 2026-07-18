@@ -146,6 +146,7 @@ public class DtoMapper {
         dto.setLastModified(ticket.getLastModified());
         dto.setCreatedAtUtc(ticket.getCreatedAtUtc());
         dto.setLastModifiedUtc(ticket.getLastModifiedUtc());
+        dto.setLastModifiedStatusDate(ticket.getLastModifiedStatusDate());
         dto.setLastModifiedStatusDateUtc(ticket.getLastModifiedStatusDateUtc());
         dto.setResolvedAt(ticket.getResolvedAt());
         dto.setFeedbackStatus(ticket.getFeedbackStatus());

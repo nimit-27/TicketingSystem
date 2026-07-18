@@ -72,6 +72,8 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
         params.put("generatedOn", LocalDateTime.now().toString());
         params.put("fromDate", toNullableParam(filters.get("fromDate")));
         params.put("toDate", toNullableParam(filters.get("toDate")));
+        params.put("lastModifiedStatusFromDate", toNullableParam(filters.get("lastModifiedStatusFromDate")));
+        params.put("lastModifiedStatusToDate", toNullableParam(filters.get("lastModifiedStatusToDate")));
         params.put("fromDateLabel", formatValue(filters.get("fromDate")));
         params.put("toDateLabel", formatValue(filters.get("toDate")));
         params.put("zoneCodeLabel", preferredLabel(filters, "zoneLabel", "zoneCode"));

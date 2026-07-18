@@ -1270,6 +1270,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             divisionOptions={divisionOptions}
                             statusFilterOptions={statusFilterOptions}
                             selectedStatusFilter={statusFilter}
+                            lastModifiedStatusFromDate={lastModifiedStatusFromDate}
+                            lastModifiedStatusToDate={lastModifiedStatusToDate}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
                         />
                         <PaginationControls

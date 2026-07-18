@@ -72,6 +72,7 @@ public class TicketDto {
     private boolean isAssignedBackFromFci;
     private String masterId;
     private LocalDateTime lastModified;
+    private LocalDateTime lastModifiedStatusDate;
     private Instant createdAtUtc;
     private Instant lastModifiedUtc;
     private Instant lastModifiedStatusDateUtc;
