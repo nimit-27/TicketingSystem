@@ -29,6 +29,8 @@ interface DownloadFiltersScreenProps {
     division: string;
     assignee: string;
     status: string;
+    lastModifiedStatusFromDate: string;
+    lastModifiedStatusToDate: string;
     yearOptions: number[];
     monthOptions: Array<{ value: number; label: string }>;
     categoryOptions: DropdownOption[];
@@ -57,6 +59,8 @@ interface DownloadFiltersScreenProps {
     onDivisionChange: (division: string) => void;
     onAssigneeChange: (assignee: string) => void;
     onStatusChange: (status: string) => void;
+    onLastModifiedStatusFromDateChange: (fromDate: string) => void;
+    onLastModifiedStatusToDateChange: (toDate: string) => void;
     onFromDateChange: (fromDate: string) => void;
     onToDateChange: (toDate: string) => void;
     onApplyPresetRange: (days: number) => void;
@@ -77,6 +81,8 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     division,
     assignee,
     status,
+    lastModifiedStatusFromDate,
+    lastModifiedStatusToDate,
     yearOptions,
     monthOptions,
     categoryOptions,
@@ -105,6 +111,8 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
     onDivisionChange,
     onAssigneeChange,
     onStatusChange,
+    onLastModifiedStatusFromDateChange,
+    onLastModifiedStatusToDateChange,
     onFromDateChange,
     onToDateChange,
     onApplyPresetRange,
@@ -208,6 +216,11 @@ const DownloadFiltersScreen: React.FC<DownloadFiltersScreenProps> = ({
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField label={t('From Date')} type="date" size="small" fullWidth value={fromDate} InputLabelProps={{ shrink: true }} onChange={(e) => onFromDateChange(e.target.value)} />
                 <TextField label={t('To Date')} type="date" size="small" fullWidth value={toDate} InputLabelProps={{ shrink: true }} onChange={(e) => onToDateChange(e.target.value)} />
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField label={t('Last Modified Status From Date')} type="date" size="small" fullWidth value={lastModifiedStatusFromDate} InputLabelProps={{ shrink: true }} onChange={(e) => onLastModifiedStatusFromDateChange(e.target.value)} />
+                <TextField label={t('Last Modified Status To Date')} type="date" size="small" fullWidth value={lastModifiedStatusToDate} InputLabelProps={{ shrink: true }} onChange={(e) => onLastModifiedStatusToDateChange(e.target.value)} />
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>

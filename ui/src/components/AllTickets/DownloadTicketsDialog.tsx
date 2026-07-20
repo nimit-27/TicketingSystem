@@ -44,6 +44,8 @@ interface DownloadFilters {
     assignedToLabel?: string;
     statusId?: string;
     statusLabel?: string;
+    lastModifiedStatusFromDate?: string;
+    lastModifiedStatusToDate?: string;
     selectedColumnKeys?: string[];
 }
 
@@ -57,6 +59,8 @@ interface DownloadDialogInitialFilters {
     division: string;
     assignee: string;
     status: string;
+    lastModifiedStatusFromDate: string;
+    lastModifiedStatusToDate: string;
 }
 
 interface DownloadTicketsDialogProps {
@@ -165,6 +169,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
     const [assignee, setAssignee] = useState<string>('All');
     const [division, setDivision] = useState<string>('All');
     const [status, setStatus] = useState<string>('All');
+    const [lastModifiedStatusFromDate, setLastModifiedStatusFromDate] = useState('');
+    const [lastModifiedStatusToDate, setLastModifiedStatusToDate] = useState('');
     const [regionOptions, setRegionOptions] = useState<Array<DropdownOption & { hrmsRegCode?: string }>>([{ label: 'All', value: 'All' }]);
     const [districtOptions, setDistrictOptions] = useState<DropdownOption[]>([{ label: 'All', value: 'All' }]);
     const [regionHrmsCode, setRegionHrmsCode] = useState<string>('All');
@@ -273,6 +279,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         setDivision(initialFilters.division || 'All');
         setAssignee(initialFilters.assignee || 'All');
         setStatus(initialFilters.status || 'All');
+        setLastModifiedStatusFromDate(initialFilters.lastModifiedStatusFromDate || '');
+        setLastModifiedStatusToDate(initialFilters.lastModifiedStatusToDate || '');
         setRegionOptions([{ label: 'All', value: 'All' }]);
         setDistrictOptions([{ label: 'All', value: 'All' }]);
         setRegionHrmsCode('All');
@@ -385,6 +393,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
             assignedToLabel: assignee !== 'All' ? assignee : undefined,
             statusId: status !== 'All' ? status : undefined,
             statusLabel: status !== 'All' ? selectedStatus?.label || status : undefined,
+            lastModifiedStatusFromDate: lastModifiedStatusFromDate ? `${lastModifiedStatusFromDate} 00:00:00` : undefined,
+            lastModifiedStatusToDate: lastModifiedStatusToDate ? `${lastModifiedStatusToDate} 23:59:59` : undefined,
             selectedColumnKeys,
         });
         setGenerateMenuAnchor(null);
@@ -441,6 +451,12 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                     district !== 'All' ? district : undefined,
                     issueType !== 'All' ? issueType : undefined,
                     division !== 'All' ? division : undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    lastModifiedStatusFromDate,
+                    lastModifiedStatusToDate,
                 ));
                 setEstimatedCount(response?.totalElements ?? null);
             } catch (_) {
@@ -451,7 +467,7 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [open, fromDate, toDate, zone, region, district, issueType, division, assignee, status, category, subCategory, isRangeInvalid, estimateCountApiHandler]);
+    }, [open, fromDate, toDate, zone, region, district, issueType, division, assignee, status, category, subCategory, lastModifiedStatusFromDate, lastModifiedStatusToDate, isRangeInvalid, estimateCountApiHandler]);
     return (
         <>
             <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -472,6 +488,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             division={division}
                             assignee={assignee}
                             status={status}
+                            lastModifiedStatusFromDate={lastModifiedStatusFromDate}
+                            lastModifiedStatusToDate={lastModifiedStatusToDate}
                             yearOptions={yearOptions}
                             monthOptions={monthOptions}
                             categoryOptions={categoryOptions}
@@ -507,6 +525,8 @@ const DownloadTicketsDialog: React.FC<DownloadTicketsDialogProps> = ({
                             onAssigneeChange={setAssignee}
                             onDivisionChange={setDivision}
                             onStatusChange={setStatus}
+                            onLastModifiedStatusFromDateChange={setLastModifiedStatusFromDate}
+                            onLastModifiedStatusToDateChange={setLastModifiedStatusToDate}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
                             onApplyPresetRange={applyPresetRange}

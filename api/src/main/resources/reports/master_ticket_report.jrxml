@@ -2,12 +2,14 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-              name="Master_Ticket_Report" pageWidth="2400" pageHeight="1000" orientation="Landscape" columnWidth="2320"
+              name="Master_Ticket_Report" pageWidth="2550" pageHeight="1000" orientation="Landscape" columnWidth="2470"
               leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 
 
     <parameter name="fromDate" class="java.lang.String"/>
     <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="lastModifiedStatusFromDate" class="java.lang.String"/>
+    <parameter name="lastModifiedStatusToDate" class="java.lang.String"/>
     <parameter name="categoryId" class="java.lang.String"/>
     <parameter name="subCategoryId" class="java.lang.String"/>
     <parameter name="zoneCode" class="java.lang.String"/>
@@ -28,6 +30,7 @@
                     COALESCE(ct.child_ticket_count, 0)                   AS childTicketCount,
 
                     t.reported_date                                       AS reportedDate,
+                    t.last_modified_status_date                          AS lastModifiedStatusDate,
 
                     COALESCE(NULLIF(t.requestor_name, ''), '-')          AS requestorName,
                     COALESCE(NULLIF(sh.remark, ''), '-')                 AS remark,
@@ -88,6 +91,8 @@
             WHERE 1 = 1
               AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d %H:%i:%s'))
               AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d %H:%i:%s'), INTERVAL 1 DAY))
+              AND ($P{lastModifiedStatusFromDate} IS NULL OR t.last_modified_status_date >= STR_TO_DATE($P{lastModifiedStatusFromDate}, '%Y-%m-%d %H:%i:%s'))
+              AND ($P{lastModifiedStatusToDate} IS NULL OR t.last_modified_status_date <= STR_TO_DATE($P{lastModifiedStatusToDate}, '%Y-%m-%d %H:%i:%s'))
               AND ($P{categoryId} IS NULL OR t.category = $P{categoryId})
               AND ($P{subCategoryId} IS NULL OR t.sub_category = $P{subCategoryId})
               AND ($P{zoneCode} IS NULL OR t.zone_code = $P{zoneCode})
@@ -107,6 +112,7 @@
     <field name="isMaster" class="java.lang.Integer"/>
     <field name="childTicketCount" class="java.lang.Integer"/>
     <field name="reportedDate" class="java.sql.Timestamp"/>
+    <field name="lastModifiedStatusDate" class="java.sql.Timestamp"/>
     <field name="requestorName" class="java.lang.String"/>
     <field name="remark" class="java.lang.String"/>
     <field name="updatedBy" class="java.lang.String"/>
@@ -158,6 +164,7 @@
             <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2130" y="0" width="60" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Severity]]></text></staticText>
             <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2190" y="0" width="60" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Priority]]></text></staticText>
             <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2250" y="0" width="70" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Assignee]]></text></staticText>
+            <staticText><reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Opaque" x="2320" y="0" width="150" height="24" backcolor="#ADACAC"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="11" isBold="true"/></textElement><text><![CDATA[Last Modified Status Date]]></text></staticText>
         </band>
     </columnHeader>
 
@@ -184,6 +191,7 @@
             <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2130" y="0" width="60" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{severity}]]></textFieldExpression></textField>
             <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2190" y="0" width="60" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{priority}]]></textFieldExpression></textField>
             <textField isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2250" y="0" width="70" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{assignedToName}]]></textFieldExpression></textField>
+            <textField pattern="yyyy-MM-dd HH:mm:ss" isStretchWithOverflow="true"><reportElement positionType="Float" stretchType="RelativeToTallestObject" x="2320" y="0" width="150" height="32"/><box><topPen lineWidth="0.75"/><leftPen lineWidth="0.75"/><bottomPen lineWidth="0.75"/><rightPen lineWidth="0.75"/></box><textElement textAlignment="Center" verticalAlignment="Middle"><font size="10"/></textElement><textFieldExpression><![CDATA[$F{lastModifiedStatusDate}]]></textFieldExpression></textField>
         </band>
     </detail>
 </jasperReport>

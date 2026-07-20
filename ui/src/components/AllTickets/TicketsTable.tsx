@@ -99,6 +99,8 @@ interface TicketsTableProps {
     selectedAssignee?: string;
     statusFilterOptions?: DropdownOption[];
     selectedStatusFilter?: string;
+    lastModifiedStatusFromDate?: string;
+    lastModifiedStatusToDate?: string;
     divisionOptions?: DropdownOption[];
 }
 
@@ -204,7 +206,7 @@ const areEqualVisibilityMaps = (left: Record<string, boolean>, right: Record<str
 
 const DEFAULT_HIDDEN_COLUMN_KEYS = new Set(['zoneName', 'districtName', 'regionName']);
 
-const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedDivision = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All', statusFilterOptions = [{ label: 'All', value: 'All' }], selectedStatusFilter = 'All', divisionOptions = [{ label: 'All', value: 'All' }] }) => {
+const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowClick, searchCurrentTicketsPaginatedApi, refreshingTicketId, statusWorkflows, onRecommendEscalation, showSeverityColumn = false, onRcaClick, permissionPathPrefix = 'myTickets', handleFeedback, issueTypeFilterLabel, zoneOptions = [], issueTypeOptions = [], selectedZone = 'All', selectedRegion = 'All', selectedDistrict = 'All', selectedIssueType = 'All', selectedDivision = 'All', selectedCategory = 'All', selectedSubCategory = 'All', selectedAssignee = 'All', statusFilterOptions = [{ label: 'All', value: 'All' }], selectedStatusFilter = 'All', lastModifiedStatusFromDate = '', lastModifiedStatusToDate = '', divisionOptions = [{ label: 'All', value: 'All' }] }) => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();
@@ -342,8 +344,10 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
             division: selectedDivision,
             assignee: selectedAssignee,
             status: selectedStatusFilter,
+            lastModifiedStatusFromDate,
+            lastModifiedStatusToDate,
         }),
-        [selectedAssignee, selectedCategory, selectedDistrict, selectedDivision, selectedIssueType, selectedRegion, selectedStatusFilter, selectedSubCategory, selectedZone],
+        [lastModifiedStatusFromDate, lastModifiedStatusToDate, selectedAssignee, selectedCategory, selectedDistrict, selectedDivision, selectedIssueType, selectedRegion, selectedStatusFilter, selectedSubCategory, selectedZone],
     );
 
     const handleActionClick = (wf: TicketStatusWorkflow, ticketId: string) => {
@@ -617,6 +621,8 @@ const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onIdClick, onRowCl
                 statusLabel: filters.statusLabel,
                 assignedTo: filters.assignedTo,
                 statusId: filters.statusId,
+                lastModifiedStatusFromDate: filters.lastModifiedStatusFromDate,
+                lastModifiedStatusToDate: filters.lastModifiedStatusToDate,
                 requestedBy: getCurrentUserDetails()?.userId,
                 signal: controller.signal,
             }));
