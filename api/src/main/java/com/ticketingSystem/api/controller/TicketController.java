@@ -305,7 +305,7 @@ public class TicketController {
             @RequestParam(defaultValue = "ASC") String direction) {
         logger.info("Request to search tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} breachedOnFromDate={} breachedOnToDate={} page={} size={} sortBy={} direction={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, breachedOnFromDate, breachedOnToDate, page, size, sortBy, direction);
-        Page<TicketDto> p = ticketService.searchTickets(
+                Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
                 master,
