@@ -1,7 +1,8 @@
 -- What-if SLA breach report for MySQL Workbench
 -- This script creates a session-local TEMPORARY table, returns summary + detail result sets,
 -- then drops the TEMPORARY table. It does not change application data.
--- Purpose: calculate SLA outcomes for every ticket as if every issue_type_master.sla_flag were TRUE.
+-- Purpose: calculate SLA outcomes for every ticket as if every issue_type_master.sla_flag were TRUE,
+-- while also showing the currently stored ticket_sla breach values.
 --
 -- Notes:
 --   * This is a read-only report query; it does not update ticket_sla or issue_type_master.
@@ -40,7 +41,16 @@ ticket_base AS (
         COALESCE(itm.sla_flag, 0) AS current_issue_type_sla_flag,
         t.severity,
         sc.sla_id,
-        COALESCE(sc.resolution_minutes, 0) AS allowed_resolution_minutes
+        COALESCE(sc.resolution_minutes, 0) AS allowed_resolution_minutes,
+        ts.ticket_sla_id AS current_ticket_sla_id,
+        ts.sla_id AS current_ticket_sla_config_id,
+        ts.resolution_time_minutes AS current_resolution_minutes,
+        ts.elapsed_time_minutes AS current_elapsed_minutes,
+        ts.response_time_minutes AS current_response_minutes,
+        ts.idle_time_minutes AS current_idle_minutes,
+        ts.breached_by_minutes AS current_breached_by_minutes,
+        ts.breached_by_minutes AS current_is_breached_by_minutes,
+        CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN 1 ELSE 0 END AS currently_breached
     FROM tickets t
     CROSS JOIN params p
     LEFT JOIN issue_type_master itm
@@ -50,6 +60,8 @@ ticket_base AS (
             WHEN t.severity REGEXP 'S[0-9]+' THEN REGEXP_SUBSTR(t.severity, 'S[0-9]+')
             ELSE t.severity
         END
+    LEFT JOIN ticket_sla ts
+        ON ts.ticket_id = t.ticket_id
     WHERE t.reported_date IS NOT NULL
       AND t.master_id IS NULL
       AND sc.sla_id IS NOT NULL
@@ -203,6 +215,15 @@ what_if AS (
         tb.severity,
         tb.sla_id,
         tb.allowed_resolution_minutes,
+        tb.current_ticket_sla_id,
+        tb.current_ticket_sla_config_id,
+        tb.current_response_minutes,
+        tb.current_resolution_minutes,
+        tb.current_elapsed_minutes,
+        tb.current_idle_minutes,
+        tb.current_breached_by_minutes,
+        tb.current_is_breached_by_minutes,
+        tb.currently_breached,
         COALESCE(rm.what_if_response_minutes, 0) AS what_if_response_minutes,
         pth.what_if_resolution_minutes,
         pth.what_if_idle_minutes,
@@ -221,7 +242,9 @@ SELECT
     COUNT(*) AS total_tickets_checked,
     SUM(would_breach_if_issue_type_sla_true) AS tickets_that_would_breach,
     SUM(CASE WHEN current_issue_type_sla_flag = 0 AND would_breach_if_issue_type_sla_true = 1 THEN 1 ELSE 0 END) AS currently_sla_disabled_tickets_that_would_breach,
-    SUM(CASE WHEN current_issue_type_sla_flag = 1 AND would_breach_if_issue_type_sla_true = 1 THEN 1 ELSE 0 END) AS currently_sla_enabled_tickets_that_would_breach
+    SUM(CASE WHEN current_issue_type_sla_flag = 1 AND would_breach_if_issue_type_sla_true = 1 THEN 1 ELSE 0 END) AS currently_sla_enabled_tickets_that_would_breach,
+    SUM(currently_breached) AS tickets_currently_breached_from_ticket_sla,
+    SUM(CASE WHEN currently_breached = 0 AND would_breach_if_issue_type_sla_true = 1 THEN 1 ELSE 0 END) AS additional_tickets_that_would_breach
 FROM tmp_sla_what_if_all_issue_types;
 
 -- Result set 2: per-ticket details.
