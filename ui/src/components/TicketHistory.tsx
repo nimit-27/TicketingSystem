@@ -5,12 +5,13 @@ import { useApi } from '../hooks/useApi';
 import { getTicketHistory } from '../services/TicketService';
 
 type TicketHistoryEntry = {
-  historyId: number;
+  ticketHistoryId: number;
   displayLabel?: string;
   oldValue?: string;
   newValue?: string;
-  changedBy?: string;
-  changedOn?: string;
+  updatedBy?: string;
+  updatedOn?: string;
+  updatedOnUtc?: string;
   remarks?: string;
 };
 
@@ -46,15 +47,15 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
       width: '15%',
       render: (_: unknown, row: TicketHistoryEntry) => (
         <Box sx={{ color: 'text.secondary' }}>
-          <Typography variant="body2">{row.changedBy || '-'}</Typography>
-          <Typography variant="caption">{formatDateTime(row.changedOn)}</Typography>
+          <Typography variant="body2">{row.updatedBy || '-'}</Typography>
+          <Typography variant="caption">{formatDateTime(row.updatedOnUtc || row.updatedOn)}</Typography>
         </Box>
       ),
     },
-    { title: 'What Changed', dataIndex: 'displayLabel', key: 'displayLabel', width: '15%', render: (v: string) => v || '-' },
+    { title: 'What Updated', dataIndex: 'displayLabel', key: 'displayLabel', width: '15%', render: (v: string) => v || '-' },
     {
-      title: 'Change',
-      key: 'change',
+      title: 'Update',
+      key: 'update',
       width: '40%',
       render: (_: unknown, row: TicketHistoryEntry) => {
         const oldText = row.oldValue || '-';
@@ -72,9 +73,9 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
 
   return (
     <>
-      <GenericTable rowKey={(row: TicketHistoryEntry) => row.historyId} dataSource={rows} columns={columns as any} pagination={false} />
+      <GenericTable rowKey={(row: TicketHistoryEntry) => row.ticketHistoryId} dataSource={rows} columns={columns as any} pagination={false} />
       <Dialog open={Boolean(selected)} onClose={() => setSelected(null)} fullWidth maxWidth="md">
-        <DialogTitle>History Change Detail</DialogTitle>
+        <DialogTitle>History Update Detail</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Box sx={{ flex: 1 }}>

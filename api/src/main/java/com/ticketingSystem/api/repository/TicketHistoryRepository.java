@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface TicketHistoryRepository extends JpaRepository<TicketHistory, Long> {
-    List<TicketHistory> findByTicketIdOrderByChangedOnDesc(String ticketId);
-    List<TicketHistory> findByTicketIdAndChangeTypeCodeOrderByChangedOnDesc(String ticketId, String changeTypeCode);
+    List<TicketHistory> findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(String ticketId);
+    List<TicketHistory> findByTicketIdAndUpdateTypeCodeOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(String ticketId, String updateTypeCode);
+    boolean existsBySourceTableAndSourceHistoryIdAndSourceColumnName(String sourceTable, String sourceHistoryId, String sourceColumnName);
 }

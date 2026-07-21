@@ -318,6 +318,6 @@ export function searchTicketsForExport({
 }
 
 
-export function getTicketHistory(id: string, changeTypeCode?: string) {
-    return axios.get(`${BASE_URL}/tickets/${id}/history`, { params: changeTypeCode ? { changeTypeCode } : undefined });
+export function getTicketHistory(id: string, updateTypeCode?: string) {
+    return axios.get(`${BASE_URL}/tickets/${id}/history`, { params: updateTypeCode ? { updateTypeCode } : undefined });
 }

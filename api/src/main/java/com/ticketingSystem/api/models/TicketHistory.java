@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,11 +14,11 @@ import java.time.LocalDateTime;
 public class TicketHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "history_id")
-    private Long historyId;
+    @Column(name = "ticket_history_id")
+    private Long ticketHistoryId;
 
-    @Column(name = "change_group_id", nullable = false)
-    private String changeGroupId;
+    @Column(name = "update_group_id", nullable = false)
+    private String updateGroupId;
 
     @Column(name = "ticket_id", nullable = false)
     private String ticketId;
@@ -25,8 +26,8 @@ public class TicketHistory {
     @Column(name = "column_name", nullable = false)
     private String columnName;
 
-    @Column(name = "change_type_code", nullable = false)
-    private String changeTypeCode;
+    @Column(name = "update_type_code", nullable = false)
+    private String updateTypeCode;
 
     @Column(name = "display_label", nullable = false)
     private String displayLabel;
@@ -37,12 +38,24 @@ public class TicketHistory {
     @Column(name = "new_value", columnDefinition = "TEXT")
     private String newValue;
 
-    @Column(name = "changed_by", nullable = false)
-    private String changedBy;
+    @Column(name = "updated_by", nullable = false)
+    private String updatedBy;
 
-    @Column(name = "changed_on", insertable = false, updatable = false)
-    private LocalDateTime changedOn;
+    @Column(name = "updated_on")
+    private LocalDateTime updatedOn;
+
+    @Column(name = "updated_on_utc")
+    private Instant updatedOnUtc;
 
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
+
+    @Column(name = "source_table")
+    private String sourceTable;
+
+    @Column(name = "source_history_id")
+    private String sourceHistoryId;
+
+    @Column(name = "source_column_name")
+    private String sourceColumnName;
 }

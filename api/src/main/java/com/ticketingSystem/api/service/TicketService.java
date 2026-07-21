@@ -985,14 +985,14 @@ public class TicketService {
         return mapWithStatusId(saved);
     }
 
-    public List<TicketHistoryDto> getHistoryByTicketId(String ticketId, String changeTypeCode) {
-        List<TicketHistory> history = (changeTypeCode == null || changeTypeCode.isBlank())
-                ? ticketHistoryRepository.findByTicketIdOrderByChangedOnDesc(ticketId)
-                : ticketHistoryRepository.findByTicketIdAndChangeTypeCodeOrderByChangedOnDesc(ticketId, changeTypeCode);
+    public List<TicketHistoryDto> getHistoryByTicketId(String ticketId, String updateTypeCode) {
+        List<TicketHistory> history = (updateTypeCode == null || updateTypeCode.isBlank())
+                ? ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(ticketId)
+                : ticketHistoryRepository.findByTicketIdAndUpdateTypeCodeOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(ticketId, updateTypeCode);
         return history.stream().map(this::toTicketHistoryDto).toList();
     }
 
-    private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String changedBy, String remark) {
+    private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
         List<TicketHistoryConfig> configs = ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets");
         List<TicketHistory> rows = new ArrayList<>();
         String groupId = UUID.randomUUID().toString();
@@ -1001,14 +1001,17 @@ public class TicketService {
             String newValue = getTicketColumnValue(newRecord, config.getColumnName());
             if (Objects.equals(oldValue, newValue)) continue;
             TicketHistory row = new TicketHistory();
-            row.setChangeGroupId(groupId);
+            row.setUpdateGroupId(groupId);
             row.setTicketId(newRecord.getId());
             row.setColumnName(config.getColumnName());
-            row.setChangeTypeCode(config.getChangeTypeCode());
+            row.setUpdateTypeCode(config.getUpdateTypeCode());
             row.setDisplayLabel(config.getDisplayLabel());
             row.setOldValue(oldValue);
             row.setNewValue(newValue);
-            row.setChangedBy((changedBy == null || changedBy.isBlank()) ? "SYSTEM" : changedBy);
+            row.setUpdatedBy((updatedBy == null || updatedBy.isBlank()) ? "SYSTEM" : updatedBy);
+            Instant updatedInstant = Instant.now();
+            row.setUpdatedOn(LocalDateTime.ofInstant(updatedInstant, BUSINESS_ZONE));
+            row.setUpdatedOnUtc(updatedInstant);
             row.setRemarks(remark);
             rows.add(row);
         }
@@ -1082,16 +1085,17 @@ public class TicketService {
 
     private TicketHistoryDto toTicketHistoryDto(TicketHistory h) {
         TicketHistoryDto d = new TicketHistoryDto();
-        d.setHistoryId(h.getHistoryId());
-        d.setChangeGroupId(h.getChangeGroupId());
+        d.setTicketHistoryId(h.getTicketHistoryId());
+        d.setUpdateGroupId(h.getUpdateGroupId());
         d.setTicketId(h.getTicketId());
         d.setColumnName(h.getColumnName());
-        d.setChangeTypeCode(h.getChangeTypeCode());
+        d.setUpdateTypeCode(h.getUpdateTypeCode());
         d.setDisplayLabel(h.getDisplayLabel());
         d.setOldValue(h.getOldValue());
         d.setNewValue(h.getNewValue());
-        d.setChangedBy(h.getChangedBy());
-        d.setChangedOn(h.getChangedOn());
+        d.setUpdatedBy(h.getUpdatedBy());
+        d.setUpdatedOn(h.getUpdatedOn());
+        d.setUpdatedOnUtc(h.getUpdatedOnUtc());
         d.setRemarks(h.getRemarks());
         return d;
     }

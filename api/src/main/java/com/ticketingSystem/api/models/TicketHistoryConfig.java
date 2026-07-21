@@ -24,8 +24,8 @@ public class TicketHistoryConfig {
     @Column(name = "display_label", nullable = false)
     private String displayLabel;
 
-    @Column(name = "change_type_code", nullable = false)
-    private String changeTypeCode;
+    @Column(name = "update_type_code", nullable = false)
+    private String updateTypeCode;
 
     @Column(name = "is_trackable", nullable = false)
     private Boolean isTrackable;
