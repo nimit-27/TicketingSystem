@@ -246,6 +246,12 @@ public class TicketController {
         return ResponseEntity.ok(dto);
     }
 
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<TicketHistoryDto>> getHistory(@PathVariable String id, @RequestParam(required = false) String changeTypeCode) {
+        logger.info("Request to get ticket history {}", id);
+        return ResponseEntity.ok(ticketService.getHistoryByTicketId(id, changeTypeCode));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<java.util.Map<String, Object>> updateTicket(@PathVariable String id, @RequestBody Ticket ticket) {
         logger.info("Request to update ticket {}", id);
