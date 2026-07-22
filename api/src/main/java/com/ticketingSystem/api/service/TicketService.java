@@ -9,6 +9,8 @@ import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.*;
 import com.ticketingSystem.api.repository.TicketCommentRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
+import com.ticketingSystem.api.repository.TicketHistoryRepository;
+import com.ticketingSystem.api.repository.TicketHistoryConfigRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.CategoryRepository;
@@ -105,6 +107,8 @@ public class TicketService {
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
     private final TicketCrService ticketCrService;
+    private final TicketHistoryRepository ticketHistoryRepository;
+    private final TicketHistoryConfigRepository ticketHistoryConfigRepository;
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
@@ -713,6 +717,7 @@ public class TicketService {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
+        Ticket historySnapshot = copyTicketForHistory(existing);
         String previousSeverity = existing.getSeverity();
         String previousRecommendedSeverity = existing.getRecommendedSeverity();
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
@@ -867,6 +872,7 @@ public class TicketService {
         setLastModified(existing);
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
+        createTicketHistoryEntries(historySnapshot, saved, updatedBy, remark);
         if (updated.getDivision() != null && !Objects.equals(previousDivision, saved.getDivision())) {
             divisionHistoryService.addHistory(id, updatedBy, previousDivision, saved.getDivision(), remark);
         }
@@ -977,6 +983,121 @@ public class TicketService {
                     });
         }
         return mapWithStatusId(saved);
+    }
+
+    public List<TicketHistoryDto> getHistoryByTicketId(String ticketId, String updateTypeCode) {
+        List<TicketHistory> history = (updateTypeCode == null || updateTypeCode.isBlank())
+                ? ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(ticketId)
+                : ticketHistoryRepository.findByTicketIdAndUpdateTypeCodeOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(ticketId, updateTypeCode);
+        return history.stream().map(this::toTicketHistoryDto).toList();
+    }
+
+    private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
+        List<TicketHistoryConfig> configs = ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets");
+        List<TicketHistory> rows = new ArrayList<>();
+        String groupId = UUID.randomUUID().toString();
+        for (TicketHistoryConfig config : configs) {
+            String oldValue = getTicketColumnValue(oldRecord, config.getColumnName());
+            String newValue = getTicketColumnValue(newRecord, config.getColumnName());
+            if (Objects.equals(oldValue, newValue)) continue;
+            TicketHistory row = new TicketHistory();
+            row.setUpdateGroupId(groupId);
+            row.setTicketId(newRecord.getId());
+            row.setColumnName(config.getColumnName());
+            row.setUpdateTypeCode(config.getUpdateTypeCode());
+            row.setDisplayLabel(config.getDisplayLabel());
+            row.setOldValue(oldValue);
+            row.setNewValue(newValue);
+            row.setUpdatedBy((updatedBy == null || updatedBy.isBlank()) ? "SYSTEM" : updatedBy);
+            Instant updatedInstant = Instant.now();
+            row.setUpdatedOn(LocalDateTime.ofInstant(updatedInstant, BUSINESS_ZONE));
+            row.setUpdatedOnUtc(updatedInstant);
+            row.setRemarks(remark);
+            rows.add(row);
+        }
+        if (!rows.isEmpty()) ticketHistoryRepository.saveAll(rows);
+    }
+
+    private Ticket copyTicketForHistory(Ticket source) {
+        Ticket copy = new Ticket();
+        copy.setId(source.getId());
+        copy.setSubject(source.getSubject());
+        copy.setDescription(source.getDescription());
+        copy.setCategory(source.getCategory());
+        copy.setSubCategory(source.getSubCategory());
+        copy.setIssueTypeId(source.getIssueTypeId());
+        copy.setPriority(source.getPriority());
+        copy.setDivision(source.getDivision());
+        copy.setSeverity(source.getSeverity());
+        copy.setRecommendedSeverity(source.getRecommendedSeverity());
+        copy.setImpact(source.getImpact());
+        copy.setSeverityRecommendedBy(source.getSeverityRecommendedBy());
+        copy.setTicketStatus(source.getTicketStatus());
+        copy.setStatus(source.getStatus());
+        copy.setAssignedTo(source.getAssignedTo());
+        copy.setAssignedBy(source.getAssignedBy());
+        copy.setAssignedToLevel(source.getAssignedToLevel());
+        copy.setLevelId(source.getLevelId());
+        copy.setOffice(source.getOffice());
+        copy.setOfficeCode(source.getOfficeCode());
+        copy.setRegionCode(source.getRegionCode());
+        copy.setZoneCode(source.getZoneCode());
+        copy.setDistrictCode(source.getDistrictCode());
+        copy.setDepotCode(source.getDepotCode());
+        copy.setMaster(source.isMaster());
+        copy.setMasterId(source.getMasterId());
+        copy.setAssignedBackFromFci(source.isAssignedBackFromFci());
+        return copy;
+    }
+
+    private String getTicketColumnValue(Ticket record, String col) {
+        if (record == null) return null;
+        return switch (col) {
+            case "subject" -> record.getSubject();
+            case "description" -> record.getDescription();
+            case "category" -> record.getCategory();
+            case "sub_category" -> record.getSubCategory();
+            case "issue_type_id" -> record.getIssueTypeId();
+            case "priority" -> record.getPriority();
+            case "division" -> record.getDivision();
+            case "severity" -> record.getSeverity();
+            case "recommended_severity" -> record.getRecommendedSeverity();
+            case "impact" -> record.getImpact();
+            case "severity_recommended_by" -> record.getSeverityRecommendedBy();
+            case "status_id" -> record.getStatus() == null ? null : record.getStatus().getStatusName();
+            case "status" -> record.getTicketStatus() == null ? null : record.getTicketStatus().name();
+            case "assigned_to" -> record.getAssignedTo();
+            case "assigned_by" -> record.getAssignedBy();
+            case "assigned_to_level" -> record.getAssignedToLevel();
+            case "level_id" -> record.getLevelId();
+            case "office" -> record.getOffice();
+            case "office_code" -> record.getOfficeCode();
+            case "region_code" -> record.getRegionCode();
+            case "zone_code" -> record.getZoneCode();
+            case "district_code" -> record.getDistrictCode();
+            case "depot_code" -> record.getDepotCode();
+            case "is_master" -> Boolean.toString(record.isMaster());
+            case "master_id" -> record.getMasterId();
+            case "is_assigned_back_from_fci" -> Boolean.toString(record.isAssignedBackFromFci());
+            default -> null;
+        };
+    }
+
+    private TicketHistoryDto toTicketHistoryDto(TicketHistory h) {
+        TicketHistoryDto d = new TicketHistoryDto();
+        d.setTicketHistoryId(h.getTicketHistoryId());
+        d.setUpdateGroupId(h.getUpdateGroupId());
+        d.setTicketId(h.getTicketId());
+        d.setColumnName(h.getColumnName());
+        d.setUpdateTypeCode(h.getUpdateTypeCode());
+        d.setDisplayLabel(h.getDisplayLabel());
+        d.setOldValue(h.getOldValue());
+        d.setNewValue(h.getNewValue());
+        d.setUpdatedBy(h.getUpdatedBy());
+        d.setUpdatedOn(h.getUpdatedOn());
+        d.setUpdatedOnUtc(h.getUpdatedOnUtc());
+        d.setRemarks(h.getRemarks());
+        return d;
     }
 
     private void sendAssignmentNotification(Ticket ticket, String assignedTo, String assignedBy) {
@@ -1724,6 +1845,7 @@ public class TicketService {
             return mapWithStatusId(ticket);
         }
 
+        Ticket historySnapshot = copyTicketForHistory(ticket);
         String previousStatusId = resolveCurrentStatusId(ticket);
         ticket.setMasterId(masterId);
         applyClosedStatus(ticket);
@@ -1738,6 +1860,7 @@ public class TicketService {
         if (actor == null || actor.isBlank()) {
             actor = "SYSTEM";
         }
+        createTicketHistoryEntries(historySnapshot, saved, actor, "Linked to a Master ticket");
 
         String currentStatusId = resolveCurrentStatusId(saved);
         Boolean slaFlag = currentStatusId != null
@@ -1774,6 +1897,7 @@ public class TicketService {
             throw new InvalidRequestException("Ticket is not linked to any master ticket.");
         }
 
+        Ticket historySnapshot = copyTicketForHistory(ticket);
         ticket.setMasterId("");
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
@@ -1781,6 +1905,8 @@ public class TicketService {
         setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
+        String actor = updatedBy != null && !updatedBy.isBlank() ? updatedBy : saved.getUpdatedBy();
+        createTicketHistoryEntries(historySnapshot, saved, actor, String.format("Unlinked from master ticket %s", existingMasterId));
         addLinkingHistory(saved, updatedBy, String.format("Unlinked from master ticket %s", existingMasterId));
         return mapWithStatusId(saved);
     }
@@ -1789,11 +1915,13 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
+        Ticket historySnapshot = copyTicketForHistory(ticket);
         ticket.setMaster(true);
         ticket.setMasterId(null);
         setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
+        createTicketHistoryEntries(historySnapshot, saved, saved.getUpdatedBy(), "Marked as master ticket");
         return mapWithStatusId(saved);
     }
 

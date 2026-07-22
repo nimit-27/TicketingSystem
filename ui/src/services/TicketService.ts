@@ -316,3 +316,8 @@ export function searchTicketsForExport({
     if (divisionId) params.append('divisionId', divisionId);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
 }
+
+
+export function getTicketHistory(id: string, updateTypeCode?: string) {
+    return axios.get(`${BASE_URL}/tickets/${id}/history`, { params: updateTypeCode ? { updateTypeCode } : undefined });
+}

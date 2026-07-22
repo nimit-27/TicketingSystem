@@ -17,6 +17,7 @@ import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButt
 import CommentsSection from '../Comments/CommentsSection';
 import SlaDetails from './SlaDetails';
 import Histories from '../../pages/Histories';
+import TicketHistory from '../TicketHistory';
 import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import { checkAccessMaster, checkFieldAccess } from '../../utils/permissions';
@@ -1452,9 +1453,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
       {
         showHistory && (
-          <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
-            <Histories ticketId={ticketId} />
-          </CustomFieldset>
+          <>
+            <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
+              <Histories ticketId={ticketId} />
+            </CustomFieldset>
+            <CustomFieldset title={t('Ticket Change History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
+              <TicketHistory ticketId={ticketId} />
+            </CustomFieldset>
+          </>
         )
       }
 

@@ -8,6 +8,7 @@ import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
+import com.ticketingSystem.api.service.TicketHistoryBackfillService;
 import com.ticketingSystem.api.service.RateLimiterService;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
@@ -63,6 +64,7 @@ public class TicketController {
     private static final int CREATE_TICKET_RATE_LIMIT = 20;
     private static final Duration CREATE_TICKET_RATE_WINDOW = Duration.ofMinutes(1);
     private final TicketService ticketService;
+    private final TicketHistoryBackfillService ticketHistoryBackfillService;
     private final FileStorageService fileStorageService;
     private final TicketSlaService ticketSlaService;
     private final TicketAuthorizationService ticketAuthorizationService;
@@ -244,6 +246,18 @@ public class TicketController {
         TicketDto dto = ticketService.removeAttachment(id, path);
         logger.info("Attachment {} removed from ticket {}, returning {}", path, id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/history/backfill")
+    public ResponseEntity<Map<String, Integer>> backfillTicketHistory() {
+        logger.info("Request to backfill ticket history from legacy history tables");
+        return ResponseEntity.ok(ticketHistoryBackfillService.backfillLegacyHistory());
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<TicketHistoryDto>> getHistory(@PathVariable String id, @RequestParam(required = false) String updateTypeCode) {
+        logger.info("Request to get ticket history {}", id);
+        return ResponseEntity.ok(ticketService.getHistoryByTicketId(id, updateTypeCode));
     }
 
     @PutMapping("/{id}")
