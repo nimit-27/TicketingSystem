@@ -690,13 +690,49 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const hasRemarkableTicketDetailChanges = useMemo(() => {
     if (!ticket) return false;
 
+    const hasDropdownValueChanged = (
+      currentValue: string,
+      originalValue: string | undefined,
+      originalLabel: string | undefined,
+      options: DropdownOption[]
+    ) => {
+      const originalValueText = originalValue || '';
+      const originalLabelText = originalLabel || '';
+
+      if (currentValue === originalValueText) return false;
+
+      const currentLabel = options.find(option => option.value === currentValue)?.label || '';
+      if (currentLabel && currentLabel === originalLabelText) return false;
+
+      return true;
+    };
+
     return [
+      subject !== (ticket.subject || ''),
+      description !== (ticket.description || ''),
+      hasDropdownValueChanged(selectedCategoryId, ticket.categoryId, ticket.category, categoryOptions),
+      hasDropdownValueChanged(selectedSubCategoryId, ticket.subCategoryId, ticket.subCategory, subCategoryOptions),
+      hasDropdownValueChanged(divisionId, ticket.division, ticket.divisionName, divisionOptions),
+      hasDropdownValueChanged(issueTypeId, ticket.issueTypeId, ticket.issueTypeLabel, issueTypeOptions),
       priorityId && ticket.priorityId ? priorityId !== ticket.priorityId : priority !== (ticket.priority || ''),
       severity !== (ticket.severity || ''),
-      issueTypeId !== (ticket.issueTypeId || ''),
-      divisionId !== (ticket.division || ''),
     ].some(Boolean);
-  }, [divisionId, issueTypeId, priority, priorityId, severity, ticket]);
+  }, [
+    categoryOptions,
+    description,
+    divisionId,
+    divisionOptions,
+    issueTypeId,
+    issueTypeOptions,
+    priority,
+    priorityId,
+    selectedCategoryId,
+    selectedSubCategoryId,
+    severity,
+    subCategoryOptions,
+    subject,
+    ticket
+  ]);
 
   const handleSave = () => {
     if (hasRemarkableTicketDetailChanges) {
