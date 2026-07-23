@@ -1,15 +1,15 @@
 SELECT
     t.ticket_id                                  AS 'Ticket Id', 
-    t.master_id                                     AS 'Master Id',
-    t.is_master                                     AS 'Is Master',
-    COALESCE(ct.child_ticket_count, 0)            AS 'Child Ticket Count',
+    t.master_id                                  AS 'Master Id',
+    t.is_master                                  AS 'Is Master',
+    COALESCE(ct.child_ticket_count, 0)           AS 'Child Ticket Count',
     t.reported_date                              AS 'Reported Date', 
     t.requestor_name                             AS 'Requestor Name', 
     sh.remark                                    AS 'Remark',
     sh.updated_by                                AS 'Updated By',
     t.last_modified								 AS 'Last Modified Date',
     t.last_modified_status_date					 AS 'Last Modified Status Date',
-    t.status                                      AS 'Status',
+    t.status                                     AS 'Status',
     t.subject                                    AS 'Subject', 
     t.description                                AS 'Description',
     c.category                                   AS 'Module',
@@ -30,12 +30,12 @@ SELECT
     t.requestor_email_id                         AS 'Requestor Email Id', 
     t.requestor_mobile_no                        AS 'Requestor Mobile No.',
     dm.division_name                             AS 'Division',
-    ts.due_at AS 'Due At',
-    CASE
-		WHEN ts.breached_by_minutes > 0
-			THEN 'YES'
-		ELSE 'NO'
-	END AS 'Is Breached'
+    ts.due_at AS 'Due At'
+    -- CASE
+-- 		WHEN ts.breached_by_minutes > 0
+-- 			THEN 'YES'
+-- 		ELSE 'NO'
+-- 	END AS 'Is Breached'
 FROM ad_prd_ticket_system.tickets t
 
 LEFT JOIN categories        c   ON c.category_id      = t.category

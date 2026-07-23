@@ -1,15 +1,15 @@
 SELECT
     t.ticket_id                                  AS 'Ticket Id', 
-    t.master_id                                     AS 'Master Id',
-    t.is_master                                     AS 'Is Master',
-    COALESCE(ct.child_ticket_count, 0)            AS 'Child Ticket Count',
+    t.master_id                                  AS 'Master Id',
+    t.is_master                                  AS 'Is Master',
+    COALESCE(ct.child_ticket_count, 0)           AS 'Child Ticket Count',
     t.reported_date                              AS 'Reported Date', 
     t.requestor_name                             AS 'Requestor Name', 
     sh.remark                                    AS 'Remark',
     sh.updated_by                                AS 'Updated By',
     t.last_modified								 AS 'Last Modified Date',
     t.last_modified_status_date					 AS 'Last Modified Status Date',
-    t.status                                      AS 'Status',
+    t.status                                     AS 'Status',
     t.subject                                    AS 'Subject', 
     t.description                                AS 'Description',
     c.category                                   AS 'Module',
@@ -58,23 +58,19 @@ LEFT JOIN (
     FROM ad_prd_ticket_system.tickets
     WHERE master_id IS NOT NULL
     GROUP BY master_id
-) ct
-    ON ct.master_id = t.ticket_id
+) ct ON ct.master_id = t.ticket_id
 
 /* Latest status_history timestamp per ticket */
 LEFT JOIN (
     SELECT ticket_id, MAX(`timestamp`) AS max_ts
     FROM status_history
     GROUP BY ticket_id
-) sh_max
-    ON sh_max.ticket_id = t.ticket_id
+) sh_max ON sh_max.ticket_id = t.ticket_id
 
-LEFT JOIN status_history sh
-    ON sh.ticket_id = t.ticket_id
+LEFT JOIN status_history sh ON sh.ticket_id = t.ticket_id
    AND sh.`timestamp` = sh_max.max_ts
 
-LEFT JOIN status_master sm
-    ON sm.status_id = sh.current_status;
+LEFT JOIN status_master sm ON sm.status_id = sh.current_status;
 WHERE t.last_modified_status_date >= '2026-07-15 00:00:00'
 AND t.status IN ('RESOLVED', 'CLOSED');
 -- Optional filters

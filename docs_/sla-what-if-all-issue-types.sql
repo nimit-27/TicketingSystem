@@ -13,9 +13,9 @@
 --     region 'IN-WB-Kolkata'. If your report needs calendar_working_hours_exception support,
 --     run the application from-scratch SLA job instead because exceptions are resolved in Java.
 
-DROP TEMPORARY TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
+DROP TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
 
-CREATE TEMPORARY TABLE tmp_sla_what_if_all_issue_types AS
+CREATE TABLE tmp_sla_what_if_all_issue_types AS
 WITH RECURSIVE
 params AS (
     SELECT
@@ -252,4 +252,4 @@ SELECT *
 FROM tmp_sla_what_if_all_issue_types
 ORDER BY would_breach_if_issue_type_sla_true DESC, what_if_breached_by_minutes DESC, reported_date;
 
-DROP TEMPORARY TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
+DROP TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
