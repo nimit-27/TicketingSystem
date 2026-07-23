@@ -169,6 +169,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
   const [severityToRecommendSeverity, setSeverityToRecommendSeverity] = useState<boolean>(false);
   const [showRecommendRemark, setShowRecommendRemark] = useState(false);
+  const [showEditRemark, setShowEditRemark] = useState(false);
   const [showStatusRemark, setShowStatusRemark] = useState(false);
   const [selectedStatusAction, setSelectedStatusAction] = useState<TicketStatusWorkflow | null>(null);
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -678,6 +679,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       await updateTicketHandler(() => updateTicket(ticketId, payload));
       setEditing(false);
       setShowRecommendRemark(false);
+      setShowEditRemark(false);
       setSeverityToRecommendSeverity(false);
       await getTicketHandler(() => getTicket(ticketId));
     } catch {
@@ -685,8 +687,32 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   };
 
+  const hasRemarkableTicketDetailChanges = useMemo(() => {
+    if (!ticket) return false;
+
+    return [
+      priorityId && ticket.priorityId ? priorityId !== ticket.priorityId : priority !== (ticket.priority || ''),
+      severity !== (ticket.severity || ''),
+      issueTypeId !== (ticket.issueTypeId || ''),
+      divisionId !== (ticket.division || ''),
+    ].some(Boolean);
+  }, [divisionId, issueTypeId, priority, priorityId, severity, ticket]);
+
   const handleSave = () => {
+    if (hasRemarkableTicketDetailChanges) {
+      setShowEditRemark(true);
+      return;
+    }
+
     updateTicketDetails();
+  };
+
+  const handleEditRemarkCancel = () => {
+    setShowEditRemark(false);
+  };
+
+  const handleEditRemarkSubmit = (remark: string) => {
+    updateTicketDetails(remark);
   };
 
   const handleSubmitRecommendSeverity = (remark: string) => {
@@ -714,6 +740,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const cancelEditing = () => {
     setEditing(false);
     setShowRecommendRemark(false);
+    setShowEditRemark(false);
     setSeverityToRecommendSeverity(false);
     if (ticket) {
       setSubject(ticket.subject || '');
@@ -887,6 +914,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (isClosedOrResolvedStatus && editing) {
       setEditing(false);
       setShowRecommendRemark(false);
+      setShowEditRemark(false);
       setSeverityToRecommendSeverity(false);
     }
   }, [editing, isClosedOrResolvedStatus]);
@@ -1543,6 +1571,16 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         rcaStatus={rcaStatus}
         ticketId={ticketId}
         updatedBy={currentUsername}
+      />
+
+      <RemarkComponent
+        isModal
+        open={showEditRemark}
+        actionName={t('Update Ticket Details')}
+        title={t('Update Ticket Details Remark')}
+        textFieldLabel={t('Remark')}
+        onCancel={handleEditRemarkCancel}
+        onSubmit={handleEditRemarkSubmit}
       />
 
       <RemarkComponent
