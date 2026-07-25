@@ -12,7 +12,7 @@ const TicketDetails: React.FC = () => {
   return (
     <div className="container" style={{ display: 'flex', overflowWrap: 'anywhere' }}>
       <div style={{ flexGrow: 1, marginRight: historyOpen ? 400 : 0 }}>
-        <TicketView ticketId={ticketId} />
+        <TicketView ticketId={ticketId} showHistory />
       </div>
       <HistorySidebar ticketId={ticketId} open={historyOpen} setOpen={setHistoryOpen} />
     </div>

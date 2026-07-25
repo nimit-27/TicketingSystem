@@ -1055,11 +1055,11 @@ public class TicketService {
         return switch (col) {
             case "subject" -> record.getSubject();
             case "description" -> record.getDescription();
-            case "category" -> record.getCategory();
-            case "sub_category" -> record.getSubCategory();
-            case "issue_type_id" -> record.getIssueTypeId();
+            case "category" -> resolveCategoryName(record.getCategory());
+            case "sub_category" -> resolveSubCategoryName(record.getSubCategory());
+            case "issue_type_id" -> resolveIssueTypeName(record.getIssueTypeId());
             case "priority" -> record.getPriority();
-            case "division" -> record.getDivision();
+            case "division" -> resolveDivisionName(record.getDivision());
             case "severity" -> record.getSeverity();
             case "recommended_severity" -> record.getRecommendedSeverity();
             case "impact" -> record.getImpact();
@@ -1083,6 +1083,59 @@ public class TicketService {
         };
     }
 
+    private String resolveTicketHistoryDisplayValue(String columnName, String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        return switch (columnName) {
+            case "category", "module", "module_id" -> resolveCategoryName(value);
+            case "sub_category", "sub_module", "sub_module_id" -> resolveSubCategoryName(value);
+            case "issue_type_id", "issue_type" -> resolveIssueTypeName(value);
+            case "division", "division_id" -> resolveDivisionName(value);
+            default -> value;
+        };
+    }
+
+    private String resolveCategoryName(String categoryId) {
+        if (categoryId == null || categoryId.isBlank()) {
+            return categoryId;
+        }
+        return categoryRepository.findById(categoryId)
+                .map(Category::getCategory)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(categoryId);
+    }
+
+    private String resolveSubCategoryName(String subCategoryId) {
+        if (subCategoryId == null || subCategoryId.isBlank()) {
+            return subCategoryId;
+        }
+        return subCategoryRepository.findById(subCategoryId)
+                .map(SubCategory::getSubCategory)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(subCategoryId);
+    }
+
+    private String resolveIssueTypeName(String issueTypeId) {
+        if (issueTypeId == null || issueTypeId.isBlank()) {
+            return issueTypeId;
+        }
+        return issueTypeRepository.findById(issueTypeId)
+                .map(IssueType::getIssueTypeLabel)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(issueTypeId);
+    }
+
+    private String resolveDivisionName(String divisionId) {
+        if (divisionId == null || divisionId.isBlank()) {
+            return divisionId;
+        }
+        return divisionMasterRepository.findById(divisionId)
+                .map(DivisionMaster::getDivisionName)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(divisionId);
+    }
+
     private TicketHistoryDto toTicketHistoryDto(TicketHistory h) {
         TicketHistoryDto d = new TicketHistoryDto();
         d.setTicketHistoryId(h.getTicketHistoryId());
@@ -1091,8 +1144,8 @@ public class TicketService {
         d.setColumnName(h.getColumnName());
         d.setUpdateTypeCode(h.getUpdateTypeCode());
         d.setDisplayLabel(h.getDisplayLabel());
-        d.setOldValue(h.getOldValue());
-        d.setNewValue(h.getNewValue());
+        d.setOldValue(resolveTicketHistoryDisplayValue(h.getColumnName(), h.getOldValue()));
+        d.setNewValue(resolveTicketHistoryDisplayValue(h.getColumnName(), h.getNewValue()));
         d.setUpdatedBy(h.getUpdatedBy());
         d.setUpdatedOn(h.getUpdatedOn());
         d.setUpdatedOnUtc(h.getUpdatedOnUtc());
