@@ -32,6 +32,12 @@ public class TicketHistory {
     @Column(name = "display_label", nullable = false)
     private String displayLabel;
 
+    @Column(name = "old_ref_id")
+    private String oldRefId;
+
+    @Column(name = "new_ref_id")
+    private String newRefId;
+
     @Column(name = "old_value", columnDefinition = "TEXT")
     private String oldValue;
 
