@@ -90,8 +90,8 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             FROM TicketSla sla
             JOIN sla.ticket t
             WHERE COALESCE(sla.breachedByMinutes, 0) > 0
-              AND t.reportedDate >= :fromDate
-              AND t.reportedDate < :toDateExclusive
+              AND t.lastModifiedStatusDate >= :fromDate
+              AND t.lastModifiedStatusDate < :toDateExclusive
             """)
     long countBreachedTicketsReportedBetween(@Param("fromDate") LocalDateTime fromDate,
                                              @Param("toDateExclusive") LocalDateTime toDateExclusive);
