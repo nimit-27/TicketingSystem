@@ -16,7 +16,7 @@ import ViewToggle from "../UI/ViewToggle";
 import DropdownController from "../UI/Dropdown/DropdownController";
 import { DropdownOption } from "../UI/Dropdown/GenericDropdown";
 import PaginationControls from "../PaginationControls";
-import { checkMyTicketsAccess } from "../../utils/permissions";
+import { checkMyTicketsAccess, checkPageComponentsAccess } from "../../utils/permissions";
 import { TicketStatusWorkflow } from "../../types";
 import { getStatusWorkflowMappings, getAllowedStatusListByRoles } from "../../services/StatusService";
 import { getCurrentUserDetails } from "../../config/config";
@@ -256,7 +256,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const showStatusFilter = checkMyTicketsAccess("statusFilter", permissionPathPrefix);
     const showMasterFilterToggle = checkMyTicketsAccess("masterFilterToggle", permissionPathPrefix);
     const showGridTableViewToggle = checkMyTicketsAccess("gridTableViewToggle", permissionPathPrefix);
-    const showBreachedOnDateFilters = permissionPathPrefix === "allTickets";
+    // const showBreachedOnDateFilters = permissionPathPrefix === "allTickets";
+    const showBreachedOnDateFilters = checkPageComponentsAccess("breachedOnDateFilters", permissionPathPrefix);
+    const showBreachedOnDropdown = checkPageComponentsAccess("breachedOnDropdown", permissionPathPrefix);
 
     const statusFilterOptions: DropdownOption[] = useMemo(
         () => [{ label: "All", value: "All" }, ...getDropdownOptions(statusList, "statusName", "statusId")],
@@ -1042,7 +1044,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     </div>
 
                     {/* BREACH OPTION */}
-                    <div className="col-md-3 col-12">
+                    {showBreachedOnDropdown && <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
                             label="Breach Option"
@@ -1054,7 +1056,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                                 { label: "Breach In", value: "BREACH_IN" },
                             ]}
                         />
-                    </div>
+                    </div>}
 
                     {/* BREACH IN */}
                     {breachOption === "BREACH_IN" && (

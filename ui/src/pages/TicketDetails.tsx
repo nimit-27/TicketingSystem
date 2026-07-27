@@ -15,7 +15,7 @@ const TicketDetails: React.FC = () => {
       <div style={{ flexGrow: 1, marginRight: historyOpen ? 400 : 0 }}>
         <TicketView
           ticketId={ticketId}
-          showHistory={checkAccessMaster(['ticketView', 'showHistory'])}
+          showHistory={checkAccessMaster(['ticketView', 'ticketHistory'])}
         />
       </div>
       <HistorySidebar ticketId={ticketId} open={historyOpen} setOpen={setHistoryOpen} />

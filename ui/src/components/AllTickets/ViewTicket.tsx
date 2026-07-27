@@ -163,7 +163,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusR
           {ticketId && (
             <TicketView
               ticketId={ticketId}
-              showHistory={checkAccessMaster(['ticketView', 'showHistory'])}
+              showHistory={checkAccessMaster(['ticketView', 'ticketHistory'])}
               focusRecommendSeverity={focusRecommendSeverity}
               onRecommendSeverityFocusHandled={onRecommendSeverityFocusHandled}
             />
