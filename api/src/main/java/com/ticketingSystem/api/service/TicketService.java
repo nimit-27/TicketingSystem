@@ -11,6 +11,7 @@ import com.ticketingSystem.api.repository.TicketCommentRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
 import com.ticketingSystem.api.repository.TicketHistoryRepository;
 import com.ticketingSystem.api.repository.TicketHistoryConfigRepository;
+import com.ticketingSystem.api.repository.TicketTextHistoryRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.CategoryRepository;
@@ -46,6 +47,9 @@ import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
 import org.typesense.model.SearchRequestParams;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -109,6 +113,7 @@ public class TicketService {
     private final TicketCrService ticketCrService;
     private final TicketHistoryRepository ticketHistoryRepository;
     private final TicketHistoryConfigRepository ticketHistoryConfigRepository;
+    private final TicketTextHistoryRepository ticketTextHistoryRepository;
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
@@ -997,15 +1002,22 @@ public class TicketService {
         List<TicketHistory> rows = new ArrayList<>();
         String groupId = UUID.randomUUID().toString();
         for (TicketHistoryConfig config : configs) {
-            String oldValue = getTicketColumnValue(oldRecord, config.getColumnName());
-            String newValue = getTicketColumnValue(newRecord, config.getColumnName());
-            if (Objects.equals(oldValue, newValue)) continue;
+            String columnName = config.getColumnName();
+            String oldRefId = getTicketColumnRefId(oldRecord, columnName);
+            String newRefId = getTicketColumnRefId(newRecord, columnName);
+            String oldValue = getTicketColumnDisplayValue(oldRecord, columnName);
+            String newValue = getTicketColumnDisplayValue(newRecord, columnName);
+            String oldText = getTicketTextValue(oldRecord, columnName);
+            String newText = getTicketTextValue(newRecord, columnName);
+            if (Objects.equals(oldValue, newValue) && Objects.equals(oldRefId, newRefId) && Objects.equals(oldText, newText)) continue;
             TicketHistory row = new TicketHistory();
             row.setUpdateGroupId(groupId);
             row.setTicketId(newRecord.getId());
-            row.setColumnName(config.getColumnName());
+            row.setColumnName(columnName);
             row.setUpdateTypeCode(config.getUpdateTypeCode());
             row.setDisplayLabel(config.getDisplayLabel());
+            row.setOldRefId(oldRefId);
+            row.setNewRefId(newRefId);
             row.setOldValue(oldValue);
             row.setNewValue(newValue);
             row.setUpdatedBy((updatedBy == null || updatedBy.isBlank()) ? "SYSTEM" : updatedBy);
@@ -1015,7 +1027,25 @@ public class TicketService {
             row.setRemarks(remark);
             rows.add(row);
         }
-        if (!rows.isEmpty()) ticketHistoryRepository.saveAll(rows);
+        if (!rows.isEmpty()) {
+            List<TicketHistory> savedRows = ticketHistoryRepository.saveAll(rows);
+            List<TicketTextHistory> textRows = new ArrayList<>();
+            for (TicketHistory row : savedRows) {
+                if (!isTicketTextHistoryColumn(row.getColumnName())) continue;
+                TicketTextHistory textHistory = new TicketTextHistory();
+                textHistory.setTicketHistory(row);
+                textHistory.setTicketId(row.getTicketId());
+                textHistory.setColumnName(row.getColumnName());
+                textHistory.setOldText(getTicketTextValue(oldRecord, row.getColumnName()));
+                textHistory.setNewText(getTicketTextValue(newRecord, row.getColumnName()));
+                textHistory.setOldTextHash(sha256(textHistory.getOldText()));
+                textHistory.setNewTextHash(sha256(textHistory.getNewText()));
+                textHistory.setOldTextLength(textLength(textHistory.getOldText()));
+                textHistory.setNewTextLength(textLength(textHistory.getNewText()));
+                textRows.add(textHistory);
+            }
+            if (!textRows.isEmpty()) ticketTextHistoryRepository.saveAll(textRows);
+        }
     }
 
     private Ticket copyTicketForHistory(Ticket source) {
@@ -1048,6 +1078,60 @@ public class TicketService {
         copy.setMasterId(source.getMasterId());
         copy.setAssignedBackFromFci(source.isAssignedBackFromFci());
         return copy;
+    }
+
+    private String getTicketColumnRefId(Ticket record, String col) {
+        if (record == null) return null;
+        return switch (col) {
+            case "category" -> record.getCategory();
+            case "sub_category" -> record.getSubCategory();
+            case "issue_type_id" -> record.getIssueTypeId();
+            case "division", "division_id" -> record.getDivision();
+            case "status_id" -> record.getStatus() == null ? null : record.getStatus().getStatusId();
+            case "assigned_to" -> record.getAssignedTo();
+            case "assigned_by" -> record.getAssignedBy();
+            case "level_id" -> record.getLevelId();
+            default -> null;
+        };
+    }
+
+    private String getTicketColumnDisplayValue(Ticket record, String col) {
+        if (isTicketTextHistoryColumn(col)) {
+            return textPreview(getTicketTextValue(record, col));
+        }
+        return getTicketColumnValue(record, col);
+    }
+
+    private String textPreview(String value) {
+        if (value == null || value.length() <= 250) return value;
+        return value.substring(0, 250) + "...";
+    }
+
+    private String getTicketTextValue(Ticket record, String col) {
+        if (record == null || !isTicketTextHistoryColumn(col)) return null;
+        return switch (col) {
+            case "subject" -> record.getSubject();
+            case "description" -> record.getDescription();
+            default -> null;
+        };
+    }
+
+    private boolean isTicketTextHistoryColumn(String col) {
+        return "subject".equals(col) || "description".equals(col);
+    }
+
+    private Integer textLength(String value) {
+        return value == null ? null : value.length();
+    }
+
+    private String sha256(String value) {
+        if (value == null) return null;
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm is not available", e);
+        }
     }
 
     private String getTicketColumnValue(Ticket record, String col) {
@@ -1144,8 +1228,14 @@ public class TicketService {
         d.setColumnName(h.getColumnName());
         d.setUpdateTypeCode(h.getUpdateTypeCode());
         d.setDisplayLabel(h.getDisplayLabel());
-        d.setOldValue(resolveTicketHistoryDisplayValue(h.getColumnName(), h.getOldValue()));
-        d.setNewValue(resolveTicketHistoryDisplayValue(h.getColumnName(), h.getNewValue()));
+        d.setOldRefId(h.getOldRefId());
+        d.setNewRefId(h.getNewRefId());
+        d.setOldValue(h.getOldValue());
+        d.setNewValue(h.getNewValue());
+        ticketTextHistoryRepository.findByTicketHistory_TicketHistoryId(h.getTicketHistoryId()).ifPresent(textHistory -> {
+            d.setOldText(textHistory.getOldText());
+            d.setNewText(textHistory.getNewText());
+        });
         d.setUpdatedBy(h.getUpdatedBy());
         d.setUpdatedOn(h.getUpdatedOn());
         d.setUpdatedOnUtc(h.getUpdatedOnUtc());

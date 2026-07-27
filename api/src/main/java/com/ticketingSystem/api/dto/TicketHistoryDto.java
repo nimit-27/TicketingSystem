@@ -13,8 +13,12 @@ public class TicketHistoryDto {
     private String columnName;
     private String updateTypeCode;
     private String displayLabel;
+    private String oldRefId;
+    private String newRefId;
     private String oldValue;
     private String newValue;
+    private String oldText;
+    private String newText;
     private String updatedBy;
     private LocalDateTime updatedOn;
     private Instant updatedOnUtc;

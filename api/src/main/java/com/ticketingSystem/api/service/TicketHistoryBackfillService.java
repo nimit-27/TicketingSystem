@@ -8,6 +8,8 @@ import com.ticketingSystem.api.repository.AssignmentHistoryRepository;
 import com.ticketingSystem.api.repository.DivisionHistoryRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.TicketHistoryRepository;
+import com.ticketingSystem.api.repository.StatusMasterRepository;
+import com.ticketingSystem.api.repository.DivisionMasterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,8 @@ public class TicketHistoryBackfillService {
     private final StatusHistoryRepository statusHistoryRepository;
     private final DivisionHistoryRepository divisionHistoryRepository;
     private final AssignmentHistoryRepository assignmentHistoryRepository;
+    private final StatusMasterRepository statusMasterRepository;
+    private final DivisionMasterRepository divisionMasterRepository;
 
     @Transactional
     public Map<String, Integer> backfillLegacyHistory() {
@@ -57,6 +61,8 @@ public class TicketHistoryBackfillService {
                     "Status Updated",
                     history.getPreviousStatus(),
                     history.getCurrentStatus(),
+                    resolveStatusName(history.getPreviousStatus()),
+                    resolveStatusName(history.getCurrentStatus()),
                     history.getUpdatedBy(),
                     history.getTimestamp(),
                     history.getTimestampUtc(),
@@ -83,6 +89,8 @@ public class TicketHistoryBackfillService {
                     "Division Updated",
                     history.getPreviousDivision(),
                     history.getCurrentDivision(),
+                    resolveDivisionName(history.getPreviousDivision()),
+                    resolveDivisionName(history.getCurrentDivision()),
                     history.getUpdatedBy(),
                     history.getTimestamp(),
                     null,
@@ -121,6 +129,8 @@ public class TicketHistoryBackfillService {
                         "Assigned To Updated",
                         previousAssignee,
                         history.getAssignedTo(),
+                        previousAssignee,
+                        history.getAssignedTo(),
                         history.getAssignedBy(),
                         history.getTimestamp(),
                         null,
@@ -139,6 +149,8 @@ public class TicketHistoryBackfillService {
                         "level_id",
                         "LEVEL_UPDATE",
                         "Level Updated",
+                        previousLevel,
+                        history.getLevelId(),
                         previousLevel,
                         history.getLevelId(),
                         history.getAssignedBy(),
@@ -166,11 +178,27 @@ public class TicketHistoryBackfillService {
         );
     }
 
+    private String resolveStatusName(String statusId) {
+        if (statusId == null || statusId.isBlank()) return statusId;
+        return statusMasterRepository.findById(statusId)
+                .map(status -> status.getStatusName() != null && !status.getStatusName().isBlank() ? status.getStatusName() : statusId)
+                .orElse(statusId);
+    }
+
+    private String resolveDivisionName(String divisionId) {
+        if (divisionId == null || divisionId.isBlank()) return divisionId;
+        return divisionMasterRepository.findById(divisionId)
+                .map(division -> division.getDivisionName() != null && !division.getDivisionName().isBlank() ? division.getDivisionName() : divisionId)
+                .orElse(divisionId);
+    }
+
     private TicketHistory createHistoryRow(String ticketId,
                                            String updateGroupId,
                                            String columnName,
                                            String updateTypeCode,
                                            String displayLabel,
+                                           String oldRefId,
+                                           String newRefId,
                                            String oldValue,
                                            String newValue,
                                            String updatedBy,
@@ -193,6 +221,8 @@ public class TicketHistoryBackfillService {
         row.setColumnName(columnName);
         row.setUpdateTypeCode(updateTypeCode);
         row.setDisplayLabel(displayLabel);
+        row.setOldRefId(oldRefId);
+        row.setNewRefId(newRefId);
         row.setOldValue(oldValue);
         row.setNewValue(newValue);
         row.setUpdatedBy(updatedBy != null && !updatedBy.isBlank() ? updatedBy : "SYSTEM");
