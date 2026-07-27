@@ -17,6 +17,7 @@ import Histories from '../../pages/Histories';
 import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import TicketView from '../TicketView/TicketView';
+import { checkAccessMaster } from '../../utils/permissions';
 
 interface ViewTicketProps {
   ticketId: string | null;
@@ -162,7 +163,7 @@ const ViewTicket: React.FC<ViewTicketProps> = ({ ticketId, open, onClose, focusR
           {ticketId && (
             <TicketView
               ticketId={ticketId}
-              showHistory
+              showHistory={checkAccessMaster(['ticketView', 'showHistory'])}
               focusRecommendSeverity={focusRecommendSeverity}
               onRecommendSeverityFocusHandled={onRecommendSeverityFocusHandled}
             />
