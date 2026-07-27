@@ -7,6 +7,11 @@ jest.mock('../../../hooks/useApi', () => ({
     useApi: (...args: any[]) => mockUseApi(...args),
 }));
 
+const mockCheckAccessMaster = jest.fn(() => true);
+jest.mock('../../../utils/permissions', () => ({
+    checkAccessMaster: (keys: string[]) => mockCheckAccessMaster(keys),
+}));
+
 const mockGetTicket = jest.fn(() => Promise.resolve({ data: {} }));
 const mockUpdateTicket = jest.fn(() => Promise.resolve({}));
 jest.mock('../../../services/TicketService', () => ({
@@ -54,6 +59,7 @@ describe('ViewTicket', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockCheckAccessMaster.mockReturnValue(true);
         mockUseApi.mockReset();
         mockGetPriorities.mockResolvedValue({ data: [] });
         mockGetSeverities.mockResolvedValue({ data: [] });
@@ -120,7 +126,9 @@ describe('ViewTicket', () => {
         expect(mockTicketView).toHaveBeenCalledWith(expect.objectContaining({
             ticketId: 'INC-1',
             focusRecommendSeverity: true,
+            showHistory: true,
         }));
+        expect(mockCheckAccessMaster).toHaveBeenCalledWith(['ticketView', 'showHistory']);
     });
 
     it('calls onClose when close button clicked', () => {
