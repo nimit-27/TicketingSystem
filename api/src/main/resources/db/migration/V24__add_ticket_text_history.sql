@@ -1,7 +1,3 @@
-ALTER TABLE ticket_history
-    ADD COLUMN old_ref_id VARCHAR(255) NULL AFTER display_label,
-    ADD COLUMN new_ref_id VARCHAR(255) NULL AFTER old_ref_id;
-
 CREATE TABLE IF NOT EXISTS ticket_text_history (
     text_history_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     ticket_history_id BIGINT NOT NULL,

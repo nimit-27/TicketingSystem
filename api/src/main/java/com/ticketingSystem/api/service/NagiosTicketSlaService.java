@@ -90,7 +90,7 @@ public class NagiosTicketSlaService {
                 breachedTicketsInLast15Days,
                 breachedTicketsInLast30Days,
                 statusCounts.resolvedOrClosedBreachedTickets(),
-                statusCounts.changeRequested(),
+                statusCounts.changeRequestedBreachedTickets(),
                 statusCounts.pendingWithRequestorBreachedTickets(),
                 statusCounts.pendingWithFciBreachedTickets(),
                 statusCounts.pendingWithServiceProviderBreachedTickets(),
@@ -161,7 +161,7 @@ public class NagiosTicketSlaService {
                 breachedTicketsInLast15Days,
                 breachedTicketsInLast30Days,
                 statusCounts.resolvedOrClosedBreachedTickets(),
-                statusCounts.changeRequested(),
+                statusCounts.changeRequestedBreachedTickets(),
                 statusCounts.pendingWithRequestorBreachedTickets(),
                 statusCounts.pendingWithFciBreachedTickets(),
                 statusCounts.pendingWithServiceProviderBreachedTickets(),
@@ -214,7 +214,7 @@ public class NagiosTicketSlaService {
     }
 
     private record BreachedTicketStatusCounts(long resolvedOrClosedBreachedTickets,
-                                              long changeRequested,
+                                              long changeRequestedBreachedTickets,
                                               long pendingWithRequestorBreachedTickets,
                                               long pendingWithFciBreachedTickets,
                                               long pendingWithServiceProviderBreachedTickets,

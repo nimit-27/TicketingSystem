@@ -30,7 +30,7 @@ SELECT
     t.requestor_email_id                         AS 'Requestor Email Id', 
     t.requestor_mobile_no                        AS 'Requestor Mobile No.',
     dm.division_name                             AS 'Division',
-    ts.due_at AS 'Due At'
+    -- ts.due_at AS 'Due At'
     -- CASE
 -- 		WHEN ts.breached_by_minutes > 0
 -- 			THEN 'YES'
@@ -75,7 +75,10 @@ LEFT JOIN status_history sh
 
 LEFT JOIN status_master sm
     ON sm.status_id = sh.current_status
-WHERE DATE(t.reported_date) >= CURDATE();
+WHERE 
+	DATE(t.reported_date) >= CURDATE() - INTERVAL 7 DAY
+    AND DATE(t.reported_date) < CURDATE() - INTERVAL 1 DAY;
+	-- DATE(t.reported_date) >= CURDATE();
 -- Optional filters
 -- WHERE t.status = 'PENDING_WITH_FCI'
 -- WHERE t.status_id IN ('3')
