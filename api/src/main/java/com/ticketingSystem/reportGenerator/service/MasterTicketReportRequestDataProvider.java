@@ -38,6 +38,8 @@ public class MasterTicketReportRequestDataProvider implements ReportRequestDataP
         params.put("generatedOn", LocalDateTime.now().toString());
         params.put("fromDate", toNullableString(filters.get("fromDate")));
         params.put("toDate", toNullableString(filters.get("toDate")));
+        params.put("lastModifiedStatusFromDate", toNullableString(filters.get("lastModifiedStatusFromDate")));
+        params.put("lastModifiedStatusToDate", toNullableString(filters.get("lastModifiedStatusToDate")));
         params.put("categoryId", toNullableString(filters.get("categoryId")));
         params.put("subCategoryId", toNullableString(filters.get("subCategoryId")));
         params.put("zoneCode", toNullableString(filters.get("zoneCode")));
