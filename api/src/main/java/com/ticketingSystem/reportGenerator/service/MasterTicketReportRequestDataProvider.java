@@ -17,13 +17,15 @@ public class MasterTicketReportRequestDataProvider implements ReportRequestDataP
 
     private static final String TEMPLATE_LOCATION = "reports/master_ticket_report.jrxml";
     private static final String TEMPLATE_LOCATION_V2 = "reports/master_ticket_report_v2.jrxml";
+    private static final String SLA_TEMPLATE_LOCATION = "reports/sla_ticket_report.jrxml";
 
     @Override
     public boolean supports(String reportCode, ReportMaster reportMaster, Map<String, Object> filters) {
         return reportMaster != null
                 && reportMaster.getTemplateLocation() != null
                 && (TEMPLATE_LOCATION.equalsIgnoreCase(reportMaster.getTemplateLocation())
-                || TEMPLATE_LOCATION_V2.equalsIgnoreCase(reportMaster.getTemplateLocation()));
+                || TEMPLATE_LOCATION_V2.equalsIgnoreCase(reportMaster.getTemplateLocation())
+                || SLA_TEMPLATE_LOCATION.equalsIgnoreCase(reportMaster.getTemplateLocation()));
     }
 
     @Override
@@ -53,6 +55,7 @@ public class MasterTicketReportRequestDataProvider implements ReportRequestDataP
         params.put("requestorPhoneNumber", toNullableString(firstNonEmpty(filters.get("requestorPhoneNumber"), filters.get("requestorMobileNo"))));
         params.put("requestorUserId", toNullableString(firstNonEmpty(filters.get("requestorUserId"), filters.get("userId"))));
         params.put("requestorEmailId", toNullableString(firstNonEmpty(filters.get("requestorEmailId"), filters.get("emailId"))));
+        params.put("breachedFilter", toNullableString(firstNonEmpty(filters.get("breachedFilter"), filters.get("breachOption"))));
         return params;
     }
 

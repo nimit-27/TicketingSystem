@@ -173,6 +173,7 @@ export function downloadTicketsReport({
     assignedTo,
     statusId,
     divisionId,
+    breachOption,
     zoneLabel,
     regionLabel,
     districtLabel,
@@ -199,6 +200,7 @@ export function downloadTicketsReport({
     if (districtCode) params.append('districtCode', districtCode);
     if (issueTypeId) params.append('issueTypeId', issueTypeId);
     if (divisionId) params.append('divisionId', divisionId);
+    if (breachOption) params.append('breachOption', breachOption);
     if (zoneLabel) params.append('zoneLabel', zoneLabel);
     if (regionLabel) params.append('regionLabel', regionLabel);
     if (districtLabel) params.append('districtLabel', districtLabel);
@@ -249,6 +251,7 @@ interface SearchTicketsForExportParams {
     assignedTo?: string;
     statusId?: string;
     divisionId?: string;
+    breachOption?: string;
     zoneLabel?: string;
     regionLabel?: string;
     districtLabel?: string;
