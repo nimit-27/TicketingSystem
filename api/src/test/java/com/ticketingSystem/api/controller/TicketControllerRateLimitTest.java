@@ -3,13 +3,7 @@ package com.ticketingSystem.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketingSystem.api.dto.TicketDto;
 import com.ticketingSystem.api.models.Ticket;
-import com.ticketingSystem.api.service.FileStorageService;
-import com.ticketingSystem.api.service.OciUploadService;
-import com.ticketingSystem.api.service.RateLimiterService;
-import com.ticketingSystem.api.service.TicketAuthorizationService;
-import com.ticketingSystem.api.service.TicketService;
-import com.ticketingSystem.api.service.TicketSlaService;
-import com.ticketingSystem.api.service.UserService;
+import com.ticketingSystem.api.service.*;
 import com.ticketingSystem.reportGenerator.repository.ReportArtifactRepository;
 import com.ticketingSystem.reportGenerator.service.AsyncReportService;
 import com.ticketingSystem.reportGenerator.service.ReportDownloadService;
@@ -41,6 +35,8 @@ class TicketControllerRateLimitTest {
     @Mock
     private TicketService ticketService;
     @Mock
+    TicketHistoryBackfillService ticketHistoryBackfillService;
+    @Mock
     private FileStorageService fileStorageService;
     @Mock
     private TicketSlaService ticketSlaService;
@@ -65,6 +61,7 @@ class TicketControllerRateLimitTest {
     void setUp() {
         TicketController controller = new TicketController(
                 ticketService,
+                ticketHistoryBackfillService,
                 fileStorageService,
                 ticketSlaService,
                 ticketAuthorizationService,
