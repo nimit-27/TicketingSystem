@@ -17,4 +17,8 @@ public class StatusMasterService {
     public List<Status> getAllStatuses() {
         return repository.findAll();
     }
+
+    public Boolean getSlaFlagByStatusId(String statusCode) {
+        return this.repository.findByStatusId(statusCode).getSlaFlag();
+    };
 }

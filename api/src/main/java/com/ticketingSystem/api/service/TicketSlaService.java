@@ -46,6 +46,7 @@ public class TicketSlaService {
     private final UserRepository userRepository;
     private final SlaCalculatorService slaCalculatorService;
     private final IssueTypeService issueTypeService;
+    private final StatusMasterService statusMasterService;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
                             TicketSlaRepository ticketSlaRepository,
@@ -53,7 +54,7 @@ public class TicketSlaService {
                             NotificationService notificationService,
                             UserRepository userRepository,
                             SlaCalculatorService slaCalculatorService,
-                            IssueTypeService issueTypeService) {
+                            IssueTypeService issueTypeService, StatusMasterService statusMasterService) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
         this.statusHistoryRepository = statusHistoryRepository;
@@ -61,6 +62,7 @@ public class TicketSlaService {
         this.userRepository = userRepository;
         this.slaCalculatorService = slaCalculatorService;
         this.issueTypeService = issueTypeService;
+        this.statusMasterService = statusMasterService;
     }
 
     @Deprecated(forRemoval = false)
@@ -79,6 +81,7 @@ public class TicketSlaService {
     private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history, boolean fromScratch) {
         if (ticket == null) return null;
 
+        boolean isSlaApplicable = false;
         LocalDateTime reportedDate = ticket.getReportedDate();
         LocalDateTime resolvedAt = ticket.getResolvedAt();
         LocalDateTime calculationTime = resolvedAt != null ? resolvedAt : LocalDateTime.now();
@@ -114,25 +117,34 @@ public class TicketSlaService {
             return ticketSlaRepository.save(ticketSla);
         }
 
-        if (!issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId())) {
-            long idleMinutes = 0L;
-            if (reportedDate != null) {
-                Duration workingElapsed = slaCalculatorService.computeWorkingDurationBetween(
-                        reportedDate.atZone(TimeUtils.ZONE_ID),
-                        calculationTime.atZone(TimeUtils.ZONE_ID)
-                );
-                idleMinutes = Math.max(workingElapsed.toMinutes(), 0L);
-            }
+        boolean isIssueTypeSlaEnabled = issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId());
+        boolean isNotChildTicket = ticket.getMasterId() == null || ticket.getMasterId().trim().isEmpty();
 
-            TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
-                    .orElseGet(TicketSla::new);
-
-            ticketSla.setTicket(ticket);
-            ticketSla.setBreachedByMinutes(0L);
-
-
-            return ticketSlaRepository.save(ticketSla);
+        // If Issue type sla flag is true mark isSlaApplicable as true
+        if(isIssueTypeSlaEnabled && isNotChildTicket) {
+            isSlaApplicable = true;
         }
+
+//        if (!issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId())) {
+
+//            long idleMinutes = 0L;
+//            if (reportedDate != null) {
+//                Duration workingElapsed = slaCalculatorService.computeWorkingDurationBetween(
+//                        reportedDate.atZone(TimeUtils.ZONE_ID),
+//                        calculationTime.atZone(TimeUtils.ZONE_ID)
+//                );
+//                idleMinutes = Math.max(workingElapsed.toMinutes(), 0L);
+//            }
+//
+//            TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
+//                    .orElseGet(TicketSla::new);
+//
+//            ticketSla.setTicket(ticket);
+//            ticketSla.setBreachedByMinutes(0L);
+//
+//
+//            return ticketSlaRepository.save(ticketSla);
+//        }
 
         SlaConfig config = slaConfigRepository.findBySeverityLevel(ticket.getSeverity())
                 .orElse(null);
@@ -156,7 +168,8 @@ public class TicketSlaService {
 
 //        START OF RESOLUTION TIME
         LocalDateTime assignTime = orderedHistory.stream()
-                .filter(h -> Boolean.TRUE.equals(h.getSlaFlag()))
+//                .filter(h -> Boolean.TRUE.equals(h.getSlaFlag()))
+                .filter(h -> "2".equals(h.getCurrentStatus()))
                 .map(StatusHistory::getTimestamp)
                 .filter(Objects::nonNull)
                 .findFirst()
@@ -203,13 +216,18 @@ public class TicketSlaService {
 //            IF STATUS HISTORY HAS MORE THAN 1 ELEMENT
             StatusHistory firstElement = orderedHistory.get(0);
             LocalDateTime prevTimestamp = firstElement.getTimestamp();
-            Boolean prevFlag = firstElement.getSlaFlag();
+            // Get the below flag from status master
             String prevStatus = normalizeStatus(firstElement.getCurrentStatus());
+            // Boolean prevFlag = firstElement.getSlaFlag(); // commented on 8 Aug, 2026 | 16:46
+            Boolean prevFlag = statusMasterService.getSlaFlagByStatusId(prevStatus); // Added on 8 Aug, 2026 | 16:46
 //            START FROM THE SECOND ELEMENT
             for(int i = 1; i < orderedHistory.size(); i++) {
                 StatusHistory currElement = orderedHistory.get(i);
                 LocalDateTime currTimestamp = currElement.getTimestamp();
-                Boolean currFlag = currElement.getSlaFlag();
+//                Boolean currFlag = currElement.getSlaFlag();
+                Boolean currFlag = statusMasterService.getSlaFlagByStatusId(
+                        currElement.getCurrentStatus()
+                );
 
                 if (shouldSkipResolvedToReopened(prevStatus, currElement)) {
                     prevTimestamp = currTimestamp;
@@ -312,6 +330,7 @@ public class TicketSlaService {
         }
         ticketSla.setTimeTillDueDate(timeTillDueDate);
         ticketSla.setWorkingTimeLeftMinutes(workingTimeLeft);
+        ticketSla.setIsSlaApplicable(isSlaApplicable);
         TicketSla saved = ticketSlaRepository.save(ticketSla);
         saved.setWorkingTimeLeftMinutes(workingTimeLeft);
 

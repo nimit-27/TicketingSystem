@@ -21,16 +21,16 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
     @Query("SELECT DISTINCT sla FROM TicketSla sla LEFT JOIN FETCH sla.ticket")
     List<TicketSla> findAllWithTicket();
 
-    @Query("SELECT DISTINCT sla FROM TicketSla sla LEFT JOIN FETCH sla.ticket WHERE sla.breachedByMinutes IS NOT NULL AND sla.breachedByMinutes > 0")
+    @Query("SELECT DISTINCT sla FROM TicketSla sla LEFT JOIN FETCH sla.ticket WHERE sla.breachedByMinutes IS NOT NULL AND sla.breachedByMinutes > 0 AND sla.isSlaApplicable")
     List<TicketSla> findBreachedWithTicket();
 
     @Query("""
             SELECT new com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto(
                 COUNT(sla),
-                COALESCE(SUM(CASE WHEN COALESCE(sla.breachedByMinutes, 0) > 0 THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN (COALESCE(sla.breachedByMinutes, 0) > 0 AND sla.isSlaApplicable) THEN 1 ELSE 0 END), 0),
                 AVG(sla.resolutionTimeMinutes),
                 AVG(sla.responseTimeMinutes),
-                AVG(CASE WHEN COALESCE(sla.breachedByMinutes, 0) > 0 THEN sla.breachedByMinutes ELSE NULL END),
+                AVG(CASE WHEN COALESCE(sla.breachedByMinutes, 0) > 0 AND sla.isSlaApplicable THEN sla.breachedByMinutes ELSE NULL END),
                 MIN(t.reportedDate),
                 MAX(t.reportedDate)
             )
@@ -45,7 +45,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
     @Query(value = """
             SELECT
                 t.severity AS severity,
-                COUNT(ticket_sla_id) AS totalCount,
+                COUNT(sla.ticket_sla_id) AS totalCount,
                 COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0 THEN 1 ELSE 0 END), 0) AS breachCount,
                 AVG(sla.resolution_time_minutes) AS averageResolutionTimeMinutes,
                 AVG(sla.response_time_minutes) AS averageResponseTimeMinutes
@@ -60,7 +60,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
 
     @Query(value = """
             SELECT COALESCE(NULLIF(TRIM(t.category), ''), 'Unknown') AS groupValue,
-                   COUNT(ticket_sla_id) AS totalCount
+                   COUNT(sla.ticket_sla_id) AS totalCount
             FROM ticket_sla sla
             JOIN tickets t ON t.ticket_id = sla.ticket_id
             WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
@@ -72,7 +72,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
 
     @Query(value = """
             SELECT COALESCE(NULLIF(TRIM(it.name), ''), 'Unknown') AS groupValue,
-                   COUNT(ticket_sla_id) AS totalCount
+                   COUNT(sla.ticket_sla_id) AS totalCount
             FROM ticket_sla sla
             JOIN tickets t ON t.ticket_id = sla.ticket_id
             LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
@@ -90,8 +90,9 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             FROM TicketSla sla
             JOIN sla.ticket t
             WHERE COALESCE(sla.breachedByMinutes, 0) > 0
-              AND t.reportedDate >= :fromDate
-              AND t.reportedDate < :toDateExclusive
+              AND sla.isSlaApplicable
+              AND sla.dueAt >= :fromDate
+              AND sla.dueAt < :toDateExclusive
             """)
     long countBreachedTicketsReportedBetween(@Param("fromDate") LocalDateTime fromDate,
                                              @Param("toDateExclusive") LocalDateTime toDateExclusive);

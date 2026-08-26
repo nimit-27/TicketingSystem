@@ -60,4 +60,7 @@ public class TicketSla {
 
     @Transient
     private Long workingTimeLeftMinutes;
+
+    @Column(name = "is_sla_applicable")
+    private Boolean isSlaApplicable;
 }
