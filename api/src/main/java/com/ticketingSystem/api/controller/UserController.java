@@ -31,7 +31,7 @@ import jakarta.validation.Valid;
 @AllArgsConstructor
 public class UserController {
     private static final int MAX_USER_LIST_PAGE_SIZE = 100;
-    private static final String USER_LIST_ACCESS = "@jwtProperties.isBypassEnabled() or @policyEvaluationService.hasPolicyCodeAccess(authentication, 'USER_LIST_ACCESS')";
+    private static final String USER_LIST_ACCESS = "@policyEvaluationService.hasPolicyCodeAccess(authentication, 'USER_LIST_ACCESS')";
 
     private final UserService userService;
     private final RequesterUserService requesterUserService;
