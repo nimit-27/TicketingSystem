@@ -13,6 +13,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
@@ -165,11 +166,16 @@ public class JwtTokenService {
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(signingKey())
+//        return Jwts.parserBuilder()
+//                .setSigningKey(signingKey())
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody();
+        return Jwts.parser()
+                .verifyWith((SecretKey) signingKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     private List<String> convertList(Object value) {
