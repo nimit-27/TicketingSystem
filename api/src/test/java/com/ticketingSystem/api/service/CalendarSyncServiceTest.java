@@ -14,8 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.time.Year;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,13 +52,13 @@ class CalendarSyncServiceTest {
 
     @Test
     void ensureRangeShouldTraverseAllYearsInWindow() {
-        when(holidayRepository.existsByDateBetweenAndRegion(any(), any(), eq("IN-WB"))).thenReturn(true);
+        when(holidayRepository.existsByDateBetweenAndRegion(any(LocalDate.class), any(LocalDate.class), eq("IN-WB"))).thenReturn(true);
 
         service.ensureRange(LocalDate.of(2024, 12, 20), LocalDate.of(2026, 1, 10));
 
-        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2), "IN-WB");
-        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 2), "IN-WB");
-        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 2), "IN-WB");
+        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31), "IN-WB");
+        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31), "IN-WB");
+        verify(holidayRepository).existsByDateBetweenAndRegion(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31), "IN-WB");
         verify(externalCalendarFacade, never()).sync(any(), any(), any());
     }
 
@@ -76,11 +75,11 @@ class CalendarSyncServiceTest {
     void ensureYearShouldUseDefaultProviderAndRegionWhenBlank() {
         properties.setProviderCode(" ");
         properties.setRegion(null);
-        when(holidayRepository.existsByDateBetweenAndRegion(any(), any(), eq(TimeUtils.DEFAULT_REGION))).thenReturn(false);
+        when(holidayRepository.existsByDateBetweenAndRegion(any(LocalDate.class), any(LocalDate.class), anyString())).thenReturn(false);
 
         service.ensureYear(Year.of(2024));
 
-        verify(externalCalendarFacade).sync("nager", Year.of(2024), TimeUtils.DEFAULT_REGION);
+        verify(externalCalendarFacade).sync("NAGER_DATE", Year.of(2024), TimeUtils.DEFAULT_REGION);
     }
 
     @Test

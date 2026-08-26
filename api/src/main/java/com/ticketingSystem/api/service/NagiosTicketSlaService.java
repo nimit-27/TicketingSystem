@@ -90,7 +90,7 @@ public class NagiosTicketSlaService {
                 breachedTicketsInLast15Days,
                 breachedTicketsInLast30Days,
                 statusCounts.resolvedOrClosedBreachedTickets(),
-                statusCounts.onHoldBreachedTickets(),
+                statusCounts.changeRequestedBreachedTickets(),
                 statusCounts.pendingWithRequestorBreachedTickets(),
                 statusCounts.pendingWithFciBreachedTickets(),
                 statusCounts.pendingWithServiceProviderBreachedTickets(),
@@ -161,7 +161,7 @@ public class NagiosTicketSlaService {
                 breachedTicketsInLast15Days,
                 breachedTicketsInLast30Days,
                 statusCounts.resolvedOrClosedBreachedTickets(),
-                statusCounts.onHoldBreachedTickets(),
+                statusCounts.changeRequestedBreachedTickets(),
                 statusCounts.pendingWithRequestorBreachedTickets(),
                 statusCounts.pendingWithFciBreachedTickets(),
                 statusCounts.pendingWithServiceProviderBreachedTickets(),
@@ -188,7 +188,7 @@ public class NagiosTicketSlaService {
                 ticketSlaRepository.countBreachedTicketsByStatuses(
                         fromDateTime,
                         toDateExclusive,
-                        List.of(TicketStatus.ON_HOLD)
+                        List.of(TicketStatus.CHANGE_REQUESTED)
                 ),
                 ticketSlaRepository.countBreachedTicketsByStatuses(
                         fromDateTime,
@@ -214,7 +214,7 @@ public class NagiosTicketSlaService {
     }
 
     private record BreachedTicketStatusCounts(long resolvedOrClosedBreachedTickets,
-                                              long onHoldBreachedTickets,
+                                              long changeRequestedBreachedTickets,
                                               long pendingWithRequestorBreachedTickets,
                                               long pendingWithFciBreachedTickets,
                                               long pendingWithServiceProviderBreachedTickets,

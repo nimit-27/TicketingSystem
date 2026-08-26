@@ -60,6 +60,11 @@ export function checkMyTicketsAccess(key: string, pageKey: string = 'myTickets')
   return perms?.pages?.children?.[pageKey]?.children?.[key]?.show ?? false;
 }
 
+export function checkPageComponentsAccess(key: string, pageKey: string = 'myTickets'): boolean {
+  const perms = getUserPermissions() as RolePermission | null;
+  return perms?.pages?.children?.[pageKey]?.children?.[key]?.show ?? false;
+}
+
 export function checkMyTicketsColumnAccess(column: string, pageKey: string = 'myTickets'): boolean {
   const perms = getUserPermissions() as RolePermission | null;
   return (

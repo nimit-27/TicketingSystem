@@ -2,11 +2,14 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.exception.CustomGenericException;
+import com.ticketingSystem.api.exception.RateLimitExceededException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.TicketComment;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.service.TicketService;
+import com.ticketingSystem.api.service.TicketHistoryBackfillService;
+import com.ticketingSystem.api.service.RateLimiterService;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
 import com.ticketingSystem.api.service.OciUploadService;
@@ -38,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @RequestMapping("/tickets")
@@ -53,7 +58,13 @@ import jakarta.servlet.http.HttpSession;
 @AllArgsConstructor
 public class TicketController {
     private static final Logger logger = LoggerFactory.getLogger(TicketController.class);
+    /**
+     * Limit applies per authenticated user (or per ticket requester/remote IP fallback), not globally across all users.
+     */
+    private static final int CREATE_TICKET_RATE_LIMIT = 20;
+    private static final Duration CREATE_TICKET_RATE_WINDOW = Duration.ofMinutes(1);
     private final TicketService ticketService;
+    private final TicketHistoryBackfillService ticketHistoryBackfillService;
     private final FileStorageService fileStorageService;
     private final TicketSlaService ticketSlaService;
     private final TicketAuthorizationService ticketAuthorizationService;
@@ -63,6 +74,7 @@ public class TicketController {
     private final ReportRequestHistoryRepository reportRequestHistoryRepository;
     private final ReportArtifactRepository reportArtifactRepository;
     private final OciUploadService ociUploadService;
+    private final RateLimiterService rateLimiterService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<TicketDto>> getTickets(
@@ -145,10 +157,20 @@ public class TicketController {
     }
 
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<TicketDto> addTicket(
+    public ResponseEntity<?> addTicket(
             @ModelAttribute Ticket ticket,
-            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments) throws Exception {
+            @RequestParam(value = "attachments", required = false) MultipartFile[] attachments,
+            HttpServletRequest request) throws Exception {
         logger.info("Request to add a new ticket");
+        try {
+            rateLimiterService.check(createTicketRateLimitKey(request, ticket), CREATE_TICKET_RATE_LIMIT, CREATE_TICKET_RATE_WINDOW,
+                    "Too many create ticket requests. Please try again later.");
+        } catch (RateLimitExceededException ex) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                    .body(Map.of("message", ex.getMessage()));
+        }
+
         TicketDto addedTicket = ticketService.addTicket(ticket);
 
 //        MANAGING ATTACHMENTS
@@ -166,6 +188,19 @@ public class TicketController {
         }
         logger.info("Ticket {} created successfully, returning {}", addedTicket.getId(), HttpStatus.OK);
         return ResponseEntity.ok(addedTicket);
+    }
+
+    private String createTicketRateLimitKey(HttpServletRequest request, Ticket ticket) {
+        String principalName = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (principalName != null && !principalName.isBlank()) {
+            return "tickets:create:" + principalName.trim();
+        }
+        String requesterUserId = ticket != null ? ticket.getUserId() : null;
+        if (requesterUserId != null && !requesterUserId.isBlank()) {
+            return "tickets:create:user:" + requesterUserId.trim();
+        }
+        String remoteAddress = request.getRemoteAddr();
+        return "tickets:create:ip:" + (remoteAddress == null || remoteAddress.isBlank() ? "unknown" : remoteAddress.trim());
     }
 
     @PostMapping(value = "/{id}/attachments", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -211,6 +246,18 @@ public class TicketController {
         TicketDto dto = ticketService.removeAttachment(id, path);
         logger.info("Attachment {} removed from ticket {}, returning {}", path, id, HttpStatus.OK);
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/history/backfill")
+    public ResponseEntity<Map<String, Integer>> backfillTicketHistory() {
+        logger.info("Request to backfill ticket history from legacy history tables");
+        return ResponseEntity.ok(ticketHistoryBackfillService.backfillLegacyHistory());
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<TicketHistoryDto>> getHistory(@PathVariable String id, @RequestParam(required = false) String updateTypeCode) {
+        logger.info("Request to get ticket history {}", id);
+        return ResponseEntity.ok(ticketService.getHistoryByTicketId(id, updateTypeCode));
     }
 
     @PutMapping("/{id}")
@@ -264,13 +311,15 @@ public class TicketController {
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String breachedOnFromDate,
             @RequestParam(required = false) String breachedOnToDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "ASC") String direction) {
         logger.info("Request to search tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} breachedOnFromDate={} breachedOnToDate={} page={} size={} sortBy={} direction={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, breachedOnFromDate, breachedOnToDate, page, size, sortBy, direction);
-        Page<TicketDto> p = ticketService.searchTickets(
+                Page<TicketDto> p = ticketService.searchTickets(
                 query,
                 statusId,
                 master,
@@ -296,6 +345,8 @@ public class TicketController {
                 toDate,
                 breachedOnFromDate,
                 breachedOnToDate,
+                lastModifiedStatusFromDate,
+                lastModifiedStatusToDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
         );
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
@@ -329,7 +380,9 @@ public class TicketController {
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String breachedOnFromDate,
-            @RequestParam(required = false) String breachedOnToDate) {
+            @RequestParam(required = false) String breachedOnToDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate) {
         logger.info("Request to export tickets query={} status={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} breachedOnFromDate={} breachedOnToDate={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, breachedOnFromDate, breachedOnToDate);
         List<TicketDto> results = ticketService.searchTicketsList(
@@ -357,7 +410,9 @@ public class TicketController {
                 fromDate,
                 toDate,
                 breachedOnFromDate,
-                breachedOnToDate
+                breachedOnToDate,
+                lastModifiedStatusFromDate,
+                lastModifiedStatusToDate
         );
         logger.info("Export search returned {} tickets with status {}", results.size(), HttpStatus.OK);
         return ResponseEntity.ok(results);
@@ -390,6 +445,8 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(required = false) String zoneLabel,
             @RequestParam(required = false) String regionLabel,
             @RequestParam(required = false) String districtLabel,
@@ -425,6 +482,8 @@ public class TicketController {
         filters.put("dateParam", dateParam);
         filters.put("fromDate", fromDate);
         filters.put("toDate", toDate);
+        filters.put("lastModifiedStatusFromDate", lastModifiedStatusFromDate);
+        filters.put("lastModifiedStatusToDate", lastModifiedStatusToDate);
         filters.put("zoneLabel", zoneLabel);
         filters.put("regionLabel", regionLabel);
         filters.put("districtLabel", districtLabel);
@@ -466,6 +525,8 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "reported_date") String dateParam,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String lastModifiedStatusFromDate,
+            @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(required = false) String zoneLabel,
             @RequestParam(required = false) String regionLabel,
             @RequestParam(required = false) String districtLabel,
@@ -501,6 +562,8 @@ public class TicketController {
         filters.put("dateParam", dateParam);
         filters.put("fromDate", fromDate);
         filters.put("toDate", toDate);
+        filters.put("lastModifiedStatusFromDate", lastModifiedStatusFromDate);
+        filters.put("lastModifiedStatusToDate", lastModifiedStatusToDate);
         filters.put("zoneLabel", zoneLabel);
         filters.put("regionLabel", regionLabel);
         filters.put("districtLabel", districtLabel);

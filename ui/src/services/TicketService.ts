@@ -123,6 +123,8 @@ export function searchTicketsPaginated(
     breachInMinutes?: number,
     breachedOnFromDate?: string,
     breachedOnToDate?: string,
+    lastModifiedStatusFromDate?: string,
+    lastModifiedStatusToDate?: string,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -150,6 +152,8 @@ export function searchTicketsPaginated(
     if (breachInMinutes !== undefined) params.append('breachInMinutes', String(breachInMinutes));
     if (breachedOnFromDate) params.append('breachedOnFromDate', breachedOnFromDate);
     if (breachedOnToDate) params.append('breachedOnToDate', breachedOnToDate);
+    if (lastModifiedStatusFromDate) params.append('lastModifiedStatusFromDate', lastModifiedStatusFromDate);
+    if (lastModifiedStatusToDate) params.append('lastModifiedStatusToDate', lastModifiedStatusToDate);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
 }
 
@@ -178,6 +182,8 @@ export function downloadTicketsReport({
     subCategoryLabel,
     statusLabel,
     requestedBy,
+    lastModifiedStatusFromDate,
+    lastModifiedStatusToDate,
     signal,
 }: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
     const params = new URLSearchParams();
@@ -204,6 +210,8 @@ export function downloadTicketsReport({
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
     if (requestedBy) params.append('requestedBy', requestedBy);
+    if (lastModifiedStatusFromDate) params.append('lastModifiedStatusFromDate', lastModifiedStatusFromDate);
+    if (lastModifiedStatusToDate) params.append('lastModifiedStatusToDate', lastModifiedStatusToDate);
     return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
 }
 
@@ -250,6 +258,8 @@ interface SearchTicketsForExportParams {
     subCategoryLabel?: string;
     statusLabel?: string;
     requestedBy?: string;
+    lastModifiedStatusFromDate?: string;
+    lastModifiedStatusToDate?: string;
     signal?: AbortSignal;
 }
 
@@ -266,6 +276,17 @@ export function searchTicketsForExport({
     assignedTo,
     statusId,
     divisionId,
+    zoneLabel,
+    regionLabel,
+    districtLabel,
+    issueTypeLabel,
+    divisionLabel,
+    categoryLabel,
+    subCategoryLabel,
+    statusLabel,
+    requestedBy,
+    lastModifiedStatusFromDate,
+    lastModifiedStatusToDate,
     signal,
 }: SearchTicketsForExportParams) {
     const params = new URLSearchParams();
@@ -290,6 +311,13 @@ export function searchTicketsForExport({
     if (assignedTo) params.append('assignedTo', assignedTo);
     if (statusId) params.append('status', statusId);
     if (requestedBy) params.append('requestedBy', requestedBy);
+    if (lastModifiedStatusFromDate) params.append('lastModifiedStatusFromDate', lastModifiedStatusFromDate);
+    if (lastModifiedStatusToDate) params.append('lastModifiedStatusToDate', lastModifiedStatusToDate);
     if (divisionId) params.append('divisionId', divisionId);
     return axios.get(`${BASE_URL}/tickets/search/export?${params.toString()}`, signal ? { signal } : undefined);
+}
+
+
+export function getTicketHistory(id: string, updateTypeCode?: string) {
+    return axios.get(`${BASE_URL}/tickets/${id}/history`, { params: updateTypeCode ? { updateTypeCode } : undefined });
 }

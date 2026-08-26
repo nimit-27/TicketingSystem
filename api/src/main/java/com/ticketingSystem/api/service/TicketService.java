@@ -9,6 +9,9 @@ import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.models.*;
 import com.ticketingSystem.api.repository.TicketCommentRepository;
 import com.ticketingSystem.api.repository.TicketRepository;
+import com.ticketingSystem.api.repository.TicketHistoryRepository;
+import com.ticketingSystem.api.repository.TicketHistoryConfigRepository;
+import com.ticketingSystem.api.repository.TicketTextHistoryRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.CategoryRepository;
@@ -44,6 +47,9 @@ import org.typesense.model.SearchResult;
 import org.typesense.model.SearchResultHit;
 import org.typesense.model.SearchRequestParams;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -105,6 +111,9 @@ public class TicketService {
     private final RecommendedSeverityFlowRepository recommendedSeverityFlowRepository;
     private final TicketIdGenerator ticketIdGenerator;
     private final TicketCrService ticketCrService;
+    private final TicketHistoryRepository ticketHistoryRepository;
+    private final TicketHistoryConfigRepository ticketHistoryConfigRepository;
+    private final TicketTextHistoryRepository ticketTextHistoryRepository;
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
@@ -532,7 +541,7 @@ public class TicketService {
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                          String breachOption, Integer breachInMinutes,
-                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, Pageable pageable) {
+                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate, String lastModifiedStatusToDate, Pageable pageable) {
         logger.info("TicketService.searchTickets called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, pageable.getPageNumber(), pageable.getPageSize());
 
@@ -577,6 +586,8 @@ public class TicketService {
 
         LocalDateTime breachedOnFrom = parseDateStart(breachedOnFromDate);
         LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
+        LocalDateTime lastModifiedStatusFrom = parseDateStart(lastModifiedStatusFromDate);
+        LocalDateTime lastModifiedStatusTo = parseDateEndExclusive(lastModifiedStatusToDate, lastModifiedStatusFrom);
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
@@ -609,6 +620,8 @@ public class TicketService {
                 to,
                 breachedOnFrom,
                 breachedOnTo,
+                lastModifiedStatusFrom,
+                lastModifiedStatusTo,
                 pageable
         );
         Page<TicketDto> result = page.map(this::mapWithStatusId);
@@ -621,7 +634,7 @@ public class TicketService {
                                              String severity, String createdBy, String category, String subCategory,
                                              String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                              String breachOption, Integer breachInMinutes,
-                                             String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate) {
+                                             String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate, String lastModifiedStatusToDate) {
         logger.info("TicketService.searchTicketsList called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate);
 
@@ -659,6 +672,8 @@ public class TicketService {
 
         LocalDateTime breachedOnFrom = parseDateStart(breachedOnFromDate);
         LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
+        LocalDateTime lastModifiedStatusFrom = parseDateStart(lastModifiedStatusFromDate);
+        LocalDateTime lastModifiedStatusTo = parseDateEndExclusive(lastModifiedStatusToDate, lastModifiedStatusFrom);
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
@@ -691,7 +706,9 @@ public class TicketService {
                         from,
                         to,
                         breachedOnFrom,
-                        breachedOnTo)
+                        breachedOnTo,
+                        lastModifiedStatusFrom,
+                        lastModifiedStatusTo)
                 .stream()
                 .map(this::mapWithStatusId)
                 .toList();
@@ -705,6 +722,7 @@ public class TicketService {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
+        Ticket historySnapshot = copyTicketForHistory(existing);
         String previousSeverity = existing.getSeverity();
         String previousRecommendedSeverity = existing.getRecommendedSeverity();
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
@@ -859,6 +877,7 @@ public class TicketService {
         setLastModified(existing);
         Ticket saved = ticketRepository.save(existing);
         String updatedBy = updated.getUpdatedBy() != null ? updated.getUpdatedBy() : existing.getUpdatedBy();
+        createTicketHistoryEntries(historySnapshot, saved, updatedBy, remark);
         if (updated.getDivision() != null && !Objects.equals(previousDivision, saved.getDivision())) {
             divisionHistoryService.addHistory(id, updatedBy, previousDivision, saved.getDivision(), remark);
         }
@@ -969,6 +988,259 @@ public class TicketService {
                     });
         }
         return mapWithStatusId(saved);
+    }
+
+    public List<TicketHistoryDto> getHistoryByTicketId(String ticketId, String updateTypeCode) {
+        List<TicketHistory> history = (updateTypeCode == null || updateTypeCode.isBlank())
+                ? ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(ticketId)
+                : ticketHistoryRepository.findByTicketIdAndUpdateTypeCodeOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(ticketId, updateTypeCode);
+        return history.stream().map(this::toTicketHistoryDto).toList();
+    }
+
+    private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
+        List<TicketHistoryConfig> configs = ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets");
+        List<TicketHistory> rows = new ArrayList<>();
+        String groupId = UUID.randomUUID().toString();
+        for (TicketHistoryConfig config : configs) {
+            String columnName = config.getColumnName();
+            String oldRefId = getTicketColumnRefId(oldRecord, columnName);
+            String newRefId = getTicketColumnRefId(newRecord, columnName);
+            String oldValue = getTicketColumnDisplayValue(oldRecord, columnName);
+            String newValue = getTicketColumnDisplayValue(newRecord, columnName);
+            String oldText = getTicketTextValue(oldRecord, columnName);
+            String newText = getTicketTextValue(newRecord, columnName);
+            if (Objects.equals(oldValue, newValue) && Objects.equals(oldRefId, newRefId) && Objects.equals(oldText, newText)) continue;
+            TicketHistory row = new TicketHistory();
+            row.setUpdateGroupId(groupId);
+            row.setTicketId(newRecord.getId());
+            row.setColumnName(columnName);
+            row.setUpdateTypeCode(config.getUpdateTypeCode());
+            row.setDisplayLabel(config.getDisplayLabel());
+            row.setOldRefId(oldRefId);
+            row.setNewRefId(newRefId);
+            row.setOldValue(oldValue);
+            row.setNewValue(newValue);
+            row.setUpdatedBy((updatedBy == null || updatedBy.isBlank()) ? "SYSTEM" : updatedBy);
+            Instant updatedInstant = Instant.now();
+            row.setUpdatedOn(LocalDateTime.ofInstant(updatedInstant, BUSINESS_ZONE));
+            row.setUpdatedOnUtc(updatedInstant);
+            row.setRemarks(remark);
+            rows.add(row);
+        }
+        if (!rows.isEmpty()) {
+            List<TicketHistory> savedRows = ticketHistoryRepository.saveAll(rows);
+            List<TicketTextHistory> textRows = new ArrayList<>();
+            for (TicketHistory row : savedRows) {
+                if (!isTicketTextHistoryColumn(row.getColumnName())) continue;
+                TicketTextHistory textHistory = new TicketTextHistory();
+                textHistory.setTicketHistory(row);
+                textHistory.setTicketId(row.getTicketId());
+                textHistory.setColumnName(row.getColumnName());
+                textHistory.setOldText(getTicketTextValue(oldRecord, row.getColumnName()));
+                textHistory.setNewText(getTicketTextValue(newRecord, row.getColumnName()));
+                textHistory.setOldTextHash(sha256(textHistory.getOldText()));
+                textHistory.setNewTextHash(sha256(textHistory.getNewText()));
+                textHistory.setOldTextLength(textLength(textHistory.getOldText()));
+                textHistory.setNewTextLength(textLength(textHistory.getNewText()));
+                textRows.add(textHistory);
+            }
+            if (!textRows.isEmpty()) ticketTextHistoryRepository.saveAll(textRows);
+        }
+    }
+
+    private Ticket copyTicketForHistory(Ticket source) {
+        Ticket copy = new Ticket();
+        copy.setId(source.getId());
+        copy.setSubject(source.getSubject());
+        copy.setDescription(source.getDescription());
+        copy.setCategory(source.getCategory());
+        copy.setSubCategory(source.getSubCategory());
+        copy.setIssueTypeId(source.getIssueTypeId());
+        copy.setPriority(source.getPriority());
+        copy.setDivision(source.getDivision());
+        copy.setSeverity(source.getSeverity());
+        copy.setRecommendedSeverity(source.getRecommendedSeverity());
+        copy.setImpact(source.getImpact());
+        copy.setSeverityRecommendedBy(source.getSeverityRecommendedBy());
+        copy.setTicketStatus(source.getTicketStatus());
+        copy.setStatus(source.getStatus());
+        copy.setAssignedTo(source.getAssignedTo());
+        copy.setAssignedBy(source.getAssignedBy());
+        copy.setAssignedToLevel(source.getAssignedToLevel());
+        copy.setLevelId(source.getLevelId());
+        copy.setOffice(source.getOffice());
+        copy.setOfficeCode(source.getOfficeCode());
+        copy.setRegionCode(source.getRegionCode());
+        copy.setZoneCode(source.getZoneCode());
+        copy.setDistrictCode(source.getDistrictCode());
+        copy.setDepotCode(source.getDepotCode());
+        copy.setMaster(source.isMaster());
+        copy.setMasterId(source.getMasterId());
+        copy.setAssignedBackFromFci(source.isAssignedBackFromFci());
+        return copy;
+    }
+
+    private String getTicketColumnRefId(Ticket record, String col) {
+        if (record == null) return null;
+        return switch (col) {
+            case "category" -> record.getCategory();
+            case "sub_category" -> record.getSubCategory();
+            case "issue_type_id" -> record.getIssueTypeId();
+            case "division", "division_id" -> record.getDivision();
+            case "status_id" -> record.getStatus() == null ? null : record.getStatus().getStatusId();
+            case "assigned_to" -> record.getAssignedTo();
+            case "assigned_by" -> record.getAssignedBy();
+            case "level_id" -> record.getLevelId();
+            default -> null;
+        };
+    }
+
+    private String getTicketColumnDisplayValue(Ticket record, String col) {
+        if (isTicketTextHistoryColumn(col)) {
+            return textPreview(getTicketTextValue(record, col));
+        }
+        return getTicketColumnValue(record, col);
+    }
+
+    private String textPreview(String value) {
+        if (value == null || value.length() <= 250) return value;
+        return value.substring(0, 250) + "...";
+    }
+
+    private String getTicketTextValue(Ticket record, String col) {
+        if (record == null || !isTicketTextHistoryColumn(col)) return null;
+        return switch (col) {
+            case "subject" -> record.getSubject();
+            case "description" -> record.getDescription();
+            default -> null;
+        };
+    }
+
+    private boolean isTicketTextHistoryColumn(String col) {
+        return "subject".equals(col) || "description".equals(col);
+    }
+
+    private Integer textLength(String value) {
+        return value == null ? null : value.length();
+    }
+
+    private String sha256(String value) {
+        if (value == null) return null;
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm is not available", e);
+        }
+    }
+
+    private String getTicketColumnValue(Ticket record, String col) {
+        if (record == null) return null;
+        return switch (col) {
+            case "subject" -> record.getSubject();
+            case "description" -> record.getDescription();
+            case "category" -> resolveCategoryName(record.getCategory());
+            case "sub_category" -> resolveSubCategoryName(record.getSubCategory());
+            case "issue_type_id" -> resolveIssueTypeName(record.getIssueTypeId());
+            case "priority" -> record.getPriority();
+            case "division" -> resolveDivisionName(record.getDivision());
+            case "severity" -> record.getSeverity();
+            case "recommended_severity" -> record.getRecommendedSeverity();
+            case "impact" -> record.getImpact();
+            case "severity_recommended_by" -> record.getSeverityRecommendedBy();
+            case "status_id" -> record.getStatus() == null ? null : record.getStatus().getStatusName();
+            case "status" -> record.getTicketStatus() == null ? null : record.getTicketStatus().name();
+            case "assigned_to" -> record.getAssignedTo();
+            case "assigned_by" -> record.getAssignedBy();
+            case "assigned_to_level" -> record.getAssignedToLevel();
+            case "level_id" -> record.getLevelId();
+            case "office" -> record.getOffice();
+            case "office_code" -> record.getOfficeCode();
+            case "region_code" -> record.getRegionCode();
+            case "zone_code" -> record.getZoneCode();
+            case "district_code" -> record.getDistrictCode();
+            case "depot_code" -> record.getDepotCode();
+            case "is_master" -> Boolean.toString(record.isMaster());
+            case "master_id" -> record.getMasterId();
+            case "is_assigned_back_from_fci" -> Boolean.toString(record.isAssignedBackFromFci());
+            default -> null;
+        };
+    }
+
+    private String resolveTicketHistoryDisplayValue(String columnName, String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        return switch (columnName) {
+            case "category", "module", "module_id" -> resolveCategoryName(value);
+            case "sub_category", "sub_module", "sub_module_id" -> resolveSubCategoryName(value);
+            case "issue_type_id", "issue_type" -> resolveIssueTypeName(value);
+            case "division", "division_id" -> resolveDivisionName(value);
+            default -> value;
+        };
+    }
+
+    private String resolveCategoryName(String categoryId) {
+        if (categoryId == null || categoryId.isBlank()) {
+            return categoryId;
+        }
+        return categoryRepository.findById(categoryId)
+                .map(Category::getCategory)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(categoryId);
+    }
+
+    private String resolveSubCategoryName(String subCategoryId) {
+        if (subCategoryId == null || subCategoryId.isBlank()) {
+            return subCategoryId;
+        }
+        return subCategoryRepository.findById(subCategoryId)
+                .map(SubCategory::getSubCategory)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(subCategoryId);
+    }
+
+    private String resolveIssueTypeName(String issueTypeId) {
+        if (issueTypeId == null || issueTypeId.isBlank()) {
+            return issueTypeId;
+        }
+        return issueTypeRepository.findById(issueTypeId)
+                .map(IssueType::getIssueTypeLabel)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(issueTypeId);
+    }
+
+    private String resolveDivisionName(String divisionId) {
+        if (divisionId == null || divisionId.isBlank()) {
+            return divisionId;
+        }
+        return divisionMasterRepository.findById(divisionId)
+                .map(DivisionMaster::getDivisionName)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(divisionId);
+    }
+
+    private TicketHistoryDto toTicketHistoryDto(TicketHistory h) {
+        TicketHistoryDto d = new TicketHistoryDto();
+        d.setTicketHistoryId(h.getTicketHistoryId());
+        d.setUpdateGroupId(h.getUpdateGroupId());
+        d.setTicketId(h.getTicketId());
+        d.setColumnName(h.getColumnName());
+        d.setUpdateTypeCode(h.getUpdateTypeCode());
+        d.setDisplayLabel(h.getDisplayLabel());
+        d.setOldRefId(h.getOldRefId());
+        d.setNewRefId(h.getNewRefId());
+        d.setOldValue(h.getOldValue());
+        d.setNewValue(h.getNewValue());
+        ticketTextHistoryRepository.findByTicketHistory_TicketHistoryId(h.getTicketHistoryId()).ifPresent(textHistory -> {
+            d.setOldText(textHistory.getOldText());
+            d.setNewText(textHistory.getNewText());
+        });
+        d.setUpdatedBy(h.getUpdatedBy());
+        d.setUpdatedOn(h.getUpdatedOn());
+        d.setUpdatedOnUtc(h.getUpdatedOnUtc());
+        d.setRemarks(h.getRemarks());
+        return d;
     }
 
     private void sendAssignmentNotification(Ticket ticket, String assignedTo, String assignedBy) {
@@ -1716,6 +1988,7 @@ public class TicketService {
             return mapWithStatusId(ticket);
         }
 
+        Ticket historySnapshot = copyTicketForHistory(ticket);
         String previousStatusId = resolveCurrentStatusId(ticket);
         ticket.setMasterId(masterId);
         applyClosedStatus(ticket);
@@ -1730,6 +2003,7 @@ public class TicketService {
         if (actor == null || actor.isBlank()) {
             actor = "SYSTEM";
         }
+        createTicketHistoryEntries(historySnapshot, saved, actor, "Linked to a Master ticket");
 
         String currentStatusId = resolveCurrentStatusId(saved);
         Boolean slaFlag = currentStatusId != null
@@ -1766,6 +2040,7 @@ public class TicketService {
             throw new InvalidRequestException("Ticket is not linked to any master ticket.");
         }
 
+        Ticket historySnapshot = copyTicketForHistory(ticket);
         ticket.setMasterId("");
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
@@ -1773,6 +2048,8 @@ public class TicketService {
         setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
+        String actor = updatedBy != null && !updatedBy.isBlank() ? updatedBy : saved.getUpdatedBy();
+        createTicketHistoryEntries(historySnapshot, saved, actor, String.format("Unlinked from master ticket %s", existingMasterId));
         addLinkingHistory(saved, updatedBy, String.format("Unlinked from master ticket %s", existingMasterId));
         return mapWithStatusId(saved);
     }
@@ -1781,11 +2058,13 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
+        Ticket historySnapshot = copyTicketForHistory(ticket);
         ticket.setMaster(true);
         ticket.setMasterId(null);
         setLastModified(ticket);
 
         Ticket saved = ticketRepository.save(ticket);
+        createTicketHistoryEntries(historySnapshot, saved, saved.getUpdatedBy(), "Marked as master ticket");
         return mapWithStatusId(saved);
     }
 

@@ -17,6 +17,7 @@ import CustomIconButton, { IconComponent } from '../UI/IconButton/CustomIconButt
 import CommentsSection from '../Comments/CommentsSection';
 import SlaDetails from './SlaDetails';
 import Histories from '../../pages/Histories';
+import TicketHistory from '../TicketHistory';
 import CustomFieldset from '../CustomFieldset';
 import { useTranslation } from 'react-i18next';
 import { checkAccessMaster, checkFieldAccess } from '../../utils/permissions';
@@ -102,6 +103,12 @@ const formatDisplayDate = (value: string | number | Date | null | undefined) => 
 };
 
 
+type RemarkableTicketDetailChange = {
+  key: string;
+  label: string;
+  payload: Record<string, any>;
+};
+
 const formatAttachmentChipLabel = (fileName?: string, uploadedOn?: string) => {
   const uploadDate = uploadedOn ? formatDateToDayMonthYear(uploadedOn) : '';
 
@@ -168,6 +175,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [statusWorkflows, setStatusWorkflows] = useState<any>({});
   const [severityToRecommendSeverity, setSeverityToRecommendSeverity] = useState<boolean>(false);
   const [showRecommendRemark, setShowRecommendRemark] = useState(false);
+  const [showEditRemark, setShowEditRemark] = useState(false);
+  const [pendingEditRemarkChanges, setPendingEditRemarkChanges] = useState<RemarkableTicketDetailChange[]>([]);
+  const [currentEditRemarkIndex, setCurrentEditRemarkIndex] = useState(0);
   const [showStatusRemark, setShowStatusRemark] = useState(false);
   const [selectedStatusAction, setSelectedStatusAction] = useState<TicketStatusWorkflow | null>(null);
   const recommendSeverityButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -644,6 +654,12 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   }, [focusRecommendSeverity, showSeverity, showSeverityToRecommendSeverity, onRecommendSeverityFocusHandled]);
 
+  const resetEditRemarkFlow = useCallback(() => {
+    setShowEditRemark(false);
+    setPendingEditRemarkChanges([]);
+    setCurrentEditRemarkIndex(0);
+  }, []);
+
   const updateTicketDetails = async (remark?: string) => {
     if (!ticketId) return;
     const payload: any = {
@@ -677,6 +693,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       await updateTicketHandler(() => updateTicket(ticketId, payload));
       setEditing(false);
       setShowRecommendRemark(false);
+      resetEditRemarkFlow();
       setSeverityToRecommendSeverity(false);
       await getTicketHandler(() => getTicket(ticketId));
     } catch {
@@ -684,8 +701,138 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     }
   };
 
+  const remarkableTicketDetailChanges = useMemo<RemarkableTicketDetailChange[]>(() => {
+    if (!ticket) return [];
+
+    const changes: RemarkableTicketDetailChange[] = [];
+    const addChange = (condition: boolean, key: string, label: string, payload: Record<string, any>) => {
+      if (condition) {
+        changes.push({ key, label, payload });
+      }
+    };
+
+    const hasDropdownValueChanged = (
+      currentValue: string,
+      originalValue: string | undefined,
+      originalLabel: string | undefined,
+      options: DropdownOption[]
+    ) => {
+      const originalValueText = originalValue || '';
+      const originalLabelText = originalLabel || '';
+
+      if (currentValue === originalValueText) return false;
+
+      const currentLabel = options.find(option => option.value === currentValue)?.label || '';
+      if (currentLabel && currentLabel === originalLabelText) return false;
+
+      return true;
+    };
+
+    addChange(subject !== (ticket.subject || ''), 'subject', 'Subject', { subject });
+    addChange(description !== (ticket.description || ''), 'description', 'Description', { description });
+    addChange(
+      Boolean(selectedCategoryId) && hasDropdownValueChanged(selectedCategoryId, ticket.categoryId, ticket.category, categoryOptions),
+      'category',
+      'Module',
+      { category: selectedCategoryId }
+    );
+    addChange(
+      Boolean(selectedSubCategoryId) && hasDropdownValueChanged(selectedSubCategoryId, ticket.subCategoryId, ticket.subCategory, subCategoryOptions),
+      'subCategory',
+      'Sub Module',
+      { subCategory: selectedSubCategoryId, severity: ticket.severity || '' }
+    );
+    addChange(
+      Boolean(divisionId) && hasDropdownValueChanged(divisionId, ticket.division, ticket.divisionName, divisionOptions),
+      'division',
+      'Division',
+      { division: divisionId }
+    );
+    addChange(
+      Boolean(issueTypeId) && hasDropdownValueChanged(issueTypeId, ticket.issueTypeId, ticket.issueTypeLabel, issueTypeOptions),
+      'issueType',
+      'Issue Type',
+      { issueTypeId }
+    );
+    addChange(
+      priorityId && ticket.priorityId ? priorityId !== ticket.priorityId : priority !== (ticket.priority || ''),
+      'priority',
+      'Priority',
+      { priority: priorityId }
+    );
+    addChange(severity !== (ticket.severity || ''), 'severity', 'Severity', { severity });
+
+    return changes;
+  }, [
+    categoryOptions,
+    description,
+    divisionId,
+    divisionOptions,
+    issueTypeId,
+    issueTypeOptions,
+    priority,
+    priorityId,
+    selectedCategoryId,
+    selectedSubCategoryId,
+    severity,
+    subCategoryOptions,
+    subject,
+    ticket
+  ]);
+
   const handleSave = () => {
+    if (remarkableTicketDetailChanges.length) {
+      setPendingEditRemarkChanges(remarkableTicketDetailChanges);
+      setCurrentEditRemarkIndex(0);
+      setShowEditRemark(true);
+      return;
+    }
+
     updateTicketDetails();
+  };
+
+  const handleEditRemarkCancel = async () => {
+    const hasSubmittedPartialChanges = currentEditRemarkIndex > 0;
+    resetEditRemarkFlow();
+
+    if (hasSubmittedPartialChanges && ticketId) {
+      setEditing(false);
+      await getTicketHandler(() => getTicket(ticketId));
+    }
+  };
+
+  const handleEditRemarkSubmit = async (remark: string) => {
+    if (!ticketId) return;
+
+    const currentChange = pendingEditRemarkChanges[currentEditRemarkIndex];
+    if (!currentChange) {
+      resetEditRemarkFlow();
+      return;
+    }
+
+    const payload = {
+      ...currentChange.payload,
+      remark,
+      updatedBy: currentUsername
+    };
+
+    try {
+      await updateTicketHandler(() => updateTicket(ticketId, payload));
+
+      const nextIndex = currentEditRemarkIndex + 1;
+      if (nextIndex < pendingEditRemarkChanges.length) {
+        setCurrentEditRemarkIndex(nextIndex);
+        return;
+      }
+
+      setEditing(false);
+      setShowRecommendRemark(false);
+      resetEditRemarkFlow();
+      setSeverityToRecommendSeverity(false);
+      await getTicketHandler(() => getTicket(ticketId));
+    } catch {
+      // no-op: errors handled within useApi
+    }
   };
 
   const handleSubmitRecommendSeverity = (remark: string) => {
@@ -713,6 +860,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const cancelEditing = () => {
     setEditing(false);
     setShowRecommendRemark(false);
+    resetEditRemarkFlow();
     setSeverityToRecommendSeverity(false);
     if (ticket) {
       setSubject(ticket.subject || '');
@@ -886,9 +1034,10 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
     if (isClosedOrResolvedStatus && editing) {
       setEditing(false);
       setShowRecommendRemark(false);
+      resetEditRemarkFlow();
       setSeverityToRecommendSeverity(false);
     }
-  }, [editing, isClosedOrResolvedStatus]);
+  }, [editing, isClosedOrResolvedStatus, resetEditRemarkFlow]);
 
   const isAssignedToCurrentUser = useMemo(() => {
     if (!ticket?.assignedTo || !currentUsername) return false;
@@ -1452,9 +1601,14 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
 
       {
         showHistory && (
-          <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
-            <Histories ticketId={ticketId} />
-          </CustomFieldset>
+          <>
+            <CustomFieldset title={t('History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
+              <Histories ticketId={ticketId} />
+            </CustomFieldset>
+            <CustomFieldset title={t('Ticket Change History')} style={{ marginTop: 16, margin: 0, padding: 0 }}>
+              <TicketHistory ticketId={ticketId} />
+            </CustomFieldset>
+          </>
         )
       }
 
@@ -1537,6 +1691,22 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         rcaStatus={rcaStatus}
         ticketId={ticketId}
         updatedBy={currentUsername}
+      />
+
+      <RemarkComponent
+        key={pendingEditRemarkChanges[currentEditRemarkIndex]?.key || 'edit-remark'}
+        isModal
+        open={showEditRemark}
+        actionName={t(`Update ${pendingEditRemarkChanges[currentEditRemarkIndex]?.label || 'Ticket Details'}`)}
+        title={t('Update Ticket Details Remark')}
+        message={t('Please add a remark for {{field}} change ({{current}} of {{total}}).', {
+          field: pendingEditRemarkChanges[currentEditRemarkIndex]?.label || t('Ticket Details'),
+          current: Math.min(currentEditRemarkIndex + 1, pendingEditRemarkChanges.length || 1),
+          total: pendingEditRemarkChanges.length || 1
+        })}
+        textFieldLabel={t('Remark')}
+        onCancel={handleEditRemarkCancel}
+        onSubmit={handleEditRemarkSubmit}
       />
 
       <RemarkComponent

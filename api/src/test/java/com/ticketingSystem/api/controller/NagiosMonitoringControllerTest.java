@@ -1,6 +1,7 @@
 package com.ticketingSystem.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRequestDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.service.NagiosTicketSlaService;
@@ -42,6 +43,8 @@ class NagiosMonitoringControllerTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
         mockMvc = MockMvcBuilders.standaloneSetup(nagiosMonitoringController)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
