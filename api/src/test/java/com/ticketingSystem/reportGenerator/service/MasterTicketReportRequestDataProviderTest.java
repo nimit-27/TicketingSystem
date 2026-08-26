@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MasterTicketReportRequestDataProviderTest {
 
@@ -37,4 +38,23 @@ class MasterTicketReportRequestDataProviderTest {
         assertNull(params.get("lastModifiedStatusFromDate"));
         assertNull(params.get("lastModifiedStatusToDate"));
     }
+    @Test
+    void supportsSlaTicketReportTemplate() {
+        ReportMaster reportMaster = new ReportMaster();
+        reportMaster.setTemplateLocation("reports/sla_ticket_report.jrxml");
+
+        assertTrue(provider.supports("SLA_TICKETS_RPT", reportMaster, Map.of()));
+    }
+
+    @Test
+    void buildParamsPassesBreachFilterToTemplateSql() {
+        Map<String, Object> params = provider.buildParams(
+                Map.of("breachOption", "BREACHED_IN"),
+                new ReportMaster(),
+                ReportFormat.EXCEL
+        );
+
+        assertEquals("BREACHED_IN", params.get("breachedFilter"));
+    }
+
 }

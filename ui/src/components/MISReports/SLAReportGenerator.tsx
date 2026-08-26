@@ -63,7 +63,7 @@ const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
     return (
         <Box>
             <Button variant="contained" onClick={handleOpen} startIcon={<DownloadIcon />} disabled={busy}>
-                {busy ? "Preparing..." : ""}
+                {busy ? "Preparing..." : "Download"}
             </Button>
 
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
