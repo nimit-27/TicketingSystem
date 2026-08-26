@@ -201,7 +201,8 @@ public class TicketSlaService {
         if (orderedHistory.size() == 1) {
             StatusHistory item = orderedHistory.get(0);
             LocalDateTime timestamp = item.getTimestamp();
-            Boolean flag = item.getSlaFlag();
+            Boolean flag = statusMasterService.getSlaFlagByStatusId(item.getCurrentStatus());
+//            Boolean flag = item.getSlaFlag();
 
             Duration diffDuration = slaCalculatorService.computeWorkingDurationBetween(
                     timestamp.atZone(TimeUtils.ZONE_ID),
