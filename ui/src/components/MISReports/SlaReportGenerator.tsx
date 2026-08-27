@@ -1,70 +1,115 @@
-import React from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { getCurrentUserDetails } from "../../config/config";
-import { downloadTicketsReport } from "../../services/TicketService";
-import { showMessage } from "../../utils/Utils";
+import React, { useState } from "react";
+import {
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Menu,
+    MenuItem,
+    Stack,
+    Typography,
+} from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import DownloadIcon from "@mui/icons-material/Download";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
-const SlaReportGenerator: React.FC = () => {
-    const navigate = useNavigate();
-    const [open, setOpen] = React.useState(false);
-    const [busy, setBusy] = React.useState(false);
-    const [format, setFormat] = React.useState<"PDF" | "EXCEL">("EXCEL");
-    const [filters, setFilters] = React.useState({
-        fromDate: "",
-        toDate: "",
-        breachedOnFromDate: "",
-        breachedOnToDate: "",
-    });
+export interface DownloadOption {
+    value: string;
+    label: string;
+}
 
-    const update = (key: keyof typeof filters) => (event: React.ChangeEvent<HTMLInputElement>) =>
-        setFilters((current) => ({ ...current, [key]: event.target.value }));
+const DEFAULT_DOWNLOAD_OPTIONS: DownloadOption[] = [
+    { value: "pdf", label: "Download as PDF" },
+    { value: "excel", label: "Download as Excel" },
+];
 
-    const generate = async () => {
-        if ((filters.fromDate && filters.toDate && filters.fromDate > filters.toDate)
-            || (filters.breachedOnFromDate && filters.breachedOnToDate && filters.breachedOnFromDate > filters.breachedOnToDate)) {
-            showMessage("From date cannot be after to date.", "warning");
-            return;
-        }
-        setBusy(true);
-        try {
-            await downloadTicketsReport({
-                reportCode: "SLA_SUMMARY_RPT",
-                format,
-                ...filters,
-                requestedBy: getCurrentUserDetails()?.userId,
-            });
-            showMessage("SLA report request queued. Track it on the Downloads page.", "success");
-            setOpen(false);
-            navigate("/downloads");
-        } catch (error) {
-            showMessage("Unable to queue the SLA report.", "error");
-        } finally {
-            setBusy(false);
-        }
+interface SLAReportGeneratorProps {
+    downloadOptions?: DownloadOption[];
+    onDownload: (option: string) => Promise<void> | void;
+    onEmail: () => Promise<void> | void;
+    busy?: boolean;
+    filterControls?: React.ReactNode;
+}
+
+const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
+    downloadOptions = DEFAULT_DOWNLOAD_OPTIONS,
+    onDownload,
+    onEmail,
+    busy = false,
+    filterControls,
+}) => {
+    const [open, setOpen] = useState(false);
+    const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
+
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => {
+        setOpen(false);
+        setDownloadMenuAnchor(null);
     };
 
-    return <>
-        <Button variant="contained" onClick={() => setOpen(true)}>Generate SLA Report</Button>
-        <Dialog open={open} onClose={() => !busy && setOpen(false)} fullWidth maxWidth="sm">
-            <DialogTitle>Generate SLA Report</DialogTitle>
-            <DialogContent>
-                <Stack spacing={2} mt={1}>
-                    <TextField label="Created From" type="date" value={filters.fromDate} onChange={update("fromDate")} InputLabelProps={{ shrink: true }} />
-                    <TextField label="Created To" type="date" value={filters.toDate} onChange={update("toDate")} InputLabelProps={{ shrink: true }} />
-                    <TextField label="Breached On From" type="date" value={filters.breachedOnFromDate} onChange={update("breachedOnFromDate")} InputLabelProps={{ shrink: true }} />
-                    <TextField label="Breached On To" type="date" value={filters.breachedOnToDate} onChange={update("breachedOnToDate")} InputLabelProps={{ shrink: true }} />
-                    <TextField select label="Format" value={format} onChange={(event) => setFormat(event.target.value as "PDF" | "EXCEL")}>
-                        <MenuItem value="EXCEL">Excel</MenuItem><MenuItem value="PDF">PDF</MenuItem>
-                    </TextField>
-                </Stack>
-            </DialogContent>
-            <DialogActions>
-                <Button disabled={busy} onClick={() => setOpen(false)}>Cancel</Button>
-                <Button disabled={busy} variant="contained" onClick={generate}>{busy ? "Generating…" : "Generate"}</Button>
-            </DialogActions>
-        </Dialog>
-    </>;
+    const handleEmail = async () => {
+        await onEmail();
+        handleClose();
+    };
+
+    const handleDownloadSelection = async (option: string) => {
+        await onDownload(option);
+        setDownloadMenuAnchor(null);
+        handleClose();
+    };
+
+    return (
+        <Box>
+            <Button variant="contained" onClick={handleOpen} startIcon={<DownloadIcon />} disabled={busy}>
+                {busy ? "Preparing..." : ""}
+            </Button>
+
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+                <DialogTitle>Generate SLA Report</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2} mt={1}>
+                        {filterControls && (
+                            <Box p={2} borderRadius={1} bgcolor="rgba(0,0,0,0.03)">
+                                <Typography variant="subtitle2" gutterBottom>
+                                    SLA Filters
+                                </Typography>
+                                {filterControls}
+                            </Box>
+                        )}
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button variant="outlined" color="primary" startIcon={<EmailIcon />} onClick={handleEmail}>
+                        Email
+                    </Button>
+                    <div>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            endIcon={<ArrowDropDownIcon />}
+                            startIcon={<DownloadIcon />}
+                            onClick={(event) => setDownloadMenuAnchor(event.currentTarget)}
+                        >
+                            Download
+                        </Button>
+                        <Menu
+                            anchorEl={downloadMenuAnchor}
+                            open={Boolean(downloadMenuAnchor)}
+                            onClose={() => setDownloadMenuAnchor(null)}
+                        >
+                            {downloadOptions.map((option) => (
+                                <MenuItem key={option.value} onClick={() => handleDownloadSelection(option.value)}>
+                                    {option.label}
+                                </MenuItem>
+                            ))}
+                        </Menu>
+                    </div>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    );
 };
 
-export default SlaReportGenerator;
+export default SLAReportGenerator;
