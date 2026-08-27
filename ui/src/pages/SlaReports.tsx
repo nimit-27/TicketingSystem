@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, TextField } from "@mui/material";
 import Title from "../components/Title";
-import SLAReportGenerator from "../components/MISReports/SLAReportGenerator";
+import SlaReportGenerator from "../components/MISReports/SlaReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import { timeScaleOptions } from "../utils/misReports";
@@ -165,7 +165,7 @@ const SlaReports: React.FC = () => {
     const showSlaPerformanceReport = React.useMemo(() => hasAccess(["slaPerformanceReport"]), [hasAccess]);
 
     const misReportGeneratorComponent = (
-        <SLAReportGenerator
+        <SlaReportGenerator
             onDownload={handleDownload}
             onEmail={handleEmail}
             busy={downloading}

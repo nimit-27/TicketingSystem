@@ -25,7 +25,7 @@ const DEFAULT_DOWNLOAD_OPTIONS: DownloadOption[] = [
     { value: "excel", label: "Download as Excel" },
 ];
 
-interface SLAReportGeneratorProps {
+interface SlaReportGeneratorProps {
     downloadOptions?: DownloadOption[];
     onDownload: (option: string) => Promise<void> | void;
     onEmail?: () => Promise<void> | void;
@@ -34,7 +34,7 @@ interface SLAReportGeneratorProps {
     buttonLabel?: string;
 }
 
-const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
+const SlaReportGenerator: React.FC<SlaReportGeneratorProps> = ({
     downloadOptions = DEFAULT_DOWNLOAD_OPTIONS,
     onDownload,
     onEmail,
@@ -114,4 +114,4 @@ const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
     );
 };
 
-export default SLAReportGenerator;
+export default SlaReportGenerator;

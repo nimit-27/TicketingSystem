@@ -12,7 +12,7 @@ import TicketResolutionTimeReport from "../components/MISReports/TicketResolutio
 import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
 import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
 import { checkAccessMaster } from "../utils/permissions";
-import SLAReportGenerator from "../components/MISReports/SLAReportGenerator";
+import SlaReportGenerator from "../components/MISReports/SlaReportGenerator";
 import { downloadTicketsReport } from "../services/TicketService";
 import { getCurrentUserDetails } from "../config/config";
 import { showMessage } from "../utils/Utils";
@@ -135,7 +135,7 @@ const MISReports: React.FC = () => {
     };
 
     const slaReportGeneratorComponent = (
-        <SLAReportGenerator
+        <SlaReportGenerator
             onDownload={generateSlaReport}
             busy={slaDownloading}
             filterControls={<Box className="row g-2">

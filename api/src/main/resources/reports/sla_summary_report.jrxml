@@ -8,27 +8,25 @@
     <queryString><![CDATA[
 SELECT 'All Severities' severityType,
        COUNT(DISTINCT t.ticket_id) totalTickets,
-       COUNT(DISTINCT CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END) breachedTickets,
-       ROUND(100.0 * COUNT(DISTINCT CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END)
+       COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.isSlaApplicable) THEN t.ticket_id END) breachedTickets,
+       ROUND(100.0 * COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.isSlaApplicable) THEN t.ticket_id END)
              / NULLIF(COUNT(DISTINCT t.ticket_id), 0), 2) breachPercentage,
        ROUND(AVG(ts.resolution_time_minutes), 2) averageResolutionMinutes,
        ROUND(AVG(ts.response_time_minutes), 2) averageResponseMinutes
 FROM tickets t JOIN ticket_sla ts ON ts.ticket_id=t.ticket_id
-WHERE COALESCE(ts.is_sla_applicable, FALSE) = TRUE
-  AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
+WHERE ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
   AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY))
   AND ($P{breachedOnFromDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at >= STR_TO_DATE($P{breachedOnFromDate}, '%Y-%m-%d')))
   AND ($P{breachedOnToDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at < DATE_ADD(STR_TO_DATE($P{breachedOnToDate}, '%Y-%m-%d'), INTERVAL 1 DAY)))
 UNION ALL
 SELECT COALESCE(NULLIF(sm.ts_level,''), NULLIF(t.severity,''), 'Unspecified') severityType,
        COUNT(DISTINCT t.ticket_id),
-       COUNT(DISTINCT CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END),
-       ROUND(100.0 * COUNT(DISTINCT CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END)
+       COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.isSlaApplicable) THEN t.ticket_id END),
+       ROUND(100.0 * COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.isSlaApplicable) THEN t.ticket_id END)
              / NULLIF(COUNT(DISTINCT t.ticket_id), 0), 2),
        ROUND(AVG(ts.resolution_time_minutes), 2), ROUND(AVG(ts.response_time_minutes), 2)
 FROM tickets t JOIN ticket_sla ts ON ts.ticket_id=t.ticket_id LEFT JOIN severity_master sm ON sm.ts_id=t.severity
-WHERE COALESCE(ts.is_sla_applicable, FALSE) = TRUE
-  AND ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
+WHERE ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
   AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY))
   AND ($P{breachedOnFromDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at >= STR_TO_DATE($P{breachedOnFromDate}, '%Y-%m-%d')))
   AND ($P{breachedOnToDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at < DATE_ADD(STR_TO_DATE($P{breachedOnToDate}, '%Y-%m-%d'), INTERVAL 1 DAY)))
