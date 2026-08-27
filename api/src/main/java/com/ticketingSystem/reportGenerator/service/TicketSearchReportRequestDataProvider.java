@@ -24,7 +24,7 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
     public boolean supports(String reportCode, ReportMaster reportMaster, Map<String, Object> filters) {
         log.info("TicketSearchReportRequestDataProvider.supports reportCode={} reportMasterCode={} filterKeys={}",
                 reportCode, reportMaster != null ? reportMaster.getReportCode() : null, filters != null ? filters.keySet() : null);
-        return true;
+        return !"SLA_SUMMARY_RPT".equalsIgnoreCase(reportCode);
     }
 
     @Override

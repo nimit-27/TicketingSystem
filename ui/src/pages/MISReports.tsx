@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, TextField, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import MISReportGenerator from "../components/MISReports/MISReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
@@ -11,8 +12,20 @@ import TicketResolutionTimeReport from "../components/MISReports/TicketResolutio
 import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
 import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
 import { checkAccessMaster } from "../utils/permissions";
+import SLAReportGenerator from "../components/MISReports/SLAReportGenerator";
+import { downloadTicketsReport } from "../services/TicketService";
+import { getCurrentUserDetails } from "../config/config";
+import { showMessage } from "../utils/Utils";
 
 const MISReports: React.FC = () => {
+    const navigate = useNavigate();
+    const [slaDownloading, setSlaDownloading] = React.useState(false);
+    const [slaDates, setSlaDates] = React.useState({
+        fromDate: "",
+        toDate: "",
+        breachedOnFromDate: "",
+        breachedOnToDate: "",
+    });
     const {
         requestParams,
         timeScale,
@@ -95,11 +108,50 @@ const MISReports: React.FC = () => {
         />
     );
 
+    const updateSlaDate = (key: keyof typeof slaDates) => (event: React.ChangeEvent<HTMLInputElement>) =>
+        setSlaDates((current) => ({ ...current, [key]: event.target.value }));
+
+    const generateSlaReport = async (option: string) => {
+        if ((slaDates.fromDate && slaDates.toDate && slaDates.fromDate > slaDates.toDate)
+            || (slaDates.breachedOnFromDate && slaDates.breachedOnToDate && slaDates.breachedOnFromDate > slaDates.breachedOnToDate)) {
+            showMessage("From date cannot be after to date.", "warning");
+            return;
+        }
+        setSlaDownloading(true);
+        try {
+            await downloadTicketsReport({
+                reportCode: "SLA_SUMMARY_RPT",
+                format: option === "pdf" ? "PDF" : "EXCEL",
+                ...slaDates,
+                requestedBy: getCurrentUserDetails()?.userId,
+            });
+            showMessage("SLA report request queued. Track it on the Downloads page.", "success");
+            navigate("/downloads");
+        } catch (error) {
+            showMessage("Unable to queue the SLA report.", "error");
+        } finally {
+            setSlaDownloading(false);
+        }
+    };
+
+    const slaReportGeneratorComponent = (
+        <SLAReportGenerator
+            onDownload={generateSlaReport}
+            busy={slaDownloading}
+            filterControls={<Box className="row g-2">
+                <Box className="col-12 col-md-6"><TextField label="Created From" type="date" value={slaDates.fromDate} onChange={updateSlaDate("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth /></Box>
+                <Box className="col-12 col-md-6"><TextField label="Created To" type="date" value={slaDates.toDate} onChange={updateSlaDate("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth /></Box>
+                <Box className="col-12 col-md-6"><TextField label="Breached On From" type="date" value={slaDates.breachedOnFromDate} onChange={updateSlaDate("breachedOnFromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth /></Box>
+                <Box className="col-12 col-md-6"><TextField label="Breached On To" type="date" value={slaDates.breachedOnToDate} onChange={updateSlaDate("breachedOnToDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth /></Box>
+            </Box>}
+        />
+    );
+
     return (
         <div className="d-flex flex-column flex-grow-1">
             <Title
                 textKey="Management Information System Reports"
-                rightContent={showReportGenerator ? misReportGeneratorComponent : undefined}
+                rightContent={showReportGenerator ? <Box display="flex" gap={1}>{misReportGeneratorComponent}{slaReportGeneratorComponent}</Box> : undefined}
             />
 
             <Box display="flex" flexDirection="column" gap={2}>
