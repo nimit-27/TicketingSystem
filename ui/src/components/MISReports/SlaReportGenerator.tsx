@@ -28,9 +28,10 @@ const DEFAULT_DOWNLOAD_OPTIONS: DownloadOption[] = [
 interface SLAReportGeneratorProps {
     downloadOptions?: DownloadOption[];
     onDownload: (option: string) => Promise<void> | void;
-    onEmail: () => Promise<void> | void;
+    onEmail?: () => Promise<void> | void;
     busy?: boolean;
     filterControls?: React.ReactNode;
+    buttonLabel?: string;
 }
 
 const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
@@ -39,6 +40,7 @@ const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
     onEmail,
     busy = false,
     filterControls,
+    buttonLabel = "Generate SLA Report",
 }) => {
     const [open, setOpen] = useState(false);
     const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
@@ -50,7 +52,7 @@ const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
     };
 
     const handleEmail = async () => {
-        await onEmail();
+        await onEmail?.();
         handleClose();
     };
 
@@ -63,7 +65,7 @@ const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
     return (
         <Box>
             <Button variant="contained" onClick={handleOpen} startIcon={<DownloadIcon />} disabled={busy}>
-                {busy ? "Preparing..." : ""}
+                {busy ? "Preparing..." : buttonLabel}
             </Button>
 
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -81,9 +83,9 @@ const SLAReportGenerator: React.FC<SLAReportGeneratorProps> = ({
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button variant="outlined" color="primary" startIcon={<EmailIcon />} onClick={handleEmail}>
+                    {onEmail && <Button variant="outlined" color="primary" startIcon={<EmailIcon />} onClick={handleEmail}>
                         Email
-                    </Button>
+                    </Button>}
                     <div>
                         <Button
                             variant="contained"
