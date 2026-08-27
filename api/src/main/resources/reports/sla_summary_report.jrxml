@@ -8,7 +8,7 @@
     <queryString><![CDATA[
 SELECT 'All Severities' severityType,
        COUNT(DISTINCT t.ticket_id) totalTickets,
-       COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.is_sla_applicable) THEN t.ticket_id END) breachedTickets,
+       COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.is_sla_applicable IS TRUE) THEN t.ticket_id END) breachedTickets,
        ROUND(100.0 * COUNT(DISTINCT CASE WHEN (COALESCE(ts.breached_by_minutes, 0) > 0 AND ts.is_sla_applicable) THEN t.ticket_id END)
              / NULLIF(COUNT(DISTINCT t.ticket_id), 0), 2) breachPercentage,
        ROUND(AVG(ts.resolution_time_minutes), 2) averageResolutionMinutes,
