@@ -11,6 +11,7 @@ import TicketResolutionTimeReport from "../components/MISReports/TicketResolutio
 import CustomerSatisfactionReport from "../components/MISReports/CustomerSatisfactionReport";
 import ProblemManagementReport from "../components/MISReports/ProblemManagementReport";
 import { checkAccessMaster } from "../utils/permissions";
+import SlaReportGenerator from "../components/MISReports/SlaReportGenerator";
 
 const MISReports: React.FC = () => {
     const {
@@ -99,7 +100,7 @@ const MISReports: React.FC = () => {
         <div className="d-flex flex-column flex-grow-1">
             <Title
                 textKey="Management Information System Reports"
-                rightContent={showReportGenerator ? misReportGeneratorComponent : undefined}
+                rightContent={showReportGenerator ? <Box display="flex" gap={1}>{misReportGeneratorComponent}<SlaReportGenerator /></Box> : undefined}
             />
 
             <Box display="flex" flexDirection="column" gap={2}>

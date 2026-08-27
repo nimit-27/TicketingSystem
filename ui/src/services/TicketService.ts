@@ -184,6 +184,8 @@ export function downloadTicketsReport({
     requestedBy,
     lastModifiedStatusFromDate,
     lastModifiedStatusToDate,
+    breachedOnFromDate,
+    breachedOnToDate,
     signal,
 }: SearchTicketsForExportParams & { reportCode: string; format: 'PDF' | 'EXCEL' }) {
     const params = new URLSearchParams();
@@ -212,6 +214,8 @@ export function downloadTicketsReport({
     if (requestedBy) params.append('requestedBy', requestedBy);
     if (lastModifiedStatusFromDate) params.append('lastModifiedStatusFromDate', lastModifiedStatusFromDate);
     if (lastModifiedStatusToDate) params.append('lastModifiedStatusToDate', lastModifiedStatusToDate);
+    if (breachedOnFromDate) params.append('breachedOnFromDate', breachedOnFromDate);
+    if (breachedOnToDate) params.append('breachedOnToDate', breachedOnToDate);
     return axios.get(`${BASE_URL}/tickets/search/export/download?${params.toString()}`, signal ? { signal } : undefined);
 }
 
@@ -260,6 +264,8 @@ interface SearchTicketsForExportParams {
     requestedBy?: string;
     lastModifiedStatusFromDate?: string;
     lastModifiedStatusToDate?: string;
+    breachedOnFromDate?: string;
+    breachedOnToDate?: string;
     signal?: AbortSignal;
 }
 

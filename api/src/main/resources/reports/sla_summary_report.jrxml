@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SLA_Summary_Report" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="breachedOnFromDate" class="java.lang.String"/>
+    <parameter name="breachedOnToDate" class="java.lang.String"/>
+    <parameter name="generatedOn" class="java.lang.String"/>
+    <queryString><![CDATA[
+SELECT 'All Severities' severityType,
+       COUNT(DISTINCT t.ticket_id) totalTickets,
+       COUNT(DISTINCT CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END) breachedTickets,
+       ROUND(AVG(ts.resolution_time_minutes), 2) averageResolutionMinutes,
+       ROUND(AVG(ts.response_time_minutes), 2) averageResponseMinutes
+FROM tickets t JOIN ticket_sla ts ON ts.ticket_id=t.ticket_id
+WHERE ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
+  AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY))
+  AND ($P{breachedOnFromDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at >= STR_TO_DATE($P{breachedOnFromDate}, '%Y-%m-%d')))
+  AND ($P{breachedOnToDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at < DATE_ADD(STR_TO_DATE($P{breachedOnToDate}, '%Y-%m-%d'), INTERVAL 1 DAY)))
+UNION ALL
+SELECT COALESCE(NULLIF(sm.ts_description,''), NULLIF(sm.ts_level,''), NULLIF(t.severity,''), 'Unspecified') severityType,
+       COUNT(DISTINCT t.ticket_id),
+       COUNT(DISTINCT CASE WHEN COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END),
+       ROUND(AVG(ts.resolution_time_minutes), 2), ROUND(AVG(ts.response_time_minutes), 2)
+FROM tickets t JOIN ticket_sla ts ON ts.ticket_id=t.ticket_id LEFT JOIN severity_master sm ON sm.ts_id=t.severity
+WHERE ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
+  AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY))
+  AND ($P{breachedOnFromDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at >= STR_TO_DATE($P{breachedOnFromDate}, '%Y-%m-%d')))
+  AND ($P{breachedOnToDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at < DATE_ADD(STR_TO_DATE($P{breachedOnToDate}, '%Y-%m-%d'), INTERVAL 1 DAY)))
+GROUP BY COALESCE(NULLIF(sm.ts_description,''), NULLIF(sm.ts_level,''), NULLIF(t.severity,''), 'Unspecified')
+    ]]></queryString>
+    <field name="severityType" class="java.lang.String"/><field name="totalTickets" class="java.lang.Long"/><field name="breachedTickets" class="java.lang.Long"/><field name="averageResolutionMinutes" class="java.math.BigDecimal"/><field name="averageResponseMinutes" class="java.math.BigDecimal"/>
+    <title><band height="55"><staticText><reportElement x="0" y="0" width="802" height="28"/><textElement textAlignment="Center"><font size="18" isBold="true"/></textElement><text><![CDATA[SLA Summary Report]]></text></staticText><textField><reportElement x="0" y="30" width="802" height="20"/><textElement textAlignment="Center"/><textFieldExpression><![CDATA["Created: " + ($P{fromDate} == null ? "Any" : $P{fromDate}) + " to " + ($P{toDate} == null ? "Any" : $P{toDate}) + " | Breached on: " + ($P{breachedOnFromDate} == null ? "Any" : $P{breachedOnFromDate}) + " to " + ($P{breachedOnToDate} == null ? "Any" : $P{breachedOnToDate})]]></textFieldExpression></textField></band></title>
+    <columnHeader><band height="28"><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="0" y="0" width="202" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Severity]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="202" y="0" width="130" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Total Tickets]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="332" y="0" width="140" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Breached Tickets]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="472" y="0" width="170" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Avg Resolution (minutes)]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="642" y="0" width="160" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Avg Response (minutes)]]></text></staticText></band></columnHeader>
+    <detail><band height="25"><textField><reportElement x="0" y="0" width="202" height="25"/><textFieldExpression><![CDATA[$F{severityType}]]></textFieldExpression></textField><textField><reportElement x="202" y="0" width="130" height="25"/><textFieldExpression><![CDATA[$F{totalTickets}]]></textFieldExpression></textField><textField><reportElement x="332" y="0" width="140" height="25"/><textFieldExpression><![CDATA[$F{breachedTickets}]]></textFieldExpression></textField><textField pattern="#0.00"><reportElement x="472" y="0" width="170" height="25"/><textFieldExpression><![CDATA[$F{averageResolutionMinutes}]]></textFieldExpression></textField><textField pattern="#0.00"><reportElement x="642" y="0" width="160" height="25"/><textFieldExpression><![CDATA[$F{averageResponseMinutes}]]></textFieldExpression></textField></band></detail>
+</jasperReport>
