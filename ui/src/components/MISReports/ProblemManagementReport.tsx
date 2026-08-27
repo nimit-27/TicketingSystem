@@ -83,7 +83,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
     );
 
     return (
-        <CustomFieldset title="Problem Management" variant="bordered">
+        <CustomFieldset title="Problem Management">
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Analysing recurring issues...

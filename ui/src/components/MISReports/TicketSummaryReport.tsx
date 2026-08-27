@@ -167,7 +167,7 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
     }, [data?.totalTickets, ticketLifecycleSunburstOptions]);
 
     return (
-        <CustomFieldset title="Ticket Summary Report" variant="bordered">
+        <CustomFieldset title="Ticket Summary">
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Loading ticket summary...
@@ -176,12 +176,12 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
 
             {!pending && data && (
                 <Box display="flex" flexDirection="column" gap={2}>
-                    <Box display="flex" flexWrap="wrap" gap={4}>
+                    {/* <Box display="flex" flexWrap="wrap" gap={4}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
                                 Total Tickets
                             </Typography>
-                            <Typography variant="h5" fontWeight={700}>
+                            <Typography variant="h5" fontWeight={700} align="center">
                                 {data.totalTickets}
                             </Typography>
                         </Box>
@@ -189,7 +189,7 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
                             <Typography variant="subtitle2" color="text.secondary">
                                 Open Tickets
                             </Typography>
-                            <Typography variant="h5" fontWeight={700}>
+                            <Typography variant="h5" fontWeight={700} align="center">
                                 {data.openTickets}
                             </Typography>
                         </Box>
@@ -197,24 +197,21 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
                             <Typography variant="subtitle2" color="text.secondary">
                                 Closed Tickets
                             </Typography>
-                            <Typography variant="h5" fontWeight={700}>
+                            <Typography variant="h5" fontWeight={700} align="center">
                                 {data.closedTickets}
                             </Typography>
                         </Box>
-                    </Box>
+                    </Box> */}
 
                     <Box display="flex" flexDirection="column" gap={4}>
+                        <Box width="100%">
+                            <CustomMetricCard {...ticketMetricsCardData} />
+                        </Box>
                         <Box width="100%">
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                 Overall Tickets - Categorized by Status
                             </Typography>
                             <ReactECharts option={statusPieChartOptions} style={{ height: 340 }} />
-                        </Box>
-                        <Box width="100%">
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Tickets Count
-                            </Typography>
-                            <CustomMetricCard {...ticketMetricsCardData} />
                         </Box>
                     </Box>
                 </Box>

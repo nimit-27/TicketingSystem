@@ -82,7 +82,7 @@ const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithPa
     );
 
     return (
-        <CustomFieldset title="Customer Satisfaction" variant="bordered">
+        <CustomFieldset title="Customer Satisfaction">
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Gathering feedback trends...

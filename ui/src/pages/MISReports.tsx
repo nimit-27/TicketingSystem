@@ -15,9 +15,11 @@ import { checkAccessMaster } from "../utils/permissions";
 import SlaReportGenerator from "../components/MISReports/SlaReportGenerator";
 import { downloadTicketsReport } from "../services/TicketService";
 import { getCurrentUserDetails } from "../config/config";
-import { showMessage } from "../utils/Utils";
+import { useSnackbar } from "../context/SnackbarContext";
 
 const MISReports: React.FC = () => {
+    const { showMessage } = useSnackbar();
+    
     const navigate = useNavigate();
     const [slaDownloading, setSlaDownloading] = React.useState(false);
     const [slaDates, setSlaDates] = React.useState({
@@ -155,11 +157,11 @@ const MISReports: React.FC = () => {
             />
 
             <Box display="flex" flexDirection="column" gap={2}>
-                {showViewingDataText && (
+                {/* {showViewingDataText && (
                     <Typography variant="subtitle2" color="text.secondary">
                         Viewing data for all tickets
                     </Typography>
-                )}
+                )} */}
                 <Box className="row g-3" alignItems="stretch">
                     {showIntervalFilter && (
                     <Box className="col-12 col-md-6 col-lg-3 d-flex">

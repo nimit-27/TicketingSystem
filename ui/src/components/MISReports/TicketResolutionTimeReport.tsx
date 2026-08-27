@@ -9,9 +9,9 @@ import {
     TicketResolutionTimeReportProps,
 } from "../../types/reports";
 
-interface TicketResolutionTimeReportProps {
-    params?: MISReportRequestParams;
-}
+// interface TicketResolutionTimeReportProps {
+//     params?: MISReportRequestParams;
+// }
 
 const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({ params }) => {
     const { data, pending, apiHandler } = useApi<TicketResolutionTimeReportProps>();
@@ -37,7 +37,7 @@ const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({
         `${stat.categoryName ?? stat.category ?? "Unspecified"} > ${stat.subcategoryName ?? stat.subcategory ?? "N/A"}`;
 
     return (
-        <CustomFieldset title="Ticket Resolution Time" variant="bordered">
+        <CustomFieldset title="Ticket Resolution Time">
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Calculating resolution insights...
