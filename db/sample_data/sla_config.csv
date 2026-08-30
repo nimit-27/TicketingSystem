@@ -1,0 +1,5 @@
+sla_id,severity_level,response_minutes,resolution_minutes
+SLA-S1,S1,30,240
+SLA-S2,S2,60,480
+SLA-S3,S3,120,960
+SLA-S4,S4,240,1440

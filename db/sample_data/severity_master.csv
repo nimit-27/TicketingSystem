@@ -1,0 +1,5 @@
+ts_id,ts_level,ts_description,ts_weightage,ts_active_flg
+S1,Critical - S1,Complete outage or major failure,4,Y
+S2,High - S2,Major functionality impacted,3,Y
+S3,Medium - S3,Partial functionality impacted,2,Y
+S4,Low - S4,Minor issue or cosmetic,1,Y
