@@ -14,10 +14,12 @@ let utilsMock: any;
 let authTokenMock: any;
 
 const resetAxios = () => {
+  axiosMock.request.mockReset();
   axiosMock.get.mockReset();
   axiosMock.post.mockReset();
   axiosMock.put.mockReset();
   axiosMock.delete.mockReset();
+  axiosMock.request.mockImplementation(() => Promise.resolve({}));
   axiosMock.get.mockImplementation(() => Promise.resolve({}));
   axiosMock.post.mockImplementation(() => Promise.resolve({}));
   axiosMock.put.mockImplementation(() => Promise.resolve({}));
@@ -62,16 +64,34 @@ describe("apiClient", () => {
     expect(config.headers["X-User-ID"]).toBe("user-999");
   });
 
-  it("clears session information when a 401 is returned", async () => {
+  it("refreshes and retries original request once when a 403 is returned", async () => {
     await import("../apiClient");
-    const error = { response: { status: 401 } };
+    const originalRequest = { url: "/tickets", method: "get" };
+    const error = { response: { status: 403 }, config: originalRequest };
+    const retriedResponse = { data: { ok: true } };
+    axiosMock.post.mockResolvedValueOnce({ data: { expiresInMinutes: 60 } });
+    axiosMock.request.mockResolvedValueOnce(retriedResponse);
+
+    const result = await axiosMock.__runResponseRejected(error);
+
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), null, { withCredentials: true });
+    expect(axiosMock.request).toHaveBeenCalledWith(expect.objectContaining({ url: "/tickets", _retry: true }));
+    expect(result).toEqual(retriedResponse);
+    expect(utilsMock.clearSession).not.toHaveBeenCalled();
+  });
+
+  it("clears session information when refresh fails for 401", async () => {
+    await import("../apiClient");
+    const error = { response: { status: 401 }, config: { url: "/tickets" } };
+    axiosMock.post.mockRejectedValueOnce(new Error("refresh-failed"));
     await axiosMock.__runResponseRejected(error).catch(() => undefined);
 
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), null, { withCredentials: true });
     expect(authTokenMock.clearStoredToken).not.toHaveBeenCalled();
     expect(utilsMock.clearSession).toHaveBeenCalled();
   });
 
-  it("passes through non-401 errors", async () => {
+  it("passes through non-auth errors", async () => {
     await import("../apiClient");
     const error = { response: { status: 500 } };
     const result = await axiosMock.__runResponseRejected(error).catch((err: any) => err);
@@ -109,6 +129,7 @@ describe("AuthService", () => {
     const payload = { token: "sso-token" } as any;
     const service = await import("../AuthService");
     await service.getActiveSession();
+    await service.refreshSession();
     await service.loginSso(payload);
 
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/auth/session"), expect.objectContaining({ withCredentials: true, validateStatus: expect.any(Function) }));
@@ -117,6 +138,7 @@ describe("AuthService", () => {
     expect(validateStatus(204)).toBe(true);
     expect(validateStatus(401)).toBe(true);
     expect(validateStatus(500)).toBe(false);
+    expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/refresh"), null, { withCredentials: true });
     expect(axiosMock.post).toHaveBeenCalledWith(expect.stringContaining("/auth/sso"), payload, { withCredentials: true });
   });
 });

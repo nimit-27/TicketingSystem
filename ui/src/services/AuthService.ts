@@ -17,6 +17,10 @@ export function logoutUser() {
     return axios.post(`${BASE_URL}/auth/logout`, null, { withCredentials: true });
 }
 
+export function refreshSession() {
+    return axios.post(`${BASE_URL}/auth/refresh`, null, { withCredentials: true });
+}
+
 export function loginSso(payload: SsoLoginPayload) {
     return axios.post(`${BASE_URL}/auth/sso`, payload, { withCredentials: true });
 }
