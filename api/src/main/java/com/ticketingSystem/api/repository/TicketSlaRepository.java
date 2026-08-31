@@ -46,7 +46,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             SELECT
                 t.severity AS severity,
                 COUNT(sla.ticket_sla_id) AS totalCount,
-                COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0 THEN 1 ELSE 0 END), 0) AS breachCount,
+                COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0 AND sla.is_sla_applicable IS TRUE THEN 1 ELSE 0 END), 0) AS breachCount,
                 AVG(sla.resolution_time_minutes) AS averageResolutionTimeMinutes,
                 AVG(sla.response_time_minutes) AS averageResponseTimeMinutes
             FROM ticket_sla sla
@@ -102,6 +102,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             FROM TicketSla sla
             JOIN sla.ticket t
             WHERE COALESCE(sla.breachedByMinutes, 0) > 0
+              AND sla.isSlaApplicable is TRUE
               AND (:fromDate IS NULL OR t.reportedDate >= :fromDate)
               AND t.reportedDate < :toDateExclusive
               AND t.ticketStatus IN :statuses
