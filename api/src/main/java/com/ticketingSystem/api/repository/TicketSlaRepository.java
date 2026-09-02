@@ -29,8 +29,14 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             SELECT new com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto(
                 COUNT(sla),
                 COALESCE(SUM(CASE WHEN (COALESCE(sla.breachedByMinutes, 0) > 0 AND sla.isSlaApplicable) THEN 1 ELSE 0 END), 0),
-                AVG(sla.resolutionTimeMinutes),
-                AVG(sla.responseTimeMinutes),
+                AVG(CASE
+                         WHEN sla.isSlaApplicable IS TRUE
+                         THEN sla.resolutionTimeMinutes
+                    END),
+                AVG(CASE
+                         WHEN sla.isSlaApplicable IS TRUE
+                         THEN sla.responseTimeMinutes
+                    END),
                 AVG(CASE WHEN COALESCE(sla.breachedByMinutes, 0) > 0 AND sla.isSlaApplicable THEN sla.breachedByMinutes ELSE NULL END),
                 MIN(t.reportedDate),
                 MAX(t.reportedDate)
@@ -39,7 +45,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             JOIN sla.ticket t
             WHERE (:fromDate IS NULL OR t.reportedDate >= :fromDate)
               AND t.reportedDate < :toDateExclusive
-            """)
+           """)
     NagiosTicketSlaSummaryAggregateDto fetchSummary(@Param("fromDate") LocalDateTime fromDate,
                                                     @Param("toDateExclusive") LocalDateTime toDateExclusive);
 
@@ -48,8 +54,14 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
                 t.severity AS severity,
                 COUNT(sla.ticket_sla_id) AS totalCount,
                 COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0 AND sla.is_sla_applicable IS TRUE THEN 1 ELSE 0 END), 0) AS breachCount,
-                AVG(sla.resolution_time_minutes) AS averageResolutionTimeMinutes,
-                AVG(sla.response_time_minutes) AS averageResponseTimeMinutes
+                AVG(CASE 
+                        WHEN sla.is_sla_applicable IS TRUE
+                        THEN sla.resolution_time_minutes
+                    END) AS averageResolutionTimeMinutes,
+                AVG(CASE 
+                        WHEN sla.is_sla_applicable IS TRUE
+                        THEN sla.response_time_minutes
+                    END) AS averageResponseTimeMinutes
             FROM ticket_sla sla
             JOIN tickets t ON t.ticket_id = sla.ticket_id
             WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
@@ -94,7 +106,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
             WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
               AND t.reported_date < :toDateExclusive
-              AND LOWER(TRIM(it.name)) IN ('problem', 'bug', 'incident')
+              AND it.sla_flag IS TRUE
             GROUP BY t.severity
             """, nativeQuery = true)
     List<NagiosCountBySeverityView> fetchProblemBugIncidentCountsBySeverity(
@@ -108,7 +120,7 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
             LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
             WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
               AND t.reported_date < :toDateExclusive
-              AND (it.name IS NULL OR LOWER(TRIM(it.name)) NOT IN ('problem', 'bug', 'incident'))
+              AND it.sla_flag IS NOT TRUE
             """, nativeQuery = true)
     long countOtherIssueTypeTickets(@Param("fromDate") LocalDateTime fromDate,
                                     @Param("toDateExclusive") LocalDateTime toDateExclusive);
