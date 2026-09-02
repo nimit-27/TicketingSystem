@@ -4,6 +4,7 @@ import com.ticketingSystem.api.dto.nagios.NagiosBreachedTicketsCountDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaRecordDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
 import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
+import com.ticketingSystem.api.dto.nagios.NagiosCountBySeverityView;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryDto;
 import com.ticketingSystem.api.enums.TicketStatus;
@@ -101,7 +102,7 @@ public class NagiosTicketSlaService {
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
                 toBigDecimal(aggregate.averageBreachMinutes()),
-                buildSeveritySummary(fromDateTime, toDateExclusive),
+                buildSummaryAttributes(fromDateTime, toDateExclusive),
                 Map.of()
         );
     }
@@ -172,7 +173,7 @@ public class NagiosTicketSlaService {
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
                 toBigDecimal(aggregate.averageBreachMinutes()),
-                buildSeveritySummary(fromDateTime, toDateExclusive),
+                buildSummaryAttributes(fromDateTime, toDateExclusive),
                 buildDetailedBreakdown(fromDateTime, toDateExclusive)
         );
     }
@@ -250,6 +251,47 @@ public class NagiosTicketSlaService {
             );
         }
         return severitySummary;
+    }
+
+    private Map<String, Object> buildSummaryAttributes(LocalDateTime fromDateTime,
+                                                       LocalDateTime toDateExclusive) {
+        Map<String, Object> attributes = buildSeveritySummary(fromDateTime, toDateExclusive);
+        List<NagiosCountBySeverityView> issueTypeCounts =
+                ticketSlaRepository.fetchProblemBugIncidentCountsBySeverity(fromDateTime, toDateExclusive);
+
+        Map<String, long[]> countsBySeverity = new LinkedHashMap<>();
+        countsBySeverity.put("S1", new long[2]);
+        countsBySeverity.put("S2", new long[2]);
+        countsBySeverity.put("S3", new long[2]);
+        countsBySeverity.put("S4", new long[2]);
+
+        long totalCount = 0L;
+        long breachCount = 0L;
+        for (NagiosCountBySeverityView row : issueTypeCounts) {
+            long rowTotal = row.getTotalCount() != null ? row.getTotalCount() : 0L;
+            long rowBreaches = row.getBreachCount() != null ? row.getBreachCount() : 0L;
+            totalCount += rowTotal;
+            breachCount += rowBreaches;
+
+            String severity = normalizeSeverity(row.getSeverity());
+            if (severity != null) {
+                long[] severityCounts = countsBySeverity.get(severity);
+                severityCounts[0] += rowTotal;
+                severityCounts[1] += rowBreaches;
+            }
+        }
+
+        attributes.put("ProblemBugIncidentCount", totalCount);
+        attributes.put("ProblemBugIncidentBreachCount", breachCount);
+        attributes.put("ProblemBugIncidentBreachPercentage", calculatePercentage(breachCount, totalCount));
+        countsBySeverity.forEach((severity, counts) -> {
+            attributes.put("ProblemBugIncident" + severity + "Count", counts[0]);
+            attributes.put("ProblemBugIncident" + severity + "BreachCount", counts[1]);
+            attributes.put("ProblemBugIncident" + severity + "BreachPercentage",
+                    calculatePercentage(counts[1], counts[0]));
+        });
+        attributes.put("Others", ticketSlaRepository.countOtherIssueTypeTickets(fromDateTime, toDateExclusive));
+        return attributes;
     }
 
     private Map<String, Long> buildDetailedBreakdown(LocalDateTime fromDateTime, LocalDateTime toDateExclusive) {
