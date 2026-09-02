@@ -2,7 +2,9 @@ package com.ticketingSystem.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.ticketingSystem.api.dto.nagios.NagiosCountBySeverityView;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSnapshotDto;
+import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryDto;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +118,51 @@ class NagiosTicketSlaServiceTest {
 
         assertThat(json).contains("\"fromDate\":\"01 Jul 2026 00:00\"");
         assertThat(json).contains("\"toDate\":\"09 Jul 2026 23:59\"");
+    }
+
+    @Test
+    void fetchSummaryIncludesProblemBugIncidentMetricsBySeverityAndOthers() {
+        NagiosTicketSlaSummaryAggregateDto aggregate = new NagiosTicketSlaSummaryAggregateDto(
+                12L, 4L, null, null, null, LocalDateTime.of(2026, 8, 1, 0, 0), null);
+        NagiosCountBySeverityView s1 = issueTypeCount("S1 - Critical", 3L, 2L);
+        NagiosCountBySeverityView s3 = issueTypeCount("S3", 5L, 1L);
+
+        when(ticketSlaRepository.fetchSummary(any(), any())).thenReturn(aggregate);
+        when(ticketSlaRepository.fetchSummaryBySeverity(any(), any())).thenReturn(List.of());
+        when(ticketSlaRepository.fetchProblemBugIncidentCountsBySeverity(any(), any()))
+                .thenReturn(List.of(s1, s3));
+        when(ticketSlaRepository.countOtherIssueTypeTickets(any(), any())).thenReturn(4L);
+
+        NagiosTicketSlaSummaryDto summary = nagiosTicketSlaService.fetchSummary(
+                LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31));
+
+        assertThat(summary.severitySummary())
+                .containsEntry("ProblemBugIncidentCount", 8L)
+                .containsEntry("ProblemBugIncidentBreachCount", 3L)
+                .containsEntry("ProblemBugIncidentBreachPercentage", new BigDecimal("37.50"))
+                .containsEntry("ProblemBugIncidentS1Count", 3L)
+                .containsEntry("ProblemBugIncidentS1BreachCount", 2L)
+                .containsEntry("ProblemBugIncidentS1BreachPercentage", new BigDecimal("66.67"))
+                .containsEntry("ProblemBugIncidentS2Count", 0L)
+                .containsEntry("ProblemBugIncidentS3Count", 5L)
+                .containsEntry("ProblemBugIncidentS4Count", 0L)
+                .containsEntry("Others", 4L);
+    }
+
+    private NagiosCountBySeverityView issueTypeCount(String severity, Long totalCount, Long breachCount) {
+        return new NagiosCountBySeverityView() {
+            public String getSeverity() {
+                return severity;
+            }
+
+            public Long getTotalCount() {
+                return totalCount;
+            }
+
+            public Long getBreachCount() {
+                return breachCount;
+            }
+        };
     }
 
 }

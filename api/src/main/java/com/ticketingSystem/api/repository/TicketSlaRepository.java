@@ -3,6 +3,7 @@ package com.ticketingSystem.api.repository;
 import com.ticketingSystem.api.dto.nagios.NagiosTicketSlaSummaryAggregateDto;
 import com.ticketingSystem.api.dto.nagios.NagiosSeveritySlaAggregateView;
 import com.ticketingSystem.api.dto.nagios.NagiosGroupedCountView;
+import com.ticketingSystem.api.dto.nagios.NagiosCountBySeverityView;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.TicketSla;
 import org.springframework.data.repository.query.Param;
@@ -83,6 +84,35 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
     List<NagiosGroupedCountView> fetchIssueTypeCounts(@Param("fromDate") LocalDateTime fromDate,
                                                       @Param("toDateExclusive") LocalDateTime toDateExclusive);
 
+    @Query(value = """
+            SELECT t.severity AS severity,
+                   COUNT(sla.ticket_sla_id) AS totalCount,
+                   COALESCE(SUM(CASE WHEN COALESCE(sla.breached_by_minutes, 0) > 0
+                                          AND sla.is_sla_applicable IS TRUE THEN 1 ELSE 0 END), 0) AS breachCount
+            FROM ticket_sla sla
+            JOIN tickets t ON t.ticket_id = sla.ticket_id
+            JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
+            WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
+              AND t.reported_date < :toDateExclusive
+              AND LOWER(TRIM(it.name)) IN ('problem', 'bug', 'incident')
+            GROUP BY t.severity
+            """, nativeQuery = true)
+    List<NagiosCountBySeverityView> fetchProblemBugIncidentCountsBySeverity(
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+    @Query(value = """
+            SELECT COUNT(sla.ticket_sla_id)
+            FROM ticket_sla sla
+            JOIN tickets t ON t.ticket_id = sla.ticket_id
+            LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
+            WHERE (:fromDate IS NULL OR t.reported_date >= :fromDate)
+              AND t.reported_date < :toDateExclusive
+              AND (it.name IS NULL OR LOWER(TRIM(it.name)) NOT IN ('problem', 'bug', 'incident'))
+            """, nativeQuery = true)
+    long countOtherIssueTypeTickets(@Param("fromDate") LocalDateTime fromDate,
+                                    @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
     long countByBreachedByMinutesGreaterThan(Long breachedByMinutes);
 
     @Query("""
@@ -111,4 +141,3 @@ public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
                                          @Param("toDateExclusive") LocalDateTime toDateExclusive,
                                          @Param("statuses") List<TicketStatus> statuses);
 }
-
