@@ -12,6 +12,9 @@ import com.ticketingSystem.api.service.TicketHistoryBackfillService;
 import com.ticketingSystem.api.service.RateLimiterService;
 import com.ticketingSystem.api.service.FileStorageService;
 import com.ticketingSystem.api.service.TicketSlaService;
+import com.ticketingSystem.api.service.TicketSlaRecalculationService;
+import com.ticketingSystem.api.dto.sla.TicketSlaRecalculationPreviewDto;
+import com.ticketingSystem.api.dto.sla.TicketSlaRecalculationRequest;
 import com.ticketingSystem.api.service.OciUploadService;
 import com.ticketingSystem.api.mapper.DtoMapper;
 import com.ticketingSystem.api.service.TicketAccessContext;
@@ -67,6 +70,7 @@ public class TicketController {
     private final TicketHistoryBackfillService ticketHistoryBackfillService;
     private final FileStorageService fileStorageService;
     private final TicketSlaService ticketSlaService;
+    private final TicketSlaRecalculationService ticketSlaRecalculationService;
     private final TicketAuthorizationService ticketAuthorizationService;
     private final UserService userService;
     private final ReportDownloadService reportDownloadService;
@@ -154,6 +158,18 @@ public class TicketController {
                 session);
         logger.info("SLA for ticket {} retrieved, returning {}", id, HttpStatus.OK);
         return ResponseEntity.ok(DtoMapper.toTicketSlaDto(sla));
+    }
+
+    @PostMapping("/sla/recalculate/preview")
+    public ResponseEntity<List<TicketSlaRecalculationPreviewDto>> previewSlaRecalculation(
+            @RequestBody TicketSlaRecalculationRequest request) {
+        return ResponseEntity.ok(ticketSlaRecalculationService.recalculate(request.resolvedTicketIds(), false));
+    }
+
+    @PostMapping("/sla/recalculate/apply")
+    public ResponseEntity<List<TicketSlaRecalculationPreviewDto>> applySlaRecalculation(
+            @RequestBody TicketSlaRecalculationRequest request) {
+        return ResponseEntity.ok(ticketSlaRecalculationService.recalculate(request.resolvedTicketIds(), true));
     }
 
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })

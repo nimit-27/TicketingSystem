@@ -41,6 +41,8 @@ class TicketControllerRateLimitTest {
     @Mock
     private TicketSlaService ticketSlaService;
     @Mock
+    private TicketSlaRecalculationService ticketSlaRecalculationService;
+    @Mock
     private TicketAuthorizationService ticketAuthorizationService;
     @Mock
     private UserService userService;
@@ -64,6 +66,7 @@ class TicketControllerRateLimitTest {
                 ticketHistoryBackfillService,
                 fileStorageService,
                 ticketSlaService,
+                ticketSlaRecalculationService,
                 ticketAuthorizationService,
                 userService,
                 reportDownloadService,

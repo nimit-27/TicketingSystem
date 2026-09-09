@@ -59,7 +59,7 @@ public class SlaCalculationJobService {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    @Value("${app.sla-calculation-job.cron:0 0 */4 * * *}")
+    @Value("${app.sla-calculation-job.cron:0 * * * * *}")
     private String cronExpression;
 
     @Value("${app.sla-calculation-job.batch-size:100}")

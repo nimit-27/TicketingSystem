@@ -47,6 +47,14 @@ export function getTicketSla(id: string) {
     return axios.get(`${BASE_URL}/tickets/${id}/sla`);
 }
 
+export function previewTicketSlaRecalculation(ticketIds: string[]) {
+    return axios.post(`${BASE_URL}/tickets/sla/recalculate/preview`, { ticketIds });
+}
+
+export function applyTicketSlaRecalculation(ticketIds: string[]) {
+    return axios.post(`${BASE_URL}/tickets/sla/recalculate/apply`, { ticketIds });
+}
+
 export function updateTicket(id: string, payload: any) {
     return axios.put(`${BASE_URL}/tickets/${id}`, payload)
 }

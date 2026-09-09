@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton, Chip } from '@mui/material';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Box, Typography, TextField, MenuItem, Select, SelectChangeEvent, Button, Tooltip, Menu, IconButton, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import { useApi } from '../../hooks/useApi';
-import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster, getAttachmentsByTicketId } from '../../services/TicketService';
+import { getTicket, updateTicket, addAttachments, deleteAttachment, getTicketSla, getChildTickets, unlinkTicketFromMaster, getAttachmentsByTicketId, previewTicketSlaRecalculation, applyTicketSlaRecalculation } from '../../services/TicketService';
 import { getRootCauseAnalysisTicketById } from '../../services/RootCauseAnalysisService';
 import { BASE_URL } from '../../services/api';
 import { getCurrentUserDetails } from '../../config/config';
@@ -46,6 +46,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getStatusHistory } from '../../services/StatusHistoryService';
+import { DevModeContext } from '../../context/DevModeContext';
 
 interface TicketViewProps {
   ticketId: string;
@@ -126,6 +127,7 @@ const formatAttachmentChipLabel = (fileName?: string, uploadedOn?: string) => {
 
 const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, sidebar = false, focusRecommendSeverity, onRecommendSeverityFocusHandled }) => {
   const { t } = useTranslation();
+  const { devMode } = useContext(DevModeContext);
 
   // Determine page context and track RCA status
   const location = useLocation();
@@ -187,9 +189,44 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
   const [slaDownloadAnchor, setSlaDownloadAnchor] = useState<null | HTMLElement>(null);
   const [assignMasterTicketModalOpen, setAssignMasterTicketModalOpen] = useState(false);
   const [isRequestorModalOpen, setIsRequestorModalOpen] = useState(false);
+  const [slaPreview, setSlaPreview] = useState<{ stored: TicketSla | null; calculated: TicketSla; synchronizedHistoryRows: number } | null>(null);
+  const [slaPreviewOpen, setSlaPreviewOpen] = useState(false);
+  const [slaRecalculationPending, setSlaRecalculationPending] = useState(false);
   const emptyFileList = useMemo<File[]>(() => [], []);
 
   const { showMessage } = useSnackbar();
+
+  const handleSlaRecalculationPreview = useCallback(async () => {
+    setSlaRecalculationPending(true);
+    try {
+      const response = await previewTicketSlaRecalculation([ticketId]);
+      const payload = response.data?.body?.data ?? response.data;
+      const preview = Array.isArray(payload) ? payload[0] : null;
+      if (!preview) throw new Error('No SLA preview was returned');
+      setSlaPreview(preview);
+      setSlaPreviewOpen(true);
+    } catch (error: any) {
+      showMessage(error?.response?.data?.message || error?.message || 'Unable to recalculate SLA', 'error');
+    } finally {
+      setSlaRecalculationPending(false);
+    }
+  }, [showMessage, ticketId]);
+
+  const handleApplySlaRecalculation = useCallback(async () => {
+    setSlaRecalculationPending(true);
+    try {
+      const response = await applyTicketSlaRecalculation([ticketId]);
+      const payload = response.data?.body?.data ?? response.data;
+      const result = Array.isArray(payload) ? payload[0] : null;
+      setSla(normaliseSla(result?.calculated ?? null));
+      setSlaPreviewOpen(false);
+      showMessage('Ticket SLA was recalculated and updated', 'success');
+    } catch (error: any) {
+      showMessage(error?.response?.data?.message || error?.message || 'Unable to update SLA', 'error');
+    } finally {
+      setSlaRecalculationPending(false);
+    }
+  }, [showMessage, ticketId]);
   const currentUserDetails = useMemo(() => getCurrentUserDetails(), []);
   const currentUsername = currentUserDetails?.username || '';
   const currentUserId = currentUserDetails?.userId || '';
@@ -1348,6 +1385,17 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               )}
               <Typography variant="subtitle1">{ticket.id}</Typography>
               {ticket?.isMaster && <MasterIcon />}
+              {devMode && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="warning"
+                  disabled={slaRecalculationPending}
+                  onClick={handleSlaRecalculationPreview}
+                >
+                  {slaRecalculationPending ? t('Calculating...') : t('Recalculate SLA')}
+                </Button>
+              )}
             </Box>
 
             {/* Edit, Cancel, Save buttons */}
@@ -1718,6 +1766,57 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
         onCancel={() => setShowRecommendRemark(false)}
         onSubmit={handleSubmitRecommendSeverity}
       />
+
+      <Dialog open={slaPreviewOpen} onClose={() => !slaRecalculationPending && setSlaPreviewOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>{t('SLA recalculation preview')} — {ticket.id}</DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {t('{{count}} ticket history SLA flag(s) were synchronized from Status Master.', {
+              count: slaPreview?.synchronizedHistoryRows ?? 0,
+            })}
+          </Alert>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('SLA field')}</TableCell>
+                <TableCell>{t('Stored Ticket_SLA')}</TableCell>
+                <TableCell>{t('Recalculated from history')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {([
+                ['Original due date', 'actualDueAt'],
+                ['Current due date', 'dueAt'],
+                ['Escalated due date', 'dueAtAfterEscalation'],
+                ['Resolution minutes', 'resolutionTimeMinutes'],
+                ['Elapsed minutes', 'elapsedTimeMinutes'],
+                ['Idle minutes', 'idleTimeMinutes'],
+                ['Response minutes', 'responseTimeMinutes'],
+                ['Breached by minutes', 'breachedByMinutes'],
+                ['Working minutes left', 'workingTimeLeftMinutes'],
+              ] as [string, keyof TicketSla][]).map(([label, key]) => {
+                const formatValue = (value: unknown) => value == null || value === ''
+                  ? '—'
+                  : key.toLowerCase().includes('at') ? new Date(String(value)).toLocaleString() : String(value);
+                return (
+                  <TableRow key={key}>
+                    <TableCell>{t(label)}</TableCell>
+                    <TableCell>{formatValue(slaPreview?.stored?.[key])}</TableCell>
+                    <TableCell>{formatValue(slaPreview?.calculated?.[key])}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+          <Typography sx={{ mt: 2 }}>{t('Do you want to update the Ticket_SLA table with the recalculated values?')}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={slaRecalculationPending} onClick={() => setSlaPreviewOpen(false)}>{t('No, keep stored data')}</Button>
+          <Button disabled={slaRecalculationPending} variant="contained" color="warning" onClick={handleApplySlaRecalculation}>
+            {t('Yes, update Ticket_SLA')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box >
   );
 
