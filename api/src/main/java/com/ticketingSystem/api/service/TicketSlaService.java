@@ -78,7 +78,16 @@ public class TicketSlaService {
         return calculateAndSaveByCalendarInternal(ticket, history, true);
     }
 
+    public TicketSla previewByCalendarFromScratch(Ticket ticket, List<StatusHistory> history) {
+        return calculateAndSaveByCalendarInternal(ticket, history, true, true);
+    }
+
     private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history, boolean fromScratch) {
+        return calculateAndSaveByCalendarInternal(ticket, history, fromScratch, false);
+    }
+
+    private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history,
+                                                          boolean fromScratch, boolean preview) {
         if (ticket == null) return null;
 
         boolean isSlaApplicable = false;
@@ -114,7 +123,7 @@ public class TicketSlaService {
             ticketSla.setTimeTillDueDate(null);
             ticketSla.setWorkingTimeLeftMinutes(null);
 
-            return ticketSlaRepository.save(ticketSla);
+            return preview ? ticketSla : ticketSlaRepository.save(ticketSla);
         }
 
         boolean isIssueTypeSlaEnabled = issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId());
@@ -332,12 +341,12 @@ public class TicketSlaService {
         ticketSla.setTimeTillDueDate(timeTillDueDate);
         ticketSla.setWorkingTimeLeftMinutes(workingTimeLeft);
         ticketSla.setIsSlaApplicable(isSlaApplicable);
-        TicketSla saved = ticketSlaRepository.save(ticketSla);
+        TicketSla saved = preview ? ticketSla : ticketSlaRepository.save(ticketSla);
         saved.setWorkingTimeLeftMinutes(workingTimeLeft);
 
         boolean hasBreached = breachedBy > 0;
         boolean breachJustOccurred = hasBreached && (previousBreached == null || previousBreached <= 0);
-        if (breachJustOccurred) {
+        if (!preview && breachJustOccurred) {
             notifyAssigneeOfSlaBreach(ticket, breachedBy, slaTargetDueAt);
         }
 

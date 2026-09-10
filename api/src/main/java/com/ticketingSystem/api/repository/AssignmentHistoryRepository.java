@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface AssignmentHistoryRepository extends JpaRepository<AssignmentHistory, String> {
     List<AssignmentHistory> findByTicketOrderByTimestampAsc(Ticket ticket);
+
+    List<AssignmentHistory> findByTicketAndTimestampBetween(Ticket ticket, java.time.LocalDateTime from, java.time.LocalDateTime to);
 }
