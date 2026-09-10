@@ -7,9 +7,11 @@
   approved allocation. Later transitions (including resolution) stay fixed, so
   the paused period grows and the following active period shrinks.
 
-  p_shift_minutes is the approved allocation from the preview. SLA resolution
-  and threshold values are business-working minutes calculated by the
-  application calendar. After applying all approved boundary changes, rerun the
+  p_new_boundary_utc must be calculated by the application with
+  SlaCalculatorService.computeEnd(oldBoundary, Duration.ofMinutes(allocation)).
+  This is intentional: TIMESTAMPADD would add absolute elapsed minutes and would
+  be wrong when a shift crosses closing time, a holiday, or an hours exception.
+  After applying all approved boundary changes, rerun the
   application's calendar-aware SLA recalculation; this procedure deliberately
   does not overwrite ticket_sla.
 */
@@ -20,7 +22,7 @@ DELIMITER $$
 CREATE PROCEDURE shift_ticket_history_timestamps(
     IN p_ticket_id VARCHAR(36),
     IN p_paused_status_history_id VARCHAR(36),
-    IN p_shift_minutes BIGINT
+    IN p_new_boundary_utc DATETIME(6)
 )
 BEGIN
     DECLARE v_paused_status_code VARCHAR(50);
@@ -49,9 +51,9 @@ BEGIN
             SET MESSAGE_TEXT = 'p_paused_status_history_id is required';
     END IF;
 
-    IF p_shift_minutes IS NULL OR p_shift_minutes <= 0 THEN
+    IF p_new_boundary_utc IS NULL THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'p_shift_minutes must be greater than zero';
+            SET MESSAGE_TEXT = 'p_new_boundary_utc is required';
     END IF;
 
     /* Resolve and validate the row that entered the paused status. */
@@ -123,8 +125,13 @@ BEGIN
             SET MESSAGE_TEXT = 'paused status has no following transition';
     END IF;
 
-    SET v_new_boundary_utc = TIMESTAMPADD(MINUTE, p_shift_minutes, v_boundary_utc);
-    SET v_new_boundary_local = TIMESTAMPADD(MINUTE, p_shift_minutes, v_boundary_local);
+    SET v_new_boundary_utc = p_new_boundary_utc;
+    SET v_new_boundary_local = CONVERT_TZ(p_new_boundary_utc, '+00:00', '+05:30');
+
+    IF v_new_boundary_utc <= v_boundary_utc THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'new boundary must be later than the existing boundary';
+    END IF;
 
     /* Keep the next fixed event (often resolution) from being crossed. */
     SELECT MIN(
@@ -193,7 +200,8 @@ BEGIN
         v_boundary_history_id AS moved_status_history_id,
         v_boundary_utc AS previous_boundary_utc,
         v_new_boundary_utc AS new_boundary_utc,
-        p_shift_minutes AS allocated_breach_minutes;
+        TIMESTAMPDIFF(MINUTE, v_boundary_utc, v_new_boundary_utc)
+            AS elapsed_shift_minutes;
 END$$
 
 DELIMITER ;
@@ -206,6 +214,6 @@ approved breach allocation is 3 minutes. The procedure moves only Assigned to
 CALL shift_ticket_history_timestamps(
     'TKT-1-202601-00001',
     '<status_history_id-that-entered-pending>',
-    3
+    '<calendar-aware-new-boundary-utc>'
 );
 */

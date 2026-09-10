@@ -9,10 +9,12 @@
   Any division remainder is assigned one minute at a time to the earliest
   eligible periods, so allocated_breach_minutes sums exactly to the breach.
 
-  The proposed timestamps move only the transition immediately after an
-  eligible period. The eligible period grows while the following status period
-  shrinks by the same amount; the resolution timestamp remains unchanged.
-  ticket_sla resolution values are business-working minutes calculated by the
+  The elapsed-time timestamp columns are estimates for review and are exact only
+  when the allocation stays inside one working window. For an applied change,
+  calculate the new boundary with SlaCalculatorService.computeEnd so closing
+  hours, holidays, and working-hours exceptions are skipped. Only that boundary
+  moves: the paused period grows, the following period shrinks, and resolution
+  remains unchanged. ticket_sla resolution values are business-working minutes calculated by the
   application calendar, and the SLA threshold comes from sla_config. This
   SELECT is a preview only. Use shift_ticket_history_timestamps.sql to apply an approved
   shift while keeping status, assignment, and generic ticket history aligned.
@@ -175,12 +177,12 @@ proposed_periods AS (
                 0
             ),
             a.status_started_at_utc
-        ) AS proposed_status_started_at_utc,
+        ) AS elapsed_estimate_status_started_at_utc,
         TIMESTAMPADD(
             MINUTE,
             a.allocated_breach_minutes,
             a.status_ended_at_utc
-        ) AS proposed_status_ended_at_utc
+        ) AS elapsed_estimate_status_ended_at_utc
     FROM allocations a
 )
 SELECT
@@ -205,26 +207,26 @@ SELECT
     pp.is_allocation_status,
     pp.allocation_status_count,
     pp.allocated_breach_minutes,
-    pp.proposed_status_started_at_utc,
-    pp.proposed_status_ended_at_utc,
+    pp.elapsed_estimate_status_started_at_utc,
+    pp.elapsed_estimate_status_ended_at_utc,
     GREATEST(
         TIMESTAMPDIFF(
             MINUTE,
-            pp.proposed_status_started_at_utc,
-            pp.proposed_status_ended_at_utc
+            pp.elapsed_estimate_status_started_at_utc,
+            pp.elapsed_estimate_status_ended_at_utc
         ),
         0
-    ) AS proposed_status_duration_minutes,
+    ) AS elapsed_estimate_status_duration_minutes,
     CASE
-        WHEN pp.proposed_status_started_at_utc
-             <= pp.proposed_status_ended_at_utc
+        WHEN pp.elapsed_estimate_status_started_at_utc
+             <= pp.elapsed_estimate_status_ended_at_utc
             THEN 'YES'
         ELSE 'NO'
     END AS transition_order_valid,
     GREATEST(
         pp.resolution_time_minutes - pp.breached_by_minutes,
         0
-    ) AS proposed_business_resolution_minutes,
+    ) AS business_resolution_after_allocation_minutes,
     CASE
         WHEN pp.allocation_status_count > 0
          AND pp.resolution_time_minutes - pp.breached_by_minutes
@@ -232,6 +234,7 @@ SELECT
             THEN 'YES'
         ELSE 'NO'
     END AS within_business_sla_threshold,
+    'USE_SLA_CALCULATOR_COMPUTE_END' AS boundary_calculation_required,
     pp.updated_by AS status_updated_by,
     pp.remark AS status_remark
 FROM proposed_periods pp
