@@ -2,6 +2,7 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.StatusHistoryDto;
 import com.ticketingSystem.api.dto.UpdateStatusTimestampRequest;
+import com.ticketingSystem.api.dto.StatusTimestampPreviewDto;
 import com.ticketingSystem.api.service.StatusHistoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,5 +26,11 @@ public class StatusHistoryController {
     public ResponseEntity<StatusHistoryDto> updateTimestamp(@PathVariable String historyId,
                                                             @RequestBody UpdateStatusTimestampRequest request) {
         return ResponseEntity.ok(historyService.updateTimestamp(historyId, request));
+    }
+
+    @PostMapping("/{historyId}/timestamp/preview")
+    public ResponseEntity<StatusTimestampPreviewDto> previewTimestamp(@PathVariable String historyId,
+                                                                      @RequestBody UpdateStatusTimestampRequest request) {
+        return ResponseEntity.ok(historyService.previewTimestamp(historyId, request));
     }
 }

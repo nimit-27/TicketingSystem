@@ -2,6 +2,7 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.StatusHistoryDto;
 import com.ticketingSystem.api.dto.UpdateStatusTimestampRequest;
+import com.ticketingSystem.api.dto.StatusTimestampPreviewDto;
 import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.models.AssignmentHistory;
 import com.ticketingSystem.api.models.TicketHistory;
@@ -20,6 +21,7 @@ import com.ticketingSystem.api.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -66,6 +68,17 @@ public class StatusHistoryService {
 
     @Transactional
     public StatusHistoryDto updateTimestamp(String historyId, UpdateStatusTimestampRequest request) {
+        return applyTimestamp(historyId, request, false).history();
+    }
+
+    @Transactional
+    public StatusTimestampPreviewDto previewTimestamp(String historyId, UpdateStatusTimestampRequest request) {
+        StatusTimestampPreviewDto preview = applyTimestamp(historyId, request, true);
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return preview;
+    }
+
+    private StatusTimestampPreviewDto applyTimestamp(String historyId, UpdateStatusTimestampRequest request, boolean preview) {
         if (!developerMode) {
             throw new InvalidRequestException("Status timestamps can only be edited in developer mode");
         }
@@ -136,9 +149,13 @@ public class StatusHistoryService {
         historyRepository.save(history);
         ticketHistoryRepository.saveAll(ticketRows);
         assignmentHistoryRepository.saveAll(assignmentRows);
-        ticketSlaService.calculateAndSaveByCalendarFromScratch(
-                history.getTicket(), historyRepository.findByTicketOrderByTimestampAsc(history.getTicket()));
-        return DtoMapper.toStatusHistoryDto(history);
+        var recalculatedSla = preview
+                ? ticketSlaService.previewByCalendarFromScratch(
+                        history.getTicket(), historyRepository.findByTicketOrderByTimestampAsc(history.getTicket()))
+                : ticketSlaService.calculateAndSaveByCalendarFromScratch(
+                        history.getTicket(), historyRepository.findByTicketOrderByTimestampAsc(history.getTicket()));
+        return new StatusTimestampPreviewDto(
+                DtoMapper.toStatusHistoryDto(history), DtoMapper.toTicketSlaDto(recalculatedSla));
     }
 
     private LocalDateTime earliest(LocalDateTime first, LocalDateTime second) {

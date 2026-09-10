@@ -1,14 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
-import { getStatusHistory, updateStatusTimestamp } from '../../services/StatusHistoryService';
+import { getStatusHistory, previewStatusTimestamp, updateStatusTimestamp } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, TextField, Tooltip } from '@mui/material';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers } from '../../services/UserService';
 import HistoryReportDownloadMenu, { HistoryReportColumn } from '../History/HistoryReportDownloadMenu';
+import { DevModeContext } from '../../context/DevModeContext';
+import SlaDetails from '../TicketView/SlaDetails';
+import { TicketSla } from '../../types';
 
 interface HistoryEntry {
     id: string;
@@ -38,6 +41,11 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const [minutes, setMinutes] = useState('');
     const [editError, setEditError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [previewing, setPreviewing] = useState(false);
+    const [previewSla, setPreviewSla] = useState<TicketSla | null>(null);
+    const [previewTimestamp, setPreviewTimestamp] = useState('');
+    const [editMode, setEditMode] = useState<'direct' | 'minutes'>('direct');
+    const { devMode } = useContext(DevModeContext);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -80,7 +88,40 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
         setDirectTimestamp(entry.timestamp?.slice(0, 16) || '');
         setMinutes('');
         setEditError('');
+        setPreviewSla(null);
+        setPreviewTimestamp('');
+        setEditMode('direct');
     };
+
+    useEffect(() => {
+        if (!editing || !devMode) return;
+        const payload = editMode === 'direct'
+            ? (directTimestamp ? { timestamp: directTimestamp } : null)
+            : (minutes && Number(minutes) >= 0 ? { addMinutes: Number(minutes) } : null);
+        if (!payload) {
+            setPreviewSla(null);
+            setPreviewTimestamp('');
+            return;
+        }
+        const timer = window.setTimeout(async () => {
+            setPreviewing(true);
+            setEditError('');
+            try {
+                const response = await previewStatusTimestamp(editing.id, payload);
+                const raw = response?.data?.body ?? response?.data;
+                const preview = raw?.data ?? raw;
+                setPreviewSla(preview?.sla ?? null);
+                setPreviewTimestamp(preview?.history?.timestamp ?? '');
+            } catch (error: any) {
+                setPreviewSla(null);
+                setPreviewTimestamp('');
+                setEditError(error?.response?.data?.message || error?.message || 'Could not preview the timestamp.');
+            } finally {
+                setPreviewing(false);
+            }
+        }, 400);
+        return () => window.clearTimeout(timer);
+    }, [editing, devMode, editMode, directTimestamp, minutes]);
 
     const saveTimestamp = async (mode: 'direct' | 'minutes') => {
         if (!editing) return;
@@ -123,7 +164,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             }
         },
         { title: t('Remark'), dataIndex: 'remark', key: 'remark', render: (v: string) => v || '-' },
-        ...(process.env.REACT_APP_ENV === 'dev' ? [{
+        ...(devMode ? [{
             title: t('Edit Time'),
             key: 'editTimestamp',
             render: (_: unknown, record: HistoryEntry) => (
@@ -198,7 +239,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                     })}
                 </Timeline>
             )}
-            {process.env.REACT_APP_ENV === 'dev' && (
+            {devMode && (
                 <Dialog open={Boolean(editing)} onClose={() => !saving && setEditing(null)} fullWidth maxWidth="sm">
                     <DialogTitle>Edit status timestamp</DialogTitle>
                     <DialogContent sx={{ display: 'grid', gap: 2, pt: '12px !important' }}>
@@ -207,7 +248,10 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                             label="Set date and time directly"
                             type="datetime-local"
                             value={directTimestamp}
-                            onChange={(event) => setDirectTimestamp(event.target.value)}
+                            onChange={(event) => {
+                                setEditMode('direct');
+                                setDirectTimestamp(event.target.value);
+                            }}
                             InputLabelProps={{ shrink: true }}
                             inputProps={{ step: 60 }}
                         />
@@ -218,13 +262,23 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                             label="Business minutes to add"
                             type="number"
                             value={minutes}
-                            onChange={(event) => setMinutes(event.target.value)}
+                            onChange={(event) => {
+                                setEditMode('minutes');
+                                setMinutes(event.target.value);
+                            }}
                             helperText="Skips closed hours and holidays."
                             inputProps={{ min: 0, step: 1 }}
                         />
                         <Button variant="contained" disabled={saving || !minutes} onClick={() => saveTimestamp('minutes')}>
                             Add business minutes
                         </Button>
+                        {previewing && <Alert severity="info">Calculating SLA preview…</Alert>}
+                        {previewSla && !previewing && (
+                            <div>
+                                <strong>SLA preview{previewTimestamp ? ` for ${new Date(previewTimestamp).toLocaleString()}` : ''}</strong>
+                                <SlaDetails sla={previewSla} />
+                            </div>
+                        )}
                     </DialogContent>
                     <DialogActions>
                         <Button disabled={saving} onClick={() => setEditing(null)}>Cancel</Button>
