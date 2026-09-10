@@ -16,10 +16,12 @@ let authTokenMock: any;
 const resetAxios = () => {
   axiosMock.get.mockReset();
   axiosMock.post.mockReset();
+  axiosMock.patch.mockReset();
   axiosMock.put.mockReset();
   axiosMock.delete.mockReset();
   axiosMock.get.mockImplementation(() => Promise.resolve({}));
   axiosMock.post.mockImplementation(() => Promise.resolve({}));
+  axiosMock.patch.mockImplementation(() => Promise.resolve({}));
   axiosMock.put.mockImplementation(() => Promise.resolve({}));
   axiosMock.delete.mockImplementation(() => Promise.resolve({}));
   axiosMock.__resetHandlers();
@@ -577,6 +579,16 @@ describe("StatusHistoryService", () => {
     const service = await import("../StatusHistoryService");
     await service.getStatusHistory("123");
     expect(axiosMock.get).toHaveBeenCalledWith(expect.stringContaining("/status-history/123"));
+  });
+
+  it("updates timestamps using a CORS-safe dev mode query parameter", async () => {
+    const service = await import("../StatusHistoryService");
+    const update = { addMinutes: 30 };
+    await service.updateStatusTimestamp("history-1", update);
+    expect(axiosMock.patch).toHaveBeenCalledWith(
+      expect.stringContaining("/status-history/history-1/timestamp?devMode=true"),
+      update,
+    );
   });
 });
 

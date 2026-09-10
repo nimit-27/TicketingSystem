@@ -1,13 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
-import { getStatusHistory } from '../../services/StatusHistoryService';
+import { getStatusHistory, updateStatusTimestamp } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
-import { Paper } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, TextField, Tooltip } from '@mui/material';
+import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers } from '../../services/UserService';
 import HistoryReportDownloadMenu, { HistoryReportColumn } from '../History/HistoryReportDownloadMenu';
+import { DevModeContext } from '../../context/DevModeContext';
 
 interface HistoryEntry {
     id: string;
@@ -33,9 +35,15 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const [view, setView] = useState<'table' | 'timeline'>('table');
     const [userNameMap, setUserNameMap] = useState<Record<string, string>>({});
     const { t } = useTranslation();
+    const { devMode } = useContext(DevModeContext);
+    const [editing, setEditing] = useState<HistoryEntry | null>(null);
+    const [timestamp, setTimestamp] = useState('');
+    const [minutes, setMinutes] = useState('');
+
+    const reload = () => apiHandler(() => getStatusHistory(ticketId));
 
     useEffect(() => {
-        apiHandler(() => getStatusHistory(ticketId));
+        reload();
     }, [ticketId]);
 
     useEffect(() => {
@@ -88,7 +96,34 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             }
         },
         { title: t('Remark'), dataIndex: 'remark', key: 'remark', render: (v: string) => v || '-' },
+        ...(devMode ? [{
+            title: t('Edit Time'),
+            key: 'editTime',
+            render: (_: unknown, record: HistoryEntry) => (
+                <Tooltip title={t('Edit status timestamp')}>
+                    <Button aria-label={`Edit timestamp ${record.id}`} size="small" onClick={() => {
+                        setEditing(record);
+                        setTimestamp(record.timestamp ? record.timestamp.slice(0, 16) : '');
+                        setMinutes('');
+                    }}>
+                        <EditCalendarOutlinedIcon fontSize="small" />
+                    </Button>
+                </Tooltip>
+            ),
+        }] : []),
     ];
+
+    const saveTimestamp = async (useMinutes: boolean) => {
+        if (!editing) return;
+        const payload = useMinutes
+            ? { addMinutes: Number(minutes) }
+            : { timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp };
+        const updated = await apiHandler(() => updateStatusTimestamp(editing.id, payload));
+        if (updated) {
+            setEditing(null);
+            reload();
+        }
+    };
 
     const reportColumns: HistoryReportColumn<HistoryWithNameEntry>[] = [
         { key: 'updatedBy', header: t('Updated By'), getValue: (row) => row.updatedBy || '-' },
@@ -152,6 +187,35 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                     })}
                 </Timeline>
             )}
+            {devMode && editing && <Dialog open onClose={() => setEditing(null)} fullWidth maxWidth="xs">
+                <DialogTitle>{t('Edit status timestamp')}</DialogTitle>
+                <DialogContent sx={{ display: 'grid', gap: 2, pt: '12px !important' }}>
+                    <TextField
+                        label={t('Timestamp')}
+                        type="datetime-local"
+                        value={timestamp}
+                        onChange={(event) => setTimestamp(event.target.value)}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                    />
+                    <Button variant="contained" disabled={!timestamp} onClick={() => saveTimestamp(false)}>
+                        {t('Update time directly')}
+                    </Button>
+                    <TextField
+                        label={t('Business minutes to add')}
+                        type="number"
+                        value={minutes}
+                        onChange={(event) => setMinutes(event.target.value)}
+                        slotProps={{ htmlInput: { min: 0 } }}
+                        helperText={t('Business hours and holidays are applied automatically.')}
+                    />
+                    <Button variant="contained" disabled={minutes === '' || Number(minutes) < 0} onClick={() => saveTimestamp(true)}>
+                        {t('Add business minutes')}
+                    </Button>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditing(null)}>{t('Cancel')}</Button>
+                </DialogActions>
+            </Dialog>}
         </div>
     );
 };

@@ -6,6 +6,7 @@ const createDefaultMock = () => jest.fn(() => Promise.resolve({}));
 const axiosMock: any = {
   get: createDefaultMock(),
   post: createDefaultMock(),
+  patch: createDefaultMock(),
   put: createDefaultMock(),
   delete: createDefaultMock(),
   defaults: {
