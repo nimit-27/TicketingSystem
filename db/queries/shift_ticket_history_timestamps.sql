@@ -1,13 +1,14 @@
 /*
   Apply one approved timeline shift from the preview query (MySQL 8+).
 
-  Call this once per eligible period, newest period first, using that period's
-  original status_ended_at_utc as p_shift_from_utc and its
-  allocated_breach_minutes as p_shift_minutes. Processing newest first keeps
-  the original cutoff timestamps valid for every call.
+  Call this once per eligible period using that period's original
+  status_ended_at_utc as p_shift_from_utc and allocated_breach_minutes as
+  p_shift_minutes. Only the transition immediately after the paused period is
+  moved. Later transitions, including resolution, remain fixed; therefore the
+  paused period grows and the following period shrinks by the same amount.
 
-  The procedure shifts status_history and assignment_history events at or after
-  the cutoff. It then synchronizes only ticket_history rows backed by those
+  The procedure moves status_history and assignment_history events exactly at
+  the boundary. It then synchronizes only ticket_history rows backed by those
   source tables. It does not change ticket_sla; recalculate SLA metrics through
   the application after all approved shifts have been applied.
 */
@@ -21,6 +22,8 @@ CREATE PROCEDURE shift_ticket_history_timestamps(
     IN p_shift_minutes BIGINT
 )
 BEGIN
+    DECLARE v_following_transition_utc DATETIME(6);
+
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
@@ -42,6 +45,27 @@ BEGIN
             SET MESSAGE_TEXT = 'p_shift_minutes must be greater than zero';
     END IF;
 
+    SELECT MIN(
+        COALESCE(
+            sh.timestamp_utc,
+            CONVERT_TZ(sh.`timestamp`, '+05:30', '+00:00')
+        )
+    )
+    INTO v_following_transition_utc
+    FROM status_history sh
+    WHERE sh.ticket_id = p_ticket_id
+      AND COALESCE(
+            sh.timestamp_utc,
+            CONVERT_TZ(sh.`timestamp`, '+05:30', '+00:00')
+          ) > p_shift_from_utc;
+
+    IF v_following_transition_utc IS NULL
+       OR TIMESTAMPADD(MINUTE, p_shift_minutes, p_shift_from_utc)
+            > v_following_transition_utc THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'shift would overlap the following status transition';
+    END IF;
+
     START TRANSACTION;
 
     UPDATE status_history sh
@@ -59,12 +83,12 @@ BEGIN
       AND COALESCE(
             sh.timestamp_utc,
             CONVERT_TZ(sh.`timestamp`, '+05:30', '+00:00')
-          ) >= p_shift_from_utc;
+          ) = p_shift_from_utc;
 
     UPDATE assignment_history ah
     SET ah.`timestamp` = TIMESTAMPADD(MINUTE, p_shift_minutes, ah.`timestamp`)
     WHERE ah.ticket_id = p_ticket_id
-      AND CONVERT_TZ(ah.`timestamp`, '+05:30', '+00:00') >= p_shift_from_utc;
+      AND CONVERT_TZ(ah.`timestamp`, '+05:30', '+00:00') = p_shift_from_utc;
 
     UPDATE ticket_history th
     JOIN status_history sh

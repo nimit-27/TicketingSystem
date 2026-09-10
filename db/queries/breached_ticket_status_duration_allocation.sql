@@ -9,9 +9,12 @@
   Any division remainder is assigned one minute at a time to the earliest
   eligible periods, so allocated_breach_minutes sums exactly to the breach.
 
-  The proposed timestamps extend each eligible period by its allocation and
-  shift every later status event by the cumulative allocation. This SELECT is
-  a preview only. Use shift_ticket_history_timestamps.sql to apply an approved
+  The proposed timestamps move only the transition immediately after an
+  eligible period. The eligible period grows while the following status period
+  shrinks by the same amount; the resolution timestamp remains unchanged.
+  ticket_sla resolution values are business-working minutes calculated by the
+  application calendar, and the SLA threshold comes from sla_config. This
+  SELECT is a preview only. Use shift_ticket_history_timestamps.sql to apply an approved
   shift while keeping status, assignment, and generic ticket history aligned.
 */
 WITH status_events AS (
@@ -109,12 +112,16 @@ breached_tickets AS (
         ts.ticket_id,
         ts.breached_by_minutes,
         ts.idle_time_minutes,
+        ts.resolution_time_minutes,
+        sc.resolution_minutes AS resolution_threshold_minutes,
         COALESCE(
             ts.due_at_after_escalation,
             ts.actual_due_at,
             ts.due_at
         ) AS effective_due_at
     FROM ticket_sla ts
+    LEFT JOIN sla_config sc
+        ON sc.sla_id = ts.sla_id
     WHERE COALESCE(ts.breached_by_minutes, 0) > 0
 ),
 allocations AS (
@@ -123,6 +130,8 @@ allocations AS (
         bt.ticket_id,
         bt.breached_by_minutes,
         bt.idle_time_minutes,
+        bt.resolution_time_minutes,
+        bt.resolution_threshold_minutes,
         bt.effective_due_at,
         rp.status_history_id,
         rp.previous_status,
@@ -153,34 +162,26 @@ allocations AS (
     LEFT JOIN ranked_periods rp
         ON rp.ticket_id = bt.ticket_id
 ),
-shifted_starts AS (
+proposed_periods AS (
     SELECT
         a.*,
         TIMESTAMPADD(
             MINUTE,
             COALESCE(
-                SUM(a.allocated_breach_minutes) OVER (
+                LAG(a.allocated_breach_minutes) OVER (
                     PARTITION BY a.ticket_sla_id
                     ORDER BY a.status_started_at_utc, a.status_history_id
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                 ),
                 0
             ),
             a.status_started_at_utc
-        ) AS proposed_status_started_at_utc
-    FROM allocations a
-),
-proposed_periods AS (
-    SELECT
-        ss.*,
-        COALESCE(
-            LEAD(ss.proposed_status_started_at_utc) OVER (
-                PARTITION BY ss.ticket_sla_id
-                ORDER BY ss.status_started_at_utc, ss.status_history_id
-            ),
-            ss.status_ended_at_utc
+        ) AS proposed_status_started_at_utc,
+        TIMESTAMPADD(
+            MINUTE,
+            a.allocated_breach_minutes,
+            a.status_ended_at_utc
         ) AS proposed_status_ended_at_utc
-    FROM shifted_starts ss
+    FROM allocations a
 )
 SELECT
     t.ticket_id,
@@ -190,6 +191,8 @@ SELECT
     pp.effective_due_at,
     pp.breached_by_minutes,
     pp.idle_time_minutes AS recorded_idle_time_minutes,
+    pp.resolution_time_minutes AS business_resolution_time_minutes,
+    pp.resolution_threshold_minutes AS business_resolution_threshold_minutes,
     pp.status_history_id,
     pp.previous_status AS previous_status_id,
     pp.status_id,
@@ -213,9 +216,22 @@ SELECT
         0
     ) AS proposed_status_duration_minutes,
     CASE
-        WHEN pp.allocation_status_count > 0 THEN 0
-        ELSE pp.breached_by_minutes
-    END AS proposed_breached_by_minutes,
+        WHEN pp.proposed_status_started_at_utc
+             <= pp.proposed_status_ended_at_utc
+            THEN 'YES'
+        ELSE 'NO'
+    END AS transition_order_valid,
+    GREATEST(
+        pp.resolution_time_minutes - pp.breached_by_minutes,
+        0
+    ) AS proposed_business_resolution_minutes,
+    CASE
+        WHEN pp.allocation_status_count > 0
+         AND pp.resolution_time_minutes - pp.breached_by_minutes
+             <= pp.resolution_threshold_minutes
+            THEN 'YES'
+        ELSE 'NO'
+    END AS within_business_sla_threshold,
     pp.updated_by AS status_updated_by,
     pp.remark AS status_remark
 FROM proposed_periods pp
