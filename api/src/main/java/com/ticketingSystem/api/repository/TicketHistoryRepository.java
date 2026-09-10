@@ -9,4 +9,7 @@ public interface TicketHistoryRepository extends JpaRepository<TicketHistory, Lo
     List<TicketHistory> findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(String ticketId);
     List<TicketHistory> findByTicketIdAndUpdateTypeCodeOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(String ticketId, String updateTypeCode);
     boolean existsBySourceTableAndSourceHistoryIdAndSourceColumnName(String sourceTable, String sourceHistoryId, String sourceColumnName);
+    List<TicketHistory> findByTicketIdAndUpdatedOnBetween(String ticketId, java.time.LocalDateTime from, java.time.LocalDateTime to);
+    List<TicketHistory> findBySourceTableAndSourceHistoryId(String sourceTable, String sourceHistoryId);
+    List<TicketHistory> findByTicketIdOrderByUpdatedOnAsc(String ticketId);
 }
