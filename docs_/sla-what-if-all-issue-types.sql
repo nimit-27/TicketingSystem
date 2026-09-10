@@ -7,15 +7,17 @@
 -- Notes:
 --   * This is a read-only report query; it does not update ticket_sla or issue_type_master.
 --   * It intentionally does NOT filter by issue_type_master.sla_flag.
---   * It uses status_history.sla_flag to decide whether each timeline segment is SLA-running
---     or idle/paused, matching the application SLA calculation logic.
+--   * It uses status_master.sla_flag for the status active in each timeline segment, matching
+--     TicketSlaService. Editing status_history.sla_flag alone does not change a recalculation.
+--   * status_history timestamps and status ids are treated as audit data. Run this report before
+--     considering any correction, and correct source history only through an approved process.
 --   * It uses the active calendar_working_hours row and excludes calendar_holiday rows for
 --     region 'IN-WB-Kolkata'. If your report needs calendar_working_hours_exception support,
 --     run the application from-scratch SLA job instead because exceptions are resolved in Java.
 
-DROP TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
+DROP TEMPORARY TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
 
-CREATE TABLE tmp_sla_what_if_all_issue_types AS
+CREATE TEMPORARY TABLE tmp_sla_what_if_all_issue_types AS
 WITH RECURSIVE
 params AS (
     SELECT
@@ -70,7 +72,7 @@ ordered_history AS (
     SELECT
         sh.ticket_id,
         sh.timestamp,
-        sh.sla_flag,
+        COALESCE(sm.sla_flag, 0) AS sla_flag,
         UPPER(TRIM(sh.current_status)) AS current_status,
         UPPER(TRIM(sh.previous_status)) AS previous_status,
         LEAD(sh.timestamp) OVER (PARTITION BY sh.ticket_id ORDER BY sh.timestamp, sh.status_history_id) AS next_timestamp,
@@ -79,6 +81,8 @@ ordered_history AS (
     FROM status_history sh
     JOIN ticket_base tb
         ON tb.ticket_id = sh.ticket_id
+    LEFT JOIN status_master sm
+        ON CAST(sm.status_id AS CHAR) = TRIM(sh.current_status)
     WHERE sh.timestamp IS NOT NULL
       AND sh.timestamp <= tb.calculation_end
 ),
@@ -153,11 +157,11 @@ per_ticket_from_history AS (
 response_ack AS (
     SELECT
         tb.ticket_id,
-        MIN(sh.timestamp) AS first_sla_on_at
+        MIN(sh.timestamp) AS first_assigned_at
     FROM ticket_base tb
     LEFT JOIN status_history sh
         ON sh.ticket_id = tb.ticket_id
-       AND sh.sla_flag = 1
+       AND TRIM(sh.current_status) = '2'
        AND sh.timestamp <= tb.calculation_end
     GROUP BY tb.ticket_id
 ),
@@ -165,12 +169,12 @@ response_dates AS (
     SELECT
         tb.ticket_id,
         tb.reported_date AS response_start,
-        ra.first_sla_on_at AS response_end,
+        ra.first_assigned_at AS response_end,
         DATE(tb.reported_date) AS work_date
     FROM ticket_base tb
     JOIN response_ack ra
         ON ra.ticket_id = tb.ticket_id
-    WHERE ra.first_sla_on_at IS NOT NULL
+    WHERE ra.first_assigned_at IS NOT NULL
     UNION ALL
     SELECT
         rd.ticket_id,
@@ -252,4 +256,4 @@ SELECT *
 FROM tmp_sla_what_if_all_issue_types
 ORDER BY would_breach_if_issue_type_sla_true DESC, what_if_breached_by_minutes DESC, reported_date;
 
-DROP TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
+DROP TEMPORARY TABLE IF EXISTS tmp_sla_what_if_all_issue_types;
