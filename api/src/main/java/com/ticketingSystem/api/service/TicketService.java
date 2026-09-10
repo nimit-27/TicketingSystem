@@ -987,6 +987,11 @@ public class TicketService {
                         }
                     });
         }
+
+        // Keep the persisted SLA snapshot in sync with every ticket update. This is
+        // especially important after assignment/status transitions because the new
+        // status-history entry determines response, active, and idle SLA durations.
+        refreshTicketSla(saved);
         return mapWithStatusId(saved);
     }
 

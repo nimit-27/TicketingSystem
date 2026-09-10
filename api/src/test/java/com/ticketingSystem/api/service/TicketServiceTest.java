@@ -94,6 +94,12 @@ class TicketServiceTest {
     private TicketIdGenerator ticketIdGenerator;
     @Mock
     private TicketCrService ticketCrService;
+    @Mock
+    private TicketHistoryRepository ticketHistoryRepository;
+    @Mock
+    private TicketHistoryConfigRepository ticketHistoryConfigRepository;
+    @Mock
+    private TicketTextHistoryRepository ticketTextHistoryRepository;
 
     @InjectMocks
     private TicketService ticketService;
@@ -354,6 +360,47 @@ class TicketServiceTest {
         ticketService.updateTicket(ticketId, update);
 
         verify(assignmentHistoryService, never()).addHistory(anyString(), anyString(), any(), any(), any());
+    }
+
+    @Test
+    void updateTicket_statusChange_recalculatesSlaWithLatestStatusHistory() {
+        String ticketId = "T-SLA-STATUS";
+        Ticket existing = buildExistingTicket(ticketId, "agent1");
+        existing.setReportedDate(LocalDateTime.now().minusHours(2));
+        existing.setSeverity("HIGH");
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        prepareStatusTransitionMocks();
+
+        StatusHistory latestHistory = new StatusHistory();
+        when(statusHistoryRepository.findByTicketOrderByTimestampAsc(existing))
+                .thenReturn(List.of(latestHistory));
+
+        ticketService.updateTicket(ticketId, buildUpdateRequest());
+
+        verify(ticketSlaService).calculateAndSaveByCalendar(existing, List.of(latestHistory));
+    }
+
+    @Test
+    void updateTicket_assignmentChange_recalculatesSla() {
+        String ticketId = "T-SLA-ASSIGNMENT";
+        Ticket existing = buildExistingTicket(ticketId, "agent-old");
+        existing.setReportedDate(LocalDateTime.now().minusHours(1));
+        existing.setSeverity("MEDIUM");
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        StatusHistory currentHistory = new StatusHistory();
+        when(statusHistoryRepository.findByTicketOrderByTimestampAsc(existing))
+                .thenReturn(List.of(currentHistory));
+
+        Ticket update = new Ticket();
+        update.setAssignedTo("agent-new");
+        update.setUpdatedBy("manager1");
+
+        ticketService.updateTicket(ticketId, update);
+
+        verify(ticketSlaService).calculateAndSaveByCalendar(existing, List.of(currentHistory));
     }
 
     @Test
