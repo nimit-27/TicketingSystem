@@ -15,3 +15,7 @@ export function updateStatusTimestamp(historyId: string, update: StatusTimestamp
     // application's standard headers during the PATCH preflight.
     return axios.patch(`${BASE_URL}/status-history/${historyId}/timestamp?devMode=true`, update);
 }
+
+export function previewStatusTimestamp(historyId: string, update: StatusTimestampUpdate) {
+    return axios.post(`${BASE_URL}/status-history/${historyId}/timestamp/preview?devMode=true`, update);
+}

@@ -2,6 +2,7 @@ package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.StatusHistoryDto;
 import com.ticketingSystem.api.dto.StatusTimestampUpdateRequest;
+import com.ticketingSystem.api.dto.StatusTimestampPreviewDto;
 import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.exception.TicketNotFoundException;
 import com.ticketingSystem.api.mapper.DtoMapper;
@@ -16,6 +17,7 @@ import com.ticketingSystem.api.repository.TicketHistoryRepository;
 import com.ticketingSystem.calendar.service.SlaCalculatorService;
 import com.ticketingSystem.calendar.util.TimeUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -62,6 +64,22 @@ public class StatusHistoryService {
      */
     @Transactional
     public StatusHistoryDto updateTimestamp(String historyId, StatusTimestampUpdateRequest request) {
+        return applyTimestampUpdate(historyId, request, false);
+    }
+
+    @Transactional
+    public StatusTimestampPreviewDto previewTimestamp(String historyId, StatusTimestampUpdateRequest request) {
+        StatusHistory history = historyRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Status history entry was not found"));
+        var currentSla = DtoMapper.toTicketSlaDto(ticketSlaService.getByTicketId(history.getTicket().getId()));
+        applyTimestampUpdate(historyId, request, true);
+        var newSla = DtoMapper.toTicketSlaDto(ticketSlaService.getByTicketId(history.getTicket().getId()));
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return new StatusTimestampPreviewDto(currentSla, newSla);
+    }
+
+    private StatusHistoryDto applyTimestampUpdate(String historyId, StatusTimestampUpdateRequest request,
+                                                   boolean preview) {
         if (request == null || (request.timestamp() == null) == (request.addMinutes() == null)) {
             throw new InvalidRequestException("Provide exactly one of timestamp or addMinutes");
         }
@@ -138,8 +156,13 @@ public class StatusHistoryService {
             ticket.setLastModifiedStatusDateUtc(newTimestamp.atZone(BUSINESS_ZONE).toInstant());
         }
         ticketRepository.save(ticket);
-        ticketSlaService.calculateAndSaveByCalendarFromScratch(
-                ticket, historyRepository.findByTicketOrderByTimestampAsc(ticket));
+        if (preview) {
+            ticketSlaService.calculatePreviewByCalendarFromScratch(
+                    ticket, historyRepository.findByTicketOrderByTimestampAsc(ticket));
+        } else {
+            ticketSlaService.calculateAndSaveByCalendarFromScratch(
+                    ticket, historyRepository.findByTicketOrderByTimestampAsc(ticket));
+        }
         return getHistoryForTicket(ticket.getId()).stream()
                 .filter(item -> historyId.equals(item.getId())).findFirst().orElseThrow();
     }

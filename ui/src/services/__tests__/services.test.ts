@@ -590,6 +590,16 @@ describe("StatusHistoryService", () => {
       update,
     );
   });
+
+  it("previews timestamp SLA changes without applying them", async () => {
+    const service = await import("../StatusHistoryService");
+    const update = { timestamp: "2026-09-10T10:00:00" };
+    await service.previewStatusTimestamp("history-1", update);
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      expect.stringContaining("/status-history/history-1/timestamp/preview?devMode=true"),
+      update,
+    );
+  });
 });
 
 describe("StatusService", () => {

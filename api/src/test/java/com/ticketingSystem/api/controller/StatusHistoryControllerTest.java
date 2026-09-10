@@ -2,6 +2,7 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.StatusHistoryDto;
 import com.ticketingSystem.api.dto.StatusTimestampUpdateRequest;
+import com.ticketingSystem.api.dto.StatusTimestampPreviewDto;
 import com.ticketingSystem.api.exception.ForbiddenOperationException;
 import com.ticketingSystem.api.service.StatusHistoryService;
 import org.junit.jupiter.api.Test;
@@ -45,5 +46,17 @@ class StatusHistoryControllerTest {
         assertThrows(ForbiddenOperationException.class,
                 () -> controller.updateTimestamp("history-1", false, request));
         verifyNoInteractions(historyService);
+    }
+
+    @Test
+    void previewTimestampIsAvailableInUiDevMode() {
+        StatusHistoryController controller = new StatusHistoryController(historyService);
+        StatusTimestampUpdateRequest request = new StatusTimestampUpdateRequest(
+                LocalDateTime.of(2026, 9, 10, 10, 0), null);
+        StatusTimestampPreviewDto expected = new StatusTimestampPreviewDto(null, null);
+        when(historyService.previewTimestamp("history-1", request)).thenReturn(expected);
+
+        assertSame(expected, controller.previewTimestamp("history-1", true, request).getBody());
+        verify(historyService).previewTimestamp("history-1", request);
     }
 }

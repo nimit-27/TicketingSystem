@@ -75,10 +75,20 @@ public class TicketSlaService {
     }
 
     public TicketSla calculateAndSaveByCalendarFromScratch(Ticket ticket, List<StatusHistory> history) {
-        return calculateAndSaveByCalendarInternal(ticket, history, true);
+        return calculateAndSaveByCalendarInternal(ticket, history, true, true);
+    }
+
+    /** Recalculates an SLA for a transaction-scoped preview without sending notifications. */
+    public TicketSla calculatePreviewByCalendarFromScratch(Ticket ticket, List<StatusHistory> history) {
+        return calculateAndSaveByCalendarInternal(ticket, history, true, false);
     }
 
     private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history, boolean fromScratch) {
+        return calculateAndSaveByCalendarInternal(ticket, history, fromScratch, true);
+    }
+
+    private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history,
+                                                          boolean fromScratch, boolean sendNotifications) {
         if (ticket == null) return null;
 
         boolean isSlaApplicable = false;
@@ -337,7 +347,7 @@ public class TicketSlaService {
 
         boolean hasBreached = breachedBy > 0;
         boolean breachJustOccurred = hasBreached && (previousBreached == null || previousBreached <= 0);
-        if (breachJustOccurred) {
+        if (sendNotifications && breachJustOccurred) {
             notifyAssigneeOfSlaBreach(ticket, breachedBy, slaTargetDueAt);
         }
 
