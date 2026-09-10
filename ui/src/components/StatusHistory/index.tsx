@@ -31,8 +31,14 @@ interface StatusHistoryProps {
     ticketId: string;
 }
 
+interface StatusTimestampSlaPreview {
+    currentSla: TicketSla | null;
+    newSla: TicketSla | null;
+}
+
 const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const { data, apiHandler } = useApi<any>();
+    const { apiHandler: previewApiHandler, pending: previewing } = useApi<StatusTimestampSlaPreview>();
     const [view, setView] = useState<'table' | 'timeline'>('table');
     const [userNameMap, setUserNameMap] = useState<Record<string, string>>({});
     const { t } = useTranslation();
@@ -40,8 +46,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const [editing, setEditing] = useState<HistoryEntry | null>(null);
     const [timestamp, setTimestamp] = useState('');
     const [minutes, setMinutes] = useState('');
-    const [slaPreview, setSlaPreview] = useState<{ currentSla: TicketSla | null; newSla: TicketSla | null } | null>(null);
-    const [previewing, setPreviewing] = useState(false);
+    const [slaPreview, setSlaPreview] = useState<StatusTimestampSlaPreview | null>(null);
 
     const reload = () => apiHandler(() => getStatusHistory(ticketId));
 
@@ -131,14 +136,11 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
 
     const previewTimestamp = async () => {
         if (!editing || !timestamp) return;
-        setPreviewing(true);
-        try {
-            const response = await previewStatusTimestamp(editing.id, {
+        const preview = await previewApiHandler(() => previewStatusTimestamp(editing.id, {
                 timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp,
-            });
-            setSlaPreview(response?.data ?? null);
-        } finally {
-            setPreviewing(false);
+            }));
+        if (preview) {
+            setSlaPreview(preview);
         }
     };
 
