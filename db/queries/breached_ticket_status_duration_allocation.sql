@@ -1,25 +1,18 @@
 /*
-  Audit SLA breaches against ticket status history (MySQL 8+).
+  Preview SLA-breach redistribution across ticket status history (MySQL 8+).
 
-  One result row is returned for every status-history period of every ticket
-  whose breached_by_minutes is greater than zero. A breached ticket without
-  history is still returned because status_periods is LEFT JOINed.
+  Every ticket_sla row whose breached_by_minutes is positive is retained, even
+  if it has no status history. The SLA flag comes only from status_master.
 
-  status_duration_minutes is elapsed clock time, not business-calendar time.
-  The historical status_history.sla_flag is preferred because a master's flag
-  can change later. status_master.sla_flag is only a fallback for older rows.
+  Breach minutes are divided equally, as whole minutes, only among periods in
+  PENDING_WITH_REQUESTER or PENDING_WITH_FCI where status_master.sla_flag = 0.
+  Any division remainder is assigned one minute at a time to the earliest
+  eligible periods, so allocated_breach_minutes sums exactly to the breach.
 
-  allocated_breach_minutes distributes the removable portion of the breach
-  proportionally over SLA-paused periods (sla_flag = 0), without allocating
-  more than either the breach or the total paused duration. The ticket-level
-  adjusted_breached_by_minutes is therefore:
-
-      GREATEST(breached_by_minutes - total_sla_paused_minutes, 0)
-
-  This is an audit SELECT only; review its output before using the values in an
-  UPDATE. It intentionally uses status_history rather than ticket_history:
-  ticket_history stores field changes, while status_history stores the status
-  transition timestamp and the SLA flag needed to form status periods.
+  The proposed timestamps extend each eligible period by its allocation and
+  shift every later status event by the cumulative allocation. This SELECT is
+  a preview only. Use shift_ticket_history_timestamps.sql to apply an approved
+  shift while keeping status, assignment, and generic ticket history aligned.
 */
 WITH status_events AS (
     SELECT
@@ -29,23 +22,22 @@ WITH status_events AS (
         sh.current_status AS status_id,
         COALESCE(
             sh.timestamp_utc,
-            CONVERT_TZ(sh.`timestamp`, 'Asia/Kolkata', '+00:00')
+            CONVERT_TZ(sh.`timestamp`, '+05:30', '+00:00')
         ) AS status_started_at_utc,
         LEAD(
             COALESCE(
                 sh.timestamp_utc,
-                CONVERT_TZ(sh.`timestamp`, 'Asia/Kolkata', '+00:00')
+                CONVERT_TZ(sh.`timestamp`, '+05:30', '+00:00')
             )
         ) OVER (
             PARTITION BY sh.ticket_id
             ORDER BY
                 COALESCE(
                     sh.timestamp_utc,
-                    CONVERT_TZ(sh.`timestamp`, 'Asia/Kolkata', '+00:00')
+                    CONVERT_TZ(sh.`timestamp`, '+05:30', '+00:00')
                 ),
                 sh.status_history_id
         ) AS next_status_started_at_utc,
-        sh.sla_flag AS historical_sla_flag,
         sh.updated_by,
         sh.remark
     FROM status_history sh
@@ -58,12 +50,11 @@ status_periods AS (
         se.status_id,
         sm.status_name,
         sm.status_code,
-        COALESCE(se.historical_sla_flag, sm.sla_flag) AS sla_flag,
+        sm.sla_flag,
         se.status_started_at_utc,
         CASE
             WHEN se.next_status_started_at_utc IS NOT NULL
                 THEN se.next_status_started_at_utc
-            /* A terminal status stops the clock when it is entered. */
             WHEN sm.status_code IN ('RESOLVED', 'CLOSED', 'CANCELLED')
                 THEN se.status_started_at_utc
             ELSE UTC_TIMESTAMP(6)
@@ -88,6 +79,30 @@ status_periods AS (
     LEFT JOIN status_master sm
         ON CAST(sm.status_id AS CHAR) = se.status_id
 ),
+eligibility AS (
+    SELECT
+        sp.*,
+        CASE
+            WHEN sp.sla_flag = 0
+             AND sp.status_code IN ('PENDING_WITH_REQUESTER', 'PENDING_WITH_FCI')
+                THEN 1
+            ELSE 0
+        END AS is_allocation_status
+    FROM status_periods sp
+),
+ranked_periods AS (
+    SELECT
+        e.*,
+        SUM(e.is_allocation_status) OVER (
+            PARTITION BY e.ticket_id
+        ) AS allocation_status_count,
+        SUM(e.is_allocation_status) OVER (
+            PARTITION BY e.ticket_id
+            ORDER BY e.status_started_at_utc, e.status_history_id
+            ROWS UNBOUNDED PRECEDING
+        ) AS allocation_status_sequence
+    FROM eligibility e
+),
 breached_tickets AS (
     SELECT
         ts.ticket_sla_id,
@@ -102,72 +117,111 @@ breached_tickets AS (
     FROM ticket_sla ts
     WHERE COALESCE(ts.breached_by_minutes, 0) > 0
 ),
-joined_history AS (
+allocations AS (
     SELECT
         bt.ticket_sla_id,
         bt.ticket_id,
         bt.breached_by_minutes,
         bt.idle_time_minutes,
         bt.effective_due_at,
-        sp.status_history_id,
-        sp.previous_status,
-        sp.status_id,
-        sp.status_name,
-        sp.status_code,
-        sp.sla_flag,
-        sp.status_started_at_utc,
-        sp.status_ended_at_utc,
-        sp.status_duration_minutes,
-        sp.updated_by,
-        sp.remark,
-        SUM(
-            CASE
-                WHEN sp.sla_flag = 0 THEN sp.status_duration_minutes
-                ELSE 0
-            END
-        ) OVER (PARTITION BY bt.ticket_sla_id) AS total_sla_paused_minutes
+        rp.status_history_id,
+        rp.previous_status,
+        rp.status_id,
+        rp.status_name,
+        rp.status_code,
+        rp.sla_flag,
+        rp.status_started_at_utc,
+        rp.status_ended_at_utc,
+        rp.status_duration_minutes,
+        rp.updated_by,
+        rp.remark,
+        rp.is_allocation_status,
+        rp.allocation_status_count,
+        rp.allocation_status_sequence,
+        CASE
+            WHEN rp.is_allocation_status = 1
+                THEN FLOOR(bt.breached_by_minutes / rp.allocation_status_count)
+                   + CASE
+                         WHEN rp.allocation_status_sequence
+                              <= MOD(bt.breached_by_minutes, rp.allocation_status_count)
+                             THEN 1
+                         ELSE 0
+                     END
+            ELSE 0
+        END AS allocated_breach_minutes
     FROM breached_tickets bt
-    LEFT JOIN status_periods sp
-        ON sp.ticket_id = bt.ticket_id
+    LEFT JOIN ranked_periods rp
+        ON rp.ticket_id = bt.ticket_id
+),
+shifted_starts AS (
+    SELECT
+        a.*,
+        TIMESTAMPADD(
+            MINUTE,
+            COALESCE(
+                SUM(a.allocated_breach_minutes) OVER (
+                    PARTITION BY a.ticket_sla_id
+                    ORDER BY a.status_started_at_utc, a.status_history_id
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                ),
+                0
+            ),
+            a.status_started_at_utc
+        ) AS proposed_status_started_at_utc
+    FROM allocations a
+),
+proposed_periods AS (
+    SELECT
+        ss.*,
+        COALESCE(
+            LEAD(ss.proposed_status_started_at_utc) OVER (
+                PARTITION BY ss.ticket_sla_id
+                ORDER BY ss.status_started_at_utc, ss.status_history_id
+            ),
+            ss.status_ended_at_utc
+        ) AS proposed_status_ended_at_utc
+    FROM shifted_starts ss
 )
 SELECT
     t.ticket_id,
     t.subject,
     t.status AS current_ticket_status,
-    jh.ticket_sla_id,
-    jh.effective_due_at,
-    jh.breached_by_minutes,
-    jh.idle_time_minutes AS recorded_idle_time_minutes,
-    jh.status_history_id,
-    jh.previous_status AS previous_status_id,
-    jh.status_id,
-    jh.status_name,
-    jh.status_code,
-    jh.sla_flag,
-    jh.status_started_at_utc,
-    jh.status_ended_at_utc,
-    jh.status_duration_minutes,
-    jh.total_sla_paused_minutes,
-    CASE
-        WHEN jh.sla_flag = 0 AND jh.total_sla_paused_minutes > 0
-            THEN ROUND(
-                LEAST(jh.breached_by_minutes, jh.total_sla_paused_minutes)
-                * jh.status_duration_minutes
-                / jh.total_sla_paused_minutes,
-                2
-            )
-        ELSE 0
-    END AS allocated_breach_minutes,
+    pp.ticket_sla_id,
+    pp.effective_due_at,
+    pp.breached_by_minutes,
+    pp.idle_time_minutes AS recorded_idle_time_minutes,
+    pp.status_history_id,
+    pp.previous_status AS previous_status_id,
+    pp.status_id,
+    pp.status_name,
+    pp.status_code,
+    pp.sla_flag,
+    pp.status_started_at_utc,
+    pp.status_ended_at_utc,
+    pp.status_duration_minutes,
+    pp.is_allocation_status,
+    pp.allocation_status_count,
+    pp.allocated_breach_minutes,
+    pp.proposed_status_started_at_utc,
+    pp.proposed_status_ended_at_utc,
     GREATEST(
-        jh.breached_by_minutes - jh.total_sla_paused_minutes,
+        TIMESTAMPDIFF(
+            MINUTE,
+            pp.proposed_status_started_at_utc,
+            pp.proposed_status_ended_at_utc
+        ),
         0
-    ) AS adjusted_breached_by_minutes,
-    jh.updated_by AS status_updated_by,
-    jh.remark AS status_remark
-FROM joined_history jh
+    ) AS proposed_status_duration_minutes,
+    CASE
+        WHEN pp.allocation_status_count > 0 THEN 0
+        ELSE pp.breached_by_minutes
+    END AS proposed_breached_by_minutes,
+    pp.updated_by AS status_updated_by,
+    pp.remark AS status_remark
+FROM proposed_periods pp
 JOIN tickets t
-    ON t.ticket_id = jh.ticket_id
+    ON t.ticket_id = pp.ticket_id
 ORDER BY
     t.ticket_id,
-    jh.status_started_at_utc,
-    jh.status_history_id;
+    pp.status_started_at_utc,
+    pp.status_history_id;
