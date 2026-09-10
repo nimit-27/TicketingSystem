@@ -11,7 +11,7 @@ export interface StatusTimestampUpdate {
 }
 
 export function updateStatusTimestamp(historyId: string, update: StatusTimestampUpdate) {
-    return axios.patch(`${BASE_URL}/status-history/${historyId}/timestamp`, update, {
-        headers: { 'X-Dev-Mode': 'true' },
-    });
+    // Avoid a custom header because deployed CORS policies only allow the
+    // application's standard headers during the PATCH preflight.
+    return axios.patch(`${BASE_URL}/status-history/${historyId}/timestamp?devMode=true`, update);
 }

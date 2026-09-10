@@ -25,7 +25,7 @@ public class StatusHistoryController {
     @PatchMapping("/{historyId}/timestamp")
     public ResponseEntity<StatusHistoryDto> updateTimestamp(
             @PathVariable String historyId,
-            @RequestHeader(value = "X-Dev-Mode", defaultValue = "false") boolean uiDevMode,
+            @RequestParam(value = "devMode", defaultValue = "false") boolean uiDevMode,
             @RequestBody StatusTimestampUpdateRequest request) {
         if (!uiDevMode) {
             throw new ForbiddenOperationException("Enable UI dev mode to edit status timestamps");
