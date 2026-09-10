@@ -2,14 +2,15 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
-import { getStatusHistory, updateStatusTimestamp } from '../../services/StatusHistoryService';
+import { getStatusHistory, previewStatusTimestamp, StatusTimestampUpdate, updateStatusTimestamp } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, TextField, Tooltip } from '@mui/material';
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers } from '../../services/UserService';
 import HistoryReportDownloadMenu, { HistoryReportColumn } from '../History/HistoryReportDownloadMenu';
 import { DevModeContext } from '../../context/DevModeContext';
+import { TicketSla } from '../../types';
 
 interface HistoryEntry {
     id: string;
@@ -30,8 +31,14 @@ interface StatusHistoryProps {
     ticketId: string;
 }
 
+interface StatusTimestampSlaPreview {
+    currentSla: TicketSla | null;
+    newSla: TicketSla | null;
+}
+
 const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const { data, apiHandler } = useApi<any>();
+    const { apiHandler: previewApiHandler, pending: previewing } = useApi<StatusTimestampSlaPreview>();
     const [view, setView] = useState<'table' | 'timeline'>('table');
     const [userNameMap, setUserNameMap] = useState<Record<string, string>>({});
     const { t } = useTranslation();
@@ -39,6 +46,8 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const [editing, setEditing] = useState<HistoryEntry | null>(null);
     const [timestamp, setTimestamp] = useState('');
     const [minutes, setMinutes] = useState('');
+    const [slaPreview, setSlaPreview] = useState<StatusTimestampSlaPreview | null>(null);
+    const [previewedUpdate, setPreviewedUpdate] = useState<StatusTimestampUpdate | null>(null);
 
     const reload = () => apiHandler(() => getStatusHistory(ticketId));
 
@@ -105,6 +114,8 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                         setEditing(record);
                         setTimestamp(record.timestamp ? record.timestamp.slice(0, 16) : '');
                         setMinutes('');
+                        setSlaPreview(null);
+                        setPreviewedUpdate(null);
                     }}>
                         <EditCalendarOutlinedIcon fontSize="small" />
                     </Button>
@@ -113,16 +124,41 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
         }] : []),
     ];
 
-    const saveTimestamp = async (useMinutes: boolean) => {
-        if (!editing) return;
-        const payload = useMinutes
-            ? { addMinutes: Number(minutes) }
-            : { timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp };
-        const updated = await apiHandler(() => updateStatusTimestamp(editing.id, payload));
+    const saveTimestamp = async () => {
+        if (!editing || !previewedUpdate) return;
+        const updated = await apiHandler(() => updateStatusTimestamp(editing.id, previewedUpdate));
         if (updated) {
             setEditing(null);
             reload();
         }
+    };
+
+    const previewTimestamp = async (payload: StatusTimestampUpdate) => {
+        if (!editing) return;
+        const preview = await previewApiHandler(() => previewStatusTimestamp(editing.id, payload));
+        if (preview) {
+            setSlaPreview(preview);
+            setPreviewedUpdate(payload);
+        }
+    };
+
+    const slaMetrics: Array<{ key: keyof TicketSla; label: string; date?: boolean }> = [
+        { key: 'actualDueAt', label: t('Original Due Date'), date: true },
+        { key: 'dueAtAfterEscalation', label: t('Due Date After Escalation'), date: true },
+        { key: 'dueAt', label: t('Current Due Date'), date: true },
+        { key: 'timeTillDueDate', label: t('Time Till Due Date (mins)') },
+        { key: 'workingTimeLeftMinutes', label: t('Working Time Left (mins)') },
+        { key: 'responseTimeMinutes', label: t('Response Time (mins)') },
+        { key: 'resolutionTimeMinutes', label: t('Resolution Time (mins)') },
+        { key: 'idleTimeMinutes', label: t('Idle Time (mins)') },
+        { key: 'elapsedTimeMinutes', label: t('Elapsed Time (mins)') },
+        { key: 'breachedByMinutes', label: t('Breached By (mins)') },
+    ];
+
+    const formatSlaValue = (sla: TicketSla | null, key: keyof TicketSla, date?: boolean) => {
+        const value = sla?.[key];
+        if (value === null || value === undefined || value === '') return '-';
+        return date ? new Date(String(value)).toLocaleString() : String(value);
     };
 
     const reportColumns: HistoryReportColumn<HistoryWithNameEntry>[] = [
@@ -187,33 +223,73 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                     })}
                 </Timeline>
             )}
-            {devMode && editing && <Dialog open onClose={() => setEditing(null)} fullWidth maxWidth="xs">
+            {devMode && editing && <Dialog open onClose={() => setEditing(null)} fullWidth maxWidth={slaPreview ? 'lg' : 'xs'}>
                 <DialogTitle>{t('Edit status timestamp')}</DialogTitle>
                 <DialogContent sx={{ display: 'grid', gap: 2, pt: '12px !important' }}>
                     <TextField
                         label={t('Timestamp')}
                         type="datetime-local"
                         value={timestamp}
-                        onChange={(event) => setTimestamp(event.target.value)}
+                        onChange={(event) => {
+                            setTimestamp(event.target.value);
+                            setSlaPreview(null);
+                            setPreviewedUpdate(null);
+                        }}
                         slotProps={{ inputLabel: { shrink: true } }}
                     />
-                    <Button variant="contained" disabled={!timestamp} onClick={() => saveTimestamp(false)}>
+                    <Button variant="contained" disabled={!timestamp || previewing} onClick={() => previewTimestamp({
+                        timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp,
+                    })}>
+                        {previewing && <CircularProgress size={18} sx={{ mr: 1 }} />}
                         {t('Update time directly')}
                     </Button>
                     <TextField
                         label={t('Business minutes to add')}
                         type="number"
                         value={minutes}
-                        onChange={(event) => setMinutes(event.target.value)}
+                        onChange={(event) => {
+                            setMinutes(event.target.value);
+                            setSlaPreview(null);
+                            setPreviewedUpdate(null);
+                        }}
                         slotProps={{ htmlInput: { min: 0 } }}
                         helperText={t('Business hours and holidays are applied automatically.')}
                     />
-                    <Button variant="contained" disabled={minutes === '' || Number(minutes) < 0} onClick={() => saveTimestamp(true)}>
+                    <Button variant="contained" disabled={minutes === '' || Number(minutes) < 0 || previewing} onClick={() => previewTimestamp({
+                        addMinutes: Number(minutes),
+                    })}>
+                        {previewing && <CircularProgress size={18} sx={{ mr: 1 }} />}
                         {t('Add business minutes')}
                     </Button>
+                    {slaPreview && <Box sx={{ mt: 1 }}>
+                        <Typography variant="h6" sx={{ mb: 1 }}>{t('SLA change preview')}</Typography>
+                        <Table size="small" aria-label={t('SLA change preview')}>
+                            <TableHead><TableRow>
+                                <TableCell>{t('SLA metric')}</TableCell>
+                                <TableCell sx={{ width: '38%' }}>{t('Current SLA data')}</TableCell>
+                                <TableCell sx={{ width: '38%' }}>{t('New SLA data')}</TableCell>
+                            </TableRow></TableHead>
+                            <TableBody>{slaMetrics.map(({ key, label, date }) => {
+                                const current = formatSlaValue(slaPreview.currentSla, key, date);
+                                const next = formatSlaValue(slaPreview.newSla, key, date);
+                                const changed = current !== next;
+                                return <TableRow key={key}>
+                                    <TableCell>{label}</TableCell>
+                                    <TableCell>{current}</TableCell>
+                                    <TableCell sx={changed ? { bgcolor: 'warning.light', fontWeight: 700 } : undefined}>{next}</TableCell>
+                                </TableRow>;
+                            })}</TableBody>
+                        </Table>
+                    </Box>}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setEditing(null)}>{t('Cancel')}</Button>
+                    {slaPreview ? <>
+                        <Button variant="contained" onClick={saveTimestamp}>{t('Update new time')}</Button>
+                        <Button onClick={() => {
+                            setSlaPreview(null);
+                            setPreviewedUpdate(null);
+                        }}>{t('Cancel update')}</Button>
+                    </> : <Button onClick={() => setEditing(null)}>{t('Cancel')}</Button>}
                 </DialogActions>
             </Dialog>}
         </div>

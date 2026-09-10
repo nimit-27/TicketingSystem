@@ -2,6 +2,7 @@ package com.ticketingSystem.api.controller;
 
 import com.ticketingSystem.api.dto.StatusHistoryDto;
 import com.ticketingSystem.api.dto.StatusTimestampUpdateRequest;
+import com.ticketingSystem.api.dto.StatusTimestampPreviewDto;
 import com.ticketingSystem.api.exception.ForbiddenOperationException;
 import com.ticketingSystem.api.service.StatusHistoryService;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,16 @@ public class StatusHistoryController {
             throw new ForbiddenOperationException("Enable UI dev mode to edit status timestamps");
         }
         return ResponseEntity.ok(historyService.updateTimestamp(historyId, request));
+    }
+
+    @PostMapping("/{historyId}/timestamp/preview")
+    public ResponseEntity<StatusTimestampPreviewDto> previewTimestamp(
+            @PathVariable String historyId,
+            @RequestParam(value = "devMode", defaultValue = "false") boolean uiDevMode,
+            @RequestBody StatusTimestampUpdateRequest request) {
+        if (!uiDevMode) {
+            throw new ForbiddenOperationException("Enable UI dev mode to edit status timestamps");
+        }
+        return ResponseEntity.ok(historyService.previewTimestamp(historyId, request));
     }
 }
