@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
-import { getStatusHistory, previewStatusTimestamp, updateStatusTimestamp } from '../../services/StatusHistoryService';
+import { getStatusHistory, previewStatusTimestamp, StatusTimestampUpdate, updateStatusTimestamp } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
@@ -47,6 +47,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const [timestamp, setTimestamp] = useState('');
     const [minutes, setMinutes] = useState('');
     const [slaPreview, setSlaPreview] = useState<StatusTimestampSlaPreview | null>(null);
+    const [previewedUpdate, setPreviewedUpdate] = useState<StatusTimestampUpdate | null>(null);
 
     const reload = () => apiHandler(() => getStatusHistory(ticketId));
 
@@ -114,6 +115,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                         setTimestamp(record.timestamp ? record.timestamp.slice(0, 16) : '');
                         setMinutes('');
                         setSlaPreview(null);
+                        setPreviewedUpdate(null);
                     }}>
                         <EditCalendarOutlinedIcon fontSize="small" />
                     </Button>
@@ -122,25 +124,21 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
         }] : []),
     ];
 
-    const saveTimestamp = async (useMinutes: boolean) => {
-        if (!editing) return;
-        const payload = useMinutes
-            ? { addMinutes: Number(minutes) }
-            : { timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp };
-        const updated = await apiHandler(() => updateStatusTimestamp(editing.id, payload));
+    const saveTimestamp = async () => {
+        if (!editing || !previewedUpdate) return;
+        const updated = await apiHandler(() => updateStatusTimestamp(editing.id, previewedUpdate));
         if (updated) {
             setEditing(null);
             reload();
         }
     };
 
-    const previewTimestamp = async () => {
-        if (!editing || !timestamp) return;
-        const preview = await previewApiHandler(() => previewStatusTimestamp(editing.id, {
-                timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp,
-            }));
+    const previewTimestamp = async (payload: StatusTimestampUpdate) => {
+        if (!editing) return;
+        const preview = await previewApiHandler(() => previewStatusTimestamp(editing.id, payload));
         if (preview) {
             setSlaPreview(preview);
+            setPreviewedUpdate(payload);
         }
     };
 
@@ -232,10 +230,16 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                         label={t('Timestamp')}
                         type="datetime-local"
                         value={timestamp}
-                        onChange={(event) => setTimestamp(event.target.value)}
+                        onChange={(event) => {
+                            setTimestamp(event.target.value);
+                            setSlaPreview(null);
+                            setPreviewedUpdate(null);
+                        }}
                         slotProps={{ inputLabel: { shrink: true } }}
                     />
-                    <Button variant="contained" disabled={!timestamp || previewing} onClick={previewTimestamp}>
+                    <Button variant="contained" disabled={!timestamp || previewing} onClick={() => previewTimestamp({
+                        timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp,
+                    })}>
                         {previewing && <CircularProgress size={18} sx={{ mr: 1 }} />}
                         {t('Update time directly')}
                     </Button>
@@ -243,11 +247,18 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                         label={t('Business minutes to add')}
                         type="number"
                         value={minutes}
-                        onChange={(event) => setMinutes(event.target.value)}
+                        onChange={(event) => {
+                            setMinutes(event.target.value);
+                            setSlaPreview(null);
+                            setPreviewedUpdate(null);
+                        }}
                         slotProps={{ htmlInput: { min: 0 } }}
                         helperText={t('Business hours and holidays are applied automatically.')}
                     />
-                    <Button variant="contained" disabled={minutes === '' || Number(minutes) < 0} onClick={() => saveTimestamp(true)}>
+                    <Button variant="contained" disabled={minutes === '' || Number(minutes) < 0 || previewing} onClick={() => previewTimestamp({
+                        addMinutes: Number(minutes),
+                    })}>
+                        {previewing && <CircularProgress size={18} sx={{ mr: 1 }} />}
                         {t('Add business minutes')}
                     </Button>
                     {slaPreview && <Box sx={{ mt: 1 }}>
@@ -273,8 +284,11 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                 </DialogContent>
                 <DialogActions>
                     {slaPreview ? <>
-                        <Button variant="contained" onClick={() => saveTimestamp(false)}>{t('Update new time')}</Button>
-                        <Button onClick={() => setSlaPreview(null)}>{t('Cancel update')}</Button>
+                        <Button variant="contained" onClick={saveTimestamp}>{t('Update new time')}</Button>
+                        <Button onClick={() => {
+                            setSlaPreview(null);
+                            setPreviewedUpdate(null);
+                        }}>{t('Cancel update')}</Button>
                     </> : <Button onClick={() => setEditing(null)}>{t('Cancel')}</Button>}
                 </DialogActions>
             </Dialog>}
