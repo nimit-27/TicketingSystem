@@ -78,7 +78,20 @@ public class TicketSlaService {
         return calculateAndSaveByCalendarInternal(ticket, history, true);
     }
 
+    /**
+     * Rebuilds an SLA without reading or writing the existing ticket_sla row. This is
+     * deliberately side-effect free so developer tooling can show an accurate preview.
+     */
+    public TicketSla calculateByCalendarFromScratch(Ticket ticket, List<StatusHistory> history) {
+        return calculateByCalendarInternal(ticket, history, true, false);
+    }
+
     private TicketSla calculateAndSaveByCalendarInternal(Ticket ticket, List<StatusHistory> history, boolean fromScratch) {
+        return calculateByCalendarInternal(ticket, history, fromScratch, true);
+    }
+
+    private TicketSla calculateByCalendarInternal(Ticket ticket, List<StatusHistory> history,
+                                                   boolean fromScratch, boolean persist) {
         if (ticket == null) return null;
 
         boolean isSlaApplicable = false;
@@ -96,8 +109,9 @@ public class TicketSlaService {
                 idleMinutes = Math.max(workingElapsed.toMinutes(), 0L);
             }
 
-            TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
-                    .orElseGet(TicketSla::new);
+            TicketSla ticketSla = persist
+                    ? ticketSlaRepository.findByTicket_Id(ticket.getId()).orElseGet(TicketSla::new)
+                    : new TicketSla();
 
             ticketSla.setTicket(ticket);
             ticketSla.setSlaConfig(null);
@@ -114,7 +128,7 @@ public class TicketSlaService {
             ticketSla.setTimeTillDueDate(null);
             ticketSla.setWorkingTimeLeftMinutes(null);
 
-            return ticketSlaRepository.save(ticketSla);
+            return persist ? ticketSlaRepository.save(ticketSla) : ticketSla;
         }
 
         boolean isIssueTypeSlaEnabled = issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId());
@@ -270,8 +284,9 @@ public class TicketSlaService {
             idle = Math.max(elapsed - resolution, idle);
         }
 
-        TicketSla ticketSla = ticketSlaRepository.findByTicket_Id(ticket.getId())
-                .orElseGet(TicketSla::new);
+        TicketSla ticketSla = persist
+                ? ticketSlaRepository.findByTicket_Id(ticket.getId()).orElseGet(TicketSla::new)
+                : new TicketSla();
         boolean severityChanged = ticketSla.getSlaConfig() != null
                 && config != null
                 && !Objects.equals(ticketSla.getSlaConfig().getId(), config.getId());
@@ -332,12 +347,12 @@ public class TicketSlaService {
         ticketSla.setTimeTillDueDate(timeTillDueDate);
         ticketSla.setWorkingTimeLeftMinutes(workingTimeLeft);
         ticketSla.setIsSlaApplicable(isSlaApplicable);
-        TicketSla saved = ticketSlaRepository.save(ticketSla);
+        TicketSla saved = persist ? ticketSlaRepository.save(ticketSla) : ticketSla;
         saved.setWorkingTimeLeftMinutes(workingTimeLeft);
 
         boolean hasBreached = breachedBy > 0;
         boolean breachJustOccurred = hasBreached && (previousBreached == null || previousBreached <= 0);
-        if (breachJustOccurred) {
+        if (persist && breachJustOccurred) {
             notifyAssigneeOfSlaBreach(ticket, breachedBy, slaTargetDueAt);
         }
 
