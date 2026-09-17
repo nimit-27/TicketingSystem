@@ -62,6 +62,8 @@ class TicketServiceTest {
     @Mock
     private StatusHistoryRepository statusHistoryRepository;
     @Mock
+    private AssignmentHistoryRepository assignmentHistoryRepository;
+    @Mock
     private NotificationService notificationService;
     @Mock
     private TicketStatusWorkflowService workflowService;
@@ -131,6 +133,38 @@ class TicketServiceTest {
     }
 
     @Test
+    void updateHistoryTimestampUpdatesLinkedStatusAndAssignmentRows() {
+        LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime corrected = original.plusMinutes(30);
+        TicketHistory statusTicketRow = historyRow(1L, "group-1", original);
+        statusTicketRow.setSourceTable("status_history");
+        statusTicketRow.setSourceHistoryId("status-1");
+        TicketHistory assignmentTicketRow = historyRow(2L, "group-1", original);
+        assignmentTicketRow.setSourceTable("assignment_history");
+        assignmentTicketRow.setSourceHistoryId("assignment-1");
+        StatusHistory status = new StatusHistory();
+        status.setId("status-1");
+        status.setTimestamp(original);
+        com.ticketingSystem.api.models.AssignmentHistory assignment =
+                new com.ticketingSystem.api.models.AssignmentHistory();
+        assignment.setId("assignment-1");
+        assignment.setTimestamp(original);
+        when(ticketHistoryRepository.findById(1L)).thenReturn(Optional.of(statusTicketRow));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("group-1"))
+                .thenReturn(List.of(statusTicketRow, assignmentTicketRow));
+        when(statusHistoryRepository.findById("status-1")).thenReturn(Optional.of(status));
+        when(assignmentHistoryRepository.findById("assignment-1")).thenReturn(Optional.of(assignment));
+
+        ticketService.updateHistoryTimestamp(1L, new StatusTimestampUpdateRequest(corrected, null));
+
+        assertThat(status.getTimestamp()).isEqualTo(corrected);
+        assertThat(status.getUpdatedTimestamp()).isEqualTo(corrected);
+        assertThat(assignment.getTimestamp()).isEqualTo(corrected);
+        verify(statusHistoryRepository).save(status);
+        verify(assignmentHistoryRepository).save(assignment);
+    }
+
+    @Test
     void undoHistoryTimestampRestoresOneTimestampAcrossTheGroup() {
         LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
         LocalDateTime corrected = LocalDateTime.of(2026, 9, 17, 11, 30);
@@ -175,6 +209,34 @@ class TicketServiceTest {
         assertThat(result.maximumTimestamp()).isEqualTo(nextTime);
         assertThat(result.minimumBusinessMinutes()).isEqualTo(-60);
         assertThat(result.maximumBusinessMinutes()).isEqualTo(120);
+    }
+
+    @Test
+    void previewHistoryTimestampIncludesStatusAndAssignmentHistoryBounds() {
+        LocalDateTime current = LocalDateTime.of(2026, 9, 17, 10, 0);
+        TicketHistory selected = historyRow(2L, "selected", current);
+        selected.setTicketId("T-1");
+        Ticket ticket = new Ticket();
+        ticket.setId("T-1");
+        StatusHistory previous = new StatusHistory();
+        previous.setId("status-previous");
+        previous.setTimestamp(current.minusMinutes(30));
+        com.ticketingSystem.api.models.AssignmentHistory next =
+                new com.ticketingSystem.api.models.AssignmentHistory();
+        next.setId("assignment-next");
+        next.setTimestamp(current.plusMinutes(45));
+        when(ticketHistoryRepository.findById(2L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc("T-1"))
+                .thenReturn(List.of(selected));
+        when(ticketRepository.findById("T-1")).thenReturn(Optional.of(ticket));
+        when(statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket)).thenReturn(List.of(previous));
+        when(assignmentHistoryRepository.findByTicketOrderByTimestampAsc(ticket)).thenReturn(List.of(next));
+
+        var result = ticketService.previewHistoryTimestamp(2L,
+                new StatusTimestampUpdateRequest(current.plusMinutes(10), null));
+
+        assertThat(result.minimumTimestamp()).isEqualTo(previous.getTimestamp());
+        assertThat(result.maximumTimestamp()).isEqualTo(next.getTimestamp());
     }
 
     @Test
