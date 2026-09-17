@@ -1,11 +1,12 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import GenericTable from './UI/GenericTable';
 import { useApi } from '../hooks/useApi';
 import { getTicketHistory, previewTicketHistoryTimestamp, TicketHistoryTimestampPreview, TicketHistoryTimestampUpdate, undoTicketHistoryTimestamp, updateTicketHistoryTimestamp } from '../services/TicketService';
 import { DevModeContext } from '../context/DevModeContext';
+import { TicketSla } from '../types';
 
 type TicketHistoryEntry = {
   ticketHistoryId: number;
@@ -39,6 +40,25 @@ const shiftLocalTimestamp = (value: string, minutes: number) => {
   date.setMinutes(date.getMinutes() + minutes);
   const pad = (part: number) => String(part).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
+const slaMetrics: Array<{ key: keyof TicketSla; label: string; date?: boolean }> = [
+  { key: 'actualDueAt', label: 'Original Due Date', date: true },
+  { key: 'dueAtAfterEscalation', label: 'Due Date After Escalation', date: true },
+  { key: 'dueAt', label: 'Current Due Date', date: true },
+  { key: 'timeTillDueDate', label: 'Time Till Due Date (mins)' },
+  { key: 'workingTimeLeftMinutes', label: 'Working Time Left (mins)' },
+  { key: 'responseTimeMinutes', label: 'Response Time (mins)' },
+  { key: 'resolutionTimeMinutes', label: 'Resolution Time (mins)' },
+  { key: 'idleTimeMinutes', label: 'Idle Time (mins)' },
+  { key: 'elapsedTimeMinutes', label: 'Elapsed Time (mins)' },
+  { key: 'breachedByMinutes', label: 'Breached By (mins)' },
+];
+
+const formatSlaValue = (sla: TicketSla | null | undefined, key: keyof TicketSla, date?: boolean) => {
+  const value = sla?.[key];
+  if (value === null || value === undefined || value === '') return '-';
+  return date ? formatDateTime(String(value)) : String(value);
 };
 
 const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
@@ -148,7 +168,7 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
           </Box>
         </DialogContent>
       </Dialog>
-      {devMode && editing && <Dialog open onClose={() => setEditing(null)} fullWidth maxWidth="xs">
+      {devMode && editing && <Dialog open onClose={() => setEditing(null)} fullWidth maxWidth={previewedUpdate && (preview?.currentSla || preview?.newSla) ? 'lg' : 'xs'}>
         <DialogTitle>Edit ticket history timestamp</DialogTitle>
         <DialogContent sx={{ pt: '12px !important' }}>
           <TextField fullWidth label="Timestamp" type="datetime-local" value={timestamp}
@@ -194,6 +214,25 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
             <Typography variant="caption" display="block">Maximum time: {limits.maximumTimestamp ? formatDateTime(limits.maximumTimestamp) : 'No limit'}</Typography>
             <Typography variant="caption" display="block">Minimum business minutes: {limits.minimumBusinessMinutes ?? 'No limit'}</Typography>
             <Typography variant="caption" display="block">Maximum business minutes: {limits.maximumBusinessMinutes ?? 'No limit'}</Typography>
+          </Box>}
+          {previewedUpdate && preview && (preview.currentSla || preview.newSla) && <Box sx={{ mt: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>SLA change preview</Typography>
+            <Table size="small" aria-label="SLA change preview">
+              <TableHead><TableRow>
+                <TableCell>SLA metric</TableCell>
+                <TableCell sx={{ width: '38%' }}>Current SLA data</TableCell>
+                <TableCell sx={{ width: '38%' }}>New SLA data</TableCell>
+              </TableRow></TableHead>
+              <TableBody>{slaMetrics.map(({ key, label, date }) => {
+                const current = formatSlaValue(preview.currentSla, key, date);
+                const next = formatSlaValue(preview.newSla, key, date);
+                return <TableRow key={key}>
+                  <TableCell>{label}</TableCell>
+                  <TableCell>{current}</TableCell>
+                  <TableCell sx={current !== next ? { bgcolor: 'warning.light', fontWeight: 700 } : undefined}>{next}</TableCell>
+                </TableRow>;
+              })}</TableBody>
+            </Table>
           </Box>}
         </DialogContent>
         <DialogActions>

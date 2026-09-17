@@ -9,6 +9,7 @@ import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketHistory;
+import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.RecommendedSeverityFlow;
 import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.models.RequesterUser;
@@ -243,6 +244,44 @@ class TicketServiceTest {
         assertThat(result.maximumTimestamp()).isEqualTo(nextTime);
         assertThat(result.minimumBusinessMinutes()).isEqualTo(-60);
         assertThat(result.maximumBusinessMinutes()).isEqualTo(120);
+    }
+
+    @Test
+    void previewHistoryTimestampReturnsCurrentAndRecalculatedSla() {
+        LocalDateTime current = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime calculated = current.plusMinutes(30);
+        TicketHistory selected = historyRow(2L, "selected", current);
+        selected.setTicketId("T-1");
+        selected.setSourceTable("status_history");
+        selected.setSourceHistoryId("status-1");
+        Ticket ticket = new Ticket();
+        ticket.setId("T-1");
+        StatusHistory status = new StatusHistory();
+        status.setId("status-1");
+        status.setTicket(ticket);
+        status.setTimestamp(current);
+        TicketSla currentSla = new TicketSla();
+        currentSla.setResponseTimeMinutes(10L);
+        TicketSla newSla = new TicketSla();
+        newSla.setResponseTimeMinutes(40L);
+
+        when(ticketHistoryRepository.findById(2L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc("T-1"))
+                .thenReturn(List.of(selected));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("selected"))
+                .thenReturn(List.of(selected));
+        when(ticketRepository.findById("T-1")).thenReturn(Optional.of(ticket));
+        when(statusHistoryRepository.findById("status-1")).thenReturn(Optional.of(status));
+        when(statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket)).thenReturn(List.of(status));
+        when(ticketSlaService.getByTicketId("T-1")).thenReturn(currentSla);
+        when(ticketSlaService.calculatePreviewByCalendarFromScratch(ticket, List.of(status))).thenReturn(newSla);
+
+        var result = ticketService.previewHistoryTimestamp(2L,
+                new StatusTimestampUpdateRequest(calculated, null));
+
+        assertThat(result.currentSla().getResponseTimeMinutes()).isEqualTo(10L);
+        assertThat(result.newSla().getResponseTimeMinutes()).isEqualTo(40L);
+        assertThat(status.getTimestamp()).isEqualTo(calculated);
     }
 
     @Test

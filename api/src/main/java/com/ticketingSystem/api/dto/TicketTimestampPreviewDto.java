@@ -8,5 +8,7 @@ public record TicketTimestampPreviewDto(
         LocalDateTime minimumTimestamp,
         LocalDateTime maximumTimestamp,
         Long minimumBusinessMinutes,
-        Long maximumBusinessMinutes) {
+        Long maximumBusinessMinutes,
+        TicketSlaDto currentSla,
+        TicketSlaDto newSla) {
 }
