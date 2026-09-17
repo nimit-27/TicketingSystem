@@ -34,6 +34,13 @@ const truncate = (value?: string, max = 30) => {
   return value.length > max ? `${value.slice(0, max)}...` : value;
 };
 
+const shiftLocalTimestamp = (value: string, minutes: number) => {
+  const date = new Date(value);
+  date.setMinutes(date.getMinutes() + minutes);
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
 const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
   const { data, apiHandler } = useApi<TicketHistoryEntry[]>();
   const [selected, setSelected] = useState<TicketHistoryEntry | null>(null);
@@ -45,6 +52,15 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
   const [previewedUpdate, setPreviewedUpdate] = useState<TicketHistoryTimestampUpdate | null>(null);
   const { apiHandler: previewApiHandler, pending: previewing } = useApi<TicketHistoryTimestampPreview>();
   const { devMode } = useContext(DevModeContext);
+
+  const previewAtLimit = async (value: string) => {
+    if (!editing) return;
+    setTimestamp(value.slice(0, 16));
+    setMinutes('');
+    const update = { timestamp: value };
+    const result = await previewApiHandler(() => previewTicketHistoryTimestamp(editing.ticketHistoryId, update));
+    if (result) { setPreview(result); setLimits(result); setPreviewedUpdate(update); }
+  };
 
   const reload = () => apiHandler(() => getTicketHistory(ticketId));
 
@@ -152,6 +168,14 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
             const result = await previewApiHandler(() => previewTicketHistoryTimestamp(editing.ticketHistoryId, update));
             if (result) { setPreview(result); setLimits(result); setPreviewedUpdate(update); }
           }}>Preview timestamp</Button>
+          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+            <Button fullWidth variant="outlined" disabled={!limits?.minimumTimestamp || previewing} onClick={() => {
+              void previewAtLimit(shiftLocalTimestamp(limits!.minimumTimestamp!, 10));
+            }}>Minimize lower limit</Button>
+            <Button fullWidth variant="outlined" disabled={!limits?.maximumTimestamp || previewing} onClick={() => {
+              void previewAtLimit(shiftLocalTimestamp(limits!.maximumTimestamp!, -10));
+            }}>Maximize upper limit</Button>
+          </Box>
           <TextField fullWidth sx={{ mt: 2 }} label="Business minutes to add or subtract" type="number"
             value={minutes} onChange={(event) => {
               setMinutes(event.target.value);

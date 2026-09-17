@@ -13,6 +13,7 @@ import com.ticketingSystem.api.repository.TicketHistoryRepository;
 import com.ticketingSystem.api.repository.TicketHistoryConfigRepository;
 import com.ticketingSystem.api.repository.TicketTextHistoryRepository;
 import com.ticketingSystem.api.repository.StatusHistoryRepository;
+import com.ticketingSystem.api.repository.AssignmentHistoryRepository;
 import com.ticketingSystem.api.repository.StatusMasterRepository;
 import com.ticketingSystem.api.repository.CategoryRepository;
 import com.ticketingSystem.api.repository.SubCategoryRepository;
@@ -94,6 +95,7 @@ public class TicketService {
     private final AssignmentHistoryService assignmentHistoryService;
     private final StatusHistoryService statusHistoryService;
     private final StatusHistoryRepository statusHistoryRepository;
+    private final AssignmentHistoryRepository assignmentHistoryRepository;
     private final NotificationService notificationService;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
@@ -1022,6 +1024,7 @@ public class TicketService {
             row.setUpdatedTimestamp(newTimestamp);
         });
         ticketHistoryRepository.saveAll(group);
+        updateLinkedHistoryTimestamps(group, newTimestamp);
         return toTicketHistoryDto(history);
     }
 
@@ -1047,13 +1050,23 @@ public class TicketService {
 
         List<TicketHistory> ticketHistory = ticketHistoryRepository
                 .findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(history.getTicketId());
-        LocalDateTime minimum = ticketHistory.stream()
+        List<LocalDateTime> otherHistoryTimestamps = new ArrayList<>(ticketHistory.stream()
                 .filter(row -> !isSameTicketHistoryGroup(row, history))
                 .map(TicketHistory::getUpdatedOn).filter(Objects::nonNull)
+                .toList());
+        ticketRepository.findById(history.getTicketId()).ifPresent(ticket -> {
+            statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket).stream()
+                    .filter(row -> !isLinkedSource(history, "status_history", row.getId()))
+                    .map(StatusHistory::getTimestamp).filter(Objects::nonNull)
+                    .forEach(otherHistoryTimestamps::add);
+            assignmentHistoryRepository.findByTicketOrderByTimestampAsc(ticket).stream()
+                    .filter(row -> !isLinkedSource(history, "assignment_history", row.getId()))
+                    .map(AssignmentHistory::getTimestamp).filter(Objects::nonNull)
+                    .forEach(otherHistoryTimestamps::add);
+        });
+        LocalDateTime minimum = otherHistoryTimestamps.stream()
                 .filter(value -> value.isBefore(current)).max(LocalDateTime::compareTo).orElse(null);
-        LocalDateTime maximum = ticketHistory.stream()
-                .filter(row -> !isSameTicketHistoryGroup(row, history))
-                .map(TicketHistory::getUpdatedOn).filter(Objects::nonNull)
+        LocalDateTime maximum = otherHistoryTimestamps.stream()
                 .filter(value -> value.isAfter(current)).min(LocalDateTime::compareTo).orElse(null);
         if (minimum != null && calculated.isBefore(minimum)) {
             throw new InvalidRequestException("Timestamp cannot be before the previous ticket history timestamp: " + minimum);
@@ -1110,7 +1123,34 @@ public class TicketService {
             row.setUpdatedTimestamp(null);
         });
         ticketHistoryRepository.saveAll(group);
+        updateLinkedHistoryTimestamps(group, originalTimestamp);
         return toTicketHistoryDto(history);
+    }
+
+    private boolean isLinkedSource(TicketHistory history, String sourceTable, String sourceHistoryId) {
+        return Objects.equals(sourceTable, history.getSourceTable())
+                && Objects.equals(sourceHistoryId, history.getSourceHistoryId());
+    }
+
+    private void updateLinkedHistoryTimestamps(List<TicketHistory> group, LocalDateTime timestamp) {
+        Instant timestampUtc = timestamp.atZone(BUSINESS_ZONE).toInstant();
+        group.stream()
+                .filter(row -> "status_history".equals(row.getSourceTable()))
+                .map(TicketHistory::getSourceHistoryId).filter(Objects::nonNull).distinct()
+                .forEach(id -> statusHistoryRepository.findById(id).ifPresent(row -> {
+                    if (row.getOriginalTimestamp() == null) row.setOriginalTimestamp(row.getTimestamp());
+                    row.setTimestamp(timestamp);
+                    row.setTimestampUtc(timestampUtc);
+                    row.setUpdatedTimestamp(Objects.equals(timestamp, row.getOriginalTimestamp()) ? null : timestamp);
+                    statusHistoryRepository.save(row);
+                }));
+        group.stream()
+                .filter(row -> "assignment_history".equals(row.getSourceTable()))
+                .map(TicketHistory::getSourceHistoryId).filter(Objects::nonNull).distinct()
+                .forEach(id -> assignmentHistoryRepository.findById(id).ifPresent(row -> {
+                    row.setTimestamp(timestamp);
+                    assignmentHistoryRepository.save(row);
+                }));
     }
 
     private List<TicketHistory> getTicketHistoryGroup(TicketHistory history) {
