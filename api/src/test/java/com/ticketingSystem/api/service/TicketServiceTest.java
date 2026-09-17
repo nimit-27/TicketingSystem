@@ -1,12 +1,14 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.TicketDto;
+import com.ticketingSystem.api.dto.StatusTimestampUpdateRequest;
 import com.ticketingSystem.api.enums.RecommendedSeverityStatus;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
+import com.ticketingSystem.api.models.TicketHistory;
 import com.ticketingSystem.api.models.RecommendedSeverityFlow;
 import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.models.RequesterUser;
@@ -103,6 +105,48 @@ class TicketServiceTest {
 
     @InjectMocks
     private TicketService ticketService;
+
+    @Test
+    void updateHistoryTimestampUpdatesEveryRowInTheGroup() {
+        LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime corrected = LocalDateTime.of(2026, 9, 17, 11, 30);
+        TicketHistory selected = historyRow(1L, "group-1", original);
+        TicketHistory companion = historyRow(2L, "group-1", original);
+        when(ticketHistoryRepository.findById(1L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("group-1"))
+                .thenReturn(List.of(selected, companion));
+
+        ticketService.updateHistoryTimestamp(1L, new StatusTimestampUpdateRequest(corrected, null));
+
+        assertThat(selected.getUpdatedOn()).isEqualTo(corrected);
+        assertThat(companion.getUpdatedOn()).isEqualTo(corrected);
+        assertThat(selected.getUpdatedTimestamp()).isEqualTo(corrected);
+        assertThat(companion.getUpdatedTimestamp()).isEqualTo(corrected);
+        verify(ticketHistoryRepository).saveAll(List.of(selected, companion));
+    }
+
+    @Test
+    void undoHistoryTimestampRestoresOneTimestampAcrossTheGroup() {
+        LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime corrected = LocalDateTime.of(2026, 9, 17, 11, 30);
+        TicketHistory selected = historyRow(1L, "group-1", corrected);
+        selected.setOriginalTimestamp(original);
+        selected.setUpdatedTimestamp(corrected);
+        TicketHistory companion = historyRow(2L, "group-1", corrected);
+        companion.setOriginalTimestamp(original.plusSeconds(1));
+        companion.setUpdatedTimestamp(corrected);
+        when(ticketHistoryRepository.findById(1L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("group-1"))
+                .thenReturn(List.of(selected, companion));
+
+        ticketService.undoHistoryTimestamp(1L);
+
+        assertThat(selected.getUpdatedOn()).isEqualTo(original);
+        assertThat(companion.getUpdatedOn()).isEqualTo(original);
+        assertThat(selected.getUpdatedTimestamp()).isNull();
+        assertThat(companion.getUpdatedTimestamp()).isNull();
+        verify(ticketHistoryRepository).saveAll(List.of(selected, companion));
+    }
 
     @Test
     void addTicket_withRemarkLongerThan255_throwsInvalidRequestException() {
@@ -927,6 +971,14 @@ class TicketServiceTest {
         status.setStatusCode(TicketStatus.OPEN.name());
         ticket.setStatus(status);
         return ticket;
+    }
+
+    private TicketHistory historyRow(Long id, String groupId, LocalDateTime timestamp) {
+        TicketHistory history = new TicketHistory();
+        history.setTicketHistoryId(id);
+        history.setUpdateGroupId(groupId);
+        history.setUpdatedOn(timestamp);
+        return history;
     }
 
     private Ticket buildUpdateRequest() {

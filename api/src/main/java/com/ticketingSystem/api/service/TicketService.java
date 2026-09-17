@@ -1009,13 +1009,18 @@ public class TicketService {
         }
         TicketHistory history = ticketHistoryRepository.findById(historyId)
                 .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
-        if (history.getOriginalTimestamp() == null) {
-            history.setOriginalTimestamp(history.getUpdatedOn());
-        }
-        history.setUpdatedOn(request.timestamp());
-        history.setUpdatedOnUtc(request.timestamp().atZone(BUSINESS_ZONE).toInstant());
-        history.setUpdatedTimestamp(request.timestamp());
-        return toTicketHistoryDto(ticketHistoryRepository.save(history));
+        List<TicketHistory> group = getTicketHistoryGroup(history);
+        Instant timestampUtc = request.timestamp().atZone(BUSINESS_ZONE).toInstant();
+        group.forEach(row -> {
+            if (row.getOriginalTimestamp() == null) {
+                row.setOriginalTimestamp(row.getUpdatedOn());
+            }
+            row.setUpdatedOn(request.timestamp());
+            row.setUpdatedOnUtc(timestampUtc);
+            row.setUpdatedTimestamp(request.timestamp());
+        });
+        ticketHistoryRepository.saveAll(group);
+        return toTicketHistoryDto(history);
     }
 
     @Transactional
@@ -1025,10 +1030,25 @@ public class TicketService {
         if (history.getOriginalTimestamp() == null || history.getUpdatedTimestamp() == null) {
             throw new InvalidRequestException("Ticket history timestamp has not been changed");
         }
-        history.setUpdatedOn(history.getOriginalTimestamp());
-        history.setUpdatedOnUtc(history.getOriginalTimestamp().atZone(BUSINESS_ZONE).toInstant());
-        history.setUpdatedTimestamp(null);
-        return toTicketHistoryDto(ticketHistoryRepository.save(history));
+        LocalDateTime originalTimestamp = history.getOriginalTimestamp();
+        Instant originalTimestampUtc = originalTimestamp.atZone(BUSINESS_ZONE).toInstant();
+        List<TicketHistory> group = getTicketHistoryGroup(history);
+        group.forEach(row -> {
+            row.setUpdatedOn(originalTimestamp);
+            row.setUpdatedOnUtc(originalTimestampUtc);
+            row.setUpdatedTimestamp(null);
+        });
+        ticketHistoryRepository.saveAll(group);
+        return toTicketHistoryDto(history);
+    }
+
+    private List<TicketHistory> getTicketHistoryGroup(TicketHistory history) {
+        if (history.getUpdateGroupId() == null || history.getUpdateGroupId().isBlank()) {
+            return List.of(history);
+        }
+        List<TicketHistory> group = ticketHistoryRepository
+                .findByUpdateGroupIdOrderByTicketHistoryIdAsc(history.getUpdateGroupId());
+        return group.isEmpty() ? List.of(history) : group;
     }
 
     private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
