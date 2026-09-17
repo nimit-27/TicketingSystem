@@ -93,16 +93,10 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
         { title: t('Updated By'), dataIndex: 'updatedBy', key: 'updatedBy' },
         { title: t('Updated By Name'), dataIndex: 'updatedByName', key: 'updatedByName' },
         {
-            title: t('Timestamp'),
-            dataIndex: 'originalTimestamp',
-            key: 'originalTimestamp',
-            render: (v: string, record: HistoryEntry) => new Date(v || record.timestamp).toLocaleString(),
-        },
-        {
-            title: t('Updated Timestamp'),
-            dataIndex: 'updatedTimestamp',
-            key: 'updatedTimestamp',
-            render: (v: string) => v ? new Date(v).toLocaleString() : '-',
+            title: t('Updated On'),
+            dataIndex: 'timestamp',
+            key: 'timestamp',
+            render: (v: string) => new Date(v).toLocaleString(),
         },
         {
             title: t('Status'),
@@ -183,8 +177,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
     const reportColumns: HistoryReportColumn<HistoryWithNameEntry>[] = [
         { key: 'updatedBy', header: t('Updated By'), getValue: (row) => row.updatedBy || '-' },
         { key: 'updatedByName', header: t('Updated By Name'), getValue: (row) => row.updatedByName || '-' },
-        { key: 'timestamp', header: t('Timestamp'), getValue: (row) => (row.originalTimestamp || row.timestamp) ? new Date(row.originalTimestamp || row.timestamp).toLocaleString() : '-' },
-        { key: 'updatedTimestamp', header: t('Updated Timestamp'), getValue: (row) => row.updatedTimestamp ? new Date(row.updatedTimestamp).toLocaleString() : '-' },
+        { key: 'timestamp', header: t('Updated On'), getValue: (row) => row.timestamp ? new Date(row.timestamp).toLocaleString() : '-' },
         {
             key: 'status',
             header: t('Status'),

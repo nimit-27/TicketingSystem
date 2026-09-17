@@ -58,7 +58,7 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
       render: (_: unknown, row: TicketHistoryEntry) => (
         <Box sx={{ color: 'text.secondary' }}>
           <Typography variant="body2">{row.updatedBy || '-'}</Typography>
-          <Typography variant="caption">{formatDateTime(row.originalTimestamp || row.updatedOnUtc || row.updatedOn)}</Typography>
+          <Typography variant="caption">{formatDateTime(row.updatedOnUtc || row.updatedOn)}</Typography>
         </Box>
       ),
     },
@@ -79,7 +79,6 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
       },
     },
     { title: 'Remark', dataIndex: 'remarks', key: 'remarks', width: '30%', render: (v: string) => v || '-' },
-    { title: 'Updated Timestamp', dataIndex: 'updatedTimestamp', key: 'updatedTimestamp', render: (v: string) => formatDateTime(v) },
     ...(devMode ? [{
       title: 'Edit Time',
       key: 'editTime',
