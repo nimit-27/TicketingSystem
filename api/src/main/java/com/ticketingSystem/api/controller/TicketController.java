@@ -270,6 +270,15 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.updateHistoryTimestamp(historyId, request));
     }
 
+    @PostMapping("/history/{historyId}/timestamp/preview")
+    public ResponseEntity<TicketTimestampPreviewDto> previewHistoryTimestamp(
+            @PathVariable Long historyId,
+            @RequestParam(value = "devMode", defaultValue = "false") boolean uiDevMode,
+            @RequestBody StatusTimestampUpdateRequest request) {
+        requireDevMode(uiDevMode);
+        return ResponseEntity.ok(ticketService.previewHistoryTimestamp(historyId, request));
+    }
+
     @PostMapping("/history/{historyId}/timestamp/undo")
     public ResponseEntity<TicketHistoryDto> undoHistoryTimestamp(
             @PathVariable Long historyId,

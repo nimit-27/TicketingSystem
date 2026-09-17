@@ -4,7 +4,7 @@ import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import GenericTable from './UI/GenericTable';
 import { useApi } from '../hooks/useApi';
-import { getTicketHistory, undoTicketHistoryTimestamp, updateTicketHistoryTimestamp } from '../services/TicketService';
+import { getTicketHistory, previewTicketHistoryTimestamp, TicketHistoryTimestampPreview, TicketHistoryTimestampUpdate, undoTicketHistoryTimestamp, updateTicketHistoryTimestamp } from '../services/TicketService';
 import { DevModeContext } from '../context/DevModeContext';
 
 type TicketHistoryEntry = {
@@ -39,13 +39,18 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
   const [selected, setSelected] = useState<TicketHistoryEntry | null>(null);
   const [editing, setEditing] = useState<TicketHistoryEntry | null>(null);
   const [timestamp, setTimestamp] = useState('');
+  const [minutes, setMinutes] = useState('');
+  const [preview, setPreview] = useState<TicketHistoryTimestampPreview | null>(null);
+  const [limits, setLimits] = useState<TicketHistoryTimestampPreview | null>(null);
+  const [previewedUpdate, setPreviewedUpdate] = useState<TicketHistoryTimestampUpdate | null>(null);
+  const { apiHandler: previewApiHandler, pending: previewing } = useApi<TicketHistoryTimestampPreview>();
   const { devMode } = useContext(DevModeContext);
 
   const reload = () => apiHandler(() => getTicketHistory(ticketId));
 
   React.useEffect(() => {
     if (!ticketId) return;
-    void reload();
+    void apiHandler(() => getTicketHistory(ticketId));
   }, [ticketId, apiHandler]);
 
   const rows = useMemo(() => Array.isArray(data) ? data : [], [data]);
@@ -84,10 +89,19 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
       key: 'editTime',
       render: (_: unknown, row: TicketHistoryEntry) => <>
         <Tooltip title="Edit ticket history timestamp">
-          <Button size="small" aria-label={`Edit ticket history timestamp ${row.ticketHistoryId}`} onClick={() => {
+          <Button size="small" aria-label={`Edit ticket history timestamp ${row.ticketHistoryId}`} onClick={async () => {
             setEditing(row);
             const value = row.updatedTimestamp || row.updatedOn;
             setTimestamp(value ? value.slice(0, 16) : '');
+            setMinutes('');
+            setPreview(null);
+            setLimits(null);
+            setPreviewedUpdate(null);
+            if (value) {
+              const current = { timestamp: value.length === 16 ? `${value}:00` : value };
+              const result = await previewApiHandler(() => previewTicketHistoryTimestamp(row.ticketHistoryId, current));
+              if (result) { setPreview(result); setLimits(result); }
+            }
           }}><EditCalendarOutlinedIcon fontSize="small" /></Button>
         </Tooltip>
         {row.updatedTimestamp && <Tooltip title="Restore original timestamp">
@@ -122,13 +136,46 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
         <DialogTitle>Edit ticket history timestamp</DialogTitle>
         <DialogContent sx={{ pt: '12px !important' }}>
           <TextField fullWidth label="Timestamp" type="datetime-local" value={timestamp}
-            onChange={(event) => setTimestamp(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
+            onChange={(event) => {
+              setTimestamp(event.target.value);
+              setPreview(null);
+              setPreviewedUpdate(null);
+            }} slotProps={{
+              inputLabel: { shrink: true },
+              htmlInput: {
+                min: limits?.minimumTimestamp?.slice(0, 16),
+                max: limits?.maximumTimestamp?.slice(0, 16),
+              },
+            }} />
+          <Button sx={{ mt: 1 }} fullWidth variant="outlined" disabled={!timestamp || previewing} onClick={async () => {
+            const update = { timestamp: timestamp.length === 16 ? `${timestamp}:00` : timestamp };
+            const result = await previewApiHandler(() => previewTicketHistoryTimestamp(editing.ticketHistoryId, update));
+            if (result) { setPreview(result); setLimits(result); setPreviewedUpdate(update); }
+          }}>Preview timestamp</Button>
+          <TextField fullWidth sx={{ mt: 2 }} label="Business minutes to add or subtract" type="number"
+            value={minutes} onChange={(event) => {
+              setMinutes(event.target.value);
+              setPreview(null);
+              setPreviewedUpdate(null);
+            }} helperText="Use a negative value to subtract business time."
+            slotProps={{ htmlInput: { min: limits?.minimumBusinessMinutes, max: limits?.maximumBusinessMinutes } }} />
+          <Button sx={{ mt: 1 }} fullWidth variant="outlined" disabled={minutes === '' || !Number.isFinite(Number(minutes)) || previewing} onClick={async () => {
+            const update = { addMinutes: Number(minutes) };
+            const result = await previewApiHandler(() => previewTicketHistoryTimestamp(editing.ticketHistoryId, update));
+            if (result) { setPreview(result); setLimits(result); setPreviewedUpdate(update); }
+          }}>Calculate business time</Button>
+          {limits && <Box sx={{ mt: 2 }}>
+            {preview && <Typography variant="body2"><strong>Final calculated time:</strong> {formatDateTime(preview.calculatedTimestamp)}</Typography>}
+            <Typography variant="caption" display="block">Minimum time: {limits.minimumTimestamp ? formatDateTime(limits.minimumTimestamp) : 'No limit'}</Typography>
+            <Typography variant="caption" display="block">Maximum time: {limits.maximumTimestamp ? formatDateTime(limits.maximumTimestamp) : 'No limit'}</Typography>
+            <Typography variant="caption" display="block">Minimum business minutes: {limits.minimumBusinessMinutes ?? 'No limit'}</Typography>
+            <Typography variant="caption" display="block">Maximum business minutes: {limits.maximumBusinessMinutes ?? 'No limit'}</Typography>
+          </Box>}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditing(null)}>Cancel</Button>
-          <Button variant="contained" disabled={!timestamp} onClick={async () => {
-            const updated = await apiHandler(() => updateTicketHistoryTimestamp(
-              editing.ticketHistoryId, timestamp.length === 16 ? `${timestamp}:00` : timestamp));
+          <Button variant="contained" disabled={!previewedUpdate} onClick={async () => {
+            const updated = await apiHandler(() => updateTicketHistoryTimestamp(editing.ticketHistoryId, previewedUpdate!));
             if (updated) {
               setEditing(null);
               void reload();
