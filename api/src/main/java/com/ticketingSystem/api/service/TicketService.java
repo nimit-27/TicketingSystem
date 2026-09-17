@@ -1013,6 +1013,7 @@ public class TicketService {
                 .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
         TicketTimestampPreviewDto preview = calculateHistoryTimestamp(history, request);
         List<TicketHistory> group = getTicketHistoryGroup(history);
+        List<StatusHistory> correspondingStatuses = findCorrespondingStatusHistories(group);
         LocalDateTime newTimestamp = preview.calculatedTimestamp();
         Instant timestampUtc = newTimestamp.atZone(BUSINESS_ZONE).toInstant();
         group.forEach(row -> {
@@ -1024,7 +1025,7 @@ public class TicketService {
             row.setUpdatedTimestamp(newTimestamp);
         });
         ticketHistoryRepository.saveAll(group);
-        updateLinkedHistoryTimestamps(group, newTimestamp);
+        updateLinkedHistoryTimestamps(group, correspondingStatuses, newTimestamp);
         return toTicketHistoryDto(history);
     }
 
@@ -1054,9 +1055,11 @@ public class TicketService {
                 .filter(row -> !isSameTicketHistoryGroup(row, history))
                 .map(TicketHistory::getUpdatedOn).filter(Objects::nonNull)
                 .toList());
+        Set<String> correspondingStatusHistoryIds = findCorrespondingStatusHistories(
+                getTicketHistoryGroup(history)).stream().map(StatusHistory::getId).collect(Collectors.toSet());
         ticketRepository.findById(history.getTicketId()).ifPresent(ticket -> {
             statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket).stream()
-                    .filter(row -> !isLinkedSource(history, "status_history", row.getId()))
+                    .filter(row -> !correspondingStatusHistoryIds.contains(row.getId()))
                     .map(StatusHistory::getTimestamp).filter(Objects::nonNull)
                     .forEach(otherHistoryTimestamps::add);
             assignmentHistoryRepository.findByTicketOrderByTimestampAsc(ticket).stream()
@@ -1117,13 +1120,14 @@ public class TicketService {
         LocalDateTime originalTimestamp = history.getOriginalTimestamp();
         Instant originalTimestampUtc = originalTimestamp.atZone(BUSINESS_ZONE).toInstant();
         List<TicketHistory> group = getTicketHistoryGroup(history);
+        List<StatusHistory> correspondingStatuses = findCorrespondingStatusHistories(group);
         group.forEach(row -> {
             row.setUpdatedOn(originalTimestamp);
             row.setUpdatedOnUtc(originalTimestampUtc);
             row.setUpdatedTimestamp(null);
         });
         ticketHistoryRepository.saveAll(group);
-        updateLinkedHistoryTimestamps(group, originalTimestamp);
+        updateLinkedHistoryTimestamps(group, correspondingStatuses, originalTimestamp);
         return toTicketHistoryDto(history);
     }
 
@@ -1132,18 +1136,17 @@ public class TicketService {
                 && Objects.equals(sourceHistoryId, history.getSourceHistoryId());
     }
 
-    private void updateLinkedHistoryTimestamps(List<TicketHistory> group, LocalDateTime timestamp) {
+    private void updateLinkedHistoryTimestamps(List<TicketHistory> group,
+                                               List<StatusHistory> correspondingStatuses,
+                                               LocalDateTime timestamp) {
         Instant timestampUtc = timestamp.atZone(BUSINESS_ZONE).toInstant();
-        group.stream()
-                .filter(row -> "status_history".equals(row.getSourceTable()))
-                .map(TicketHistory::getSourceHistoryId).filter(Objects::nonNull).distinct()
-                .forEach(id -> statusHistoryRepository.findById(id).ifPresent(row -> {
-                    if (row.getOriginalTimestamp() == null) row.setOriginalTimestamp(row.getTimestamp());
-                    row.setTimestamp(timestamp);
-                    row.setTimestampUtc(timestampUtc);
-                    row.setUpdatedTimestamp(Objects.equals(timestamp, row.getOriginalTimestamp()) ? null : timestamp);
-                    statusHistoryRepository.save(row);
-                }));
+        correspondingStatuses.forEach(row -> {
+            if (row.getOriginalTimestamp() == null) row.setOriginalTimestamp(row.getTimestamp());
+            row.setTimestamp(timestamp);
+            row.setTimestampUtc(timestampUtc);
+            row.setUpdatedTimestamp(Objects.equals(timestamp, row.getOriginalTimestamp()) ? null : timestamp);
+            statusHistoryRepository.save(row);
+        });
         group.stream()
                 .filter(row -> "assignment_history".equals(row.getSourceTable()))
                 .map(TicketHistory::getSourceHistoryId).filter(Objects::nonNull).distinct()
@@ -1151,6 +1154,42 @@ public class TicketService {
                     row.setTimestamp(timestamp);
                     assignmentHistoryRepository.save(row);
                 }));
+    }
+
+    /**
+     * Finds the status row represented by a ticket-history group. Newer/backfilled
+     * ticket-history rows carry a direct source id. Older rows created from the
+     * tickets table do not, so match their status transition and event timestamp.
+     */
+    private List<StatusHistory> findCorrespondingStatusHistories(List<TicketHistory> group) {
+        List<StatusHistory> linked = group.stream()
+                .filter(row -> "status_history".equals(row.getSourceTable()))
+                .map(TicketHistory::getSourceHistoryId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .map(statusHistoryRepository::findById)
+                .flatMap(Optional::stream)
+                .toList();
+        if (!linked.isEmpty()) {
+            return linked;
+        }
+
+        TicketHistory statusChange = group.stream()
+                .filter(row -> "status_id".equals(row.getColumnName()))
+                .findFirst()
+                .orElse(null);
+        if (statusChange == null || statusChange.getTicketId() == null || statusChange.getUpdatedOn() == null) {
+            return List.of();
+        }
+        return ticketRepository.findById(statusChange.getTicketId())
+                .map(ticket -> statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket).stream()
+                        .filter(row -> row.getTimestamp() != null)
+                        .filter(row -> Objects.equals(statusChange.getOldRefId(), row.getPreviousStatus()))
+                        .filter(row -> Objects.equals(statusChange.getNewRefId(), row.getCurrentStatus()))
+                        .filter(row -> !row.getTimestamp().isBefore(statusChange.getUpdatedOn().minusSeconds(5)))
+                        .filter(row -> !row.getTimestamp().isAfter(statusChange.getUpdatedOn().plusSeconds(5)))
+                        .toList())
+                .orElseGet(List::of);
     }
 
     private List<TicketHistory> getTicketHistoryGroup(TicketHistory history) {
