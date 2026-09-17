@@ -53,6 +53,12 @@ public class TicketHistory {
     @Column(name = "updated_on_utc")
     private Instant updatedOnUtc;
 
+    @Column(name = "original_timestamp", updatable = false)
+    private LocalDateTime originalTimestamp;
+
+    @Column(name = "updated_timestamp")
+    private LocalDateTime updatedTimestamp;
+
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
 
@@ -64,4 +70,11 @@ public class TicketHistory {
 
     @Column(name = "source_column_name")
     private String sourceColumnName;
+
+    @PrePersist
+    private void preserveOriginalTimestamp() {
+        if (originalTimestamp == null) {
+            originalTimestamp = updatedOn;
+        }
+    }
 }

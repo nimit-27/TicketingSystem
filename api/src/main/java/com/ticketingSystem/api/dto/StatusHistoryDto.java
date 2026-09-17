@@ -17,6 +17,8 @@ public class StatusHistoryDto {
     private String statusName;
     private String label;
     private LocalDateTime timestamp;
+    private LocalDateTime originalTimestamp;
+    private LocalDateTime updatedTimestamp;
     private Instant timestampUtc;
     private Instant createdAtUtc;
     private Boolean slaFlag;

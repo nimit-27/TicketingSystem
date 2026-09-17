@@ -44,4 +44,14 @@ public class StatusHistoryController {
         }
         return ResponseEntity.ok(historyService.previewTimestamp(historyId, request));
     }
+
+    @PostMapping("/{historyId}/timestamp/undo")
+    public ResponseEntity<StatusHistoryDto> undoTimestamp(
+            @PathVariable String historyId,
+            @RequestParam(value = "devMode", defaultValue = "false") boolean uiDevMode) {
+        if (!uiDevMode) {
+            throw new ForbiddenOperationException("Enable UI dev mode to undo status timestamps");
+        }
+        return ResponseEntity.ok(historyService.undoTimestamp(historyId));
+    }
 }

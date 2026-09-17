@@ -35,6 +35,8 @@ import com.ticketingSystem.api.typesense.TypesenseClient;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.service.NotificationService;
 import com.ticketingSystem.api.util.DateTimeUtils;
+import com.ticketingSystem.calendar.service.SlaCalculatorService;
+import com.ticketingSystem.calendar.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
@@ -114,6 +116,7 @@ public class TicketService {
     private final TicketHistoryRepository ticketHistoryRepository;
     private final TicketHistoryConfigRepository ticketHistoryConfigRepository;
     private final TicketTextHistoryRepository ticketTextHistoryRepository;
+    private final SlaCalculatorService slaCalculatorService;
 
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
@@ -1002,6 +1005,123 @@ public class TicketService {
         return history.stream().map(this::toTicketHistoryDto).toList();
     }
 
+    @Transactional
+    public TicketHistoryDto updateHistoryTimestamp(Long historyId, StatusTimestampUpdateRequest request) {
+        TicketHistory history = ticketHistoryRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
+        TicketTimestampPreviewDto preview = calculateHistoryTimestamp(history, request);
+        List<TicketHistory> group = getTicketHistoryGroup(history);
+        LocalDateTime newTimestamp = preview.calculatedTimestamp();
+        Instant timestampUtc = newTimestamp.atZone(BUSINESS_ZONE).toInstant();
+        group.forEach(row -> {
+            if (row.getOriginalTimestamp() == null) {
+                row.setOriginalTimestamp(row.getUpdatedOn());
+            }
+            row.setUpdatedOn(newTimestamp);
+            row.setUpdatedOnUtc(timestampUtc);
+            row.setUpdatedTimestamp(newTimestamp);
+        });
+        ticketHistoryRepository.saveAll(group);
+        return toTicketHistoryDto(history);
+    }
+
+    @Transactional(readOnly = true)
+    public TicketTimestampPreviewDto previewHistoryTimestamp(Long historyId, StatusTimestampUpdateRequest request) {
+        TicketHistory history = ticketHistoryRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
+        return calculateHistoryTimestamp(history, request);
+    }
+
+    private TicketTimestampPreviewDto calculateHistoryTimestamp(TicketHistory history,
+                                                                 StatusTimestampUpdateRequest request) {
+        if (request == null || (request.timestamp() == null) == (request.addMinutes() == null)) {
+            throw new InvalidRequestException("Provide exactly one of timestamp or addMinutes");
+        }
+        LocalDateTime current = history.getUpdatedOn();
+        if (current == null) {
+            throw new InvalidRequestException("Ticket history entry has no timestamp");
+        }
+        LocalDateTime calculated = request.timestamp() != null
+                ? request.timestamp()
+                : shiftByBusinessMinutes(current, request.addMinutes());
+
+        List<TicketHistory> ticketHistory = ticketHistoryRepository
+                .findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc(history.getTicketId());
+        LocalDateTime minimum = ticketHistory.stream()
+                .filter(row -> !isSameTicketHistoryGroup(row, history))
+                .map(TicketHistory::getUpdatedOn).filter(Objects::nonNull)
+                .filter(value -> value.isBefore(current)).max(LocalDateTime::compareTo).orElse(null);
+        LocalDateTime maximum = ticketHistory.stream()
+                .filter(row -> !isSameTicketHistoryGroup(row, history))
+                .map(TicketHistory::getUpdatedOn).filter(Objects::nonNull)
+                .filter(value -> value.isAfter(current)).min(LocalDateTime::compareTo).orElse(null);
+        if (minimum != null && calculated.isBefore(minimum)) {
+            throw new InvalidRequestException("Timestamp cannot be before the previous ticket history timestamp: " + minimum);
+        }
+        if (maximum != null && calculated.isAfter(maximum)) {
+            throw new InvalidRequestException("Timestamp cannot exceed the next ticket history timestamp: " + maximum);
+        }
+        Long minimumMinutes = minimum == null ? null : businessMinutesBetween(current, minimum);
+        Long maximumMinutes = maximum == null ? null : businessMinutesBetween(current, maximum);
+        return new TicketTimestampPreviewDto(current, calculated, minimum, maximum,
+                minimumMinutes, maximumMinutes);
+    }
+
+    private boolean isSameTicketHistoryGroup(TicketHistory candidate, TicketHistory selected) {
+        if (selected.getUpdateGroupId() == null || selected.getUpdateGroupId().isBlank()) {
+            return Objects.equals(candidate.getTicketHistoryId(), selected.getTicketHistoryId());
+        }
+        return Objects.equals(candidate.getUpdateGroupId(), selected.getUpdateGroupId());
+    }
+
+    private LocalDateTime shiftByBusinessMinutes(LocalDateTime timestamp, long minutes) {
+        if (minutes == Long.MIN_VALUE) {
+            throw new InvalidRequestException("addMinutes is outside the supported range");
+        }
+        if (minutes == 0) {
+            return timestamp;
+        }
+        if (minutes >= 0) {
+            return slaCalculatorService.computeEnd(timestamp.atZone(TimeUtils.ZONE_ID),
+                    java.time.Duration.ofMinutes(minutes)).toLocalDateTime();
+        }
+        return slaCalculatorService.computeStart(timestamp.atZone(TimeUtils.ZONE_ID),
+                java.time.Duration.ofMinutes(Math.negateExact(minutes))).toLocalDateTime();
+    }
+
+    private long businessMinutesBetween(LocalDateTime start, LocalDateTime end) {
+        return slaCalculatorService.computeWorkingDurationBetween(
+                start.atZone(TimeUtils.ZONE_ID), end.atZone(TimeUtils.ZONE_ID)).toMinutes();
+    }
+
+    @Transactional
+    public TicketHistoryDto undoHistoryTimestamp(Long historyId) {
+        TicketHistory history = ticketHistoryRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
+        if (history.getOriginalTimestamp() == null || history.getUpdatedTimestamp() == null) {
+            throw new InvalidRequestException("Ticket history timestamp has not been changed");
+        }
+        LocalDateTime originalTimestamp = history.getOriginalTimestamp();
+        Instant originalTimestampUtc = originalTimestamp.atZone(BUSINESS_ZONE).toInstant();
+        List<TicketHistory> group = getTicketHistoryGroup(history);
+        group.forEach(row -> {
+            row.setUpdatedOn(originalTimestamp);
+            row.setUpdatedOnUtc(originalTimestampUtc);
+            row.setUpdatedTimestamp(null);
+        });
+        ticketHistoryRepository.saveAll(group);
+        return toTicketHistoryDto(history);
+    }
+
+    private List<TicketHistory> getTicketHistoryGroup(TicketHistory history) {
+        if (history.getUpdateGroupId() == null || history.getUpdateGroupId().isBlank()) {
+            return List.of(history);
+        }
+        List<TicketHistory> group = ticketHistoryRepository
+                .findByUpdateGroupIdOrderByTicketHistoryIdAsc(history.getUpdateGroupId());
+        return group.isEmpty() ? List.of(history) : group;
+    }
+
     private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
         List<TicketHistoryConfig> configs = ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets");
         List<TicketHistory> rows = new ArrayList<>();
@@ -1244,6 +1364,8 @@ public class TicketService {
         d.setUpdatedBy(h.getUpdatedBy());
         d.setUpdatedOn(h.getUpdatedOn());
         d.setUpdatedOnUtc(h.getUpdatedOnUtc());
+        d.setOriginalTimestamp(h.getOriginalTimestamp());
+        d.setUpdatedTimestamp(h.getUpdatedTimestamp());
         d.setRemarks(h.getRemarks());
         return d;
     }

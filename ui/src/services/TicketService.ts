@@ -327,3 +327,26 @@ export function searchTicketsForExport({
 export function getTicketHistory(id: string, updateTypeCode?: string) {
     return axios.get(`${BASE_URL}/tickets/${id}/history`, { params: updateTypeCode ? { updateTypeCode } : undefined });
 }
+
+export type TicketHistoryTimestampUpdate = { timestamp?: string; addMinutes?: number };
+
+export type TicketHistoryTimestampPreview = {
+    currentTimestamp: string;
+    calculatedTimestamp: string;
+    minimumTimestamp?: string;
+    maximumTimestamp?: string;
+    minimumBusinessMinutes?: number;
+    maximumBusinessMinutes?: number;
+};
+
+export function updateTicketHistoryTimestamp(historyId: number, update: TicketHistoryTimestampUpdate) {
+    return axios.patch(`${BASE_URL}/tickets/history/${historyId}/timestamp?devMode=true`, update);
+}
+
+export function previewTicketHistoryTimestamp(historyId: number, update: TicketHistoryTimestampUpdate) {
+    return axios.post(`${BASE_URL}/tickets/history/${historyId}/timestamp/preview?devMode=true`, update);
+}
+
+export function undoTicketHistoryTimestamp(historyId: number) {
+    return axios.post(`${BASE_URL}/tickets/history/${historyId}/timestamp/undo?devMode=true`);
+}

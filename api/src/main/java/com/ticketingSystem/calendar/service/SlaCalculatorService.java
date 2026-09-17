@@ -55,6 +55,38 @@ public class SlaCalculatorService {
         return cursor;
     }
 
+    public ZonedDateTime computeStart(ZonedDateTime end, Duration duration) {
+        ZonedDateTime cursor = end.withZoneSameInstant(TimeUtils.ZONE_ID);
+        Duration remaining = duration;
+        if (remaining.isNegative()) {
+            throw new IllegalArgumentException("duration must not be negative");
+        }
+        while (!remaining.isZero()) {
+            LocalDate date = cursor.toLocalDate();
+            if (isHoliday(date)) {
+                cursor = previousBusinessEnd(date.minusDays(1));
+                continue;
+            }
+            WorkingWindow window = businessHoursService.resolveWindow(date);
+            if (!window.isOpen()) {
+                cursor = previousBusinessEnd(date.minusDays(1));
+                continue;
+            }
+            ZonedDateTime windowStart = TimeUtils.atZone(date, window.startTime());
+            ZonedDateTime windowEnd = TimeUtils.atZone(date, window.endTime());
+            if (cursor.isAfter(windowEnd)) cursor = windowEnd;
+            if (!cursor.isAfter(windowStart)) {
+                cursor = previousBusinessEnd(date.minusDays(1));
+                continue;
+            }
+            Duration available = Duration.between(windowStart, cursor);
+            if (available.compareTo(remaining) >= 0) return cursor.minus(remaining);
+            remaining = remaining.minus(available);
+            cursor = previousBusinessEnd(date.minusDays(1));
+        }
+        return cursor;
+    }
+
     public Duration computeWorkingDurationBetween(ZonedDateTime start, ZonedDateTime end) {
         if (start == null || end == null) {
             return Duration.ZERO;
@@ -132,6 +164,22 @@ public class SlaCalculatorService {
                 continue;
             }
             return TimeUtils.atZone(pointer, window.startTime());
+        }
+    }
+
+    private ZonedDateTime previousBusinessEnd(LocalDate date) {
+        LocalDate pointer = date;
+        while (true) {
+            if (isHoliday(pointer)) {
+                pointer = pointer.minusDays(1);
+                continue;
+            }
+            WorkingWindow window = businessHoursService.resolveWindow(pointer);
+            if (!window.isOpen()) {
+                pointer = pointer.minusDays(1);
+                continue;
+            }
+            return TimeUtils.atZone(pointer, window.endTime());
         }
     }
 }

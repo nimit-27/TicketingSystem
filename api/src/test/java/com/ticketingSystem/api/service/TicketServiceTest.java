@@ -1,12 +1,14 @@
 package com.ticketingSystem.api.service;
 
 import com.ticketingSystem.api.dto.TicketDto;
+import com.ticketingSystem.api.dto.StatusTimestampUpdateRequest;
 import com.ticketingSystem.api.enums.RecommendedSeverityStatus;
 import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.exception.InvalidRequestException;
 import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
+import com.ticketingSystem.api.models.TicketHistory;
 import com.ticketingSystem.api.models.RecommendedSeverityFlow;
 import com.ticketingSystem.api.models.Role;
 import com.ticketingSystem.api.models.RequesterUser;
@@ -15,6 +17,7 @@ import com.ticketingSystem.api.typesense.TypesenseClient;
 import com.ticketingSystem.api.models.User;
 import com.ticketingSystem.notification.enums.ChannelType;
 import com.ticketingSystem.notification.service.NotificationService;
+import com.ticketingSystem.calendar.service.SlaCalculatorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +28,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.ZoneId;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import java.util.Optional;
@@ -100,9 +105,119 @@ class TicketServiceTest {
     private TicketHistoryConfigRepository ticketHistoryConfigRepository;
     @Mock
     private TicketTextHistoryRepository ticketTextHistoryRepository;
+    @Mock
+    private SlaCalculatorService slaCalculatorService;
 
     @InjectMocks
     private TicketService ticketService;
+
+    @Test
+    void updateHistoryTimestampUpdatesEveryRowInTheGroup() {
+        LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime corrected = LocalDateTime.of(2026, 9, 17, 11, 30);
+        TicketHistory selected = historyRow(1L, "group-1", original);
+        TicketHistory companion = historyRow(2L, "group-1", original);
+        when(ticketHistoryRepository.findById(1L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("group-1"))
+                .thenReturn(List.of(selected, companion));
+
+        ticketService.updateHistoryTimestamp(1L, new StatusTimestampUpdateRequest(corrected, null));
+
+        assertThat(selected.getUpdatedOn()).isEqualTo(corrected);
+        assertThat(companion.getUpdatedOn()).isEqualTo(corrected);
+        assertThat(selected.getUpdatedTimestamp()).isEqualTo(corrected);
+        assertThat(companion.getUpdatedTimestamp()).isEqualTo(corrected);
+        verify(ticketHistoryRepository).saveAll(List.of(selected, companion));
+    }
+
+    @Test
+    void undoHistoryTimestampRestoresOneTimestampAcrossTheGroup() {
+        LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime corrected = LocalDateTime.of(2026, 9, 17, 11, 30);
+        TicketHistory selected = historyRow(1L, "group-1", corrected);
+        selected.setOriginalTimestamp(original);
+        selected.setUpdatedTimestamp(corrected);
+        TicketHistory companion = historyRow(2L, "group-1", corrected);
+        companion.setOriginalTimestamp(original.plusSeconds(1));
+        companion.setUpdatedTimestamp(corrected);
+        when(ticketHistoryRepository.findById(1L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("group-1"))
+                .thenReturn(List.of(selected, companion));
+
+        ticketService.undoHistoryTimestamp(1L);
+
+        assertThat(selected.getUpdatedOn()).isEqualTo(original);
+        assertThat(companion.getUpdatedOn()).isEqualTo(original);
+        assertThat(selected.getUpdatedTimestamp()).isNull();
+        assertThat(companion.getUpdatedTimestamp()).isNull();
+        verify(ticketHistoryRepository).saveAll(List.of(selected, companion));
+    }
+
+    @Test
+    void previewHistoryTimestampReturnsTimestampAndBusinessMinuteBounds() {
+        LocalDateTime previousTime = LocalDateTime.of(2026, 9, 17, 9, 0);
+        LocalDateTime currentTime = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime nextTime = LocalDateTime.of(2026, 9, 17, 12, 0);
+        TicketHistory previous = historyRow(1L, "previous", previousTime);
+        TicketHistory selected = historyRow(2L, "selected", currentTime);
+        TicketHistory next = historyRow(3L, "next", nextTime);
+        selected.setTicketId("T-1");
+        when(ticketHistoryRepository.findById(2L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc("T-1"))
+                .thenReturn(List.of(next, selected, previous));
+        when(slaCalculatorService.computeWorkingDurationBetween(any(), any()))
+                .thenReturn(Duration.ofMinutes(-60), Duration.ofMinutes(120));
+
+        var result = ticketService.previewHistoryTimestamp(2L,
+                new StatusTimestampUpdateRequest(LocalDateTime.of(2026, 9, 17, 11, 0), null));
+
+        assertThat(result.minimumTimestamp()).isEqualTo(previousTime);
+        assertThat(result.maximumTimestamp()).isEqualTo(nextTime);
+        assertThat(result.minimumBusinessMinutes()).isEqualTo(-60);
+        assertThat(result.maximumBusinessMinutes()).isEqualTo(120);
+    }
+
+    @Test
+    void previewHistoryTimestampSupportsSubtractingBusinessMinutes() {
+        LocalDateTime currentTime = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime calculated = LocalDateTime.of(2026, 9, 16, 17, 0);
+        TicketHistory selected = historyRow(2L, "selected", currentTime);
+        selected.setTicketId("T-1");
+        when(ticketHistoryRepository.findById(2L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc("T-1"))
+                .thenReturn(List.of(selected));
+        when(slaCalculatorService.computeStart(any(), eq(Duration.ofMinutes(60))))
+                .thenReturn(calculated.atZone(ZoneId.of("Asia/Kolkata")));
+
+        var result = ticketService.previewHistoryTimestamp(2L,
+                new StatusTimestampUpdateRequest(null, -60L));
+
+        assertThat(result.calculatedTimestamp()).isEqualTo(calculated);
+    }
+
+    @Test
+    void updateHistoryTimestampRejectsTimesOutsideAdjacentHistory() {
+        LocalDateTime previousTime = LocalDateTime.of(2026, 9, 17, 9, 0);
+        LocalDateTime currentTime = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime nextTime = LocalDateTime.of(2026, 9, 17, 12, 0);
+        TicketHistory previous = historyRow(1L, "previous", previousTime);
+        TicketHistory selected = historyRow(2L, "selected", currentTime);
+        TicketHistory next = historyRow(3L, "next", nextTime);
+        selected.setTicketId("T-1");
+        when(ticketHistoryRepository.findById(2L)).thenReturn(Optional.of(selected));
+        when(ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc("T-1"))
+                .thenReturn(List.of(next, selected, previous));
+
+        assertThatThrownBy(() -> ticketService.updateHistoryTimestamp(2L,
+                new StatusTimestampUpdateRequest(previousTime.minusMinutes(1), null)))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("previous ticket history timestamp");
+        assertThatThrownBy(() -> ticketService.updateHistoryTimestamp(2L,
+                new StatusTimestampUpdateRequest(nextTime.plusMinutes(1), null)))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("next ticket history timestamp");
+        verify(ticketHistoryRepository, never()).saveAll(anyList());
+    }
 
     @Test
     void addTicket_withRemarkLongerThan255_throwsInvalidRequestException() {
@@ -927,6 +1042,14 @@ class TicketServiceTest {
         status.setStatusCode(TicketStatus.OPEN.name());
         ticket.setStatus(status);
         return ticket;
+    }
+
+    private TicketHistory historyRow(Long id, String groupId, LocalDateTime timestamp) {
+        TicketHistory history = new TicketHistory();
+        history.setTicketHistoryId(id);
+        history.setUpdateGroupId(groupId);
+        history.setUpdatedOn(timestamp);
+        return history;
     }
 
     private Ticket buildUpdateRequest() {

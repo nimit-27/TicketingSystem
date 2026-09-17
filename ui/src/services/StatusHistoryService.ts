@@ -19,3 +19,7 @@ export function updateStatusTimestamp(historyId: string, update: StatusTimestamp
 export function previewStatusTimestamp(historyId: string, update: StatusTimestampUpdate) {
     return axios.post(`${BASE_URL}/status-history/${historyId}/timestamp/preview?devMode=true`, update);
 }
+
+export function undoStatusTimestamp(historyId: string) {
+    return axios.post(`${BASE_URL}/status-history/${historyId}/timestamp/undo?devMode=true`);
+}

@@ -59,4 +59,23 @@ class StatusHistoryControllerTest {
         assertSame(expected, controller.previewTimestamp("history-1", true, request).getBody());
         verify(historyService).previewTimestamp("history-1", request);
     }
+
+    @Test
+    void undoTimestampIsAvailableInUiDevMode() {
+        StatusHistoryController controller = new StatusHistoryController(historyService);
+        StatusHistoryDto expected = new StatusHistoryDto();
+        when(historyService.undoTimestamp("history-1")).thenReturn(expected);
+
+        assertSame(expected, controller.undoTimestamp("history-1", true).getBody());
+        verify(historyService).undoTimestamp("history-1");
+    }
+
+    @Test
+    void undoTimestampRequiresUiDevMode() {
+        StatusHistoryController controller = new StatusHistoryController(historyService);
+
+        assertThrows(ForbiddenOperationException.class,
+                () -> controller.undoTimestamp("history-1", false));
+        verifyNoInteractions(historyService);
+    }
 }

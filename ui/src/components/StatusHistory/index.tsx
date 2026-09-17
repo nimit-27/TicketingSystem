@@ -2,10 +2,11 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import GenericTable from '../UI/GenericTable';
 import ViewToggle from '../UI/ViewToggle';
 import { useApi } from '../../hooks/useApi';
-import { getStatusHistory, previewStatusTimestamp, StatusTimestampUpdate, updateStatusTimestamp } from '../../services/StatusHistoryService';
+import { getStatusHistory, previewStatusTimestamp, StatusTimestampUpdate, undoStatusTimestamp, updateStatusTimestamp } from '../../services/StatusHistoryService';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from '@mui/lab';
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
+import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers } from '../../services/UserService';
 import HistoryReportDownloadMenu, { HistoryReportColumn } from '../History/HistoryReportDownloadMenu';
@@ -16,6 +17,8 @@ interface HistoryEntry {
     id: string;
     updatedBy: string;
     timestamp: string;
+    originalTimestamp?: string;
+    updatedTimestamp?: string;
     previousStatus: string;
     currentStatus: string;
     statusName?: string;
@@ -109,6 +112,7 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
             title: t('Edit Time'),
             key: 'editTime',
             render: (_: unknown, record: HistoryEntry) => (
+                <>
                 <Tooltip title={t('Edit status timestamp')}>
                     <Button aria-label={`Edit timestamp ${record.id}`} size="small" onClick={() => {
                         setEditing(record);
@@ -120,6 +124,15 @@ const StatusHistory: React.FC<StatusHistoryProps> = ({ ticketId }) => {
                         <EditCalendarOutlinedIcon fontSize="small" />
                     </Button>
                 </Tooltip>
+                {record.updatedTimestamp && <Tooltip title={t('Restore original timestamp')}>
+                    <Button aria-label={`Undo timestamp ${record.id}`} size="small" onClick={async () => {
+                        const undone = await apiHandler(() => undoStatusTimestamp(record.id));
+                        if (undone) reload();
+                    }}>
+                        <UndoOutlinedIcon fontSize="small" />
+                    </Button>
+                </Tooltip>}
+                </>
             ),
         }] : []),
     ];
