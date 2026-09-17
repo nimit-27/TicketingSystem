@@ -1002,6 +1002,35 @@ public class TicketService {
         return history.stream().map(this::toTicketHistoryDto).toList();
     }
 
+    @Transactional
+    public TicketHistoryDto updateHistoryTimestamp(Long historyId, StatusTimestampUpdateRequest request) {
+        if (request == null || request.timestamp() == null || request.addMinutes() != null) {
+            throw new InvalidRequestException("Provide a timestamp");
+        }
+        TicketHistory history = ticketHistoryRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
+        if (history.getOriginalTimestamp() == null) {
+            history.setOriginalTimestamp(history.getUpdatedOn());
+        }
+        history.setUpdatedOn(request.timestamp());
+        history.setUpdatedOnUtc(request.timestamp().atZone(BUSINESS_ZONE).toInstant());
+        history.setUpdatedTimestamp(request.timestamp());
+        return toTicketHistoryDto(ticketHistoryRepository.save(history));
+    }
+
+    @Transactional
+    public TicketHistoryDto undoHistoryTimestamp(Long historyId) {
+        TicketHistory history = ticketHistoryRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
+        if (history.getOriginalTimestamp() == null || history.getUpdatedTimestamp() == null) {
+            throw new InvalidRequestException("Ticket history timestamp has not been changed");
+        }
+        history.setUpdatedOn(history.getOriginalTimestamp());
+        history.setUpdatedOnUtc(history.getOriginalTimestamp().atZone(BUSINESS_ZONE).toInstant());
+        history.setUpdatedTimestamp(null);
+        return toTicketHistoryDto(ticketHistoryRepository.save(history));
+    }
+
     private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
         List<TicketHistoryConfig> configs = ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets");
         List<TicketHistory> rows = new ArrayList<>();
@@ -1244,6 +1273,8 @@ public class TicketService {
         d.setUpdatedBy(h.getUpdatedBy());
         d.setUpdatedOn(h.getUpdatedOn());
         d.setUpdatedOnUtc(h.getUpdatedOnUtc());
+        d.setOriginalTimestamp(h.getOriginalTimestamp());
+        d.setUpdatedTimestamp(h.getUpdatedTimestamp());
         d.setRemarks(h.getRemarks());
         return d;
     }

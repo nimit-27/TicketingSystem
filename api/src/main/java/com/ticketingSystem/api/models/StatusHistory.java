@@ -36,6 +36,12 @@ public class StatusHistory {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
+    @Column(name = "original_timestamp", updatable = false)
+    private LocalDateTime originalTimestamp;
+
+    @Column(name = "updated_timestamp")
+    private LocalDateTime updatedTimestamp;
+
     @Column(name = "timestamp_utc")
     private Instant timestampUtc;
 
@@ -54,6 +60,9 @@ public class StatusHistory {
         Instant nowUtc = Instant.now();
         if (timestamp == null) {
             timestamp = LocalDateTime.ofInstant(nowUtc, BUSINESS_ZONE);
+        }
+        if (originalTimestamp == null) {
+            originalTimestamp = timestamp;
         }
         if (timestampUtc == null) {
             timestampUtc = timestamp.atZone(BUSINESS_ZONE).toInstant();

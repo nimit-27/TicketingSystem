@@ -327,3 +327,11 @@ export function searchTicketsForExport({
 export function getTicketHistory(id: string, updateTypeCode?: string) {
     return axios.get(`${BASE_URL}/tickets/${id}/history`, { params: updateTypeCode ? { updateTypeCode } : undefined });
 }
+
+export function updateTicketHistoryTimestamp(historyId: number, timestamp: string) {
+    return axios.patch(`${BASE_URL}/tickets/history/${historyId}/timestamp?devMode=true`, { timestamp });
+}
+
+export function undoTicketHistoryTimestamp(historyId: number) {
+    return axios.post(`${BASE_URL}/tickets/history/${historyId}/timestamp/undo?devMode=true`);
+}

@@ -22,5 +22,7 @@ public class TicketHistoryDto {
     private String updatedBy;
     private LocalDateTime updatedOn;
     private Instant updatedOnUtc;
+    private LocalDateTime originalTimestamp;
+    private LocalDateTime updatedTimestamp;
     private String remarks;
 }

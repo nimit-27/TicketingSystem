@@ -124,6 +124,7 @@ public class StatusHistoryService {
 
         history.setTimestamp(newTimestamp);
         history.setTimestampUtc(newTimestamp.atZone(BUSINESS_ZONE).toInstant());
+        history.setUpdatedTimestamp(newTimestamp);
         historyRepository.save(history);
 
         var linkedRows = ticketHistoryRepository.findBySourceTableAndSourceHistoryId("status_history", historyId);
@@ -134,6 +135,7 @@ public class StatusHistoryService {
         linkedRows.forEach(row -> {
             row.setUpdatedOn(newTimestamp);
             row.setUpdatedOnUtc(newTimestamp.atZone(BUSINESS_ZONE).toInstant());
+            row.setUpdatedTimestamp(newTimestamp);
         });
         ticketHistoryRepository.saveAll(linkedRows);
 
@@ -146,6 +148,7 @@ public class StatusHistoryService {
             rows.forEach(row -> {
                 row.setUpdatedOn(newTimestamp);
                 row.setUpdatedOnUtc(newTimestamp.atZone(BUSINESS_ZONE).toInstant());
+                row.setUpdatedTimestamp(newTimestamp);
             });
             ticketHistoryRepository.saveAll(rows);
         }
@@ -165,6 +168,61 @@ public class StatusHistoryService {
         }
         return getHistoryForTicket(ticket.getId()).stream()
                 .filter(item -> historyId.equals(item.getId())).findFirst().orElseThrow();
+    }
+
+    @Transactional
+    public StatusHistoryDto undoTimestamp(String historyId) {
+        StatusHistory history = historyRepository.findById(historyId)
+                .orElseThrow(() -> new InvalidRequestException("Status history entry was not found"));
+        if (history.getOriginalTimestamp() == null || history.getUpdatedTimestamp() == null) {
+            throw new InvalidRequestException("Status history timestamp has not been changed");
+        }
+
+        Ticket ticket = history.getTicket();
+        LocalDateTime changedTimestamp = history.getTimestamp();
+        LocalDateTime originalTimestamp = history.getOriginalTimestamp();
+        history.setTimestamp(originalTimestamp);
+        history.setTimestampUtc(originalTimestamp.atZone(BUSINESS_ZONE).toInstant());
+        history.setUpdatedTimestamp(null);
+        historyRepository.save(history);
+
+        var linkedRows = ticketHistoryRepository.findBySourceTableAndSourceHistoryId("status_history", historyId);
+        if (linkedRows.isEmpty()) {
+            linkedRows = ticketHistoryRepository.findByTicketIdAndUpdatedOnBetween(
+                    ticket.getId(), changedTimestamp.minusSeconds(5), changedTimestamp.plusSeconds(5));
+        }
+        linkedRows.forEach(this::restoreTicketHistoryTimestamp);
+        ticketHistoryRepository.saveAll(linkedRows);
+
+        var assignments = assignmentHistoryRepository.findByTicketAndTimestampBetween(
+                ticket, changedTimestamp.minusSeconds(5), changedTimestamp.plusSeconds(5));
+        assignments.forEach(row -> row.setTimestamp(originalTimestamp));
+        assignmentHistoryRepository.saveAll(assignments);
+        for (var assignment : assignments) {
+            var rows = ticketHistoryRepository.findBySourceTableAndSourceHistoryId("assignment_history", assignment.getId());
+            rows.forEach(this::restoreTicketHistoryTimestamp);
+            ticketHistoryRepository.saveAll(rows);
+        }
+
+        if (Objects.equals(ticket.getResolvedAt(), changedTimestamp)) ticket.setResolvedAt(originalTimestamp);
+        if (Objects.equals(ticket.getLastModifiedStatusDate(), changedTimestamp)) {
+            ticket.setLastModifiedStatusDate(originalTimestamp);
+            ticket.setLastModifiedStatusDateUtc(originalTimestamp.atZone(BUSINESS_ZONE).toInstant());
+        }
+        ticketRepository.save(ticket);
+        ticketSlaService.calculateAndSaveByCalendarFromScratch(
+                ticket, historyRepository.findByTicketOrderByTimestampAsc(ticket));
+        return getHistoryForTicket(ticket.getId()).stream()
+                .filter(item -> historyId.equals(item.getId())).findFirst().orElseThrow();
+    }
+
+    private void restoreTicketHistoryTimestamp(com.ticketingSystem.api.models.TicketHistory row) {
+        LocalDateTime original = row.getOriginalTimestamp();
+        if (original != null) {
+            row.setUpdatedOn(original);
+            row.setUpdatedOnUtc(original.atZone(BUSINESS_ZONE).toInstant());
+        }
+        row.setUpdatedTimestamp(null);
     }
 
     public StatusHistory addHistory(String ticketId, String updatedBy, String previousStatus, String currentStatus, Boolean slaFlag, String remark) {

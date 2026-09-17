@@ -3,6 +3,7 @@ package com.ticketingSystem.api.controller;
 import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.exception.CustomGenericException;
 import com.ticketingSystem.api.exception.RateLimitExceededException;
+import com.ticketingSystem.api.exception.ForbiddenOperationException;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.dto.UserDto;
 import com.ticketingSystem.api.models.TicketComment;
@@ -258,6 +259,29 @@ public class TicketController {
     public ResponseEntity<List<TicketHistoryDto>> getHistory(@PathVariable String id, @RequestParam(required = false) String updateTypeCode) {
         logger.info("Request to get ticket history {}", id);
         return ResponseEntity.ok(ticketService.getHistoryByTicketId(id, updateTypeCode));
+    }
+
+    @PatchMapping("/history/{historyId}/timestamp")
+    public ResponseEntity<TicketHistoryDto> updateHistoryTimestamp(
+            @PathVariable Long historyId,
+            @RequestParam(value = "devMode", defaultValue = "false") boolean uiDevMode,
+            @RequestBody StatusTimestampUpdateRequest request) {
+        requireDevMode(uiDevMode);
+        return ResponseEntity.ok(ticketService.updateHistoryTimestamp(historyId, request));
+    }
+
+    @PostMapping("/history/{historyId}/timestamp/undo")
+    public ResponseEntity<TicketHistoryDto> undoHistoryTimestamp(
+            @PathVariable Long historyId,
+            @RequestParam(value = "devMode", defaultValue = "false") boolean uiDevMode) {
+        requireDevMode(uiDevMode);
+        return ResponseEntity.ok(ticketService.undoHistoryTimestamp(historyId));
+    }
+
+    private void requireDevMode(boolean uiDevMode) {
+        if (!uiDevMode) {
+            throw new ForbiddenOperationException("Enable UI dev mode to edit ticket history timestamps");
+        }
     }
 
     @PutMapping("/{id}")

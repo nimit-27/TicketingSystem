@@ -1,8 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { Box, Dialog, DialogContent, DialogTitle, Typography } from '@mui/material';
+import React, { useContext, useMemo, useState } from 'react';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Tooltip, Typography } from '@mui/material';
+import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
+import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import GenericTable from './UI/GenericTable';
 import { useApi } from '../hooks/useApi';
-import { getTicketHistory } from '../services/TicketService';
+import { getTicketHistory, undoTicketHistoryTimestamp, updateTicketHistoryTimestamp } from '../services/TicketService';
+import { DevModeContext } from '../context/DevModeContext';
 
 type TicketHistoryEntry = {
   ticketHistoryId: number;
@@ -12,6 +15,8 @@ type TicketHistoryEntry = {
   updatedBy?: string;
   updatedOn?: string;
   updatedOnUtc?: string;
+  originalTimestamp?: string;
+  updatedTimestamp?: string;
   remarks?: string;
 };
 
@@ -32,10 +37,15 @@ const truncate = (value?: string, max = 30) => {
 const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
   const { data, apiHandler } = useApi<TicketHistoryEntry[]>();
   const [selected, setSelected] = useState<TicketHistoryEntry | null>(null);
+  const [editing, setEditing] = useState<TicketHistoryEntry | null>(null);
+  const [timestamp, setTimestamp] = useState('');
+  const { devMode } = useContext(DevModeContext);
+
+  const reload = () => apiHandler(() => getTicketHistory(ticketId));
 
   React.useEffect(() => {
     if (!ticketId) return;
-    void apiHandler(() => getTicketHistory(ticketId));
+    void reload();
   }, [ticketId, apiHandler]);
 
   const rows = useMemo(() => Array.isArray(data) ? data : [], [data]);
@@ -48,7 +58,7 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
       render: (_: unknown, row: TicketHistoryEntry) => (
         <Box sx={{ color: 'text.secondary' }}>
           <Typography variant="body2">{row.updatedBy || '-'}</Typography>
-          <Typography variant="caption">{formatDateTime(row.updatedOnUtc || row.updatedOn)}</Typography>
+          <Typography variant="caption">{formatDateTime(row.originalTimestamp || row.updatedOnUtc || row.updatedOn)}</Typography>
         </Box>
       ),
     },
@@ -69,6 +79,26 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
       },
     },
     { title: 'Remark', dataIndex: 'remarks', key: 'remarks', width: '30%', render: (v: string) => v || '-' },
+    { title: 'Updated Timestamp', dataIndex: 'updatedTimestamp', key: 'updatedTimestamp', render: (v: string) => formatDateTime(v) },
+    ...(devMode ? [{
+      title: 'Edit Time',
+      key: 'editTime',
+      render: (_: unknown, row: TicketHistoryEntry) => <>
+        <Tooltip title="Edit ticket history timestamp">
+          <Button size="small" aria-label={`Edit ticket history timestamp ${row.ticketHistoryId}`} onClick={() => {
+            setEditing(row);
+            const value = row.updatedTimestamp || row.updatedOn;
+            setTimestamp(value ? value.slice(0, 16) : '');
+          }}><EditCalendarOutlinedIcon fontSize="small" /></Button>
+        </Tooltip>
+        {row.updatedTimestamp && <Tooltip title="Restore original timestamp">
+          <Button size="small" aria-label={`Undo ticket history timestamp ${row.ticketHistoryId}`} onClick={async () => {
+            const undone = await apiHandler(() => undoTicketHistoryTimestamp(row.ticketHistoryId));
+            if (undone) void reload();
+          }}><UndoOutlinedIcon fontSize="small" /></Button>
+        </Tooltip>}
+      </>,
+    }] : []),
   ];
 
   return (
@@ -89,6 +119,24 @@ const TicketHistory: React.FC<{ ticketId: string }> = ({ ticketId }) => {
           </Box>
         </DialogContent>
       </Dialog>
+      {devMode && editing && <Dialog open onClose={() => setEditing(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Edit ticket history timestamp</DialogTitle>
+        <DialogContent sx={{ pt: '12px !important' }}>
+          <TextField fullWidth label="Timestamp" type="datetime-local" value={timestamp}
+            onChange={(event) => setTimestamp(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditing(null)}>Cancel</Button>
+          <Button variant="contained" disabled={!timestamp} onClick={async () => {
+            const updated = await apiHandler(() => updateTicketHistoryTimestamp(
+              editing.ticketHistoryId, timestamp.length === 16 ? `${timestamp}:00` : timestamp));
+            if (updated) {
+              setEditing(null);
+              void reload();
+            }
+          }}>Save</Button>
+        </DialogActions>
+      </Dialog>}
     </>
   );
 };

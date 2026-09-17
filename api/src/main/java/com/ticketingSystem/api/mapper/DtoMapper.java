@@ -260,6 +260,8 @@ public class DtoMapper {
         dto.setPreviousStatus(statusHistory.getPreviousStatus());
         dto.setCurrentStatus(statusHistory.getCurrentStatus());
         dto.setTimestamp(statusHistory.getTimestamp());
+        dto.setOriginalTimestamp(statusHistory.getOriginalTimestamp());
+        dto.setUpdatedTimestamp(statusHistory.getUpdatedTimestamp());
         dto.setTimestampUtc(statusHistory.getTimestampUtc());
         dto.setCreatedAtUtc(statusHistory.getCreatedAtUtc());
         dto.setSlaFlag(statusHistory.getSlaFlag());
