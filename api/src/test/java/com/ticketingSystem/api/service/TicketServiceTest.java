@@ -165,6 +165,40 @@ class TicketServiceTest {
     }
 
     @Test
+    void updateHistoryTimestampUpdatesMatchingStatusRowWhenLegacyTicketHistoryHasNoSourceLink() {
+        LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
+        LocalDateTime corrected = original.plusMinutes(30);
+        TicketHistory ticketHistory = historyRow(1L, "group-1", original);
+        ticketHistory.setTicketId("T-1");
+        ticketHistory.setColumnName("status_id");
+        ticketHistory.setOldRefId("OPEN");
+        ticketHistory.setNewRefId("ASSIGNED");
+        Ticket ticket = new Ticket();
+        ticket.setId("T-1");
+        StatusHistory status = new StatusHistory();
+        status.setId("status-1");
+        status.setTicket(ticket);
+        status.setPreviousStatus("OPEN");
+        status.setCurrentStatus("ASSIGNED");
+        status.setTimestamp(original.plusSeconds(1));
+
+        when(ticketHistoryRepository.findById(1L)).thenReturn(Optional.of(ticketHistory));
+        when(ticketHistoryRepository.findByUpdateGroupIdOrderByTicketHistoryIdAsc("group-1"))
+                .thenReturn(List.of(ticketHistory));
+        when(ticketHistoryRepository.findByTicketIdOrderByUpdatedOnUtcDescUpdatedOnDescTicketHistoryIdDesc("T-1"))
+                .thenReturn(List.of(ticketHistory));
+        when(ticketRepository.findById("T-1")).thenReturn(Optional.of(ticket));
+        when(statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket)).thenReturn(List.of(status));
+
+        ticketService.updateHistoryTimestamp(1L, new StatusTimestampUpdateRequest(corrected, null));
+
+        assertThat(status.getTimestamp()).isEqualTo(corrected);
+        assertThat(status.getTimestampUtc()).isEqualTo(corrected.atZone(ZoneId.of("Asia/Kolkata")).toInstant());
+        assertThat(status.getUpdatedTimestamp()).isEqualTo(corrected);
+        verify(statusHistoryRepository).save(status);
+    }
+
+    @Test
     void undoHistoryTimestampRestoresOneTimestampAcrossTheGroup() {
         LocalDateTime original = LocalDateTime.of(2026, 9, 17, 10, 0);
         LocalDateTime corrected = LocalDateTime.of(2026, 9, 17, 11, 30);
