@@ -1,6 +1,7 @@
 import axios from "axios";
 import { BASE_URL } from "./api";
 import { CreateComment } from "../components/Comments/CommentsSection";
+import { TicketSla } from "../types";
 
 export function searchTickets(payload: string) {
     return axios.post(`${BASE_URL}/tickets`, payload);
@@ -337,6 +338,8 @@ export type TicketHistoryTimestampPreview = {
     maximumTimestamp?: string;
     minimumBusinessMinutes?: number;
     maximumBusinessMinutes?: number;
+    currentSla?: TicketSla | null;
+    newSla?: TicketSla | null;
 };
 
 export function updateTicketHistoryTimestamp(historyId: number, update: TicketHistoryTimestampUpdate) {

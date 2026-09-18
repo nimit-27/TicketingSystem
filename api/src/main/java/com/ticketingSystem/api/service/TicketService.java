@@ -64,6 +64,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -1029,11 +1030,30 @@ public class TicketService {
         return toTicketHistoryDto(history);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TicketTimestampPreviewDto previewHistoryTimestamp(Long historyId, StatusTimestampUpdateRequest request) {
         TicketHistory history = ticketHistoryRepository.findById(historyId)
                 .orElseThrow(() -> new InvalidRequestException("Ticket history entry was not found"));
-        return calculateHistoryTimestamp(history, request);
+        TicketTimestampPreviewDto timestampPreview = calculateHistoryTimestamp(history, request);
+        TicketSlaDto currentSla = null;
+        TicketSlaDto newSla = null;
+        Optional<Ticket> ticket = ticketRepository.findById(history.getTicketId());
+        if (ticket.isPresent()) {
+            Ticket selectedTicket = ticket.get();
+            currentSla = DtoMapper.toTicketSlaDto(ticketSlaService.getByTicketId(selectedTicket.getId()));
+            List<StatusHistory> correspondingStatuses = findCorrespondingStatusHistories(getTicketHistoryGroup(history));
+            correspondingStatuses.forEach(status -> status.setTimestamp(timestampPreview.calculatedTimestamp()));
+            newSla = DtoMapper.toTicketSlaDto(ticketSlaService.calculatePreviewByCalendarFromScratch(
+                    selectedTicket, statusHistoryRepository.findByTicketOrderByTimestampAsc(selectedTicket)));
+        }
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        }
+        return new TicketTimestampPreviewDto(
+                timestampPreview.currentTimestamp(), timestampPreview.calculatedTimestamp(),
+                timestampPreview.minimumTimestamp(), timestampPreview.maximumTimestamp(),
+                timestampPreview.minimumBusinessMinutes(), timestampPreview.maximumBusinessMinutes(),
+                currentSla, newSla);
     }
 
     private TicketTimestampPreviewDto calculateHistoryTimestamp(TicketHistory history,
@@ -1080,7 +1100,7 @@ public class TicketService {
         Long minimumMinutes = minimum == null ? null : businessMinutesBetween(current, minimum);
         Long maximumMinutes = maximum == null ? null : businessMinutesBetween(current, maximum);
         return new TicketTimestampPreviewDto(current, calculated, minimum, maximum,
-                minimumMinutes, maximumMinutes);
+                minimumMinutes, maximumMinutes, null, null);
     }
 
     private boolean isSameTicketHistoryGroup(TicketHistory candidate, TicketHistory selected) {
