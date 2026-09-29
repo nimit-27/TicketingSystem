@@ -9,7 +9,7 @@
  ELSE DATE_FORMAT(t.reported_date, '%Y-%m-%d') END periodLabel, COALESCE(t.category,'N/A') category,
 COALESCE(t.sub_category,'N/A') subCategory, COUNT(*) ticketCount,
 SUM(COALESCE(ts.breached_by_minutes,0)>0) breachedTickets,
-SUM(t.ticket_status='RESOLVED') resolvedTickets, SUM(t.ticket_status='CLOSED') closedTickets
+SUM(t.status='RESOLVED') resolvedTickets, SUM(t.status='CLOSED') closedTickets
 FROM tickets t LEFT JOIN ticket_sla ts ON ts.ticket_id=t.ticket_id WHERE t.reported_date >= STR_TO_DATE(COALESCE(NULLIF($P{fromDate}, ''), '2026-07-01'), '%Y-%m-%d')
   AND t.reported_date < DATE_ADD(STR_TO_DATE(COALESCE(NULLIF($P{toDate}, ''), DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d')), '%Y-%m-%d'), INTERVAL 1 DAY)
   AND ($P{categoryId} IS NULL OR $P{categoryId} = '' OR t.category = $P{categoryId})

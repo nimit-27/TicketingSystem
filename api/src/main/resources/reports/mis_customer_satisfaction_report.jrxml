@@ -7,10 +7,10 @@
  WHEN 'YEARLY' THEN DATE_FORMAT(t.reported_date, '%Y')
  WHEN 'WEEKLY' THEN CONCAT(YEARWEEK(t.reported_date, 3) DIV 100, '-W', LPAD(YEARWEEK(t.reported_date, 3) % 100, 2, '0'))
  ELSE DATE_FORMAT(t.reported_date, '%Y-%m-%d') END periodLabel, COUNT(f.feedback_id) responses,
-ROUND(AVG(f.overall_satisfaction),2) overallRating, ROUND(AVG(f.resolution_effectiveness),2) resolutionRating,
-ROUND(AVG(f.communication_support),2) communicationRating, ROUND(AVG(f.timeliness),2) timelinessRating,
-ROUND(AVG((f.overall_satisfaction+f.resolution_effectiveness+f.communication_support+f.timeliness)/4),2) compositeRating
-FROM tickets t JOIN ticket_feedback f ON f.ticket_id=t.ticket_id WHERE t.reported_date >= STR_TO_DATE(COALESCE(NULLIF($P{fromDate}, ''), '2026-07-01'), '%Y-%m-%d')
+COALESCE(ROUND(AVG(f.overall_satisfaction),2),0) overallRating, COALESCE(ROUND(AVG(f.resolution_effectiveness),2),0) resolutionRating,
+COALESCE(ROUND(AVG(f.communication_support),2),0) communicationRating, COALESCE(ROUND(AVG(f.timeliness),2),0) timelinessRating,
+COALESCE(ROUND(AVG((f.overall_satisfaction+f.resolution_effectiveness+f.communication_support+f.timeliness)/4),2),0) compositeRating
+FROM tickets t LEFT JOIN ticket_feedback f ON f.ticket_id=t.ticket_id WHERE t.reported_date >= STR_TO_DATE(COALESCE(NULLIF($P{fromDate}, ''), '2026-07-01'), '%Y-%m-%d')
   AND t.reported_date < DATE_ADD(STR_TO_DATE(COALESCE(NULLIF($P{toDate}, ''), DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d')), '%Y-%m-%d'), INTERVAL 1 DAY)
   AND ($P{categoryId} IS NULL OR $P{categoryId} = '' OR t.category = $P{categoryId})
   AND ($P{subCategoryId} IS NULL OR $P{subCategoryId} = '' OR t.sub_category = $P{subCategoryId})
