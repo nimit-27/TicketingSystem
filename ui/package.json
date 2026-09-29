@@ -36,6 +36,7 @@
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.3",
     "jwt-decode": "^4.0.0",
+    "monaco-editor": "0.55.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.56.4",
@@ -52,6 +53,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "postinstall": "node scripts/copy-monaco-assets.js",
     "start:local": "dotenv -e .env.local -- react-scripts start",
     "start:development": "dotenv -e .env.development -- react-scripts start",
     "start:qa": "dotenv -e .env.qa -- react-scripts start",
