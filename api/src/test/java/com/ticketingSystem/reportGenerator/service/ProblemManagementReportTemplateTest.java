@@ -27,6 +27,19 @@ class ProblemManagementReportTemplateTest {
     }
 
     @Test
+    void displaysOnlyCreatedTicketCountWithWiderSubModuleColumn() throws Exception {
+        ClassPathResource resource = new ClassPathResource(TEMPLATE);
+        String jrxml = resource.getContentAsString(StandardCharsets.UTF_8);
+
+        assertTrue(jrxml.contains("<![CDATA[Tickets Created]]>"));
+        assertTrue(jrxml.contains("x=\"230\" y=\"0\" width=\"412\" height=\"28\""));
+        assertFalse(jrxml.contains("name=\"breachedTickets\""));
+        assertFalse(jrxml.contains("name=\"resolvedTickets\""));
+        assertFalse(jrxml.contains("name=\"closedTickets\""));
+        assertFalse(jrxml.contains("LEFT JOIN ticket_sla"));
+    }
+
+    @Test
     void templateCompilesForReportGenerators() throws Exception {
         ClassPathResource resource = new ClassPathResource(TEMPLATE);
         try (var input = resource.getInputStream()) {
