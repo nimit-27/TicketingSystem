@@ -31,6 +31,7 @@ SELECT
     t.requestor_mobile_no                        AS 'Requestor Mobile No.',
     dm.division_name                             AS 'Division',
     ts.due_at AS 'Due At',
+    ts.breached_by_minutes 						 AS 'Breach In',
     CASE
 		WHEN ts.breached_by_minutes > 0
 			THEN 'YES'

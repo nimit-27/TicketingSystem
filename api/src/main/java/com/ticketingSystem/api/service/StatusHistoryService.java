@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -95,7 +96,7 @@ public class StatusHistoryService {
                 ? request.timestamp()
                 : slaCalculatorService.computeEnd(
                         oldTimestamp.atZone(TimeUtils.ZONE_ID),
-                        java.time.Duration.ofMinutes(request.addMinutes()))
+                        Duration.ofMinutes(request.addMinutes()))
                     .toLocalDateTime();
 
         List<StatusHistory> ordered = historyRepository.findByTicketOrderByTimestampAsc(ticket);
