@@ -99,6 +99,9 @@ public class TicketSearchReportRequestDataProvider implements ReportRequestDataP
         params.put("regionCode", toNullableParam(filters.get("regionCode")));
         params.put("districtCode", toNullableParam(filters.get("districtCode")));
         params.put("issueTypeId", toNullableParam(filters.get("issueTypeId")));
+        params.put("divisionId", toNullableParam(filters.get("divisionId")));
+        params.put("assignedTo", toNullableParam(filters.get("assignedTo")));
+        params.put("interval", toNullableParam(filters.get("interval")));
         log.info("TicketSearchReportRequestDataProvider.buildParams built {} params", params.size());
         return params;
     }
