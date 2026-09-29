@@ -14,15 +14,24 @@ class ResolutionTimeReportTemplateTest {
     private static final String TEMPLATE = "reports/mis_resolution_time_report.jrxml";
 
     @Test
-    void queryGroupsFiltersAndOrdersByResolutionDate() throws Exception {
+    void queryGroupsFiltersAndOrdersByReportedDate() throws Exception {
         ClassPathResource resource = new ClassPathResource(TEMPLATE);
         String jrxml = resource.getContentAsString(StandardCharsets.UTF_8);
 
-        assertTrue(jrxml.contains("DATE_FORMAT(t.resolved_at, '%Y-%m-%d')"));
-        assertTrue(jrxml.contains("t.resolved_at &gt;=") || jrxml.contains("t.resolved_at >="));
-        assertTrue(jrxml.contains("ORDER BY MIN(t.resolved_at)"));
-        assertFalse(jrxml.contains("DATE_FORMAT(t.reported_date"));
-        assertFalse(jrxml.contains("WHERE t.reported_date"));
+        assertTrue(jrxml.contains("DATE_FORMAT(t.reported_date, '%Y-%m-%d')"));
+        assertTrue(jrxml.contains("t.reported_date &gt;=") || jrxml.contains("t.reported_date >="));
+        assertTrue(jrxml.contains("ORDER BY MIN(t.reported_date)"));
+        assertFalse(jrxml.contains("DATE_FORMAT(t.resolved_at"));
+    }
+
+    @Test
+    void displaysOneResolvedTicketCountWithoutStatusColumns() throws Exception {
+        ClassPathResource resource = new ClassPathResource(TEMPLATE);
+        String jrxml = resource.getContentAsString(StandardCharsets.UTF_8);
+
+        assertTrue(jrxml.contains("Total Resolved Tickets"));
+        assertFalse(jrxml.contains("resolvedStatus"));
+        assertFalse(jrxml.contains("closedStatus"));
     }
 
     @Test
