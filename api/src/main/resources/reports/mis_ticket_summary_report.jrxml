@@ -85,29 +85,29 @@ ORDER BY MIN(t.reported_date)
 
     <columnHeader>
         <band height="42">
-            <staticText style="TableHeader"><reportElement x="0" y="0" width="92" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Period]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="92" y="0" width="65" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Total]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="157" y="0" width="65" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Open]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="222" y="0" width="75" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Assigned]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="297" y="0" width="100" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Pending with Requestor]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="397" y="0" width="85" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Pending with FCI]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="482" y="0" width="117" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Pending with Service Provider]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="599" y="0" width="100" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Resolved]]></text></staticText>
-            <staticText style="TableHeader"><reportElement x="699" y="0" width="103" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Closed]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="0" y="0" width="92" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Period]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="92" y="0" width="65" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Total]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="157" y="0" width="65" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Open]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="222" y="0" width="75" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Assigned]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="297" y="0" width="100" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Pending with Requestor]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="397" y="0" width="85" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Pending with FCI]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="482" y="0" width="117" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Pending with Service Provider]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="599" y="0" width="100" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Resolved]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="699" y="0" width="103" height="42"/><textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Closed]]></text></staticText>
         </band>
     </columnHeader>
 
     <detail>
         <band height="28">
-            <textField style="TableCell"><reportElement x="0" y="0" width="92" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{periodLabel}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="92" y="0" width="65" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{totalTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="157" y="0" width="65" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{openTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="222" y="0" width="75" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{assignedTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="297" y="0" width="100" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{pendingWithRequestorTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="397" y="0" width="85" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{pendingWithFciTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="482" y="0" width="117" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{pendingWithServiceProviderTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="599" y="0" width="100" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{resolvedTickets}]]></textFieldExpression></textField>
-            <textField style="TableCell"><reportElement x="699" y="0" width="103" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{closedTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="0" y="0" width="92" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{periodLabel}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="92" y="0" width="65" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{totalTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="157" y="0" width="65" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{openTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="222" y="0" width="75" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{assignedTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="297" y="0" width="100" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{pendingWithRequestorTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="397" y="0" width="85" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{pendingWithFciTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="482" y="0" width="117" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{pendingWithServiceProviderTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="599" y="0" width="100" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{resolvedTickets}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="699" y="0" width="103" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{closedTickets}]]></textFieldExpression></textField>
         </band>
     </detail>
 </jasperReport>
