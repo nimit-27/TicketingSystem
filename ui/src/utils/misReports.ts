@@ -9,6 +9,7 @@ export const timeScaleOptions: { value: SupportDashboardTimeScale; label: string
     { value: "DAILY", label: "Daily" },
     { value: "WEEKLY", label: "Weekly" },
     { value: "MONTHLY", label: "Monthly" },
+    { value: "QUARTERLY", label: "Quarterly" },
     { value: "YEARLY", label: "Yearly" },
 ];
 
@@ -33,6 +34,12 @@ export const timeRangeOptions: Record<SupportDashboardTimeScale, { value: Suppor
         { value: "LAST_YEAR", label: "Last 1 Year" },
         { value: "LAST_5_YEARS", label: "Last 2 Years" },
         { value: "ALL_TIME", label: "All" },
+        { value: "CUSTOM_DATE_RANGE", label: "Custom" },
+    ],
+    QUARTERLY: [
+        { value: "ALL_TIME", label: "All" },
+        { value: "LAST_YEAR", label: "Last Year" },
+        { value: "LAST_5_YEARS", label: "Last 5 Years" },
         { value: "CUSTOM_DATE_RANGE", label: "Custom" },
     ],
     YEARLY: [
@@ -206,6 +213,7 @@ export const calculateDateRange = (
 
             return buildRange(startOfYear(currentYear), today);
         }
+        case "QUARTERLY":
         case "YEARLY": {
             const currentYear = today.getFullYear();
 

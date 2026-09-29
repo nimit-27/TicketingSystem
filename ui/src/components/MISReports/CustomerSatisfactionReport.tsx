@@ -4,13 +4,15 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchCustomerSatisfactionReport } from "../../services/ReportService";
-import { CustomerSatisfactionReportProps, MISReportRequestParams } from "../../types/reports";
+import { CustomerSatisfactionReportProps, MISReportRequestParams, SupportDashboardTimeScale } from "../../types/reports";
+import SectionReportDownload from "./SectionReportDownload";
 
 interface CustomerSatisfactionReportPropsWithParams {
     params?: MISReportRequestParams;
+    interval?: SupportDashboardTimeScale;
 }
 
-const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithParams> = ({ params }) => {
+const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithParams> = ({ params, interval = "DAILY" }) => {
     const { data, pending, apiHandler } = useApi<CustomerSatisfactionReportProps>();
 
     useEffect(() => {
@@ -82,7 +84,7 @@ const CustomerSatisfactionReport: React.FC<CustomerSatisfactionReportPropsWithPa
     );
 
     return (
-        <CustomFieldset title="Customer Satisfaction">
+        <CustomFieldset title="Customer Satisfaction" actionElement={<SectionReportDownload reportCode="MIS_CUSTOMER_SATISFACTION_RPT" reportName="Customer Satisfaction Report" params={params} interval={interval} />}>
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Gathering feedback trends...

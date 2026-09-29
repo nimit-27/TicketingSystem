@@ -7,13 +7,15 @@ import {
     MISReportRequestParams,
     ResolutionCategoryPriorityStat,
     TicketResolutionTimeReportProps,
+    SupportDashboardTimeScale,
 } from "../../types/reports";
+import SectionReportDownload from "./SectionReportDownload";
 
 // interface TicketResolutionTimeReportProps {
 //     params?: MISReportRequestParams;
 // }
 
-const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({ params }) => {
+const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps & { interval?: SupportDashboardTimeScale }> = ({ params, interval = "DAILY" }) => {
     const { data, pending, apiHandler } = useApi<TicketResolutionTimeReportProps>();
 
     useEffect(() => {
@@ -37,7 +39,7 @@ const TicketResolutionTimeReport: React.FC<TicketResolutionTimeReportProps> = ({
         `${stat.categoryName ?? stat.category ?? "Unspecified"} > ${stat.subcategoryName ?? stat.subcategory ?? "N/A"}`;
 
     return (
-        <CustomFieldset title="Ticket Resolution Time">
+        <CustomFieldset title="Ticket Resolution Time" actionElement={<SectionReportDownload reportCode="MIS_RESOLUTION_TIME_RPT" reportName="Ticket Resolution Time Report" params={params} interval={interval} />}>
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Calculating resolution insights...

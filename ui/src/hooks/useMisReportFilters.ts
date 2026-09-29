@@ -92,10 +92,11 @@ export const useMisReportFilters = (config: UseMisReportFiltersConfig = {}): Use
     const [assigneeOptions, setAssigneeOptions] = React.useState([{ ...allOption }]);
 
     const [timeScale, setTimeScale] = React.useState<SupportDashboardTimeScale>("DAILY");
-    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("ALL_TIME");
-    const [dateRange, setDateRange] = React.useState<{ from: string; to: string }>(() =>
-        calculateDateRange("DAILY", "ALL_TIME", { start: null, end: null }),
-    );
+    const [timeRange, setTimeRange] = React.useState<SupportDashboardTimeRange>("CUSTOM_DATE_RANGE");
+    const [dateRange, setDateRange] = React.useState<{ from: string; to: string }>(() => ({
+        from: "2026-07-01",
+        to: new Date().toISOString().split("T")[0],
+    }));
     const availableTimeRanges = React.useMemo(() => timeRangeOptions[timeScale] ?? [], [timeScale]);
 
     const activeDateRange = React.useMemo(() => {
