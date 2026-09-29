@@ -5,14 +5,16 @@ import CustomFieldset from "../CustomFieldset";
 import CustomMetricCard, { MetricCardData } from "../Dashboard/CustomMetricCard";
 import { useApi } from "../../hooks/useApi";
 import { fetchTicketSummaryReport } from "../../services/ReportService";
-import { MISReportRequestParams } from "../../types/reports";
+import { MISReportRequestParams, SupportDashboardTimeScale } from "../../types/reports";
+import SectionReportDownload from "./SectionReportDownload";
 // import { TicketSummaryReport } from "../../types/reports";
 
 interface TicketSummaryReportProps {
     params?: MISReportRequestParams;
+    interval?: SupportDashboardTimeScale;
 }
 
-const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => {
+const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params, interval = "DAILY" }) => {
     // const { data, pending, apiHandler } = useApi<TicketSummaryReport>();
     const { data, pending, apiHandler } = useApi<any>();
 
@@ -167,7 +169,7 @@ const TicketSummaryReport: React.FC<TicketSummaryReportProps> = ({ params }) => 
     }, [data?.totalTickets, ticketLifecycleSunburstOptions]);
 
     return (
-        <CustomFieldset title="Ticket Summary">
+        <CustomFieldset title="Ticket Summary" actionElement={<SectionReportDownload reportCode="MIS_TICKET_SUMMARY_RPT" reportName="Ticket Summary Report" params={params} interval={interval} />}>
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Loading ticket summary...

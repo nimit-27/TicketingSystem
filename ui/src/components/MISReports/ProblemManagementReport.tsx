@@ -4,13 +4,15 @@ import ReactECharts from "echarts-for-react";
 import CustomFieldset from "../CustomFieldset";
 import { useApi } from "../../hooks/useApi";
 import { fetchProblemManagementReport } from "../../services/ReportService";
-import { MISReportRequestParams, ProblemCategoryStat } from "../../types/reports";
+import { MISReportRequestParams, ProblemCategoryStat, SupportDashboardTimeScale } from "../../types/reports";
+import SectionReportDownload from "./SectionReportDownload";
 
 interface ProblemManagementReportPropsWithParams {
     params?: MISReportRequestParams;
+    interval?: SupportDashboardTimeScale;
 }
 
-const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> = ({ params }) => {
+const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> = ({ params, interval = "DAILY" }) => {
     const { data, pending, apiHandler } = useApi<{ categoryStats?: ProblemCategoryStat[] }>();
 
     useEffect(() => {
@@ -83,7 +85,7 @@ const ProblemManagementReport: React.FC<ProblemManagementReportPropsWithParams> 
     );
 
     return (
-        <CustomFieldset title="Problem Management">
+        <CustomFieldset title="Problem Management" actionElement={<SectionReportDownload reportCode="MIS_PROBLEM_MANAGEMENT_RPT" reportName="Problem Management Report" params={params} interval={interval} />}>
             {pending && (
                 <Typography variant="body2" fontStyle="italic">
                     Analysing recurring issues...

@@ -480,6 +480,7 @@ public class TicketController {
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String breachedOnFromDate,
             @RequestParam(required = false) String breachedOnToDate,
+            @RequestParam(required = false, defaultValue = "DAILY") String interval,
             @RequestParam(required = false) String lastModifiedStatusFromDate,
             @RequestParam(required = false) String lastModifiedStatusToDate,
             @RequestParam(required = false) String zoneLabel,
@@ -519,6 +520,7 @@ public class TicketController {
         filters.put("toDate", toDate);
         filters.put("breachedOnFromDate", breachedOnFromDate);
         filters.put("breachedOnToDate", breachedOnToDate);
+        filters.put("interval", interval);
         filters.put("lastModifiedStatusFromDate", lastModifiedStatusFromDate);
         filters.put("lastModifiedStatusToDate", lastModifiedStatusToDate);
         filters.put("zoneLabel", zoneLabel);

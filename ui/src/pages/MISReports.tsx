@@ -334,10 +334,10 @@ const MISReports: React.FC = () => {
             </Box>
 
             <Box display="flex" flexDirection="column" gap={2} mt={2}>
-                {showTicketSummaryReport && <TicketSummaryReport params={requestParams} />}
-                {showTicketResolutionTimeReport && <TicketResolutionTimeReport params={requestParams} />}
-                {showCustomerSatisfactionReport && <CustomerSatisfactionReport params={requestParams} />}
-                {showProblemManagementReport && <ProblemManagementReport params={requestParams} />}
+                {showTicketSummaryReport && <TicketSummaryReport params={requestParams} interval={timeScale} />}
+                {showTicketResolutionTimeReport && <TicketResolutionTimeReport params={requestParams} interval={timeScale} />}
+                {showCustomerSatisfactionReport && <CustomerSatisfactionReport params={requestParams} interval={timeScale} />}
+                {showProblemManagementReport && <ProblemManagementReport params={requestParams} interval={timeScale} />}
             </Box>
         </div>
     );

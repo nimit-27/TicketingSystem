@@ -226,7 +226,7 @@ export interface SupportDashboardSummarySectionDto {
     totalTickets: number;
 }
 
-export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | "CUSTOM";
+export type SupportDashboardTimeScale = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "CUSTOM";
 
 export type SupportDashboardTimeRange =
     | "LAST_DAY"
