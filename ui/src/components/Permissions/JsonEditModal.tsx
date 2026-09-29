@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Button } from '@mui/material';
-import Editor from '@monaco-editor/react';
+import Editor, { loader } from '@monaco-editor/react';
+
+// Keep Monaco on the application's origin. The production CSP intentionally only
+// permits same-origin scripts, so @monaco-editor/react's default jsDelivr URL is
+// not available there.
+loader.config({
+  paths: { vs: `${process.env.PUBLIC_URL || ''}/monaco-editor/vs` },
+});
 
 interface JsonEditModalProps {
   open: boolean;

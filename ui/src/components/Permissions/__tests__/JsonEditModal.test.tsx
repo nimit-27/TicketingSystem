@@ -5,6 +5,7 @@ import JsonEditModal from '../JsonEditModal';
 
 jest.mock('@monaco-editor/react', () => ({
   __esModule: true,
+  loader: { config: jest.fn() },
   default: ({ value, onChange }: { value: string; onChange?: (value?: string) => void }) => (
     <textarea
       data-testid="mock-monaco-editor"
