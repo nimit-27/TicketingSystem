@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="Detailed_SLA_Report" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    <property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.rows" value="true"/>
+    <property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.columns" value="true"/>
+    <property name="net.sf.jasperreports.export.xlsx.detect.cell.type" value="true"/>
+
+    <style name="Title" fontName="SansSerif" fontSize="18" isBold="true" forecolor="#17365D"/>
+    <style name="Label" mode="Opaque" backcolor="#D9EAF7" fontName="SansSerif" fontSize="9" isBold="true">
+        <box><pen lineWidth="0.5" lineColor="#7F8C8D"/></box>
+    </style>
+    <style name="Header" mode="Opaque" backcolor="#1F4E78" forecolor="#FFFFFF" fontName="SansSerif" fontSize="9" isBold="true">
+        <box><pen lineWidth="0.5" lineColor="#7F8C8D"/></box>
+    </style>
+    <style name="Cell" fontName="SansSerif" fontSize="9">
+        <box><pen lineWidth="0.5" lineColor="#B7B7B7"/></box>
+    </style>
+
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="interval" class="java.lang.String"/>
+
+    <queryString><![CDATA[
+WITH summary_rows AS (
+    SELECT 'SUMMARY' AS record_type,
+           CASE WHEN UPPER($P{interval}) = 'QUARTERLY'
+                THEN CONCAT(YEAR(t.reported_date), '-Q', QUARTER(t.reported_date))
+                ELSE DATE_FORMAT(t.reported_date, '%Y-%m') END AS period_value,
+           CAST(COUNT(DISTINCT t.ticket_id) AS CHAR) AS total_count,
+           CAST(COUNT(DISTINCT CASE WHEN ts.is_sla_applicable IS TRUE AND COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END) AS CHAR) AS breached_count,
+           CAST(ROUND(100.0 * COUNT(DISTINCT CASE WHEN ts.is_sla_applicable IS TRUE AND COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END)
+                / NULLIF(COUNT(DISTINCT t.ticket_id), 0), 2) AS CHAR) AS breached_percentage,
+           NULL AS ticket_id, NULL AS reported_on, NULL AS ticket_status,
+           MIN(t.reported_date) AS sort_date
+      FROM tickets t
+      LEFT JOIN ticket_sla ts ON ts.ticket_id = t.ticket_id
+     WHERE t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d')
+       AND t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY)
+       AND t.status <> 'CHANGE_REQUESTED'
+     GROUP BY YEAR(t.reported_date),
+              CASE WHEN UPPER($P{interval}) = 'QUARTERLY' THEN QUARTER(t.reported_date) ELSE MONTH(t.reported_date) END
+), breached_rows AS (
+    SELECT DISTINCT 'BREACHED' AS record_type, NULL AS period_value, NULL AS total_count,
+           NULL AS breached_count, NULL AS breached_percentage,
+           CAST(t.ticket_id AS CHAR) AS ticket_id,
+           DATE_FORMAT(t.reported_date, '%Y-%m-%d %H:%i:%s') AS reported_on,
+           CAST(t.status AS CHAR) AS ticket_status, t.reported_date AS sort_date
+      FROM tickets t
+      JOIN ticket_sla ts ON ts.ticket_id = t.ticket_id
+     WHERE t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d')
+       AND t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY)
+       AND t.status <> 'CHANGE_REQUESTED'
+       AND ts.is_sla_applicable IS TRUE
+       AND COALESCE(ts.breached_by_minutes, 0) > 0
+)
+SELECT record_type, period_value, total_count, breached_count, breached_percentage,
+       ticket_id, reported_on, ticket_status, sort_date
+  FROM summary_rows
+UNION ALL
+SELECT record_type, period_value, total_count, breached_count, breached_percentage,
+       ticket_id, reported_on, ticket_status, sort_date
+  FROM breached_rows
+ORDER BY record_type DESC, sort_date
+    ]]></queryString>
+
+    <field name="record_type" class="java.lang.String"/>
+    <field name="period_value" class="java.lang.String"/>
+    <field name="total_count" class="java.lang.String"/>
+    <field name="breached_count" class="java.lang.String"/>
+    <field name="breached_percentage" class="java.lang.String"/>
+    <field name="ticket_id" class="java.lang.String"/>
+    <field name="reported_on" class="java.lang.String"/>
+    <field name="ticket_status" class="java.lang.String"/>
+
+    <group name="RecordType">
+        <groupExpression><![CDATA[$F{record_type}]]></groupExpression>
+        <groupHeader><band height="45">
+            <textField><reportElement mode="Opaque" backcolor="#4472C4" forecolor="#FFFFFF" x="0" y="8" width="555" height="20"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/><paragraph leftIndent="5"/></textElement>
+                <textFieldExpression><![CDATA["SUMMARY".equals($F{record_type}) ? "Table 1 - SLA Summary" : "Table 2 - Breached Tickets"]]></textFieldExpression>
+            </textField>
+            <staticText><reportElement style="Header" x="0" y="28" width="150" height="17"><printWhenExpression><![CDATA["SUMMARY".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Period]]></text></staticText>
+            <staticText><reportElement style="Header" x="150" y="28" width="135" height="17"><printWhenExpression><![CDATA["SUMMARY".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Total Ticket Count]]></text></staticText>
+            <staticText><reportElement style="Header" x="285" y="28" width="135" height="17"><printWhenExpression><![CDATA["SUMMARY".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Breached Ticket Count]]></text></staticText>
+            <staticText><reportElement style="Header" x="420" y="28" width="135" height="17"><printWhenExpression><![CDATA["SUMMARY".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Breached Percentage]]></text></staticText>
+            <staticText><reportElement style="Header" x="0" y="28" width="185" height="17"><printWhenExpression><![CDATA["BREACHED".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Ticket Id]]></text></staticText>
+            <staticText><reportElement style="Header" x="185" y="28" width="185" height="17"><printWhenExpression><![CDATA["BREACHED".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Reported On]]></text></staticText>
+            <staticText><reportElement style="Header" x="370" y="28" width="185" height="17"><printWhenExpression><![CDATA["BREACHED".equals($F{record_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Status]]></text></staticText>
+        </band></groupHeader>
+    </group>
+
+    <title><band height="115">
+        <staticText><reportElement style="Title" x="0" y="0" width="555" height="28"/><textElement textAlignment="Center"/><text><![CDATA[Detailed SLA Report]]></text></staticText>
+        <staticText><reportElement style="Label" x="0" y="42" width="120" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><text><![CDATA[From Date]]></text></staticText>
+        <textField><reportElement style="Cell" x="120" y="42" width="157" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{fromDate}]]></textFieldExpression></textField>
+        <staticText><reportElement style="Label" x="277" y="42" width="120" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><text><![CDATA[To Date]]></text></staticText>
+        <textField><reportElement style="Cell" x="397" y="42" width="158" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{toDate}]]></textFieldExpression></textField>
+        <staticText><reportElement style="Label" x="0" y="64" width="120" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><text><![CDATA[Interval]]></text></staticText>
+        <textField><reportElement style="Cell" x="120" y="64" width="435" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{interval}]]></textFieldExpression></textField>
+        <staticText><reportElement x="0" y="91" width="555" height="18" forecolor="#666666"/><textElement textAlignment="Center"><font size="8" isItalic="true"/></textElement><text><![CDATA[Tickets with status CHANGE_REQUESTED are excluded.]]></text></staticText>
+    </band></title>
+
+    <detail>
+        <band height="20"><printWhenExpression><![CDATA["SUMMARY".equals($F{record_type})]]></printWhenExpression>
+            <textField><reportElement style="Cell" x="0" y="0" width="150" height="20"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{period_value}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="150" y="0" width="135" height="20"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{total_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="285" y="0" width="135" height="20"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{breached_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="420" y="0" width="135" height="20"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{breached_percentage} + "%"]]></textFieldExpression></textField>
+        </band>
+        <band height="20"><printWhenExpression><![CDATA["BREACHED".equals($F{record_type})]]></printWhenExpression>
+            <textField><reportElement style="Cell" x="0" y="0" width="185" height="20"/><textElement verticalAlignment="Middle"><paragraph leftIndent="4"/></textElement><textFieldExpression><![CDATA[$F{ticket_id}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="185" y="0" width="185" height="20"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{reported_on}]]></textFieldExpression></textField>
+            <textField><reportElement style="Cell" x="370" y="0" width="185" height="20"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{ticket_status}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+    <pageFooter><band height="18"><textField><reportElement x="455" y="0" width="100" height="18"/><textElement textAlignment="Right"/><textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression></textField></band></pageFooter>
+</jasperReport>

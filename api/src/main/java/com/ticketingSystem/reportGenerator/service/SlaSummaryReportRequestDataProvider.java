@@ -18,6 +18,7 @@ import java.util.Map;
 public class SlaSummaryReportRequestDataProvider implements ReportRequestDataProvider {
     private static final String REPORT_CODE = "SLA_SUMMARY_RPT";
     private static final String WORKBOOK_REPORT_CODE = "SLA_SUMMARY_RPT_2";
+    private static final String DETAILED_REPORT_CODE = "SLA_DETAILED_RPT";
     private final String defaultFromDate;
 
     public SlaSummaryReportRequestDataProvider(
@@ -27,7 +28,9 @@ public class SlaSummaryReportRequestDataProvider implements ReportRequestDataPro
 
     @Override
     public boolean supports(String reportCode, ReportMaster reportMaster, Map<String, Object> filters) {
-        return REPORT_CODE.equalsIgnoreCase(reportCode) || WORKBOOK_REPORT_CODE.equalsIgnoreCase(reportCode);
+        return REPORT_CODE.equalsIgnoreCase(reportCode)
+                || WORKBOOK_REPORT_CODE.equalsIgnoreCase(reportCode)
+                || DETAILED_REPORT_CODE.equalsIgnoreCase(reportCode);
     }
 
     @Override
@@ -45,7 +48,13 @@ public class SlaSummaryReportRequestDataProvider implements ReportRequestDataPro
         params.put("toDate", stringOrDefault(filters.get("toDate"), LocalDate.now().toString()));
         params.put("breachedOnFromDate", nullableString(filters.get("breachedOnFromDate")));
         params.put("breachedOnToDate", nullableString(filters.get("breachedOnToDate")));
+        params.put("interval", normalizedInterval(filters.get("interval")));
         return params;
+    }
+
+    private String normalizedInterval(Object value) {
+        String interval = nullableString(value);
+        return "QUARTERLY".equalsIgnoreCase(interval) ? "QUARTERLY" : "MONTHLY";
     }
 
     private String nullableString(Object value) {

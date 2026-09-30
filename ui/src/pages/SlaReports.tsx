@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, TextField } from "@mui/material";
+import { SelectChangeEvent } from "@mui/material/Select";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import SlaReportGenerator from "../components/MISReports/SlaReportGenerator";
@@ -57,9 +58,15 @@ const SlaReports: React.FC = () => {
     const [selectedDivision, setSelectedDivision] = React.useState("All");
     const [selectedBreached, setSelectedBreached] = React.useState<"ALL" | "BREACHED" | "BREACHED_IN">("ALL");
     const [reportDownloading, setReportDownloading] = React.useState(false);
+    const [detailedReportDownloading, setDetailedReportDownloading] = React.useState(false);
     const [reportDates, setReportDates] = React.useState({
         fromDate: "",
         toDate: getCurrentDate(),
+    });
+    const [detailedReportFilters, setDetailedReportFilters] = React.useState({
+        fromDate: "",
+        toDate: getCurrentDate(),
+        interval: "MONTHLY",
     });
     const [regionOptions, setRegionOptions] = React.useState<DropdownOption[]>([allOption]);
     const [districtOptions, setDistrictOptions] = React.useState<DropdownOption[]>([allOption]);
@@ -78,10 +85,11 @@ const SlaReports: React.FC = () => {
 
     React.useEffect(() => {
         void getSlaReportDefaultDates()
-            .then(({ data }) => setReportDates({
-                fromDate: data.fromDate,
-                toDate: data.toDate || getCurrentDate(),
-            }))
+            .then(({ data }) => {
+                const dates = { fromDate: data.fromDate, toDate: data.toDate || getCurrentDate() };
+                setReportDates(dates);
+                setDetailedReportFilters((current) => ({ ...current, ...dates }));
+            })
             .catch(() => {
                 // The API also applies these defaults when a report is generated.
             });
@@ -193,6 +201,10 @@ const SlaReports: React.FC = () => {
     const updateReportDate = (key: keyof typeof reportDates) => (event: React.ChangeEvent<HTMLInputElement>) =>
         setReportDates((current) => ({ ...current, [key]: event.target.value }));
 
+    const updateDetailedReportFilter = (key: keyof typeof detailedReportFilters) =>
+        (event: React.ChangeEvent<HTMLInputElement> | SelectChangeEvent) =>
+            setDetailedReportFilters((current) => ({ ...current, [key]: event.target.value }));
+
     const generateSlaReport = async (option: string) => {
         if (reportDates.fromDate && reportDates.toDate && reportDates.fromDate > reportDates.toDate) {
             showMessage("From date cannot be after to date.", "warning");
@@ -216,8 +228,35 @@ const SlaReports: React.FC = () => {
         }
     };
 
+    const generateDetailedSlaReport = async (option: string) => {
+        if (!detailedReportFilters.fromDate || !detailedReportFilters.toDate) {
+            showMessage("From date and to date are required.", "warning");
+            return;
+        }
+        if (detailedReportFilters.fromDate > detailedReportFilters.toDate) {
+            showMessage("From date cannot be after to date.", "warning");
+            return;
+        }
+
+        setDetailedReportDownloading(true);
+        try {
+            await downloadTicketsReport({
+                reportCode: "SLA_DETAILED_RPT",
+                format: option === "pdf" ? "PDF" : "EXCEL",
+                ...detailedReportFilters,
+                requestedBy: getCurrentUserDetails()?.userId,
+            });
+            showMessage("Detailed SLA report request queued. Track it on the Downloads page.", "success");
+        } catch (error) {
+            showMessage("Unable to queue the detailed SLA report.", "error");
+        } finally {
+            setDetailedReportDownloading(false);
+        }
+    };
+
     const slaReportGeneratorComponent = (
-        <SlaReportGenerator
+        <Box display="flex" gap={1} flexWrap="wrap" justifyContent="flex-end">
+          <SlaReportGenerator
             onDownload={generateSlaReport}
             busy={reportDownloading}
             filterControls={(
@@ -230,7 +269,35 @@ const SlaReports: React.FC = () => {
                     </Box>
                 </Box>
             )}
-        />
+          />
+          <SlaReportGenerator
+            buttonLabel="Generate Detailed SLA Report"
+            dialogTitle="Generate Detailed SLA Report"
+            onDownload={generateDetailedSlaReport}
+            onViewDownloads={() => navigate("/downloads")}
+            busy={detailedReportDownloading}
+            filterControls={(
+                <Box className="row g-2">
+                    <Box className="col-12 col-md-6">
+                        <TextField id="detailed-sla-report-from" label="From Date" type="date" required value={detailedReportFilters.fromDate} onChange={updateDetailedReportFilter("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <TextField id="detailed-sla-report-to" label="To Date" type="date" required value={detailedReportFilters.toDate} onChange={updateDetailedReportFilter("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
+                    <Box className="col-12">
+                        <GenericDropdown
+                            id="detailed-sla-report-interval"
+                            label="Interval"
+                            value={detailedReportFilters.interval}
+                            onChange={updateDetailedReportFilter("interval")}
+                            options={[{ value: "MONTHLY", label: "Monthly" }, { value: "QUARTERLY", label: "Quarterly" }]}
+                            fullWidth
+                        />
+                    </Box>
+                </Box>
+            )}
+          />
+        </Box>
     );
 
     return (

@@ -14,6 +14,7 @@ import {
 import EmailIcon from "@mui/icons-material/Email";
 import DownloadIcon from "@mui/icons-material/Download";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import LaunchIcon from "@mui/icons-material/Launch";
 
 export interface DownloadOption {
     value: string;
@@ -32,6 +33,8 @@ interface SlaReportGeneratorProps {
     busy?: boolean;
     filterControls?: React.ReactNode;
     buttonLabel?: string;
+    dialogTitle?: string;
+    onViewDownloads?: () => void;
 }
 
 const SlaReportGenerator: React.FC<SlaReportGeneratorProps> = ({
@@ -41,6 +44,8 @@ const SlaReportGenerator: React.FC<SlaReportGeneratorProps> = ({
     busy = false,
     filterControls,
     buttonLabel = "Generate SLA Report",
+    dialogTitle = "Generate SLA Report",
+    onViewDownloads,
 }) => {
     const [open, setOpen] = useState(false);
     const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
@@ -69,7 +74,7 @@ const SlaReportGenerator: React.FC<SlaReportGeneratorProps> = ({
             </Button>
 
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-                <DialogTitle>Generate SLA Report</DialogTitle>
+                <DialogTitle>{dialogTitle}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} mt={1}>
                         {filterControls && (
@@ -83,6 +88,9 @@ const SlaReportGenerator: React.FC<SlaReportGeneratorProps> = ({
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
+                    {onViewDownloads && <Button variant="text" startIcon={<LaunchIcon />} onClick={onViewDownloads}>
+                        Go to Downloads
+                    </Button>}
                     {onEmail && <Button variant="outlined" color="primary" startIcon={<EmailIcon />} onClick={handleEmail}>
                         Email
                     </Button>}
