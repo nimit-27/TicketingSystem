@@ -91,7 +91,7 @@ ORDER BY record_type DESC, sort_date
         </band></groupHeader>
     </group>
 
-    <title><band height="115">
+    <title><band height="91">
         <staticText><reportElement style="Title" x="0" y="0" width="555" height="28"/><textElement textAlignment="Center"/><text><![CDATA[Detailed SLA Report]]></text></staticText>
         <staticText><reportElement style="Label" x="0" y="42" width="120" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><text><![CDATA[From Date]]></text></staticText>
         <textField><reportElement style="Cell" x="120" y="42" width="157" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{fromDate}]]></textFieldExpression></textField>
@@ -99,7 +99,6 @@ ORDER BY record_type DESC, sort_date
         <textField><reportElement style="Cell" x="397" y="42" width="158" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{toDate}]]></textFieldExpression></textField>
         <staticText><reportElement style="Label" x="0" y="64" width="120" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><text><![CDATA[Interval]]></text></staticText>
         <textField><reportElement style="Cell" x="120" y="64" width="435" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{interval}]]></textFieldExpression></textField>
-        <staticText><reportElement x="0" y="91" width="555" height="18" forecolor="#666666"/><textElement textAlignment="Center"><font size="8" isItalic="true"/></textElement><text><![CDATA[Tickets with status CHANGE_REQUESTED are excluded.]]></text></staticText>
     </band></title>
 
     <detail>

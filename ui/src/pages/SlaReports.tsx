@@ -18,6 +18,7 @@ import { checkAccessMaster } from "../utils/permissions";
 import { downloadTicketsReport, getSlaReportDefaultDates } from "../services/TicketService";
 import { getCurrentUserDetails } from "../config/config";
 import { useSnackbar } from "../context/SnackbarContext";
+import { createMonthOptions, createQuarterOptions, DetailedSlaInterval, getPeriodDateRange } from "../utils/detailedSlaReportDates";
 
 const getCurrentDate = () => {
     const now = new Date();
@@ -63,11 +64,21 @@ const SlaReports: React.FC = () => {
         fromDate: "",
         toDate: getCurrentDate(),
     });
-    const [detailedReportFilters, setDetailedReportFilters] = React.useState({
+    const [detailedReportFilters, setDetailedReportFilters] = React.useState<{
+        fromDate: string;
+        toDate: string;
+        interval: DetailedSlaInterval;
+        fromPeriod: string;
+        toPeriod: string;
+    }>({
         fromDate: "",
         toDate: getCurrentDate(),
         interval: "MONTHLY",
+        fromPeriod: "",
+        toPeriod: "",
     });
+    const monthOptions = React.useMemo(() => createMonthOptions(), []);
+    const quarterOptions = React.useMemo(() => createQuarterOptions(), []);
     const [regionOptions, setRegionOptions] = React.useState<DropdownOption[]>([allOption]);
     const [districtOptions, setDistrictOptions] = React.useState<DropdownOption[]>([allOption]);
 
@@ -201,9 +212,26 @@ const SlaReports: React.FC = () => {
     const updateReportDate = (key: keyof typeof reportDates) => (event: React.ChangeEvent<HTMLInputElement>) =>
         setReportDates((current) => ({ ...current, [key]: event.target.value }));
 
-    const updateDetailedReportFilter = (key: keyof typeof detailedReportFilters) =>
+    const updateDetailedReportFilter = (key: "fromDate" | "toDate") =>
         (event: React.ChangeEvent<HTMLInputElement> | SelectChangeEvent) =>
             setDetailedReportFilters((current) => ({ ...current, [key]: event.target.value }));
+
+    const updateDetailedReportInterval = (event: SelectChangeEvent) =>
+        setDetailedReportFilters((current) => ({
+            ...current,
+            interval: event.target.value as DetailedSlaInterval,
+            fromPeriod: "",
+            toPeriod: "",
+        }));
+
+    const updateDetailedReportPeriod = (key: "fromPeriod" | "toPeriod") => (event: SelectChangeEvent) => {
+        const value = event.target.value;
+        setDetailedReportFilters((current) => {
+            const next = { ...current, [key]: value };
+            if (!next.fromPeriod) return next;
+            return { ...next, ...getPeriodDateRange(current.interval as "MONTHLY" | "QUARTERLY", next.fromPeriod, next.toPeriod) };
+        });
+    };
 
     const generateSlaReport = async (option: string) => {
         if (reportDates.fromDate && reportDates.toDate && reportDates.fromDate > reportDates.toDate) {
@@ -244,6 +272,8 @@ const SlaReports: React.FC = () => {
                 reportCode: "SLA_DETAILED_RPT",
                 format: option === "pdf" ? "PDF" : "EXCEL",
                 ...detailedReportFilters,
+                fromPeriod: undefined,
+                toPeriod: undefined,
                 requestedBy: getCurrentUserDetails()?.userId,
             });
             showMessage("Detailed SLA report request queued. Track it on the Downloads page.", "success");
@@ -278,21 +308,44 @@ const SlaReports: React.FC = () => {
             busy={detailedReportDownloading}
             filterControls={(
                 <Box className="row g-2">
-                    <Box className="col-12 col-md-6">
-                        <TextField id="detailed-sla-report-from" label="From Date" type="date" required value={detailedReportFilters.fromDate} onChange={updateDetailedReportFilter("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                    </Box>
-                    <Box className="col-12 col-md-6">
-                        <TextField id="detailed-sla-report-to" label="To Date" type="date" required value={detailedReportFilters.toDate} onChange={updateDetailedReportFilter("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                    </Box>
                     <Box className="col-12">
                         <GenericDropdown
                             id="detailed-sla-report-interval"
                             label="Interval"
                             value={detailedReportFilters.interval}
-                            onChange={updateDetailedReportFilter("interval")}
-                            options={[{ value: "MONTHLY", label: "Monthly" }, { value: "QUARTERLY", label: "Quarterly" }]}
+                            onChange={updateDetailedReportInterval}
+                            options={[{ value: "DAILY", label: "Daily" }, { value: "MONTHLY", label: "Monthly" }, { value: "QUARTERLY", label: "Quarterly" }]}
                             fullWidth
                         />
+                    </Box>
+                    {detailedReportFilters.interval !== "DAILY" && <>
+                        <Box className="col-12 col-md-6">
+                            <GenericDropdown
+                                id="detailed-sla-report-from-period"
+                                label={detailedReportFilters.interval === "MONTHLY" ? "From Month" : "From Quarter"}
+                                value={detailedReportFilters.fromPeriod}
+                                onChange={updateDetailedReportPeriod("fromPeriod")}
+                                options={detailedReportFilters.interval === "MONTHLY" ? monthOptions : quarterOptions}
+                                fullWidth
+                            />
+                        </Box>
+                        <Box className="col-12 col-md-6">
+                            <GenericDropdown
+                                id="detailed-sla-report-to-period"
+                                label={detailedReportFilters.interval === "MONTHLY" ? "To Month" : "To Quarter"}
+                                value={detailedReportFilters.toPeriod}
+                                onChange={updateDetailedReportPeriod("toPeriod")}
+                                options={detailedReportFilters.interval === "MONTHLY" ? monthOptions : quarterOptions}
+                                fullWidth
+                                disabled={!detailedReportFilters.fromPeriod}
+                            />
+                        </Box>
+                    </>}
+                    <Box className="col-12 col-md-6">
+                        <TextField id="detailed-sla-report-from" label="From Date" type="date" required value={detailedReportFilters.fromDate} onChange={updateDetailedReportFilter("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <TextField id="detailed-sla-report-to" label="To Date" type="date" required value={detailedReportFilters.toDate} onChange={updateDetailedReportFilter("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
                     </Box>
                 </Box>
             )}
