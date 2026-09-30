@@ -1,12 +1,12 @@
 import React from "react";
 import { Box, TextField } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import Title from "../components/Title";
 import SlaReportGenerator from "../components/MISReports/SlaReportGenerator";
 import GenericDropdown from "../components/UI/Dropdown/GenericDropdown";
 import SlaPerformanceReport from "../components/MISReports/SlaPerformanceReport";
 import { timeScaleOptions } from "../utils/misReports";
 import { useMisReportFilters } from "../hooks/useMisReportFilters";
-import { useSlaReportDownloader } from "../hooks/useSlaReportDownloader";
 import { useApi } from "../hooks/useApi";
 import { getZones, getRegions, getDistricts } from "../services/LocationService";
 import { getIssueTypes } from "../services/IssueTypeService";
@@ -14,8 +14,19 @@ import { getDivisions } from "../services/DivisionService";
 import { getDropdownOptionsWithExtraOption } from "../utils/Utils";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { checkAccessMaster } from "../utils/permissions";
+import { downloadTicketsReport } from "../services/TicketService";
+import { getCurrentUserDetails } from "../config/config";
+import { useSnackbar } from "../context/SnackbarContext";
+
+const getCurrentDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
+};
 
 const SlaReports: React.FC = () => {
+    const navigate = useNavigate();
+    const { showMessage } = useSnackbar();
     const hasAccess = React.useCallback((keys: string[]) => checkAccessMaster(["slaReports", ...keys]), []);
     const allOption: DropdownOption = React.useMemo(() => ({ label: "All", value: "All" }), []);
     const {
@@ -45,6 +56,13 @@ const SlaReports: React.FC = () => {
     const [selectedIssueType, setSelectedIssueType] = React.useState("All");
     const [selectedDivision, setSelectedDivision] = React.useState("All");
     const [selectedBreached, setSelectedBreached] = React.useState<"ALL" | "BREACHED" | "BREACHED_IN">("ALL");
+    const [reportDownloading, setReportDownloading] = React.useState(false);
+    const [reportDates, setReportDates] = React.useState({
+        fromDate: "",
+        toDate: getCurrentDate(),
+        breachedOnFromDate: "",
+        breachedOnToDate: "",
+    });
     const [regionOptions, setRegionOptions] = React.useState<DropdownOption[]>([allOption]);
     const [districtOptions, setDistrictOptions] = React.useState<DropdownOption[]>([allOption]);
 
@@ -148,7 +166,6 @@ const SlaReports: React.FC = () => {
         [requestParams, selectedBreached, selectedDistrict, selectedDivision, selectedIssueType, selectedRegion, selectedZone],
     );
 
-    const { downloading, handleDownload, handleEmail } = useSlaReportDownloader(extendedRequestParams);
     const showReportGenerator = React.useMemo(() => hasAccess(["reportGenerator"]), [hasAccess]);
     const showIntervalFilter = React.useMemo(() => hasAccess(["filters", "interval"]), [hasAccess]);
     const showRangeFilter = React.useMemo(() => hasAccess(["filters", "range"]), [hasAccess]);
@@ -164,49 +181,53 @@ const SlaReports: React.FC = () => {
     const showBreachedFilter = React.useMemo(() => hasAccess(["filters", "breached"]), [hasAccess]);
     const showSlaPerformanceReport = React.useMemo(() => hasAccess(["slaPerformanceReport"]), [hasAccess]);
 
-    const misReportGeneratorComponent = (
+    const updateReportDate = (key: keyof typeof reportDates) => (event: React.ChangeEvent<HTMLInputElement>) =>
+        setReportDates((current) => ({ ...current, [key]: event.target.value }));
+
+    const generateSlaReport = async (option: string) => {
+        if ((reportDates.fromDate && reportDates.toDate && reportDates.fromDate > reportDates.toDate)
+            || (reportDates.breachedOnFromDate && reportDates.breachedOnToDate && reportDates.breachedOnFromDate > reportDates.breachedOnToDate)) {
+            showMessage("From date cannot be after to date.", "warning");
+            return;
+        }
+
+        setReportDownloading(true);
+        try {
+            await downloadTicketsReport({
+                reportCode: "SLA_SUMMARY_RPT_2",
+                format: option === "pdf" ? "PDF" : "EXCEL",
+                ...reportDates,
+                requestedBy: getCurrentUserDetails()?.userId,
+            });
+            showMessage("SLA report request queued. Track it on the Downloads page.", "success");
+            navigate("/downloads");
+        } catch (error) {
+            showMessage("Unable to queue the SLA report.", "error");
+        } finally {
+            setReportDownloading(false);
+        }
+    };
+
+    const slaReportGeneratorComponent = (
         <SlaReportGenerator
-            onDownload={handleDownload}
-            onEmail={handleEmail}
-            busy={downloading}
+            onDownload={generateSlaReport}
+            busy={reportDownloading}
             filterControls={(
                 <Box className="row g-2">
-                    {showIntervalFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-interval" label="Interval" value={timeScale} onChange={handleTimeScaleChange} options={timeScaleOptions.filter((option) => option.value !== "CUSTOM")} fullWidth className="w-100" />
-                    </Box>}
-                    {showRangeFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-range" label="Range" value={timeRange} onChange={handleTimeRangeChange} options={availableTimeRanges} fullWidth className="w-100" />
-                    </Box>}
                     {showFromDateFilter && <Box className="col-12 col-md-6">
-                        <TextField id="sla-report-modal-from" label="From Date" type="date" value={activeDateRange.from} onChange={handleDateChange("from")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                        <TextField id="sla-report-modal-from" label="Created From" type="date" value={reportDates.fromDate} onChange={updateReportDate("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
                     </Box>}
                     {showToDateFilter && <Box className="col-12 col-md-6">
-                        <TextField id="sla-report-modal-to" label="To Date" type="date" value={activeDateRange.to} onChange={handleDateChange("to")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                        <TextField id="sla-report-modal-to" label="Created To" type="date" value={reportDates.toDate} onChange={updateReportDate("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
                     </Box>}
-                    {showModuleFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-category" label="Module" value={selectedCategory} onChange={handleCategoryChange} options={categoryOptions} fullWidth className="w-100" />
-                    </Box>}
-                    {showSubModuleFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-subcategory" label="Sub Module" value={selectedSubCategory} onChange={handleSubCategoryChange} options={subCategoryOptions} fullWidth className="w-100" disabled={selectedCategory === "All"} />
-                    </Box>}
-                    {showZoneFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-zone" label="Zone" value={selectedZone} onChange={(e) => setSelectedZone(e.target.value as string)} options={zoneOptions} fullWidth className="w-100" />
-                    </Box>}
-                    {showRegionFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-region" label="Region" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value as string)} options={regionOptions} fullWidth className="w-100" disabled={selectedZone === "All"} />
-                    </Box>}
-                    {showDistrictFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-district" label="District" value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value as string)} options={districtOptions} fullWidth className="w-100" disabled={selectedRegion === "All"} />
-                    </Box>}
-                    {showIssueTypeFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-issue-type" label="Issue Type" value={selectedIssueType} onChange={(e) => setSelectedIssueType(e.target.value as string)} options={issueTypeOptions} fullWidth className="w-100" />
-                    </Box>}
-                    {showDivisionFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-division" label="Division" value={selectedDivision} onChange={(e) => setSelectedDivision(e.target.value as string)} options={divisionOptions} fullWidth className="w-100" />
-                    </Box>}
-                    {showBreachedFilter && <Box className="col-12 col-md-6">
-                        <GenericDropdown id="sla-report-modal-breached" label="Breached" value={selectedBreached} onChange={(e) => setSelectedBreached(e.target.value as "ALL" | "BREACHED" | "BREACHED_IN")} options={breachedOptions} fullWidth className="w-100" />
-                    </Box>}
+                    {showBreachedFilter && <>
+                        <Box className="col-12 col-md-6">
+                            <TextField id="sla-report-modal-breached-from" label="Breached On From" type="date" value={reportDates.breachedOnFromDate} onChange={updateReportDate("breachedOnFromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                        </Box>
+                        <Box className="col-12 col-md-6">
+                            <TextField id="sla-report-modal-breached-to" label="Breached On To" type="date" value={reportDates.breachedOnToDate} onChange={updateReportDate("breachedOnToDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                        </Box>
+                    </>}
                 </Box>
             )}
         />
@@ -214,7 +235,7 @@ const SlaReports: React.FC = () => {
 
     return (
         <div className="d-flex flex-column flex-grow-1 w-100">
-            <Title textKey="SLA Reports" rightContent={showReportGenerator ? misReportGeneratorComponent : undefined} />
+            <Title textKey="SLA Reports" rightContent={showReportGenerator ? slaReportGeneratorComponent : undefined} />
 
             <Box display="flex" flexDirection="column" gap={2}>
                 <Box className="row g-3" alignItems="stretch">
