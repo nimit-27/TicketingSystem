@@ -17,6 +17,12 @@ import { downloadTicketsReport } from "../services/TicketService";
 import { getCurrentUserDetails } from "../config/config";
 import { useSnackbar } from "../context/SnackbarContext";
 
+const getCurrentDate = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
+};
+
 const MISReports: React.FC = () => {
     const { showMessage } = useSnackbar();
     
@@ -24,7 +30,7 @@ const MISReports: React.FC = () => {
     const [slaDownloading, setSlaDownloading] = React.useState(false);
     const [slaDates, setSlaDates] = React.useState({
         fromDate: "",
-        toDate: "",
+        toDate: getCurrentDate(),
         breachedOnFromDate: "",
         breachedOnToDate: "",
     });
@@ -122,7 +128,7 @@ const MISReports: React.FC = () => {
         setSlaDownloading(true);
         try {
             await downloadTicketsReport({
-                reportCode: "SLA_SUMMARY_RPT",
+                reportCode: "SLA_SUMMARY_RPT_2",
                 format: option === "pdf" ? "PDF" : "EXCEL",
                 ...slaDates,
                 requestedBy: getCurrentUserDetails()?.userId,

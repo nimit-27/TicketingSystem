@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="TMS_SLA_Report" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    <property name="net.sf.jasperreports.export.xlsx.sheet.name" value="TMS_SLA Report"/>
+    <property name="net.sf.jasperreports.export.xlsx.freeze.row" value="7"/>
+    <property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.rows" value="true"/>
+    <property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.columns" value="true"/>
+
+    <style name="Label" mode="Opaque" backcolor="#D9EAF7" forecolor="#000000"
+           fontName="SansSerif" fontSize="10" isBold="true">
+        <box><pen lineWidth="0.5" lineColor="#7F8C8D"/></box>
+    </style>
+    <style name="Value" mode="Opaque" backcolor="#FFFFFF" forecolor="#000000"
+           fontName="SansSerif" fontSize="10">
+        <box><pen lineWidth="0.5" lineColor="#7F8C8D"/></box>
+    </style>
+    <style name="Section" mode="Opaque" backcolor="#1F4E78" forecolor="#FFFFFF"
+           fontName="SansSerif" fontSize="11" isBold="true">
+        <box><pen lineWidth="0.5" lineColor="#1F4E78"/></box>
+    </style>
+
+    <parameter name="fromDate" class="java.lang.String"/>
+    <parameter name="toDate" class="java.lang.String"/>
+    <parameter name="breachedOnFromDate" class="java.lang.String"/>
+    <parameter name="breachedOnToDate" class="java.lang.String"/>
+    <parameter name="generatedOn" class="java.lang.String"/>
+
+    <queryString><![CDATA[
+WITH ticket_summary AS (
+    SELECT COUNT(DISTINCT t.ticket_id) AS total_tickets,
+           COUNT(DISTINCT CASE WHEN t.status = 'RESOLVED' THEN t.ticket_id END) AS resolved_tickets,
+           COUNT(DISTINCT CASE WHEN t.status = 'CLOSED' THEN t.ticket_id END) AS closed_tickets,
+           COUNT(DISTINCT CASE WHEN t.status IN ('OPEN', 'REOPENED') THEN t.ticket_id END) AS open_tickets,
+           COUNT(DISTINCT CASE WHEN t.status IN ('ASSIGNED', 'ASSIGN_FURTHER') THEN t.ticket_id END) AS assigned_tickets,
+           COUNT(DISTINCT CASE WHEN t.status = 'PENDING_WITH_REQUESTER' THEN t.ticket_id END) AS requester_pending,
+           COUNT(DISTINCT CASE WHEN t.status IN ('PENDING_WITH_FCI', 'PENDING_WITH_SERVICE_PROVIDER', 'PENDING', 'ON_HOLD') THEN t.ticket_id END) AS fci_pending,
+           COUNT(DISTINCT CASE WHEN t.status = 'CHANGE_REQUESTED' THEN t.ticket_id END) AS change_requests,
+           CASE WHEN COUNT(DISTINCT CASE WHEN ts.is_sla_applicable IS TRUE AND COALESCE(ts.breached_by_minutes, 0) > 0 THEN t.ticket_id END) = 0
+                THEN 'SLA MET' ELSE 'SLA BREACHED' END AS sla_status
+      FROM tickets t
+      LEFT JOIN ticket_sla ts ON ts.ticket_id = t.ticket_id
+     WHERE ($P{fromDate} IS NULL OR t.reported_date >= STR_TO_DATE($P{fromDate}, '%Y-%m-%d'))
+       AND ($P{toDate} IS NULL OR t.reported_date < DATE_ADD(STR_TO_DATE($P{toDate}, '%Y-%m-%d'), INTERVAL 1 DAY))
+       AND ($P{breachedOnFromDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at >= STR_TO_DATE($P{breachedOnFromDate}, '%Y-%m-%d')))
+       AND ($P{breachedOnToDate} IS NULL OR (ts.breached_by_minutes > 0 AND ts.due_at < DATE_ADD(STR_TO_DATE($P{breachedOnToDate}, '%Y-%m-%d'), INTERVAL 1 DAY)))
+)
+SELECT 1 AS sort_order, 'Total Ticket Raised' AS metric, CAST(total_tickets AS CHAR) AS metric_value, sla_status FROM ticket_summary
+UNION ALL SELECT 2, 'Resolved', CAST(resolved_tickets AS CHAR), sla_status FROM ticket_summary
+UNION ALL SELECT 3, 'Closed by Users', CAST(closed_tickets AS CHAR), sla_status FROM ticket_summary
+UNION ALL SELECT 4, 'Open', CAST(open_tickets AS CHAR), sla_status FROM ticket_summary
+UNION ALL SELECT 5, 'Assigned (In-Progress)', CAST(assigned_tickets AS CHAR), sla_status FROM ticket_summary
+UNION ALL SELECT 6, 'On-Hold (Pending with Requestor)', CAST(requester_pending AS CHAR), sla_status FROM ticket_summary
+UNION ALL SELECT 7, 'On-Hold (Pending with FCI)', CAST(fci_pending AS CHAR), sla_status FROM ticket_summary
+UNION ALL SELECT 8, 'Change Request', CAST(change_requests AS CHAR), sla_status FROM ticket_summary
+ORDER BY sort_order
+    ]]></queryString>
+    <field name="sort_order" class="java.lang.Integer"/>
+    <field name="metric" class="java.lang.String"/>
+    <field name="metric_value" class="java.lang.String"/>
+    <field name="sla_status" class="java.lang.String"/>
+
+    <group name="ReportHeader">
+        <groupExpression><![CDATA["SLA"]]></groupExpression>
+        <groupHeader>
+            <band height="174">
+            <staticText><reportElement style="Label" x="0" y="0" width="190" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Application]]></text></staticText>
+            <staticText><reportElement style="Value" x="190" y="0" width="365" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Anna Darpan]]></text></staticText>
+            <staticText><reportElement style="Label" x="0" y="28" width="190" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Report Name]]></text></staticText>
+            <staticText><reportElement style="Value" x="190" y="28" width="365" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Ticket management System]]></text></staticText>
+            <staticText><reportElement style="Label" x="0" y="56" width="190" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Reporting Period]]></text></staticText>
+            <textField isBlankWhenNull="true"><reportElement style="Value" x="190" y="56" width="365" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><textFieldExpression><![CDATA[($P{fromDate} == null ? "Any" : $P{fromDate}) + " to " + ($P{toDate} == null ? "Any" : $P{toDate})]]></textFieldExpression></textField>
+            <staticText><reportElement style="Label" x="0" y="84" width="190" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Report Date:]]></text></staticText>
+            <textField><reportElement style="Value" x="190" y="84" width="365" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><textFieldExpression><![CDATA[$P{generatedOn} == null ? "" : ($P{generatedOn}.length() >= 10 ? $P{generatedOn}.substring(0, 10) : $P{generatedOn})]]></textFieldExpression></textField>
+            <staticText><reportElement style="Label" x="0" y="112" width="190" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[SLA Status]]></text></staticText>
+            <textField><reportElement style="Value" x="190" y="112" width="365" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/><paragraph leftIndent="6"/></textElement><textFieldExpression><![CDATA[$F{sla_status}]]></textFieldExpression></textField>
+            <staticText><reportElement style="Section" x="0" y="152" width="555" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><text><![CDATA[Ticket Summary]]></text></staticText>
+            </band>
+        </groupHeader>
+    </group>
+    <detail>
+        <band height="28">
+            <textField><reportElement style="Label" x="0" y="0" width="390" height="28"/><textElement verticalAlignment="Middle"><paragraph leftIndent="6"/></textElement><textFieldExpression><![CDATA[$F{metric}]]></textFieldExpression></textField>
+            <textField><reportElement style="Value" x="390" y="0" width="165" height="28"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{metric_value}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+</jasperReport>
