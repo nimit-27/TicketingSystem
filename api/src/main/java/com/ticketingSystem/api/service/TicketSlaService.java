@@ -74,6 +74,11 @@ public class TicketSlaService {
         return calculateAndSaveByCalendarInternal(ticket, history, false);
     }
 
+    public long getMaxResolutionMinutes() {
+        Long maxResolutionMinutes = slaConfigRepository.findMaxResolutionMinutes();
+        return maxResolutionMinutes == null ? 0L : maxResolutionMinutes;
+    }
+
     public TicketSla calculateAndSaveByCalendarFromScratch(Ticket ticket, List<StatusHistory> history) {
         return calculateAndSaveByCalendarInternal(ticket, history, true, true);
     }

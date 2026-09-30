@@ -170,6 +170,10 @@ export function recalculateTicketSlas(ticketIds: string[]) {
     return axios.post(`${BASE_URL}/tickets/sla/recalculate`, ticketIds);
 }
 
+export function getMaxSlaResolutionMinutes() {
+    return axios.get<number>(`${BASE_URL}/tickets/sla/max-resolution-minutes`);
+}
+
 
 export function downloadTicketsReport({
     reportCode,
