@@ -402,6 +402,11 @@ public class TicketController {
         return ResponseEntity.ok(resp);
     }
 
+    @GetMapping("/sla/max-resolution-minutes")
+    public ResponseEntity<Long> getMaxSlaResolutionMinutes() {
+        return ResponseEntity.ok(ticketSlaService.getMaxResolutionMinutes());
+    }
+
     @GetMapping("/search/export")
     public ResponseEntity<List<TicketDto>> searchTicketsForExport(
             @RequestParam(defaultValue = "") String query,

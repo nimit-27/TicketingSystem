@@ -678,7 +678,9 @@ const TicketsList: React.FC<TicketsListProps> = ({
             if (typeof parsed.assignedBackFromFciOnly === "boolean") setAssignedBackFromFciOnly(parsed.assignedBackFromFciOnly);
             if (typeof parsed.levelFilter === "string") setLevelFilter(parsed.levelFilter);
             if (parsed.levelFilter === null) setLevelFilter(undefined);
-            if (parsed.sortBy === "reportedDate" || parsed.sortBy === "lastModified") setSortBy(parsed.sortBy);
+            if (typeof parsed.sortBy === "string" && sortOptions.some(({ value }) => value === parsed.sortBy)) {
+                setSortBy(parsed.sortBy);
+            }
             if ((parsed.viewMode === "grid" && showGridPermission) || (parsed.viewMode === "table" && showTablePermission)) {
                 setViewMode(parsed.viewMode);
             }
@@ -708,7 +710,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
         } finally {
             setFiltersHydrated(true);
         }
-    }, [filterStorageKey, showGridPermission, showTablePermission]);
+    }, [filterStorageKey, showGridPermission, showTablePermission, sortOptions]);
 
     useEffect(() => {
         if (!filtersHydrated) return;
