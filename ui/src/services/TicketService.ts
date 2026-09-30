@@ -174,6 +174,15 @@ export function getMaxSlaResolutionMinutes() {
     return axios.get<number>(`${BASE_URL}/tickets/sla/max-resolution-minutes`);
 }
 
+export interface SlaReportDefaultDates {
+    fromDate: string;
+    toDate: string;
+}
+
+export function getSlaReportDefaultDates() {
+    return axios.get<SlaReportDefaultDates>(`${BASE_URL}/sla-reports/default-dates`);
+}
+
 
 export function downloadTicketsReport({
     reportCode,

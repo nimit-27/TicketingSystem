@@ -14,7 +14,7 @@ import { getDivisions } from "../services/DivisionService";
 import { getDropdownOptionsWithExtraOption } from "../utils/Utils";
 import { DropdownOption } from "../components/UI/Dropdown/GenericDropdown";
 import { checkAccessMaster } from "../utils/permissions";
-import { downloadTicketsReport } from "../services/TicketService";
+import { downloadTicketsReport, getSlaReportDefaultDates } from "../services/TicketService";
 import { getCurrentUserDetails } from "../config/config";
 import { useSnackbar } from "../context/SnackbarContext";
 
@@ -60,8 +60,6 @@ const SlaReports: React.FC = () => {
     const [reportDates, setReportDates] = React.useState({
         fromDate: "",
         toDate: getCurrentDate(),
-        breachedOnFromDate: "",
-        breachedOnToDate: "",
     });
     const [regionOptions, setRegionOptions] = React.useState<DropdownOption[]>([allOption]);
     const [districtOptions, setDistrictOptions] = React.useState<DropdownOption[]>([allOption]);
@@ -77,6 +75,17 @@ const SlaReports: React.FC = () => {
         void issueTypesHandler(() => getIssueTypes());
         void divisionsHandler(() => getDivisions());
     }, [divisionsHandler, issueTypesHandler, zonesHandler]);
+
+    React.useEffect(() => {
+        void getSlaReportDefaultDates()
+            .then(({ data }) => setReportDates({
+                fromDate: data.fromDate,
+                toDate: data.toDate || getCurrentDate(),
+            }))
+            .catch(() => {
+                // The API also applies these defaults when a report is generated.
+            });
+    }, []);
 
     React.useEffect(() => {
         if (!selectedZone || selectedZone === "All") {
@@ -185,8 +194,7 @@ const SlaReports: React.FC = () => {
         setReportDates((current) => ({ ...current, [key]: event.target.value }));
 
     const generateSlaReport = async (option: string) => {
-        if ((reportDates.fromDate && reportDates.toDate && reportDates.fromDate > reportDates.toDate)
-            || (reportDates.breachedOnFromDate && reportDates.breachedOnToDate && reportDates.breachedOnFromDate > reportDates.breachedOnToDate)) {
+        if (reportDates.fromDate && reportDates.toDate && reportDates.fromDate > reportDates.toDate) {
             showMessage("From date cannot be after to date.", "warning");
             return;
         }
@@ -214,20 +222,12 @@ const SlaReports: React.FC = () => {
             busy={reportDownloading}
             filterControls={(
                 <Box className="row g-2">
-                    {showFromDateFilter && <Box className="col-12 col-md-6">
-                        <TextField id="sla-report-modal-from" label="Created From" type="date" value={reportDates.fromDate} onChange={updateReportDate("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                    </Box>}
-                    {showToDateFilter && <Box className="col-12 col-md-6">
-                        <TextField id="sla-report-modal-to" label="Created To" type="date" value={reportDates.toDate} onChange={updateReportDate("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                    </Box>}
-                    {showBreachedFilter && <>
-                        <Box className="col-12 col-md-6">
-                            <TextField id="sla-report-modal-breached-from" label="Breached On From" type="date" value={reportDates.breachedOnFromDate} onChange={updateReportDate("breachedOnFromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                        </Box>
-                        <Box className="col-12 col-md-6">
-                            <TextField id="sla-report-modal-breached-to" label="Breached On To" type="date" value={reportDates.breachedOnToDate} onChange={updateReportDate("breachedOnToDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
-                        </Box>
-                    </>}
+                    <Box className="col-12 col-md-6">
+                        <TextField id="sla-report-modal-from" label="From Date" type="date" value={reportDates.fromDate} onChange={updateReportDate("fromDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
+                    <Box className="col-12 col-md-6">
+                        <TextField id="sla-report-modal-to" label="To Date" type="date" value={reportDates.toDate} onChange={updateReportDate("toDate")} InputLabelProps={{ shrink: true }} size="small" fullWidth />
+                    </Box>
                 </Box>
             )}
         />
