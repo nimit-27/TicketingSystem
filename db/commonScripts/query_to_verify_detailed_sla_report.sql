@@ -20,8 +20,7 @@ LEFT JOIN ticket_sla ts ON ts.ticket_id = t.ticket_id
 WHERE t.reported_date >= STR_TO_DATE(@from_date, '%Y-%m-%d')
   AND t.reported_date < DATE_ADD(STR_TO_DATE(@to_date, '%Y-%m-%d'), INTERVAL 1 DAY)
   AND t.status <> 'CHANGE_REQUESTED'
-GROUP BY YEAR(t.reported_date),
-         CASE WHEN UPPER(@report_interval) = 'QUARTERLY' THEN QUARTER(t.reported_date) ELSE MONTH(t.reported_date) END
+GROUP BY period
 ORDER BY MIN(t.reported_date);
 
 -- Table 2: all breached tickets in the same date range.
