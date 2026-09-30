@@ -7,6 +7,7 @@ import GenericTable from "../UI/GenericTable";
 import { TicketRow } from "../AllTickets/TicketsTable";
 import { getMaxSlaResolutionMinutes, recalculateTicketSla, recalculateTicketSlas } from "../../services/TicketService";
 import { useSnackbar } from "../../context/SnackbarContext";
+import { useApi } from "../../hooks/useApi";
 
 const formatDateTime = (value?: string) => value ? new Date(value).toLocaleString() : "-";
 const formatMinutes = (value?: number) => value == null ? "-" : `${Math.floor(Math.abs(value) / 60)}h ${Math.abs(value) % 60}m`;
@@ -25,6 +26,9 @@ export const getBreachIndicatorColor = (breachedByMinutes: number, maxResolution
 const SlaManagementTable: React.FC<{ tickets: TicketRow[]; refresh: () => void }> = ({ tickets, refresh }) => {
   const navigate = useNavigate();
   const { showMessage } = useSnackbar();
+  const { apiHandler: getMaxSlaResolutionMinutesApiHandler } = useApi<number>();
+  const { apiHandler: recalculateTicketSlaApiHandler } = useApi<unknown>();
+  const { apiHandler: recalculateTicketSlasApiHandler } = useApi<unknown>();
   const [showColumns, setShowColumns] = useState(false);
   const [busyIds, setBusyIds] = useState<string[]>([]);
   const [maxResolutionMinutes, setMaxResolutionMinutes] = useState(0);
@@ -35,36 +39,28 @@ const SlaManagementTable: React.FC<{ tickets: TicketRow[]; refresh: () => void }
 
   useEffect(() => {
     let active = true;
-    getMaxSlaResolutionMinutes()
-      .then(({ data }) => {
-        if (active) setMaxResolutionMinutes(Math.max(0, Number(data) || 0));
-      })
-      .catch(() => {
-        if (active) showMessage("Unable to load SLA breach color ranges", "error");
-      });
+    getMaxSlaResolutionMinutesApiHandler(getMaxSlaResolutionMinutes).then((minutes) => {
+      if (active && minutes != null) {
+        setMaxResolutionMinutes(Math.max(0, Number(minutes) || 0));
+      }
+    });
     return () => { active = false; };
-  }, [showMessage]);
+  }, [getMaxSlaResolutionMinutesApiHandler]);
 
   const recalculate = async (id: string) => {
     setBusyIds((ids) => [...ids, id]);
     try {
-      await recalculateTicketSla(id);
+      await recalculateTicketSlaApiHandler(() => recalculateTicketSla(id));
       showMessage("SLA recalculated successfully", "success");
       refresh();
-    } catch {
-      showMessage("Unable to recalculate SLA", "error");
     } finally {
       setBusyIds((ids) => ids.filter((value) => value !== id));
     }
   };
 
   const recalculatePage = async () => {
-    try {
-      await recalculateTicketSlas(tickets.map(({ id }) => id));
-      showMessage("SLA recalculation started for this page", "success");
-    } catch {
-      showMessage("Unable to start SLA recalculation", "error");
-    }
+    await recalculateTicketSlasApiHandler(() => recalculateTicketSlas(tickets.map(({ id }) => id)));
+    showMessage("SLA recalculation started for this page", "success");
   };
 
   const columns = useMemo(() => [
