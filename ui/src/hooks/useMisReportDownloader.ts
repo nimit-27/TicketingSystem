@@ -155,15 +155,15 @@ export const useMisReportDownloader = (
             const problemRows: (string | number)[][] = [
                 ...buildMetadataRows("Problem Management Report", range),
                 ["Problem Management"],
-                ["Category", "Sub Category", "Ticket Count", "Breached Tickets"],
-                ...(problemManagement.categoryStats?.length
-                    ? problemManagement.categoryStats.map((entry) => [
-                        entry.categoryName ?? entry.category ?? "N/A",
-                        entry.subcategoryName ?? entry.subcategory ?? "N/A",
-                        entry.ticketCount ?? 0,
-                        entry.breachedTickets ?? 0,
+                ["Ticket Id", "Status", "Reported Date", "Children Count"],
+                ...(problemManagement.masterTickets?.length
+                    ? problemManagement.masterTickets.map((ticket) => [
+                        ticket.ticketId,
+                        ticket.status ?? "N/A",
+                        ticket.reportedDate ?? "N/A",
+                        ticket.childrenCount ?? 0,
                     ])
-                    : [["N/A", "N/A", 0, 0]]),
+                    : [["N/A", "N/A", "N/A", 0]]),
             ];
 
             const sheetDefinitions = [
@@ -220,13 +220,15 @@ export const useMisReportDownloader = (
 
             autoTable(doc, {
                 startY: (((doc as any).lastAutoTable?.finalY) ?? 40) + 8,
-                head: [["Problem Management", "Ticket Count"]],
-                body: (problemManagement.categoryStats?.length
-                    ? problemManagement.categoryStats.slice(0, 20).map((row) => [
-                        `${row.categoryName ?? row.category ?? "N/A"} > ${row.subcategoryName ?? row.subcategory ?? "N/A"}`,
-                        String(row.ticketCount ?? 0),
+                head: [["Ticket Id", "Status", "Reported Date", "Children Count"]],
+                body: (problemManagement.masterTickets?.length
+                    ? problemManagement.masterTickets.slice(0, 20).map((ticket) => [
+                        ticket.ticketId,
+                        ticket.status ?? "N/A",
+                        ticket.reportedDate ?? "N/A",
+                        String(ticket.childrenCount ?? 0),
                     ])
-                    : [["N/A", "0"]]),
+                    : [["N/A", "N/A", "N/A", "0"]]),
             });
 
             (doc as any).save?.(`mis-reports-${period}-${requestParams.toDate || formatDateInput(range.endDate)}.pdf`);
