@@ -2,6 +2,8 @@ package com.ticketingSystem.api.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -19,6 +21,8 @@ public class TicketSla {
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "ticket_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Ticket ticket;
 
     @ManyToOne

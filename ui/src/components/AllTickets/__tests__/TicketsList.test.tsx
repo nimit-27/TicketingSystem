@@ -39,6 +39,7 @@ jest.mock('../../../utils/Utils', () => ({
 const mockCheckMyTicketsAccess = jest.fn(() => true);
 jest.mock('../../../utils/permissions', () => ({
     checkMyTicketsAccess: (...args: any[]) => mockCheckMyTicketsAccess(...args),
+    checkPageComponentsAccess: (...args: any[]) => mockCheckMyTicketsAccess(...args),
 }));
 
 const mockGetStatusWorkflowMappings = jest.fn();

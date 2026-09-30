@@ -24,6 +24,12 @@ const menuItems = [
     icon: "listAlt",
   },
   {
+    key: "allTickets",
+    label: "SLA Management",
+    to: "/sla-management",
+    icon: "timer",
+  },
+  {
     key: "myTickets",
     label: "My Tickets",
     to: "/my-tickets",

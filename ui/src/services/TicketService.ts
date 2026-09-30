@@ -126,6 +126,8 @@ export function searchTicketsPaginated(
     breachedOnToDate?: string,
     lastModifiedStatusFromDate?: string,
     lastModifiedStatusToDate?: string,
+    dueAtFromDate?: string,
+    dueAtToDate?: string,
 ) {
     const params = new URLSearchParams({ query, page: String(page), size: String(size) });
     if (statusName) params.append('status', statusName);
@@ -155,7 +157,17 @@ export function searchTicketsPaginated(
     if (breachedOnToDate) params.append('breachedOnToDate', breachedOnToDate);
     if (lastModifiedStatusFromDate) params.append('lastModifiedStatusFromDate', lastModifiedStatusFromDate);
     if (lastModifiedStatusToDate) params.append('lastModifiedStatusToDate', lastModifiedStatusToDate);
+    if (dueAtFromDate) params.append('dueAtFromDate', dueAtFromDate);
+    if (dueAtToDate) params.append('dueAtToDate', dueAtToDate);
     return axios.get(`${BASE_URL}/tickets/search?${params.toString()}`);
+}
+
+export function recalculateTicketSla(ticketId: string) {
+    return axios.post(`${BASE_URL}/tickets/${ticketId}/sla/recalculate`);
+}
+
+export function recalculateTicketSlas(ticketIds: string[]) {
+    return axios.post(`${BASE_URL}/tickets/sla/recalculate`, ticketIds);
 }
 
 

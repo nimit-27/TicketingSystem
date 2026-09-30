@@ -10,6 +10,7 @@ import ExternalCallback from './pages/ExternalCallback';
 const SidebarLayout = lazy(() => import('./components/Layout/SidebarLayout'));
 const RaiseTicket = lazy(() => import('./pages/RaiseTicket'));
 const AllTickets = lazy(() => import('./pages/AllTickets'));
+const SlaManagement = lazy(() => import('./pages/SlaManagement'));
 const KnowledgeBase = lazy(() => import('./pages/KnowledgeBase'));
 const TicketDetails = lazy(() => import('./pages/TicketDetails'));
 const CustomerSatisfactionForm = lazy(() => import('./pages/CustomerSatisfactionForm'));
@@ -88,6 +89,7 @@ function App() {
           <Route path="dashboard" element={<SupportDashboard />} />
           <Route path="create-ticket" element={<RaiseTicket />} />
           <Route path="tickets" element={<AllTickets />} />
+          <Route path="sla-management" element={<SlaManagement />} />
           <Route path="my-tickets" element={<MyTickets />} />
           <Route path="my-workload" element={<MyWorkload />} />
           <Route path="change-requests" element={<ChangeRequests />} />

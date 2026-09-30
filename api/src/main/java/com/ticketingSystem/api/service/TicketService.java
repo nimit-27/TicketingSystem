@@ -57,6 +57,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -124,6 +125,23 @@ public class TicketService {
     public List<Ticket> getTickets() {
         System.out.println("Getting tickets...");
         return ticketRepository.findAll();
+    }
+
+    public TicketSlaDto recalculateSla(String ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        return DtoMapper.toTicketSlaDto(ticketSlaService.calculateAndSaveByCalendar(
+                ticket, statusHistoryRepository.findByTicketOrderByTimestampAsc(ticket)));
+    }
+
+    public void recalculateSlasAsync(List<String> ticketIds) {
+        CompletableFuture.runAsync(() -> ticketIds.stream().distinct().forEach(ticketId -> {
+            try {
+                recalculateSla(ticketId);
+            } catch (Exception ex) {
+                logger.warn("Unable to recalculate SLA for ticket {}", ticketId, ex);
+            }
+        }));
     }
 
     public TicketDto mapWithStatusId(Ticket ticket) {
@@ -546,8 +564,23 @@ public class TicketService {
                                          String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
                                          String severity, String createdBy, String category, String subCategory,
                                          String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
+                                         String breachOption, Integer breachInMinutes, String dateParam, String fromDate, String toDate,
+                                         String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate,
+                                         String lastModifiedStatusToDate, Pageable pageable) {
+        return searchTickets(query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId,
+                levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode,
+                issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate,
+                breachedOnFromDate, breachedOnToDate, lastModifiedStatusFromDate, lastModifiedStatusToDate,
+                null, null, pageable);
+    }
+
+    public Page<TicketDto> searchTickets(String query, String statusId, Boolean master, Boolean assignedBackFromFci,
+                                         String assignedTo, String assignedBy, String requestorId, String levelId, String priority,
+                                         String severity, String createdBy, String category, String subCategory,
+                                         String zoneCode, String regionCode, String districtCode, String issueTypeId, String divisionId,
                                          String breachOption, Integer breachInMinutes,
-                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate, String lastModifiedStatusToDate, Pageable pageable) {
+                                         String dateParam, String fromDate, String toDate, String breachedOnFromDate, String breachedOnToDate, String lastModifiedStatusFromDate, String lastModifiedStatusToDate,
+                                         String dueAtFromDate, String dueAtToDate, Pageable pageable) {
         logger.info("TicketService.searchTickets called query={} statusId={} master={} assignedBackFromFci={} assignedTo={} assignedBy={} requestorId={} levelId={} priority={} severity={} createdBy={} category={} subCategory={} zoneCode={} regionCode={} districtCode={} issueTypeId={} divisionId={} breachOption={} breachInMinutes={} dateParam={} fromDate={} toDate={} page={} size={}",
                 query, statusId, master, assignedBackFromFci, assignedTo, assignedBy, requestorId, levelId, priority, severity, createdBy, category, subCategory, zoneCode, regionCode, districtCode, issueTypeId, divisionId, breachOption, breachInMinutes, dateParam, fromDate, toDate, pageable.getPageNumber(), pageable.getPageSize());
 
@@ -594,6 +627,8 @@ public class TicketService {
         LocalDateTime breachedOnTo = parseDateEndExclusive(breachedOnToDate, breachedOnFrom);
         LocalDateTime lastModifiedStatusFrom = parseDateStart(lastModifiedStatusFromDate);
         LocalDateTime lastModifiedStatusTo = parseDateEndExclusive(lastModifiedStatusToDate, lastModifiedStatusFrom);
+        LocalDateTime dueAtFrom = parseDateStart(dueAtFromDate);
+        LocalDateTime dueAtTo = parseDateEndExclusive(dueAtToDate, dueAtFrom);
 
         String alternateAssignedTo = resolveAlternateAssignedTo(assignedTo);
         String normalizedDateParam = normalizeDateParam(dateParam);
@@ -628,6 +663,8 @@ public class TicketService {
                 breachedOnTo,
                 lastModifiedStatusFrom,
                 lastModifiedStatusTo,
+                dueAtFrom,
+                dueAtTo,
                 pageable
         );
         Page<TicketDto> result = page.map(this::mapWithStatusId);

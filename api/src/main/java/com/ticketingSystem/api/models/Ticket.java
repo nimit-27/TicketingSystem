@@ -6,6 +6,8 @@ import com.ticketingSystem.api.enums.FeedbackStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -131,6 +133,11 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "status_id", referencedColumnName = "status_id")
     private Status status;
+
+    @OneToOne(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private TicketSla ticketSla;
 
     @Transient
     private String remark;

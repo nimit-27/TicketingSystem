@@ -402,6 +402,8 @@ class TicketServiceTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
                 any()
         )).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
@@ -443,6 +445,8 @@ class TicketServiceTest {
                 any(),
                 eq("agent-1"),
                 eq("agentUser"),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),

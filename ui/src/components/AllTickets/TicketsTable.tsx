@@ -18,6 +18,7 @@ import {
     Paper,
 } from '@mui/material';
 import { TicketStatusWorkflow } from '../../types';
+import { TicketSla } from '../../types';
 import RemarkComponent from '../UI/Remark/RemarkComponent';
 import UserAvatar from '../UI/UserAvatar/UserAvatar';
 import RequestorDetails from './RequestorDetails';
@@ -72,6 +73,7 @@ export interface TicketRow {
     divisionName?: string;
     divisionId?: string;
     rcaStatus?: 'NOT_APPLICABLE' | 'PENDING' | 'SUBMITTED';
+    sla?: TicketSla;
 }
 
 interface TicketsTableProps {
