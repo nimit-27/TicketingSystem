@@ -1,21 +1,151 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="mis_problem_management_report" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-<parameter name="fromDate" class="java.lang.String"/><parameter name="toDate" class="java.lang.String"/><parameter name="categoryId" class="java.lang.String"/><parameter name="subCategoryId" class="java.lang.String"/><parameter name="zoneCode" class="java.lang.String"/><parameter name="regionCode" class="java.lang.String"/><parameter name="districtCode" class="java.lang.String"/><parameter name="issueTypeId" class="java.lang.String"/><parameter name="divisionId" class="java.lang.String"/><parameter name="assignedTo" class="java.lang.String"/><parameter name="interval" class="java.lang.String"/>
-<queryString><![CDATA[SELECT t.ticket_id ticketId, t.status, t.reported_date reportedDate,
-(SELECT COUNT(*) FROM tickets child WHERE child.master_id = t.ticket_id) childrenCount
-FROM tickets t
-WHERE t.is_master = TRUE AND (t.master_id IS NULL OR t.master_id = '')
-  AND t.reported_date >= STR_TO_DATE(COALESCE(NULLIF($P{fromDate}, ''), '2026-07-01'), '%Y-%m-%d')
-  AND t.reported_date < DATE_ADD(STR_TO_DATE(COALESCE(NULLIF($P{toDate}, ''), DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d')), '%Y-%m-%d'), INTERVAL 1 DAY)
-  AND ($P{zoneCode} IS NULL OR $P{zoneCode} = '' OR t.zone_code = $P{zoneCode})
-  AND ($P{regionCode} IS NULL OR $P{regionCode} = '' OR t.region_code = $P{regionCode})
-  AND ($P{districtCode} IS NULL OR $P{districtCode} = '' OR t.district_code = $P{districtCode})
-  AND ($P{issueTypeId} IS NULL OR $P{issueTypeId} = '' OR t.issue_type_id = $P{issueTypeId})
-  AND ($P{divisionId} IS NULL OR $P{divisionId} = '' OR t.division = $P{divisionId})
-  AND ($P{assignedTo} IS NULL OR $P{assignedTo} = '' OR t.assigned_to = $P{assignedTo})
-ORDER BY t.reported_date DESC]]></queryString>
-<field name="ticketId" class="java.lang.String"/><field name="status" class="java.lang.String"/><field name="reportedDate" class="java.sql.Timestamp"/><field name="childrenCount" class="java.lang.Long"/>
-<title><band height="55"><staticText><reportElement x="0" y="0" width="802" height="28"/><textElement textAlignment="Center"><font size="18" isBold="true"/></textElement><text><![CDATA[Problem Management Report]]></text></staticText><textField><reportElement x="0" y="30" width="802" height="20"/><textElement textAlignment="Center"/><textFieldExpression><![CDATA["Master tickets reported from " + ($P{fromDate} == null || $P{fromDate}.isEmpty() ? "2026-07-01" : $P{fromDate}) + " to " + ($P{toDate} == null || $P{toDate}.isEmpty() ? new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) : $P{toDate})]]></textFieldExpression></textField></band></title>
-<columnHeader><band height="28"><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="0" y="0" width="200" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Ticket Id]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="200" y="0" width="180" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Status]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="380" y="0" width="240" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Reported Date]]></text></staticText><staticText><reportElement mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" x="620" y="0" width="182" height="28"/><textElement verticalAlignment="Middle"><font isBold="true"/></textElement><text><![CDATA[Children Count]]></text></staticText></band></columnHeader>
-<detail><band height="24"><textField><reportElement x="0" y="0" width="200" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{ticketId}]]></textFieldExpression></textField><textField><reportElement x="200" y="0" width="180" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{status}]]></textFieldExpression></textField><textField pattern="dd MMM yyyy HH:mm"><reportElement x="380" y="0" width="240" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{reportedDate}]]></textFieldExpression></textField><textField><reportElement x="620" y="0" width="182" height="24"/><textElement verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{childrenCount}]]></textFieldExpression></textField></band></detail>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="mis_problem_management_report" pageWidth="842" pageHeight="595" orientation="Landscape"
+              columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    <property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.rows" value="true"/>
+    <property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.columns" value="true"/>
+    <style name="TableHeader" mode="Opaque" backcolor="#344767" forecolor="#FFFFFF" fontName="SansSerif" fontSize="8" isBold="true"><box><pen lineWidth="0.5"/></box></style>
+    <style name="TableCell" fontName="SansSerif" fontSize="8"><box><pen lineWidth="0.5" lineColor="#808080"/></box></style>
+
+    <parameter name="fromDate" class="java.lang.String"/><parameter name="toDate" class="java.lang.String"/>
+    <parameter name="categoryId" class="java.lang.String"/><parameter name="subCategoryId" class="java.lang.String"/>
+    <parameter name="zoneCode" class="java.lang.String"/><parameter name="regionCode" class="java.lang.String"/>
+    <parameter name="districtCode" class="java.lang.String"/><parameter name="issueTypeId" class="java.lang.String"/>
+    <parameter name="divisionId" class="java.lang.String"/><parameter name="assignedTo" class="java.lang.String"/>
+    <parameter name="interval" class="java.lang.String"/>
+
+    <queryString><![CDATA[
+WITH master_tickets AS (
+    SELECT t.ticket_id, t.status, t.reported_date, t.issue_type_id,
+           COALESCE(NULLIF(it.name, ''), t.issue_type_id, 'Not Specified') AS issue_type,
+           (SELECT COUNT(*) FROM tickets child WHERE child.master_id = t.ticket_id) AS children_count
+      FROM tickets t
+      LEFT JOIN issue_type_master it ON it.issue_type_id = t.issue_type_id
+     WHERE t.is_master = TRUE AND (t.master_id IS NULL OR t.master_id = '')
+       AND t.reported_date >= STR_TO_DATE(COALESCE(NULLIF($P{fromDate}, ''), '2026-07-01'), '%Y-%m-%d')
+       AND t.reported_date < DATE_ADD(STR_TO_DATE(COALESCE(NULLIF($P{toDate}, ''), DATE_FORMAT(CURRENT_DATE, '%Y-%m-%d')), '%Y-%m-%d'), INTERVAL 1 DAY)
+       AND ($P{categoryId} IS NULL OR $P{categoryId} = '' OR t.category = $P{categoryId})
+       AND ($P{subCategoryId} IS NULL OR $P{subCategoryId} = '' OR t.sub_category = $P{subCategoryId})
+       AND ($P{zoneCode} IS NULL OR $P{zoneCode} = '' OR t.zone_code = $P{zoneCode})
+       AND ($P{regionCode} IS NULL OR $P{regionCode} = '' OR t.region_code = $P{regionCode})
+       AND ($P{districtCode} IS NULL OR $P{districtCode} = '' OR t.district_code = $P{districtCode})
+       AND ($P{issueTypeId} IS NULL OR $P{issueTypeId} = '' OR t.issue_type_id = $P{issueTypeId})
+       AND ($P{divisionId} IS NULL OR $P{divisionId} = '' OR t.division = $P{divisionId})
+       AND ($P{assignedTo} IS NULL OR $P{assignedTo} = '' OR t.assigned_to = $P{assignedTo})
+), summary_rows AS (
+    SELECT issue_type, '1_SUMMARY' AS row_type,
+           CASE UPPER(COALESCE($P{interval}, 'MONTHLY'))
+             WHEN 'QUARTERLY' THEN CONCAT(YEAR(reported_date), '-Q', QUARTER(reported_date))
+             WHEN 'YEARLY' THEN DATE_FORMAT(reported_date, '%Y')
+             WHEN 'WEEKLY' THEN CONCAT(YEARWEEK(reported_date, 3) DIV 100, '-W', LPAD(YEARWEEK(reported_date, 3) % 100, 2, '0'))
+             WHEN 'DAILY' THEN DATE_FORMAT(reported_date, '%Y-%m-%d')
+             ELSE DATE_FORMAT(reported_date, '%M %Y') END AS period_label,
+           CAST(COUNT(*) AS CHAR) AS total_count,
+           CAST(SUM(status = 'OPEN') AS CHAR) AS open_count,
+           CAST(SUM(status IN ('ASSIGNED', 'ASSIGN_FURTHER')) AS CHAR) AS assigned_count,
+           CAST(SUM(status = 'PENDING_WITH_REQUESTER') AS CHAR) AS requester_pending_count,
+           CAST(SUM(status IN ('PENDING_WITH_FCI', 'PENDING', 'ON_HOLD')) AS CHAR) AS fci_pending_count,
+           CAST(SUM(status = 'PENDING_WITH_SERVICE_PROVIDER') AS CHAR) AS provider_pending_count,
+           CAST(SUM(status = 'RESOLVED') AS CHAR) AS resolved_count,
+           CAST(SUM(status = 'CLOSED') AS CHAR) AS closed_count,
+           NULL AS ticket_id, NULL AS ticket_status, NULL AS reported_on, NULL AS children_count,
+           MIN(reported_date) AS sort_date
+      FROM master_tickets
+     GROUP BY issue_type, YEAR(reported_date),
+              CASE UPPER(COALESCE($P{interval}, 'MONTHLY'))
+                WHEN 'QUARTERLY' THEN QUARTER(reported_date)
+                WHEN 'YEARLY' THEN 1
+                WHEN 'WEEKLY' THEN YEARWEEK(reported_date, 3)
+                WHEN 'DAILY' THEN DAYOFYEAR(reported_date)
+                ELSE MONTH(reported_date) END
+), ticket_rows AS (
+    SELECT issue_type, '2_TICKETS' AS row_type, NULL AS period_label, NULL AS total_count,
+           NULL AS open_count, NULL AS assigned_count, NULL AS requester_pending_count,
+           NULL AS fci_pending_count, NULL AS provider_pending_count, NULL AS resolved_count, NULL AS closed_count,
+           CAST(ticket_id AS CHAR) AS ticket_id, CAST(status AS CHAR) AS ticket_status,
+           DATE_FORMAT(reported_date, '%Y-%m-%d %H:%i:%s') AS reported_on,
+           CAST(children_count AS CHAR) AS children_count, reported_date AS sort_date
+      FROM master_tickets
+)
+SELECT * FROM summary_rows
+UNION ALL
+SELECT * FROM ticket_rows
+ORDER BY issue_type, row_type, sort_date, ticket_id
+    ]]></queryString>
+
+    <field name="issue_type" class="java.lang.String"/><field name="row_type" class="java.lang.String"/>
+    <field name="period_label" class="java.lang.String"/><field name="total_count" class="java.lang.String"/>
+    <field name="open_count" class="java.lang.String"/><field name="assigned_count" class="java.lang.String"/>
+    <field name="requester_pending_count" class="java.lang.String"/><field name="fci_pending_count" class="java.lang.String"/>
+    <field name="provider_pending_count" class="java.lang.String"/><field name="resolved_count" class="java.lang.String"/>
+    <field name="closed_count" class="java.lang.String"/><field name="ticket_id" class="java.lang.String"/>
+    <field name="ticket_status" class="java.lang.String"/><field name="reported_on" class="java.lang.String"/>
+    <field name="children_count" class="java.lang.String"/>
+
+    <group name="IssueType" isStartNewPage="false" keepTogether="true">
+        <groupExpression><![CDATA[$F{issue_type}]]></groupExpression>
+        <groupHeader><band height="32">
+            <textField><reportElement mode="Opaque" backcolor="#1F4E78" forecolor="#FFFFFF" x="0" y="6" width="802" height="26"/>
+                <textElement verticalAlignment="Middle"><font size="12" isBold="true"/><paragraph leftIndent="8"/></textElement>
+                <textFieldExpression><![CDATA["Issue Type: " + $F{issue_type}]]></textFieldExpression>
+            </textField>
+        </band></groupHeader>
+        <groupFooter><band height="12"/></groupFooter>
+    </group>
+    <group name="TableType" keepTogether="true">
+        <groupExpression><![CDATA[$F{issue_type} + "|" + $F{row_type}]]></groupExpression>
+        <groupHeader><band height="51">
+            <textField><reportElement mode="Opaque" backcolor="#D9EAF7" x="0" y="5" width="802" height="20"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/><paragraph leftIndent="6"/></textElement>
+                <textFieldExpression><![CDATA["1_SUMMARY".equals($F{row_type}) ? "Master Ticket Summary" : "Master Ticket List"]]></textFieldExpression>
+            </textField>
+            <staticText><reportElement style="TableHeader" x="0" y="25" width="92" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Period]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="92" y="25" width="70" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Total Master Tickets]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="162" y="25" width="60" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Open]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="222" y="25" width="70" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Assigned]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="292" y="25" width="105" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Pending Requester]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="397" y="25" width="85" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Pending FCI]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="482" y="25" width="120" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Pending Service Provider]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="602" y="25" width="100" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Resolved]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="702" y="25" width="100" height="26"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Closed]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="0" y="25" width="180" height="26"><printWhenExpression><![CDATA["2_TICKETS".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Ticket Id]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="180" y="25" width="180" height="26"><printWhenExpression><![CDATA["2_TICKETS".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Status]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="360" y="25" width="240" height="26"><printWhenExpression><![CDATA["2_TICKETS".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Reported Date]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="600" y="25" width="202" height="26"><printWhenExpression><![CDATA["2_TICKETS".equals($F{row_type})]]></printWhenExpression></reportElement><textElement textAlignment="Center" verticalAlignment="Middle"/><text><![CDATA[Children Ticket Count]]></text></staticText>
+        </band></groupHeader>
+        <groupFooter><band height="8"/></groupFooter>
+    </group>
+
+    <title><band height="86">
+        <staticText><reportElement x="0" y="0" width="802" height="30"/><textElement textAlignment="Center"><font size="18" isBold="true"/></textElement><text><![CDATA[Problem Management Report]]></text></staticText>
+        <staticText><reportElement mode="Opaque" backcolor="#D9EAF7" x="80" y="38" width="110" height="22"/><textElement verticalAlignment="Middle"><font isBold="true"/><paragraph leftIndent="5"/></textElement><text><![CDATA[From Date]]></text></staticText>
+        <textField><reportElement style="TableCell" x="190" y="38" width="130" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{fromDate} == null || $P{fromDate}.isEmpty() ? "2026-07-01" : $P{fromDate}]]></textFieldExpression></textField>
+        <staticText><reportElement mode="Opaque" backcolor="#D9EAF7" x="320" y="38" width="100" height="22"/><textElement verticalAlignment="Middle"><font isBold="true"/><paragraph leftIndent="5"/></textElement><text><![CDATA[To Date]]></text></staticText>
+        <textField><reportElement style="TableCell" x="420" y="38" width="130" height="22"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$P{toDate} == null || $P{toDate}.isEmpty() ? new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) : $P{toDate}]]></textFieldExpression></textField>
+        <staticText><reportElement mode="Opaque" backcolor="#D9EAF7" x="550" y="38" width="90" height="22"/><textElement verticalAlignment="Middle"><font isBold="true"/><paragraph leftIndent="5"/></textElement><text><![CDATA[Interval]]></text></staticText>
+        <textField><reportElement style="TableCell" x="640" y="38" width="82" height="22"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$P{interval} == null || $P{interval}.isEmpty() ? "MONTHLY" : $P{interval}]]></textFieldExpression></textField>
+    </band></title>
+
+    <detail>
+        <band height="24"><printWhenExpression><![CDATA["1_SUMMARY".equals($F{row_type})]]></printWhenExpression>
+            <textField><reportElement style="TableCell" x="0" y="0" width="92" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{period_label}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="92" y="0" width="70" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{total_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="162" y="0" width="60" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{open_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="222" y="0" width="70" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{assigned_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="292" y="0" width="105" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{requester_pending_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="397" y="0" width="85" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{fci_pending_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="482" y="0" width="120" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{provider_pending_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="602" y="0" width="100" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{resolved_count}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="702" y="0" width="100" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{closed_count}]]></textFieldExpression></textField>
+        </band>
+        <band height="24"><printWhenExpression><![CDATA["2_TICKETS".equals($F{row_type})]]></printWhenExpression>
+            <textField><reportElement style="TableCell" x="0" y="0" width="180" height="24"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$F{ticket_id}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="180" y="0" width="180" height="24"/><textElement verticalAlignment="Middle"><paragraph leftIndent="5"/></textElement><textFieldExpression><![CDATA[$F{ticket_status}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="360" y="0" width="240" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{reported_on}]]></textFieldExpression></textField>
+            <textField><reportElement style="TableCell" x="600" y="0" width="202" height="24"/><textElement textAlignment="Center" verticalAlignment="Middle"/><textFieldExpression><![CDATA[$F{children_count}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+    <pageFooter><band height="18"><textField><reportElement x="702" y="0" width="100" height="18"/><textElement textAlignment="Right"/><textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression></textField></band></pageFooter>
 </jasperReport>
