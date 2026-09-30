@@ -3,8 +3,8 @@ package com.ticketingSystem.api.service;
 import com.ticketingSystem.api.dto.*;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.CustomerSatisfactionReportDto;
-import com.ticketingSystem.api.dto.reports.ProblemCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.ProblemManagementReportDto;
+import com.ticketingSystem.api.dto.reports.MasterTicketProblemDto;
 import com.ticketingSystem.api.dto.reports.ResolutionCategoryStatDto;
 import com.ticketingSystem.api.dto.reports.SlaPerformanceReportDto;
 import com.ticketingSystem.api.dto.reports.SupportDashboardCategorySummaryDto;
@@ -1652,32 +1652,23 @@ public class ReportService {
                                                                String issueTypeId,
                                                                String divisionId,
                                                                String assignedTo) {
-        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, categoryId, subCategoryId, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
-        Map<String, String> categoryNameLookup = getCategoryNameLookup();
-        Map<String, String> subCategoryNameLookup = getSubCategoryNameLookup();
-
-        List<ProblemCategoryStatDto> categoryStats = filteredTickets.stream()
-                .filter(ticket -> ticket.getTicketStatus() == TicketStatus.RESOLVED || ticket.getTicketStatus() == TicketStatus.CLOSED)
-                .collect(Collectors.groupingBy(ticket -> (ticket.getCategory() == null ? "N/A" : ticket.getCategory()) + "||" + (ticket.getSubCategory() == null ? "N/A" : ticket.getSubCategory()), Collectors.counting()))
-                .entrySet().stream()
-                .map(entry -> {
-                    String[] parts = entry.getKey().split("\\|\\|", 2);
-                    String categoryCode = parts[0];
-                    String subCategoryCode = parts.length > 1 ? parts[1] : "N/A";
-                    String categoryName = categoryNameLookup.getOrDefault(categoryCode, categoryCode);
-                    String subCategoryName = subCategoryNameLookup.getOrDefault(subCategoryCode, subCategoryCode);
-                    return ProblemCategoryStatDto.builder()
-                            .category(categoryCode)
-                            .subcategory(subCategoryCode)
-                            .categoryName(categoryName)
-                            .subcategoryName(subCategoryName)
-                            .ticketCount(entry.getValue())
-                            .build();
-                })
+        // Problem management is based on master tickets, not module/sub-module groupings.
+        List<Ticket> filteredTickets = getFilteredTickets(fromDate, toDate, null, null, zoneCode, regionCode, districtCode, issueTypeId, divisionId, assignedTo);
+        List<MasterTicketProblemDto> masterTickets = filteredTickets.stream()
+                .filter(Ticket::isMaster)
+                .filter(ticket -> !StringUtils.hasText(ticket.getMasterId()))
+                .sorted(Comparator.comparing(Ticket::getReportedDate,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(ticket -> MasterTicketProblemDto.builder()
+                        .ticketId(ticket.getId())
+                        .status(ticket.getTicketStatus())
+                        .reportedDate(ticket.getReportedDate())
+                        .childrenCount(ticketRepository.countByMasterId(ticket.getId()))
+                        .build())
                 .collect(Collectors.toList());
 
         return ProblemManagementReportDto.builder()
-                .categoryStats(categoryStats)
+                .masterTickets(masterTickets)
                 .build();
     }
 

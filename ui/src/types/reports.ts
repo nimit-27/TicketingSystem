@@ -81,7 +81,14 @@ export interface ProblemCategoryStat {
 }
 
 export interface ProblemManagementReportProps {
-    categoryStats: ProblemCategoryStat[];
+    masterTickets: MasterTicketProblem[];
+}
+
+export interface MasterTicketProblem {
+    ticketId: string;
+    status?: string | null;
+    reportedDate?: string | null;
+    childrenCount: number;
 }
 
 export interface SlaPerformanceStatusBreakdown {

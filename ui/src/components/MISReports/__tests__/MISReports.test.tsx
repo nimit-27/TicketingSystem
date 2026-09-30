@@ -180,11 +180,10 @@ describe("CustomerSatisfactionReport", () => {
 });
 
 describe("ProblemManagementReport", () => {
-    it("shows the most reported category and chart", () => {
+    it("shows only master ticket details in a table", () => {
         const data = {
-            categoryStats: [
-                { category: "Hardware", ticketCount: 12 },
-                { category: "Software", ticketCount: 20 },
+            masterTickets: [
+                { ticketId: "MT-100", status: "OPEN", reportedDate: "2026-09-30T10:00:00", childrenCount: 3 },
             ],
         };
 
@@ -194,6 +193,11 @@ describe("ProblemManagementReport", () => {
         renderWithTheme(<ProblemManagementReport />);
 
 
+        expect(screen.getByText("Ticket Id")).toBeInTheDocument();
+        expect(screen.getByText("MT-100")).toBeInTheDocument();
+        expect(screen.getByText("OPEN")).toBeInTheDocument();
+        expect(screen.getByText("3")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "View" })).toBeInTheDocument();
         expect(apiState.apiHandler).toHaveBeenCalledWith(expect.any(Function));
         expect(fetchProblemManagementReport).not.toHaveBeenCalled();
     });

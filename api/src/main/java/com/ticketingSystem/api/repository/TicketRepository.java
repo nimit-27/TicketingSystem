@@ -41,6 +41,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     List<Ticket> findByMasterId(String masterId);
 
+    long countByMasterId(String masterId);
+
     public List<Ticket> findByLastModifiedAfter(LocalDateTime lastSyncedTime);
 
     long countByTicketStatus(TicketStatus ticketStatus);
