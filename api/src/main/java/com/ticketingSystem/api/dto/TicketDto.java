@@ -80,4 +80,5 @@ public class TicketDto {
     private FeedbackStatus feedbackStatus;
     private String rcaStatus;
     private String createdBy;
+    private TicketSlaDto sla;
 }

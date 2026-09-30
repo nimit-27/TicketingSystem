@@ -12,7 +12,7 @@ public class SlaCalculationScheduler {
         this.slaCalculationJobService = slaCalculationJobService;
     }
 
-    @Scheduled(cron = "${app.sla-calculation-job.cron:0 0 */4 * * *}", zone = "${app.sla-calculation-job.zone:Asia/Kolkata}")
+    @Scheduled(cron = "${app.sla-calculation-job.cron:0 * * * * *}", zone = "${app.sla-calculation-job.zone:Asia/Kolkata}")
     public void runScheduledSlaCalculation() {
         if (!slaCalculationJobService.isSchedulerEnabled()) {
             return;

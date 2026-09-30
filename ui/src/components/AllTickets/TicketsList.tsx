@@ -37,7 +37,7 @@ export interface TicketsListFilterState {
     masterOnly: boolean;
     assignedBackFromFciOnly: boolean;
     levelFilter?: string;
-    sortBy: "reportedDate" | "lastModified";
+    sortBy: string;
     sortDirection: "asc" | "desc";
     viewMode: "grid" | "table";
     page: number;
@@ -113,6 +113,8 @@ interface TicketsListProps {
     allowAll: boolean;
     headerRightContent?: React.ReactNode;
     showAssignedBackFromFciToggle?: boolean;
+    slaManagement?: boolean;
+    renderTable?: (tickets: TicketRow[], refresh: () => void) => React.ReactNode;
 }
 
 
@@ -122,7 +124,7 @@ interface PersistedTicketsListFilters {
     masterOnly: boolean;
     assignedBackFromFciOnly: boolean;
     levelFilter?: string;
-    sortBy: "reportedDate" | "lastModified";
+    sortBy: string;
     viewMode: "grid" | "table";
     tablePageSize: number;
     gridPageSize: number;
@@ -167,6 +169,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     allowAll,
     headerRightContent,
     showAssignedBackFromFciToggle = false,
+    slaManagement = false,
+    renderTable,
 }) => {
     const { t } = useTranslation();
     const filterStorageKey = `tickets-list-filters:${permissionPathPrefix}`;
@@ -224,8 +228,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             : "All";
     const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
     const showLevelFilterToggle = levels.length > 1;
-    const [sortBy, setSortBy] = useState<"reportedDate" | "lastModified">("reportedDate");
-    const sortDirection: "asc" | "desc" = "desc";
+    const [sortBy, setSortBy] = useState<string>("reportedDate");
+    const sortDirection: "asc" | "desc" = sortBy === "ticketSla.breachedByMinutes" ? "asc" : "desc";
     const [refreshingTicketId, setRefreshingTicketId] = useState<string | null>(null);
 
     const [dateRange, setDateRange] = useState<DateRangeState>({ preset: "ALL" });
@@ -249,6 +253,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
     const [breachedOnToDate, setBreachedOnToDate] = useState<string>("");
     const [lastModifiedStatusFromDate, setLastModifiedStatusFromDate] = useState<string>("");
     const [lastModifiedStatusToDate, setLastModifiedStatusToDate] = useState<string>("");
+    const [dueAtFromDate, setDueAtFromDate] = useState<string>("");
+    const [dueAtToDate, setDueAtToDate] = useState<string>("");
 
     const debouncedSearch = useDebounce(search, 300);
 
@@ -277,8 +283,12 @@ const TicketsList: React.FC<TicketsListProps> = ({
         () => [
             { label: t("Created Date"), value: "reportedDate" },
             { label: t("Latest Updated"), value: "lastModified" },
+            ...(slaManagement ? [
+                { label: t("Breach In Ascending"), value: "ticketSla.breachedByMinutes" },
+                { label: t("Due At Descending"), value: "ticketSla.dueAt" },
+            ] : []),
         ],
-        [t],
+        [slaManagement, t],
     );
 
     const dateParamOptions: DropdownOption[] = useMemo(
@@ -537,6 +547,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     breachedOnToDateParam,
                     lastModifiedStatusFromDateParam,
                     lastModifiedStatusToDateParam,
+                    dueAtFromDate ? `${dueAtFromDate}T00:00:00` : undefined,
+                    dueAtToDate ? `${dueAtToDate}T23:59:59` : undefined,
                 )
             }
             );
@@ -566,6 +578,8 @@ const TicketsList: React.FC<TicketsListProps> = ({
             breachedOnToDate,
             lastModifiedStatusFromDate,
             lastModifiedStatusToDate,
+            dueAtFromDate,
+            dueAtToDate,
             page,
             pageSize,
             sortBy,
@@ -1128,6 +1142,18 @@ const TicketsList: React.FC<TicketsListProps> = ({
                     )}
 
                     {/* DATE PARAMETER */}
+                    {slaManagement && <>
+                        <div className="col-md-3 col-12">
+                            <GenericInput className="w-100" label="Due At - From Date" type="date" value={dueAtFromDate}
+                                InputLabelProps={{ shrink: true }} onChange={(e) => { setDueAtFromDate(e.target.value); setPage(1); }} />
+                        </div>
+                        <div className="col-md-3 col-12">
+                            <GenericInput className="w-100" label="Due At - To Date" type="date" value={dueAtToDate}
+                                InputLabelProps={{ shrink: true }} onChange={(e) => { setDueAtToDate(e.target.value); setPage(1); }} />
+                        </div>
+                    </>}
+
+                    {/* DATE PARAMETER */}
                     <div className="col-md-3 col-12">
                         <DropdownController
                             className="w-100"
@@ -1234,7 +1260,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             label={t("Sort By")}
                             value={sortBy}
                             onChange={(value) => {
-                                setSortBy(value as "reportedDate" | "lastModified");
+                                setSortBy(String(value));
                                 setPage(1);
                             }}
                             options={sortOptions}
@@ -1244,7 +1270,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                 ) : null}
                 {viewMode === "table" && showTablePermission && (
                     <div>
-                        <TicketsTable
+                        {renderTable ? renderTable(tickets, () => { void searchCurrentTicketsPaginatedApi(); }) : <TicketsTable
                             tickets={tickets}
                             onIdClick={(id) => handleTicketSelection(id, true)}
                             onRowClick={(id) => onRowClick?.(id)}
@@ -1275,7 +1301,7 @@ const TicketsList: React.FC<TicketsListProps> = ({
                             lastModifiedStatusFromDate={lastModifiedStatusFromDate}
                             lastModifiedStatusToDate={lastModifiedStatusToDate}
                             issueTypeFilterLabel={selectedIssueTypeLabel}
-                        />
+                        />}
                         <PaginationControls
                             className="justify-content-between align-items-center mt-3 w-100"
                             page={page}

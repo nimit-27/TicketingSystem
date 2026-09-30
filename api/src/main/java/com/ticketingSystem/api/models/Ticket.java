@@ -132,6 +132,9 @@ public class Ticket {
     @JoinColumn(name = "status_id", referencedColumnName = "status_id")
     private Status status;
 
+    @OneToOne(mappedBy = "ticket", fetch = FetchType.LAZY)
+    private TicketSla ticketSla;
+
     @Transient
     private String remark;
 

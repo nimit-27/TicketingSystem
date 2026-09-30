@@ -479,7 +479,7 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                                        @Param("toDate") LocalDateTime toDate,
                                                        Pageable pageable);
 
-    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s LEFT JOIN t.issueType it " +
+    @Query("SELECT t FROM Ticket t LEFT JOIN t.status s LEFT JOIN t.issueType it LEFT JOIN t.ticketSla ticketSla " +
 //            "WHERE (:statusId IS NULL OR s.statusId = :statusId) " +
 //            "WHERE (:statusId IS NULL OR function(FIND_IN_SET, s.statusId, :statusId) > 0)" +
             "WHERE (:statusIds IS NULL OR s.statusId IN (:statusIds))" +
@@ -501,6 +501,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
             "AND ((:breachedOnFromDate IS NULL AND :breachedOnToDate IS NULL) OR EXISTS (SELECT 1 FROM TicketSla ts WHERE ts.ticket = t AND COALESCE(ts.breachedByMinutes, 0) > 0 AND (:breachedOnFromDate IS NULL OR ts.dueAt >= :breachedOnFromDate) AND (:breachedOnToDate IS NULL OR ts.dueAt < :breachedOnToDate))) " +
             "AND (:lastModifiedStatusFromDate IS NULL OR t.lastModifiedStatusDate >= :lastModifiedStatusFromDate) " +
             "AND (:lastModifiedStatusToDate IS NULL OR t.lastModifiedStatusDate < :lastModifiedStatusToDate) " +
+            "AND (:dueAtFromDate IS NULL OR ticketSla.dueAt >= :dueAtFromDate) " +
+            "AND (:dueAtToDate IS NULL OR ticketSla.dueAt < :dueAtToDate) " +
             "AND ((:assignedTo IS NULL AND :assignedBy IS NULL AND :requestorId IS NULL AND :createdBy IS NULL) " +
             "OR (:assignedTo IS NOT NULL AND (LOWER(t.assignedTo) = LOWER(:assignedTo) OR (:alternateAssignedTo IS NOT NULL AND LOWER(t.assignedTo) = LOWER(:alternateAssignedTo)))) " +
             "OR (:assignedBy IS NOT NULL AND LOWER(t.assignedBy) = LOWER(:assignedBy)) " +
@@ -542,6 +544,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
                                @Param("breachedOnToDate") LocalDateTime breachedOnToDate,
                                @Param("lastModifiedStatusFromDate") LocalDateTime lastModifiedStatusFromDate,
                                @Param("lastModifiedStatusToDate") LocalDateTime lastModifiedStatusToDate,
+                               @Param("dueAtFromDate") LocalDateTime dueAtFromDate,
+                               @Param("dueAtToDate") LocalDateTime dueAtToDate,
                                Pageable pageable);
 
     @Query("SELECT t FROM Ticket t LEFT JOIN t.status s LEFT JOIN t.issueType it " +

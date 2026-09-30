@@ -157,6 +157,17 @@ public class TicketController {
         return ResponseEntity.ok(DtoMapper.toTicketSlaDto(sla));
     }
 
+    @PostMapping("/{id}/sla/recalculate")
+    public ResponseEntity<TicketSlaDto> recalculateTicketSla(@PathVariable("id") String id) {
+        return ResponseEntity.ok(ticketService.recalculateSla(id));
+    }
+
+    @PostMapping("/sla/recalculate")
+    public ResponseEntity<Void> recalculateTicketSlas(@RequestBody List<String> ticketIds) {
+        ticketService.recalculateSlasAsync(ticketIds == null ? List.of() : ticketIds);
+        return ResponseEntity.accepted().build();
+    }
+
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> addTicket(
             @ModelAttribute Ticket ticket,
@@ -346,6 +357,8 @@ public class TicketController {
             @RequestParam(required = false) String breachedOnToDate,
             @RequestParam(required = false) String lastModifiedStatusFromDate,
             @RequestParam(required = false) String lastModifiedStatusToDate,
+            @RequestParam(required = false) String dueAtFromDate,
+            @RequestParam(required = false) String dueAtToDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -380,6 +393,8 @@ public class TicketController {
                 breachedOnToDate,
                 lastModifiedStatusFromDate,
                 lastModifiedStatusToDate,
+                dueAtFromDate,
+                dueAtToDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy))
         );
         PaginationResponse<TicketDto> resp = new PaginationResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
