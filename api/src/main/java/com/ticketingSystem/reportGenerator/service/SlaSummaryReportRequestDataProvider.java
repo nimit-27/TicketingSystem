@@ -2,9 +2,11 @@ package com.ticketingSystem.reportGenerator.service;
 
 import com.ticketingSystem.reportGenerator.enums.ReportFormat;
 import com.ticketingSystem.reportGenerator.models.ReportMaster;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,10 +17,17 @@ import java.util.Map;
 @Order(0)
 public class SlaSummaryReportRequestDataProvider implements ReportRequestDataProvider {
     private static final String REPORT_CODE = "SLA_SUMMARY_RPT";
+    private static final String WORKBOOK_REPORT_CODE = "SLA_SUMMARY_RPT_2";
+    private final String defaultFromDate;
+
+    public SlaSummaryReportRequestDataProvider(
+            @Value("${report.sla.default-from-date}") String defaultFromDate) {
+        this.defaultFromDate = defaultFromDate;
+    }
 
     @Override
     public boolean supports(String reportCode, ReportMaster reportMaster, Map<String, Object> filters) {
-        return REPORT_CODE.equalsIgnoreCase(reportCode);
+        return REPORT_CODE.equalsIgnoreCase(reportCode) || WORKBOOK_REPORT_CODE.equalsIgnoreCase(reportCode);
     }
 
     @Override
@@ -32,8 +41,8 @@ public class SlaSummaryReportRequestDataProvider implements ReportRequestDataPro
         Map<String, Object> params = new HashMap<>();
         params.put("USE_TEMPLATE_SQL", true);
         params.put("generatedOn", LocalDateTime.now().toString());
-        params.put("fromDate", nullableString(filters.get("fromDate")));
-        params.put("toDate", nullableString(filters.get("toDate")));
+        params.put("fromDate", stringOrDefault(filters.get("fromDate"), defaultFromDate));
+        params.put("toDate", stringOrDefault(filters.get("toDate"), LocalDate.now().toString()));
         params.put("breachedOnFromDate", nullableString(filters.get("breachedOnFromDate")));
         params.put("breachedOnToDate", nullableString(filters.get("breachedOnToDate")));
         return params;
@@ -42,5 +51,10 @@ public class SlaSummaryReportRequestDataProvider implements ReportRequestDataPro
     private String nullableString(Object value) {
         if (value == null || value.toString().isBlank()) return null;
         return value.toString();
+    }
+
+    private String stringOrDefault(Object value, String defaultValue) {
+        String supplied = nullableString(value);
+        return supplied == null ? defaultValue : supplied;
     }
 }
