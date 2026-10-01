@@ -24,7 +24,7 @@ const menuItems = [
     icon: "listAlt",
   },
   {
-    key: "allTickets",
+    key: "slaManagement",
     label: "SLA Management",
     to: "/sla-management",
     icon: "timer",

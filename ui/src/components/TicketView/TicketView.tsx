@@ -932,7 +932,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       <Select
         value={value || ''}
         onChange={(e: SelectChangeEvent) => setValue(e.target.value as string)}
-        fullWidth
+        // fullWidth
         size="small"
         disabled={config.disabled}
       >
@@ -1406,51 +1406,49 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
       }
 
       <div className='d-flex flex-wrap'>
-        {/* CATEGORY, SUB-CATEGORY */}
-        <Box sx={{ mt: 1, display: 'flex', flexWrap: '', gap: 2 }}>
-          {editing && <>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography color="text.secondary">{t('Module')}</Typography>
-              {showCategory && renderSelect(
-                selectedCategoryId,
-                (val: string) => {
-                  setSelectedCategoryId(val);
-                  setSelectedSubCategoryId('');
-                  if (!val) {
-                    setSubCategoryOptions([]);
-                    return;
-                  }
-                  setSubCategoryOptions([]);
-                  fetchSubCategoriesList(val);
-                },
-                categoryOptions,
-                {
-                  displayValue: ticket.category,
-                  translate: false,
-                  disabled: !categoryOptions.length
-                }
-              )}
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography color="text.secondary">{t('Sub Module')}</Typography>
-              {showSubcategory && renderSelect(
-                selectedSubCategoryId,
-                (val: string) => setSelectedSubCategoryId(val),
-                subCategoryOptions,
-                {
-                  displayValue: ticket.subCategory,
-                  translate: false,
-                  disabled: !selectedCategoryId
-                }
-              )}
-            </Box>
-          </>}
-        </Box>
-
-
-        {/* PRIORITY, SEVERITY */}
         <div className="col-7 mt-4" style={{ minWidth: 'max-content' }}>
-          {showDivision && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+          {/* CATEGORY, SUB-CATEGORY */}
+          <Box sx={{ my: 1, display: 'flex', flexWrap: '', gap: 2 }}>
+            {editing && <>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography color="text.secondary">{t('Module')}</Typography>
+                {showCategory && renderSelect(
+                  selectedCategoryId,
+                  (val: string) => {
+                    setSelectedCategoryId(val);
+                    setSelectedSubCategoryId('');
+                    if (!val) {
+                      setSubCategoryOptions([]);
+                      return;
+                    }
+                    setSubCategoryOptions([]);
+                    fetchSubCategoriesList(val);
+                  },
+                  categoryOptions,
+                  {
+                    displayValue: ticket.category,
+                    translate: false,
+                    disabled: !categoryOptions.length
+                  }
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography color="text.secondary">{t('Sub Module')}</Typography>
+                {showSubcategory && renderSelect(
+                  selectedSubCategoryId,
+                  (val: string) => setSelectedSubCategoryId(val),
+                  subCategoryOptions,
+                  {
+                    displayValue: ticket.subCategory,
+                    translate: false,
+                    disabled: !selectedCategoryId
+                  }
+                )}
+              </Box>
+            </>}
+          </Box>
+          {/* DIVISION */}
+          {showDivision && <Box sx={{ my: 1, display: 'flex', gap: 1, alignItems: 'baseline' }}>
             <Typography color="text.secondary">{t('Division')}</Typography>
             {renderSelect(divisionId, setDivisionId, divisionOptions, {
               displayValue: ticket?.divisionName || ticket?.division,
@@ -1459,8 +1457,9 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               editing: allowDivisionEdit && editing,
             })}
           </Box>}
+          {/* ISSUE TYPE */}
           {showIssueType && (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+            <Box sx={{ my: 1, display: 'flex', gap: 1, alignItems: 'baseline' }}>
               <Typography color="text.secondary">{t('Issue Type')}</Typography>
               {renderSelect(issueTypeId, setIssueTypeId, issueTypeOptions, {
                 displayValue: ticket?.issueTypeLabel || ticket?.issueTypeId,
@@ -1469,7 +1468,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
               })}
             </Box>
           )}
-          {priority && <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+          {/* PRIORITY */}
+          {priority && <Box sx={{ my: 1, display: 'flex', gap: 1, alignItems: 'baseline' }}>
             <Typography className="me-2" color="text.secondary">{t('Priority')}</Typography>
             {renderSelect(priority, (val: string) => {
               setPriority(val);
@@ -1478,7 +1478,8 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
             }, priorityOptions)}
             <InfoIcon content={priorityInfoContent} />
           </Box>}
-          {showSeverity && <Box className='align-items-center' sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          {/* SEVERITY */}
+          {showSeverity && <Box className='align-items-center' sx={{ my: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
             <Typography className="me-2" color="text.secondary">{t('Severity')}</Typography>
             {renderSelect(severity, setSeverity, severityOptions, {
               displayValue: ticket.severity,
@@ -1521,6 +1522,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketId, showHistory = false, 
                 </Box>
               : null}
           </Box>}
+          {/* RECOMMENDED SEVERITY */}
           {showRecommendedSeverity && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
