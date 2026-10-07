@@ -13,7 +13,7 @@ RUN chmod +x gradlew
 RUN ./gradlew bootJar --no-daemon
 
 FROM eclipse-temurin:17-jre
-
+ENV TZ=Asia/Kolkata
 WORKDIR /app
 COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
 RUN mkdir -p /app/uploads
