@@ -105,7 +105,7 @@ public class UserController {
     }
 
     @GetMapping("/requesters/{userId}")
-    @PreAuthorize(USER_LIST_ACCESS)
+//    @PreAuthorize(USER_LIST_ACCESS)
     public ResponseEntity<RequesterUserDto> getRequesterUserDetails(@PathVariable String userId) {
         return requesterUserService.getRequesterUser(userId)
                 .map(ResponseEntity::ok)
