@@ -25,12 +25,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -49,6 +51,7 @@ public class SlaCalculationJobService {
     private static final Logger log = LoggerFactory.getLogger(SlaCalculationJobService.class);
     private static final Set<TicketStatus> EXCLUDED_STATUSES = EnumSet.of(TicketStatus.CLOSED, TicketStatus.RESOLVED);
     private static final int ERROR_SUMMARY_MAX_LENGTH = 1000;
+    private static final Duration DATABASE_FAILURE_BACKOFF = Duration.ofMinutes(5);
 
     private final TicketRepository ticketRepository;
     private final StatusHistoryRepository statusHistoryRepository;
@@ -58,6 +61,7 @@ public class SlaCalculationJobService {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private volatile Instant scheduledRetryAfter = Instant.EPOCH;
 
     @Value("${app.sla-calculation-job.cron:0 * * * * *}")
     private String cronExpression;
@@ -109,6 +113,9 @@ public class SlaCalculationJobService {
     }
 
     public SlaCalculationJobRunDto triggerScheduled() {
+        if (Instant.now().isBefore(scheduledRetryAfter)) {
+            return null;
+        }
         return triggerRun(SlaJobTriggerType.SCHEDULED, "SYSTEM", SlaJobScope.ACTIVE_ONLY);
     }
 
@@ -245,11 +252,17 @@ public class SlaCalculationJobService {
                         }
                         success++;
                     } catch (Exception ex) {
+                        if (ex instanceof DataAccessException) {
+                            throw ex;
+                        }
                         failed++;
                         if (errors.size() < 10) {
                             errors.add("Ticket " + ticket.getId() + ": " + ex.getMessage());
                         }
-                        log.warn("Failed to calculate SLA for ticket {} in batch run {}", ticket.getId(), runId, ex);
+                        if (failed == 1) {
+                            log.warn("Failed to calculate SLA for ticket {} in batch run {}; subsequent ticket failures are summarized",
+                                    ticket.getId(), runId, ex);
+                        }
                     }
                 }
 
@@ -266,6 +279,9 @@ public class SlaCalculationJobService {
             run.setDurationMs(Duration.between(startedAt, run.getCompletedAt()).toMillis());
             runRepository.save(run);
         } catch (Exception ex) {
+            if (ex instanceof DataAccessException) {
+                scheduledRetryAfter = Instant.now().plus(DATABASE_FAILURE_BACKOFF);
+            }
             runRepository.findById(runId).ifPresent(run -> {
                 run.setRunStatus(SlaJobRunStatus.FAILED);
                 run.setErrorSummary(truncateErrorSummary(ex.getMessage()));
@@ -273,7 +289,8 @@ public class SlaCalculationJobService {
                 run.setDurationMs(Duration.between(startedAt, run.getCompletedAt()).toMillis());
                 runRepository.save(run);
             });
-            log.error("SLA batch run {} failed", runId, ex);
+            log.error("SLA batch run {} failed{}", runId,
+                    ex instanceof DataAccessException ? "; scheduled execution paused until " + scheduledRetryAfter : "", ex);
         } finally {
             running.set(false);
         }

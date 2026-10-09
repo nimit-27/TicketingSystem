@@ -16,10 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EmailNotificationDispatcher {
     private static final Logger log = LoggerFactory.getLogger(EmailNotificationDispatcher.class);
+    private static final Duration DATABASE_FAILURE_BACKOFF = Duration.ofMinutes(2);
 
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final NotificationRecipientResolver recipientResolver;
@@ -47,12 +50,26 @@ public class EmailNotificationDispatcher {
     private final EmailNotificationDispatchTransactionService transactionService;
     @Qualifier("emailNotificationExecutor")
     private final TaskExecutor emailNotificationExecutor;
+    private volatile Instant databaseRetryAfter = Instant.EPOCH;
 
     @Scheduled(
             fixedDelayString = "${notification.email-dispatcher.fixedDelayMs:5000}",
             initialDelayString = "${notification.email-dispatcher.initialDelayMs:5000}"
     )
     public void dispatchPendingEmails() {
+        Instant now = Instant.now();
+        if (now.isBefore(databaseRetryAfter)) {
+            return;
+        }
+        try {
+            dispatchPendingEmailsInternal();
+        } catch (DataAccessException ex) {
+            databaseRetryAfter = now.plus(DATABASE_FAILURE_BACKOFF);
+            log.error("email.dispatch.database-failure; pausing database polling until {}", databaseRetryAfter, ex);
+        }
+    }
+
+    private void dispatchPendingEmailsInternal() {
         // NOTIFICATION_MASTER_CHANGE: Stop queued email delivery while the application-wide email channel is disabled.
         if (!notificationRuntimeToggleService.isChannelEnabled(com.ticketingSystem.notification.enums.ChannelType.EMAIL)) {
             return;
