@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class IssueTypeServiceTest {
@@ -54,5 +55,7 @@ class IssueTypeServiceTest {
         when(repository.findById("i1")).thenReturn(Optional.of(issueType));
 
         assertThat(service.isSlaEnabledForIssueType("i1")).isTrue();
+        assertThat(service.isSlaEnabledForIssueType("i1")).isTrue();
+        verify(repository).findById("i1");
     }
 }

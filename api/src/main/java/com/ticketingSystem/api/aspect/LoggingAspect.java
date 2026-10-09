@@ -32,13 +32,22 @@ public class LoggingAspect {
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getSignature().getDeclaringTypeName();
         String methodName = joinPoint.getSignature().getName();
-        logger.info("Entering {}.{} with arguments {}", className, methodName, summarizeArgs(joinPoint.getArgs()));
+        if (logger.isDebugEnabled()) {
+            logger.debug("Entering {}.{} with arguments {}", className, methodName, summarizeArgs(joinPoint.getArgs()));
+        }
         try {
             Object result = joinPoint.proceed();
-            logger.info("Exiting {}.{} with result {}", className, methodName, summarizeResult(result));
+            if (logger.isDebugEnabled()) {
+                logger.debug("Exiting {}.{} with result {}", className, methodName, summarizeResult(result));
+            }
             return result;
         } catch (Throwable ex) {
-            logger.error("Exception in {}.{}", className, methodName, ex);
+            // Do not emit a stack trace here. The exception is still propagated and is
+            // logged once by the HTTP, scheduled-job, or asynchronous boundary. Logging
+            // at every nested service/controller advice point multiplied one failure
+            // into several identical stack traces.
+            logger.debug("Exception propagated through {}.{}: {}: {}", className, methodName,
+                    ex.getClass().getSimpleName(), ex.getMessage());
             throw ex;
         }
     }
