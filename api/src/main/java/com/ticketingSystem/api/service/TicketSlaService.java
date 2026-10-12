@@ -44,7 +44,6 @@ public class TicketSlaService {
     private final SlaCalculatorService slaCalculatorService;
     private final IssueTypeService issueTypeService;
     private final StatusMasterService statusMasterService;
-    private final TicketCrService ticketCrService;
     private final TicketCrRepository ticketCrRepository;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
@@ -53,7 +52,7 @@ public class TicketSlaService {
                             NotificationService notificationService,
                             UserRepository userRepository,
                             SlaCalculatorService slaCalculatorService,
-                            IssueTypeService issueTypeService, StatusMasterService statusMasterService, TicketCrService ticketCrService, TicketCrRepository ticketCrRepository) {
+                            IssueTypeService issueTypeService, StatusMasterService statusMasterService, TicketCrRepository ticketCrRepository) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
         this.statusHistoryRepository = statusHistoryRepository;
@@ -62,7 +61,6 @@ public class TicketSlaService {
         this.slaCalculatorService = slaCalculatorService;
         this.issueTypeService = issueTypeService;
         this.statusMasterService = statusMasterService;
-        this.ticketCrService = ticketCrService;
         this.ticketCrRepository = ticketCrRepository;
     }
 
