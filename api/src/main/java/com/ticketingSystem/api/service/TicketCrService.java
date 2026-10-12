@@ -121,7 +121,9 @@ public class TicketCrService {
 
     public TicketCrDto getById(String ticketCrId) { return toDto(ticketCrRepository.findById(ticketCrId).orElseThrow(() -> new EntityNotFoundException("Ticket CR not found: " + ticketCrId))); }
     public List<TicketCrDto> getAll() { return ticketCrRepository.findAll().stream().map(this::toDto).toList(); }
-
+    public boolean existsByTicketId(String ticketId) {
+        return ticketCrRepository.existsByTicket_Id(ticketId);
+    }
     public List<TicketCrStatusWorkflowDto> getAvailableActions(String currentCrStatusId) {
         return ticketCrStatusWorkflowRepository.findByCurrentStatus_CrStatusIdAndActiveTrue(currentCrStatusId).stream().map(workflow -> {
             TicketCrStatusWorkflowDto dto = new TicketCrStatusWorkflowDto();

@@ -5,11 +5,8 @@ import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.User;
+import com.ticketingSystem.api.repository.*;
 import com.ticketingSystem.api.util.RoleUtils;
-import com.ticketingSystem.api.repository.SlaConfigRepository;
-import com.ticketingSystem.api.repository.StatusHistoryRepository;
-import com.ticketingSystem.api.repository.TicketSlaRepository;
-import com.ticketingSystem.api.repository.UserRepository;
 import com.ticketingSystem.calendar.service.SlaCalculatorService;
 import com.ticketingSystem.calendar.util.TimeUtils;
 import com.ticketingSystem.notification.enums.ChannelType;
@@ -47,6 +44,8 @@ public class TicketSlaService {
     private final SlaCalculatorService slaCalculatorService;
     private final IssueTypeService issueTypeService;
     private final StatusMasterService statusMasterService;
+    private final TicketCrService ticketCrService;
+    private final TicketCrRepository ticketCrRepository;
 
     public TicketSlaService(SlaConfigRepository slaConfigRepository,
                             TicketSlaRepository ticketSlaRepository,
@@ -54,7 +53,7 @@ public class TicketSlaService {
                             NotificationService notificationService,
                             UserRepository userRepository,
                             SlaCalculatorService slaCalculatorService,
-                            IssueTypeService issueTypeService, StatusMasterService statusMasterService) {
+                            IssueTypeService issueTypeService, StatusMasterService statusMasterService, TicketCrService ticketCrService, TicketCrRepository ticketCrRepository) {
         this.slaConfigRepository = slaConfigRepository;
         this.ticketSlaRepository = ticketSlaRepository;
         this.statusHistoryRepository = statusHistoryRepository;
@@ -63,6 +62,8 @@ public class TicketSlaService {
         this.slaCalculatorService = slaCalculatorService;
         this.issueTypeService = issueTypeService;
         this.statusMasterService = statusMasterService;
+        this.ticketCrService = ticketCrService;
+        this.ticketCrRepository = ticketCrRepository;
     }
 
     @Deprecated(forRemoval = false)
@@ -134,9 +135,10 @@ public class TicketSlaService {
 
         boolean isIssueTypeSlaEnabled = issueTypeService.isSlaEnabledForIssueType(ticket.getIssueTypeId());
         boolean isNotChildTicket = ticket.getMasterId() == null || ticket.getMasterId().trim().isEmpty();
-
+//        boolean isChangeRequestedStatus = ticket.getStatus().getStatusCode().equals("CHANGE_REQUESTED");
+        boolean hasCRTicket = ticketCrRepository.existsByTicket_Id(ticket.getId());
         // If Issue type sla flag is true mark isSlaApplicable as true
-        if(isIssueTypeSlaEnabled && isNotChildTicket) {
+        if(isIssueTypeSlaEnabled && isNotChildTicket && !hasCRTicket) {
             isSlaApplicable = true;
         }
 
