@@ -126,6 +126,15 @@ public class Ticket {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
+    @Column(name = "resolved_at_utc")
+    private Instant resolvedAtUtc;
+
+    @Column(name = "closed_at")
+    private LocalDateTime closedAt;
+
+    @Column(name = "closed_at_utc")
+    private Instant closedAtUtc;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "feedback_status")
     private FeedbackStatus feedbackStatus;
@@ -145,6 +154,24 @@ public class Ticket {
     public void setMode(Mode mode) {
         this.mode = mode;
         this.modeId = mode != null ? mode.getId() : null;
+    }
+
+    public void setResolvedAtUtc(Instant resolvedAtUtc) {
+        this.resolvedAtUtc = resolvedAtUtc;
+        this.resolvedAt = resolvedAtUtc == null ? null : LocalDateTime.ofInstant(resolvedAtUtc, BUSINESS_ZONE);
+    }
+
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        setResolvedAtUtc(resolvedAt == null ? null : resolvedAt.atZone(BUSINESS_ZONE).toInstant());
+    }
+
+    public void setClosedAtUtc(Instant closedAtUtc) {
+        this.closedAtUtc = closedAtUtc;
+        this.closedAt = closedAtUtc == null ? null : LocalDateTime.ofInstant(closedAtUtc, BUSINESS_ZONE);
+    }
+
+    public void setClosedAt(LocalDateTime closedAt) {
+        setClosedAtUtc(closedAt == null ? null : closedAt.atZone(BUSINESS_ZONE).toInstant());
     }
 
     @PrePersist
@@ -167,6 +194,16 @@ public class Ticket {
     }
 
     private void backfillMissingUtcPairs() {
+        if (resolvedAtUtc != null) {
+            setResolvedAtUtc(resolvedAtUtc);
+        } else if (resolvedAt != null) {
+            setResolvedAt(resolvedAt);
+        }
+        if (closedAtUtc != null) {
+            setClosedAtUtc(closedAtUtc);
+        } else if (closedAt != null) {
+            setClosedAt(closedAt);
+        }
         if (lastModified != null && lastModifiedUtc == null) {
             lastModifiedUtc = lastModified.atZone(BUSINESS_ZONE).toInstant();
         }

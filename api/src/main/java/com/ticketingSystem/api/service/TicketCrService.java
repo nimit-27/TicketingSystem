@@ -183,6 +183,9 @@ public class TicketCrService {
         ticket.setStatus(closedStatus);
         ticket.setUpdatedBy(updatedBy);
         Instant modifiedAtUtc = Instant.now();
+        if (ticket.getClosedAt() == null) {
+            ticket.setClosedAtUtc(modifiedAtUtc);
+        }
         LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
         ticket.setLastModified(modifiedAt);
         ticket.setLastModifiedUtc(modifiedAtUtc);
