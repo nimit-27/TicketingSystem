@@ -155,6 +155,7 @@ public class StatusHistoryService {
         }
 
         if (Objects.equals(ticket.getResolvedAt(), oldTimestamp)) ticket.setResolvedAt(newTimestamp);
+        if (Objects.equals(ticket.getClosedAt(), oldTimestamp)) ticket.setClosedAt(newTimestamp);
         if (Objects.equals(ticket.getLastModifiedStatusDate(), oldTimestamp)) {
             ticket.setLastModifiedStatusDate(newTimestamp);
             ticket.setLastModifiedStatusDateUtc(newTimestamp.atZone(BUSINESS_ZONE).toInstant());
@@ -206,6 +207,7 @@ public class StatusHistoryService {
         }
 
         if (Objects.equals(ticket.getResolvedAt(), changedTimestamp)) ticket.setResolvedAt(originalTimestamp);
+        if (Objects.equals(ticket.getClosedAt(), changedTimestamp)) ticket.setClosedAt(originalTimestamp);
         if (Objects.equals(ticket.getLastModifiedStatusDate(), changedTimestamp)) {
             ticket.setLastModifiedStatusDate(originalTimestamp);
             ticket.setLastModifiedStatusDateUtc(originalTimestamp.atZone(BUSINESS_ZONE).toInstant());

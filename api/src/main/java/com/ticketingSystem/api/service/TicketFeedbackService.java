@@ -98,6 +98,9 @@ public class TicketFeedbackService {
             ticket.setTicketStatus(TicketStatus.CLOSED);
             ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
             Instant modifiedAtUtc = Instant.now();
+            if (ticket.getClosedAt() == null) {
+                ticket.setClosedAtUtc(modifiedAtUtc);
+            }
             LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
             ticket.setLastModified(modifiedAt);
             ticket.setLastModifiedUtc(modifiedAtUtc);

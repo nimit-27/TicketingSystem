@@ -100,5 +100,9 @@ class TicketStatusSchedulerTest {
         assertThat(ticket.getTicketStatus()).isEqualTo(TicketStatus.CLOSED);
         assertThat(ticket.getUpdatedBy()).isEqualTo("SYSTEM");
         assertThat(ticket.getFeedbackStatus()).isNotNull();
+        assertThat(ticket.getClosedAtUtc()).isEqualTo(ticket.getLastModifiedUtc());
+        assertThat(ticket.getClosedAt()).isEqualTo(ticket.getLastModified());
+        assertThat(ticket.getResolvedAtUtc()).isEqualTo(ticket.getLastModifiedUtc());
+        assertThat(ticket.getResolvedAt()).isEqualTo(ticket.getLastModified());
     }
 }

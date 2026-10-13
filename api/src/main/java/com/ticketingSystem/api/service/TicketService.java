@@ -819,7 +819,7 @@ public class TicketService {
         }
         if (updatedStatus == TicketStatus.RESOLVED) {
             if (existing.getResolvedAt() == null) {
-                existing.setResolvedAt(LocalDateTime.now());
+                existing.setResolvedAtUtc(Instant.now());
             }
         }
         if (updatedStatus == TicketStatus.CLOSED) {
@@ -911,7 +911,8 @@ public class TicketService {
         boolean assignmentClearedByReopen = false;
         if (isReopenedStatus) {
             assignmentClearedByReopen = existing.getAssignedTo() != null && !existing.getAssignedTo().isBlank();
-            existing.setResolvedAt(null);
+            existing.setResolvedAtUtc(null);
+            existing.setClosedAtUtc(null);
             existing.setAssignedTo(null);
             existing.setAssignedToLevel(null);
             existing.setLevelId(null);
@@ -2285,6 +2286,9 @@ public class TicketService {
             return;
         }
         ticket.setTicketStatus(TicketStatus.CLOSED);
+        if (ticket.getClosedAt() == null) {
+            ticket.setClosedAtUtc(Instant.now());
+        }
         String closedStatusId = workflowService.getStatusIdByCode(TicketStatus.CLOSED.name());
         if (closedStatusId != null && !closedStatusId.isBlank()) {
             statusMasterRepository.findById(closedStatusId).ifPresent(ticket::setStatus);

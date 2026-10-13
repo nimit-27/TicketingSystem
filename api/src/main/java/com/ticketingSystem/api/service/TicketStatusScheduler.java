@@ -57,11 +57,14 @@ public class TicketStatusScheduler {
             t.setTicketStatus(TicketStatus.CLOSED);
             t.setUpdatedBy("SYSTEM");
             Instant modifiedAtUtc = Instant.now();
+            if (t.getClosedAt() == null) {
+                t.setClosedAtUtc(modifiedAtUtc);
+            }
             LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
             t.setLastModified(modifiedAt);
             t.setLastModifiedUtc(modifiedAtUtc);
             if (t.getResolvedAt() == null) {
-                t.setResolvedAt(LocalDateTime.now());
+                t.setResolvedAtUtc(modifiedAtUtc);
             }
             if (t.getFeedbackStatus() == null) {
                 t.setFeedbackStatus(FeedbackStatus.PENDING);
