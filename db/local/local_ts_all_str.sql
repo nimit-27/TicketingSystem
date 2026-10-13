@@ -1,10 +1,10 @@
 CREATE DATABASE  IF NOT EXISTS `ticketing_system` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `ticketing_system`;
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: ticketing_system
+-- Host: localhost    Database: ticketing_system
 -- ------------------------------------------------------
--- Server version	8.0.41
+-- Server version	26.7.0
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,6 +16,14 @@ USE `ticketing_system`;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
+SET @@SESSION.SQL_LOG_BIN= 0;
+
+--
+-- GTID state at the beginning of the backup 
+--
+
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'a2cc2f79-9f96-11f1-84e8-3814284d608d:1-21682';
 
 --
 -- Table structure for table `access_policy`
@@ -38,7 +46,7 @@ CREATE TABLE `access_policy` (
   PRIMARY KEY (`policy_id`),
   UNIQUE KEY `code` (`code`),
   KEY `idx_access_policy_resource_active` (`resource`,`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,7 +138,7 @@ CREATE TABLE `calendar_holiday` (
   `is_optional` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_calendar_holiday_date_region` (`holiday_date`,`region`)
-) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=154 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,7 +175,7 @@ CREATE TABLE `calendar_working_hours` (
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_calendar_working_hours_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -499,7 +507,7 @@ CREATE TABLE `levels` (
   `level_name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`level_id`),
   UNIQUE KEY `level_name` (`level_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -541,7 +549,7 @@ CREATE TABLE `notification` (
   KEY `idx_notification_created_at` (`created_at`),
   CONSTRAINT `fk_notification_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_notification_type` FOREIGN KEY (`type_id`) REFERENCES `notification_master` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=772 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1025 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -569,7 +577,7 @@ CREATE TABLE `notification_master` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
   KEY `isx_notification_master_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -603,7 +611,7 @@ CREATE TABLE `notification_recipient` (
   KEY `idx_nr_status_retry` (`status`,`next_retry_at`),
   KEY `idx_nr_notification_status` (`notification_id`,`status`),
   CONSTRAINT `fk_nr_notification` FOREIGN KEY (`notification_id`) REFERENCES `notification` (`notification_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=839 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1092 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -666,7 +674,7 @@ CREATE TABLE `policy_rule` (
   PRIMARY KEY (`rule_id`),
   KEY `idx_policy_rule_policy_active_priority` (`policy_id`,`is_active`,`priority`),
   CONSTRAINT `fk_policy_rule_policy` FOREIGN KEY (`policy_id`) REFERENCES `access_policy` (`policy_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -706,7 +714,7 @@ CREATE TABLE `recommended_severity_flow` (
   PRIMARY KEY (`recommended_severity_flow_id`),
   KEY `fk_ticket_recommended_severity_flow` (`ticket_id`),
   CONSTRAINT `fk_ticket_recommended_severity_flow` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`ticket_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -752,7 +760,7 @@ CREATE TABLE `report_artifact` (
   PRIMARY KEY (`artifact_id`),
   KEY `idx_report_artifact_request_id` (`request_id`),
   CONSTRAINT `report_artifact_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `report_request_history` (`request_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=212 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=289 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -835,7 +843,7 @@ CREATE TABLE `report_master` (
   `updated_by` varchar(100) NOT NULL DEFAULT 'SYSTEM',
   PRIMARY KEY (`report_id`),
   UNIQUE KEY `report_code` (`report_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -894,7 +902,9 @@ CREATE TABLE `requester_users` (
   `zone_code` varchar(2) DEFAULT NULL,
   `district_code` varchar(6) DEFAULT NULL,
   `region_code` varchar(3) DEFAULT NULL,
+  `depot_code` varchar(20) DEFAULT NULL,
   `active` tinyint(1) DEFAULT NULL,
+  `password_change_required` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`requester_user_id`),
   UNIQUE KEY `requester_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1031,7 +1041,7 @@ CREATE TABLE `role_permission_config` (
   `role_id` int NOT NULL AUTO_INCREMENT,
   `parameter_ids` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`role_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1173,7 +1183,7 @@ CREATE TABLE `stakeholder` (
   PRIMARY KEY (`stakeholder_id`),
   KEY `fk_stakeholder_group` (`sg_id`),
   CONSTRAINT `fk_stakeholder_group` FOREIGN KEY (`sg_id`) REFERENCES `stakeholder_group` (`sg_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1188,7 +1198,7 @@ CREATE TABLE `stakeholder_group` (
   `description` varchar(100) NOT NULL,
   `is_active` char(1) NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`sg_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1205,6 +1215,8 @@ CREATE TABLE `status_history` (
   `previous_status` varchar(50) DEFAULT NULL,
   `current_status` varchar(50) DEFAULT NULL,
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
+  `original_timestamp` timestamp NULL DEFAULT NULL,
+  `updated_timestamp` timestamp NULL DEFAULT NULL,
   `sla_flag` tinyint DEFAULT NULL,
   `remark` varchar(255) DEFAULT NULL,
   `timestamp_utc` timestamp(6) NULL DEFAULT NULL,
@@ -1367,7 +1379,7 @@ CREATE TABLE `ticket_cr_history` (
   KEY `idx_ticket_cr_history_change_group_id` (`change_group_id`),
   KEY `idx_ticket_cr_history_change_type_code` (`change_type_code`),
   KEY `idx_ticket_cr_history_changed_on` (`changed_on`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1390,7 +1402,7 @@ CREATE TABLE `ticket_cr_history_config` (
   `updated_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_table_column` (`table_name`,`column_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1459,7 +1471,67 @@ CREATE TABLE `ticket_feedback` (
   CONSTRAINT `chk_feedback_range_overall` CHECK ((`overall_satisfaction` between 1 and 5)),
   CONSTRAINT `chk_feedback_range_resolution_effective` CHECK ((`resolution_effectiveness` between 1 and 5)),
   CONSTRAINT `chk_feedback_range_timeliness` CHECK ((`timeliness` between 1 and 5))
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ticket_history`
+--
+
+DROP TABLE IF EXISTS `ticket_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ticket_history` (
+  `ticket_history_id` bigint NOT NULL AUTO_INCREMENT,
+  `update_group_id` varchar(100) NOT NULL,
+  `ticket_id` varchar(255) NOT NULL,
+  `column_name` varchar(100) NOT NULL,
+  `update_type_code` varchar(50) NOT NULL,
+  `display_label` varchar(255) NOT NULL,
+  `old_ref_id` varchar(255) DEFAULT NULL,
+  `new_ref_id` varchar(255) DEFAULT NULL,
+  `old_value` text,
+  `new_value` text,
+  `updated_by` varchar(255) NOT NULL,
+  `updated_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_on_utc` timestamp NULL DEFAULT NULL,
+  `original_timestamp` timestamp NULL DEFAULT NULL,
+  `updated_timestamp` timestamp NULL DEFAULT NULL,
+  `remarks` text,
+  `source_table` varchar(100) DEFAULT NULL,
+  `source_history_id` varchar(100) DEFAULT NULL,
+  `source_column_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`ticket_history_id`),
+  UNIQUE KEY `uk_ticket_history_source` (`source_table`,`source_history_id`,`source_column_name`),
+  KEY `idx_ticket_history_ticket_id` (`ticket_id`),
+  KEY `idx_ticket_history_update_group_id` (`update_group_id`),
+  KEY `idx_ticket_history_update_type_code` (`update_type_code`),
+  KEY `idx_ticket_history_updated_on` (`updated_on`),
+  KEY `idx_ticket_history_updated_on_utc` (`updated_on_utc`)
+) ENGINE=InnoDB AUTO_INCREMENT=76 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ticket_history_config`
+--
+
+DROP TABLE IF EXISTS `ticket_history_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ticket_history_config` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `table_name` varchar(100) NOT NULL DEFAULT 'tickets',
+  `column_name` varchar(100) NOT NULL,
+  `display_label` varchar(255) NOT NULL,
+  `update_type_code` varchar(50) NOT NULL,
+  `is_trackable` tinyint(1) NOT NULL DEFAULT '1',
+  `is_filterable` tinyint(1) NOT NULL DEFAULT '1',
+  `display_order` int DEFAULT '0',
+  `created_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ticket_history_config_table_column` (`table_name`,`column_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1477,7 +1549,7 @@ CREATE TABLE `ticket_sequences` (
   `version` bigint NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_ticket_sequences_mode_date` (`mode_id`,`sequence_date`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1499,6 +1571,7 @@ CREATE TABLE `ticket_sla` (
   `response_time_minutes` bigint DEFAULT NULL,
   `breached_by_minutes` bigint DEFAULT NULL,
   `idle_time_minutes` bigint DEFAULT NULL,
+  `is_sla_applicable` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ticket_sla_id`),
   KEY `fk_ticket_sla_ticket` (`ticket_id`),
   KEY `fk_ticket_sla_sla` (`sla_id`),
@@ -1520,6 +1593,33 @@ CREATE TABLE `ticket_status_workflow` (
   `TSW_Current_Status` int DEFAULT NULL,
   `TSW_Next_Status` int DEFAULT NULL,
   PRIMARY KEY (`TSW_Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ticket_text_history`
+--
+
+DROP TABLE IF EXISTS `ticket_text_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ticket_text_history` (
+  `text_history_id` bigint NOT NULL AUTO_INCREMENT,
+  `ticket_history_id` bigint NOT NULL,
+  `ticket_id` varchar(255) NOT NULL,
+  `column_name` varchar(100) NOT NULL,
+  `old_text` longtext,
+  `new_text` longtext,
+  `old_text_hash` varchar(64) DEFAULT NULL,
+  `new_text_hash` varchar(64) DEFAULT NULL,
+  `old_text_length` int DEFAULT NULL,
+  `new_text_length` int DEFAULT NULL,
+  `created_on` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`text_history_id`),
+  KEY `idx_ticket_text_history_ticket_history_id` (`ticket_history_id`),
+  KEY `idx_ticket_text_history_ticket_id` (`ticket_id`),
+  KEY `idx_ticket_text_history_column_name` (`column_name`),
+  CONSTRAINT `fk_ticket_text_history_ticket_history` FOREIGN KEY (`ticket_history_id`) REFERENCES `ticket_history` (`ticket_history_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1559,6 +1659,9 @@ CREATE TABLE `tickets` (
   `stakeholder` varchar(50) DEFAULT NULL,
   `status_id` varchar(36) DEFAULT NULL,
   `resolved_at` datetime DEFAULT NULL,
+  `resolved_at_utc` timestamp(6) NULL DEFAULT NULL,
+  `closed_at` datetime(6) DEFAULT NULL,
+  `closed_at_utc` timestamp(6) NULL DEFAULT NULL,
   `feedback_status` enum('PENDING','PROVIDED','NOT_PROVIDED') DEFAULT 'PENDING',
   `updated_by` varchar(100) DEFAULT NULL,
   `office` varchar(100) DEFAULT NULL,
@@ -1566,6 +1669,7 @@ CREATE TABLE `tickets` (
   `district_code` varchar(50) DEFAULT NULL,
   `zone_code` varchar(50) DEFAULT NULL,
   `region_code` varchar(50) DEFAULT NULL,
+  `depot_code` varchar(20) DEFAULT NULL,
   `region_name` varchar(255) DEFAULT NULL,
   `district_name` varchar(255) DEFAULT NULL,
   `created_by` varchar(50) DEFAULT NULL,
@@ -1607,7 +1711,7 @@ CREATE TABLE `trigger_job` (
   `running` bit(1) NOT NULL DEFAULT b'0',
   PRIMARY KEY (`trigger_job_id`),
   UNIQUE KEY `uk_trigger_job_code` (`trigger_job_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1686,6 +1790,7 @@ CREATE TABLE `users` (
   `password` varchar(255) DEFAULT NULL,
   `roles` varchar(255) DEFAULT NULL,
   `stakeholder` varchar(50) DEFAULT NULL,
+  `password_change_required` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1726,6 +1831,14 @@ CREATE TABLE `zone_master` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping events for database 'ticketing_system'
+--
+
+--
+-- Dumping routines for database 'ticketing_system'
+--
+
+--
 -- Final view structure for view `users_view`
 --
 
@@ -1742,6 +1855,7 @@ CREATE TABLE `zone_master` (
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
+SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -1752,4 +1866,4 @@ CREATE TABLE `zone_master` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-22 10:51:49
+-- Dump completed on 2026-10-13 15:24:39
