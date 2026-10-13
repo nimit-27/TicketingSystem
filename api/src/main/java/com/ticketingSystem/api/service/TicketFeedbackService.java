@@ -30,6 +30,7 @@ import java.util.Optional;
 @Service
 public class TicketFeedbackService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+    private final TicketTimestampHistoryService timestampHistoryService;
     private final TicketRepository ticketRepository;
     private final TicketFeedbackRepository feedbackRepository;
     private final TicketStatusWorkflowService workflowService;
@@ -40,7 +41,9 @@ public class TicketFeedbackService {
                                  TicketFeedbackRepository feedbackRepository,
                                  TicketStatusWorkflowService workflowService,
                                  StatusMasterRepository statusMasterRepository,
-                                 StatusHistoryService statusHistoryService) {
+                                 StatusHistoryService statusHistoryService,
+                                 TicketTimestampHistoryService timestampHistoryService) {
+        this.timestampHistoryService = timestampHistoryService;
         this.ticketRepository = ticketRepository;
         this.feedbackRepository = feedbackRepository;
         this.workflowService = workflowService;
@@ -95,6 +98,7 @@ public class TicketFeedbackService {
                     ? ticket.getStatus().getStatusId()
                     : (ticket.getTicketStatus() != null ? workflowService.getStatusIdByCode(ticket.getTicketStatus().name()) : null);
 
+            var timestampSnapshot = timestampHistoryService.snapshot(ticket);
             ticket.setTicketStatus(TicketStatus.CLOSED);
             ticket.setFeedbackStatus(FeedbackStatus.PROVIDED);
             Instant modifiedAtUtc = Instant.now();
@@ -111,6 +115,7 @@ public class TicketFeedbackService {
                 ticket.setLastModifiedStatusDateUtc(modifiedAtUtc);
             }
             ticketRepository.save(ticket);
+            timestampHistoryService.recordChanges(timestampSnapshot, ticket, currentUserId, "Closed after feedback submission");
 
             if (closedId != null && (previousStatusId == null || !closedId.equals(previousStatusId))) {
                 Boolean slaFlag = workflowService.getSlaFlagByStatusAndIssueType(closedId, ticket.getIssueTypeId());

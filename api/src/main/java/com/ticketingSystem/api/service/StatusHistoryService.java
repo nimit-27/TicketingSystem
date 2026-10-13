@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 public class StatusHistoryService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
 
+    private final TicketTimestampHistoryService timestampHistoryService;
     private final StatusHistoryRepository historyRepository;
     private final TicketRepository ticketRepository;
     private final StatusMasterRepository statusMasterRepository;
@@ -49,7 +50,9 @@ public class StatusHistoryService {
                                 AssignmentHistoryRepository assignmentHistoryRepository,
                                 TicketHistoryRepository ticketHistoryRepository,
                                 TicketSlaService ticketSlaService,
-                                SlaCalculatorService slaCalculatorService) {
+                                SlaCalculatorService slaCalculatorService,
+                                TicketTimestampHistoryService timestampHistoryService) {
+        this.timestampHistoryService = timestampHistoryService;
         this.historyRepository = historyRepository;
         this.ticketRepository = ticketRepository;
         this.statusMasterRepository = statusMasterRepository;
@@ -154,6 +157,7 @@ public class StatusHistoryService {
             ticketHistoryRepository.saveAll(rows);
         }
 
+        var timestampSnapshot = timestampHistoryService.snapshot(ticket);
         if (Objects.equals(ticket.getResolvedAt(), oldTimestamp)) ticket.setResolvedAt(newTimestamp);
         if (Objects.equals(ticket.getClosedAt(), oldTimestamp)) ticket.setClosedAt(newTimestamp);
         if (Objects.equals(ticket.getLastModifiedStatusDate(), oldTimestamp)) {
@@ -161,6 +165,7 @@ public class StatusHistoryService {
             ticket.setLastModifiedStatusDateUtc(newTimestamp.atZone(BUSINESS_ZONE).toInstant());
         }
         ticketRepository.save(ticket);
+        timestampHistoryService.recordChanges(timestampSnapshot, ticket, ticket.getUpdatedBy(), "Status history timestamp correction");
         if (preview) {
             ticketSlaService.calculatePreviewByCalendarFromScratch(
                     ticket, historyRepository.findByTicketOrderByTimestampAsc(ticket));
@@ -206,6 +211,7 @@ public class StatusHistoryService {
             ticketHistoryRepository.saveAll(rows);
         }
 
+        var timestampSnapshot = timestampHistoryService.snapshot(ticket);
         if (Objects.equals(ticket.getResolvedAt(), changedTimestamp)) ticket.setResolvedAt(originalTimestamp);
         if (Objects.equals(ticket.getClosedAt(), changedTimestamp)) ticket.setClosedAt(originalTimestamp);
         if (Objects.equals(ticket.getLastModifiedStatusDate(), changedTimestamp)) {
@@ -213,6 +219,7 @@ public class StatusHistoryService {
             ticket.setLastModifiedStatusDateUtc(originalTimestamp.atZone(BUSINESS_ZONE).toInstant());
         }
         ticketRepository.save(ticket);
+        timestampHistoryService.recordChanges(timestampSnapshot, ticket, ticket.getUpdatedBy(), "Status history timestamp correction");
         ticketSlaService.calculateAndSaveByCalendarFromScratch(
                 ticket, historyRepository.findByTicketOrderByTimestampAsc(ticket));
         return getHistoryForTicket(ticket.getId()).stream()

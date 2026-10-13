@@ -9,6 +9,7 @@ import com.ticketingSystem.api.models.Status;
 import com.ticketingSystem.api.models.StatusHistory;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketHistory;
+import com.ticketingSystem.api.models.TicketHistoryConfig;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.models.RecommendedSeverityFlow;
 import com.ticketingSystem.api.models.Role;
@@ -1083,6 +1084,19 @@ class TicketServiceTest {
         String ticketId = "T-REOPEN";
         Ticket existing = buildExistingTicket(ticketId, "agent1");
         existing.setAssignedToLevel("L1");
+        existing.setResolvedAtUtc(java.time.Instant.parse("2026-10-13T06:00:00Z"));
+        TicketHistoryConfig resolvedConfig = new TicketHistoryConfig();
+        resolvedConfig.setColumnName("resolved_at");
+        resolvedConfig.setUpdateTypeCode("RESOLVED_AT_UPDATE");
+        resolvedConfig.setDisplayLabel("Resolved At Updated");
+        TicketHistoryConfig utcConfig = new TicketHistoryConfig();
+        utcConfig.setColumnName("resolved_at_utc");
+        utcConfig.setUpdateTypeCode("RESOLVED_AT_UTC_UPDATE");
+        utcConfig.setDisplayLabel("Resolved At UTC Updated");
+        when(ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets"))
+                .thenReturn(List.of(resolvedConfig, utcConfig));
+        when(ticketHistoryRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
 
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(existing));
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -1101,6 +1115,14 @@ class TicketServiceTest {
 
         ticketService.updateTicket(ticketId, update);
 
+        assertThat(existing.getResolvedAt()).isNull();
+        assertThat(existing.getResolvedAtUtc()).isNull();
+        ArgumentCaptor<List<TicketHistory>> timestampRows = ArgumentCaptor.forClass(List.class);
+        verify(ticketHistoryRepository).saveAll(timestampRows.capture());
+        assertThat(timestampRows.getValue()).hasSize(2).allSatisfy(row -> {
+            assertThat(row.getOldValue()).isNotNull();
+            assertThat(row.getNewValue()).isNull();
+        });
         verify(assignmentHistoryService).addHistory(
                 eq(ticketId),
                 eq("agent2"),
@@ -1155,6 +1177,8 @@ class TicketServiceTest {
 
         TicketDto result = ticketService.linkToMaster(childId, masterId, "agent-linker");
 
+        assertThat(child.getResolvedAtUtc()).isNotNull().isEqualTo(child.getClosedAtUtc());
+        assertThat(child.getResolvedAt()).isEqualTo(child.getClosedAt());
         assertThat(result.getMasterId()).isEqualTo(masterId);
         assertThat(result.getStatus()).isEqualTo(TicketStatus.CLOSED);
 
@@ -1166,6 +1190,36 @@ class TicketServiceTest {
                 eq(Boolean.FALSE),
                 eq("Linked to a Master ticket")
         );
+    }
+
+    @Test
+    void addTicketWithMasterClosesNewChildWithMatchingTimestamps() {
+        Ticket child = new Ticket();
+        child.setId("T-NEW-CHILD");
+        child.setMasterId("T-MASTER");
+        child.setUpdatedBy("agent");
+        Ticket master = buildExistingTicket("T-MASTER", null);
+        master.setMaster(true);
+        Status open = new Status();
+        open.setStatusId("OPEN_ID");
+        open.setStatusCode("OPEN");
+        Status closed = new Status();
+        closed.setStatusId("CLOSED_ID");
+        closed.setStatusCode("CLOSED");
+        when(workflowService.getStatusIdByCode("OPEN")).thenReturn("OPEN_ID");
+        when(workflowService.getStatusIdByCode("CLOSED")).thenReturn("CLOSED_ID");
+        when(statusMasterRepository.findById("OPEN_ID")).thenReturn(Optional.of(open));
+        when(statusMasterRepository.findById("CLOSED_ID")).thenReturn(Optional.of(closed));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(call -> call.getArgument(0));
+        when(ticketRepository.findById(child.getId())).thenReturn(Optional.of(child));
+        when(ticketRepository.findById(master.getId())).thenReturn(Optional.of(master));
+
+        TicketDto result = ticketService.addTicket(child);
+
+        assertThat(result.getStatus()).isEqualTo(TicketStatus.CLOSED);
+        assertThat(child.getMasterId()).isEqualTo(master.getId());
+        assertThat(child.getResolvedAtUtc()).isNotNull().isEqualTo(child.getClosedAtUtc());
+        assertThat(child.getResolvedAt()).isNotNull().isEqualTo(child.getClosedAt());
     }
 
     private Ticket buildExistingTicket(String ticketId, String assignee) {

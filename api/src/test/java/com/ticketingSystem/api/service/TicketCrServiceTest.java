@@ -41,6 +41,8 @@ class TicketCrServiceTest {
     @Mock
     private TicketCrRepository ticketCrRepository;
     @Mock
+    private TicketTimestampHistoryService timestampHistoryService;
+    @Mock
     private TicketRepository ticketRepository;
     @Mock
     private StatusMasterRepository statusMasterRepository;
@@ -207,6 +209,44 @@ class TicketCrServiceTest {
             assertThat(row.getSubject()).isEqualTo("Missing CR");
             assertThat(row.getAssignedTo()).isEqualTo("engineer");
         });
+    }
+
+    @Test
+    void rejectionClosesTicketWithIdenticalResolutionAndClosureTimestamps() {
+        Ticket ticket = new Ticket();
+        ticket.setId("T-REJECTED");
+        Status initial = new Status();
+        initial.setStatusId("CHANGE_REQUESTED_ID");
+        ticket.setStatus(initial);
+        Status closed = new Status();
+        closed.setStatusId("CLOSED_ID");
+        closed.setStatusCode("CLOSED");
+        CrStatusMaster pending = crStatus("PENDING", "Pending", "grey");
+        CrStatusMaster rejected = crStatus("REJECTED", "Rejected", "red");
+        rejected.setCrStatusCode("CR_REJECTED");
+        TicketCr cr = new TicketCr();
+        cr.setTicketCrId("CR-1");
+        cr.setTicket(ticket);
+        cr.setCrStatus(pending);
+        TicketCrStatusWorkflow workflow = new TicketCrStatusWorkflow();
+        workflow.setCurrentStatus(pending);
+        workflow.setNextStatus(rejected);
+        when(ticketCrRepository.findById("CR-1")).thenReturn(Optional.of(cr));
+        when(ticketCrStatusWorkflowRepository.findById("WF-REJECT")).thenReturn(Optional.of(workflow));
+        when(statusMasterRepository.findByStatusCode("CLOSED")).thenReturn(closed);
+        when(ticketCrRepository.save(cr)).thenReturn(cr);
+        TicketCrUpdateStatusRequestDto request = new TicketCrUpdateStatusRequestDto();
+        request.setCrswId("WF-REJECT");
+        request.setUpdatedBy("approver");
+
+        service.updateStatus("CR-1", request);
+
+        assertThat(ticket.getResolvedAtUtc()).isNotNull().isEqualTo(ticket.getClosedAtUtc());
+        assertThat(ticket.getResolvedAt()).isNotNull().isEqualTo(ticket.getClosedAt());
+        assertThat(ticket.getTicketStatus()).isEqualTo(com.ticketingSystem.api.enums.TicketStatus.CLOSED);
+        verify(timestampHistoryService).recordChanges(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.same(ticket), org.mockito.ArgumentMatchers.eq("approver"),
+                org.mockito.ArgumentMatchers.eq("Auto-closed due to CR rejection"));
     }
 
     private CrStatusMaster crStatus(String id, String name, String color) {

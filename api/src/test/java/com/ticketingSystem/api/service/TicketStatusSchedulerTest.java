@@ -28,6 +28,8 @@ import static org.mockito.Mockito.times;
 class TicketStatusSchedulerTest {
 
     @Mock
+    private TicketTimestampHistoryService timestampHistoryService;
+    @Mock
     private TicketRepository ticketRepository;
     @Mock
     private TicketStatusWorkflowService workflowService;
@@ -43,6 +45,7 @@ class TicketStatusSchedulerTest {
                 workflowService,
                 statusMasterRepository,
                 statusHistoryService,
+                timestampHistoryService,
                 false,
                 72
         );
@@ -81,6 +84,7 @@ class TicketStatusSchedulerTest {
                 workflowService,
                 statusMasterRepository,
                 statusHistoryService,
+                timestampHistoryService,
                 true,
                 configuredHours
         );
