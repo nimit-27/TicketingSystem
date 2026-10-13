@@ -364,6 +364,9 @@ public class TicketService {
         // are handled by Ticket.@PrePersist. lastModified remains a business timestamp.
         setLastModified(ticket);
 
+        String requestedMasterId = ticket.getMasterId();
+        ticket.setMasterId(null); // Linking below records the null-to-master transition.
+
         // SAVING TICKET IN REPOSITORY
         System.out.println("TicketService: Saving the ticket to repository now...");
         Ticket saved = ticketRepository.save(ticket);
@@ -411,6 +414,9 @@ public class TicketService {
             ticketSlaService.calculateAndSaveByCalendar(saved, historyEntries);
         }
 
+        if (requestedMasterId != null && !requestedMasterId.isBlank()) {
+            return linkToMaster(saved.getId(), requestedMasterId, saved.getUpdatedBy());
+        }
         return mapWithStatusId(saved);
     }
 
@@ -765,7 +771,7 @@ public class TicketService {
         Ticket existing = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
-        Ticket historySnapshot = copyTicketForHistory(existing);
+        TicketHistorySnapshot historySnapshot = copyTicketForHistory(existing);
         String previousSeverity = existing.getSeverity();
         String previousRecommendedSeverity = existing.getRecommendedSeverity();
         String previousRecommendedBy = existing.getSeverityRecommendedBy();
@@ -1259,7 +1265,8 @@ public class TicketService {
         return group.isEmpty() ? List.of(history) : group;
     }
 
-    private void createTicketHistoryEntries(Ticket oldRecord, Ticket newRecord, String updatedBy, String remark) {
+    private void createTicketHistoryEntries(TicketHistorySnapshot snapshot, Ticket newRecord, String updatedBy, String remark) {
+        Ticket oldRecord = snapshot.ticket();
         List<TicketHistoryConfig> configs = ticketHistoryConfigRepository.findByTableNameAndIsTrackableTrueOrderByDisplayOrderAsc("tickets");
         List<TicketHistory> rows = new ArrayList<>();
         String groupId = UUID.randomUUID().toString();
@@ -1267,7 +1274,8 @@ public class TicketService {
             String columnName = config.getColumnName();
             String oldRefId = getTicketColumnRefId(oldRecord, columnName);
             String newRefId = getTicketColumnRefId(newRecord, columnName);
-            String oldValue = getTicketColumnDisplayValue(oldRecord, columnName);
+            String oldValue = snapshot.timestamps().containsKey(columnName)
+                    ? snapshot.timestamps().get(columnName) : getTicketColumnDisplayValue(oldRecord, columnName);
             String newValue = getTicketColumnDisplayValue(newRecord, columnName);
             String oldText = getTicketTextValue(oldRecord, columnName);
             String newText = getTicketTextValue(newRecord, columnName);
@@ -1310,7 +1318,9 @@ public class TicketService {
         }
     }
 
-    private Ticket copyTicketForHistory(Ticket source) {
+    private record TicketHistorySnapshot(Ticket ticket, Map<String, String> timestamps) {}
+
+    private TicketHistorySnapshot copyTicketForHistory(Ticket source) {
         Ticket copy = new Ticket();
         copy.setId(source.getId());
         copy.setSubject(source.getSubject());
@@ -1339,7 +1349,11 @@ public class TicketService {
         copy.setMaster(source.isMaster());
         copy.setMasterId(source.getMasterId());
         copy.setAssignedBackFromFci(source.isAssignedBackFromFci());
-        return copy;
+        Map<String, String> timestamps = new HashMap<>();
+        for (String column : List.of("resolved_at", "resolved_at_utc", "closed_at", "closed_at_utc")) {
+            timestamps.put(column, getTicketColumnValue(source, column));
+        }
+        return new TicketHistorySnapshot(copy, timestamps);
     }
 
     private String getTicketColumnRefId(Ticket record, String col) {
@@ -1399,6 +1413,10 @@ public class TicketService {
     private String getTicketColumnValue(Ticket record, String col) {
         if (record == null) return null;
         return switch (col) {
+            case "resolved_at" -> record.getResolvedAt() == null ? null : record.getResolvedAt().toString();
+            case "resolved_at_utc" -> record.getResolvedAtUtc() == null ? null : record.getResolvedAtUtc().toString();
+            case "closed_at" -> record.getClosedAt() == null ? null : record.getClosedAt().toString();
+            case "closed_at_utc" -> record.getClosedAtUtc() == null ? null : record.getClosedAtUtc().toString();
             case "subject" -> record.getSubject();
             case "description" -> record.getDescription();
             case "category" -> resolveCategoryName(record.getCategory());
@@ -2252,10 +2270,13 @@ public class TicketService {
             return mapWithStatusId(ticket);
         }
 
-        Ticket historySnapshot = copyTicketForHistory(ticket);
+        TicketHistorySnapshot historySnapshot = copyTicketForHistory(ticket);
         String previousStatusId = resolveCurrentStatusId(ticket);
         ticket.setMasterId(masterId);
         applyClosedStatus(ticket);
+        Instant closedAtUtc = Instant.now();
+        ticket.setResolvedAtUtc(closedAtUtc);
+        ticket.setClosedAtUtc(closedAtUtc);
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
         }
@@ -2307,7 +2328,7 @@ public class TicketService {
             throw new InvalidRequestException("Ticket is not linked to any master ticket.");
         }
 
-        Ticket historySnapshot = copyTicketForHistory(ticket);
+        TicketHistorySnapshot historySnapshot = copyTicketForHistory(ticket);
         ticket.setMasterId("");
         if (updatedBy != null && !updatedBy.isBlank()) {
             ticket.setUpdatedBy(updatedBy);
@@ -2325,7 +2346,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
-        Ticket historySnapshot = copyTicketForHistory(ticket);
+        TicketHistorySnapshot historySnapshot = copyTicketForHistory(ticket);
         ticket.setMaster(true);
         ticket.setMasterId(null);
         setLastModified(ticket);

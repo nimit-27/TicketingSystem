@@ -18,6 +18,7 @@ import java.util.List;
 @Component
 public class TicketStatusScheduler {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
+    private final TicketTimestampHistoryService timestampHistoryService;
     private final TicketRepository ticketRepository;
     private final TicketStatusWorkflowService workflowService;
     private final StatusMasterRepository statusMasterRepository;
@@ -29,8 +30,10 @@ public class TicketStatusScheduler {
                                  TicketStatusWorkflowService workflowService,
                                  StatusMasterRepository statusMasterRepository,
                                  StatusHistoryService statusHistoryService,
+                                 TicketTimestampHistoryService timestampHistoryService,
                                  @Value("${app.ticket.auto-close-resolved.enabled:true}") boolean autoClosureEnabled,
                                  @Value("${app.ticket.auto-close-resolved.after-hours:72}") long autoClosureAfterHours) {
+        this.timestampHistoryService = timestampHistoryService;
         this.ticketRepository = ticketRepository;
         this.workflowService = workflowService;
         this.statusMasterRepository = statusMasterRepository;
@@ -54,6 +57,7 @@ public class TicketStatusScheduler {
                     ? t.getStatus().getStatusId()
                     : (t.getTicketStatus() != null ? workflowService.getStatusIdByCode(t.getTicketStatus().name()) : null);
 
+            var timestampSnapshot = timestampHistoryService.snapshot(t);
             t.setTicketStatus(TicketStatus.CLOSED);
             t.setUpdatedBy("SYSTEM");
             Instant modifiedAtUtc = Instant.now();
@@ -69,6 +73,7 @@ public class TicketStatusScheduler {
             if (t.getFeedbackStatus() == null) {
                 t.setFeedbackStatus(FeedbackStatus.PENDING);
             }
+            timestampHistoryService.recordChanges(timestampSnapshot, t, "SYSTEM", "Auto-closed after resolved timeout");
             if (closedId != null) {
                 statusMasterRepository.findById(closedId).ifPresent(t::setStatus);
                 if (previousStatusId == null || !closedId.equals(previousStatusId)) {

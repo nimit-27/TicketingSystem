@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TicketCrService {
+    private final TicketTimestampHistoryService timestampHistoryService;
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Kolkata");
     private static final String CHANGE_REQUESTED_STATUS_CODE = TicketStatus.CHANGE_REQUESTED.name();
     private static final String INITIAL_CR_STATUS_CODE = "CR_PENDING_APPROVAL";
@@ -142,6 +143,7 @@ public class TicketCrService {
         }).collect(Collectors.groupingBy(TicketCrStatusWorkflowDto::getCurrentStatusId));
     }
 
+    @Transactional
     public TicketCrDto updateStatus(String ticketCrId, TicketCrUpdateStatusRequestDto request) {
         TicketCr ticketCr = ticketCrRepository.findById(ticketCrId).orElseThrow(() -> new EntityNotFoundException("Ticket CR not found: " + ticketCrId));
         var workflow = ticketCrStatusWorkflowRepository.findById(request.getCrswId()).orElseThrow(() -> new EntityNotFoundException("Ticket CR workflow not found: " + request.getCrswId()));
@@ -179,13 +181,13 @@ public class TicketCrService {
                 ? ticket.getStatus().getStatusId()
                 : (ticket.getTicketStatus() != null ? ticketStatusWorkflowService.getStatusIdByCode(ticket.getTicketStatus().name()) : null);
 
+        var timestampSnapshot = timestampHistoryService.snapshot(ticket);
         ticket.setTicketStatus(TicketStatus.CLOSED);
         ticket.setStatus(closedStatus);
         ticket.setUpdatedBy(updatedBy);
         Instant modifiedAtUtc = Instant.now();
-        if (ticket.getClosedAt() == null) {
-            ticket.setClosedAtUtc(modifiedAtUtc);
-        }
+        ticket.setResolvedAtUtc(modifiedAtUtc);
+        ticket.setClosedAtUtc(modifiedAtUtc);
         LocalDateTime modifiedAt = LocalDateTime.ofInstant(modifiedAtUtc, BUSINESS_ZONE);
         ticket.setLastModified(modifiedAt);
         ticket.setLastModifiedUtc(modifiedAtUtc);
@@ -194,6 +196,7 @@ public class TicketCrService {
             ticket.setLastModifiedStatusDateUtc(modifiedAtUtc);
         }
         ticketRepository.save(ticket);
+        timestampHistoryService.recordChanges(timestampSnapshot, ticket, updatedBy, "Auto-closed due to CR rejection");
 
         String closedStatusId = closedStatus.getStatusId();
         statusHistoryService.addHistory(
