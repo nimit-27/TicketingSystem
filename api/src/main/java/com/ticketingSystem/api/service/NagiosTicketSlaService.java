@@ -98,6 +98,9 @@ public class NagiosTicketSlaService {
                 statusCounts.openReopenedAssignedBreachedTickets(),
                 nonBreachedTickets,
                 breachPercentage,
+                calculatePercentage(
+                        ticketSlaRepository.countBreachedTicketsResolvedBetween(fromDateTime, toDateExclusive),
+                        ticketSlaRepository.countTicketsResolvedBetween(fromDateTime, toDateExclusive)),
                 compliancePercentage,
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
@@ -169,6 +172,9 @@ public class NagiosTicketSlaService {
                 statusCounts.openReopenedAssignedBreachedTickets(),
                 nonBreachedTickets,
                 breachPercentage,
+                calculatePercentage(
+                        ticketSlaRepository.countBreachedTicketsResolvedBetween(fromDateTime, toDateExclusive),
+                        ticketSlaRepository.countTicketsResolvedBetween(fromDateTime, toDateExclusive)),
                 compliancePercentage,
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
