@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +40,9 @@ class NagiosTicketSlaServiceTest {
     @InjectMocks
     private NagiosTicketSlaService nagiosTicketSlaService;
 
+    @Value("${report.sla.default-from-date}")
+    private LocalDate defaultFromDate;
+
     @Test
     void summaryAndDetailedSummaryUseResolutionRangeForBreachPercentageType() throws Exception {
         LocalDate from = LocalDate.of(2026, 10, 1);
@@ -47,17 +51,17 @@ class NagiosTicketSlaServiceTest {
         LocalDateTime endExclusive = to.plusDays(1).atStartOfDay();
         when(ticketSlaRepository.fetchSummary(start, endExclusive)).thenReturn(
                 new NagiosTicketSlaSummaryAggregateDto(100, 20, null, null, null, start, null));
-        when(ticketSlaRepository.countTicketsResolvedBetween(start, endExclusive)).thenReturn(3L);
-        when(ticketSlaRepository.countBreachedTicketsResolvedBetween(start, endExclusive)).thenReturn(1L);
+        when(ticketSlaRepository.countTicketsResolvedBetween(defaultFromDate.atStartOfDay(), start, endExclusive)).thenReturn(3L);
+        when(ticketSlaRepository.countBreachedTicketsResolvedBetween(defaultFromDate.atStartOfDay(), start, endExclusive)).thenReturn(1L);
 
         var summary = nagiosTicketSlaService.fetchSummary(from, to);
         var detailed = nagiosTicketSlaService.fetchSummaryDetailed(from, to);
 
-        assertThat(summary.breachPercentageType()).isEqualByComparingTo("33.33");
-        assertThat(detailed.breachPercentageType()).isEqualByComparingTo("33.33");
+        assertThat(summary.breachPercentageType2()).isEqualByComparingTo("33.33");
+        assertThat(detailed.breachPercentageType2()).isEqualByComparingTo("33.33");
         assertThat(summary.breachPercentage()).isEqualByComparingTo("20.00");
         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        assertThat(mapper.readTree(mapper.writeValueAsString(summary)).get("breachPercentageType").decimalValue())
+        assertThat(mapper.readTree(mapper.writeValueAsString(summary)).get("breachPercentageType2").decimalValue())
                 .isEqualByComparingTo("33.33");
     }
 
@@ -66,7 +70,7 @@ class NagiosTicketSlaServiceTest {
         when(ticketSlaRepository.fetchSummary(any(), any())).thenReturn(
                 new NagiosTicketSlaSummaryAggregateDto(10, 5, null, null, null, null, null));
         var summary = nagiosTicketSlaService.fetchSummary(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 13));
-        assertThat(summary.breachPercentageType()).isEqualByComparingTo("0.00");
+        assertThat(summary.breachPercentageType2()).isEqualByComparingTo("0.00");
     }
 
     @Test

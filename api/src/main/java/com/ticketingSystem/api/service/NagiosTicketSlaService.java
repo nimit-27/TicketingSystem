@@ -11,6 +11,7 @@ import com.ticketingSystem.api.enums.TicketStatus;
 import com.ticketingSystem.api.models.Ticket;
 import com.ticketingSystem.api.models.TicketSla;
 import com.ticketingSystem.api.repository.TicketSlaRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ import java.util.Map;
 public class NagiosTicketSlaService {
     private static final int MAX_RECORD_LIMIT = 500;
     private static final int DEFAULT_RECORD_LIMIT = 200;
+
+    @Value("${report.sla.default-from-date}")
+    private LocalDate defaultFromDate;
 
     private final TicketSlaRepository ticketSlaRepository;
 
@@ -99,8 +103,8 @@ public class NagiosTicketSlaService {
                 nonBreachedTickets,
                 breachPercentage,
                 calculatePercentage(
-                        ticketSlaRepository.countBreachedTicketsResolvedBetween(fromDateTime, toDateExclusive),
-                        ticketSlaRepository.countTicketsResolvedBetween(fromDateTime, toDateExclusive)),
+                        ticketSlaRepository.countBreachedTicketsResolvedBetween(defaultFromDate.atStartOfDay(), fromDateTime, toDateExclusive),
+                        ticketSlaRepository.countTicketsResolvedBetween(defaultFromDate.atStartOfDay(), fromDateTime, toDateExclusive)),
                 compliancePercentage,
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
@@ -173,8 +177,8 @@ public class NagiosTicketSlaService {
                 nonBreachedTickets,
                 breachPercentage,
                 calculatePercentage(
-                        ticketSlaRepository.countBreachedTicketsResolvedBetween(fromDateTime, toDateExclusive),
-                        ticketSlaRepository.countTicketsResolvedBetween(fromDateTime, toDateExclusive)),
+                        ticketSlaRepository.countBreachedTicketsResolvedBetween(defaultFromDate.atStartOfDay(), fromDateTime, toDateExclusive),
+                        ticketSlaRepository.countTicketsResolvedBetween(defaultFromDate.atStartOfDay(), fromDateTime, toDateExclusive)),
                 compliancePercentage,
                 toBigDecimal(aggregate.averageResolutionTimeMinutes()),
                 toBigDecimal(aggregate.averageResponseTimeMinutes()),
