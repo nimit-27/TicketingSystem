@@ -40,6 +40,36 @@ class NagiosTicketSlaServiceTest {
     private NagiosTicketSlaService nagiosTicketSlaService;
 
     @Test
+    void summaryAndDetailedSummaryUseResolutionRangeForBreachPercentageType() throws Exception {
+        LocalDate from = LocalDate.of(2026, 10, 1);
+        LocalDate to = LocalDate.of(2026, 10, 13);
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime endExclusive = to.plusDays(1).atStartOfDay();
+        when(ticketSlaRepository.fetchSummary(start, endExclusive)).thenReturn(
+                new NagiosTicketSlaSummaryAggregateDto(100, 20, null, null, null, start, null));
+        when(ticketSlaRepository.countTicketsResolvedBetween(start, endExclusive)).thenReturn(3L);
+        when(ticketSlaRepository.countBreachedTicketsResolvedBetween(start, endExclusive)).thenReturn(1L);
+
+        var summary = nagiosTicketSlaService.fetchSummary(from, to);
+        var detailed = nagiosTicketSlaService.fetchSummaryDetailed(from, to);
+
+        assertThat(summary.breachPercentageType()).isEqualByComparingTo("33.33");
+        assertThat(detailed.breachPercentageType()).isEqualByComparingTo("33.33");
+        assertThat(summary.breachPercentage()).isEqualByComparingTo("20.00");
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        assertThat(mapper.readTree(mapper.writeValueAsString(summary)).get("breachPercentageType").decimalValue())
+                .isEqualByComparingTo("33.33");
+    }
+
+    @Test
+    void emptyResolutionRangeReturnsZeroBreachPercentageType() {
+        when(ticketSlaRepository.fetchSummary(any(), any())).thenReturn(
+                new NagiosTicketSlaSummaryAggregateDto(10, 5, null, null, null, null, null));
+        var summary = nagiosTicketSlaService.fetchSummary(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 13));
+        assertThat(summary.breachPercentageType()).isEqualByComparingTo("0.00");
+    }
+
+    @Test
     void fetchSnapshotReturnsMappedResponse() {
         Ticket ticket = new Ticket();
         ticket.setId("ticket-id");
@@ -105,6 +135,7 @@ class NagiosTicketSlaServiceTest {
                 0L,
                 0L,
                 0L,
+                BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,

@@ -17,6 +17,24 @@ import java.util.Optional;
 
 @Repository
 public interface TicketSlaRepository extends JpaRepository<TicketSla, String> {
+    @Query(value = """
+            SELECT COUNT(*) FROM tickets t
+            WHERE (:fromDate IS NULL OR t.resolved_at >= :fromDate)
+              AND t.resolved_at < :toDateExclusive
+            """, nativeQuery = true)
+    long countTicketsResolvedBetween(@Param("fromDate") LocalDateTime fromDate,
+                                     @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+    @Query(value = """
+            SELECT COUNT(*) FROM tickets t
+            WHERE (:fromDate IS NULL OR t.resolved_at >= :fromDate)
+              AND t.resolved_at < :toDateExclusive
+              AND EXISTS (SELECT 1 FROM ticket_sla sla
+                          WHERE sla.ticket_id = t.ticket_id AND sla.breached_by_minutes > 0)
+            """, nativeQuery = true)
+    long countBreachedTicketsResolvedBetween(@Param("fromDate") LocalDateTime fromDate,
+                                             @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
     Optional<TicketSla> findByTicket_Id(String ticketId);
 
     @Query("SELECT DISTINCT sla FROM TicketSla sla LEFT JOIN FETCH sla.ticket")
